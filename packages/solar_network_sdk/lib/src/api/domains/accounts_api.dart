@@ -640,7 +640,7 @@ class AccountsApi extends BaseApi {
         'take': take,
         'offset': offset,
         'includeNotableDays': includeNotableDays,
-        if (tag != null) 'tag': tag,
+        'tag': ?tag,
       },
     );
     final totalCount = int.parse(response.headers.value('X-Total') ?? '0');
@@ -670,7 +670,7 @@ class AccountsApi extends BaseApi {
         'take': take,
         'offset': offset,
         'includeNotableDays': includeNotableDays,
-        if (tag != null) 'tag': tag,
+        'tag': ?tag,
       },
     );
     final totalCount = int.parse(response.headers.value('X-Total') ?? '0');

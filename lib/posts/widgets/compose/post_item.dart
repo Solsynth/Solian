@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +28,10 @@ import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/sharing/share_sheet.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -77,12 +80,6 @@ class PostActionableItem extends HookConsumerWidget {
                   true),
       [user, publishersManaged],
     );
-
-    Widget buildMenuItem({required String label, required IconData icon}) {
-      return Row(
-        children: [Icon(icon), const SizedBox(width: 12), Text(label)],
-      );
-    }
 
     void Function() getMenuAction(String action) {
       switch (action) {
@@ -315,154 +312,179 @@ class PostActionableItem extends HookConsumerWidget {
       }
     }
 
-    final postMenuItems = <PopupMenuEntry<String>>[
-      if (isAuthor)
-        PopupMenuItem<String>(
-          value: 'edit',
-          child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
-        ),
-      if (isAuthor)
-        PopupMenuItem<String>(
-          value: 'delete',
-          child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
-        ),
-      if (isAuthor) const PopupMenuDivider(),
-      PopupMenuItem<String>(
-        value: 'copyLink',
-        child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
-      ),
-      PopupMenuItem<String>(
-        value: 'reply',
-        child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
-      ),
-      PopupMenuItem<String>(
-        value: 'forward',
-        child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
-      ),
-      if (isAuthor && item.pinMode == null)
-        PopupMenuItem<String>(
-          value: 'pin',
-          child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
-        )
-      else if (isAuthor && item.pinMode != null)
-        PopupMenuItem<String>(
-          value: 'unpin',
-          child: buildMenuItem(label: 'unpinPost'.tr(), icon: Symbols.keep_off),
-        ),
-      PopupMenuItem<String>(
-        value: 'award',
-        child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem<String>(
-        value: 'boost',
-        child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
-      ),
-      PopupMenuItem<String>(
-        value: 'bookmark',
-        child: buildMenuItem(
-          label: item.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
-          icon: item.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
-        ),
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem<String>(
-        value: 'share',
-        child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
-      ),
-      if (isAuthor)
-        PopupMenuItem<String>(
-          value: 'collections',
-          child: buildMenuItem(
-            label: 'collections'.tr(),
-            icon: Symbols.collections,
-          ),
-        ),
-      if (!kIsWeb)
-        PopupMenuItem<String>(
-          value: 'sharePhoto',
-          child: buildMenuItem(
-            label: 'sharePostPhoto'.tr(),
-            icon: Symbols.share_reviews,
-          ),
-        ),
-      if (item.fediverseUri != null)
-        PopupMenuItem<String>(
-          value: 'openBrowser',
-          child: buildMenuItem(
-            label: 'openInBrowser'.tr(),
-            icon: Symbols.open_in_new,
-          ),
-        ),
-      const PopupMenuDivider(),
-      PopupMenuItem<String>(
-        value: 'showMoreLikeThis',
-        child: buildMenuItem(
-          label: 'showMoreLikeThis'.tr(),
-          icon: Symbols.thumb_up,
-        ),
-      ),
-      PopupMenuItem<String>(
-        value: 'showLessLikeThis',
-        child: buildMenuItem(
-          label: 'showLessLikeThis'.tr(),
-          icon: Symbols.thumb_down,
-        ),
-      ),
-      PopupMenuItem<String>(
-        value: 'notInterested',
-        child: buildMenuItem(
-          label: 'notInterested'.tr(),
-          icon: Symbols.hide_source,
-        ),
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem<String>(
-        value: 'report',
-        child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
-      ),
-    ];
+    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-    final trailing = PopupMenuButton<String>(
-      icon: const Icon(Symbols.more_horiz),
-      style: ButtonStyle(
-        visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
-        minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
-      ),
-      itemBuilder: (context) => postMenuItems,
-      onSelected: (action) => getMenuAction(action)(),
-    );
+    void showPostActionSheet() {
+      showModalBottomSheet(
+        context: context,
+        useRootNavigator: true,
+        builder: (context) => PostActionSheet(
+          item: item,
+          isAuthor: isAuthor,
+          onAction: (action) {
+            Navigator.pop(context);
+            getMenuAction(action)();
+          },
+        ),
+      );
+    }
 
-    final widgetItem = InkWell(
-      borderRadius: borderRadius != null
-          ? BorderRadius.all(Radius.circular(borderRadius!))
-          : null,
-      child: PostItem(
-        key: key,
-        item: item,
-        padding: padding,
-        isFullPost: isFullPost,
-        isShowReference: isShowReference,
-        isEmbedReply: isEmbedReply,
-        isEmbedOpenable: isEmbedOpenable,
-        isTextSelectable: false,
-        isCompact: isCompact,
-        hideAttachments: hideAttachments,
-        onRefresh: onRefresh,
-        onUpdate: onUpdate,
-        onOpen: onOpen,
-        trailing: trailing,
-        onPostTap: onPostTap,
-      ),
-      onTap: () {
-        if (onTap != null) {
-          onTap!();
-          return;
-        }
-        onOpen?.call();
-        context.router.push(PostDetailRoute(id: item.id));
+    final trailing = isMobile
+        ? IconButton(
+            icon: const Icon(Symbols.more_horiz),
+            style: ButtonStyle(
+              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+              padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+              minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+            ),
+            onPressed: showPostActionSheet,
+          )
+        : IconButton(
+            icon: const Icon(Symbols.more_horiz),
+            style: ButtonStyle(
+              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+              padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+              minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+            ),
+            onPressed: showPostActionSheet,
+          );
+
+    final widgetItem = ContextMenuWidget(
+      menuProvider: (_) {
+        return Menu(
+          children: [
+            if (isAuthor)
+              MenuAction(
+                title: 'edit'.tr(),
+                image: MenuImage.icon(Symbols.edit),
+                callback: () => getMenuAction('edit')(),
+              ),
+            if (isAuthor)
+              MenuAction(
+                title: 'delete'.tr(),
+                image: MenuImage.icon(Symbols.delete),
+                callback: () => getMenuAction('delete')(),
+              ),
+            MenuAction(
+              title: 'copyLink'.tr(),
+              image: MenuImage.icon(Symbols.link),
+              callback: () => getMenuAction('copyLink')(),
+            ),
+            MenuAction(
+              title: 'reply'.tr(),
+              image: MenuImage.icon(Symbols.reply),
+              callback: () => getMenuAction('reply')(),
+            ),
+            MenuAction(
+              title: 'forward'.tr(),
+              image: MenuImage.icon(Symbols.forward),
+              callback: () => getMenuAction('forward')(),
+            ),
+            if (isAuthor && item.pinMode == null)
+              MenuAction(
+                title: 'pinPost'.tr(),
+                image: MenuImage.icon(Symbols.keep),
+                callback: () => getMenuAction('pin')(),
+              ),
+            if (isAuthor && item.pinMode != null)
+              MenuAction(
+                title: 'unpinPost'.tr(),
+                image: MenuImage.icon(Symbols.keep_off),
+                callback: () => getMenuAction('unpin')(),
+              ),
+            MenuAction(
+              title: 'award'.tr(),
+              image: MenuImage.icon(Symbols.star),
+              callback: () => getMenuAction('award')(),
+            ),
+            MenuAction(
+              title: 'boosts'.tr(),
+              image: MenuImage.icon(Symbols.repeat),
+              callback: () => getMenuAction('boost')(),
+            ),
+            MenuAction(
+              title: item.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+              image: MenuImage.icon(
+                item.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+              ),
+              callback: () => getMenuAction('bookmark')(),
+            ),
+            MenuAction(
+              title: 'share'.tr(),
+              image: MenuImage.icon(Symbols.share),
+              callback: () => getMenuAction('share')(),
+            ),
+            if (isAuthor)
+              MenuAction(
+                title: 'collections'.tr(),
+                image: MenuImage.icon(Symbols.collections),
+                callback: () => getMenuAction('collections')(),
+              ),
+            if (!kIsWeb)
+              MenuAction(
+                title: 'sharePostPhoto'.tr(),
+                image: MenuImage.icon(Symbols.share_reviews),
+                callback: () => getMenuAction('sharePhoto')(),
+              ),
+            if (item.fediverseUri != null)
+              MenuAction(
+                title: 'openInBrowser'.tr(),
+                image: MenuImage.icon(Symbols.open_in_new),
+                callback: () => getMenuAction('openBrowser')(),
+              ),
+            MenuAction(
+              title: 'showMoreLikeThis'.tr(),
+              image: MenuImage.icon(Symbols.thumb_up),
+              callback: () => getMenuAction('showMoreLikeThis')(),
+            ),
+            MenuAction(
+              title: 'showLessLikeThis'.tr(),
+              image: MenuImage.icon(Symbols.thumb_down),
+              callback: () => getMenuAction('showLessLikeThis')(),
+            ),
+            MenuAction(
+              title: 'notInterested'.tr(),
+              image: MenuImage.icon(Symbols.hide_source),
+              callback: () => getMenuAction('notInterested')(),
+            ),
+            MenuAction(
+              title: 'abuseReport'.tr(),
+              image: MenuImage.icon(Symbols.flag),
+              callback: () => getMenuAction('report')(),
+            ),
+          ],
+        );
       },
+      child: InkWell(
+        borderRadius: borderRadius != null
+            ? BorderRadius.all(Radius.circular(borderRadius!))
+            : null,
+        child: PostItem(
+          key: key,
+          item: item,
+          padding: padding,
+          isFullPost: isFullPost,
+          isShowReference: isShowReference,
+          isEmbedReply: isEmbedReply,
+          isEmbedOpenable: isEmbedOpenable,
+          isTextSelectable: false,
+          isCompact: isCompact,
+          hideAttachments: hideAttachments,
+          onRefresh: onRefresh,
+          onUpdate: onUpdate,
+          onOpen: onOpen,
+          trailing: trailing,
+          onPostTap: onPostTap,
+        ),
+        onTap: () {
+          if (onTap != null) {
+            onTap!();
+            return;
+          }
+          onOpen?.call();
+          context.router.push(PostDetailRoute(id: item.id));
+        },
+      ),
     );
 
     return widgetItem;
@@ -768,6 +790,223 @@ Widget buildPostTranslationSection({
   }
 
   return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+}
+
+class PostActionSheet extends StatelessWidget {
+  final SnPost item;
+  final bool isAuthor;
+  final Function(String) onAction;
+
+  const PostActionSheet({
+    super.key,
+    required this.item,
+    required this.isAuthor,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryActions = <Widget>[
+      _PostActionListTile(
+        leading: Icon(Symbols.reply),
+        title: Text('reply'.tr()),
+        onTap: () => onAction('reply'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.forward),
+        title: Text('forward'.tr()),
+        onTap: () => onAction('forward'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.link),
+        title: Text('copyLink'.tr()),
+        onTap: () => onAction('copyLink'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.star),
+        title: Text('award'.tr()),
+        onTap: () => onAction('award'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.repeat),
+        title: Text('boosts'.tr()),
+        onTap: () => onAction('boost'),
+      ),
+      _PostActionListTile(
+        leading: Icon(
+          item.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+        ),
+        title: Text(item.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr()),
+        onTap: () => onAction('bookmark'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.share),
+        title: Text('share'.tr()),
+        onTap: () => onAction('share'),
+      ),
+      if (!kIsWeb)
+        _PostActionListTile(
+          leading: Icon(Symbols.share_reviews),
+          title: Text('sharePostPhoto'.tr()),
+          onTap: () => onAction('sharePhoto'),
+        ),
+      if (item.fediverseUri != null)
+        _PostActionListTile(
+          leading: Icon(Symbols.open_in_new),
+          title: Text('openInBrowser'.tr()),
+          onTap: () => onAction('openBrowser'),
+        ),
+    ];
+
+    final authorActions = <Widget>[
+      if (isAuthor)
+        _PostActionListTile(
+          leading: Icon(Symbols.edit),
+          title: Text('edit'.tr()),
+          onTap: () => onAction('edit'),
+        ),
+      if (isAuthor && item.pinMode == null)
+        _PostActionListTile(
+          leading: Icon(Symbols.keep),
+          title: Text('pinPost'.tr()),
+          onTap: () => onAction('pin'),
+        ),
+      if (isAuthor && item.pinMode != null)
+        _PostActionListTile(
+          leading: Icon(Symbols.keep_off),
+          title: Text('unpinPost'.tr()),
+          onTap: () => onAction('unpin'),
+        ),
+      if (isAuthor)
+        _PostActionListTile(
+          leading: Icon(Symbols.collections),
+          title: Text('collections'.tr()),
+          onTap: () => onAction('collections'),
+        ),
+      if (isAuthor)
+        _PostActionListTile(
+          leading: Icon(Symbols.delete),
+          title: Text('delete'.tr()),
+          onTap: () => onAction('delete'),
+          isDanger: true,
+        ),
+    ];
+
+    final feedbackActions = <Widget>[
+      _PostActionListTile(
+        leading: Icon(Symbols.thumb_up),
+        title: Text('showMoreLikeThis'.tr()),
+        onTap: () => onAction('showMoreLikeThis'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.thumb_down),
+        title: Text('showLessLikeThis'.tr()),
+        onTap: () => onAction('showLessLikeThis'),
+      ),
+      _PostActionListTile(
+        leading: Icon(Symbols.hide_source),
+        title: Text('notInterested'.tr()),
+        onTap: () => onAction('notInterested'),
+      ),
+    ];
+
+    final reportActions = <Widget>[
+      _PostActionListTile(
+        leading: Icon(Symbols.flag),
+        title: Text('abuseReport'.tr()),
+        onTap: () => onAction('report'),
+      ),
+    ];
+
+    return SheetScaffold(
+      titleText: 'postActions'.tr(),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (primaryActions.isNotEmpty)
+              _PostActionSection(children: primaryActions),
+            if (authorActions.isNotEmpty)
+              _PostActionSection(children: authorActions),
+            if (feedbackActions.isNotEmpty)
+              _PostActionSection(children: feedbackActions),
+            if (reportActions.isNotEmpty)
+              _PostActionSection(children: reportActions),
+            Gap(MediaQuery.of(context).padding.bottom + 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PostActionSection extends StatelessWidget {
+  final List<Widget> children;
+
+  const _PostActionSection({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    );
+  }
+}
+
+class _PostActionListTile extends StatelessWidget {
+  final Widget leading;
+  final Widget title;
+  final VoidCallback onTap;
+  final bool isDanger;
+
+  const _PostActionListTile({
+    required this.leading,
+    required this.title,
+    required this.onTap,
+    this.isDanger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground =
+        isDanger ? theme.colorScheme.error : theme.colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: foreground),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Row(
+              children: [
+                SizedBox(width: 24, height: 24, child: leading),
+                const Gap(12),
+                Expanded(child: title),
+                Icon(
+                  Symbols.chevron_right,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class PostReactionList extends HookConsumerWidget {

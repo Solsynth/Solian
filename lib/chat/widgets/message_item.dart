@@ -35,6 +35,7 @@ import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final kTextSelectable = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
@@ -98,6 +99,13 @@ class MessageItem extends HookConsumerWidget {
   static const kFlashDuration = 300;
   static const kFlashInterval = 120;
 
+  bool get _hasSelectableText {
+    final remoteMessage = message.toRemoteMessage();
+    final resolvedDisplay = resolveE2eeDisplayContentForMessage(remoteMessage);
+    final content = resolvedDisplay.content?.trim() ?? '';
+    return content.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final remoteMessage = message.toRemoteMessage();
@@ -114,9 +122,10 @@ class MessageItem extends HookConsumerWidget {
     final identity = identityAsync.value;
     final canPin = room == null
         ? false
-        : room.type == 1 // DM: any member can pin
-            ? true
-            : room.accountId == identity?.accountId; // Group: owner only
+        : room.type ==
+              1 // DM: any member can pin
+        ? true
+        : room.accountId == identity?.accountId; // Group: owner only
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     final swipeEnabled = isMobile && onAction != null && !isSelectionMode;
@@ -343,117 +352,204 @@ class MessageItem extends HookConsumerWidget {
                   return false;
                 }
               : null,
-          child: InkWell(
-            mouseCursor: MouseCursor.defer,
-            focusColor: Colors.transparent,
-            onSecondaryTap: showActionMenu,
-            onTap: () {
-              if (isSelectionMode && onToggleSelection != null) {
-                onToggleSelection!(message.id);
-              } else {
-                // Jump to related message
-                if ([
-                      'messages.update',
-                      'messages.delete',
-                      'messages.reaction.added',
-                      'messages.reaction.removed',
-                      'messages.pinned',
-                      'messages.unpinned',
-                    ].contains(message.type) &&
-                    message.meta['message_id'] is String &&
-                    message.meta['message_id'] != null) {
-                  onJump(message.meta['message_id']);
-                }
-              }
-            },
-            child: SizedBox(
-              width: double.infinity,
-              child: MouseRegion(
-                onEnter: (_) => isHovered.value = true,
-                onExit: (_) => isHovered.value = false,
-                child: AnimatedContainer(
-                  curve: Curves.easeInOut,
-                  duration: Duration.zero,
-                  decoration: BoxDecoration(color: flashColor),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (isPinned)
-                        Padding(
-                          padding: EdgeInsets.only(
-                            left: showAvatar ? 48 : 16,
-                            right: 16,
-                            bottom: 2,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Symbols.push_pin,
-                                size: 12,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withOpacity(0.6),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'pinnedMessage'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant
-                                          .withOpacity(0.6),
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      switch (settings.messageDisplayStyle) {
-                        'compact' => MessageItemDisplayIRC(
-                          message: message,
-                          isCurrentUser: isCurrentUser,
-                          progress: progress,
-                          showAvatar: showAvatar,
-                          onJump: onJump,
-                          translatedText: translatedText.value,
-                          translating: translating.value,
-                        ),
-                        'column' => MessageItemDisplayDiscord(
-                          message: message,
-                          isCurrentUser: isCurrentUser,
-                          progress: progress,
-                          showAvatar: showAvatar,
-                          showColumnAvatar: showColumnAvatar,
-                          onJump: onJump,
-                          translatedText: translatedText.value,
-                          translating: translating.value,
-                        ),
-                        _ => MessageItemDisplayBubble(
-                          message: message,
-                          isCurrentUser: isCurrentUser,
-                          progress: progress,
-                          showAvatar: showAvatar,
-                          showBubbleAvatar: showBubbleAvatar,
-                          onJump: onJump,
-                          translatedText: translatedText.value,
-                          translating: translating.value,
-                        ),
+          child: ContextMenuWidget(
+            menuProvider: (_) {
+              return Menu(
+                children: [
+                  if (!isCurrentUser)
+                    MenuAction(
+                      title: 'reply'.tr(),
+                      image: MenuImage.icon(Symbols.reply),
+                      callback: () => onAction?.call(MessageItemAction.reply),
+                    ),
+                  MenuAction(
+                    title: 'forward'.tr(),
+                    image: MenuImage.icon(Symbols.forward),
+                    callback: () => onAction?.call(MessageItemAction.forward),
+                  ),
+                  if (message.type == 'text')
+                    MenuAction(
+                      title: 'redirect'.tr(),
+                      image: MenuImage.icon(Symbols.send),
+                      callback: () =>
+                          onAction?.call(MessageItemAction.redirect),
+                    ),
+                  MenuAction(
+                    title: 'react'.tr(),
+                    image: MenuImage.icon(Symbols.add_reaction),
+                    callback: () => openReactionSheet(),
+                  ),
+                  if (_hasSelectableText)
+                    MenuAction(
+                      title: 'chatSelectText'.tr(),
+                      image: MenuImage.icon(Symbols.text_select_start),
+                      callback: () {
+                        // Handle text selection
                       },
-                      MessageReactionChips(
-                        displayStyle: settings.messageDisplayStyle,
-                        isCurrentUser: isCurrentUser,
-                        showAvatar: showAvatar,
-                        reactionsCount: reactionsCount,
-                        reactionsMade: reactionsMade,
-                        isExpanded: isSystemInfoExpanded.value,
-                        submitting: reacting.value,
-                        onReact: reactMessage,
+                    ),
+                  MenuAction(
+                    title: 'chatSelectMessages'.tr(),
+                    image: MenuImage.icon(Symbols.select_all),
+                    callback: () {
+                      if (onEnterSelectionMode != null) {
+                        onEnterSelectionMode!();
+                        if (onToggleSelection != null) {
+                          onToggleSelection!(message.id);
+                        }
+                      }
+                    },
+                  ),
+                  if (canPin)
+                    MenuAction(
+                      title: isPinned ? 'unpinMessage'.tr() : 'pinMessage'.tr(),
+                      image: MenuImage.icon(
+                        isPinned ? Icons.push_pin_outlined : Symbols.push_pin,
                       ),
-                    ],
+                      callback: () => onAction?.call(
+                        isPinned
+                            ? MessageItemAction.unpin
+                            : MessageItemAction.pin,
+                      ),
+                    ),
+                  if (translatableLanguage)
+                    MenuAction(
+                      title: translatedText.value?.isEmpty == null
+                          ? 'translate'.tr()
+                          : 'translated'.tr(),
+                      image: MenuImage.icon(Symbols.translate),
+                      callback: translate,
+                    ),
+                  if (isCurrentUser)
+                    MenuAction(
+                      title: 'edit'.tr(),
+                      image: MenuImage.icon(Symbols.edit),
+                      callback: () => onAction?.call(MessageItemAction.edit),
+                    ),
+                  if (isCurrentUser && message.status == MessageStatus.failed)
+                    MenuAction(
+                      title: 'resend'.tr(),
+                      image: MenuImage.icon(Symbols.refresh),
+                      callback: () => onAction?.call(MessageItemAction.resend),
+                    ),
+                  if (isCurrentUser)
+                    MenuAction(
+                      title: 'delete'.tr(),
+                      image: MenuImage.icon(Symbols.delete),
+                      callback: () => onAction?.call(MessageItemAction.delete),
+                    ),
+                ],
+              );
+            },
+            child: InkWell(
+              mouseCursor: MouseCursor.defer,
+              focusColor: Colors.transparent,
+              onSecondaryTap: isMobile ? showActionMenu : null,
+              onTap: () {
+                if (isSelectionMode && onToggleSelection != null) {
+                  onToggleSelection!(message.id);
+                } else {
+                  // Jump to related message
+                  if ([
+                        'messages.update',
+                        'messages.delete',
+                        'messages.reaction.added',
+                        'messages.reaction.removed',
+                        'messages.pinned',
+                        'messages.unpinned',
+                      ].contains(message.type) &&
+                      message.meta['message_id'] is String &&
+                      message.meta['message_id'] != null) {
+                    onJump(message.meta['message_id']);
+                  }
+                }
+              },
+              child: SizedBox(
+                width: double.infinity,
+                child: MouseRegion(
+                  onEnter: (_) => isHovered.value = true,
+                  onExit: (_) => isHovered.value = false,
+                  child: AnimatedContainer(
+                    curve: Curves.easeInOut,
+                    duration: Duration.zero,
+                    decoration: BoxDecoration(color: flashColor),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isPinned)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: showAvatar ? 48 : 16,
+                              right: 16,
+                              bottom: 2,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Symbols.push_pin,
+                                  size: 12,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant
+                                      .withOpacity(0.6),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'pinnedMessage'.tr(),
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant
+                                            .withOpacity(0.6),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        switch (settings.messageDisplayStyle) {
+                          'compact' => MessageItemDisplayIRC(
+                            message: message,
+                            isCurrentUser: isCurrentUser,
+                            progress: progress,
+                            showAvatar: showAvatar,
+                            onJump: onJump,
+                            translatedText: translatedText.value,
+                            translating: translating.value,
+                          ),
+                          'column' => MessageItemDisplayDiscord(
+                            message: message,
+                            isCurrentUser: isCurrentUser,
+                            progress: progress,
+                            showAvatar: showAvatar,
+                            showColumnAvatar: showColumnAvatar,
+                            onJump: onJump,
+                            translatedText: translatedText.value,
+                            translating: translating.value,
+                          ),
+                          _ => MessageItemDisplayBubble(
+                            message: message,
+                            isCurrentUser: isCurrentUser,
+                            progress: progress,
+                            showAvatar: showAvatar,
+                            showBubbleAvatar: showBubbleAvatar,
+                            onJump: onJump,
+                            translatedText: translatedText.value,
+                            translating: translating.value,
+                          ),
+                        },
+                        MessageReactionChips(
+                          displayStyle: settings.messageDisplayStyle,
+                          isCurrentUser: isCurrentUser,
+                          showAvatar: showAvatar,
+                          reactionsCount: reactionsCount,
+                          reactionsMade: reactionsMade,
+                          isExpanded: isSystemInfoExpanded.value,
+                          submitting: reacting.value,
+                          onReact: reactMessage,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -677,9 +773,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
           ),
           onTap: () {
             widget.onAction!.call(
-              widget.isPinned
-                  ? MessageItemAction.unpin
-                  : MessageItemAction.pin,
+              widget.isPinned ? MessageItemAction.unpin : MessageItemAction.pin,
             );
             Navigator.pop(context);
           },
