@@ -180,10 +180,12 @@ class PluginManager {
       }
 
       final source = await entryFile.readAsString();
+      _activePluginId = pluginId;
       final result = instance.runtime!.execWithOutput(
         source,
         filename: entryPath,
       );
+      _activePluginId = null;
 
       if (!result.success) {
         instance.state = PluginState.error;
@@ -353,10 +355,12 @@ class PluginManager {
     _registerPluginApis(instance);
 
     // Execute inline source
+    _activePluginId = pluginId;
     final result = instance.runtime!.execWithOutput(
       source,
       filename: '<inline:$pluginId>',
     );
+    _activePluginId = null;
 
     if (result.success) {
       _callPluginHook(instance, 'on_load');
@@ -486,9 +490,10 @@ class PluginManager {
     final runtime = instance.runtime;
     if (runtime == null) return;
 
-    // Check if the function exists and call it
+    // Use bracket notation so names with dots (e.g. "on_message.received") work.
+    final escaped = _jsStringLiteral(hookName);
     runtime.exec(
-      'if (typeof $hookName === "function") { $hookName(); }',
+      'if (typeof globalThis[$escaped] === "function") { globalThis[$escaped](); }',
       filename: '<hook:$hookName>',
     );
   }
@@ -501,15 +506,18 @@ class PluginManager {
         continue;
       }
 
+      // Fire lifecycle hook (e.g. on_message.received)
       _callPluginHook(instance, 'on_$eventName');
+
       if (data != null) {
-        // Call handle_<event> with data argument
+        // Call handle_<event> with data argument — use bracket notation for dotted names
         final handlerName = 'handle_$eventName';
         final runtime = instance.runtime;
         if (runtime != null) {
           final dataJson = jsonEncode(data);
+          final escaped = _jsStringLiteral(handlerName);
           runtime.exec(
-            'if (typeof $handlerName === "function") { $handlerName(JSON.parse(${_jsStringLiteral(dataJson)})); }',
+            'if (typeof globalThis[$escaped] === "function") { globalThis[$escaped](JSON.parse(${_jsStringLiteral(dataJson)})); }',
             filename: '<event:$eventName>',
           );
         }
