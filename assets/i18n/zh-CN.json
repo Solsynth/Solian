@@ -1599,6 +1599,8 @@
   "fileMetadata": "文件元数据",
   "resend": "重新发送",
   "fileInfoTitle": "文件信息",
+  "fileActions": "文件操作",
+  "inspect": "检查",
   "saveToGallery": "保存到相册",
   "downloadAndSaveToDevice": "下载并保存到设备",
   "selectDownloadFolder": "选择下载文件夹",

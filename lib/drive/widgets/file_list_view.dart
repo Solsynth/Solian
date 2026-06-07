@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -882,17 +884,118 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) {
+    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+    void handleAction(String action) {
+      switch (action) {
+        case 'inspect':
+          onInspectFile(file);
+          break;
+        case 'download':
+          ref.read(driveFileDownloaderProvider).downloadFile(
+                file,
+                useDownloadsFolder:
+                    HardwareKeyboard.instance.isShiftPressed,
+              );
+          break;
+        case 'rename':
+          CloudFileActionsSheet.showRenameSheet(
+            context: context,
+            file: file,
+            onRenamed: (_) {
+              ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+            },
+          );
+          break;
+        case 'moveToFolder':
+          _showMoveToFolderSheet(
+            context: context,
+            ref: ref,
+            fileId: file.id,
+            fileName: file.name,
+            isUnindexed: false,
+          );
+          break;
+        case 'share':
+          final url = file.storageUrl ?? file.id;
+          Share.share(url);
+          break;
+        case 'copyLink':
+          Clipboard.setData(
+            ClipboardData(text: file.storageUrl ?? file.id),
+          );
+          showSnackBar('linkCopied'.tr());
+          break;
+        case 'fileInfo':
+          showModalBottomSheet(
+            useRootNavigator: true,
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => FileInfoSheet(item: file),
+          );
+          break;
+        case 'delete':
+          showConfirmAlert(
+            'confirmDeleteFile'.tr(),
+            'deleteFile'.tr(),
+            isDanger: true,
+          ).then((confirmed) async {
+            if (!confirmed) return;
+
+            if (context.mounted) {
+              showLoadingModal(context);
+            }
+            try {
+              await ref
+                  .read(driveFileUploaderProvider)
+                  .deleteFile(file.id);
+              ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+            } catch (e) {
+              showSnackBar('failedToDeleteFile'.tr());
+            } finally {
+              if (context.mounted) {
+                hideLoadingModal(context);
+              }
+            }
+          });
+          break;
+        case 'more':
+          CloudFileActionsSheet.show(
+            context: context,
+            item: file,
+            onRenamed: (_) {
+              ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+            },
+          );
+          break;
+      }
+    }
+
     return [
       IconButton(
         tooltip: 'download'.tr(),
         icon: const Icon(Symbols.download),
-        onPressed: () => ref
-            .read(driveFileDownloaderProvider)
-            .downloadFile(
-              file,
-              useDownloadsFolder: HardwareKeyboard.instance.isShiftPressed,
-            ),
+        onPressed: () => handleAction('download'),
       ),
+      if (isMobile)
+        IconButton(
+          tooltip: 'more'.tr(),
+          icon: const Icon(Symbols.more_vert),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              useRootNavigator: true,
+              builder: (context) => FileActionSheet(
+                file: file,
+                isUnindexed: false,
+                onAction: (action) {
+                  Navigator.pop(context);
+                  handleAction(action);
+                },
+              ),
+            );
+          },
+        ),
     ];
   }
 
@@ -2332,5 +2435,169 @@ class _FolderSelectorListNotifier
     }
 
     return (found: true, parentId: parentId);
+  }
+}
+
+class FileActionSheet extends StatelessWidget {
+  final SnCloudFile file;
+  final bool isUnindexed;
+  final Function(String) onAction;
+
+  const FileActionSheet({
+    super.key,
+    required this.file,
+    required this.isUnindexed,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryActions = <Widget>[
+      _FileActionListTile(
+        leading: Icon(Symbols.info),
+        title: Text('inspect'.tr()),
+        onTap: () => onAction('inspect'),
+      ),
+      if (!file.isFolder) ...[
+        _FileActionListTile(
+          leading: Icon(Symbols.download),
+          title: Text('download'.tr()),
+          onTap: () => onAction('download'),
+        ),
+        if (!isUnindexed) ...[
+          _FileActionListTile(
+            leading: Icon(Symbols.edit),
+            title: Text('rename'.tr()),
+            onTap: () => onAction('rename'),
+          ),
+          _FileActionListTile(
+            leading: Icon(Symbols.drive_file_move),
+            title: Text('moveToFolder'.tr()),
+            onTap: () => onAction('moveToFolder'),
+          ),
+          _FileActionListTile(
+            leading: Icon(Symbols.share),
+            title: Text('share'.tr()),
+            onTap: () => onAction('share'),
+          ),
+          _FileActionListTile(
+            leading: Icon(Symbols.content_copy),
+            title: Text('copyLink'.tr()),
+            onTap: () => onAction('copyLink'),
+          ),
+          _FileActionListTile(
+            leading: Icon(Symbols.info),
+            title: Text('fileInfoTitle'.tr()),
+            onTap: () => onAction('fileInfo'),
+          ),
+        ],
+      ],
+    ];
+
+    final dangerActions = <Widget>[
+      if (!file.isFolder)
+        _FileActionListTile(
+          leading: Icon(Symbols.delete),
+          title: Text('delete'.tr()),
+          onTap: () => onAction('delete'),
+          isDanger: true,
+        ),
+    ];
+
+    final moreActions = <Widget>[
+      if (!file.isFolder && !isUnindexed)
+        _FileActionListTile(
+          leading: Icon(Symbols.menu_open),
+          title: Text('more'.tr()),
+          onTap: () => onAction('more'),
+        ),
+    ];
+
+    return SheetScaffold(
+      titleText: 'fileActions'.tr(),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (primaryActions.isNotEmpty)
+              _FileActionSection(children: primaryActions),
+            if (dangerActions.isNotEmpty)
+              _FileActionSection(children: dangerActions),
+            if (moreActions.isNotEmpty)
+              _FileActionSection(children: moreActions),
+            Gap(MediaQuery.of(context).padding.bottom + 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FileActionSection extends StatelessWidget {
+  final List<Widget> children;
+
+  const _FileActionSection({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    );
+  }
+}
+
+class _FileActionListTile extends StatelessWidget {
+  final Widget leading;
+  final Widget title;
+  final VoidCallback onTap;
+  final bool isDanger;
+
+  const _FileActionListTile({
+    required this.leading,
+    required this.title,
+    required this.onTap,
+    this.isDanger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground =
+        isDanger ? theme.colorScheme.error : theme.colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: foreground),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Row(
+              children: [
+                SizedBox(width: 24, height: 24, child: leading),
+                const Gap(12),
+                Expanded(child: title),
+                Icon(
+                  Symbols.chevron_right,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
