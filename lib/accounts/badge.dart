@@ -1,11 +1,10 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/svg_helper.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class BadgeInfo {
@@ -209,8 +208,8 @@ class _CachedSvgIcon extends StatefulWidget {
 }
 
 class _CachedSvgIconState extends State<_CachedSvgIcon> {
-  File? _cachedFile;
   bool _loading = true;
+  String? _cachedSvgContent;
 
   @override
   void initState() {
@@ -228,21 +227,30 @@ class _CachedSvgIconState extends State<_CachedSvgIcon> {
 
   Future<void> _loadCachedSvg() async {
     try {
-      final fileInfo = await DefaultCacheManager().getFileFromCache(widget.url);
-      if (!mounted) return;
-
-      if (fileInfo != null) {
+      if (kIsWeb) {
+        // On web, use network directly since dart:io File is not available
         setState(() {
-          _cachedFile = fileInfo.file;
+          _cachedSvgContent = widget.url;
           _loading = false;
         });
       } else {
-        final downloaded = await DefaultCacheManager().downloadFile(widget.url);
+        // On native, use cache manager
+        final fileInfo = await DefaultCacheManager().getFileFromCache(widget.url);
         if (!mounted) return;
-        setState(() {
-          _cachedFile = downloaded.file;
-          _loading = false;
-        });
+
+        if (fileInfo != null) {
+          setState(() {
+            _cachedSvgContent = fileInfo.file.path;
+            _loading = false;
+          });
+        } else {
+          final downloaded = await DefaultCacheManager().downloadFile(widget.url);
+          if (!mounted) return;
+          setState(() {
+            _cachedSvgContent = downloaded.file.path;
+            _loading = false;
+          });
+        }
       }
     } catch (_) {
       if (mounted) setState(() => _loading = false);
@@ -268,14 +276,14 @@ class _CachedSvgIconState extends State<_CachedSvgIcon> {
       );
     }
 
-    if (_cachedFile != null) {
-      return SvgPicture.file(
-        _cachedFile!,
+    if (_cachedSvgContent != null) {
+      return buildSvgFromFile(
+        _cachedSvgContent!,
         width: widget.size,
         height: widget.size,
         colorFilter: ColorFilter.mode(widget.color, BlendMode.srcIn),
-        placeholderBuilder: (_) =>
-            Icon(widget.fallbackIcon, size: widget.size, color: widget.color),
+        fallbackIcon: widget.fallbackIcon,
+        fallbackColor: widget.color,
       );
     }
 
