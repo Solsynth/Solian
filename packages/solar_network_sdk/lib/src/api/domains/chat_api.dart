@@ -155,6 +155,21 @@ class ChatApi extends BaseApi {
     await delete('$_basePath/chat/rooms/$roomId/messages/$messageId');
   }
 
+  /// Creates a placeholder message for streaming or uploading.
+  ///
+  /// [roomId] - The room ID.
+  /// [kind] - "streaming" or "uploading".
+  Future<SnChatMessage> createPlaceholder({
+    required String roomId,
+    required String kind,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/chat/rooms/$roomId/messages/placeholder',
+      data: {'kind': kind},
+    );
+    return SnChatMessage.fromJson(response.data!);
+  }
+
   /// Marks messages as read.
   ///
   /// [roomId] - The room ID.

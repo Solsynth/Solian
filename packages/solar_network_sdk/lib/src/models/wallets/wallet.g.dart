@@ -79,6 +79,7 @@ _SnWalletPocket _$SnWalletPocketFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       currency: json['currency'] as String,
       amount: (json['amount'] as num).toDouble(),
+      heldAmount: (json['held_amount'] as num?)?.toDouble() ?? 0,
       walletId: json['wallet_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -92,6 +93,7 @@ Map<String, dynamic> _$SnWalletPocketToJson(_SnWalletPocket instance) =>
       'id': instance.id,
       'currency': instance.currency,
       'amount': instance.amount,
+      'held_amount': instance.heldAmount,
       'wallet_id': instance.walletId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
@@ -105,6 +107,18 @@ _SnTransaction _$SnTransactionFromJson(Map<String, dynamic> json) =>
       amount: (json['amount'] as num).toDouble(),
       remarks: json['remarks'] as String?,
       type: (json['type'] as num).toInt(),
+      status: (json['status'] as num?)?.toInt() ?? 2,
+      isFrozen: json['is_frozen'] as bool? ?? false,
+      requireConfirmation: json['require_confirmation'] as bool? ?? false,
+      frozenAt: json['frozen_at'] == null
+          ? null
+          : DateTime.parse(json['frozen_at'] as String),
+      expiresAt: json['expires_at'] == null
+          ? null
+          : DateTime.parse(json['expires_at'] as String),
+      confirmedAt: json['confirmed_at'] == null
+          ? null
+          : DateTime.parse(json['confirmed_at'] as String),
       payerWalletId: json['payer_wallet_id'] as String?,
       payerWallet: json['payer_wallet'] == null
           ? null
@@ -127,6 +141,12 @@ Map<String, dynamic> _$SnTransactionToJson(_SnTransaction instance) =>
       'amount': instance.amount,
       'remarks': instance.remarks,
       'type': instance.type,
+      'status': instance.status,
+      'is_frozen': instance.isFrozen,
+      'require_confirmation': instance.requireConfirmation,
+      'frozen_at': instance.frozenAt?.toIso8601String(),
+      'expires_at': instance.expiresAt?.toIso8601String(),
+      'confirmed_at': instance.confirmedAt?.toIso8601String(),
       'payer_wallet_id': instance.payerWalletId,
       'payer_wallet': instance.payerWallet?.toJson(),
       'payee_wallet_id': instance.payeeWalletId,
@@ -336,6 +356,14 @@ _SnWalletFund _$SnWalletFundFromJson(Map<String, dynamic> json) =>
       creatorAccount: json['creator_account'] == null
           ? null
           : SnAccount.fromJson(json['creator_account'] as Map<String, dynamic>),
+      isRaising: json['is_raising'] as bool? ?? false,
+      targetAmount: (json['target_amount'] as num?)?.toDouble() ?? 0,
+      contributionType: (json['contribution_type'] as num?)?.toInt() ?? 0,
+      contributionAmount:
+          (json['contribution_amount'] as num?)?.toDouble() ?? 0,
+      deadlineAt: json['deadline_at'] == null
+          ? null
+          : DateTime.parse(json['deadline_at'] as String),
       expiredAt: DateTime.parse(json['expired_at'] as String),
       recipients: (json['recipients'] as List<dynamic>)
           .map((e) => SnWalletFundRecipient.fromJson(e as Map<String, dynamic>))
@@ -360,6 +388,11 @@ Map<String, dynamic> _$SnWalletFundToJson(_SnWalletFund instance) =>
       'message': instance.message,
       'creator_account_id': instance.creatorAccountId,
       'creator_account': instance.creatorAccount?.toJson(),
+      'is_raising': instance.isRaising,
+      'target_amount': instance.targetAmount,
+      'contribution_type': instance.contributionType,
+      'contribution_amount': instance.contributionAmount,
+      'deadline_at': instance.deadlineAt?.toIso8601String(),
       'expired_at': instance.expiredAt.toIso8601String(),
       'recipients': instance.recipients.map((e) => e.toJson()).toList(),
       'is_open': instance.isOpen,

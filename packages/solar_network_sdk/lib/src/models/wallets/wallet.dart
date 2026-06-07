@@ -48,6 +48,7 @@ sealed class SnWalletPocket with _$SnWalletPocket {
     required String id,
     required String currency,
     required double amount,
+    @Default(0) double heldAmount,
     required String walletId,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -58,6 +59,10 @@ sealed class SnWalletPocket with _$SnWalletPocket {
       _$SnWalletPocketFromJson(json);
 }
 
+extension SnWalletPocketX on SnWalletPocket {
+  double get availableAmount => amount - heldAmount;
+}
+
 @freezed
 sealed class SnTransaction with _$SnTransaction {
   const factory SnTransaction({
@@ -66,6 +71,12 @@ sealed class SnTransaction with _$SnTransaction {
     required double amount,
     required String? remarks,
     required int type,
+    @Default(2) int status, // 0: Pending, 1: Frozen, 2: Confirmed, 3: Refunded, 4: Cancelled
+    @Default(false) bool isFrozen,
+    @Default(false) bool requireConfirmation,
+    DateTime? frozenAt,
+    DateTime? expiresAt,
+    DateTime? confirmedAt,
     required String? payerWalletId,
     required SnWallet? payerWallet,
     required String? payeeWalletId,
@@ -77,6 +88,15 @@ sealed class SnTransaction with _$SnTransaction {
 
   factory SnTransaction.fromJson(Map<String, dynamic> json) =>
       _$SnTransactionFromJson(json);
+}
+
+/// Transaction status enum matching the server.
+abstract class TransactionStatus {
+  static const int pending = 0;
+  static const int frozen = 1;
+  static const int confirmed = 2;
+  static const int refunded = 3;
+  static const int cancelled = 4;
 }
 
 @freezed
@@ -186,10 +206,16 @@ sealed class SnWalletFund with _$SnWalletFund {
     required int amountOfSplits,
     required int splitType, // 0: even, 1: random
     required int
-    status, // 0: created, 1: partially claimed, 2: fully claimed, 3: expired
+    status, // 0: created, 1: partially claimed, 2: fully claimed, 3: expired, 4: refunded
     required String? message,
     required String creatorAccountId,
     required SnAccount? creatorAccount,
+    // Raising mode fields
+    @Default(false) bool isRaising,
+    @Default(0) double targetAmount,
+    @Default(0) int contributionType, // 0: Free, 1: Fixed
+    @Default(0) double contributionAmount,
+    DateTime? deadlineAt,
     required DateTime expiredAt,
     required List<SnWalletFundRecipient> recipients,
     required bool isOpen,
@@ -200,6 +226,17 @@ sealed class SnWalletFund with _$SnWalletFund {
 
   factory SnWalletFund.fromJson(Map<String, dynamic> json) =>
       _$SnWalletFundFromJson(json);
+}
+
+extension SnWalletFundX on SnWalletFund {
+  double get raisedAmount =>
+      isRaising ? recipients.where((r) => r.isReceived).fold(0.0, (s, r) => s + r.amount) : 0;
+}
+
+/// Contribution type enum matching the server.
+abstract class ContributionType {
+  static const int free = 0;
+  static const int fixed = 1;
 }
 
 @freezed

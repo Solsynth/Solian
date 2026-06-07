@@ -157,6 +157,17 @@ class RealtimeMessageHandler {
         }
         break;
 
+      // ── Placeholder message packets ──
+      case 'messages.placeholder.update':
+        _handlePlaceholderUpdate(packet.data);
+        break;
+      case 'messages.placeholder.finalize':
+        _handlePlaceholderFinalize(packet.data);
+        break;
+      case 'messages.placeholder.expired':
+        _handlePlaceholderExpired(packet.data);
+        break;
+
       case 'system.e2ee.enabled':
         _handleE2eeEnabled();
         break;
@@ -389,6 +400,64 @@ class RealtimeMessageHandler {
     _logger.info('E2EE enabled for room $_roomId');
     // Trigger re-sync to ensure proper encryption state
     onReconnectionNeeded?.call();
+  }
+
+  // ── Placeholder Message Handling ──────────────────────────────────────────
+
+  Future<void> _handlePlaceholderUpdate(Map<String, dynamic>? data) async {
+    if (data == null) return;
+    try {
+      final message = SnChatMessage.fromJson(
+        E2eeMessageService.sanitizeChatMessageJson(data),
+      );
+      if (message.chatRoomId != _roomId) return;
+
+      _logger.info('Placeholder update: ${message.id}');
+      final local = LocalChatMessage.fromRemoteMessage(
+        message,
+        MessageStatus.sent,
+      );
+      await _repository.saveMessage(local);
+      _messageCache.put(local);
+      onMessageUpdate?.call(local);
+    } catch (e) {
+      _logger.warning('Failed to handle placeholder update: $e');
+    }
+  }
+
+  Future<void> _handlePlaceholderFinalize(Map<String, dynamic>? data) async {
+    if (data == null) return;
+    try {
+      final message = SnChatMessage.fromJson(
+        E2eeMessageService.sanitizeChatMessageJson(data),
+      );
+      if (message.chatRoomId != _roomId) return;
+
+      _logger.info('Placeholder finalized: ${message.id}');
+      final local = LocalChatMessage.fromRemoteMessage(
+        message,
+        MessageStatus.sent,
+      );
+      await _repository.saveMessage(local);
+      _messageCache.put(local);
+      onMessageUpdate?.call(local);
+    } catch (e) {
+      _logger.warning('Failed to handle placeholder finalize: $e');
+    }
+  }
+
+  Future<void> _handlePlaceholderExpired(Map<String, dynamic>? data) async {
+    if (data == null) return;
+    final messageId = data['message_id']?.toString();
+    if (messageId == null) return;
+
+    _logger.info('Placeholder expired: $messageId');
+    _messageCache.remove(messageId);
+
+    final message = await _repository.getLocalMessage(messageId);
+    if (message != null) {
+      onMessageDelete?.call(message);
+    }
   }
 
   // ── System Message Handling ───────────────────────────────────────────────

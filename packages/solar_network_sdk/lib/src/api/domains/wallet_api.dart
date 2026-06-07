@@ -112,20 +112,52 @@ class WalletApi extends BaseApi {
 
   /// Creates a new fund.
   ///
-  /// [name] - The fund name.
-  /// [amount] - The amount.
-  /// [recipients] - List of recipients with splits.
+  /// [currency] - The currency.
+  /// [totalAmount] - Total amount for distribute mode.
+  /// [amountOfSplits] - Number of splits / max participants.
+  /// [splitType] - 0: even, 1: random.
+  /// [recipientAccountIds] - List of recipient account IDs.
+  /// [message] - Optional message.
+  /// [expirationHours] - Optional hours until expiration.
+  /// [isRaising] - Enable raising mode.
+  /// [targetAmount] - Fundraising goal (0 = unlimited).
+  /// [contributionType] - 0: Free, 1: Fixed.
+  /// [contributionAmount] - Per-person amount when Fixed.
+  /// [isOpen] - true = open to all, false = invited only.
+  /// [deadlineAt] - Optional deadline for contributions.
   Future<SnWalletFund> createFund({
-    required String name,
-    required double amount,
-    required List<SnWalletFundRecipient> recipients,
+    required String currency,
+    required double totalAmount,
+    required int amountOfSplits,
+    required int splitType,
+    List<String>? recipientAccountIds,
+    String? message,
+    int? expirationHours,
+    String? pinCode,
+    bool isRaising = false,
+    double targetAmount = 0,
+    int contributionType = 0,
+    double contributionAmount = 0,
+    bool isOpen = true,
+    DateTime? deadlineAt,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/wallets/funds',
       data: {
-        'name': name,
-        'amount': amount,
-        'recipients': recipients.map((r) => r.toJson()).toList(),
+        'currency': currency,
+        'total_amount': totalAmount,
+        'amount_of_splits': amountOfSplits,
+        'split_type': splitType,
+        'recipient_account_ids': recipientAccountIds ?? [],
+        'message': ?message,
+        'expiration_hours': ?expirationHours,
+        'pin_code': ?pinCode,
+        'is_raising': isRaising,
+        'target_amount': targetAmount,
+        'contribution_type': contributionType,
+        'contribution_amount': contributionAmount,
+        'is_open': isOpen,
+        'deadline_at': deadlineAt?.toUtc().toIso8601String(),
       },
     );
     return SnWalletFund.fromJson(response.data!);
@@ -153,6 +185,31 @@ class WalletApi extends BaseApi {
     await delete('$_basePath/wallets/funds/$fundId');
   }
 
+  /// Contributes money to a raising fund.
+  ///
+  /// [fundId] - The fund ID.
+  /// [amount] - Contribution amount (for Free type; ignored for Fixed).
+  Future<SnTransaction> contributeToFund({
+    required String fundId,
+    double amount = 0,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets/funds/$fundId/contribute',
+      data: {'amount': amount},
+    );
+    return SnTransaction.fromJson(response.data!);
+  }
+
+  /// Gets the list of contributors for a raising fund.
+  ///
+  /// [fundId] - The fund ID.
+  Future<List<SnWalletFundRecipient>> getFundContributors(String fundId) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/wallets/funds/$fundId/contributors',
+    );
+    return parseList(response, SnWalletFundRecipient.fromJson);
+  }
+
   /// Transfers funds from one wallet to another.
   ///
   /// [amount] - The amount to transfer.
@@ -163,7 +220,9 @@ class WalletApi extends BaseApi {
   /// [payeeAccountId] - Optional target account ID (resolves to default wallet).
   /// [payeePublicId] - Optional target public wallet ID.
   /// [remark] - Optional message.
-  Future<void> transfer({
+  /// [freeze] - Hold funds for 24hr before clearing.
+  /// [requireConfirmation] - Require payee to confirm receipt.
+  Future<SnTransaction> transfer({
     required double amount,
     required String currency,
     required String pinCode,
@@ -172,8 +231,10 @@ class WalletApi extends BaseApi {
     String? payeeAccountId,
     String? payeePublicId,
     String? remark,
+    bool freeze = false,
+    bool requireConfirmation = false,
   }) async {
-    await post(
+    final response = await post<Map<String, dynamic>>(
       '$_basePath/wallets/transfer',
       data: {
         'amount': amount,
@@ -184,8 +245,11 @@ class WalletApi extends BaseApi {
         'payee_account_id': ?payeeAccountId,
         'payee_public_id': ?payeePublicId,
         'remark': ?remark,
+        'freeze': freeze,
+        'require_confirmation': requireConfirmation,
       },
     );
+    return SnTransaction.fromJson(response.data!);
   }
 
   // ==========================================
@@ -229,6 +293,43 @@ class WalletApi extends BaseApi {
       '$_basePath/wallets/transactions/$transactionId',
     );
     return SnTransaction.fromJson(response.data!);
+  }
+
+  /// Confirms a pending/frozen transaction (payee action).
+  ///
+  /// [transactionId] - The transaction ID.
+  Future<SnTransaction> confirmTransaction(String transactionId) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets/transactions/$transactionId/confirm',
+    );
+    return SnTransaction.fromJson(response.data!);
+  }
+
+  /// Rejects a pending/frozen transaction (payee action, refunds to payer).
+  ///
+  /// [transactionId] - The transaction ID.
+  Future<SnTransaction> rejectTransaction(String transactionId) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets/transactions/$transactionId/reject',
+    );
+    return SnTransaction.fromJson(response.data!);
+  }
+
+  /// Gets transactions awaiting the current user's confirmation.
+  ///
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnTransaction>> getPendingTransactions({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/wallets/transactions/pending',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnTransaction.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
   }
 
   // ==========================================

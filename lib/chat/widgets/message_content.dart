@@ -220,6 +220,8 @@ class MessageContent extends StatelessWidget {
         );
       case 'voice':
         return _VoiceMessageContent(item: item);
+      case 'placeholder':
+        return _PlaceholderMessageContent(item: item);
       case 'text':
       default:
         if (resolved.isEncrypted && resolved.decryptFailed) {
@@ -786,6 +788,112 @@ class _MessageContentCall extends StatelessWidget {
               ? 'Call ended after ${formatDuration(Duration(seconds: duration!.toInt()))}'
               : 'Call started',
           style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
+      ],
+    );
+  }
+}
+
+class _PlaceholderMessageContent extends StatelessWidget {
+  final SnChatMessage item;
+
+  const _PlaceholderMessageContent({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final kind = item.meta['placeholder_kind']?.toString();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (kind == 'streaming') {
+      final content = item.meta['placeholder_content']?.toString() ?? '';
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.primary.withOpacity(0.7),
+            ),
+          ),
+          const Gap(8),
+          Flexible(
+            child: Text(
+              content.isNotEmpty ? content : 'chatPlaceholderStreaming'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (kind == 'uploading') {
+      final progress = (item.meta['placeholder_progress'] as num?)?.toDouble() ?? 0;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  value: progress > 0 ? progress : null,
+                  strokeWidth: 2,
+                  color: colorScheme.primary.withOpacity(0.7),
+                ),
+              ),
+              const Gap(8),
+              Text(
+                'chatPlaceholderUploading'.tr(args: ['${(progress * 100).toInt()}%']),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                ),
+              ),
+            ],
+          ),
+          if (progress > 0) ...[
+            const Gap(6),
+            SizedBox(
+              width: 180,
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 3,
+                borderRadius: BorderRadius.circular(2),
+                color: colorScheme.primary,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    // Fallback for unknown placeholder kind
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: colorScheme.primary.withOpacity(0.7),
+          ),
+        ),
+        const Gap(8),
+        Text(
+          'Processing...',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
