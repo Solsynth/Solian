@@ -98,6 +98,12 @@ extension DateTimeFormatter on DateTime {
   }
 
   String formatRelative(BuildContext context) {
-    return RelativeTime(context).format(toLocal());
+    try {
+      return RelativeTime(context).format(toLocal());
+    } catch (_) {
+      // Fallback when RelativeTimeLocalizations is not available
+      // (e.g., in screenshot/offscreen rendering contexts)
+      return formatSystem();
+    }
   }
 }
