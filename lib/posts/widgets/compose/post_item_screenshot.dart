@@ -235,7 +235,15 @@ class PostItemScreenshot extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Gap(renderingPadding.vertical),
+          if (!isShowReference)
+            Gap(renderingPadding.vertical),
+          if (isShowReference)
+            ReferencedPostWidget(
+              item: item,
+              isInteractive: false,
+              hideOverlay: true,
+              renderingPadding: renderingPadding,
+            ),
           PostHeader(
             hideOverlay: true,
             item: item,
@@ -243,6 +251,9 @@ class PostItemScreenshot extends ConsumerWidget {
             isInteractive: false,
             renderingPadding: renderingPadding,
             isRelativeTime: false,
+            showUpperLine:
+                isShowReference &&
+                (item.repliedPost != null || item.forwardedPost != null),
           ),
           PostBody(
             item: item,
@@ -264,12 +275,6 @@ class PostItemScreenshot extends ConsumerWidget {
                 right: renderingPadding.horizontal,
                 top: 8,
               ),
-            ),
-          if (isShowReference)
-            ReferencedPostWidget(
-              item: item,
-              isInteractive: false,
-              renderingPadding: renderingPadding,
             ),
           if (showThreadScreenshot && thread != null)
             _buildThreadScreenshot(context, thread!),
