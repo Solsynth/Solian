@@ -567,12 +567,20 @@ class ClockCard extends HookConsumerWidget {
     final time = useState(DateTime.now());
     final timer = useRef<Timer?>(null);
     final appSettings = ref.watch(appSettingsProvider);
-    final query = EventCountdownQuery(
-      username: 'me',
-      includeNotableDays:
-          appSettings.dashboardConfig?.countdownIncludeNotableDays ?? true,
-    );
-    final countdowns = ref.watch(eventCountdownListProvider(query));
+    final userInfo = ref.watch(userInfoProvider);
+    
+    // Only fetch countdowns if user is authenticated
+    final isAuthenticated = userInfo.value != null;
+    final query = isAuthenticated
+        ? EventCountdownQuery(
+            username: 'me',
+            includeNotableDays:
+                appSettings.dashboardConfig?.countdownIncludeNotableDays ?? true,
+          )
+        : null;
+    final countdowns = query != null
+        ? ref.watch(eventCountdownListProvider(query))
+        : null;
 
     // Determine icon based on time of day
     final int hour = time.value.hour;
@@ -645,23 +653,24 @@ class ClockCard extends HookConsumerWidget {
                             ),
                           ],
                         ),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            spacing: 5,
-                            children: [
-                              countdowns.when(
-                                data: (state) => state.items.isEmpty
-                                    ? Text('countdownEmpty').tr().fontSize(12)
-                                    : _buildCountdownText(context, state.items.first),
-                                error: (err, _) =>
-                                    Text(err.toString()).fontSize(12),
-                                loading: () =>
-                                    const Text('loading').tr().fontSize(12),
-                              ),
-                            ],
+                        if (isAuthenticated && countdowns != null)
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              spacing: 5,
+                              children: [
+                                countdowns.when(
+                                  data: (state) => state.items.isEmpty
+                                      ? Text('countdownEmpty').tr().fontSize(12)
+                                      : _buildCountdownText(context, state.items.first),
+                                  error: (err, _) =>
+                                      Text(err.toString()).fontSize(12),
+                                  loading: () =>
+                                      const Text('loading').tr().fontSize(12),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -1197,57 +1206,178 @@ class _UnauthorizedCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: isWide ? 48 : 32,
-          vertical: 32,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withOpacity(0.5),
+          width: 1,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Gap(16),
-            const SizedBox(width: double.infinity),
-            Icon(
-              Symbols.dashboard_rounded,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
-              fill: 1,
-            ),
-            const Gap(16),
-            Text(
-              'welcomeToSolarNetwork'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            Text(
-              'Login to access your personalized dashboard with friends, notifications, chats, and more!',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      color: colorScheme.surface,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.primaryContainer.withOpacity(0.3),
+              colorScheme.surface,
+              colorScheme.secondaryContainer.withOpacity(0.2),
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isWide ? 56 : 32,
+            vertical: isWide ? 48 : 36,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Decorative icon container
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorScheme.primaryContainer.withOpacity(0.4),
+                  border: Border.all(
+                    color: colorScheme.primary.withOpacity(0.2),
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Symbols.dashboard_rounded,
+                    size: 48,
+                    color: colorScheme.primary,
+                    fill: 1,
+                  ),
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(12),
-            FilledButton.icon(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  builder: (context) => const LoginModal(),
-                );
-              },
-              icon: const Icon(Symbols.login),
-              label: Text('login').tr(),
-            ),
-          ],
+              const Gap(24),
+              Text(
+                'welcomeToSolarNetwork'.tr(),
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                  letterSpacing: -0.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: Text(
+                  'Login to access your personalized dashboard with friends, notifications, chats, and more!',
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const Gap(28),
+              // Feature highlights
+              if (isWide) ...[
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _FeatureChip(
+                      icon: Symbols.people,
+                      label: 'friends'.tr(),
+                      colorScheme: colorScheme,
+                    ),
+                    _FeatureChip(
+                      icon: Symbols.notifications,
+                      label: 'notifications'.tr(),
+                      colorScheme: colorScheme,
+                    ),
+                    _FeatureChip(
+                      icon: Symbols.chat,
+                      label: 'chats'.tr(),
+                      colorScheme: colorScheme,
+                    ),
+                  ],
+                ),
+                const Gap(24),
+              ],
+              FilledButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    builder: (context) => const LoginModal(),
+                  );
+                },
+                icon: const Icon(Symbols.login, size: 20),
+                label: Text('login'.tr()),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _FeatureChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final ColorScheme colorScheme;
+
+  const _FeatureChip({
+    required this.icon,
+    required this.label,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
