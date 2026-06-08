@@ -308,6 +308,69 @@ class RealmsApi extends BaseApi {
   }
 
   // ==========================================
+  // Permission endpoints
+  // ==========================================
+
+  /// Gets role permissions for a realm.
+  ///
+  /// [slug] - The realm slug.
+  Future<List<SnRealmRolePermission>> getRolePermissions(String slug) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/$slug/permissions/roles',
+    );
+    return parseList(response, SnRealmRolePermission.fromJson);
+  }
+
+  /// Updates a role permission for a realm.
+  ///
+  /// [slug] - The realm slug.
+  /// [roleLevel] - The role level (0 = Normal, 50 = Moderator, 100 = Owner).
+  /// [permissions] - The permission fields to update.
+  Future<SnRealmRolePermission> updateRolePermission({
+    required String slug,
+    required int roleLevel,
+    required Map<String, dynamic> permissions,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/$slug/permissions/roles',
+      data: {'roleLevel': roleLevel, ...permissions},
+    );
+    return SnRealmRolePermission.fromJson(response.data!);
+  }
+
+  /// Gets user-specific permission overrides for a given account.
+  ///
+  /// [slug] - The realm slug.
+  /// [accountId] - The account ID.
+  Future<SnRealmUserPermission> getUserPermission({
+    required String slug,
+    required String accountId,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/$slug/permissions/users/$accountId',
+    );
+    return SnRealmUserPermission.fromJson(response.data!);
+  }
+
+  /// Updates user-specific permission overrides.
+  /// Only non-null fields will be applied as overrides.
+  ///
+  /// [slug] - The realm slug.
+  /// [accountId] - The account ID.
+  /// [permissions] - Permission fields to override (null = use role default).
+  Future<SnRealmUserPermission> updateUserPermission({
+    required String slug,
+    required String accountId,
+    required Map<String, dynamic> permissions,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/$slug/permissions/users',
+      data: {'accountId': accountId, ...permissions},
+    );
+    return SnRealmUserPermission.fromJson(response.data!);
+  }
+
+  // ==========================================
   // Chat endpoints
   // ==========================================
 

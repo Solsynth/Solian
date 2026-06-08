@@ -135,3 +135,59 @@ Map<String, dynamic> _$SnRealmLabelToJson(_SnRealmLabel instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt,
     };
+
+_SnRealmRolePermission _$SnRealmRolePermissionFromJson(
+  Map<String, dynamic> json,
+) => _SnRealmRolePermission(
+  roleLevel: (json['role_level'] as num).toInt(),
+  canChat: json['can_chat'] as bool? ?? true,
+  canPost: json['can_post'] as bool? ?? true,
+  canComment: json['can_comment'] as bool? ?? true,
+  canUploadMedia: json['can_upload_media'] as bool? ?? true,
+  canModeratePosts: json['can_moderate_posts'] as bool? ?? false,
+  canModerateChat: json['can_moderate_chat'] as bool? ?? false,
+  canManageMembers: json['can_manage_members'] as bool? ?? false,
+  canManageRealm: json['can_manage_realm'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$SnRealmRolePermissionToJson(
+  _SnRealmRolePermission instance,
+) => <String, dynamic>{
+  'role_level': instance.roleLevel,
+  'can_chat': instance.canChat,
+  'can_post': instance.canPost,
+  'can_comment': instance.canComment,
+  'can_upload_media': instance.canUploadMedia,
+  'can_moderate_posts': instance.canModeratePosts,
+  'can_moderate_chat': instance.canModerateChat,
+  'can_manage_members': instance.canManageMembers,
+  'can_manage_realm': instance.canManageRealm,
+};
+
+_SnRealmUserPermission _$SnRealmUserPermissionFromJson(
+  Map<String, dynamic> json,
+) => _SnRealmUserPermission(
+  accountId: json['account_id'] as String,
+  canChat: json['can_chat'] as bool?,
+  canPost: json['can_post'] as bool?,
+  canComment: json['can_comment'] as bool?,
+  canUploadMedia: json['can_upload_media'] as bool?,
+  canModeratePosts: json['can_moderate_posts'] as bool?,
+  canModerateChat: json['can_moderate_chat'] as bool?,
+  canManageMembers: json['can_manage_members'] as bool?,
+  canManageRealm: json['can_manage_realm'] as bool?,
+);
+
+Map<String, dynamic> _$SnRealmUserPermissionToJson(
+  _SnRealmUserPermission instance,
+) => <String, dynamic>{
+  'account_id': instance.accountId,
+  'can_chat': instance.canChat,
+  'can_post': instance.canPost,
+  'can_comment': instance.canComment,
+  'can_upload_media': instance.canUploadMedia,
+  'can_moderate_posts': instance.canModeratePosts,
+  'can_moderate_chat': instance.canModerateChat,
+  'can_manage_members': instance.canManageMembers,
+  'can_manage_realm': instance.canManageRealm,
+};
