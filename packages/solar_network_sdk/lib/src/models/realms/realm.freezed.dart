@@ -1046,4 +1046,566 @@ as dynamic,
 
 }
 
+
+/// @nodoc
+mixin _$SnRealmRolePermission {
+
+ int get roleLevel; bool get canChat; bool get canPost; bool get canComment; bool get canUploadMedia; bool get canModeratePosts; bool get canModerateChat; bool get canManageMembers; bool get canManageRealm;
+/// Create a copy of SnRealmRolePermission
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnRealmRolePermissionCopyWith<SnRealmRolePermission> get copyWith => _$SnRealmRolePermissionCopyWithImpl<SnRealmRolePermission>(this as SnRealmRolePermission, _$identity);
+
+  /// Serializes this SnRealmRolePermission to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmRolePermission&&(identical(other.roleLevel, roleLevel) || other.roleLevel == roleLevel)&&(identical(other.canChat, canChat) || other.canChat == canChat)&&(identical(other.canPost, canPost) || other.canPost == canPost)&&(identical(other.canComment, canComment) || other.canComment == canComment)&&(identical(other.canUploadMedia, canUploadMedia) || other.canUploadMedia == canUploadMedia)&&(identical(other.canModeratePosts, canModeratePosts) || other.canModeratePosts == canModeratePosts)&&(identical(other.canModerateChat, canModerateChat) || other.canModerateChat == canModerateChat)&&(identical(other.canManageMembers, canManageMembers) || other.canManageMembers == canManageMembers)&&(identical(other.canManageRealm, canManageRealm) || other.canManageRealm == canManageRealm));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,roleLevel,canChat,canPost,canComment,canUploadMedia,canModeratePosts,canModerateChat,canManageMembers,canManageRealm);
+
+@override
+String toString() {
+  return 'SnRealmRolePermission(roleLevel: $roleLevel, canChat: $canChat, canPost: $canPost, canComment: $canComment, canUploadMedia: $canUploadMedia, canModeratePosts: $canModeratePosts, canModerateChat: $canModerateChat, canManageMembers: $canManageMembers, canManageRealm: $canManageRealm)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnRealmRolePermissionCopyWith<$Res>  {
+  factory $SnRealmRolePermissionCopyWith(SnRealmRolePermission value, $Res Function(SnRealmRolePermission) _then) = _$SnRealmRolePermissionCopyWithImpl;
+@useResult
+$Res call({
+ int roleLevel, bool canChat, bool canPost, bool canComment, bool canUploadMedia, bool canModeratePosts, bool canModerateChat, bool canManageMembers, bool canManageRealm
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnRealmRolePermissionCopyWithImpl<$Res>
+    implements $SnRealmRolePermissionCopyWith<$Res> {
+  _$SnRealmRolePermissionCopyWithImpl(this._self, this._then);
+
+  final SnRealmRolePermission _self;
+  final $Res Function(SnRealmRolePermission) _then;
+
+/// Create a copy of SnRealmRolePermission
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? roleLevel = null,Object? canChat = null,Object? canPost = null,Object? canComment = null,Object? canUploadMedia = null,Object? canModeratePosts = null,Object? canModerateChat = null,Object? canManageMembers = null,Object? canManageRealm = null,}) {
+  return _then(_self.copyWith(
+roleLevel: null == roleLevel ? _self.roleLevel : roleLevel // ignore: cast_nullable_to_non_nullable
+as int,canChat: null == canChat ? _self.canChat : canChat // ignore: cast_nullable_to_non_nullable
+as bool,canPost: null == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
+as bool,canComment: null == canComment ? _self.canComment : canComment // ignore: cast_nullable_to_non_nullable
+as bool,canUploadMedia: null == canUploadMedia ? _self.canUploadMedia : canUploadMedia // ignore: cast_nullable_to_non_nullable
+as bool,canModeratePosts: null == canModeratePosts ? _self.canModeratePosts : canModeratePosts // ignore: cast_nullable_to_non_nullable
+as bool,canModerateChat: null == canModerateChat ? _self.canModerateChat : canModerateChat // ignore: cast_nullable_to_non_nullable
+as bool,canManageMembers: null == canManageMembers ? _self.canManageMembers : canManageMembers // ignore: cast_nullable_to_non_nullable
+as bool,canManageRealm: null == canManageRealm ? _self.canManageRealm : canManageRealm // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnRealmRolePermission].
+extension SnRealmRolePermissionPatterns on SnRealmRolePermission {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnRealmRolePermission value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnRealmRolePermission() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnRealmRolePermission value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnRealmRolePermission():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnRealmRolePermission value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnRealmRolePermission() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int roleLevel,  bool canChat,  bool canPost,  bool canComment,  bool canUploadMedia,  bool canModeratePosts,  bool canModerateChat,  bool canManageMembers,  bool canManageRealm)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnRealmRolePermission() when $default != null:
+return $default(_that.roleLevel,_that.canChat,_that.canPost,_that.canComment,_that.canUploadMedia,_that.canModeratePosts,_that.canModerateChat,_that.canManageMembers,_that.canManageRealm);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int roleLevel,  bool canChat,  bool canPost,  bool canComment,  bool canUploadMedia,  bool canModeratePosts,  bool canModerateChat,  bool canManageMembers,  bool canManageRealm)  $default,) {final _that = this;
+switch (_that) {
+case _SnRealmRolePermission():
+return $default(_that.roleLevel,_that.canChat,_that.canPost,_that.canComment,_that.canUploadMedia,_that.canModeratePosts,_that.canModerateChat,_that.canManageMembers,_that.canManageRealm);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int roleLevel,  bool canChat,  bool canPost,  bool canComment,  bool canUploadMedia,  bool canModeratePosts,  bool canModerateChat,  bool canManageMembers,  bool canManageRealm)?  $default,) {final _that = this;
+switch (_that) {
+case _SnRealmRolePermission() when $default != null:
+return $default(_that.roleLevel,_that.canChat,_that.canPost,_that.canComment,_that.canUploadMedia,_that.canModeratePosts,_that.canModerateChat,_that.canManageMembers,_that.canManageRealm);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnRealmRolePermission implements SnRealmRolePermission {
+  const _SnRealmRolePermission({required this.roleLevel, this.canChat = true, this.canPost = true, this.canComment = true, this.canUploadMedia = true, this.canModeratePosts = false, this.canModerateChat = false, this.canManageMembers = false, this.canManageRealm = false});
+  factory _SnRealmRolePermission.fromJson(Map<String, dynamic> json) => _$SnRealmRolePermissionFromJson(json);
+
+@override final  int roleLevel;
+@override@JsonKey() final  bool canChat;
+@override@JsonKey() final  bool canPost;
+@override@JsonKey() final  bool canComment;
+@override@JsonKey() final  bool canUploadMedia;
+@override@JsonKey() final  bool canModeratePosts;
+@override@JsonKey() final  bool canModerateChat;
+@override@JsonKey() final  bool canManageMembers;
+@override@JsonKey() final  bool canManageRealm;
+
+/// Create a copy of SnRealmRolePermission
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnRealmRolePermissionCopyWith<_SnRealmRolePermission> get copyWith => __$SnRealmRolePermissionCopyWithImpl<_SnRealmRolePermission>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnRealmRolePermissionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmRolePermission&&(identical(other.roleLevel, roleLevel) || other.roleLevel == roleLevel)&&(identical(other.canChat, canChat) || other.canChat == canChat)&&(identical(other.canPost, canPost) || other.canPost == canPost)&&(identical(other.canComment, canComment) || other.canComment == canComment)&&(identical(other.canUploadMedia, canUploadMedia) || other.canUploadMedia == canUploadMedia)&&(identical(other.canModeratePosts, canModeratePosts) || other.canModeratePosts == canModeratePosts)&&(identical(other.canModerateChat, canModerateChat) || other.canModerateChat == canModerateChat)&&(identical(other.canManageMembers, canManageMembers) || other.canManageMembers == canManageMembers)&&(identical(other.canManageRealm, canManageRealm) || other.canManageRealm == canManageRealm));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,roleLevel,canChat,canPost,canComment,canUploadMedia,canModeratePosts,canModerateChat,canManageMembers,canManageRealm);
+
+@override
+String toString() {
+  return 'SnRealmRolePermission(roleLevel: $roleLevel, canChat: $canChat, canPost: $canPost, canComment: $canComment, canUploadMedia: $canUploadMedia, canModeratePosts: $canModeratePosts, canModerateChat: $canModerateChat, canManageMembers: $canManageMembers, canManageRealm: $canManageRealm)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnRealmRolePermissionCopyWith<$Res> implements $SnRealmRolePermissionCopyWith<$Res> {
+  factory _$SnRealmRolePermissionCopyWith(_SnRealmRolePermission value, $Res Function(_SnRealmRolePermission) _then) = __$SnRealmRolePermissionCopyWithImpl;
+@override @useResult
+$Res call({
+ int roleLevel, bool canChat, bool canPost, bool canComment, bool canUploadMedia, bool canModeratePosts, bool canModerateChat, bool canManageMembers, bool canManageRealm
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnRealmRolePermissionCopyWithImpl<$Res>
+    implements _$SnRealmRolePermissionCopyWith<$Res> {
+  __$SnRealmRolePermissionCopyWithImpl(this._self, this._then);
+
+  final _SnRealmRolePermission _self;
+  final $Res Function(_SnRealmRolePermission) _then;
+
+/// Create a copy of SnRealmRolePermission
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? roleLevel = null,Object? canChat = null,Object? canPost = null,Object? canComment = null,Object? canUploadMedia = null,Object? canModeratePosts = null,Object? canModerateChat = null,Object? canManageMembers = null,Object? canManageRealm = null,}) {
+  return _then(_SnRealmRolePermission(
+roleLevel: null == roleLevel ? _self.roleLevel : roleLevel // ignore: cast_nullable_to_non_nullable
+as int,canChat: null == canChat ? _self.canChat : canChat // ignore: cast_nullable_to_non_nullable
+as bool,canPost: null == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
+as bool,canComment: null == canComment ? _self.canComment : canComment // ignore: cast_nullable_to_non_nullable
+as bool,canUploadMedia: null == canUploadMedia ? _self.canUploadMedia : canUploadMedia // ignore: cast_nullable_to_non_nullable
+as bool,canModeratePosts: null == canModeratePosts ? _self.canModeratePosts : canModeratePosts // ignore: cast_nullable_to_non_nullable
+as bool,canModerateChat: null == canModerateChat ? _self.canModerateChat : canModerateChat // ignore: cast_nullable_to_non_nullable
+as bool,canManageMembers: null == canManageMembers ? _self.canManageMembers : canManageMembers // ignore: cast_nullable_to_non_nullable
+as bool,canManageRealm: null == canManageRealm ? _self.canManageRealm : canManageRealm // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnRealmUserPermission {
+
+ String get accountId; bool? get canChat; bool? get canPost; bool? get canComment; bool? get canUploadMedia; bool? get canModeratePosts; bool? get canModerateChat; bool? get canManageMembers; bool? get canManageRealm;
+/// Create a copy of SnRealmUserPermission
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnRealmUserPermissionCopyWith<SnRealmUserPermission> get copyWith => _$SnRealmUserPermissionCopyWithImpl<SnRealmUserPermission>(this as SnRealmUserPermission, _$identity);
+
+  /// Serializes this SnRealmUserPermission to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRealmUserPermission&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.canChat, canChat) || other.canChat == canChat)&&(identical(other.canPost, canPost) || other.canPost == canPost)&&(identical(other.canComment, canComment) || other.canComment == canComment)&&(identical(other.canUploadMedia, canUploadMedia) || other.canUploadMedia == canUploadMedia)&&(identical(other.canModeratePosts, canModeratePosts) || other.canModeratePosts == canModeratePosts)&&(identical(other.canModerateChat, canModerateChat) || other.canModerateChat == canModerateChat)&&(identical(other.canManageMembers, canManageMembers) || other.canManageMembers == canManageMembers)&&(identical(other.canManageRealm, canManageRealm) || other.canManageRealm == canManageRealm));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,accountId,canChat,canPost,canComment,canUploadMedia,canModeratePosts,canModerateChat,canManageMembers,canManageRealm);
+
+@override
+String toString() {
+  return 'SnRealmUserPermission(accountId: $accountId, canChat: $canChat, canPost: $canPost, canComment: $canComment, canUploadMedia: $canUploadMedia, canModeratePosts: $canModeratePosts, canModerateChat: $canModerateChat, canManageMembers: $canManageMembers, canManageRealm: $canManageRealm)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnRealmUserPermissionCopyWith<$Res>  {
+  factory $SnRealmUserPermissionCopyWith(SnRealmUserPermission value, $Res Function(SnRealmUserPermission) _then) = _$SnRealmUserPermissionCopyWithImpl;
+@useResult
+$Res call({
+ String accountId, bool? canChat, bool? canPost, bool? canComment, bool? canUploadMedia, bool? canModeratePosts, bool? canModerateChat, bool? canManageMembers, bool? canManageRealm
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnRealmUserPermissionCopyWithImpl<$Res>
+    implements $SnRealmUserPermissionCopyWith<$Res> {
+  _$SnRealmUserPermissionCopyWithImpl(this._self, this._then);
+
+  final SnRealmUserPermission _self;
+  final $Res Function(SnRealmUserPermission) _then;
+
+/// Create a copy of SnRealmUserPermission
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? accountId = null,Object? canChat = freezed,Object? canPost = freezed,Object? canComment = freezed,Object? canUploadMedia = freezed,Object? canModeratePosts = freezed,Object? canModerateChat = freezed,Object? canManageMembers = freezed,Object? canManageRealm = freezed,}) {
+  return _then(_self.copyWith(
+accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,canChat: freezed == canChat ? _self.canChat : canChat // ignore: cast_nullable_to_non_nullable
+as bool?,canPost: freezed == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
+as bool?,canComment: freezed == canComment ? _self.canComment : canComment // ignore: cast_nullable_to_non_nullable
+as bool?,canUploadMedia: freezed == canUploadMedia ? _self.canUploadMedia : canUploadMedia // ignore: cast_nullable_to_non_nullable
+as bool?,canModeratePosts: freezed == canModeratePosts ? _self.canModeratePosts : canModeratePosts // ignore: cast_nullable_to_non_nullable
+as bool?,canModerateChat: freezed == canModerateChat ? _self.canModerateChat : canModerateChat // ignore: cast_nullable_to_non_nullable
+as bool?,canManageMembers: freezed == canManageMembers ? _self.canManageMembers : canManageMembers // ignore: cast_nullable_to_non_nullable
+as bool?,canManageRealm: freezed == canManageRealm ? _self.canManageRealm : canManageRealm // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnRealmUserPermission].
+extension SnRealmUserPermissionPatterns on SnRealmUserPermission {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnRealmUserPermission value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnRealmUserPermission() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnRealmUserPermission value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnRealmUserPermission():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnRealmUserPermission value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnRealmUserPermission() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountId,  bool? canChat,  bool? canPost,  bool? canComment,  bool? canUploadMedia,  bool? canModeratePosts,  bool? canModerateChat,  bool? canManageMembers,  bool? canManageRealm)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnRealmUserPermission() when $default != null:
+return $default(_that.accountId,_that.canChat,_that.canPost,_that.canComment,_that.canUploadMedia,_that.canModeratePosts,_that.canModerateChat,_that.canManageMembers,_that.canManageRealm);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountId,  bool? canChat,  bool? canPost,  bool? canComment,  bool? canUploadMedia,  bool? canModeratePosts,  bool? canModerateChat,  bool? canManageMembers,  bool? canManageRealm)  $default,) {final _that = this;
+switch (_that) {
+case _SnRealmUserPermission():
+return $default(_that.accountId,_that.canChat,_that.canPost,_that.canComment,_that.canUploadMedia,_that.canModeratePosts,_that.canModerateChat,_that.canManageMembers,_that.canManageRealm);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountId,  bool? canChat,  bool? canPost,  bool? canComment,  bool? canUploadMedia,  bool? canModeratePosts,  bool? canModerateChat,  bool? canManageMembers,  bool? canManageRealm)?  $default,) {final _that = this;
+switch (_that) {
+case _SnRealmUserPermission() when $default != null:
+return $default(_that.accountId,_that.canChat,_that.canPost,_that.canComment,_that.canUploadMedia,_that.canModeratePosts,_that.canModerateChat,_that.canManageMembers,_that.canManageRealm);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnRealmUserPermission implements SnRealmUserPermission {
+  const _SnRealmUserPermission({required this.accountId, this.canChat, this.canPost, this.canComment, this.canUploadMedia, this.canModeratePosts, this.canModerateChat, this.canManageMembers, this.canManageRealm});
+  factory _SnRealmUserPermission.fromJson(Map<String, dynamic> json) => _$SnRealmUserPermissionFromJson(json);
+
+@override final  String accountId;
+@override final  bool? canChat;
+@override final  bool? canPost;
+@override final  bool? canComment;
+@override final  bool? canUploadMedia;
+@override final  bool? canModeratePosts;
+@override final  bool? canModerateChat;
+@override final  bool? canManageMembers;
+@override final  bool? canManageRealm;
+
+/// Create a copy of SnRealmUserPermission
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnRealmUserPermissionCopyWith<_SnRealmUserPermission> get copyWith => __$SnRealmUserPermissionCopyWithImpl<_SnRealmUserPermission>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnRealmUserPermissionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRealmUserPermission&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.canChat, canChat) || other.canChat == canChat)&&(identical(other.canPost, canPost) || other.canPost == canPost)&&(identical(other.canComment, canComment) || other.canComment == canComment)&&(identical(other.canUploadMedia, canUploadMedia) || other.canUploadMedia == canUploadMedia)&&(identical(other.canModeratePosts, canModeratePosts) || other.canModeratePosts == canModeratePosts)&&(identical(other.canModerateChat, canModerateChat) || other.canModerateChat == canModerateChat)&&(identical(other.canManageMembers, canManageMembers) || other.canManageMembers == canManageMembers)&&(identical(other.canManageRealm, canManageRealm) || other.canManageRealm == canManageRealm));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,accountId,canChat,canPost,canComment,canUploadMedia,canModeratePosts,canModerateChat,canManageMembers,canManageRealm);
+
+@override
+String toString() {
+  return 'SnRealmUserPermission(accountId: $accountId, canChat: $canChat, canPost: $canPost, canComment: $canComment, canUploadMedia: $canUploadMedia, canModeratePosts: $canModeratePosts, canModerateChat: $canModerateChat, canManageMembers: $canManageMembers, canManageRealm: $canManageRealm)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnRealmUserPermissionCopyWith<$Res> implements $SnRealmUserPermissionCopyWith<$Res> {
+  factory _$SnRealmUserPermissionCopyWith(_SnRealmUserPermission value, $Res Function(_SnRealmUserPermission) _then) = __$SnRealmUserPermissionCopyWithImpl;
+@override @useResult
+$Res call({
+ String accountId, bool? canChat, bool? canPost, bool? canComment, bool? canUploadMedia, bool? canModeratePosts, bool? canModerateChat, bool? canManageMembers, bool? canManageRealm
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnRealmUserPermissionCopyWithImpl<$Res>
+    implements _$SnRealmUserPermissionCopyWith<$Res> {
+  __$SnRealmUserPermissionCopyWithImpl(this._self, this._then);
+
+  final _SnRealmUserPermission _self;
+  final $Res Function(_SnRealmUserPermission) _then;
+
+/// Create a copy of SnRealmUserPermission
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? accountId = null,Object? canChat = freezed,Object? canPost = freezed,Object? canComment = freezed,Object? canUploadMedia = freezed,Object? canModeratePosts = freezed,Object? canModerateChat = freezed,Object? canManageMembers = freezed,Object? canManageRealm = freezed,}) {
+  return _then(_SnRealmUserPermission(
+accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,canChat: freezed == canChat ? _self.canChat : canChat // ignore: cast_nullable_to_non_nullable
+as bool?,canPost: freezed == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
+as bool?,canComment: freezed == canComment ? _self.canComment : canComment // ignore: cast_nullable_to_non_nullable
+as bool?,canUploadMedia: freezed == canUploadMedia ? _self.canUploadMedia : canUploadMedia // ignore: cast_nullable_to_non_nullable
+as bool?,canModeratePosts: freezed == canModeratePosts ? _self.canModeratePosts : canModeratePosts // ignore: cast_nullable_to_non_nullable
+as bool?,canModerateChat: freezed == canModerateChat ? _self.canModerateChat : canModerateChat // ignore: cast_nullable_to_non_nullable
+as bool?,canManageMembers: freezed == canManageMembers ? _self.canManageMembers : canManageMembers // ignore: cast_nullable_to_non_nullable
+as bool?,canManageRealm: freezed == canManageRealm ? _self.canManageRealm : canManageRealm // ignore: cast_nullable_to_non_nullable
+as bool?,
+  ));
+}
+
+
+}
+
 // dart format on

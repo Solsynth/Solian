@@ -74,3 +74,43 @@ sealed class SnRealmLabel with _$SnRealmLabel {
   factory SnRealmLabel.fromJson(Map<String, dynamic> json) =>
       _$SnRealmLabelFromJson(json);
 }
+
+/// Role-level permission for a realm.
+/// Governs what a given role can do inside the realm.
+@freezed
+sealed class SnRealmRolePermission with _$SnRealmRolePermission {
+  const factory SnRealmRolePermission({
+    required int roleLevel,
+    @Default(true) bool canChat,
+    @Default(true) bool canPost,
+    @Default(true) bool canComment,
+    @Default(true) bool canUploadMedia,
+    @Default(false) bool canModeratePosts,
+    @Default(false) bool canModerateChat,
+    @Default(false) bool canManageMembers,
+    @Default(false) bool canManageRealm,
+  }) = _SnRealmRolePermission;
+
+  factory SnRealmRolePermission.fromJson(Map<String, dynamic> json) =>
+      _$SnRealmRolePermissionFromJson(json);
+}
+
+/// User-specific permission override for a realm.
+/// Non-null fields override the role-based permission.
+@freezed
+sealed class SnRealmUserPermission with _$SnRealmUserPermission {
+  const factory SnRealmUserPermission({
+    required String accountId,
+    bool? canChat,
+    bool? canPost,
+    bool? canComment,
+    bool? canUploadMedia,
+    bool? canModeratePosts,
+    bool? canModerateChat,
+    bool? canManageMembers,
+    bool? canManageRealm,
+  }) = _SnRealmUserPermission;
+
+  factory SnRealmUserPermission.fromJson(Map<String, dynamic> json) =>
+      _$SnRealmUserPermissionFromJson(json);
+}

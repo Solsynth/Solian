@@ -108,6 +108,952 @@ class _RealmExperienceCard extends StatelessWidget {
   }
 }
 
+/// Renders permission state chips for the current user's effective permissions.
+class _RealmEffectivePermissions extends ConsumerWidget {
+  const _RealmEffectivePermissions({required this.role});
+
+  final int role;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+
+    // Determine effective permission values based on role defaults
+    final canManageRealm = role >= 100;
+    final canManageMembers = role >= 50;
+    final canModeratePosts = role >= 50;
+    final canModerateChat = role >= 50;
+    final canChat = true;
+    final canPost = true;
+    final canComment = true;
+    final canUploadMedia = true;
+
+    final chips = <Widget>[
+      _PermissionChip(icon: Symbols.chat, label: 'chat', allowed: canChat),
+      _PermissionChip(icon: Symbols.article, label: 'post', allowed: canPost),
+      _PermissionChip(
+        icon: Symbols.comment,
+        label: 'comment',
+        allowed: canComment,
+      ),
+      _PermissionChip(
+        icon: Symbols.perm_media,
+        label: 'upload',
+        allowed: canUploadMedia,
+      ),
+    ];
+
+    if (canModeratePosts) {
+      chips.add(
+        _PermissionChip(
+          icon: Symbols.flag,
+          label: 'modPosts',
+          allowed: true,
+          accentColor: theme.colorScheme.tertiary,
+        ),
+      );
+    }
+    if (canModerateChat) {
+      chips.add(
+        _PermissionChip(
+          icon: Symbols.gavel,
+          label: 'modChat',
+          allowed: true,
+          accentColor: theme.colorScheme.tertiary,
+        ),
+      );
+    }
+    if (canManageMembers) {
+      chips.add(
+        _PermissionChip(
+          icon: Symbols.manage_accounts,
+          label: 'manageMembers',
+          allowed: true,
+          accentColor: theme.colorScheme.primary,
+        ),
+      );
+    }
+    if (canManageRealm) {
+      chips.add(
+        _PermissionChip(
+          icon: Symbols.admin_panel_settings,
+          label: 'manageRealm',
+          allowed: true,
+          accentColor: theme.colorScheme.error,
+        ),
+      );
+    }
+
+    return Wrap(spacing: 6, runSpacing: 4, children: chips);
+  }
+}
+
+class _PermissionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool allowed;
+  final Color? accentColor;
+
+  const _PermissionChip({
+    required this.icon,
+    required this.label,
+    required this.allowed,
+    this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color =
+        accentColor ??
+        (allowed ? theme.colorScheme.primary : theme.colorScheme.outline);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.20)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 3,
+        children: [
+          Icon(icon, size: 13, fill: 1, color: color),
+          Text(
+            label.tr(),
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card for viewing/editing role-level permissions.
+class _RealmPermissionsCard extends HookConsumerWidget {
+  final String realmSlug;
+  final int currentUserRole;
+
+  const _RealmPermissionsCard({
+    required this.realmSlug,
+    required this.currentUserRole,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rolePermissions = ref.watch(realmRolePermissionsProvider(realmSlug));
+    final canEdit = currentUserRole >= 50;
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'permissions'.tr(),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                if (canEdit)
+                  IconButton(
+                    tooltip: 'Refresh permissions',
+                    visualDensity: VisualDensity(vertical: -3),
+                    onPressed: () =>
+                        ref.invalidate(realmRolePermissionsProvider(realmSlug)),
+                    icon: const Icon(Symbols.refresh),
+                  ),
+              ],
+            ),
+            const Gap(8),
+            rolePermissions.when(
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text('Error: $error', style: theme.textTheme.bodySmall),
+              ),
+              data: (permissions) {
+                final allEntries = permissions.map((p) => _RoleEntry(p)).toList();
+                allEntries.sort((a, b) => b.level.compareTo(a.level));
+
+                return Column(
+                  children: [
+                    if (allEntries.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'NoRolePermissions'.tr(),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                    ...allEntries.map((entry) {
+                      final perm = entry.perm;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'roleDisplay'.tr(
+                                      namedArgs: {'level': entry.level.toString()},
+                                    ),
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                if (canEdit) ...[
+                                  IconButton(
+                                    tooltip: 'deleteRole'.tr(),
+                                    visualDensity: VisualDensity(vertical: -3),
+                                    icon: const Icon(Symbols.delete, size: 18),
+                                    onPressed: () async {
+                                      final confirm = await showConfirmAlert(
+                                        'deleteRoleConfirm'.tr(),
+                                        'roleDisplay'.tr(
+                                          namedArgs: {
+                                            'level': entry.level.toString(),
+                                          },
+                                        ),
+                                        isDanger: true,
+                                      );
+                                      if (confirm != true) return;
+                                      try {
+                                        showLoadingModal(context);
+                                        final client = ref.read(
+                                          solarNetworkClientProvider,
+                                        );
+                                        await client.realms.dio.delete(
+                                          '/passport/realms/$realmSlug/permissions/roles/${entry.level}',
+                                        );
+                                        ref.invalidate(
+                                          realmRolePermissionsProvider(realmSlug),
+                                        );
+                                        if (context.mounted) {
+                                          hideLoadingModal(context);
+                                          showSnackBar('roleDeleted'.tr());
+                                        }
+                                      } catch (err) {
+                                        if (context.mounted) {
+                                          hideLoadingModal(context);
+                                          showErrorAlert(err);
+                                        }
+                                      }
+                                    },
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        useRootNavigator: true,
+                                        builder: (_) =>
+                                            _RealmRolePermissionEditorSheet(
+                                              realmSlug: realmSlug,
+                                              rolePermission: perm,
+                                            ),
+                                      );
+                                    },
+                                    icon: const Icon(Symbols.edit, size: 16),
+                                    label: const Text('edit').tr(),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const Gap(8),
+                            _RolePermissionRow(
+                              icon: Symbols.chat,
+                              label: 'permissionCanChat',
+                              allowed: perm.canChat,
+                            ),
+                            _RolePermissionRow(
+                              icon: Symbols.article,
+                              label: 'permissionCanPost',
+                              allowed: perm.canPost,
+                            ),
+                            _RolePermissionRow(
+                              icon: Symbols.comment,
+                              label: 'permissionCanComment',
+                              allowed: perm.canComment,
+                            ),
+                            _RolePermissionRow(
+                              icon: Symbols.perm_media,
+                              label: 'permissionCanUploadMedia',
+                              allowed: perm.canUploadMedia,
+                            ),
+                            if (perm.canModeratePosts ||
+                                perm.canModerateChat ||
+                                perm.canManageMembers ||
+                                perm.canManageRealm)
+                              const Divider(height: 16),
+                            _RolePermissionRow(
+                              icon: Symbols.flag,
+                              label: 'permissionCanModeratePosts',
+                              allowed: perm.canModeratePosts,
+                              accentColor: theme.colorScheme.tertiary,
+                            ),
+                            _RolePermissionRow(
+                              icon: Symbols.gavel,
+                              label: 'permissionCanModerateChat',
+                              allowed: perm.canModerateChat,
+                              accentColor: theme.colorScheme.tertiary,
+                            ),
+                            _RolePermissionRow(
+                              icon: Symbols.manage_accounts,
+                              label: 'permissionCanManageMembers',
+                              allowed: perm.canManageMembers,
+                              accentColor: theme.colorScheme.tertiary,
+                            ),
+                            _RolePermissionRow(
+                              icon: Symbols.admin_panel_settings,
+                              label: 'permissionCanManageRealm',
+                              allowed: perm.canManageRealm,
+                              accentColor: theme.colorScheme.error,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    if (canEdit)
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useRootNavigator: true,
+                            builder: (_) => _RealmRolePermissionEditorSheet(
+                              realmSlug: realmSlug,
+                              rolePermission: null,
+                              existingLevels: permissions.map((p) => p.roleLevel).toList(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Symbols.add),
+                        label: Text('addRole'.tr()),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A role entry wrapper around the API response.
+class _RoleEntry {
+  final SnRealmRolePermission perm;
+  int get level => perm.roleLevel;
+  const _RoleEntry(this.perm);
+}
+
+class _RolePermissionRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool allowed;
+  final Color? accentColor;
+
+  const _RolePermissionRow({
+    required this.icon,
+    required this.label,
+    required this.allowed,
+    this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = accentColor ?? Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, fill: 1, color: color),
+          const Gap(8),
+          Expanded(
+            child: Text(
+              label.tr(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          Icon(
+            allowed ? Symbols.check_circle : Symbols.cancel,
+            size: 18,
+            color: allowed
+                ? Colors.green
+                : Theme.of(context).colorScheme.outline,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sheet for editing or creating permissions for a specific role.
+class _RealmRolePermissionEditorSheet extends HookConsumerWidget {
+  final String realmSlug;
+  final SnRealmRolePermission? rolePermission; // null = creating a new role
+  final List<int> existingLevels;
+
+  const _RealmRolePermissionEditorSheet({
+    required this.realmSlug,
+    required this.rolePermission,
+    this.existingLevels = const [],
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isCreating = rolePermission == null;
+    final roleLevelController = useTextEditingController();
+    final roleLevelError = useState<String?>(null);
+
+    final canChat = useState(rolePermission?.canChat ?? true);
+    final canPost = useState(rolePermission?.canPost ?? true);
+    final canComment = useState(rolePermission?.canComment ?? true);
+    final canUploadMedia = useState(rolePermission?.canUploadMedia ?? true);
+    final canModeratePosts = useState(rolePermission?.canModeratePosts ?? true);
+    final canModerateChat = useState(rolePermission?.canModerateChat ?? true);
+    final canManageMembers = useState(rolePermission?.canManageMembers ?? true);
+    final canManageRealm = useState(rolePermission?.canManageRealm ?? true);
+
+    final roleName = isCreating
+        ? 'addRole'.tr()
+        : 'roleDisplay'.tr(
+            namedArgs: {'level': rolePermission!.roleLevel.toString()},
+          );
+
+    return SheetScaffold(
+      titleText: roleName,
+      heightFactor: 0.85,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ListView(
+                children: [
+                  if (isCreating) ...[
+                    TextField(
+                      controller: roleLevelController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'roleLevel'.tr(),
+                        helperText: 'roleLevelHint'.tr(),
+                        errorText: roleLevelError.value,
+                      ),
+                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                    ),
+                    const Gap(12),
+                  ],
+                  _PermissionToggle(
+                    icon: Symbols.chat,
+                    label: 'permissionCanChat',
+                    value: canChat.value,
+                    onChanged: (v) => canChat.value = v,
+                  ),
+                  _PermissionToggle(
+                    icon: Symbols.article,
+                    label: 'permissionCanPost',
+                    value: canPost.value,
+                    onChanged: (v) => canPost.value = v,
+                  ),
+                  _PermissionToggle(
+                    icon: Symbols.comment,
+                    label: 'permissionCanComment',
+                    value: canComment.value,
+                    onChanged: (v) => canComment.value = v,
+                  ),
+                  _PermissionToggle(
+                    icon: Symbols.perm_media,
+                    label: 'permissionCanUploadMedia',
+                    value: canUploadMedia.value,
+                    onChanged: (v) => canUploadMedia.value = v,
+                  ),
+                  const Divider(height: 24),
+                  Text(
+                    'Moderation'.tr(),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
+                  ),
+                  const Gap(4),
+                  _PermissionToggle(
+                    icon: Symbols.flag,
+                    label: 'permissionCanModeratePosts',
+                    value: canModeratePosts.value,
+                    onChanged: (v) => canModeratePosts.value = v,
+                  ),
+                  _PermissionToggle(
+                    icon: Symbols.gavel,
+                    label: 'permissionCanModerateChat',
+                    value: canModerateChat.value,
+                    onChanged: (v) => canModerateChat.value = v,
+                  ),
+                  _PermissionToggle(
+                    icon: Symbols.manage_accounts,
+                    label: 'permissionCanManageMembers',
+                    value: canManageMembers.value,
+                    onChanged: (v) => canManageMembers.value = v,
+                  ),
+                  _PermissionToggle(
+                    icon: Symbols.admin_panel_settings,
+                    label: 'permissionCanManageRealm',
+                    value: canManageRealm.value,
+                    onChanged: (v) => canManageRealm.value = v,
+                  ),
+                ],
+              ),
+            ),
+            const Gap(16),
+            FilledButton.icon(
+              onPressed: () async {
+                // Validate role level when creating
+                int? level = rolePermission?.roleLevel;
+                if (isCreating) {
+                  final parsed = int.tryParse(roleLevelController.text.trim());
+                  if (parsed == null || parsed < 0 || parsed > 200) {
+                    roleLevelError.value = 'invalidRoleLevel'.tr();
+                    return;
+                  }
+                  if (existingLevels.contains(parsed)) {
+                    roleLevelError.value = 'roleLevelExists'.tr();
+                    return;
+                  }
+                  level = parsed;
+                }
+
+                try {
+                  showLoadingModal(context);
+                  final client = ref.read(solarNetworkClientProvider);
+                  await client.realms.updateRolePermission(
+                    slug: realmSlug,
+                    roleLevel: level!,
+                    permissions: {
+                      'can_chat': canChat.value,
+                      'can_post': canPost.value,
+                      'can_comment': canComment.value,
+                      'can_upload_media': canUploadMedia.value,
+                      'can_moderate_posts': canModeratePosts.value,
+                      'can_moderate_chat': canModerateChat.value,
+                      'can_manage_members': canManageMembers.value,
+                      'can_manage_realm': canManageRealm.value,
+                    },
+                  );
+                  ref.invalidate(realmRolePermissionsProvider(realmSlug));
+                  if (context.mounted) {
+                    hideLoadingModal(context);
+                    showSnackBar(
+                      isCreating ? 'roleCreated'.tr() : 'saveChanges'.tr(),
+                    );
+                    Navigator.pop(context);
+                  }
+                } catch (err) {
+                  if (context.mounted) {
+                    hideLoadingModal(context);
+                    showErrorAlert(err);
+                  }
+                }
+              },
+              icon: Icon(isCreating ? Symbols.add : Symbols.save),
+              label: Text(
+                isCreating ? 'Create' : 'saveChanges'.tr(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PermissionToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _PermissionToggle({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, fill: 1),
+          const Gap(12),
+          Expanded(child: Text(label.tr())),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sheet for editing user-specific permission overrides.
+class _RealmUserPermissionEditorSheet extends HookConsumerWidget {
+  final String realmSlug;
+  final SnRealmMember member;
+
+  const _RealmUserPermissionEditorSheet({
+    required this.realmSlug,
+    required this.member,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final existingPerm = ref.watch(
+      realmUserPermissionProvider((
+        slug: realmSlug,
+        accountId: member.accountId,
+      )),
+    );
+
+    final permData = existingPerm.asData?.value;
+
+    final canChat = useState<bool?>(permData?.canChat);
+    final canPost = useState<bool?>(permData?.canPost);
+    final canComment = useState<bool?>(permData?.canComment);
+    final canUploadMedia = useState<bool?>(permData?.canUploadMedia);
+    final canModeratePosts = useState<bool?>(permData?.canModeratePosts);
+    final canModerateChat = useState<bool?>(permData?.canModerateChat);
+    final canManageMembers = useState<bool?>(permData?.canManageMembers);
+    final canManageRealm = useState<bool?>(permData?.canManageRealm);
+
+    return SheetScaffold(
+      titleText: 'User Permission Overrides',
+      heightFactor: 0.8,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                if (member.account?.profile.picture != null)
+                  ProfilePictureWidget(
+                    file: member.account!.profile.picture,
+                    radius: 16,
+                  )
+                else
+                  CircleAvatar(radius: 16, child: Icon(Icons.person, size: 18)),
+                const Gap(8),
+                Expanded(
+                  child: Text(
+                    member.account?.nick ?? member.accountId,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Gap(16),
+            Text(
+              'permissionOverrideHint'.tr(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const Gap(12),
+            Expanded(
+              child: ListView(
+                children: [
+                  _PermissionTriToggle(
+                    icon: Symbols.chat,
+                    label: 'permissionCanChat',
+                    value: canChat.value,
+                    onChanged: (v) => canChat.value = v,
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.article,
+                    label: 'permissionCanPost',
+                    value: canPost.value,
+                    onChanged: (v) => canPost.value = v,
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.comment,
+                    label: 'permissionCanComment',
+                    value: canComment.value,
+                    onChanged: (v) => canComment.value = v,
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.perm_media,
+                    label: 'permissionCanUploadMedia',
+                    value: canUploadMedia.value,
+                    onChanged: (v) => canUploadMedia.value = v,
+                  ),
+                  const Divider(height: 24),
+                  Text(
+                    'Moderation'.tr(),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.flag,
+                    label: 'permissionCanModeratePosts',
+                    value: canModeratePosts.value,
+                    onChanged: (v) => canModeratePosts.value = v,
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.gavel,
+                    label: 'permissionCanModerateChat',
+                    value: canModerateChat.value,
+                    onChanged: (v) => canModerateChat.value = v,
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.manage_accounts,
+                    label: 'permissionCanManageMembers',
+                    value: canManageMembers.value,
+                    onChanged: (v) => canManageMembers.value = v,
+                  ),
+                  _PermissionTriToggle(
+                    icon: Symbols.admin_panel_settings,
+                    label: 'permissionCanManageRealm',
+                    value: canManageRealm.value,
+                    onChanged: (v) => canManageRealm.value = v,
+                  ),
+                ],
+              ),
+            ),
+            const Gap(16),
+            Row(
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      // Build request with only non-null values as overrides
+                      final permissions = <String, dynamic>{
+                        if (canChat.value != null) 'can_chat': canChat.value,
+                        if (canPost.value != null) 'can_post': canPost.value,
+                        if (canComment.value != null)
+                          'can_comment': canComment.value,
+                        if (canUploadMedia.value != null)
+                          'can_upload_media': canUploadMedia.value,
+                        if (canModeratePosts.value != null)
+                          'can_moderate_posts': canModeratePosts.value,
+                        if (canModerateChat.value != null)
+                          'can_moderate_chat': canModerateChat.value,
+                        if (canManageMembers.value != null)
+                          'can_manage_members': canManageMembers.value,
+                        if (canManageRealm.value != null)
+                          'can_manage_realm': canManageRealm.value,
+                      };
+
+                      if (permissions.isEmpty) {
+                        showSnackBar('No changes made');
+                        return;
+                      }
+
+                      try {
+                        showLoadingModal(context);
+                        final client = ref.read(solarNetworkClientProvider);
+                        await client.realms.updateUserPermission(
+                          slug: realmSlug,
+                          accountId: member.accountId,
+                          permissions: permissions,
+                        );
+                        ref.invalidate(
+                          realmMemberListNotifierProvider(realmSlug),
+                        );
+                        if (context.mounted) {
+                          hideLoadingModal(context);
+                          showSnackBar('saveChanges'.tr());
+                          Navigator.pop(context);
+                        }
+                      } catch (err) {
+                        if (context.mounted) {
+                          hideLoadingModal(context);
+                          showErrorAlert(err);
+                        }
+                      }
+                    },
+                    icon: const Icon(Symbols.save),
+                    label: const Text('saveChanges').tr(),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    // Clear all overrides by sending all-null
+                    try {
+                      showLoadingModal(context);
+                      final client = ref.read(solarNetworkClientProvider);
+                      await client.realms.updateUserPermission(
+                        slug: realmSlug,
+                        accountId: member.accountId,
+                        permissions: {
+                          'canChat': null,
+                          'canPost': null,
+                          'canComment': null,
+                          'canUploadMedia': null,
+                          'canModeratePosts': null,
+                          'canModerateChat': null,
+                          'canManageMembers': null,
+                          'canManageRealm': null,
+                        },
+                      );
+                      ref.invalidate(
+                        realmMemberListNotifierProvider(realmSlug),
+                      );
+                      if (context.mounted) {
+                        hideLoadingModal(context);
+                        showSnackBar('cleared'.tr());
+                        Navigator.pop(context);
+                      }
+                    } catch (err) {
+                      if (context.mounted) {
+                        hideLoadingModal(context);
+                        showErrorAlert(err);
+                      }
+                    }
+                  },
+                  icon: const Icon(Symbols.clear_all),
+                  label: const Text('clear').tr(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A three-state toggle: null (default / use role), true (allow), false (deny).
+class _PermissionTriToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool? value;
+  final ValueChanged<bool?> onChanged;
+
+  const _PermissionTriToggle({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final choice = value == null
+        ? 0
+        : value == true
+        ? 1
+        : 2;
+
+    String choiceLabel() {
+      switch (choice) {
+        case 0:
+          return 'default';
+        case 1:
+          return 'allowed';
+        case 2:
+          return 'denied';
+        default:
+          return '';
+      }
+    }
+
+    Color choiceColor() {
+      switch (choice) {
+        case 0:
+          return theme.colorScheme.outline;
+        case 1:
+          return Colors.green;
+        case 2:
+          return theme.colorScheme.error;
+        default:
+          return theme.colorScheme.outline;
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          // Cycle: null -> true -> false -> null
+          if (value == null) {
+            onChanged(true);
+          } else if (value == true) {
+            onChanged(false);
+          } else {
+            onChanged(null);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, fill: 1),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label.tr(), style: theme.textTheme.bodyMedium),
+                    Text(
+                      choiceLabel().tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: choiceColor(),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                value == null
+                    ? Symbols.radio_button_unchecked
+                    : value == true
+                    ? Symbols.toggle_on
+                    : Symbols.toggle_off,
+                color: choiceColor(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RealmPinnedPostsPageView extends HookConsumerWidget {
   final String realmSlug;
 
@@ -281,6 +1227,33 @@ final realmChatRoomsProvider = FutureProvider.autoDispose
       return response;
     });
 
+final realmRolePermissionsProvider = FutureProvider.autoDispose
+    .family<List<SnRealmRolePermission>, String>((ref, realmSlug) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      return await client.realms.getRolePermissions(realmSlug);
+    });
+
+// Two-key provider: (realmSlug, accountId) -> user permission override
+final realmUserPermissionProvider = FutureProvider.autoDispose
+    .family<SnRealmUserPermission?, ({String slug, String accountId})>((
+      ref,
+      params,
+    ) async {
+      final (:slug, :accountId) = params;
+      try {
+        final client = ref.watch(solarNetworkClientProvider);
+        return await client.realms.getUserPermission(
+          slug: slug,
+          accountId: accountId,
+        );
+      } catch (err) {
+        if (err is DioException && err.response?.statusCode == 404) {
+          return null;
+        }
+        rethrow;
+      }
+    });
+
 class _RealmBasisWidget extends HookConsumerWidget {
   final SnRealm data;
   final String slug;
@@ -439,7 +1412,9 @@ class _RealmBasisWidget extends HookConsumerWidget {
                         ),
                       ).padding(top: 12);
                     }
-                    return const SizedBox.shrink();
+                    return _RealmEffectivePermissions(
+                      role: identity.role,
+                    ).padding(top: 8);
                   },
                   loading: () => const SizedBox(
                     height: 40,
@@ -1002,8 +1977,9 @@ class RealmDetailScreen extends HookConsumerWidget {
         error: (error, _) => Center(child: Text('Error: $error')),
         data: (overview) => isWideScreen(context)
             ? Row(
-                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(width: 12),
                   Flexible(
                     flex: 3,
                     child: Card(
@@ -1013,7 +1989,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                           topRight: Radius.circular(8),
                         ),
                       ),
-                      margin: const EdgeInsets.fromLTRB(12, 8, 0, 0),
+                      margin: const EdgeInsets.fromLTRB(0, 8, 0, 0),
                       child: CustomScrollView(
                         slivers: [
                           const SliverGap(12),
@@ -1029,6 +2005,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                       ),
                     ),
                   ),
+                  const VerticalDivider(width: 16, thickness: 1),
                   Flexible(
                     flex: 2,
                     child: ListView(
@@ -1069,14 +2046,24 @@ class RealmDetailScreen extends HookConsumerWidget {
                                 if (identity == null) {
                                   return const SizedBox.shrink();
                                 }
-                                return realmBoostStatus.when(
-                                  data: (boost) => realmLabelsWidget(
-                                    overview,
-                                    identity,
-                                    boost,
-                                  ),
-                                  loading: () => const SizedBox.shrink(),
-                                  error: (_, _) => const SizedBox.shrink(),
+                                return Column(
+                                  spacing: 8,
+                                  children: [
+                                    realmBoostStatus.when(
+                                      data: (boost) => realmLabelsWidget(
+                                        overview,
+                                        identity,
+                                        boost,
+                                      ),
+                                      loading: () => const SizedBox.shrink(),
+                                      error: (_, _) => const SizedBox.shrink(),
+                                    ),
+                                    if (identity.role >= 50)
+                                      _RealmPermissionsCard(
+                                        realmSlug: slug,
+                                        currentUserRole: identity.role,
+                                      ),
+                                  ],
                                 );
                               },
                             ),
@@ -1088,8 +2075,9 @@ class RealmDetailScreen extends HookConsumerWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 12),
                 ],
-              ).padding(horizontal: 8)
+              )
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
@@ -1149,11 +2137,24 @@ class RealmDetailScreen extends HookConsumerWidget {
                             if (identity == null) {
                               return const SizedBox.shrink();
                             }
-                            return realmBoostStatus.when(
-                              data: (boost) =>
-                                  realmLabelsWidget(overview, identity, boost),
-                              loading: () => const SizedBox.shrink(),
-                              error: (_, _) => const SizedBox.shrink(),
+                            return Column(
+                              spacing: 8,
+                              children: [
+                                realmBoostStatus.when(
+                                  data: (boost) => realmLabelsWidget(
+                                    overview,
+                                    identity,
+                                    boost,
+                                  ),
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, _) => const SizedBox.shrink(),
+                                ),
+                                if (identity.role >= 50)
+                                  _RealmPermissionsCard(
+                                    realmSlug: slug,
+                                    currentUserRole: identity.role,
+                                  ),
+                              ],
                             );
                           },
                         ),
@@ -1697,6 +2698,25 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                     ),
                   if ((realmIdentity.value?.role ?? 0) >= 50)
                     IconButton(
+                      icon: const Icon(Symbols.shield),
+                      tooltip: 'Set permissions',
+                      onPressed: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => _RealmUserPermissionEditorSheet(
+                            realmSlug: realmSlug,
+                            member: member,
+                          ),
+                        ).then((value) {
+                          if (value != null) {
+                            refreshMemberList();
+                          }
+                        });
+                      },
+                    ),
+                  if ((realmIdentity.value?.role ?? 0) >= 50)
+                    IconButton(
                       icon: const Icon(Symbols.edit),
                       onPressed: () {
                         showModalBottomSheet(
@@ -1750,11 +2770,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       child: Column(
-        children: [
-          buildMemberListHeader(),
-          const Divider(height: 1),
-          buildMemberListContent(),
-        ],
+        children: [buildMemberListHeader(), buildMemberListContent()],
       ),
     );
   }
