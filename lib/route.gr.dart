@@ -60,16 +60,7 @@ import 'package:island/discovery/search.dart' as _i76;
 import 'package:island/drive/files/file_detail.dart' as _i40;
 import 'package:island/drive/files/file_list.dart' as _i41;
 import 'package:island/fediverse/actor_profile.dart' as _i37;
-import 'package:island/fitness/screens/fitness_dashboard_screen.dart' as _i42;
-import 'package:island/fitness/screens/goal_create_screen.dart' as _i43;
-import 'package:island/fitness/screens/goal_detail_screen.dart' as _i44;
-import 'package:island/fitness/screens/goals_screen.dart' as _i45;
-import 'package:island/fitness/screens/health_sync_screen.dart' as _i46;
-import 'package:island/fitness/screens/metric_detail_screen.dart' as _i50;
-import 'package:island/fitness/screens/metric_record_screen.dart' as _i51;
-import 'package:island/fitness/screens/metrics_screen.dart' as _i52;
-import 'package:island/fitness/screens/workout_record_screen.dart' as _i78;
-import 'package:island/fitness/screens/workouts_screen.dart' as _i79;
+
 import 'package:island/misc/about.dart' as _i1;
 import 'package:island/misc/cf_ip_speed_test_screen.dart' as _i18;
 import 'package:island/misc/dashboard/dash.dart' as _i32;
@@ -1643,153 +1634,15 @@ class FileListRoute extends _i80.PageRouteInfo<void> {
   );
 }
 
-/// generated route for
-/// [_i42.FitnessDashboardScreen]
-class FitnessDashboardRoute extends _i80.PageRouteInfo<void> {
-  const FitnessDashboardRoute({List<_i80.PageRouteInfo>? children})
-    : super(FitnessDashboardRoute.name, initialChildren: children);
 
-  static const String name = 'FitnessDashboardRoute';
 
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      return const _i42.FitnessDashboardScreen();
-    },
-  );
-}
 
-/// generated route for
-/// [_i43.GoalCreateScreen]
-class GoalCreateRoute extends _i80.PageRouteInfo<GoalCreateRouteArgs> {
-  GoalCreateRoute({
-    _i82.Key? key,
-    _i83.SnFitnessGoal? goal,
-    List<_i80.PageRouteInfo>? children,
-  }) : super(
-         GoalCreateRoute.name,
-         args: GoalCreateRouteArgs(key: key, goal: goal),
-         initialChildren: children,
-       );
 
-  static const String name = 'GoalCreateRoute';
 
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<GoalCreateRouteArgs>(
-        orElse: () => const GoalCreateRouteArgs(),
-      );
-      return _i43.GoalCreateScreen(key: args.key, goal: args.goal);
-    },
-  );
-}
 
-class GoalCreateRouteArgs {
-  const GoalCreateRouteArgs({this.key, this.goal});
 
-  final _i82.Key? key;
 
-  final _i83.SnFitnessGoal? goal;
 
-  @override
-  String toString() {
-    return 'GoalCreateRouteArgs{key: $key, goal: $goal}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! GoalCreateRouteArgs) return false;
-    return key == other.key && goal == other.goal;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ goal.hashCode;
-}
-
-/// generated route for
-/// [_i44.GoalDetailScreen]
-class GoalDetailRoute extends _i80.PageRouteInfo<GoalDetailRouteArgs> {
-  GoalDetailRoute({
-    _i82.Key? key,
-    required String id,
-    List<_i80.PageRouteInfo>? children,
-  }) : super(
-         GoalDetailRoute.name,
-         args: GoalDetailRouteArgs(key: key, id: id),
-         rawPathParams: {'id': id},
-         initialChildren: children,
-       );
-
-  static const String name = 'GoalDetailRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<GoalDetailRouteArgs>(
-        orElse: () => GoalDetailRouteArgs(id: pathParams.getString('id')),
-      );
-      return _i44.GoalDetailScreen(key: args.key, id: args.id);
-    },
-  );
-}
-
-class GoalDetailRouteArgs {
-  const GoalDetailRouteArgs({this.key, required this.id});
-
-  final _i82.Key? key;
-
-  final String id;
-
-  @override
-  String toString() {
-    return 'GoalDetailRouteArgs{key: $key, id: $id}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! GoalDetailRouteArgs) return false;
-    return key == other.key && id == other.id;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ id.hashCode;
-}
-
-/// generated route for
-/// [_i45.GoalsScreen]
-class GoalsRoute extends _i80.PageRouteInfo<void> {
-  const GoalsRoute({List<_i80.PageRouteInfo>? children})
-    : super(GoalsRoute.name, initialChildren: children);
-
-  static const String name = 'GoalsRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      return const _i45.GoalsScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i46.HealthSyncScreen]
-class HealthSyncRoute extends _i80.PageRouteInfo<void> {
-  const HealthSyncRoute({List<_i80.PageRouteInfo>? children})
-    : super(HealthSyncRoute.name, initialChildren: children);
-
-  static const String name = 'HealthSyncRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      return const _i46.HealthSyncScreen();
-    },
-  );
-}
 
 /// generated route for
 /// [_i47.LevelingScreen]
@@ -1890,123 +1743,7 @@ class MeetRoute extends _i80.PageRouteInfo<void> {
   );
 }
 
-/// generated route for
-/// [_i50.MetricDetailScreen]
-class MetricDetailRoute extends _i80.PageRouteInfo<MetricDetailRouteArgs> {
-  MetricDetailRoute({
-    _i82.Key? key,
-    required _i83.FitnessMetricType metricType,
-    List<_i80.PageRouteInfo>? children,
-  }) : super(
-         MetricDetailRoute.name,
-         args: MetricDetailRouteArgs(key: key, metricType: metricType),
-         initialChildren: children,
-       );
 
-  static const String name = 'MetricDetailRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<MetricDetailRouteArgs>();
-      return _i50.MetricDetailScreen(
-        key: args.key,
-        metricType: args.metricType,
-      );
-    },
-  );
-}
-
-class MetricDetailRouteArgs {
-  const MetricDetailRouteArgs({this.key, required this.metricType});
-
-  final _i82.Key? key;
-
-  final _i83.FitnessMetricType metricType;
-
-  @override
-  String toString() {
-    return 'MetricDetailRouteArgs{key: $key, metricType: $metricType}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! MetricDetailRouteArgs) return false;
-    return key == other.key && metricType == other.metricType;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ metricType.hashCode;
-}
-
-/// generated route for
-/// [_i51.MetricRecordScreen]
-class MetricRecordRoute extends _i80.PageRouteInfo<MetricRecordRouteArgs> {
-  MetricRecordRoute({
-    _i82.Key? key,
-    _i83.FitnessMetricType? initialType,
-    List<_i80.PageRouteInfo>? children,
-  }) : super(
-         MetricRecordRoute.name,
-         args: MetricRecordRouteArgs(key: key, initialType: initialType),
-         initialChildren: children,
-       );
-
-  static const String name = 'MetricRecordRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<MetricRecordRouteArgs>(
-        orElse: () => const MetricRecordRouteArgs(),
-      );
-      return _i51.MetricRecordScreen(
-        key: args.key,
-        initialType: args.initialType,
-      );
-    },
-  );
-}
-
-class MetricRecordRouteArgs {
-  const MetricRecordRouteArgs({this.key, this.initialType});
-
-  final _i82.Key? key;
-
-  final _i83.FitnessMetricType? initialType;
-
-  @override
-  String toString() {
-    return 'MetricRecordRouteArgs{key: $key, initialType: $initialType}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! MetricRecordRouteArgs) return false;
-    return key == other.key && initialType == other.initialType;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ initialType.hashCode;
-}
-
-/// generated route for
-/// [_i52.MetricsScreen]
-class MetricsRoute extends _i80.PageRouteInfo<void> {
-  const MetricsRoute({List<_i80.PageRouteInfo>? children})
-    : super(MetricsRoute.name, initialChildren: children);
-
-  static const String name = 'MetricsRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      return const _i52.MetricsScreen();
-    },
-  );
-}
 
 /// generated route for
 /// [_i33.NewChatScreen]
@@ -2863,34 +2600,4 @@ class WalletRoute extends _i80.PageRouteInfo<void> {
   );
 }
 
-/// generated route for
-/// [_i78.WorkoutRecordScreen]
-class WorkoutRecordRoute extends _i80.PageRouteInfo<void> {
-  const WorkoutRecordRoute({List<_i80.PageRouteInfo>? children})
-    : super(WorkoutRecordRoute.name, initialChildren: children);
 
-  static const String name = 'WorkoutRecordRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      return const _i78.WorkoutRecordScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i79.WorkoutsScreen]
-class WorkoutsRoute extends _i80.PageRouteInfo<void> {
-  const WorkoutsRoute({List<_i80.PageRouteInfo>? children})
-    : super(WorkoutsRoute.name, initialChildren: children);
-
-  static const String name = 'WorkoutsRoute';
-
-  static _i80.PageInfo page = _i80.PageInfo(
-    name,
-    builder: (data) {
-      return const _i79.WorkoutsScreen();
-    },
-  );
-}
