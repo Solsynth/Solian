@@ -187,56 +187,6 @@ class AppRouter extends RootStackRouter {
           ],
         ),
 
-        // Developer hub tab with nested routes
-        AutoRoute(
-          page: DeveloperHubRoute.page,
-          path: 'developers',
-          children: [
-            // Default child route -> Developer hub list
-            AutoRoute(
-              page: DeveloperHubListRoute.page,
-              path: '',
-              initial: true,
-            ),
-            AutoRoute(
-              page: DeveloperProjectNewRoute.page,
-              path: ':pubName/projects/new',
-            ),
-            AutoRoute(
-              page: DeveloperProjectEditRoute.page,
-              path: ':pubName/projects/:id/edit',
-            ),
-            AutoRoute(
-              page: DeveloperAppListRoute.page,
-              path: ':pubName/projects/:projectId',
-            ),
-            AutoRoute(
-              page: DeveloperAppDetailRoute.page,
-              path: ':pubName/projects/:projectId/apps/:appId',
-            ),
-            AutoRoute(
-              page: DeveloperAppNewRoute.page,
-              path: ':pubName/projects/:projectId/apps/new',
-            ),
-            AutoRoute(
-              page: DeveloperAppEditRoute.page,
-              path: ':pubName/projects/:projectId/apps/:appId/edit',
-            ),
-            AutoRoute(
-              page: DeveloperBotDetailRoute.page,
-              path: ':pubName/projects/:projectId/bots/:botId',
-            ),
-            AutoRoute(
-              page: DeveloperBotNewRoute.page,
-              path: ':pubName/projects/:projectId/bots/new',
-            ),
-            AutoRoute(
-              page: DeveloperBotEditRoute.page,
-              path: ':pubName/projects/:projectId/bots/:botId/edit',
-            ),
-          ],
-        ),
-
         // Wallet tab
         AutoRoute(page: WalletRoute.page, path: 'wallet'),
       ],
