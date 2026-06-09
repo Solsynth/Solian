@@ -233,8 +233,7 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
       ),
     );
   }
-
-  });
+}
 
 class _LocationEmbedCard extends ConsumerWidget {
   final String? name;
