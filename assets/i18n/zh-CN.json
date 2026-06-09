@@ -3437,5 +3437,15 @@
   "addRole": "添加角色",
   "deleteRole": "删除角色",
   "deleteRoleConfirm": "确定要删除此角色吗？",
-  "invalidRoleLevel": "无效等级 (0–200)"
+  "invalidRoleLevel": "无效等级 (0–200)",
+  "roleSystemGuide": "角色系统指南",
+  "roleSystemGuideDescription": "角色是整数值 (0-100)，有三个内置级别：\n• 所有者 (100)：完全控制\n• 版主 (50)：管理成员，审核内容\n• 成员 (0)：基本成员\n\n您可以在这些级别之间创建自定义角色 (例如，25 代表助手，75 代表高级版主)。\n\n权限检查流程：\n1. 用户权限覆盖 (如果存在)\n2. → 角色权限 (如果为该角色级别定义)\n3. → 默认权限 (硬编码用于所有者/版主/成员)",
+  "roleLevels": "角色级别",
+  "roleLevelsDescription": "角色是整数值 (0-100)，有三个内置级别：\n• 所有者 (100)：完全控制\n• 版主 (50)：管理成员，审核内容\n• 成员 (0)：基本成员\n\n您可以在这些级别之间创建自定义角色 (例如，25 代表助手，75 代表高级版主)。\n\n当前角色：{roleName} (级别 {roleLevel})",
+  "permissionOverrideGuide": "权限覆盖指南",
+  "permissionOverrideGuideDescription": "个别用户可以有权限覆盖，优先于基于角色的权限。\n\n• 切换为开：覆盖角色权限 (允许)\n• 切换为关：覆盖角色权限 (拒绝)\n• 切换为默认：使用基于角色的权限\n\n权限检查流程：\n1. 用户权限覆盖 (如果存在)\n2. → 角色权限 (如果为该角色级别定义)\n3. → 默认权限 (硬编码用于所有者/版主/成员)",
+  "roleOwner": "所有者",
+  "roleModerator": "版主",
+  "roleCustomRole": "自定义角色",
+  "roleMember": "成员"
 }
