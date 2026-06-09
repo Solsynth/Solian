@@ -54,8 +54,7 @@ class ComposeState {
   final ValueNotifier<String?> pollId;
   // Linked fund id for this compose session (nullable)
   final ValueNotifier<String?> fundId;
-  // Linked fitness reference for this compose session (nullable)
-  final ValueNotifier<String?> fitnessReference;
+
   // Linked location embed fields (nullable)
   final ValueNotifier<String?> locationName;
   final ValueNotifier<String?> locationAddress;
@@ -92,7 +91,6 @@ class ComposeState {
     this.postType = 0,
     String? pollId,
     String? fundId,
-    String? fitnessReference,
     String? locationName,
     String? locationAddress,
     String? locationWkt,
@@ -103,7 +101,6 @@ class ComposeState {
     String? notableDayId,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
-       fitnessReference = ValueNotifier<String?>(fitnessReference),
        locationName = ValueNotifier<String?>(locationName),
        locationAddress = ValueNotifier<String?>(locationAddress),
        locationWkt = ValueNotifier<String?>(locationWkt),
@@ -151,7 +148,6 @@ class ComposeLogic {
     // Extract embed IDs from original post embeds
     String? pollId;
     String? fundId;
-    String? fitnessReference;
     String? locationName;
     String? locationAddress;
     String? locationWkt;
@@ -169,15 +165,7 @@ class ComposeLogic {
         final fundEmbed = embeds.firstWhere((e) => e['type'] == 'fund');
         fundId = fundEmbed['id'];
       } catch (_) {}
-      try {
-        final fitnessEmbed = embeds.firstWhere(
-          (e) =>
-              e['type'] == 'workout' ||
-              e['type'] == 'metric' ||
-              e['type'] == 'goal',
-        );
-        fitnessReference = '${fitnessEmbed['type']}:${fitnessEmbed['id']}';
-      } catch (_) {}
+
       try {
         final locationEmbed = embeds.firstWhere((e) => e['type'] == 'location');
         locationName = locationEmbed['name']?.toString();
@@ -249,7 +237,6 @@ class ComposeLogic {
       postType: postType,
       pollId: pollId,
       fundId: fundId,
-      fitnessReference: fitnessReference,
       locationName: locationName,
       locationAddress: locationAddress,
       locationWkt: locationWkt,
@@ -372,8 +359,7 @@ class ComposeLogic {
         {'type': 'poll', 'id': state.pollId.value},
       if (state.fundId.value != null)
         {'type': 'fund', 'id': state.fundId.value},
-      if (state.fitnessReference.value != null)
-        ..._parseFitnessReference(state.fitnessReference.value!),
+
       if (state.locationName.value != null ||
           state.locationAddress.value != null ||
           state.locationWkt.value != null)
@@ -499,8 +485,6 @@ class ComposeLogic {
       if (state.realm.value != null) 'realm_id': state.realm.value?.id,
       if (state.pollId.value != null) 'poll_id': state.pollId.value,
       if (state.fundId.value != null) 'fund_id': state.fundId.value,
-      if (state.fitnessReference.value != null)
-        'fitness_reference': state.fitnessReference.value,
       if (state.locationName.value != null ||
           state.locationAddress.value != null ||
           state.locationWkt.value != null)
@@ -861,14 +845,6 @@ class ComposeLogic {
     state.fundId.value = fund.id;
   }
 
-  static void setFitnessReference(ComposeState state, String? reference) {
-    state.fitnessReference.value = reference;
-  }
-
-  static void deleteFitnessReference(ComposeState state) {
-    state.fitnessReference.value = null;
-  }
-
   static Future<void> pickLocation(
     WidgetRef ref,
     ComposeState state,
@@ -1030,8 +1006,6 @@ class ComposeLogic {
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
         if (state.fundId.value != null) 'fund_id': state.fundId.value,
-        if (state.fitnessReference.value != null)
-          'fitness_reference': state.fitnessReference.value,
         if (state.locationName.value != null ||
             state.locationAddress.value != null ||
             state.locationWkt.value != null)
@@ -1244,16 +1218,6 @@ class ComposeLogic {
     return KeyEventResult.ignored;
   }
 
-  static List<Map<String, dynamic>> _parseFitnessReference(String reference) {
-    final parts = reference.split(':');
-    if (parts.length != 2) return [];
-    final type = parts[0];
-    final id = parts[1];
-    return [
-      {'type': type, 'id': id},
-    ];
-  }
-
   static void dispose(ComposeState state) {
     state.stopAutoSave();
     state.titleController.dispose();
@@ -1270,7 +1234,6 @@ class ComposeLogic {
     state.embedView.dispose();
     state.pollId.dispose();
     state.fundId.dispose();
-    state.fitnessReference.dispose();
     state.locationName.dispose();
     state.locationAddress.dispose();
     state.locationWkt.dispose();
