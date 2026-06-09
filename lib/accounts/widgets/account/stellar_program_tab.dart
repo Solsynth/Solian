@@ -337,7 +337,7 @@ class StellarProgramTab extends HookConsumerWidget {
     final selectedTab = ref.watch(selectedTabProvider);
     final iapProducts = ref.watch(iapProductsProvider);
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
-    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+    final supportsIap = !kIsWeb && Platform.isIOS;
 
     final useAfdianCheckout =
         groupAsync.hasValue &&
@@ -410,8 +410,10 @@ class StellarProgramTab extends HookConsumerWidget {
           const Gap(16),
           _buildSubscriptionQueueSummary(context, ref),
           const Gap(16),
-          _buildGiftingSection(context, ref),
-          const Gap(16),
+          if (!Platform.isIOS) ...[
+            _buildGiftingSection(context, ref),
+            const Gap(16),
+          ],
         ],
       ),
     );
@@ -639,7 +641,7 @@ class StellarProgramTab extends HookConsumerWidget {
           ),
 
           // Restore Purchase Button
-          if (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
+          if (!kIsWeb && Platform.isIOS)
             OutlinedButton.icon(
               onPressed: () => _restorePurchaseIap(context, ref),
               icon: const Icon(Icons.restore),
