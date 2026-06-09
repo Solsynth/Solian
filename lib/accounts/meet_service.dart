@@ -137,6 +137,12 @@ final meetServiceProvider = Provider<MeetService>((ref) {
   return MeetService(ref.watch(apiClientProvider));
 });
 
+final meetDetailProvider = FutureProvider.autoDispose.family<SnMeet, String>(
+  (ref, meetId) async {
+    return ref.watch(meetServiceProvider).getMeet(meetId);
+  },
+);
+
 class MeetService {
   final Dio _client;
 
