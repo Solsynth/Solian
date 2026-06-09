@@ -69,6 +69,10 @@ class AppRouter extends RootStackRouter {
 
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
     AutoRoute(page: PollSubmitRoute.page, path: '/polls/:id'),
+    AutoRoute(
+      page: TransactionDetailRoute.page,
+      path: '/wallet/transactions/:id',
+    ),
 
     // Main tabs shell route
     AutoRoute(
