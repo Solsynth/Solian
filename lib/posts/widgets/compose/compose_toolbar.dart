@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/drive/widgets/upload_menu.dart';
 import 'package:island/posts/widgets/compose/compose_embed_sheet.dart';
-import 'package:island/posts/widgets/compose/compose_fitness_sheet.dart';
+
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/posts/widgets/compose/draft_manager.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
@@ -115,19 +115,6 @@ class ComposeToolbar extends HookConsumerWidget {
 
     void pickFund() {
       ComposeLogic.pickFund(ref, state, context);
-    }
-
-    void pickFitness() {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (context) => ComposeFitnessSheet(
-          onSelected: (reference) {
-            state.fitnessReference.value = reference;
-          },
-        ),
-      );
     }
 
     void showEmbedSheet() {
@@ -252,25 +239,7 @@ class ComposeToolbar extends HookConsumerWidget {
                               );
                             },
                           ),
-                          // Fitness button with visual state when fitness is linked
-                          ListenableBuilder(
-                            listenable: state.fitnessReference,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickFitness,
-                                icon: const Icon(Symbols.fitness_center),
-                                tooltip: 'Fitness',
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.fitnessReference.value != null
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+
                           // Location button with visual state when location is set
                           ListenableBuilder(
                             listenable: Listenable.merge([

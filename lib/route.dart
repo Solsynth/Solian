@@ -135,18 +135,7 @@ class AppRouter extends RootStackRouter {
             // Ticket routes
             AutoRoute(page: TicketListRoute.page, path: 'tickets'),
             AutoRoute(page: TicketDetailRoute.page, path: 'tickets/:ticketId'),
-            // Fitness routes
-            AutoRoute(page: FitnessDashboardRoute.page, path: 'fitness'),
-            AutoRoute(page: WorkoutsRoute.page, path: 'fitness/workouts'),
-            AutoRoute(page: GoalsRoute.page, path: 'fitness/goals'),
-            AutoRoute(page: GoalDetailRoute.page, path: 'fitness/goals/:id'),
-            AutoRoute(page: GoalCreateRoute.page, path: 'fitness/goals/create'),
-            AutoRoute(page: MetricsRoute.page, path: 'fitness/metrics'),
-            AutoRoute(
-              page: MetricDetailRoute.page,
-              path: 'fitness/metrics/:type',
-            ),
-            AutoRoute(page: HealthSyncRoute.page, path: 'fitness/sync'),
+
             AutoRoute(page: PunishmentsRoute.page, path: 'me/punishments'),
             AutoRoute(page: AffiliationRoute.page, path: 'me/affiliations'),
             AutoRoute(
