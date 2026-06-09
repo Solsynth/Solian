@@ -3613,5 +3613,15 @@
   "addRole": "Add Role",
   "deleteRole": "Delete Role",
   "deleteRoleConfirm": "Are you sure you want to delete this role?",
-  "invalidRoleLevel": "Invalid level (0–200)"
+  "invalidRoleLevel": "Invalid level (0–200)",
+  "roleSystemGuide": "Role System Guide",
+  "roleSystemGuideDescription": "Roles are integer values (0-100) with three built-in levels:\n• Owner (100): Full control\n• Moderator (50): Manage members, moderate content\n• Member (0): Basic member\n\nYou can create custom roles between these levels (e.g., 25 for Helper, 75 for Senior Moderator).\n\nPermission Check Flow:\n1. User Permission Override (if exists)\n2. → Role Permission (if defined for that role level)\n3. → Default Permission (hardcoded for Owner/Moderator/Member)",
+  "roleLevels": "Role Levels",
+  "roleLevelsDescription": "Roles are integer values (0-100) with three built-in levels:\n• Owner (100): Full control\n• Moderator (50): Manage members, moderate content\n• Member (0): Basic member\n\nYou can create custom roles between these levels (e.g., 25 for Helper, 75 for Senior Moderator).\n\nCurrent role: {roleName} (Level {roleLevel})",
+  "permissionOverrideGuide": "Permission Override Guide",
+  "permissionOverrideGuideDescription": "Individual users can have permission overrides that take precedence over role-based permissions.\n\n• Toggle ON: Override role permission (allow)\n• Toggle OFF: Override role permission (deny)\n• Toggle to DEFAULT: Use role-based permission\n\nPermission Check Flow:\n1. User Permission Override (if exists)\n2. → Role Permission (if defined for that role level)\n3. → Default Permission (hardcoded for Owner/Moderator/Member)",
+  "roleOwner": "Owner",
+  "roleModerator": "Moderator",
+  "roleCustomRole": "Custom Role",
+  "roleMember": "Member"
 }
