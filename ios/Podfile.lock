@@ -114,6 +114,8 @@ PODS:
   - flutter_inappwebview_ios/Core (0.0.1):
     - Flutter
     - OrderedSet (~> 6.0.3)
+  - flutter_js (0.1.0):
+    - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
   - flutter_nfc_kit (3.6.0):
@@ -324,6 +326,7 @@ DEPENDENCIES:
   - flutter_app_update (from `.symlinks/plugins/flutter_app_update/ios`)
   - flutter_blue_plus_darwin (from `.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
+  - flutter_js (from `.symlinks/plugins/flutter_js/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
@@ -427,6 +430,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_blue_plus_darwin/darwin"
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
+  flutter_js:
+    :path: ".symlinks/plugins/flutter_js/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   flutter_nfc_kit:
@@ -538,8 +543,9 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 4803888ce3002188f24e19faa8d2326261538426
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
-  flutter_blue_plus_darwin: 20a08bfeaa0f7804d524858d3d8744bcc1b6dbc3
+  flutter_blue_plus_darwin: ee2377ea51a6c9e481f2ed76ec597717ef5d287d
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
+  flutter_js: 867813c1830e1d9b2c5d547cdb6f61801e2f2145
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
   flutter_nfc_kit: e1b71583eafd2c9650bc86844a7f2d185fb414f6
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
