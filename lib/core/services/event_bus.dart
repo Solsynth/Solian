@@ -222,3 +222,80 @@ class MlsE2eeCheckCompletedEvent {
     required this.success,
   });
 }
+
+// ============================================
+// Wallet Real-time Events
+// ============================================
+
+/// Event fired when a wallet transaction is created
+class WalletTransactionCreatedEvent {
+  final SnTransaction transaction;
+
+  const WalletTransactionCreatedEvent(this.transaction);
+}
+
+/// Event fired when a wallet transaction is confirmed
+class WalletTransactionConfirmedEvent {
+  final SnTransaction transaction;
+
+  const WalletTransactionConfirmedEvent(this.transaction);
+}
+
+/// Event fired when a wallet transaction is refunded
+class WalletTransactionRefundedEvent {
+  final SnTransaction transaction;
+
+  const WalletTransactionRefundedEvent(this.transaction);
+}
+
+/// Event fired when a wallet transaction expires
+class WalletTransactionExpiredEvent {
+  final SnTransaction transaction;
+
+  const WalletTransactionExpiredEvent(this.transaction);
+}
+
+/// Event fired when a wallet pocket balance is updated
+class WalletPocketUpdatedEvent {
+  final String walletId;
+  final String currency;
+  final double amount;
+  final double heldAmount;
+  final double availableAmount;
+
+  const WalletPocketUpdatedEvent({
+    required this.walletId,
+    required this.currency,
+    required this.amount,
+    required this.heldAmount,
+    required this.availableAmount,
+  });
+}
+
+/// Event fired when a contribution is made to a raising fund
+class WalletFundContributedEvent {
+  final String fundId;
+  final String contributorAccountId;
+  final double amount;
+  final String currency;
+  final double raisedAmount;
+  final double targetAmount;
+  final int status;
+
+  const WalletFundContributedEvent({
+    required this.fundId,
+    required this.contributorAccountId,
+    required this.amount,
+    required this.currency,
+    required this.raisedAmount,
+    required this.targetAmount,
+    required this.status,
+  });
+}
+
+/// Event fired when a raising fund reaches its target
+class WalletFundCompletedEvent {
+  final String fundId;
+
+  const WalletFundCompletedEvent(this.fundId);
+}
