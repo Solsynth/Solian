@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:crop_image/crop_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +16,8 @@ import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:pro_image_editor/pro_image_editor.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart' as p;
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -239,404 +242,226 @@ String _formatFileSize(int bytes) {
   }
 }
 
-/// Creates i18n configuration for pro_image_editor
-I18n createImageEditorI18n(BuildContext context) {
-  return I18n(
-    cancel: 'cancel'.tr(),
-    undo: 'imageEditorUndo'.tr(),
-    redo: 'imageEditorRedo'.tr(),
-    done: 'done'.tr(),
-    doneLoadingMsg: 'imageEditorLoading'.tr(),
-    cropRotateEditor: I18nCropRotateEditor(
-      bottomNavigationBarText: 'imageEditorCrop'.tr(),
-      rotate: 'imageEditorRotate'.tr(),
-      ratio: 'imageEditorFree'.tr(),
-      back: 'back'.tr(),
-    ),
-    paintEditor: I18nPaintEditor(
-      bottomNavigationBarText: 'imageEditorPaint'.tr(),
-      freestyle: 'imageEditorBrush'.tr(),
-      line: 'imageEditorLine'.tr(),
-      lineWidth: 'imageEditorLineWidth'.tr(),
-      back: 'back'.tr(),
-    ),
-    textEditor: I18nTextEditor(
-      bottomNavigationBarText: 'imageEditorText'.tr(),
-      inputHintText: 'imageEditorAddText'.tr(),
-      backgroundMode: 'imageEditorBackground'.tr(),
-      back: 'back'.tr(),
-    ),
-    emojiEditor: I18nEmojiEditor(
-      bottomNavigationBarText: 'imageEditorEmoji'.tr(),
-    ),
-    filterEditor: I18nFilterEditor(
-      bottomNavigationBarText: 'imageEditorFilters'.tr(),
-      back: 'back'.tr(),
-    ),
-    blurEditor: I18nBlurEditor(
-      bottomNavigationBarText: 'imageEditorBlur'.tr(),
-      back: 'back'.tr(),
-    ),
-    tuneEditor: I18nTuneEditor(
-      bottomNavigationBarText: 'imageEditorAdjust'.tr(),
-      back: 'back'.tr(),
-    ),
-    various: I18nVarious(
-      closeEditorWarningTitle: 'close'.tr(),
-      closeEditorWarningMessage:
-          'Are you sure you want to close the editor? Your changes will not be saved.',
-      closeEditorWarningConfirmBtn: 'yes'.tr(),
-      closeEditorWarningCancelBtn: 'no'.tr(),
-    ),
+String _editedImageName(String originalName, {required bool isEdited}) {
+  if (!isEdited) return originalName;
+
+  final extension = p.extension(originalName);
+  if (extension.isEmpty) return '${originalName}_cropped.png';
+  return originalName.replaceRange(
+    originalName.length - extension.length,
+    originalName.length,
+    '.png',
   );
 }
 
-/// Creates editor configs with Material design and black background
-ProImageEditorConfigs createImageEditorConfigs(
+String _imageMimeType(String fileName, {required bool isEdited}) {
+  if (isEdited) return 'image/png';
+  return lookupMimeType(fileName) ?? 'image/jpeg';
+}
+
+Future<Uint8List?> showCropImageEditor(
   BuildContext context, {
-  ImageEditorConfig? config,
+  required Uint8List imageBytes,
   List<ImageAspectRatio>? allowedAspectRatios,
 }) {
-  final effectiveConfig = config ?? const ImageEditorConfig();
-  final colorScheme = Theme.of(context).colorScheme;
-
-  // Create base theme with black background
-  final baseTheme = Theme.of(context).copyWith(
-    scaffoldBackgroundColor: Colors.black,
-    colorScheme: colorScheme.copyWith(
-      surface: Colors.black,
-      surfaceContainerHighest: Colors.grey[900]!,
-    ),
-  );
-
-  return ProImageEditorConfigs(
-    designMode: ImageEditorDesignMode.material,
-    theme: baseTheme,
-    i18n: createImageEditorI18n(context),
-    mainEditor: MainEditorConfigs(
-      enableCloseButton: true,
-      widgets: MainEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              actions: [
-                IconButton(
-                  onPressed: state.canUndo ? state.undoAction : null,
-                  icon: const Icon(Symbols.undo),
-                ),
-                IconButton(
-                  onPressed: state.canRedo ? state.redoAction : null,
-                  icon: const Icon(Symbols.redo),
-                ),
-                IconButton(
-                  onPressed: state.doneEditing,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
-        bottomBar: (state, stream, key) => ReactiveWidget(
-          stream: stream,
-          builder: (context) {
-            return BottomAppBar(
-              key: key,
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              child: SingleChildScrollView(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 12,
-                  children: [
-                    _EditorBottomButton(
-                      icon: Symbols.crop,
-                      label: 'imageEditorCrop'.tr(),
-                      onPressed: state.openCropRotateEditor,
-                    ),
-                    if (effectiveConfig.enablePaint)
-                      _EditorBottomButton(
-                        icon: Symbols.draw,
-                        label: 'imageEditorPaint'.tr(),
-                        onPressed: state.openPaintEditor,
-                      ),
-                    if (effectiveConfig.enableText)
-                      _EditorBottomButton(
-                        icon: Symbols.text_fields,
-                        label: 'imageEditorText'.tr(),
-                        onPressed: state.openTextEditor,
-                      ),
-                    if (effectiveConfig.enableEmoji)
-                      _EditorBottomButton(
-                        icon: Symbols.emoji_emotions,
-                        label: 'imageEditorEmoji'.tr(),
-                        onPressed: state.openEmojiEditor,
-                      ),
-                    if (effectiveConfig.enableFilters)
-                      _EditorBottomButton(
-                        icon: Symbols.filter_b_and_w,
-                        label: 'imageEditorFilters'.tr(),
-                        onPressed: state.openFilterEditor,
-                      ),
-                    if (effectiveConfig.enableBlur)
-                      _EditorBottomButton(
-                        icon: Symbols.blur_on,
-                        label: 'imageEditorBlur'.tr(),
-                        onPressed: state.openBlurEditor,
-                      ),
-                    if (effectiveConfig.enableAdjustments)
-                      _EditorBottomButton(
-                        icon: Symbols.tune,
-                        label: 'imageEditorAdjust'.tr(),
-                        onPressed: state.openTuneEditor,
-                      ),
-                  ],
-                ).center(),
-              ),
-            );
-          },
-        ),
-      ),
-    ),
-    cropRotateEditor: CropRotateEditorConfigs(
-      enableTransformLayers: true,
-      style: CropRotateEditorStyle(
-        cropCornerColor: Theme.of(context).colorScheme.primary,
-      ),
-      aspectRatios:
-          allowedAspectRatios?.map((r) {
-            return AspectRatioItem(text: r.label, value: r.ratio);
-          }).toList() ??
-          [],
-      widgets: CropRotateEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              actions: [
-                IconButton(
-                  onPressed: state.reset,
-                  icon: const Icon(Symbols.history),
-                ),
-                IconButton(
-                  onPressed: state.done,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
-        bottomBar: (state, stream) => ReactiveWidget(
-          stream: stream,
-          builder: (context) {
-            return BottomAppBar(
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              child: SingleChildScrollView(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 12,
-                  children: [
-                    _EditorBottomButton(
-                      icon: Symbols.rotate_90_degrees_ccw,
-                      label: 'imageEditorRotate'.tr(),
-                      onPressed: state.rotate,
-                    ),
-                    _EditorBottomButton(
-                      icon: Symbols.flip,
-                      label: 'imageEditorFlip'.tr(),
-                      onPressed: state.flip,
-                    ),
-                    _EditorBottomButton(
-                      icon: Symbols.aspect_ratio,
-                      label: state.activeAspectRatio == 0
-                          ? 'imageEditorFree'.tr()
-                          : state.activeAspectRatio.toStringAsFixed(2),
-                      onPressed: state.openAspectRatioOptions,
-                    ),
-                  ],
-                ).center(),
-              ),
-            );
-          },
-        ),
-      ),
-    ),
-    paintEditor: PaintEditorConfigs(
-      widgets: PaintEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              flexibleSpace: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: state.openLinWidthBottomSheet,
-                    icon: const Icon(Symbols.line_weight),
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  IconButton(
-                    onPressed: state.openOpacityBottomSheet,
-                    icon: const Icon(Symbols.opacity),
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  IconButton(
-                    onPressed: state.toggleFill,
-                    icon: Icon(
-                      Symbols.format_paint,
-                      fill: state.fillBackground ? 1 : 0,
-                    ),
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ],
-              ).padding(vertical: 8),
-              actions: [
-                IconButton(
-                  onPressed: state.canUndo ? state.undoAction : null,
-                  icon: const Icon(Symbols.undo),
-                ),
-                IconButton(
-                  onPressed: state.canRedo ? state.redoAction : null,
-                  icon: const Icon(Symbols.redo),
-                ),
-                IconButton(
-                  onPressed: state.done,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
-      ),
-    ),
-    textEditor: TextEditorConfigs(
-      widgets: TextEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              flexibleSpace: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: state.toggleTextAlign,
-                    icon: switch (state.align) {
-                      TextAlign.left => const Icon(Symbols.align_start),
-                      TextAlign.center => const Icon(Symbols.align_center),
-                      _ => const Icon(Symbols.align_end),
-                    },
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  IconButton(
-                    onPressed: state.openFontScaleBottomSheet,
-                    icon: const Icon(Symbols.format_size),
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  IconButton(
-                    onPressed: state.toggleBackgroundMode,
-                    icon: Icon(
-                      Symbols.format_paint,
-                      fill: state.backgroundColorMode == .backgroundAndColor
-                          ? 1
-                          : 0,
-                    ),
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ],
-              ).padding(vertical: 8),
-              actions: [
-                IconButton(
-                  onPressed: state.done,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
-      ),
-    ),
-    emojiEditor: const EmojiEditorConfigs(),
-    filterEditor: FilterEditorConfigs(
-      widgets: FilterEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              actions: [
-                IconButton(
-                  onPressed: state.done,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
-      ),
-    ),
-    blurEditor: BlurEditorConfigs(
-      widgets: BlurEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              actions: [
-                IconButton(
-                  onPressed: state.done,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
-      ),
-    ),
-    stickerEditor: const StickerEditorConfigs(),
-    tuneEditor: TuneEditorConfigs(
-      widgets: TuneEditorWidgets(
-        appBar: (state, stream) => ReactiveAppbar(
-          builder: (context) {
-            return AppBar(
-              actions: [
-                IconButton(
-                  onPressed: state.reset,
-                  icon: const Icon(Symbols.history),
-                ),
-                IconButton(
-                  onPressed: state.undo,
-                  icon: const Icon(Symbols.undo),
-                ),
-                IconButton(
-                  onPressed: state.redo,
-                  icon: const Icon(Symbols.redo),
-                ),
-                IconButton(
-                  onPressed: state.done,
-                  icon: const Icon(Symbols.check),
-                ),
-                const Gap(8),
-              ],
-            );
-          },
-          stream: stream,
-        ),
+  return Navigator.of(context, rootNavigator: true).push<Uint8List>(
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => _CropImageEditorScreen(
+        imageBytes: imageBytes,
+        allowedAspectRatios: allowedAspectRatios,
       ),
     ),
   );
 }
 
-/// A dedicated image picker widget with preview and editing capabilities.
-/// Uses pro_image_editor for image editing.
+class _CropImageEditorScreen extends StatefulWidget {
+  final Uint8List imageBytes;
+  final List<ImageAspectRatio>? allowedAspectRatios;
+
+  const _CropImageEditorScreen({
+    required this.imageBytes,
+    required this.allowedAspectRatios,
+  });
+
+  @override
+  State<_CropImageEditorScreen> createState() => _CropImageEditorScreenState();
+}
+
+class _CropImageEditorScreenState extends State<_CropImageEditorScreen> {
+  late CropController _controller;
+  late double? _activeAspectRatio;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeAspectRatio = widget.allowedAspectRatios?.firstOrNull?.ratio;
+    _controller = CropController(aspectRatio: _activeAspectRatio);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _resetCrop() {
+    _controller
+      ..aspectRatio = _activeAspectRatio
+      ..crop = const Rect.fromLTWH(0, 0, 1, 1)
+      ..rotation = CropRotation.up;
+  }
+
+  void _setAspectRatio(double? ratio) {
+    setState(() {
+      _activeAspectRatio = ratio;
+      _controller.aspectRatio = ratio;
+      _controller.crop = const Rect.fromLTWH(0, 0, 1, 1);
+    });
+  }
+
+  Future<void> _save() async {
+    setState(() => _isSaving = true);
+    try {
+      final bitmap = await _controller.croppedBitmap();
+      final byteData = await bitmap.toByteData(format: ui.ImageByteFormat.png);
+      if (!mounted) return;
+      Navigator.pop(context, byteData?.buffer.asUint8List());
+    } catch (err) {
+      showErrorAlert(err);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allowedAspectRatios = widget.allowedAspectRatios ?? const [];
+    final theme = Theme.of(context);
+
+    return Theme(
+      data: theme.copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: theme.appBarTheme.copyWith(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context),
+            icon: const Icon(Symbols.close),
+          ),
+          title: Text('imageEditorCrop'.tr()),
+          actions: [
+            IconButton(
+              onPressed: _isSaving ? null : _resetCrop,
+              icon: const Icon(Symbols.history),
+            ),
+            IconButton(
+              onPressed: _isSaving ? null : _save,
+              icon: const Icon(Symbols.check),
+            ),
+            const Gap(8),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: CropImage(
+                  controller: _controller,
+                  image: Image.memory(widget.imageBytes, fit: BoxFit.contain),
+                  gridColor: Colors.white70,
+                  gridCornerColor: theme.colorScheme.primary,
+                  gridInnerColor: Colors.white54,
+                  gridThinWidth: 1.5,
+                  gridThickWidth: 3,
+                  scrimColor: Colors.black54,
+                  alwaysShowThirdLines: true,
+                  paddingSize: 24,
+                ),
+              ),
+            ),
+            SafeArea(
+              top: false,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  border: Border(top: BorderSide(color: Colors.white12)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 12,
+                  children: [
+                    if (_isSaving) const LinearProgressIndicator(),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: _isSaving ? null : _controller.rotateLeft,
+                          icon: const Icon(Symbols.rotate_90_degrees_ccw),
+                          label: Text('imageEditorRotate'.tr()),
+                        ),
+                        if (allowedAspectRatios.isNotEmpty)
+                          PopupMenuButton<double?>(
+                            enabled: !_isSaving,
+                            initialValue: _activeAspectRatio,
+                            onSelected: _setAspectRatio,
+                            itemBuilder: (context) => [
+                              PopupMenuItem<double?>(
+                                value: null,
+                                child: Text('imageEditorFree'.tr()),
+                              ),
+                              ...allowedAspectRatios.map(
+                                (ratio) => PopupMenuItem<double?>(
+                                  value: ratio.ratio,
+                                  child: Text(ratio.label),
+                                ),
+                              ),
+                            ],
+                            child: OutlinedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Symbols.aspect_ratio),
+                              label: Text(
+                                _activeAspectRatio == null
+                                    ? 'imageEditorFree'.tr()
+                                    : allowedAspectRatios
+                                          .firstWhere(
+                                            (ratio) =>
+                                                ratio.ratio ==
+                                                _activeAspectRatio,
+                                            orElse: () => ImageAspectRatio(
+                                              width: _activeAspectRatio!
+                                                  .round(),
+                                              height: 1,
+                                            ),
+                                          )
+                                          .label,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A dedicated image picker widget with preview and cropping capabilities.
 class ImagePickerEditor extends HookConsumerWidget {
   final ImageEditorConfig config;
   final String? title;
@@ -695,8 +520,14 @@ class ImagePickerEditor extends HookConsumerWidget {
           final bytes = await image.getBytes();
           final xfile = XFile.fromData(
             bytes,
-            name: image.displayName ?? image.file.name,
-            mimeType: 'image/jpeg',
+            name: _editedImageName(
+              image.displayName ?? image.file.name,
+              isEdited: image.isEdited,
+            ),
+            mimeType: _imageMimeType(
+              image.displayName ?? image.file.name,
+              isEdited: image.isEdited,
+            ),
           );
 
           final cloudFile = await ref
@@ -731,41 +562,29 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
     }
 
-    Future<void> editImage(EditableImage image, {bool cropOnly = false}) async {
+    Future<void> editImage(EditableImage image) async {
       final bytes = await image.getBytes();
 
       if (!context.mounted) return;
 
-      await Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (editorContext) => ProImageEditor.memory(
-            bytes,
-            callbacks: ProImageEditorCallbacks(
-              onImageEditingComplete: (Uint8List editedBytes) async {
-                final idx = images.value.indexWhere((i) => i.id == image.id);
-                if (idx != -1) {
-                  final updatedImages = [...images.value];
-                  updatedImages[idx] = images.value[idx].copyWith(
-                    editedBytes: editedBytes,
-                    isEdited: true,
-                    isCropped: true,
-                  );
-                  images.value = updatedImages;
-                }
-              },
-              onCloseEditor: (editorMode) {
-                Navigator.pop(editorContext);
-              },
-            ),
-            configs: createImageEditorConfigs(
-              context,
-              config: config,
-              allowedAspectRatios: config.allowedAspectRatios,
-            ),
-          ),
-        ),
+      final editedBytes = await showCropImageEditor(
+        context,
+        imageBytes: bytes,
+        allowedAspectRatios: config.allowedAspectRatios,
       );
+
+      if (editedBytes == null) return;
+
+      final idx = images.value.indexWhere((i) => i.id == image.id);
+      if (idx != -1) {
+        final updatedImages = [...images.value];
+        updatedImages[idx] = images.value[idx].copyWith(
+          editedBytes: editedBytes,
+          isEdited: true,
+          isCropped: true,
+        );
+        images.value = updatedImages;
+      }
     }
 
     void pickImages() async {
@@ -1634,50 +1453,6 @@ class _ActionButton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             child: Icon(icon, size: 18, color: color ?? Colors.white),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A button widget for the editor bottom app bar
-class _EditorBottomButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _EditorBottomButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(12),
-      child: Material(
-        elevation: 3,
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 24),
-              const Gap(4),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontSize: 11),
-              ),
-            ],
           ),
         ),
       ),

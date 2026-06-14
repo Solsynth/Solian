@@ -1,13 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/widgets/content/image_picker_editor.dart';
-import 'package:pro_image_editor/pro_image_editor.dart';
+import 'package:path/path.dart' as p;
 
-/// Opens the pro_image_editor for cropping and editing an image.
-/// Uses the shared configuration from image_picker_editor.dart for consistent styling.
-/// Returns the edited image as an XFile, or null if cancelled.
+/// Opens the shared crop editor and returns the edited image, or null if cancelled.
 Future<XFile?> cropImage(
   BuildContext context, {
   required XFile image,
@@ -20,42 +16,20 @@ Future<XFile?> cropImage(
   final imageBytes = await image.readAsBytes();
   if (!context.mounted) return null;
 
-  final editorKey = GlobalKey<ProImageEditorState>();
-  XFile? result;
-
-  await Navigator.of(context, rootNavigator: true).push(
-    MaterialPageRoute(
-      fullscreenDialog: true,
-      builder: (editorContext) => ProImageEditor.memory(
-        imageBytes,
-        key: editorKey,
-        callbacks: ProImageEditorCallbacks(
-          onImageEditingComplete: (Uint8List bytes) async {
-            result = XFile.fromData(
-              bytes,
-              path: !replacePath ? image.path : null,
-              mimeType: image.mimeType ?? 'image/jpeg',
-            );
-            // Close the editor after editing is complete
-            if (editorKey.currentState != null &&
-                editorKey.currentState!.mounted) {
-              Navigator.of(editorContext).pop();
-            }
-          },
-          onCloseEditor: (_) {
-            // Editor is already closing, no need to pop again
-          },
-        ),
-        configs: createImageEditorConfigs(
-          context,
-          config: config ?? const ImageEditorConfig(),
-          allowedAspectRatios: allowedAspectRatios,
-        ),
-      ),
-    ),
+  final bytes = await showCropImageEditor(
+    context,
+    imageBytes: imageBytes,
+    allowedAspectRatios: allowedAspectRatios ?? config?.allowedAspectRatios,
   );
 
-  return result;
+  if (bytes == null) return null;
+
+  return XFile.fromData(
+    bytes,
+    name: _editedImageName(image.name),
+    path: replacePath ? null : image.path,
+    mimeType: 'image/png',
+  );
 }
 
 /// Picks an image from gallery and optionally edits it.
@@ -85,5 +59,15 @@ Future<XFile?> pickAndEditImage(
     image: pickedFile,
     allowedAspectRatios: allowedAspectRatios,
     config: config,
+  );
+}
+
+String _editedImageName(String originalName) {
+  final extension = p.extension(originalName);
+  if (extension.isEmpty) return '${originalName}_cropped.png';
+  return originalName.replaceRange(
+    originalName.length - extension.length,
+    originalName.length,
+    '.png',
   );
 }
