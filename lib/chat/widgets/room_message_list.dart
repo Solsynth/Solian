@@ -72,6 +72,8 @@ List<BotGroupInfo> _computeBotGroups(List<LocalChatMessage> messages) {
 /// Simplified RoomMessageList that uses universal chat room state.
 /// All state is managed by [ChatRoomStateNotifier] via [chatRoomStateProvider].
 class RoomMessageList extends HookConsumerWidget {
+  static const int _animationBatchThreshold = 10;
+
   final String roomId;
   final List<LocalChatMessage> messages;
   final AsyncValue<SnChatRoom?> roomAsync;
@@ -92,7 +94,33 @@ class RoomMessageList extends HookConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final chatState = ref.watch(chatRoomStateProvider(roomId));
     final chatStateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
+    final skipInitialLoadMessageAnimations = useState(true);
+    final previousMessageCount = useRef<int?>(null);
     const messageKeyPrefix = 'message-';
+    final addedMessageCount = previousMessageCount.value == null
+        ? 0
+        : messages.length - previousMessageCount.value!;
+    final skipBatchMessageAnimations =
+        addedMessageCount >= _animationBatchThreshold;
+
+    useEffect(() {
+      if (!skipInitialLoadMessageAnimations.value || messages.isEmpty) {
+        return null;
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          skipInitialLoadMessageAnimations.value = false;
+        }
+      });
+
+      return null;
+    }, [messages.length, skipInitialLoadMessageAnimations.value]);
+
+    useEffect(() {
+      previousMessageCount.value = messages.length;
+      return null;
+    }, [messages.length]);
 
     final handleDismiss = useCallback(() {
       chatStateNotifier.dismissLastReadMarker();
@@ -226,7 +254,10 @@ class RoomMessageList extends HookConsumerWidget {
             toggleMessageSelection: chatStateNotifier.toggleMessageSelection,
             onMessageAction: chatStateNotifier.onMessageAction,
             onJump: onJump,
-            disableAnimation: settings.disableAnimation,
+            disableAnimation:
+                settings.disableAnimation ||
+                skipInitialLoadMessageAnimations.value ||
+                skipBatchMessageAnimations,
             roomOpenTime: chatState.roomOpenTime,
           );
         }

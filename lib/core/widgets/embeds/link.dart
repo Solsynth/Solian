@@ -28,6 +28,7 @@ class EmbedLinkWidget extends ConsumerStatefulWidget {
 }
 
 class _EmbedLinkWidgetState extends ConsumerState<EmbedLinkWidget> {
+  static const double _defaultOgAspectRatio = 2.0;
   bool? _isSquare;
   ImageStream? _imageStream;
   ImageStreamListener? _listener;
@@ -236,7 +237,7 @@ class _EmbedLinkWidgetState extends ConsumerState<EmbedLinkWidget> {
                       LayoutBuilder(
                         builder: (context, constraints) {
                           final computedHeight =
-                              constraints.maxWidth * 9 / 16;
+                              constraints.maxWidth / _defaultOgAspectRatio;
                           final imageHeight =
                               computedHeight > 320 ? 320.0 : computedHeight;
                           return Container(

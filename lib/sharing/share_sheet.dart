@@ -60,6 +60,45 @@ class ShareContent {
   }
 }
 
+class _ShareSheetRequest {
+  final ShareContent content;
+  final String? title;
+  final bool toSystem;
+  final VoidCallback? onClose;
+
+  const _ShareSheetRequest({
+    required this.content,
+    this.title,
+    required this.toSystem,
+    this.onClose,
+  });
+}
+
+class _ShareSheetPresentationController {
+  _ShareSheetPresentationController._();
+
+  static final _ShareSheetPresentationController instance =
+      _ShareSheetPresentationController._();
+
+  final ValueNotifier<_ShareSheetRequest?> currentRequest = ValueNotifier(null);
+
+  bool _isOpen = false;
+
+  bool showOrUpdate(_ShareSheetRequest request) {
+    currentRequest.value = request;
+    if (_isOpen) return false;
+    _isOpen = true;
+    return true;
+  }
+
+  void close() {
+    final latestRequest = currentRequest.value;
+    _isOpen = false;
+    currentRequest.value = null;
+    latestRequest?.onClose?.call();
+  }
+}
+
 class ShareSheet extends ConsumerStatefulWidget {
   final ShareContent content;
   final String? title;
@@ -122,14 +161,45 @@ class ShareSheet extends ConsumerStatefulWidget {
 }
 
 class _ShareSheetState extends ConsumerState<ShareSheet> {
+  final _presentationController = _ShareSheetPresentationController.instance;
   bool _isLoading = false;
   final TextEditingController _messageController = TextEditingController();
   final Map<String, List<double>> _fileUploadProgress = {};
+  late ShareContent _content;
+  late String? _title;
+  late bool _toSystem;
 
   static const _sectionPadding = EdgeInsets.symmetric(horizontal: 16);
 
+  ShareContent get _currentContent => _content;
+  String? get _currentTitle => _title;
+  bool get _currentToSystem => _toSystem;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialRequest = _presentationController.currentRequest.value;
+    _content = initialRequest?.content ?? widget.content;
+    _title = initialRequest?.title ?? widget.title;
+    _toSystem = initialRequest?.toSystem ?? widget.toSystem;
+    _presentationController.currentRequest.addListener(_handleRequestUpdated);
+  }
+
+  void _handleRequestUpdated() {
+    final request = _presentationController.currentRequest.value;
+    if (!mounted || request == null) return;
+    setState(() {
+      _content = request.content;
+      _title = request.title;
+      _toSystem = request.toSystem;
+      _messageController.clear();
+      _fileUploadProgress.clear();
+    });
+  }
+
   @override
   void dispose() {
+    _presentationController.currentRequest.removeListener(_handleRequestUpdated);
     _messageController.dispose();
     super.dispose();
   }
@@ -141,17 +211,17 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       String content = '';
       List<UniversalFile> attachments = [];
 
-      switch (widget.content.type) {
+      switch (_currentContent.type) {
         case ShareContentType.text:
-          content = widget.content.text ?? '';
+          content = _currentContent.text ?? '';
           break;
         case ShareContentType.link:
-          content = widget.content.link ?? '';
+          content = _currentContent.link ?? '';
           break;
         case ShareContentType.file:
-          if (widget.content.files != null) {
+          if (_currentContent.files != null) {
             // Convert XFiles to UniversalFiles
-            for (final file in widget.content.files!) {
+            for (final file in _currentContent.files!) {
               var mimeType = file.mimeType;
               mimeType ??= lookupMimeType(file.path);
 
@@ -173,7 +243,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       }
 
       final initialState = PostComposeInitialState(
-        title: widget.title,
+        title: _currentTitle,
         content: content,
         attachments: attachments,
       );
@@ -202,25 +272,25 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       List<String> attachmentIds = [];
 
       // Handle different content types
-      switch (widget.content.type) {
+      switch (_currentContent.type) {
         case ShareContentType.text:
           if (content.isEmpty) {
-            content = widget.content.text ?? '';
-          } else if (widget.content.text?.isNotEmpty == true) {
-            content = '$content\n\n${widget.content.text}';
+            content = _currentContent.text ?? '';
+          } else if (_currentContent.text?.isNotEmpty == true) {
+            content = '$content\n\n${_currentContent.text}';
           }
           break;
         case ShareContentType.link:
           if (content.isEmpty) {
-            content = widget.content.link ?? '';
-          } else if (widget.content.link?.isNotEmpty == true) {
-            content = '$content\n\n${widget.content.link}';
+            content = _currentContent.link ?? '';
+          } else if (_currentContent.link?.isNotEmpty == true) {
+            content = '$content\n\n${_currentContent.link}';
           }
           break;
         case ShareContentType.file:
           // Upload files to cloud storage
-          if (widget.content.files?.isNotEmpty == true) {
-            final universalFiles = widget.content.files!.map((file) {
+          if (_currentContent.files?.isNotEmpty == true) {
+            final universalFiles = _currentContent.files!.map((file) {
               UniversalFileType fileType;
               if (file.mimeType?.startsWith('image/') == true) {
                 fileType = UniversalFileType.image;
@@ -316,33 +386,33 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   }
 
   Future<void> _shareToSystem() async {
-    if (!widget.toSystem) return;
+    if (!_currentToSystem) return;
 
     final box = context.findRenderObject() as RenderBox?;
 
     setState(() => _isLoading = true);
     try {
-      switch (widget.content.type) {
+      switch (_currentContent.type) {
         case ShareContentType.text:
-          if (widget.content.text?.isNotEmpty == true) {
+          if (_currentContent.text?.isNotEmpty == true) {
             await Share.share(
-              widget.content.text!,
+              _currentContent.text!,
               sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
             );
           }
           break;
         case ShareContentType.link:
-          if (widget.content.link?.isNotEmpty == true) {
+          if (_currentContent.link?.isNotEmpty == true) {
             await Share.share(
-              widget.content.link!,
+              _currentContent.link!,
               sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
             );
           }
           break;
         case ShareContentType.file:
-          if (widget.content.files?.isNotEmpty == true) {
+          if (_currentContent.files?.isNotEmpty == true) {
             await Share.shareXFiles(
-              widget.content.files!,
+              _currentContent.files!,
               sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
             );
           }
@@ -358,11 +428,11 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   }
 
   Future<void> _uploadFiles() async {
-    if (widget.content.files == null || widget.content.files!.isEmpty) return;
+    if (_currentContent.files == null || _currentContent.files!.isEmpty) return;
 
     setState(() => _isLoading = true);
     try {
-      final universalFiles = widget.content.files!.map((file) {
+      final universalFiles = _currentContent.files!.map((file) {
         UniversalFileType fileType;
         if (file.mimeType?.startsWith('image/') == true) {
           fileType = UniversalFileType.image;
@@ -442,16 +512,16 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   Future<void> _copyToClipboard() async {
     try {
       String textToCopy = '';
-      switch (widget.content.type) {
+      switch (_currentContent.type) {
         case ShareContentType.text:
-          textToCopy = widget.content.text ?? '';
+          textToCopy = _currentContent.text ?? '';
           break;
         case ShareContentType.link:
-          textToCopy = widget.content.link ?? '';
+          textToCopy = _currentContent.link ?? '';
           break;
         case ShareContentType.file:
           textToCopy =
-              widget.content.files?.map((f) => f.name).join('\n') ?? '';
+              _currentContent.files?.map((f) => f.name).join('\n') ?? '';
           break;
       }
 
@@ -468,7 +538,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
     final colorScheme = theme.colorScheme;
 
     return SheetScaffold(
-      titleText: widget.title ?? 'share'.tr(),
+      titleText: _currentTitle ?? 'share'.tr(),
       heightFactor: 0.75,
       child: Column(
         children: [
@@ -496,7 +566,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        _ContentPreview(content: widget.content),
+                        _ContentPreview(content: _currentContent),
                       ],
                     ),
                   ),
@@ -524,7 +594,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                                 onTap: _isLoading ? null : _shareToPost,
                               ),
                               const SizedBox(width: 12),
-                              if (widget.content.type ==
+                              if (_currentContent.type ==
                                   ShareContentType.file) ...[
                                 _CompactShareOption(
                                   icon: Symbols.cloud_upload,
@@ -538,7 +608,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                                 title: 'copy'.tr(),
                                 onTap: _isLoading ? null : _copyToClipboard,
                               ),
-                              if (widget.toSystem) ...<Widget>[
+                              if (_currentToSystem) ...<Widget>[
                                 const SizedBox(width: 12),
                                 _CompactShareOption(
                                   icon: Symbols.share,
@@ -1297,6 +1367,16 @@ void showShareSheet({
   bool toSystem = false,
   VoidCallback? onClose,
 }) {
+  final request = _ShareSheetRequest(
+    content: content,
+    title: title,
+    toSystem: toSystem,
+    onClose: onClose,
+  );
+  final presentationController = _ShareSheetPresentationController.instance;
+  final shouldOpen = presentationController.showOrUpdate(request);
+  if (!shouldOpen) return;
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -1307,7 +1387,7 @@ void showShareSheet({
       toSystem: toSystem,
       onClose: onClose,
     ),
-  );
+  ).whenComplete(presentationController.close);
 }
 
 void showShareSheetText({
