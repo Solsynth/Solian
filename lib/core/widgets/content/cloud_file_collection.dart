@@ -19,6 +19,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CloudFileList extends HookConsumerWidget {
   final List<IDisplayableCloudFile> files;
+  final SnPost? sourcePost;
   final double maxHeight;
   final double maxWidth;
   final double? minWidth;
@@ -31,6 +32,7 @@ class CloudFileList extends HookConsumerWidget {
   const CloudFileList({
     super.key,
     required this.files,
+    this.sourcePost,
     this.maxHeight = 560,
     this.maxWidth = double.infinity,
     this.minWidth,
@@ -150,6 +152,10 @@ class CloudFileList extends HookConsumerWidget {
     );
   }
 
+  void _openFileDetail(BuildContext context, String fileId) {
+    context.router.push(FileDetailRoute(id: fileId, sourcePost: sourcePost));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (files.isEmpty) return const SizedBox.shrink();
@@ -176,16 +182,17 @@ class CloudFileList extends HookConsumerWidget {
         final isAudio = file.mimeType.startsWith('audio');
         final widgetItem = ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
-          child: _CloudFileListEntry(
+            child: _CloudFileListEntry(
             file: file,
             heroTag: _heroTag(files[i].id),
             isImage: isImage,
             disableZoomIn: disableZoomIn,
             onTap: () {
-              if (!isImage) {
+              if (isImage) {
+                _openLightbox(context, i);
                 return;
               }
-              _openLightbox(context, i);
+              _openFileDetail(context, file.id);
             },
           ),
         );
@@ -257,12 +264,13 @@ class CloudFileList extends HookConsumerWidget {
                                 ),
                                 disableZoomIn: disableZoomIn,
                                 onTap: () {
-                                  if (!(filesToShow[i].mimeType.startsWith(
+                                  if (filesToShow[i].mimeType.startsWith(
                                     'image',
-                                  ))) {
+                                  )) {
+                                    openLightbox(i);
                                     return;
                                   }
-                                  openLightbox(i);
+                                  _openFileDetail(context, filesToShow[i].id);
                                 },
                               ),
                             ),
@@ -320,9 +328,7 @@ class CloudFileList extends HookConsumerWidget {
     if (files.length == 1) {
       final isImage = files.first.mimeType.startsWith('image');
       final isAudio = files.first.mimeType.startsWith('audio');
-      final isFile =
-          files.first.isFolder ||
-          files.first.mimeType.startsWith('application');
+      final opensInDetail = !isImage && !files.first.isFolder;
       final ratio = files.first.ratio as num?;
       final widgetItem = ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -343,10 +349,13 @@ class CloudFileList extends HookConsumerWidget {
               );
               return;
             }
-            if (isFile) {
-              context.router.push(FileDetailRoute(id: files.first.id));
+            if (isImage) {
+              openLightbox(0);
+              return;
             }
-            if (isImage) openLightbox(0);
+            if (opensInDetail) {
+              _openFileDetail(context, files.first.id);
+            }
           },
         ),
       );
@@ -359,7 +368,7 @@ class CloudFileList extends HookConsumerWidget {
         ),
         child: (ratio == null && isImage)
             ? IntrinsicWidth(child: IntrinsicHeight(child: widgetItem))
-            : (ratio == null && (isAudio || isFile))
+            : (ratio == null && (isAudio || opensInDetail))
             ? IntrinsicHeight(child: widgetItem)
             : AspectRatio(
                 aspectRatio: ratio?.toDouble() ?? 1,
@@ -426,13 +435,12 @@ class CloudFileList extends HookConsumerWidget {
                       );
                       return;
                     }
-                    final isFile = files[index].isFolder ||
-                        files[index].mimeType.startsWith('application');
                     final isImage = files[index].mimeType.startsWith('image');
-                    if (isFile) {
-                      context.router.push(FileDetailRoute(id: files[index].id));
+                    if (isImage) {
+                      openLightbox(index);
+                      return;
                     }
-                    if (isImage) openLightbox(index);
+                    _openFileDetail(context, files[index].id);
                   },
                 );
               },
@@ -462,10 +470,11 @@ class CloudFileList extends HookConsumerWidget {
                         isImage: files[index].mimeType.startsWith('image'),
                         disableZoomIn: disableZoomIn,
                         onTap: () {
-                          if (!(files[index].mimeType.startsWith('image'))) {
+                          if (files[index].mimeType.startsWith('image')) {
+                            openLightbox(index);
                             return;
                           }
-                          openLightbox(index);
+                          _openFileDetail(context, files[index].id);
                         },
                       ),
                     ),

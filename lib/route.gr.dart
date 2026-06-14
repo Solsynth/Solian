@@ -1571,10 +1571,16 @@ class FileDetailRoute extends _i71.PageRouteInfo<FileDetailRouteArgs> {
     _i72.Key? key,
     required String id,
     String? heroTag,
+    _i74.SnPost? sourcePost,
     List<_i71.PageRouteInfo>? children,
   }) : super(
          FileDetailRoute.name,
-         args: FileDetailRouteArgs(key: key, id: id, heroTag: heroTag),
+         args: FileDetailRouteArgs(
+           key: key,
+           id: id,
+           heroTag: heroTag,
+           sourcePost: sourcePost,
+         ),
          initialChildren: children,
        );
 
@@ -1588,13 +1594,19 @@ class FileDetailRoute extends _i71.PageRouteInfo<FileDetailRouteArgs> {
         key: args.key,
         id: args.id,
         heroTag: args.heroTag,
+        sourcePost: args.sourcePost,
       );
     },
   );
 }
 
 class FileDetailRouteArgs {
-  const FileDetailRouteArgs({this.key, required this.id, this.heroTag});
+  const FileDetailRouteArgs({
+    this.key,
+    required this.id,
+    this.heroTag,
+    this.sourcePost,
+  });
 
   final _i72.Key? key;
 
@@ -1602,20 +1614,26 @@ class FileDetailRouteArgs {
 
   final String? heroTag;
 
+  final _i74.SnPost? sourcePost;
+
   @override
   String toString() {
-    return 'FileDetailRouteArgs{key: $key, id: $id, heroTag: $heroTag}';
+    return 'FileDetailRouteArgs{key: $key, id: $id, heroTag: $heroTag, sourcePost: $sourcePost}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! FileDetailRouteArgs) return false;
-    return key == other.key && id == other.id && heroTag == other.heroTag;
+    return key == other.key &&
+        id == other.id &&
+        heroTag == other.heroTag &&
+        sourcePost == other.sourcePost;
   }
 
   @override
-  int get hashCode => key.hashCode ^ id.hashCode ^ heroTag.hashCode;
+  int get hashCode =>
+      key.hashCode ^ id.hashCode ^ heroTag.hashCode ^ sourcePost.hashCode;
 }
 
 /// generated route for

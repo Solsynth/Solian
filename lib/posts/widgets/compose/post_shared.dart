@@ -1789,6 +1789,7 @@ class PostBody extends ConsumerWidget {
         if (item.attachments.isNotEmpty && item.type != 1 && !hideAttachments)
           CloudFileList(
             files: item.attachments,
+            sourcePost: item,
             isColumn: !isInteractive,
             padding: EdgeInsets.symmetric(
               horizontal: renderingPadding.horizontal,

@@ -7,26 +7,46 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/file_permissions.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+final fileAuthorProvider = FutureProvider.family<SnAccount, String>((
+  ref,
+  accountId,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return client.accounts.getAccountById(accountId);
+});
+
 @RoutePage()
 class FileDetailScreen extends HookConsumerWidget {
   final String id;
   final String? heroTag;
+  final SnPost? sourcePost;
 
-  const FileDetailScreen({super.key, required this.id, this.heroTag});
+  const FileDetailScreen({
+    super.key,
+    required this.id,
+    this.heroTag,
+    this.sourcePost,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final isWide = isWideScreen(context);
+    final currentUser = ref.watch(userInfoProvider).value;
     final fileAsync = ref.watch(driveFileInfoProvider(id));
     final currentItem = fileAsync.asData?.value;
 
@@ -72,6 +92,8 @@ class FileDetailScreen extends HookConsumerWidget {
     }
 
     final file = currentItem;
+    final showOwnerBar =
+        file.accountId.isNotEmpty && file.accountId != currentUser?.id;
 
     void showInfoSheet() {
       if (isWide) {
@@ -125,7 +147,13 @@ class FileDetailScreen extends HookConsumerWidget {
                         top: 0,
                         bottom: 0,
                         width: constraints.maxWidth - animation.value * 400,
-                        child: _buildContent(context, ref, serverUrl, file),
+                        child: _buildMainContent(
+                          context,
+                          ref,
+                          serverUrl,
+                          file,
+                          showOwnerBar: showOwnerBar,
+                        ),
                       ),
                       // Animated drawer panel - overlays
                       if (isWide)
@@ -245,6 +273,31 @@ class FileDetailScreen extends HookConsumerWidget {
     return content;
   }
 
+  Widget _buildMainContent(
+    BuildContext context,
+    WidgetRef ref,
+    String serverUrl,
+    SnCloudFile item, {
+    required bool showOwnerBar,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (sourcePost != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _buildSourcePostPreview(context, sourcePost!),
+          ),
+        if (showOwnerBar)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: _buildOwnerBar(context, ref, item.accountId),
+          ),
+        Expanded(child: _buildContent(context, ref, serverUrl, item)),
+      ],
+    );
+  }
+
   Widget _buildBackground(SnCloudFile item, String serverUrl) {
     final uri = '$serverUrl/drive/files/${item.id}?thumbnail=true';
     final isVideo = item.mimeType.startsWith('video') == true;
@@ -270,5 +323,152 @@ class FileDetailScreen extends HookConsumerWidget {
     }
 
     return Container(color: Colors.black);
+  }
+
+  Widget _buildSourcePostPreview(BuildContext context, SnPost post) {
+    final theme = Theme.of(context);
+    final authorName =
+        post.publisher?.nick ??
+        post.publisher?.name ??
+        post.actor?.displayName ??
+        post.actor?.username ??
+        'Unknown';
+    final previewText = [
+      if (post.title?.isNotEmpty ?? false) post.title!,
+      if (post.description?.isNotEmpty ?? false) post.description!,
+      if (post.content?.isNotEmpty ?? false) post.content!,
+    ].join('\n').trim();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.12)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Opened from post',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+              const Gap(4),
+              Text(
+                authorName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (previewText.isNotEmpty) ...[
+                const Gap(6),
+                Text(
+                  previewText,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withOpacity(0.92),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOwnerBar(
+    BuildContext context,
+    WidgetRef ref,
+    String accountId,
+  ) {
+    final owner = ref.watch(fileAuthorProvider(accountId));
+    final theme = Theme.of(context);
+
+    return owner.when(
+      data: (account) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => context.router.push(AccountProfileRoute(name: account.name)),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.12)),
+            ),
+            child: Row(
+              children: [
+                ProfilePictureWidget(file: account.profile.picture, radius: 18),
+                const Gap(10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Original uploader',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                      AccountName(
+                        account: account,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        hideOverlay: true,
+                      ),
+                    ],
+                  ),
+                ),
+                const Gap(8),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: Colors.white70,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      loading: () => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.28),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 36,
+              height: 36,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const Gap(12),
+            Text(
+              'Loading uploader...',
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
+    );
   }
 }
