@@ -195,8 +195,6 @@ PODS:
     - FlutterMacOS
   - pasteboard (0.0.1):
     - FlutterMacOS
-  - pro_image_editor (12.0.8):
-    - FlutterMacOS
   - PromisesObjC (2.4.0)
   - protocol_handler_macos (0.0.1):
     - FlutterMacOS
@@ -205,7 +203,7 @@ PODS:
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - Sentry/HybridSDK (8.58.3)
-  - sentry_flutter (9.21.0):
+  - sentry_flutter (9.22.0):
     - Flutter
     - FlutterMacOS
     - Sentry/HybridSDK (= 8.58.3)
@@ -272,7 +270,6 @@ DEPENDENCIES:
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - passkeys_darwin (from `Flutter/ephemeral/.symlinks/plugins/passkeys_darwin/darwin`)
   - pasteboard (from `Flutter/ephemeral/.symlinks/plugins/pasteboard/macos`)
-  - pro_image_editor (from `Flutter/ephemeral/.symlinks/plugins/pro_image_editor/macos`)
   - protocol_handler_macos (from `Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos`)
   - record_macos (from `Flutter/ephemeral/.symlinks/plugins/record_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
@@ -381,8 +378,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/passkeys_darwin/darwin
   pasteboard:
     :path: Flutter/ephemeral/.symlinks/plugins/pasteboard/macos
-  pro_image_editor:
-    :path: Flutter/ephemeral/.symlinks/plugins/pro_image_editor/macos
   protocol_handler_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos
   record_macos:
@@ -462,19 +457,18 @@ SPEC CHECKSUMS:
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   passkeys_darwin: 395f63bb4dbfe81344ada36400c391e86fc395ea
   pasteboard: b594eaf838d930b276d7a35a44a32b4f489170cb
-  pro_image_editor: e4f2ca0bcf5d755d81620d531b00e0906ccaa0ae
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
   record_macos: 2e43c16b84ce188b8137754ee648322a2dcdf7fa
-  screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
+  screen_retriever_macos: c5508cc3c66ff0d4db650480cf0ab691e220d933
   Sentry: 108fdbb76299c4189af12246bf0308c09c278922
-  sentry_flutter: 32e67cb4756ce3de42bbd56581fa935922ff328f
+  sentry_flutter: fbb8a76a5a009ce7ba7bde295ee6b50b11916851
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
-  tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
+  tray_manager: 19c369010e59c073f13b82354d78a35f7972d609
   ua_client_hints: bb84da85d9d5d605d40598b3c1ae3bfd2598e201
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
