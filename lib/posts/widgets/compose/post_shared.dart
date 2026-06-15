@@ -51,11 +51,50 @@ IDisplayableCloudFile? _getThumbnailAttachment(SnPost post) {
   }
 }
 
-Widget _buildArticlePreviewCard(BuildContext context, SnPost post) {
+bool _shouldClampRegularPostBody(String content) {
+  final normalized = content.trim();
+  if (normalized.length > 420) return true;
+
+  final lines = '\n'.allMatches(normalized).length + 1;
+  return lines > 8;
+}
+
+String _truncateRegularPostBody(String content) {
+  final normalized = content.trim();
+  const maxChars = 420;
+  const maxLines = 8;
+
+  var end = normalized.length;
+  if (normalized.length > maxChars) {
+    end = maxChars;
+  }
+
+  var lineCount = 0;
+  for (var i = 0; i < math.min(end, normalized.length); i++) {
+    if (normalized[i] == '\n') {
+      lineCount++;
+      if (lineCount >= maxLines) {
+        end = i;
+        break;
+      }
+    }
+  }
+
+  final truncated = normalized.substring(0, end).trimRight();
+  if (truncated.length == normalized.length) return normalized;
+
+  return '$truncated...';
+}
+
+Widget _buildArticlePreviewCard(
+  BuildContext context,
+  SnPost post, {
+  EdgeInsetsGeometry padding = const EdgeInsets.only(top: 4),
+}) {
   final thumbnail = _getThumbnailAttachment(post);
 
   return Container(
-    padding: const EdgeInsets.only(top: 4),
+    padding: padding,
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceContainerHigh,
       border: Border.all(
@@ -985,8 +1024,6 @@ class ReferencedPostWidget extends HookConsumerWidget {
     final isCollapsed = useState(false);
 
     Widget buildContent() {
-      final articlePost = referencePost;
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1079,62 +1116,78 @@ class ReferencedPostWidget extends HookConsumerWidget {
                     const Gap(12),
                     // Referenced post content using PostHeader
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (referencePost.title?.isNotEmpty ?? false)
-                            Text(
-                              referencePost.title!,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ).padding(top: 8, bottom: 4),
-                          if (referencePost.description?.isNotEmpty ?? false)
-                            Text(
-                              referencePost.description!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ).padding(bottom: 4),
-                          if (articlePost != null && articlePost.type == 1)
-                            _buildArticlePreviewCard(context, articlePost)
-                          else ...[
-                            if (referencePost.content?.isNotEmpty ?? false)
-                              MarkdownTextContent(
-                                content: _convertContentToMarkdown(
-                                  referencePost,
-                                ),
-                                textStyle: const TextStyle(fontSize: 14),
-                                isSelectable: false,
-                                linesMargin: referencePost.type == 0
-                                    ? const EdgeInsets.only(bottom: 4)
-                                    : null,
-                                attachments: referencePost.attachments,
-                                noMentionChip:
-                                    referencePost.fediverseUri != null,
-                              ).padding(top: 4),
-                            if (referencePost.isTruncated)
-                              const PostTruncateHint(
-                                isCompact: true,
-                                margin: EdgeInsets.only(top: 4, bottom: 4),
-                              ),
-                            if (referencePost.attachments.isNotEmpty)
-                              CloudFileList(
-                                files: referencePost.attachments,
-                                padding: const EdgeInsets.only(top: 8),
-                                maxHeight: 240,
-                                disableZoomIn: true,
-                              ),
-                          ],
-                        ],
-                      ),
+                      child: referencePost.type == 1
+                          ? _buildArticlePreviewCard(context, referencePost)
+                          : Builder(
+                              builder: (context) {
+                                final referenceContent =
+                                    _convertContentToMarkdown(referencePost);
+                                final shouldTruncateReferenceBody =
+                                    (referencePost.content?.isNotEmpty ?? false) &&
+                                    _shouldClampRegularPostBody(referenceContent);
+                                final referencePreviewContent =
+                                    shouldTruncateReferenceBody
+                                    ? _truncateRegularPostBody(referenceContent)
+                                    : (referencePost.isTruncated
+                                          ? '$referenceContent...'
+                                          : referenceContent);
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (referencePost.title?.isNotEmpty ?? false)
+                                      Text(
+                                        referencePost.title!,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                        ),
+                                      ).padding(top: 8, bottom: 4),
+                                    if (referencePost.description?.isNotEmpty ??
+                                        false)
+                                      Text(
+                                        referencePost.description!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ).padding(bottom: 4),
+                                    if (referencePost.content?.isNotEmpty ?? false)
+                                      MarkdownTextContent(
+                                        content: referencePreviewContent,
+                                        textStyle: const TextStyle(fontSize: 14),
+                                        isSelectable: false,
+                                        linesMargin: referencePost.type == 0
+                                            ? const EdgeInsets.only(bottom: 4)
+                                            : null,
+                                        attachments: referencePost.attachments,
+                                        noMentionChip:
+                                            referencePost.fediverseUri != null,
+                                      ).padding(top: 4),
+                                    if (referencePost.isTruncated ||
+                                        shouldTruncateReferenceBody)
+                                      const PostTruncateHint(
+                                        isCompact: true,
+                                        margin: EdgeInsets.only(top: 4, bottom: 4),
+                                      ),
+                                    if (referencePost.attachments.isNotEmpty)
+                                      CloudFileList(
+                                        files: referencePost.attachments,
+                                        padding: const EdgeInsets.only(top: 8),
+                                        maxHeight: 240,
+                                        disableZoomIn: true,
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -1465,9 +1518,12 @@ class PostHeader extends HookConsumerWidget {
                   Text(
                     !isFullPost && isRelativeTime
                         ? (item.publishedAt ?? item.createdAt)?.formatRelative(
-                            context,
-                          ) ?? ''
-                        : (item.publishedAt ?? item.createdAt)?.formatSystem() ?? '',
+                                context,
+                              ) ??
+                              ''
+                        : (item.publishedAt ?? item.createdAt)
+                                  ?.formatSystem() ??
+                              '',
                   ).fontSize(10),
                 ],
               ),
@@ -1512,6 +1568,21 @@ class PostBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metadataChildren = <Widget>[];
+    final useCompactArticlePreview =
+        item.type == 1 && (!isFullPost || item.forwardedPostId != null);
+    final resolvedContent = _convertContentToMarkdown(item);
+    final shouldClampRegularBody =
+        !isFullPost &&
+        item.type == 0 &&
+        (item.content?.isNotEmpty ?? false) &&
+        _shouldClampRegularPostBody(resolvedContent);
+    final previewContent = shouldClampRegularBody
+        ? _truncateRegularPostBody(resolvedContent)
+        : (item.isTruncated ? '$resolvedContent...' : resolvedContent);
+    final baseTextStyle = TextStyle(
+      fontSize:
+          Theme.of(context).textTheme.bodyMedium!.fontSize! * (textScale ?? 1),
+    );
 
     if (item.debugRank != null && kDebugMode) {
       metadataChildren.add(
@@ -1668,62 +1739,20 @@ class PostBody extends ConsumerWidget {
       );
     }
 
-    final thumbnailAttachment = _getThumbnailAttachment(item);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isFullPost && item.type == 1)
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.5),
-              ),
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-            ),
-            margin: EdgeInsets.only(
+        if (useCompactArticlePreview)
+          Padding(
+            padding: EdgeInsets.only(
               top: 4,
               left: renderingPadding.horizontal,
-              right: renderingPadding.vertical,
+              right: renderingPadding.horizontal,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (thumbnailAttachment != null)
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(8),
-                    ),
-                    child: CloudFileWidget(item: thumbnailAttachment),
-                  ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Badge(
-                        label: const Text('postArticle').tr(),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        textColor: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ),
-                    const Gap(4),
-                    if (item.title != null)
-                      Text(
-                        item.title!,
-                        style: Theme.of(context).textTheme.titleMedium!
-                            .copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    if (item.description?.isNotEmpty ?? false)
-                      Text(
-                        item.description!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                  ],
-                ).padding(horizontal: 16, vertical: 12),
-              ],
+            child: _buildArticlePreviewCard(
+              context,
+              item,
+              padding: EdgeInsets.zero,
             ),
           )
         else if ((item.content?.isNotEmpty ?? false) ||
@@ -1756,17 +1785,11 @@ class PostBody extends ConsumerWidget {
                     ],
                   ).padding(bottom: 4),
                 MarkdownTextContent(
-                  linesMargin: item.type == 1 && isFullPost
+                  linesMargin: item.type == 1 && !useCompactArticlePreview
                       ? const EdgeInsets.symmetric(vertical: 8)
                       : const EdgeInsets.symmetric(vertical: 4),
-                  textStyle: TextStyle(
-                    fontSize:
-                        Theme.of(context).textTheme.bodyMedium!.fontSize! *
-                        (textScale ?? 1),
-                  ),
-                  content: item.isTruncated
-                      ? '${_convertContentToMarkdown(item)}...'
-                      : _convertContentToMarkdown(item),
+                  textStyle: baseTextStyle,
+                  content: previewContent,
                   isSelectable: isTextSelectable,
                   attachments: item.attachments,
                   noMentionChip: item.fediverseUri != null,
@@ -1775,7 +1798,7 @@ class PostBody extends ConsumerWidget {
               ],
             ),
           ),
-        if (item.isTruncated && item.type != 1)
+        if ((item.isTruncated && item.type != 1) || shouldClampRegularBody)
           PostTruncateHint(
             isCompact: true,
             withArrow: isInteractive,
