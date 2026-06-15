@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_devices.dart';
 import 'package:island/accounts/widgets/account/account_authorized_apps.dart';
-import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/me/settings_auth_factors.dart';
 import 'package:island/accounts/screens/me/settings_connections.dart';
@@ -12,6 +11,9 @@ import 'package:island/accounts/screens/me/settings_contacts.dart';
 import 'package:island/accounts/screens/me/settings_webdav.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:island/auth/login.dart';
+import 'package:island/chat/widgets/chat_groups_manager.dart';
+import 'package:island/core/database.dart';
+import 'package:island/core/network.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -642,6 +644,34 @@ class AccountSettingsScreen extends HookConsumerWidget {
     ];
 
     final integrationsSettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.group),
+        title: const Text('Chat Groups'),
+        subtitle: const Text('Manage your chat room groups').fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () async {
+          final accountId = ref.read(userInfoProvider).value?.id;
+          if (accountId == null) return;
+
+          final client = ref.read(apiClientProvider);
+          final db = ref.read(databaseProvider);
+          final groups =
+              ref.read(chatGroupsProvider).value ?? const <SnChatGroup>[];
+
+          final changed = await showChatGroupsManagerSheet(
+            context,
+            client: client,
+            db: db,
+            accountId: accountId,
+            groups: groups,
+          );
+          if (changed) {
+            ref.invalidate(chatGroupsProvider);
+          }
+        },
+      ),
       ListTile(
         minLeadingWidth: 48,
         leading: const Icon(Symbols.cloud_sync),
