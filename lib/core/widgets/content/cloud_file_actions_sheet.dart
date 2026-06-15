@@ -128,7 +128,7 @@ class CloudFileActionsSheet extends ConsumerWidget {
             },
           ),
           _ActionTile(
-            icon: Symbols.edit,
+            icon: Symbols.visibility,
             title: 'openInViewer'.tr(),
             onTap: () => Navigator.pop(context, 'open_in_viewer'),
           ),
@@ -143,7 +143,9 @@ class CloudFileActionsSheet extends ConsumerWidget {
     required SnCloudFile file,
     required ValueChanged<SnCloudFile>? onRenamed,
   }) async {
-    final uploader = ProviderScope.containerOf(context).read(driveFileUploaderProvider);
+    final uploader = ProviderScope.containerOf(
+      context,
+    ).read(driveFileUploaderProvider);
     final rootContext = Navigator.of(context, rootNavigator: true).context;
     if (!rootContext.mounted) return;
     await _showRenameSheet(rootContext, uploader, file, onRenamed);
