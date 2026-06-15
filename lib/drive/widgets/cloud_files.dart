@@ -3,14 +3,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/format.dart';
-import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/audio.dart';
 import 'package:island/shared/widgets/content/image.dart';
@@ -41,6 +39,7 @@ class CloudFileWidget extends HookConsumerWidget {
   final String? heroTag;
   final bool noBlurhash;
   final bool useInternalGate;
+  final SnPost? sourcePost;
   const CloudFileWidget({
     super.key,
     required this.item,
@@ -48,6 +47,7 @@ class CloudFileWidget extends HookConsumerWidget {
     this.heroTag,
     this.noBlurhash = false,
     this.useInternalGate = true,
+    this.sourcePost,
   });
 
   @override
@@ -60,20 +60,13 @@ class CloudFileWidget extends HookConsumerWidget {
 
     final unlocked = useState(false);
 
-    final meta = item.fileMeta as Map;
-    final rawE2eeMeta = meta['e2ee'];
-    final e2eeMeta = rawE2eeMeta is Map
-        ? Map<String, dynamic>.from(rawE2eeMeta)
-        : <String, dynamic>{};
-    final isEncrypted = e2eeMeta['scheme']?.toString().isNotEmpty == true;
-    final e2eeScheme = e2eeMeta['scheme']?.toString();
     final blurHash = noBlurhash ? null : item.blurhash;
     var ratio = item.ratio ?? 1.0;
     if (ratio == 0) ratio = 1.0;
 
     Widget cloudImage() =>
         UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
-    Widget cloudVideo() => CloudVideoWidget(item: item);
+    Widget cloudVideo() => CloudVideoWidget(item: item, sourcePost: sourcePost);
 
     Widget cloudAudio() => UniversalAudio(uri: uri, filename: item.name);
 
@@ -83,16 +76,6 @@ class CloudFileWidget extends HookConsumerWidget {
         unlocked.value = true;
       },
     );
-
-    if (isEncrypted) {
-      if (item is SnCloudFile) {
-        return _EncryptedFileCard(
-          item: item as SnCloudFile,
-          scheme: e2eeScheme,
-        );
-      }
-      return const SizedBox();
-    }
 
     if (item.mimeType.startsWith('text/') == true) {
       return Container(
@@ -287,79 +270,6 @@ class CloudFileWidget extends HookConsumerWidget {
   }
 }
 
-class _EncryptedFileCard extends ConsumerWidget {
-  final SnCloudFile item;
-  final String? scheme;
-  const _EncryptedFileCard({required this.item, required this.scheme});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final label = (scheme != null && scheme!.isNotEmpty)
-        ? 'Encrypted file ($scheme)'
-        : 'Encrypted file';
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-        borderRadius: BorderRadius.circular(16),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Symbols.lock,
-            size: 42,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const Gap(8),
-          Text(
-            item.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleSmall,
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall,
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            formatFileSize(item.size),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const Gap(8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton.icon(
-                onPressed: () => ref
-                    .read(driveFileDownloaderProvider)
-                    .downloadWithProgress(
-                      item,
-                      useDownloadsFolder:
-                          HardwareKeyboard.instance.isShiftPressed,
-                    ),
-                icon: const Icon(Symbols.download),
-                label: Text('download').tr(),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  context.router.push(FileDetailRoute(id: item.id));
-                },
-                icon: const Icon(Symbols.info),
-                label: Text('info').tr(),
-              ),
-            ],
-          ),
-        ],
-      ).padding(all: 12),
-    );
-  }
-}
-
 class _DataSavingPlaceholder extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -395,7 +305,8 @@ class _DataSavingPlaceholder extends StatelessWidget {
 
 class CloudVideoWidget extends HookConsumerWidget {
   final IDisplayableCloudFile item;
-  const CloudVideoWidget({super.key, required this.item});
+  final SnPost? sourcePost;
+  const CloudVideoWidget({super.key, required this.item, this.sourcePost});
 
   Duration? _parseDuration(Map<String, dynamic> formatMeta) {
     final rawDuration = formatMeta['duration'];
@@ -559,7 +470,9 @@ class CloudVideoWidget extends HookConsumerWidget {
         ],
       ),
       onTap: () {
-        context.router.push(FileDetailRoute(id: item.id));
+        context.router.push(
+          FileDetailRoute(id: item.id, sourcePost: sourcePost),
+        );
       },
     );
   }
