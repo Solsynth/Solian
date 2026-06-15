@@ -183,11 +183,12 @@ class CloudFileList extends HookConsumerWidget {
         final isAudio = file.mimeType.startsWith('audio');
         final widgetItem = ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
-            child: _CloudFileListEntry(
+          child: _CloudFileListEntry(
             file: file,
             heroTag: _heroTag(files[i].id),
             isImage: isImage,
             disableZoomIn: disableZoomIn,
+            sourcePost: sourcePost,
             onTap: () {
               if (isImage) {
                 _openLightbox(context, i);
@@ -251,6 +252,7 @@ class CloudFileList extends HookConsumerWidget {
                                 heroTag: _heroTag(files[i].id),
                                 isImage: false,
                                 disableZoomIn: disableZoomIn,
+                                sourcePost: sourcePost,
                               ),
                             )
                           : AspectRatio(
@@ -264,6 +266,7 @@ class CloudFileList extends HookConsumerWidget {
                                   'image',
                                 ),
                                 disableZoomIn: disableZoomIn,
+                                sourcePost: sourcePost,
                                 onTap: () {
                                   if (filesToShow[i].mimeType.startsWith(
                                     'image',
@@ -338,6 +341,7 @@ class CloudFileList extends HookConsumerWidget {
           heroTag: _heroTag(files.first.id),
           isImage: isImage,
           disableZoomIn: disableZoomIn,
+          sourcePost: sourcePost,
           onTap: () {
             if (files.first.isFolder) {
               showModalBottomSheet(
@@ -409,6 +413,7 @@ class CloudFileList extends HookConsumerWidget {
                             heroTag: _heroTag(files[i].id),
                             isImage: files[i].mimeType.startsWith('image'),
                             disableZoomIn: disableZoomIn,
+                            sourcePost: sourcePost,
                           ),
                           Positioned(
                             bottom: 12,
@@ -470,6 +475,7 @@ class CloudFileList extends HookConsumerWidget {
                         heroTag: _heroTag(files[index].id),
                         isImage: files[index].mimeType.startsWith('image'),
                         disableZoomIn: disableZoomIn,
+                        sourcePost: sourcePost,
                         onTap: () {
                           if (files[index].mimeType.startsWith('image')) {
                             openLightbox(index);
@@ -764,6 +770,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
   final bool isImage;
   final bool disableZoomIn;
   final VoidCallback? onTap;
+  final SnPost? sourcePost;
 
   const _CloudFileListEntry({
     required this.file,
@@ -771,6 +778,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
     required this.isImage,
     required this.disableZoomIn,
     this.onTap,
+    this.sourcePost,
   });
 
   @override
@@ -813,12 +821,14 @@ class _CloudFileListEntry extends HookConsumerWidget {
                   noBlurhash: true,
                   fit: fit,
                   useInternalGate: false,
+                  sourcePost: sourcePost,
                 )
               : CloudFileWidget(
                   item: file,
                   heroTag: heroTag,
                   fit: fit,
                   useInternalGate: false,
+                  sourcePost: sourcePost,
                 ))
         : const SizedBox.shrink();
 

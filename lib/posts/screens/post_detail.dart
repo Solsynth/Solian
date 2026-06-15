@@ -1631,6 +1631,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               padding: const EdgeInsets.all(24),
               child: CloudFileList(
                 files: post.attachments,
+                sourcePost: post,
                 disableConstraint: true,
                 padding: EdgeInsets.zero,
               ),
@@ -2199,6 +2200,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                     ),
                                     child: CloudFileList(
                                       files: [thumbnail],
+                                      sourcePost: postItem,
                                       padding: EdgeInsets.zero,
                                       disableConstraint: true,
                                     ),

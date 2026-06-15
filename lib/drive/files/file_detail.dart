@@ -125,9 +125,7 @@ class FileDetailScreen extends HookConsumerWidget {
             return points;
           })()
         : <double>[];
-    final panelHeight = useState(
-      hasContextPanel ? midPanelHeight : 0.0,
-    );
+    final panelHeight = useState(hasContextPanel ? midPanelHeight : 0.0);
 
     void showInfoSheet() {
       if (isWide) {
@@ -366,7 +364,8 @@ class FileDetailScreen extends HookConsumerWidget {
                   onVerticalDragEnd: (_) {
                     if (snapPoints.isEmpty) return;
                     final nearest = snapPoints.reduce(
-                      (best, point) => (point - panelHeight).abs() <
+                      (best, point) =>
+                          (point - panelHeight).abs() <
                               (best - panelHeight).abs()
                           ? point
                           : best,
@@ -464,11 +463,7 @@ class FileDetailScreen extends HookConsumerWidget {
     return Container(color: Colors.black);
   }
 
-  Widget _buildOwnerBar(
-    BuildContext context,
-    WidgetRef ref,
-    String accountId,
-  ) {
+  Widget _buildOwnerBar(BuildContext context, WidgetRef ref, String accountId) {
     final owner = ref.watch(fileAuthorProvider(accountId));
     final theme = Theme.of(context);
 
@@ -477,7 +472,8 @@ class FileDetailScreen extends HookConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => context.router.push(AccountProfileRoute(name: account.name)),
+          onTap: () =>
+              context.router.push(AccountProfileRoute(name: account.name)),
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
@@ -540,10 +536,7 @@ class FileDetailScreen extends HookConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             const Gap(12),
-            Text(
-              'Loading uploader...',
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text('Loading uploader...', style: theme.textTheme.bodyMedium),
           ],
         ),
       ),
