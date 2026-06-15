@@ -1870,28 +1870,31 @@ class SettingsScreen extends HookConsumerWidget {
             children: [
               Flexible(
                 flex: 1,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (var i = 0; i < visibleCategories.length; i++)
-                        () {
-                          final category = visibleCategories[i];
-                          return ListTile(
-                            selected: selectedIdx == i,
-                            selectedTileColor: Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer.withOpacity(0.3),
-                            leading: Icon(category.icon),
-                            title: Text(category.getLocalizedTitle(context)),
-                            onTap: () => selectedCategoryIdx.value = i,
-                          );
-                        }(),
-                    ],
-                  ),
-                ).alignment(Alignment.center),
+                child: Material(
+                  elevation: 0,
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (var i = 0; i < visibleCategories.length; i++)
+                          () {
+                            final category = visibleCategories[i];
+                            return ListTile(
+                              selected: selectedIdx == i,
+                              selectedTileColor: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer.withOpacity(0.3),
+                              leading: Icon(category.icon),
+                              title: Text(category.getLocalizedTitle(context)),
+                              onTap: () => selectedCategoryIdx.value = i,
+                            );
+                          }(),
+                      ],
+                    ),
+                  ).alignment(Alignment.topCenter),
+                ),
               ),
-              const VerticalDivider(width: 1),
               Flexible(
                 flex: 2,
                 child:
@@ -3527,9 +3530,15 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () async {
                   final presence = IslandDesktopPresence();
-                  final executablePath = ref.read(desktopNowPlayingCliPathProvider);
-                  Logger.root.info('[DebugNowPlaying] Manual trigger with path=$executablePath');
-                  final result = await presence.debugNowPlaying(executablePath: executablePath);
+                  final executablePath = ref.read(
+                    desktopNowPlayingCliPathProvider,
+                  );
+                  Logger.root.info(
+                    '[DebugNowPlaying] Manual trigger with path=$executablePath',
+                  );
+                  final result = await presence.debugNowPlaying(
+                    executablePath: executablePath,
+                  );
                   if (context.mounted) {
                     if (result != null) {
                       showDialog(
@@ -3538,10 +3547,11 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                           title: const Text('Now Playing Debug Result'),
                           content: SingleChildScrollView(
                             child: SelectableText(
-                              const JsonEncoder.withIndent('  ').convert(result),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontFamily: 'monospace',
-                              ),
+                              const JsonEncoder.withIndent(
+                                '  ',
+                              ).convert(result),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontFamily: 'monospace'),
                             ),
                           ),
                           actions: [
@@ -3566,13 +3576,21 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () async {
                   final presence = IslandDesktopPresence();
-                  final executablePath = ref.read(desktopNowPlayingCliPathProvider);
-                  Logger.root.info('[DebugNowPlaying] Authorization test with path=$executablePath');
-                  
+                  final executablePath = ref.read(
+                    desktopNowPlayingCliPathProvider,
+                  );
+                  Logger.root.info(
+                    '[DebugNowPlaying] Authorization test with path=$executablePath',
+                  );
+
                   // Run the test and show result
-                  final result = await presence.debugNowPlaying(executablePath: executablePath);
-                  Logger.root.info('[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}');
-                  
+                  final result = await presence.debugNowPlaying(
+                    executablePath: executablePath,
+                  );
+                  Logger.root.info(
+                    '[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}',
+                  );
+
                   if (context.mounted) {
                     showDialog(
                       context: context,
@@ -3592,7 +3610,9 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                               if (result != null) ...[
                                 Text('Title: ${result['title'] ?? 'N/A'}'),
                                 Text('Artist: ${result['artist'] ?? 'N/A'}'),
-                                Text('Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}'),
+                                Text(
+                                  'Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}',
+                                ),
                               ],
                               const SizedBox(height: 16),
                               Text(
@@ -3639,9 +3659,15 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () async {
                 final presence = IslandDesktopPresence();
-                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
-                Logger.root.info('[DebugNowPlaying] Manual trigger with path=$executablePath');
-                final result = await presence.debugNowPlaying(executablePath: executablePath);
+                final executablePath = ref.read(
+                  desktopNowPlayingCliPathProvider,
+                );
+                Logger.root.info(
+                  '[DebugNowPlaying] Manual trigger with path=$executablePath',
+                );
+                final result = await presence.debugNowPlaying(
+                  executablePath: executablePath,
+                );
                 if (context.mounted) {
                   if (result != null) {
                     showDialog(
@@ -3651,9 +3677,8 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                         content: SingleChildScrollView(
                           child: SelectableText(
                             const JsonEncoder.withIndent('  ').convert(result),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontFamily: 'monospace'),
                           ),
                         ),
                         actions: [
@@ -3678,12 +3703,20 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () async {
                 final presence = IslandDesktopPresence();
-                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
-                Logger.root.info('[DebugNowPlaying] Authorization test with path=$executablePath');
-                
-                final result = await presence.debugNowPlaying(executablePath: executablePath);
-                Logger.root.info('[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}');
-                
+                final executablePath = ref.read(
+                  desktopNowPlayingCliPathProvider,
+                );
+                Logger.root.info(
+                  '[DebugNowPlaying] Authorization test with path=$executablePath',
+                );
+
+                final result = await presence.debugNowPlaying(
+                  executablePath: executablePath,
+                );
+                Logger.root.info(
+                  '[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}',
+                );
+
                 if (context.mounted) {
                   showDialog(
                     context: context,
@@ -3703,7 +3736,9 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                             if (result != null) ...[
                               Text('Title: ${result['title'] ?? 'N/A'}'),
                               Text('Artist: ${result['artist'] ?? 'N/A'}'),
-                              Text('Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}'),
+                              Text(
+                                'Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}',
+                              ),
                             ],
                             const SizedBox(height: 16),
                             Text(
@@ -3745,9 +3780,15 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () async {
                 final presence = IslandDesktopPresence();
-                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
-                Logger.root.info('[DebugNowPlaying] Manual trigger with path=$executablePath');
-                final result = await presence.debugNowPlaying(executablePath: executablePath);
+                final executablePath = ref.read(
+                  desktopNowPlayingCliPathProvider,
+                );
+                Logger.root.info(
+                  '[DebugNowPlaying] Manual trigger with path=$executablePath',
+                );
+                final result = await presence.debugNowPlaying(
+                  executablePath: executablePath,
+                );
                 if (context.mounted) {
                   if (result != null) {
                     showDialog(
@@ -3757,9 +3798,8 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                         content: SingleChildScrollView(
                           child: SelectableText(
                             const JsonEncoder.withIndent('  ').convert(result),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontFamily: 'monospace'),
                           ),
                         ),
                         actions: [
@@ -3784,12 +3824,20 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () async {
                 final presence = IslandDesktopPresence();
-                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
-                Logger.root.info('[DebugNowPlaying] Authorization test with path=$executablePath');
-                
-                final result = await presence.debugNowPlaying(executablePath: executablePath);
-                Logger.root.info('[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}');
-                
+                final executablePath = ref.read(
+                  desktopNowPlayingCliPathProvider,
+                );
+                Logger.root.info(
+                  '[DebugNowPlaying] Authorization test with path=$executablePath',
+                );
+
+                final result = await presence.debugNowPlaying(
+                  executablePath: executablePath,
+                );
+                Logger.root.info(
+                  '[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}',
+                );
+
                 if (context.mounted) {
                   showDialog(
                     context: context,
@@ -3809,7 +3857,9 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                             if (result != null) ...[
                               Text('Title: ${result['title'] ?? 'N/A'}'),
                               Text('Artist: ${result['artist'] ?? 'N/A'}'),
-                              Text('Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}'),
+                              Text(
+                                'Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}',
+                              ),
                             ],
                             const SizedBox(height: 16),
                             Text(
