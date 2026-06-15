@@ -95,9 +95,7 @@ class ImageFileContent extends HookConsumerWidget {
                 }
               },
               child: PhotoView(
-                backgroundDecoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.9),
-                ),
+                backgroundDecoration: BoxDecoration(color: Colors.transparent),
                 controller: photoViewController,
                 imageProvider: CloudImageWidget.provider(
                   file: item,
@@ -201,10 +199,7 @@ class GenericFileContent extends HookConsumerWidget {
                 onPressed: () => Navigator.of(context).pop(),
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Symbols.refresh),
-                  onPressed: () {},
-                ),
+                IconButton(icon: const Icon(Symbols.refresh), onPressed: () {}),
               ],
             ),
             Expanded(

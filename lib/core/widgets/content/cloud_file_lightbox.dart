@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -10,6 +11,7 @@ import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -19,12 +21,14 @@ class CloudFileLightbox extends HookConsumerWidget {
   final List<IDisplayableCloudFile> items;
   final int initialIndex;
   final String? heroTag;
+  final SnPost? sourcePost;
 
   const CloudFileLightbox({
     super.key,
     required this.items,
     this.initialIndex = 0,
     this.heroTag,
+    this.sourcePost,
   });
 
   @override
@@ -89,15 +93,20 @@ class CloudFileLightbox extends HookConsumerWidget {
         case 'save':
           final item = items[currentIndex.value];
           if (item is SnCloudFile) {
-            ref
-                .read(driveFileDownloaderProvider)
-                .saveToGallery(item);
+            ref.read(driveFileDownloaderProvider).saveToGallery(item);
           }
           break;
         case 'toggle_original':
           showOriginal.value = !showOriginal.value;
           break;
         case 'share':
+          break;
+        case 'open_in_viewer':
+          final item = items[currentIndex.value];
+          final router = context.router;
+          Navigator.of(context).pop();
+          await Future<void>.delayed(Duration.zero);
+          router.push(FileDetailRoute(id: item.id, sourcePost: sourcePost));
           break;
       }
     }
