@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -197,50 +198,81 @@ class CreatorPostListScreen extends HookConsumerWidget {
       ),
       body: Column(
         children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: isFilterVisible.value
-                ? Padding(
-                    key: const ValueKey('filters-visible'),
-                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
-                    child: PostFilterWidget(
-                      categoryTabController: categoryTabController,
-                      initialQuery: queryState.value,
-                      onQueryChanged: (newQuery) => queryState.value = newQuery,
-                    ),
-                  )
-                : const SizedBox(key: ValueKey('filters-hidden')),
+          AnimatedSlide(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            offset: isFilterVisible.value ? Offset.zero : const Offset(0, -0.08),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                child: isFilterVisible.value
+                    ? Padding(
+                        key: const ValueKey('filters-visible'),
+                        padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+                        child: PostFilterWidget(
+                          categoryTabController: categoryTabController,
+                          initialQuery: queryState.value,
+                          onQueryChanged: (newQuery) =>
+                              queryState.value = newQuery,
+                        ),
+                      )
+                    : const SizedBox(key: ValueKey('filters-hidden')),
+              ),
+            ),
           ),
           Expanded(
-            child: PaginationList<SnPost>(
-              key: ValueKey(queryState.value),
-              provider: provider,
-              notifier: provider.notifier,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              spacing: 0,
-              itemBuilder: (context, index, post) => CreatorPostCardTile(
-                index: index,
-                post: post,
-                isSelected: selectedIds.value.contains(post.id),
-                showSelectionControl: selectionMode,
-                onTap: selectionMode
-                    ? () {
-                        final next = Set<String>.from(selectedIds.value);
-                        if (!next.add(post.id)) next.remove(post.id);
-                        selectedIds.value = next;
-                      }
-                    : () => _showPostDetailSheet(context, post),
-                onSelectionToggle: () {
-                  final next = Set<String>.from(selectedIds.value);
-                  if (!next.add(post.id)) next.remove(post.id);
-                  selectedIds.value = next;
-                },
-                onLongPress: () {
-                  enterSelectionMode();
-                  final next = Set<String>.from(selectedIds.value)
-                    ..add(post.id);
-                  selectedIds.value = next;
-                },
+            child: NotificationListener<UserScrollNotification>(
+              onNotification: (notification) {
+                if (notification.depth != 0) return false;
+                switch (notification.direction) {
+                  case ScrollDirection.reverse:
+                    if (isFilterVisible.value) {
+                      isFilterVisible.value = false;
+                    }
+                  case ScrollDirection.forward:
+                    if (!isFilterVisible.value) {
+                      isFilterVisible.value = true;
+                    }
+                  case ScrollDirection.idle:
+                    break;
+                }
+                return false;
+              },
+              child: PaginationList<SnPost>(
+                key: ValueKey(queryState.value),
+                provider: provider,
+                notifier: provider.notifier,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                spacing: 0,
+                itemBuilder: (context, index, post) => CreatorPostCardTile(
+                  index: index,
+                  post: post,
+                  isSelected: selectedIds.value.contains(post.id),
+                  showSelectionControl: selectionMode,
+                  onTap: selectionMode
+                      ? () {
+                          final next = Set<String>.from(selectedIds.value);
+                          if (!next.add(post.id)) next.remove(post.id);
+                          selectedIds.value = next;
+                        }
+                      : () => _showPostDetailSheet(context, post),
+                  onSelectionToggle: () {
+                    final next = Set<String>.from(selectedIds.value);
+                    if (!next.add(post.id)) next.remove(post.id);
+                    selectedIds.value = next;
+                  },
+                  onLongPress: () {
+                    enterSelectionMode();
+                    final next = Set<String>.from(selectedIds.value)
+                      ..add(post.id);
+                    selectedIds.value = next;
+                  },
+                ),
               ),
             ),
           ),
