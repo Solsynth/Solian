@@ -1065,7 +1065,7 @@ class _ChatListAppBar extends HookConsumerWidget {
             error: (_, _) => false,
             loading: () => false,
           ),
-          child: const Icon(Symbols.email),
+          child: Icon(Symbols.email, color: appbarFeColor),
         ),
         color: appbarFeColor,
         onSelected: (value) async {
@@ -1179,10 +1179,13 @@ class _MarkAllReadButton extends ConsumerWidget {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: Theme.of(context).appBarTheme.foregroundColor,
               ),
             )
-          : const Icon(Symbols.done_all),
+          : Icon(
+              Symbols.done_all,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ),
       tooltip: 'Mark all as read',
       onPressed: readSyncState.isLoading
           ? null
