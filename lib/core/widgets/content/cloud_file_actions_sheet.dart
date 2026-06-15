@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +5,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -132,12 +130,7 @@ class CloudFileActionsSheet extends ConsumerWidget {
           _ActionTile(
             icon: Symbols.edit,
             title: 'openInViewer'.tr(),
-            onTap: () {
-              Navigator.pop(context);
-              if (item is SnCloudFile) {
-                context.router.push(FileDetailRoute(id: item.id));
-              }
-            },
+            onTap: () => Navigator.pop(context, 'open_in_viewer'),
           ),
           const Gap(16),
         ],

@@ -147,6 +147,7 @@ class CloudFileList extends HookConsumerWidget {
         items: viewableFiles.map((e) => e.value).toList(),
         initialIndex: viewableIndex,
         heroTag: _heroTag(files[index].id),
+        sourcePost: sourcePost,
       ),
       rootNavigator: true,
     );
