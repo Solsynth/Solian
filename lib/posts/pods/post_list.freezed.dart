@@ -215,7 +215,7 @@ return $default(_that.pubName,_that.publishers,_that.realm,_that.type,_that.cate
 
 
 class _PostListQuery implements PostListQuery {
-  const _PostListQuery({this.pubName, final  List<String>? publishers, this.realm, this.type, final  List<String>? categories, final  List<String>? tags, this.pinned, this.shuffle = false, this.includeReplies, this.mediaOnly, this.queryTerm, this.searchEngine, this.order, this.periodStart, this.periodEnd, this.orderDesc = true}): _publishers = publishers,_categories = categories,_tags = tags;
+  const _PostListQuery({this.pubName, final  List<String>? publishers, this.realm, this.type, final  List<String>? categories, final  List<String>? tags, this.pinned, this.shuffle = false, this.includeReplies = false, this.mediaOnly, this.queryTerm, this.searchEngine, this.order, this.periodStart, this.periodEnd, this.orderDesc = true}): _publishers = publishers,_categories = categories,_tags = tags;
   
 
 @override final  String? pubName;

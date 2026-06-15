@@ -176,7 +176,9 @@ class _PostsSearchTab extends HookConsumerWidget {
     final realmController = useTextEditingController();
 
     final categoryTabController = useTabController(initialLength: 3);
-    final queryState = useState(const PostListQuery());
+    final queryState = useState(
+      const PostListQuery(includeReplies: false),
+    );
 
     final noti = ref.read(
       postListProvider(PostListQueryConfig(id: kSearchPostListId)).notifier,
@@ -316,9 +318,10 @@ class _PostsSearchTab extends HookConsumerWidget {
                                 ),
                               ),
                             ),
-                            const Gap(8),
-                            if (showFilters.value)
+                            if (showFilters.value) ...[
+                              const Gap(8),
                               buildFilterPanel().padding(horizontal: 8),
+                            ],
                           ],
                         ),
                       ),
@@ -328,48 +331,34 @@ class _PostsSearchTab extends HookConsumerWidget {
               )
             : CustomScrollView(
                 slivers: [
-                  const SliverGap(8),
-                  SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Card(
-                          margin: EdgeInsets.symmetric(horizontal: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Symbols.tune).padding(horizontal: 8),
-                                Expanded(
-                                  child: Text(
-                                    'filters'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Symbols.filter_alt,
-                                    fill: showFilters.value ? 1 : null,
-                                  ),
-                                  onPressed: toggleFilterDisplay,
-                                  tooltip: 'toggleFilters'.tr(),
-                                ),
-                                const Gap(4),
-                              ],
-                            ),
-                          ),
+                  SliverAppBar(
+                    automaticallyImplyLeading: false,
+                    automaticallyImplyActions: false,
+                    pinned: false,
+                    floating: true,
+                    snap: true,
+                    toolbarHeight: 56,
+                    titleSpacing: 8,
+                    title: Text('filters'.tr()),
+                    leading: const Icon(Symbols.tune),
+                    actions: [
+                      IconButton(
+                        icon: Icon(
+                          Symbols.filter_alt,
+                          fill: showFilters.value ? 1 : null,
                         ),
-                        const Gap(4),
-                        if (showFilters.value)
-                          buildFilterPanel().padding(horizontal: 8),
-                      ],
-                    ),
+                        onPressed: toggleFilterDisplay,
+                        tooltip: 'toggleFilters'.tr(),
+                      ),
+                    ],
                   ),
+                  if (showFilters.value) ...[
+                    const SliverGap(4),
+                    SliverToBoxAdapter(
+                      child: buildFilterPanel().padding(horizontal: 8),
+                    ),
+                  ],
+                  const SliverGap(8),
                   PaginationList(
                     provider: postListProvider(
                       PostListQueryConfig(id: kSearchPostListId),
