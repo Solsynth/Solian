@@ -15,6 +15,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/file_permissions.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
@@ -94,6 +95,39 @@ class FileDetailScreen extends HookConsumerWidget {
     final file = currentItem;
     final showOwnerBar =
         file.accountId.isNotEmpty && file.accountId != currentUser?.id;
+    final hasContextPanel = sourcePost != null || showOwnerBar;
+    final mediaQuery = MediaQuery.of(context);
+    final availableHeight =
+        mediaQuery.size.height -
+        mediaQuery.padding.top -
+        mediaQuery.padding.bottom -
+        kToolbarHeight;
+    final collapsedPanelHeight = hasContextPanel ? 26.0 : 0.0;
+    final minPanelHeight = collapsedPanelHeight;
+    final maxPanelHeight = hasContextPanel
+        ? (availableHeight * 0.45).clamp(180.0, 420.0)
+        : 0.0;
+    final midPanelHeight = hasContextPanel
+        ? (availableHeight * 0.24).clamp(140.0, 240.0)
+        : 0.0;
+    final expandedPanelHeight = hasContextPanel
+        ? (availableHeight * 0.34).clamp(200.0, 320.0)
+        : 0.0;
+    final snapPoints = hasContextPanel
+        ? (() {
+            final points = <double>{
+              collapsedPanelHeight,
+              midPanelHeight,
+              expandedPanelHeight,
+              maxPanelHeight,
+            }.toList();
+            points.sort();
+            return points;
+          })()
+        : <double>[];
+    final panelHeight = useState(
+      hasContextPanel ? midPanelHeight : 0.0,
+    );
 
     void showInfoSheet() {
       if (isWide) {
@@ -153,6 +187,13 @@ class FileDetailScreen extends HookConsumerWidget {
                           serverUrl,
                           file,
                           showOwnerBar: showOwnerBar,
+                          panelHeight: panelHeight.value,
+                          collapsedPanelHeight: collapsedPanelHeight,
+                          minPanelHeight: minPanelHeight,
+                          maxPanelHeight: maxPanelHeight,
+                          snapPoints: snapPoints,
+                          onPanelHeightChanged: (value) =>
+                              panelHeight.value = value,
                         ),
                       ),
                       // Animated drawer panel - overlays
@@ -279,21 +320,110 @@ class FileDetailScreen extends HookConsumerWidget {
     String serverUrl,
     SnCloudFile item, {
     required bool showOwnerBar,
+    required double panelHeight,
+    required double collapsedPanelHeight,
+    required double minPanelHeight,
+    required double maxPanelHeight,
+    required List<double> snapPoints,
+    required ValueChanged<double> onPanelHeightChanged,
   }) {
+    final hasContextPanel = sourcePost != null || showOwnerBar;
+    final isCollapsed = panelHeight <= collapsedPanelHeight + 4;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (sourcePost != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: _buildSourcePostPreview(context, sourcePost!),
-          ),
-        if (showOwnerBar)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: _buildOwnerBar(context, ref, item.accountId),
-          ),
         Expanded(child: _buildContent(context, ref, serverUrl, item)),
+        if (hasContextPanel)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            height: panelHeight,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.96),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              border: Border(
+                top: BorderSide(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragUpdate: (details) {
+                    onPanelHeightChanged(
+                      (panelHeight - details.delta.dy).clamp(
+                        minPanelHeight,
+                        maxPanelHeight,
+                      ),
+                    );
+                  },
+                  onVerticalDragEnd: (_) {
+                    if (snapPoints.isEmpty) return;
+                    final nearest = snapPoints.reduce(
+                      (best, point) => (point - panelHeight).abs() <
+                              (best - panelHeight).abs()
+                          ? point
+                          : best,
+                    );
+                    onPanelHeightChanged(nearest);
+                  },
+                  onTap: () {
+                    if (isCollapsed && snapPoints.length > 1) {
+                      onPanelHeightChanged(snapPoints[1]);
+                    } else if (!isCollapsed) {
+                      onPanelHeightChanged(collapsedPanelHeight);
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 8),
+                    child: Center(
+                      child: Container(
+                        width: 44,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withOpacity(0.35),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (!isCollapsed)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (sourcePost != null)
+                            PostItem(
+                              item: sourcePost!,
+                              padding: EdgeInsets.zero,
+                              isCompact: true,
+                              hideAttachments: true,
+                              isEmbedReply: false,
+                              isShowReference: false,
+                              isTextSelectable: false,
+                              isTranslatable: false,
+                            ),
+                          if (sourcePost != null && showOwnerBar) const Gap(12),
+                          if (showOwnerBar)
+                            _buildOwnerBar(context, ref, item.accountId),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -301,17 +431,26 @@ class FileDetailScreen extends HookConsumerWidget {
   Widget _buildBackground(SnCloudFile item, String serverUrl) {
     final uri = '$serverUrl/drive/files/${item.id}?thumbnail=true';
     final isVideo = item.mimeType.startsWith('video') == true;
+    final isImage = item.mimeType.startsWith('image') == true;
 
-    if (isVideo) {
+    if (isVideo || isImage) {
       return ClipRect(
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              uri,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  Container(color: Colors.black),
+            Positioned.fill(
+              child: isImage
+                  ? CloudImageWidget(
+                      file: item,
+                      fit: BoxFit.cover,
+                      noBlurhash: true,
+                    )
+                  : Image.network(
+                      uri,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Container(color: Colors.black),
+                    ),
             ),
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
@@ -323,69 +462,6 @@ class FileDetailScreen extends HookConsumerWidget {
     }
 
     return Container(color: Colors.black);
-  }
-
-  Widget _buildSourcePostPreview(BuildContext context, SnPost post) {
-    final theme = Theme.of(context);
-    final authorName =
-        post.publisher?.nick ??
-        post.publisher?.name ??
-        post.actor?.displayName ??
-        post.actor?.username ??
-        'Unknown';
-    final previewText = [
-      if (post.title?.isNotEmpty ?? false) post.title!,
-      if (post.description?.isNotEmpty ?? false) post.description!,
-      if (post.content?.isNotEmpty ?? false) post.content!,
-    ].join('\n').trim();
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.12)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Opened from post',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-              const Gap(4),
-              Text(
-                authorName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (previewText.isNotEmpty) ...[
-                const Gap(6),
-                Text(
-                  previewText,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.92),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildOwnerBar(
@@ -405,9 +481,11 @@ class FileDetailScreen extends HookConsumerWidget {
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.4),
+              color: theme.colorScheme.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.12)),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.18),
+              ),
             ),
             child: Row(
               children: [
@@ -421,13 +499,12 @@ class FileDetailScreen extends HookConsumerWidget {
                       Text(
                         'Original uploader',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white70,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       AccountName(
                         account: account,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                         hideOverlay: true,
@@ -439,7 +516,7 @@ class FileDetailScreen extends HookConsumerWidget {
                 const Icon(
                   Icons.arrow_forward_ios,
                   size: 14,
-                  color: Colors.white70,
+                  color: Colors.grey,
                 ),
               ],
             ),
@@ -449,9 +526,11 @@ class FileDetailScreen extends HookConsumerWidget {
       loading: () => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.28),
+          color: theme.colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.18),
+          ),
         ),
         child: Row(
           children: [
@@ -463,7 +542,7 @@ class FileDetailScreen extends HookConsumerWidget {
             const Gap(12),
             Text(
               'Loading uploader...',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+              style: theme.textTheme.bodyMedium,
             ),
           ],
         ),
