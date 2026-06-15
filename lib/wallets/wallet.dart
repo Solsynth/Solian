@@ -382,7 +382,7 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                                         const Duration(days: 365),
                                       ),
                                     );
-                                    if (date != null && mounted) {
+                                    if (date != null && context.mounted) {
                                       final time = await showTimePicker(
                                         context: context,
                                         initialTime: TimeOfDay.fromDateTime(
