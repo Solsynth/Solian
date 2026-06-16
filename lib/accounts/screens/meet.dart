@@ -1221,12 +1221,17 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => showMeetIdShareSheet(
+                      onPressed: () => showMeetQrSheet(
                         context,
                         meet.id,
                         meetName: meet.locationName,
+                        onMeetIdScanned: (meetId) async {
+                          await context.router.push(
+                            MeetDetailRoute(id: meetId),
+                          );
+                        },
                       ),
-                      icon: const Icon(Symbols.qr_code),
+                      icon: const Icon(Symbols.qr_code_2),
                     ),
                     if (canShowMap)
                       IconButton(
@@ -3968,44 +3973,155 @@ class _MeetParticipantPin extends StatelessWidget {
   }
 }
 
-class _MeetIdShareSheet extends StatelessWidget {
+enum _MeetQrMode { receive, request }
+
+class _MeetQrSheet extends StatefulWidget {
   final String meetId;
   final String? meetName;
+  final ValueChanged<String> onMeetIdScanned;
 
-  const _MeetIdShareSheet({required this.meetId, this.meetName});
+  const _MeetQrSheet({
+    required this.meetId,
+    this.meetName,
+    required this.onMeetIdScanned,
+  });
+
+  @override
+  State<_MeetQrSheet> createState() => _MeetQrSheetState();
+}
+
+class _MeetQrSheetState extends State<_MeetQrSheet> {
+  _MeetQrMode _mode = _MeetQrMode.receive;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return SheetScaffold(
-      titleText: meetName?.isNotEmpty == true
-          ? 'meetQrShareTitle'.tr(args: [meetName!])
+      titleText: widget.meetName?.isNotEmpty == true
+          ? 'meetQrShareTitle'.tr(args: [widget.meetName!])
           : 'meetQrShareTitleDefault'.tr(),
-      heightFactor: 0.6,
+      heightFactor: 0.82,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Gap(12),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    spreadRadius: 4,
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonal(
+                      onPressed: () =>
+                          setState(() => _mode = _MeetQrMode.receive),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _mode == _MeetQrMode.receive
+                            ? theme.colorScheme.primaryContainer
+                            : Colors.transparent,
+                        foregroundColor: _mode == _MeetQrMode.receive
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                        elevation: 0,
+                      ),
+                      child: Text('Receive'),
+                    ),
+                  ),
+                  const Gap(8),
+                  Expanded(
+                    child: FilledButton.tonal(
+                      onPressed: () =>
+                          setState(() => _mode = _MeetQrMode.request),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _mode == _MeetQrMode.request
+                            ? theme.colorScheme.primaryContainer
+                            : Colors.transparent,
+                        foregroundColor: _mode == _MeetQrMode.request
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                        elevation: 0,
+                      ),
+                      child: Text('Request'),
+                    ),
                   ),
                 ],
               ),
-              child: QrImageView(
+            ),
+            const Gap(20),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: _mode == _MeetQrMode.receive
+                    ? _MeetQrReceivePane(
+                        key: const ValueKey('receive'),
+                        meetId: widget.meetId,
+                        meetName: widget.meetName,
+                      )
+                    : _MeetQrRequestPane(
+                        key: const ValueKey('request'),
+                        onMeetIdScanned: widget.onMeetIdScanned,
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetQrReceivePane extends StatelessWidget {
+  final String meetId;
+  final String? meetName;
+
+  const _MeetQrReceivePane({super.key, required this.meetId, this.meetName});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          meetName?.isNotEmpty == true
+              ? meetName!
+              : 'meetQrShareTitleDefault'.tr(),
+          textAlign: TextAlign.center,
+        ).fontSize(20).bold(),
+        const Gap(8),
+        Text(
+          'Let others scan this code to open the live location room.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: theme.colorScheme.secondary),
+        ),
+        const Gap(24),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 24,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              QrImageView(
                 data: meetId,
                 version: QrVersions.auto,
-                size: 220,
+                size: 240,
                 backgroundColor: Colors.white,
+                errorCorrectionLevel: QrErrorCorrectLevel.H,
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.square,
                   color: Colors.black,
@@ -4015,59 +4131,65 @@ class _MeetIdShareSheet extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-            ),
-            const Gap(20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black, width: 2),
+                ),
+                child: const Icon(Symbols.location_on, color: Colors.black),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      meetId,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Gap(24),
-            FilledButton.icon(
-              onPressed: () async {
-                await Clipboard.setData(ClipboardData(text: meetId));
-                if (context.mounted) {
-                  showSnackBar('copyToClipboard'.tr());
-                }
-              },
-              icon: const Icon(Symbols.content_copy, size: 18),
-              label: Text('copy'.tr()),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _QrScannerSheet extends StatefulWidget {
+class _MeetQrRequestPane extends StatelessWidget {
   final ValueChanged<String> onMeetIdScanned;
 
-  const _QrScannerSheet({required this.onMeetIdScanned});
+  const _MeetQrRequestPane({super.key, required this.onMeetIdScanned});
 
   @override
-  State<_QrScannerSheet> createState() => _QrScannerSheetState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+          child: Text(
+            'meetQrScanHint'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: theme.colorScheme.secondary),
+          ),
+        ),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: _QrScannerViewport(onMeetIdScanned: onMeetIdScanned),
+          ),
+        ),
+        const Gap(12),
+      ],
+    );
+  }
 }
 
-class _QrScannerSheetState extends State<_QrScannerSheet> {
+class _QrScannerViewport extends StatefulWidget {
+  final ValueChanged<String> onMeetIdScanned;
+
+  const _QrScannerViewport({required this.onMeetIdScanned});
+
+  @override
+  State<_QrScannerViewport> createState() => _QrScannerViewportState();
+}
+
+class _QrScannerViewportState extends State<_QrScannerViewport> {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
     facing: CameraFacing.back,
@@ -4089,8 +4211,8 @@ class _QrScannerSheetState extends State<_QrScannerSheet> {
       final String? code = barcode.rawValue;
       if (code != null && code.isNotEmpty) {
         setState(() => _hasScanned = true);
-        widget.onMeetIdScanned(code);
         Navigator.of(context).pop();
+        widget.onMeetIdScanned(code);
         break;
       }
     }
@@ -4100,85 +4222,63 @@ class _QrScannerSheetState extends State<_QrScannerSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return SheetScaffold(
-      titleText: 'meetQrScanTitle'.tr(),
-      heightFactor: 0.85,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-            child: Text(
-              'meetQrScanHint'.tr(),
-              style: TextStyle(color: theme.colorScheme.secondary),
-            ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        MobileScanner(controller: _controller, onDetect: _onDetect),
+        Container(
+          width: 250,
+          height: 250,
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.primary, width: 3),
+            borderRadius: BorderRadius.circular(16),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    MobileScanner(controller: _controller, onDetect: _onDetect),
-                    Container(
-                      width: 250,
-                      height: 250,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: theme.colorScheme.primary,
-                          width: 3,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 16,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton.filled(
-                            onPressed: () => _controller.toggleTorch(),
-                            icon: ValueListenableBuilder(
-                              valueListenable: _controller,
-                              builder: (context, state, child) {
-                                return Icon(
-                                  state.torchState == TorchState.on
-                                      ? Symbols.flashlight_on
-                                      : Symbols.flashlight_off,
-                                );
-                              },
-                            ),
-                          ),
-                          const Gap(16),
-                          IconButton.filled(
-                            onPressed: () => _controller.switchCamera(),
-                            icon: const Icon(Symbols.cameraswitch),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+        ),
+        Positioned(
+          bottom: 16,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton.filled(
+                onPressed: () => _controller.toggleTorch(),
+                icon: ValueListenableBuilder(
+                  valueListenable: _controller,
+                  builder: (context, state, child) {
+                    return Icon(
+                      state.torchState == TorchState.on
+                          ? Symbols.flashlight_on
+                          : Symbols.flashlight_off,
+                    );
+                  },
                 ),
               ),
-            ),
+              const Gap(16),
+              IconButton.filled(
+                onPressed: () => _controller.switchCamera(),
+                icon: const Icon(Symbols.cameraswitch),
+              ),
+            ],
           ),
-          const Gap(24),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-void showMeetIdShareSheet(
+void showMeetQrSheet(
   BuildContext context,
   String meetId, {
   String? meetName,
+  required ValueChanged<String> onMeetIdScanned,
 }) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    builder: (context) => _MeetIdShareSheet(meetId: meetId, meetName: meetName),
+    builder: (context) => _MeetQrSheet(
+      meetId: meetId,
+      meetName: meetName,
+      onMeetIdScanned: onMeetIdScanned,
+    ),
   );
 }
 
@@ -4186,11 +4286,7 @@ void showQrScannerSheet(
   BuildContext context,
   ValueChanged<String> onMeetIdScanned,
 ) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) => _QrScannerSheet(onMeetIdScanned: onMeetIdScanned),
-  );
+  showMeetQrSheet(context, '', onMeetIdScanned: onMeetIdScanned);
 }
 
 class _HeroPill extends StatelessWidget {

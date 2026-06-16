@@ -17,6 +17,7 @@ import 'package:island/auth/challenge_ws_listener.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/accounts/pods/friend_status_listener.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
+import 'package:island/accounts/screens/me/account_qr.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
@@ -29,6 +30,7 @@ import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
+import 'package:island/wallets/wallet.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -57,7 +59,7 @@ final appWrapperKey = GlobalKey();
 
 class ForcedStartupSplashNotifier extends Notifier<bool> {
   bool _showAfterDone = false;
-  
+
   bool get showAfterDone => _showAfterDone;
 
   @override
@@ -421,25 +423,27 @@ class AppWrapper extends HookConsumerWidget {
           child: shouldShowStartupSplash
               ? KeyedSubtree(
                   key: ValueKey('bootstrap_splash'),
-                   child: StartupSplashScreen(
-                     runBootstrap: shouldRunBootstrap,
-                     showCompleted: ref.read(forcedStartupSplashProvider.notifier).showAfterDone,
-                     onCompleted: () {
-                       ref
-                           .read(forcedStartupSplashProvider.notifier)
-                           .setVisible(false);
-                        bootstrapCompleted.value = true;
-                      },
-                    ),
+                  child: StartupSplashScreen(
+                    runBootstrap: shouldRunBootstrap,
+                    showCompleted: ref
+                        .read(forcedStartupSplashProvider.notifier)
+                        .showAfterDone,
+                    onCompleted: () {
+                      ref
+                          .read(forcedStartupSplashProvider.notifier)
+                          .setVisible(false);
+                      bootstrapCompleted.value = true;
+                    },
+                  ),
                 )
-               : KeyedSubtree(
-                   key: const ValueKey('main_content'),
-                   child: Stack(
-                     children: [
+              : KeyedSubtree(
+                  key: const ValueKey('main_content'),
+                  child: Stack(
+                    children: [
                       _AppWrapperBackdrop(child: child),
-                       if (doesShowSnow && !isSnowGone.value)
-                         IgnorePointer(
-                           child: AnimatedOpacity(
+                      if (doesShowSnow && !isSnowGone.value)
+                        IgnorePointer(
+                          child: AnimatedOpacity(
                             opacity: isShowSnow.value ? 1 : 00,
                             duration: const Duration(seconds: 3),
                             child: SnowFallAnimation(
@@ -528,6 +532,40 @@ class AppWrapper extends HookConsumerWidget {
 
   void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {
     String path = '/${uri.host}${uri.path}';
+    final transferRequestId = parseWalletTransferRequestId(uri.toString());
+
+    if (transferRequestId != null) {
+      try {
+        await handleWalletTransferRequestDeepLink(
+          context: context,
+          ref: ref,
+          requestId: transferRequestId,
+        );
+      } catch (err) {
+        showErrorAlert(err);
+      }
+
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
+
+    final transferPayload = parseWalletTransferQrPayload(uri.toString());
+    if (transferPayload != null) {
+      await handleWalletTransferPayloadDeepLink(
+        context: context,
+        ref: ref,
+        payload: transferPayload,
+      );
+
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
 
     if (path == '/auth/web') {
       await _handleProtocolWebAuth(uri, ref, context);

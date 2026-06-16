@@ -269,7 +269,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       },
                     },
                   {
-                    'icon': Symbols.qr_code,
+                    'icon': Symbols.qr_code_rounded,
                     'title': 'qrCode',
                     'onTap': () {
                       context.router.push(const AccountQrRoute());

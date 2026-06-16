@@ -102,6 +102,210 @@ final walletStatsFilteredProvider = FutureProvider.autoDispose
       return SnWalletStats.fromJson(response.data!);
     });
 
+class WalletTransferQrPayload {
+  final String publicId;
+  final String? displayName;
+  final String? currency;
+  final double? amount;
+  final String? remark;
+
+  const WalletTransferQrPayload({
+    required this.publicId,
+    this.displayName,
+    this.currency,
+    this.amount,
+    this.remark,
+  });
+}
+
+class WalletTransferRequestData {
+  final String id;
+  final String currency;
+  final double amount;
+  final String? remark;
+  final bool freeze;
+  final bool requireConfirmation;
+  final DateTime expiresAt;
+  final String payeeWalletId;
+  final String? payeePublicId;
+  final String? transactionId;
+
+  const WalletTransferRequestData({
+    required this.id,
+    required this.currency,
+    required this.amount,
+    required this.freeze,
+    required this.requireConfirmation,
+    required this.expiresAt,
+    required this.payeeWalletId,
+    this.remark,
+    this.payeePublicId,
+    this.transactionId,
+  });
+
+  factory WalletTransferRequestData.fromJson(Map<String, dynamic> json) {
+    return WalletTransferRequestData(
+      id: json['id'].toString(),
+      currency: json['currency'].toString(),
+      amount: (json['amount'] as num).toDouble(),
+      remark: json['remark']?.toString(),
+      freeze: json['freeze'] as bool? ?? false,
+      requireConfirmation:
+          json['require_confirmation'] as bool? ??
+          json['requireConfirmation'] as bool? ??
+          false,
+      expiresAt: DateTime.parse(json['expires_at'].toString()).toLocal(),
+      payeeWalletId: json['payee_wallet_id'].toString(),
+      payeePublicId: json['payee_public_id']?.toString(),
+      transactionId: json['transaction_id']?.toString(),
+    );
+  }
+}
+
+String buildWalletTransferQrData({
+  required String publicId,
+  String? displayName,
+  String? currency,
+  double? amount,
+  String? remark,
+}) {
+  final query = <String, String>{
+    'publicId': publicId,
+    if (displayName != null && displayName.trim().isNotEmpty)
+      'name': displayName.trim(),
+    if (currency != null && currency.trim().isNotEmpty) 'currency': currency,
+    if (amount != null && amount > 0) 'amount': amount.toString(),
+    if (remark != null && remark.trim().isNotEmpty) 'remark': remark.trim(),
+  };
+
+  return Uri(
+    scheme: 'solian',
+    host: 'wallet',
+    path: '/transfer',
+    queryParameters: query,
+  ).toString();
+}
+
+String buildWalletTransferRequestDeepLink(String id) {
+  return Uri(
+    scheme: 'solian',
+    host: 'wallet',
+    path: '/transfer/requests/$id',
+  ).toString();
+}
+
+String buildWalletTransferRequestShareUrl(String id) {
+  return Uri(
+    scheme: 'https',
+    host: 'solian.app',
+    path: '/wallet/transfer/requests/$id',
+  ).toString();
+}
+
+WalletTransferQrPayload? parseWalletTransferQrPayload(String rawValue) {
+  final value = rawValue.trim();
+  if (value.isEmpty) return null;
+
+  final uri = Uri.tryParse(value);
+  if (uri == null) return null;
+
+  final pathSegments = uri.pathSegments;
+  final isCustomWalletTransfer =
+      uri.scheme == 'solian' &&
+      uri.host == 'wallet' &&
+      pathSegments.length == 1 &&
+      pathSegments.first == 'transfer';
+  final isWebWalletTransfer =
+      (uri.host == 'solian.app' || uri.host.endsWith('.solian.app')) &&
+      pathSegments.length >= 2 &&
+      pathSegments[0] == 'wallet' &&
+      pathSegments[1] == 'transfer';
+
+  if (!isCustomWalletTransfer && !isWebWalletTransfer) return null;
+
+  final publicId = (uri.queryParameters['publicId'] ?? '').trim().toUpperCase();
+  if (publicId.isEmpty) return null;
+
+  final currency = uri.queryParameters['currency']?.trim();
+  final normalizedCurrency = (currency != null && currency.isNotEmpty)
+      ? currency
+      : null;
+  final amount = double.tryParse(uri.queryParameters['amount'] ?? '');
+  final remark = uri.queryParameters['remark']?.trim();
+  final name = uri.queryParameters['name']?.trim();
+
+  return WalletTransferQrPayload(
+    publicId: publicId,
+    displayName: name?.isNotEmpty == true ? name : null,
+    currency: normalizedCurrency,
+    amount: amount != null && amount > 0 ? amount : null,
+    remark: remark?.isNotEmpty == true ? remark : null,
+  );
+}
+
+Future<WalletTransferRequestData> createWalletTransferRequest(
+  WidgetRef ref, {
+  required double amount,
+  required String currency,
+  String? walletId,
+  String? remark,
+  int expirationHours = 24,
+  bool freeze = false,
+  bool requireConfirmation = false,
+}) async {
+  final client = ref.read(solarNetworkClientProvider);
+  final response = await client.dio.post<Map<String, dynamic>>(
+    '/wallet/wallets/transfer/requests',
+    data: {
+      'amount': amount,
+      'currency': currency,
+      'wallet_id': walletId,
+      'remark': remark,
+      'expiration_hours': expirationHours,
+      'freeze': freeze,
+      'require_confirmation': requireConfirmation,
+    },
+  );
+  return WalletTransferRequestData.fromJson(response.data!);
+}
+
+Future<WalletTransferRequestData> getWalletTransferRequest(
+  WidgetRef ref,
+  String id,
+) async {
+  final client = ref.read(solarNetworkClientProvider);
+  final response = await client.dio.get<Map<String, dynamic>>(
+    '/wallet/wallets/transfer/requests/$id',
+  );
+  return WalletTransferRequestData.fromJson(response.data!);
+}
+
+Future<void> submitWalletTransfer(
+  BuildContext context,
+  WidgetRef ref,
+  Map<String, dynamic> transferData,
+) async {
+  final client = ref.read(solarNetworkClientProvider);
+  try {
+    showLoadingModal(context);
+    await client.dio.post('/wallet/wallets/transfer', data: transferData);
+
+    if (context.mounted) hideLoadingModal(context);
+
+    ref.invalidate(transactionListProvider);
+    ref.invalidate(walletCurrentProvider);
+    ref.invalidate(walletListProvider);
+
+    if (context.mounted) {
+      showSnackBar('transferCreatedSuccessfully'.tr());
+    }
+  } catch (err) {
+    showErrorAlert(err);
+  } finally {
+    if (context.mounted) hideLoadingModal(context);
+  }
+}
+
 class CreateFundSheet extends ConsumerStatefulWidget {
   final String? payerWalletId;
 
@@ -728,8 +932,37 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
 
 class CreateTransferSheet extends ConsumerStatefulWidget {
   final String? payerWalletId;
+  final String? initialTransferRequestId;
+  final String? initialPayeePublicId;
+  final String? initialPayeeName;
+  final String? initialCurrency;
+  final double? initialAmount;
+  final String? initialRemark;
+  final bool lockPayee;
+  final bool lockAmount;
+  final bool lockCurrency;
+  final bool lockRemark;
+  final bool initialFreezeTransfer;
+  final bool initialRequireConfirmation;
+  final bool hideTransferOptions;
 
-  const CreateTransferSheet({super.key, this.payerWalletId});
+  const CreateTransferSheet({
+    super.key,
+    this.payerWalletId,
+    this.initialTransferRequestId,
+    this.initialPayeePublicId,
+    this.initialPayeeName,
+    this.initialCurrency,
+    this.initialAmount,
+    this.initialRemark,
+    this.lockPayee = false,
+    this.lockAmount = false,
+    this.lockCurrency = false,
+    this.lockRemark = false,
+    this.initialFreezeTransfer = false,
+    this.initialRequireConfirmation = false,
+    this.hideTransferOptions = false,
+  });
 
   @override
   ConsumerState<CreateTransferSheet> createState() =>
@@ -745,6 +978,51 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
   int payeeType = 0;
   bool freezeTransfer = false;
   bool requireConfirmation = false;
+
+  bool get hasLockedPublicId =>
+      widget.lockPayee &&
+      widget.initialPayeePublicId != null &&
+      widget.initialPayeePublicId!.trim().isNotEmpty;
+
+  bool get hasLockedAmount => widget.lockAmount && widget.initialAmount != null;
+
+  bool get hasLockedCurrency =>
+      widget.lockCurrency &&
+      widget.initialCurrency != null &&
+      widget.initialCurrency!.trim().isNotEmpty;
+
+  bool get hasLockedRemark =>
+      widget.lockRemark &&
+      widget.initialRemark != null &&
+      widget.initialRemark!.trim().isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialPublicId = widget.initialPayeePublicId?.trim();
+    if (initialPublicId != null && initialPublicId.isNotEmpty) {
+      payeeType = 1;
+      publicIdController.text = initialPublicId.toUpperCase();
+    }
+
+    final initialCurrency = widget.initialCurrency?.trim();
+    if (initialCurrency != null &&
+        kCurrencyIconData.containsKey(initialCurrency)) {
+      selectedCurrency = initialCurrency;
+    }
+
+    if (widget.initialAmount != null && widget.initialAmount! > 0) {
+      amountController.text = widget.initialAmount!.toString();
+    }
+
+    final initialRemark = widget.initialRemark?.trim();
+    if (initialRemark != null && initialRemark.isNotEmpty) {
+      remarkController.text = initialRemark;
+    }
+
+    freezeTransfer = widget.initialFreezeTransfer;
+    requireConfirmation = widget.initialRequireConfirmation;
+  }
 
   @override
   void dispose() {
@@ -859,9 +1137,11 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                             ),
                           ],
                           selected: {payeeType},
-                          onSelectionChanged: (values) {
-                            setState(() => payeeType = values.first);
-                          },
+                          onSelectionChanged: hasLockedPublicId
+                              ? null
+                              : (values) {
+                                  setState(() => payeeType = values.first);
+                                },
                         ),
                         if (payeeType == 0) ...[
                           if (selectedPayee != null)
@@ -939,26 +1219,43 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                           ),
                         ],
                         if (payeeType == 1)
-                          TextField(
-                            controller: publicIdController,
-                            decoration: InputDecoration(
-                              labelText: 'walletPublicId'.tr(),
-                              hintText: 'DNW-XXXX-XXXX-XXXX',
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 9,
-                                horizontal: 16,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              TextField(
+                                controller: publicIdController,
+                                decoration: InputDecoration(
+                                  labelText: 'walletPublicId'.tr(),
+                                  hintText: 'DNW-XXXX-XXXX-XXXX',
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 9,
+                                    horizontal: 16,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                readOnly: hasLockedPublicId,
+                                textCapitalization:
+                                    TextCapitalization.characters,
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            textCapitalization: TextCapitalization.characters,
+                              if (widget.initialPayeeName != null &&
+                                  widget.initialPayeeName!.trim().isNotEmpty)
+                                Text(
+                                  widget.initialPayeeName!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
                           ),
                       ],
                     ),
                   ),
                   TextField(
                     controller: remarkController,
+                    readOnly: hasLockedRemark,
                     decoration: InputDecoration(
                       labelText: 'transferRemark'.tr(),
                       hintText: 'addRemarkForTransfer'.tr(),
@@ -975,45 +1272,45 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                     onTapOutside: (_) =>
                         FocusManager.instance.primaryFocus?.unfocus(),
                   ),
-                  // Transfer lifecycle options
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: theme.colorScheme.outline,
-                        width: 1,
+                  if (!widget.hideTransferOptions)
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: theme.colorScheme.outline,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 12,
+                        children: [
+                          Text(
+                            'transferOptions'.tr(),
+                            style: theme.textTheme.labelLarge,
+                          ),
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text('freezeTransfer'.tr()),
+                            subtitle: Text('freezeTransferHint'.tr()),
+                            value: freezeTransfer,
+                            onChanged: (value) {
+                              setState(() => freezeTransfer = value);
+                            },
+                          ),
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text('requireConfirmation'.tr()),
+                            subtitle: Text('requireConfirmationHint'.tr()),
+                            value: requireConfirmation,
+                            onChanged: (value) {
+                              setState(() => requireConfirmation = value);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 12,
-                      children: [
-                        Text(
-                          'transferOptions'.tr(),
-                          style: theme.textTheme.labelLarge,
-                        ),
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text('freezeTransfer'.tr()),
-                          subtitle: Text('freezeTransferHint'.tr()),
-                          value: freezeTransfer,
-                          onChanged: (value) {
-                            setState(() => freezeTransfer = value);
-                          },
-                        ),
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text('requireConfirmation'.tr()),
-                          subtitle: Text('requireConfirmationHint'.tr()),
-                          value: requireConfirmation,
-                          onChanged: (value) {
-                            setState(() => requireConfirmation = value);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1181,6 +1478,10 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
         'freeze': freezeTransfer,
         'require_confirmation': requireConfirmation,
       };
+
+      if (widget.initialTransferRequestId != null) {
+        data['transfer_request_id'] = widget.initialTransferRequestId;
+      }
 
       if (widget.payerWalletId != null) {
         data['payer_wallet_id'] = widget.payerWalletId;
@@ -3303,24 +3604,7 @@ class WalletScreen extends HookConsumerWidget {
     WidgetRef ref,
     Map<String, dynamic> transferData,
   ) async {
-    final client = ref.read(solarNetworkClientProvider);
-    try {
-      showLoadingModal(context);
-      await client.dio.post('/wallet/wallets/transfer', data: transferData);
-
-      if (context.mounted) hideLoadingModal(context);
-
-      // Invalidate providers to refresh data
-      ref.invalidate(transactionListProvider);
-      ref.invalidate(walletCurrentProvider);
-      if (context.mounted) {
-        showSnackBar('transferCreatedSuccessfully'.tr());
-      }
-    } catch (err) {
-      showErrorAlert(err);
-    } finally {
-      if (context.mounted) hideLoadingModal(context);
-    }
+    await submitWalletTransfer(context, ref, transferData);
   }
 
   String _getFundStatusText(int status) {
