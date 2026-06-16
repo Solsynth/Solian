@@ -266,8 +266,6 @@ PODS:
     - Flutter
   - permission_handler_apple (9.4.8):
     - Flutter
-  - pro_image_editor (12.0.8):
-    - Flutter
   - PromisesObjC (2.4.0)
   - protocol_handler_ios (0.0.1):
     - Flutter
@@ -281,7 +279,7 @@ PODS:
   - sensors_plus (0.0.1):
     - Flutter
   - Sentry/HybridSDK (8.58.3)
-  - sentry_flutter (9.21.0):
+  - sentry_flutter (9.22.0):
     - Flutter
     - FlutterMacOS
     - Sentry/HybridSDK (= 8.58.3)
@@ -358,7 +356,6 @@ DEPENDENCIES:
   - passkeys_darwin (from `.symlinks/plugins/passkeys_darwin/darwin`)
   - pasteboard (from `.symlinks/plugins/pasteboard/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
-  - pro_image_editor (from `.symlinks/plugins/pro_image_editor/ios`)
   - protocol_handler_ios (from `.symlinks/plugins/protocol_handler_ios/ios`)
   - quick_actions_ios (from `.symlinks/plugins/quick_actions_ios/ios`)
   - record_ios (from `.symlinks/plugins/record_ios/ios`)
@@ -490,8 +487,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/pasteboard/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
-  pro_image_editor:
-    :path: ".symlinks/plugins/pro_image_editor/ios"
   protocol_handler_ios:
     :path: ".symlinks/plugins/protocol_handler_ios/ios"
   quick_actions_ios:
@@ -579,13 +574,12 @@ SPEC CHECKSUMS:
   native_exif: fe0a79e4115f2d7cd084ba206e4933d8a5ed7bde
   ObjectBox: 2aae8ad350012cb53c6e7848064307cf68617f73
   objectbox_flutter_libs: 42b57158b8c4869b731487f220e07d6edc6616e0
-  open_file_ios: 46184d802ee7959203f6392abcfa0dd49fdb5be0
+  open_file_ios: c1143c28b4c65f721cdd58d9fba2f7a1c55206cd
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   passkeys_darwin: 395f63bb4dbfe81344ada36400c391e86fc395ea
   pasteboard: 3913b69d3f2be214970a8ae94e7e87fe76e47e98
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
-  pro_image_editor: 3dedac450f82a389877286fa9eb08852cefb04ea
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   protocol_handler_ios: 59f23ee71f3ec602d67902ca7f669a80957888d5
   quick_actions_ios: 500fcc11711d9f646739093395c4ae8eec25f779
@@ -593,7 +587,7 @@ SPEC CHECKSUMS:
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
   Sentry: 108fdbb76299c4189af12246bf0308c09c278922
-  sentry_flutter: 32e67cb4756ce3de42bbd56581fa935922ff328f
+  sentry_flutter: fbb8a76a5a009ce7ba7bde295ee6b50b11916851
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
