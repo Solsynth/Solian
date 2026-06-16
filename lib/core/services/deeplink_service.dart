@@ -91,6 +91,38 @@ String? parseWalletTransferRequestId(String rawValue) {
   return null;
 }
 
+String? parseAuthQrChallengeId(String rawValue) {
+  final value = rawValue.trim();
+  if (value.isEmpty) return null;
+
+  final uri = Uri.tryParse(value);
+  if (uri == null) return null;
+
+  final segments = uri.pathSegments;
+  final isSolianQrLogin =
+      uri.scheme == 'solian' &&
+      uri.host == 'auth' &&
+      segments.length == 2 &&
+      segments[0] == 'qr';
+  final isWebQrLogin =
+      (uri.host == 'solian.app' || uri.host.endsWith('.solian.app')) &&
+      segments.length >= 3 &&
+      segments[0] == 'auth' &&
+      segments[1] == 'qr';
+
+  if (isSolianQrLogin) {
+    final id = segments[1].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  if (isWebQrLogin) {
+    final id = segments[2].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  return null;
+}
+
 class _ProtocolListener implements ProtocolListener {
   final void Function(String) _onProtocolUrlReceived;
 

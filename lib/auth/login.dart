@@ -28,6 +28,7 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
     Symbols.badge,
   ),
   7: ('authFactorPasskey', 'authFactorPasskeyDescription', Symbols.fingerprint),
+  8: ('authFactorQrLogin', 'authFactorQrLoginDescription', Symbols.qr_code_2),
 };
 
 @RoutePage()
