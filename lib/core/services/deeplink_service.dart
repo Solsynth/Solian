@@ -57,6 +57,40 @@ class DeeplinkService {
   }
 }
 
+String? parseWalletTransferRequestId(String rawValue) {
+  final value = rawValue.trim();
+  if (value.isEmpty) return null;
+
+  final uri = Uri.tryParse(value);
+  if (uri == null) return null;
+
+  final segments = uri.pathSegments;
+  final isWalletTransferRequest =
+      uri.scheme == 'solian' &&
+      uri.host == 'wallet' &&
+      segments.length == 3 &&
+      segments[0] == 'transfer' &&
+      segments[1] == 'requests';
+  final isWebWalletTransferRequest =
+      (uri.host == 'solian.app' || uri.host.endsWith('.solian.app')) &&
+      segments.length >= 3 &&
+      segments[0] == 'wallet' &&
+      segments[1] == 'transfer' &&
+      segments[2] == 'requests';
+
+  if (isWalletTransferRequest) {
+    final id = segments[2].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  if (isWebWalletTransferRequest && segments.length >= 4) {
+    final id = segments[3].trim();
+    return id.isEmpty ? null : id;
+  }
+
+  return null;
+}
+
 class _ProtocolListener implements ProtocolListener {
   final void Function(String) _onProtocolUrlReceived;
 

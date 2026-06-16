@@ -1,19 +1,33 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_saver/file_saver.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:island/wallets/wallet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 @RoutePage()
@@ -23,7 +37,12 @@ class AccountQrScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
+    final wallet = ref.watch(walletCurrentProvider);
     final theme = Theme.of(context);
+    final activeTransferRequest = useState<WalletTransferRequestData?>(null);
+    final selectedSection = useState<_QrSectionId?>(_QrSectionId.profile);
+    final profileQrShot = useMemoized(ScreenshotController.new);
+    final transferQrShot = useMemoized(ScreenshotController.new);
 
     if (user.value == null) {
       return AppScaffold(
@@ -34,10 +53,143 @@ class AccountQrScreen extends HookConsumerWidget {
 
     final account = user.value!;
     final profileUrl = 'https://solian.app/accounts/${account.name}';
+    final transferWallet = wallet.value;
+    final requestData = activeTransferRequest.value;
+    final transferQrData = requestData != null
+        ? buildWalletTransferRequestShareUrl(requestData.id)
+        : transferWallet?.publicId != null
+        ? buildWalletTransferQrData(
+            publicId: transferWallet!.publicId!,
+            displayName: account.nick,
+          )
+        : null;
+    final transferShareLink = requestData != null
+        ? buildWalletTransferRequestShareUrl(requestData.id)
+        : transferWallet?.publicId != null
+        ? buildWalletTransferQrData(
+            publicId: transferWallet!.publicId!,
+            displayName: account.nick,
+          )
+        : null;
 
-    Future<void> copyProfileUrl() async {
-      await Clipboard.setData(ClipboardData(text: profileUrl));
-      showSnackBar('copiedToClipboard'.tr());
+    Future<void> startTransferFromRequest(String requestId) async {
+      try {
+        showLoadingModal(context);
+        if (context.mounted) hideLoadingModal(context);
+        await handleWalletTransferRequestDeepLink(
+          context: context,
+          ref: ref,
+          requestId: requestId,
+        );
+      } catch (err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> enableWalletId(String walletId) async {
+      try {
+        showLoadingModal(context);
+        await ref
+            .read(solarNetworkClientProvider)
+            .wallet
+            .enablePublicId(walletId);
+        ref.invalidate(walletCurrentProvider);
+        ref.invalidate(walletListProvider);
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showSnackBar('walletPublicIdEnabled'.tr());
+        }
+      } catch (err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> createTransferRequestFlow(SnWallet wallet) async {
+      final draft = await showModalBottomSheet<_TransferRequestDraft>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (context) => _TransferRequestSheet(
+          walletId: wallet.id,
+          walletPublicId: wallet.publicId!,
+        ),
+      );
+      if (draft == null) return;
+
+      try {
+        if (!context.mounted) return;
+        showLoadingModal(context);
+        final request = await createWalletTransferRequest(
+          ref,
+          amount: draft.amount,
+          currency: draft.currency,
+          walletId: wallet.id,
+          remark: draft.remark,
+          expirationHours: draft.expirationHours,
+          freeze: draft.freeze,
+          requireConfirmation: draft.requireConfirmation,
+        );
+        activeTransferRequest.value = request;
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showSnackBar('accountQrRequestCreated'.tr());
+        }
+      } catch (err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+
+    Future<Uint8List?> captureQrCard(ScreenshotController controller) async {
+      return await controller.capture(
+        pixelRatio: MediaQuery.of(context).devicePixelRatio,
+      );
+    }
+
+    Future<void> shareQrImage(
+      ScreenshotController controller, {
+      required String fileName,
+      String? fallbackText,
+    }) async {
+      try {
+        final bytes = await captureQrCard(controller);
+        if (bytes == null) return;
+
+        if (kIsWeb) {
+          if (fallbackText != null) {
+            await SharePlus.instance.share(ShareParams(text: fallbackText));
+          }
+          return;
+        }
+
+        final directory = await getTemporaryDirectory();
+        final file = File('${directory.path}/$fileName.png');
+        await file.writeAsBytes(bytes, flush: true);
+        await Share.shareXFiles([XFile(file.path)]);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> saveQrImage(
+      ScreenshotController controller, {
+      required String fileName,
+    }) async {
+      try {
+        final bytes = await captureQrCard(controller);
+        if (bytes == null) return;
+        await FileSaver.instance.saveFile(
+          name: fileName,
+          bytes: bytes,
+          fileExtension: 'png',
+          mimeType: MimeType.png,
+        );
+        showSnackBar('accountQrImageSaved'.tr());
+      } catch (err) {
+        showErrorAlert(err);
+      }
     }
 
     Future<void> openScanner() async {
@@ -46,6 +198,22 @@ class AccountQrScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder: (context) => _AccountQrScannerSheet(
           onScanned: (value) async {
+            final requestId = parseWalletTransferRequestId(value);
+            if (requestId != null && context.mounted) {
+              await startTransferFromRequest(requestId);
+              return;
+            }
+
+            final transferPayload = parseWalletTransferQrPayload(value);
+            if (transferPayload != null && context.mounted) {
+              await handleWalletTransferPayloadDeepLink(
+                context: context,
+                ref: ref,
+                payload: transferPayload,
+              );
+              return;
+            }
+
             final target = _resolveScannedAccountName(value);
             if (target != null && context.mounted) {
               await context.router.push(AccountProfileRoute(name: target));
@@ -69,35 +237,328 @@ class AccountQrScreen extends HookConsumerWidget {
         title: Text('accountQrCodeTitle').tr(),
         leading: const AutoLeadingButton(),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: openScanner,
+        icon: const Icon(Symbols.qr_code_scanner),
+        label: Text('accountQrStartScanning').tr(),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          Card(
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            color: theme.colorScheme.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  ProfilePictureWidget(
-                    file: account.profile.picture,
-                    radius: 30,
+          _QrModeSection(
+            sectionId: _QrSectionId.profile,
+            title: 'accountQrProfileSectionTitle'.tr(),
+            subtitle: 'accountQrCodeHint'.tr(),
+            icon: Symbols.person,
+            isExpanded: selectedSection.value == _QrSectionId.profile,
+            onExpansionChanged: (value) {
+              selectedSection.value = value ? _QrSectionId.profile : null;
+            },
+            child: Screenshot(
+              controller: profileQrShot,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _QrPanel(
+                      data: profileUrl,
+                      theme: theme,
+                      embedImage: user.value?.profilePicture != null
+                          ? CloudImageWidget.provider(
+                              file: user.value!.profilePicture!,
+                              serverUrl: ref.watch(serverUrlProvider),
+                            )
+                          : null,
+                    ),
+                    const Gap(20),
+                    Row(
+                      spacing: 12,
+                      children: [
+                        Expanded(
+                          child: FilledButton.tonalIcon(
+                            onPressed: () => shareQrImage(
+                              profileQrShot,
+                              fileName: 'profile-qr',
+                              fallbackText: profileUrl,
+                            ),
+                            icon: const Icon(Symbols.share),
+                            label: Text('share').tr(),
+                          ),
+                        ),
+                        Expanded(
+                          child: FilledButton.tonalIcon(
+                            onPressed: () => saveQrImage(
+                              profileQrShot,
+                              fileName: 'profile-qr',
+                            ),
+                            icon: const Icon(Symbols.download),
+                            label: Text('save').tr(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Gap(20),
+          _QrModeSection(
+            sectionId: _QrSectionId.transfer,
+            title: activeTransferRequest.value != null
+                ? 'accountQrTransferRequestSectionTitle'.tr()
+                : 'accountQrTransferSectionTitle'.tr(),
+            subtitle: activeTransferRequest.value != null
+                ? 'accountQrTransferRequestHint'.tr()
+                : 'accountQrTransferHint'.tr(),
+            icon: Symbols.swap_horiz,
+            isExpanded: selectedSection.value == _QrSectionId.transfer,
+            onExpansionChanged: (value) {
+              selectedSection.value = value ? _QrSectionId.transfer : null;
+            },
+            child: Screenshot(
+              controller: transferQrShot,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: wallet.when(
+                  data: (currentWallet) {
+                    if (currentWallet == null) {
+                      return _TransferUnavailableCard(
+                        theme: theme,
+                        onOpenWallet: () {
+                          context.router.push(const WalletRoute());
+                        },
+                        messageKey: 'accountQrWalletUnavailable',
+                      );
+                    }
+
+                    if (currentWallet.publicId == null) {
+                      return _TransferUnavailableCard(
+                        theme: theme,
+                        onOpenWallet: () {
+                          context.router.push(const WalletRoute());
+                        },
+                        onEnableWalletId: () =>
+                            enableWalletId(currentWallet.id),
+                        messageKey: 'accountQrTransferUnavailable',
+                      );
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (transferQrData != null)
+                          _QrPanel(
+                            data: transferQrData,
+                            theme: theme,
+                            embedImage: AssetImage("assets/icons/icon.webp"),
+                          ),
+                        const Gap(16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                activeTransferRequest.value != null
+                                    ? 'accountQrTransferRequestLabel'.tr()
+                                    : 'walletPublicId'.tr(),
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const Gap(6),
+                              SelectableText(
+                                activeTransferRequest.value != null
+                                    ? transferShareLink!
+                                    : currentWallet.publicId!,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              if (activeTransferRequest.value != null) ...[
+                                const Gap(10),
+                                Text(
+                                  'accountQrTransferRequestSummary'.tr(
+                                    namedArgs: {
+                                      'amount': activeTransferRequest
+                                          .value!
+                                          .amount
+                                          .toStringAsFixed(2),
+                                      'currency':
+                                          activeTransferRequest.value!.currency,
+                                      'expiry': DateFormat.yMd()
+                                          .add_Hm()
+                                          .format(
+                                            activeTransferRequest
+                                                .value!
+                                                .expiresAt,
+                                          ),
+                                    },
+                                  ),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const Gap(16),
+                        FilledButton.icon(
+                          onPressed: () =>
+                              createTransferRequestFlow(currentWallet),
+                          icon: const Icon(Symbols.request_quote),
+                          label: Text(
+                            activeTransferRequest.value != null
+                                ? 'accountQrRequestRefresh'.tr()
+                                : 'accountQrRequestCreate'.tr(),
+                          ),
+                        ),
+                        if (activeTransferRequest.value != null)
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              activeTransferRequest.value = null;
+                            },
+                            icon: const Icon(Symbols.qr_code_2),
+                            label: Text('accountQrRequestClear').tr(),
+                          ).padding(top: 16),
+                      ],
+                    );
+                  },
+                  loading: () => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator.adaptive()),
                   ),
-                  const Gap(14),
+                  error: (_, _) => _TransferUnavailableCard(
+                    theme: theme,
+                    onOpenWallet: () {
+                      context.router.push(const WalletRoute());
+                    },
+                    messageKey: 'accountQrTransferUnavailable',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QrPanel extends StatelessWidget {
+  final String data;
+  final ImageProvider<Object>? embedImage;
+  final ThemeData theme;
+
+  const _QrPanel({required this.data, required this.theme, this.embedImage});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: QrImageView(
+          data: data,
+          version: QrVersions.auto,
+          size: 240,
+          embeddedImage: embedImage,
+          embeddedImageStyle: QrEmbeddedImageStyle(size: Size(40, 40)),
+          errorCorrectionLevel: QrErrorCorrectLevel.H,
+          eyeStyle: QrEyeStyle(
+            eyeShape: QrEyeShape.circle,
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
+          dataModuleStyle: QrDataModuleStyle(
+            dataModuleShape: QrDataModuleShape.circle,
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
+          backgroundColor: theme.colorScheme.surface,
+        ),
+      ),
+    );
+  }
+}
+
+enum _QrSectionId { profile, transfer }
+
+class _QrModeSection extends StatelessWidget {
+  final _QrSectionId sectionId;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Widget child;
+  final bool isExpanded;
+  final ValueChanged<bool>? onExpansionChanged;
+
+  const _QrModeSection({
+    required this.sectionId,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.child,
+    required this.isExpanded,
+    this.onExpansionChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card.filled(
+      clipBehavior: Clip.antiAlias,
+      color: theme.colorScheme.surfaceContainerLow,
+      child: InkWell(
+        onTap: () => onExpansionChanged?.call(!isExpanded),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AccountName(
-                          account: account,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const Gap(12),
+                            AnimatedRotation(
+                              turns: isExpanded ? 0.5 : 0,
+                              duration: const Duration(milliseconds: 220),
+                              curve: Curves.easeInOut,
+                              child: Icon(
+                                Symbols.keyboard_arrow_down,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
-                        const Gap(2),
+                        const Gap(4),
                         Text(
-                          '@${account.name}',
+                          subtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -105,132 +566,322 @@ class AccountQrScreen extends HookConsumerWidget {
                       ],
                     ),
                   ),
+                  const Gap(14),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ],
               ),
-            ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: isExpanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: child,
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
           ),
-          const Gap(20),
-          Card.filled(
-            clipBehavior: Clip.antiAlias,
-            color: theme.colorScheme.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransferUnavailableCard extends StatelessWidget {
+  final ThemeData theme;
+  final VoidCallback onOpenWallet;
+  final VoidCallback? onEnableWalletId;
+  final String messageKey;
+
+  const _TransferUnavailableCard({
+    required this.theme,
+    required this.onOpenWallet,
+    required this.messageKey,
+    this.onEnableWalletId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'accountQrTransferSectionTitle'.tr(),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const Gap(6),
+        Text(
+          messageKey.tr(),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(20),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            if (onEnableWalletId != null)
+              FilledButton.icon(
+                onPressed: onEnableWalletId,
+                icon: const Icon(Symbols.credit_card_heart),
+                label: Text('accountQrEnableWalletId').tr(),
+              ),
+            FilledButton.tonalIcon(
+              onPressed: onOpenWallet,
+              icon: const Icon(Symbols.account_balance_wallet),
+              label: Text('accountQrOpenWallet').tr(),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TransferRequestDraft {
+  final double amount;
+  final String currency;
+  final String? remark;
+  final int expirationHours;
+  final bool freeze;
+  final bool requireConfirmation;
+
+  const _TransferRequestDraft({
+    required this.amount,
+    required this.currency,
+    required this.expirationHours,
+    required this.freeze,
+    required this.requireConfirmation,
+    this.remark,
+  });
+}
+
+class _TransferRequestSheet extends StatefulWidget {
+  final String walletId;
+  final String walletPublicId;
+
+  const _TransferRequestSheet({
+    required this.walletId,
+    required this.walletPublicId,
+  });
+
+  @override
+  State<_TransferRequestSheet> createState() => _TransferRequestSheetState();
+}
+
+class _TransferRequestSheetState extends State<_TransferRequestSheet> {
+  final amountController = TextEditingController();
+  final remarkController = TextEditingController();
+  String selectedCurrency = 'golds';
+  int expirationHours = 24;
+  bool freeze = false;
+  bool requireConfirmation = false;
+
+  String _formatExpiryLabel(int hours) {
+    return hours == 1 ? '1 hour' : '$hours hours';
+  }
+
+  @override
+  void dispose() {
+    amountController.dispose();
+    remarkController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dropdownDecoration = InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    );
+    final dropdownButtonStyle = const FormFieldButtonStyleData(height: 24);
+    final dropdownMenuStyle = MenuItemStyleData(
+      // padding: EdgeInsets.zero,
+      overlayColor: WidgetStatePropertyAll(
+        theme.colorScheme.primary.withOpacity(0.08),
+      ),
+    );
+    final dropdownPopupStyle = DropdownStyleData(
+      maxHeight: 240,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+
+    return SheetScaffold(
+      titleText: 'accountQrRequestCreate'.tr(),
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    child: QrImageView(
-                      data: profileUrl,
-                      version: QrVersions.auto,
-                      size: 240,
-                      eyeStyle: QrEyeStyle(
-                        eyeShape: QrEyeShape.square,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      dataModuleStyle: QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape.square,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      backgroundColor: theme.colorScheme.surface,
-                    ),
-                  ),
-                  const Gap(20),
                   Text(
-                    'accountQrCodeHint'.tr(),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  const Gap(8),
-                  SelectableText(
-                    profileUrl,
-                    textAlign: TextAlign.center,
+                    'accountQrRequestSheetHint'.tr(),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const Gap(20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: copyProfileUrl,
-                          icon: const Icon(Symbols.content_copy),
-                          label: Text('copyLink').tr(),
-                        ),
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            context.router.push(
-                              AccountProfileRoute(name: account.name),
-                            );
-                          },
-                          icon: const Icon(Symbols.person),
-                          label: Text('accountQrOpenProfile').tr(),
-                        ),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
                       ),
                     ],
+                    decoration: InputDecoration(
+                      labelText: 'transferAmount'.tr(),
+                      hintText: '0.00',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  DropdownButtonFormField2<String>(
+                    isExpanded: true,
+                    valueListenable: ValueNotifier(selectedCurrency),
+                    decoration: dropdownDecoration.copyWith(
+                      labelText: 'currency'.tr(),
+                    ),
+                    items: kCurrencyIconData.keys.map((currency) {
+                      return DropdownItem(
+                        value: currency,
+                        child: Text(
+                          'walletCurrency${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}'
+                              .tr(),
+                        ).padding(right: 8),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => selectedCurrency = value);
+                      }
+                    },
+                    buttonStyleData: dropdownButtonStyle,
+                    menuItemStyleData: dropdownMenuStyle,
+                    dropdownStyleData: dropdownPopupStyle,
+                  ),
+                  TextField(
+                    controller: remarkController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: 'transferRemark'.tr(),
+                      hintText: 'addRemarkForTransfer'.tr(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  DropdownButtonFormField2<int>(
+                    isExpanded: true,
+                    valueListenable: ValueNotifier(expirationHours),
+                    decoration: dropdownDecoration.copyWith(
+                      labelText: 'accountQrRequestExpiry'.tr(),
+                    ),
+                    items: const [1, 6, 24, 72, 168].map((hours) {
+                      return DropdownItem(
+                        value: hours,
+                        child: Text(
+                          _formatExpiryLabel(hours),
+                        ).padding(right: 8),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => expirationHours = value);
+                      }
+                    },
+                    buttonStyleData: dropdownButtonStyle,
+                    menuItemStyleData: dropdownMenuStyle,
+                    dropdownStyleData: dropdownPopupStyle,
+                  ),
+                  SwitchListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    title: Text('freezeTransfer'.tr()),
+                    subtitle: Text('freezeTransferHint'.tr()),
+                    value: freeze,
+                    onChanged: (value) {
+                      setState(() => freeze = value);
+                    },
+                  ),
+                  SwitchListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    title: Text('requireConfirmation'.tr()),
+                    subtitle: Text('requireConfirmationHint'.tr()),
+                    value: requireConfirmation,
+                    onChanged: (value) {
+                      setState(() => requireConfirmation = value);
+                    },
                   ),
                 ],
               ),
             ),
           ),
-          const Gap(20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Symbols.qr_code_scanner,
-                          color: theme.colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                      const Gap(14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'accountQrScannerTitle'.tr(),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const Gap(4),
-                            Text(
-                              'accountQrScannerHint'.tr(),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('cancel'.tr()),
                   ),
-                  const Gap(20),
-                  FilledButton.tonalIcon(
-                    onPressed: openScanner,
-                    icon: const Icon(Symbols.center_focus_strong),
-                    label: Text('accountQrStartScanning').tr(),
+                ),
+                const Gap(12),
+                Expanded(
+                  flex: 2,
+                  child: FilledButton(
+                    onPressed: () {
+                      final amount = double.tryParse(amountController.text);
+                      if (amount == null || amount <= 0) {
+                        showErrorAlert('invalidAmount'.tr());
+                        return;
+                      }
+
+                      Navigator.of(context).pop(
+                        _TransferRequestDraft(
+                          amount: amount,
+                          currency: selectedCurrency,
+                          remark: remarkController.text.trim().isEmpty
+                              ? null
+                              : remarkController.text.trim(),
+                          expirationHours: expirationHours,
+                          freeze: freeze,
+                          requireConfirmation: requireConfirmation,
+                        ),
+                      );
+                    },
+                    child: Text('accountQrRequestCreate').tr(),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -285,14 +936,6 @@ class _AccountQrScannerSheetState extends State<_AccountQrScannerSheet> {
       heightFactor: 0.88,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
-            child: Text(
-              'accountQrScannerSheetHint'.tr(),
-              style: TextStyle(color: theme.colorScheme.secondary),
-              textAlign: TextAlign.center,
-            ),
-          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -370,4 +1013,61 @@ String? _resolveScannedAccountName(String rawValue) {
   }
 
   return null;
+}
+
+Future<void> handleWalletTransferRequestDeepLink({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String requestId,
+}) async {
+  final request = await getWalletTransferRequest(ref, requestId);
+  if (!context.mounted) return;
+
+  final result = await showModalBottomSheet<Map<String, dynamic>>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) => CreateTransferSheet(
+      initialTransferRequestId: request.id,
+      initialPayeePublicId: request.payeePublicId,
+      initialCurrency: request.currency,
+      initialAmount: request.amount,
+      initialRemark: request.remark,
+      initialFreezeTransfer: request.freeze,
+      initialRequireConfirmation: request.requireConfirmation,
+      lockPayee: true,
+      lockAmount: true,
+      lockCurrency: true,
+      lockRemark: request.remark != null,
+      hideTransferOptions: true,
+    ),
+  );
+
+  if (result != null && context.mounted) {
+    await submitWalletTransfer(context, ref, result);
+  }
+}
+
+Future<void> handleWalletTransferPayloadDeepLink({
+  required BuildContext context,
+  required WidgetRef ref,
+  required WalletTransferQrPayload payload,
+}) async {
+  final result = await showModalBottomSheet<Map<String, dynamic>>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) => CreateTransferSheet(
+      initialPayeePublicId: payload.publicId,
+      initialPayeeName: payload.displayName,
+      initialCurrency: payload.currency,
+      initialAmount: payload.amount,
+      initialRemark: payload.remark,
+      lockPayee: true,
+    ),
+  );
+
+  if (result != null && context.mounted) {
+    await submitWalletTransfer(context, ref, result);
+  }
 }
