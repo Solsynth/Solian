@@ -9,65 +9,9 @@ import 'package:island/chat/widgets/online_avatar_badge.dart';
 import 'package:island/core/config.dart';
 import 'package:island/data/message.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-bool _isBotMessage(LocalChatMessage message) {
-  return message.sender?.account.automatedId != null;
-}
-
-class BotGroupInfo {
-  final String groupId;
-  final int startIndex;
-  final int endIndex;
-  final int messageCount;
-
-  BotGroupInfo({
-    required this.groupId,
-    required this.startIndex,
-    required this.endIndex,
-    required this.messageCount,
-  });
-}
-
-List<BotGroupInfo> _computeBotGroups(List<LocalChatMessage> messages) {
-  final groups = <BotGroupInfo>[];
-  final n = messages.length;
-
-  int i = 0;
-  while (i < n) {
-    final msg = messages[i];
-    if (!_isBotMessage(msg)) {
-      i++;
-      continue;
-    }
-
-    final senderId = msg.senderId;
-    int j = i + 1;
-    while (j < n) {
-      final next = messages[j];
-      if (!_isBotMessage(next) || next.senderId != senderId) break;
-      j++;
-    }
-
-    final count = j - i;
-    if (count > 1) {
-      groups.add(
-        BotGroupInfo(
-          groupId: msg.id,
-          startIndex: i,
-          endIndex: j - 1,
-          messageCount: count,
-        ),
-      );
-    }
-
-    i = j;
-  }
-
-  return groups;
-}
 
 /// Simplified RoomMessageList that uses universal chat room state.
 /// All state is managed by [ChatRoomStateNotifier] via [chatRoomStateProvider].
@@ -126,26 +70,6 @@ class RoomMessageList extends HookConsumerWidget {
       chatStateNotifier.dismissLastReadMarker();
     }, [chatStateNotifier]);
 
-    final botGroups = useMemoized(() => _computeBotGroups(messages), [
-      messages,
-    ]);
-    final botGroupMap = useMemoized(() {
-      final map = <int, BotGroupInfo>{};
-      for (final g in botGroups) {
-        for (int i = g.startIndex; i <= g.endIndex; i++) {
-          map[i] = g;
-        }
-      }
-      return map;
-    }, [botGroups]);
-    final allGroupIds = useMemoized(
-      () => botGroups.map((g) => g.groupId).toSet(),
-      [botGroups],
-    );
-    final effectiveCollapsed = useMemoized(
-      () => {...allGroupIds}..removeAll(chatState.collapsedBotGroupIds),
-      [allGroupIds, chatState.collapsedBotGroupIds],
-    );
     final useColumnDisplay = settings.messageDisplayStyle == 'column';
     final useBubbleDisplay =
         settings.messageDisplayStyle != 'compact' && !useColumnDisplay;
@@ -183,13 +107,6 @@ class RoomMessageList extends HookConsumerWidget {
       extentEstimation: (_, _) => 40,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final botGroup = botGroupMap[index];
-        final isCollapsed =
-            botGroup != null && effectiveCollapsed.contains(botGroup.groupId);
-
-        if (isCollapsed && index != botGroup.startIndex) {
-          return const SizedBox.shrink();
-        }
 
         final nextMessage = index < messages.length - 1
             ? messages[index + 1]
@@ -202,9 +119,7 @@ class RoomMessageList extends HookConsumerWidget {
                   3;
         }
 
-        final isLastInGroup =
-            !isSameSenderGroup(nextMessage) ||
-            (botGroup != null && isCollapsed && index == botGroup.endIndex);
+        final isLastInGroup = !isSameSenderGroup(nextMessage);
         final isFirstInGroup = !isSameSenderGroup(previousMessage);
         if (useStickyGroupedDisplay && !isFirstInGroup) {
           return const SizedBox.shrink();
@@ -342,20 +257,6 @@ class RoomMessageList extends HookConsumerWidget {
                 ),
               ),
             messageContent,
-            if (botGroup != null && isCollapsed && index == botGroup.startIndex)
-              _BotGroupExpandBar(
-                hiddenCount: botGroup.messageCount - 1,
-                onToggle: () =>
-                    chatStateNotifier.toggleBotGroup(botGroup.groupId),
-                isExpanded: false,
-              ),
-            if (botGroup != null && !isCollapsed && index == botGroup.endIndex)
-              _BotGroupExpandBar(
-                hiddenCount: 0,
-                onToggle: () =>
-                    chatStateNotifier.toggleBotGroup(botGroup.groupId),
-                isExpanded: true,
-              ),
           ],
         );
       },
@@ -501,105 +402,4 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
   }
 }
 
-class _BotGroupExpandBar extends StatelessWidget {
-  static const double _bubbleContentOffset = 56;
 
-  final int hiddenCount;
-  final VoidCallback onToggle;
-  final bool isExpanded;
-
-  const _BotGroupExpandBar({
-    required this.hiddenCount,
-    required this.onToggle,
-    required this.isExpanded,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (isExpanded) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(_bubbleContentOffset, 4, 12, 4),
-        child: InkWell(
-          onTap: onToggle,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.outlineVariant.withOpacity(0.3),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.unfold_less,
-                  size: 14,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Collapse',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ).alignment(Alignment.centerLeft),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(_bubbleContentOffset, 4, 12, 4),
-      child: InkWell(
-        onTap: onToggle,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.smart_toy,
-                size: 14,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                hiddenCount == 1
-                    ? 'Show 1 more message'
-                    : 'Show $hiddenCount more messages',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.expand_more,
-                size: 14,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ],
-          ),
-        ),
-      ).alignment(Alignment.centerLeft),
-    );
-  }
-}
