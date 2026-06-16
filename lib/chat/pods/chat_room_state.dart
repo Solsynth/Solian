@@ -22,9 +22,6 @@ class ChatRoomState {
   final bool isSelectionMode;
   final Set<String> selectedMessageIds;
 
-  // Bot group collapse state
-  final Set<String> collapsedBotGroupIds;
-
   // Input state
   final List<UniversalFile> attachments;
   final Map<String, Map<int, double?>> attachmentProgress;
@@ -50,7 +47,6 @@ class ChatRoomState {
   const ChatRoomState({
     this.isSelectionMode = false,
     this.selectedMessageIds = const {},
-    this.collapsedBotGroupIds = const {},
     this.attachments = const [],
     this.attachmentProgress = const {},
     this.messageEditingTo,
@@ -72,7 +68,6 @@ class ChatRoomState {
   ChatRoomState copyWith({
     bool? isSelectionMode,
     Set<String>? selectedMessageIds,
-    Set<String>? collapsedBotGroupIds,
     List<UniversalFile>? attachments,
     Map<String, Map<int, double?>>? attachmentProgress,
     SnChatMessage? messageEditingTo,
@@ -103,7 +98,6 @@ class ChatRoomState {
     return ChatRoomState(
       isSelectionMode: isSelectionMode ?? this.isSelectionMode,
       selectedMessageIds: selectedMessageIds ?? this.selectedMessageIds,
-      collapsedBotGroupIds: collapsedBotGroupIds ?? this.collapsedBotGroupIds,
       attachments: attachments ?? this.attachments,
       attachmentProgress: attachmentProgress ?? this.attachmentProgress,
       messageEditingTo: clearEditingTo
@@ -288,18 +282,6 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
 
   void selectAllMessages(List<String> messageIds) {
     state = state.copyWith(selectedMessageIds: Set<String>.from(messageIds));
-  }
-
-  // ==================== Bot Group Collapse ====================
-
-  void toggleBotGroup(String groupId) {
-    final current = Set<String>.from(state.collapsedBotGroupIds);
-    if (current.contains(groupId)) {
-      current.remove(groupId);
-    } else {
-      current.add(groupId);
-    }
-    state = state.copyWith(collapsedBotGroupIds: current);
   }
 
   // ==================== Input Management ====================
