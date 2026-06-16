@@ -15,13 +15,13 @@ final authorizedAppsProvider = AuthorizedAppsProvider._();
 final class AuthorizedAppsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<Map<String, dynamic>>>,
-          List<Map<String, dynamic>>,
-          FutureOr<List<Map<String, dynamic>>>
+          AsyncValue<List<AuthorizedApp>>,
+          List<AuthorizedApp>,
+          FutureOr<List<AuthorizedApp>>
         >
     with
-        $FutureModifier<List<Map<String, dynamic>>>,
-        $FutureProvider<List<Map<String, dynamic>>> {
+        $FutureModifier<List<AuthorizedApp>>,
+        $FutureProvider<List<AuthorizedApp>> {
   AuthorizedAppsProvider._()
     : super(
         from: null,
@@ -38,14 +38,14 @@ final class AuthorizedAppsProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<Map<String, dynamic>>> $createElement(
+  $FutureProviderElement<List<AuthorizedApp>> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<List<Map<String, dynamic>>> create(Ref ref) {
+  FutureOr<List<AuthorizedApp>> create(Ref ref) {
     return authorizedApps(ref);
   }
 }
 
-String _$authorizedAppsHash() => r'a5a89dcaf1c0df95e29b92c20088d3d0f75e9f08';
+String _$authorizedAppsHash() => r'1178875817ef5aa7bf24d7286a557b7546662881';

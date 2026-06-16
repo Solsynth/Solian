@@ -250,7 +250,7 @@ class _PostListQuery implements PostListQuery {
 
 @override final  bool? pinned;
 @override@JsonKey() final  bool shuffle;
-@override final  bool? includeReplies;
+@override@JsonKey() final  bool? includeReplies;
 @override final  bool? mediaOnly;
 @override final  String? queryTerm;
 @override final  String? searchEngine;
