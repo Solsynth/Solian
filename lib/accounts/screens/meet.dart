@@ -811,7 +811,12 @@ class MeetDetailScreen extends HookConsumerWidget {
       final pin = myPin.value;
       if (pin != null) {
         try {
-          await pinService.disconnectPin(pin.id);
+          final meetId = pin.meetId ?? meet.value?.id;
+          if (meetId != null && meetId.isNotEmpty) {
+            await pinService.removeMeetPin(meetId);
+          } else {
+            await pinService.disconnectPin(pin.id);
+          }
         } catch (_) {}
       }
       myPin.value = null;
@@ -825,7 +830,7 @@ class MeetDetailScreen extends HookConsumerWidget {
           'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
 
       try {
-        final pin = await pinService.createPin(
+        final pin = await pinService.createMeetPin(
           meetId: meetId,
           visibility: LocationPinVisibility.public,
           locationWkt: locationWkt,
@@ -855,8 +860,9 @@ class MeetDetailScreen extends HookConsumerWidget {
           try {
             final wkt =
                 'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
-            await pinService.updatePinLocation(
-              pinId: myPin.value!.id,
+            myPin.value = await pinService.createMeetPin(
+              meetId: meetId,
+              visibility: LocationPinVisibility.public,
               locationWkt: wkt,
             );
             _meetLogger.info('Pin location updated: $wkt');
@@ -1485,6 +1491,7 @@ class _MeetDetailInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final participantCount = participants.length;
     final hasPins = meet.pins != null && meet.pins!.isNotEmpty;
+    final meetPoint = _parseMeetPoint(meet.locationWkt);
 
     return Card(
       child: Padding(
@@ -1492,16 +1499,15 @@ class _MeetDetailInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_parseMeetPoint(meet.locationWkt) case final point?) ...[
-              if (hasPins) ...[
-                _MeetPinsMapCard(pins: meet.pins!, participants: participants),
-              ] else ...[
-                _MeetLocationMapCard(
-                  point: point,
-                  locationName: meet.locationName,
-                  locationAddress: meet.locationAddress,
-                ),
-              ],
+            if (hasPins) ...[
+              _MeetPinsMapCard(pins: meet.pins!, participants: participants),
+              const Gap(16),
+            ] else if (meetPoint != null) ...[
+              _MeetLocationMapCard(
+                point: meetPoint,
+                locationName: meet.locationName,
+                locationAddress: meet.locationAddress,
+              ),
               const Gap(16),
             ],
             if (meet.notes?.isNotEmpty ?? false) ...[

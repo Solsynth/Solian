@@ -140,6 +140,38 @@ class PinService {
     );
   }
 
+  Future<SnLocationPin> createMeetPin({
+    required String meetId,
+    LocationPinVisibility visibility = LocationPinVisibility.public,
+    String? locationName,
+    String? locationAddress,
+    String? locationWkt,
+    Map<String, dynamic>? metadata,
+    bool keepOnDisconnect = false,
+  }) async {
+    final response = await _client.post(
+      '/passport/meets/$meetId/pin',
+      data: {
+        'visibility': switch (visibility) {
+          LocationPinVisibility.public => 0,
+          LocationPinVisibility.private => 1,
+          LocationPinVisibility.unlisted => 2,
+        },
+        if (locationName?.trim().isNotEmpty ?? false)
+          'location_name': locationName!.trim(),
+        if (locationAddress?.trim().isNotEmpty ?? false)
+          'location_address': locationAddress!.trim(),
+        if (locationWkt?.trim().isNotEmpty ?? false)
+          'location_wkt': locationWkt!.trim(),
+        if (metadata != null && metadata.isNotEmpty) 'metadata': metadata,
+        'keep_on_disconnect': keepOnDisconnect,
+      },
+    );
+    return SnLocationPin.fromJson(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
   Future<SnLocationPin> updatePinLocation({
     required String pinId,
     String? locationName,
@@ -215,6 +247,10 @@ class PinService {
       '/passport/pins/$pinId/disconnect',
       data: {'keep_on_disconnect': keepOnDisconnect},
     );
+  }
+
+  Future<void> removeMeetPin(String meetId) async {
+    await _client.delete('/passport/meets/$meetId/pin');
   }
 
   Future<List<SnLocationPin>> getMyPins() async {
