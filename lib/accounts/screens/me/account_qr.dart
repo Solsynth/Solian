@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_saver/file_saver.dart';
@@ -24,6 +26,7 @@ import 'package:island/wallets/wallet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:relative_time/relative_time.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -198,6 +201,16 @@ class AccountQrScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder: (context) => _AccountQrScannerSheet(
           onScanned: (value) async {
+            final qrChallengeId = parseAuthQrChallengeId(value);
+            if (qrChallengeId != null && context.mounted) {
+              await handleQrLoginChallengeScan(
+                context: context,
+                ref: ref,
+                qrChallengeId: qrChallengeId,
+              );
+              return;
+            }
+
             final requestId = parseWalletTransferRequestId(value);
             if (requestId != null && context.mounted) {
               await startTransferFromRequest(requestId);
@@ -1013,6 +1026,387 @@ String? _resolveScannedAccountName(String rawValue) {
   }
 
   return null;
+}
+
+IconData _qrLoginPlatformIcon(int? platform) {
+  return switch (platform) {
+    2 => Symbols.phone_iphone,
+    3 => Symbols.phone_android,
+    4 || 5 || 6 => Symbols.computer,
+    1 => Symbols.language,
+    _ => Symbols.devices,
+  };
+}
+
+String _qrLoginPlatformName(int? platform) {
+  return switch (platform) {
+    2 => 'platformIos'.tr(),
+    3 => 'platformAndroid'.tr(),
+    4 => 'platformMacos'.tr(),
+    5 => 'platformWindows'.tr(),
+    6 => 'platformLinux'.tr(),
+    1 => 'platformWeb'.tr(),
+    _ => 'platformUnknown'.tr(),
+  };
+}
+
+class _QrLoginChallengeSnapshot {
+  final String qrChallengeId;
+  final String authChallengeId;
+  final String status;
+  final DateTime expiresAt;
+
+  const _QrLoginChallengeSnapshot({
+    required this.qrChallengeId,
+    required this.authChallengeId,
+    required this.status,
+    required this.expiresAt,
+  });
+
+  factory _QrLoginChallengeSnapshot.fromJson(Map<String, dynamic> json) {
+    return _QrLoginChallengeSnapshot(
+      qrChallengeId: json['qr_challenge_id'] as String,
+      authChallengeId: json['auth_challenge_id'] as String,
+      status: json['status'] as String? ?? 'Pending',
+      expiresAt: DateTime.parse(json['expires_at'] as String),
+    );
+  }
+}
+
+Future<void> handleQrLoginChallengeScan({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String qrChallengeId,
+}) async {
+  try {
+    showLoadingModal(context);
+    final client = ref.read(solarNetworkClientProvider);
+
+    try {
+      await client.dio.post('/padlock/auth/qr/$qrChallengeId/scan');
+    } on DioException catch (err) {
+      if (!{400, 409}.contains(err.response?.statusCode)) rethrow;
+    }
+
+    final snapshotResp = await client.dio.get(
+      '/padlock/auth/qr/$qrChallengeId',
+    );
+    final snapshot = _QrLoginChallengeSnapshot.fromJson(
+      Map<String, dynamic>.from(snapshotResp.data as Map),
+    );
+
+    SnAuthChallenge? challenge;
+    try {
+      final challengeResp = await client.dio.get(
+        '/padlock/auth/challenge/${snapshot.authChallengeId}',
+      );
+      challenge = SnAuthChallenge.fromJson(
+        Map<String, dynamic>.from(challengeResp.data as Map),
+      );
+    } on DioException {
+      challenge = null;
+    }
+
+    if (!context.mounted) return;
+    hideLoadingModal(context);
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => _QrLoginApprovalSheet(
+        qrChallengeId: qrChallengeId,
+        snapshot: snapshot,
+        challenge: challenge,
+      ),
+    );
+  } catch (err) {
+    if (context.mounted) hideLoadingModal(context);
+    showErrorAlert(err);
+  }
+}
+
+class _QrLoginApprovalSheet extends HookConsumerWidget {
+  final String qrChallengeId;
+  final _QrLoginChallengeSnapshot snapshot;
+  final SnAuthChallenge? challenge;
+
+  const _QrLoginApprovalSheet({
+    required this.qrChallengeId,
+    required this.snapshot,
+    required this.challenge,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+    final remaining = useState<int?>(null);
+
+    useEffect(() {
+      void syncRemaining() {
+        final diff = snapshot.expiresAt.difference(DateTime.now()).inSeconds;
+        remaining.value = diff > 0 ? diff : 0;
+      }
+
+      syncRemaining();
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        syncRemaining();
+      });
+      return timer.cancel;
+    }, [snapshot.qrChallengeId]);
+
+    final expired = remaining.value != null && remaining.value! <= 0;
+    final currentChallenge = challenge;
+    final deviceName = currentChallenge?.deviceName ?? 'unknownDevice'.tr();
+    final platform = _qrLoginPlatformName(currentChallenge?.platform);
+
+    Future<void> resolveQrLogin(bool approve) async {
+      isBusy.value = true;
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        await client.dio.post(
+          '/padlock/auth/qr/$qrChallengeId/${approve ? 'approve' : 'decline'}',
+        );
+        if (!context.mounted) return;
+        showSnackBar(
+          approve
+              ? 'qrLoginApprovedByYou'.tr(args: [deviceName])
+              : 'qrLoginDeclinedByYou'.tr(args: [deviceName]),
+        );
+        Navigator.of(context).pop();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'qrLoginApprovalTitle'.tr(),
+      heightFactor: 0.82,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                _qrLoginPlatformIcon(
+                                  currentChallenge?.platform,
+                                ),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    deviceName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                  const Gap(2),
+                                  Text(
+                                    platform,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _DetailRow(
+                        icon: Symbols.info,
+                        label: 'loginQrCodeStatusLabel'.tr(),
+                        value: snapshot.status,
+                      ),
+                      _DetailRow(
+                        icon: Symbols.language,
+                        label: 'challengeIpAddress'.tr(),
+                        value: currentChallenge?.ipAddress,
+                      ),
+                      if (currentChallenge != null)
+                        _DetailRow(
+                          icon: Symbols.schedule,
+                          label: 'challengeRequested'.tr(),
+                          value: RelativeTime(
+                            context,
+                          ).format(currentChallenge.createdAt),
+                        ),
+                      if (remaining.value != null)
+                        _DetailRow(
+                          icon: Symbols.timer,
+                          label: 'challengeExpiresIn'.tr(),
+                          value: expired
+                              ? 'expired'.tr()
+                              : 'challengeSeconds'.tr(
+                                  args: ['${remaining.value}'],
+                                ),
+                          valueColor: expired
+                              ? Theme.of(context).colorScheme.error
+                              : null,
+                        ),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer
+                              .withAlpha((255 * 0.3).round()),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary
+                                .withAlpha((255 * 0.3).round()),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Symbols.info,
+                              size: 20,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'qrLoginApprovalDescription'.tr(),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Gap(16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isBusy.value || expired
+                          ? null
+                          : () => resolveQrLogin(false),
+                      icon: const Icon(Symbols.close),
+                      label: Text('decline').tr(),
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: isBusy.value || expired
+                          ? null
+                          : () => resolveQrLogin(true),
+                      icon: isBusy.value
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Symbols.check),
+                      label: Text('approve').tr(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? value;
+  final Color? valueColor;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (value == null || value!.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value!,
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: valueColor ?? theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 Future<void> handleWalletTransferRequestDeepLink({

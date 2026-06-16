@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -22,6 +24,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:pinput/pinput.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -42,6 +45,105 @@ Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
   if (context.mounted && Navigator.canPop(context)) {
     Navigator.pop(context, true);
   }
+}
+
+int _currentPlatformCode() {
+  if (kIsWeb) return 1;
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.iOS => 2,
+    TargetPlatform.android => 3,
+    TargetPlatform.macOS => 4,
+    TargetPlatform.windows => 5,
+    TargetPlatform.linux => 6,
+    _ => 0,
+  };
+}
+
+bool get _supportsQrLoginOnCurrentPlatform {
+  if (kIsWeb) return true;
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.macOS ||
+    TargetPlatform.windows ||
+    TargetPlatform.linux => true,
+    _ => false,
+  };
+}
+
+Map<String, dynamic> _webSocketPayload(WebSocketPacket packet) {
+  final data = packet.data ?? const <String, dynamic>{};
+  final payload = data['payload'];
+  if (payload is Map<String, dynamic>) return payload;
+  if (payload is Map) return Map<String, dynamic>.from(payload);
+  return data;
+}
+
+class _QrLoginChallenge {
+  final String qrChallengeId;
+  final String authChallengeId;
+  final String qrData;
+  final DateTime expiresAt;
+
+  const _QrLoginChallenge({
+    required this.qrChallengeId,
+    required this.authChallengeId,
+    required this.qrData,
+    required this.expiresAt,
+  });
+
+  factory _QrLoginChallenge.fromJson(Map<String, dynamic> json) {
+    return _QrLoginChallenge(
+      qrChallengeId: json['qr_challenge_id'] as String,
+      authChallengeId: json['auth_challenge_id'] as String,
+      qrData: json['qr_data'] as String,
+      expiresAt: DateTime.parse(json['expires_at'] as String),
+    );
+  }
+}
+
+class _QrLoginStatusSnapshot {
+  final String qrChallengeId;
+  final String authChallengeId;
+  final String status;
+  final DateTime expiresAt;
+
+  const _QrLoginStatusSnapshot({
+    required this.qrChallengeId,
+    required this.authChallengeId,
+    required this.status,
+    required this.expiresAt,
+  });
+
+  factory _QrLoginStatusSnapshot.fromJson(Map<String, dynamic> json) {
+    return _QrLoginStatusSnapshot(
+      qrChallengeId: json['qr_challenge_id'] as String,
+      authChallengeId: json['auth_challenge_id'] as String,
+      status: json['status'] as String? ?? 'Pending',
+      expiresAt: DateTime.parse(json['expires_at'] as String),
+    );
+  }
+}
+
+Future<void> exchangeAuthCodeForToken(
+  BuildContext context,
+  WidgetRef ref, {
+  required String code,
+}) async {
+  final client = ref.watch(apiClientProvider);
+  final tokenResp = await client.post(
+    '/padlock/auth/token',
+    data: {'grant_type': 'authorization_code', 'code': code},
+  );
+  final token = tokenResp.data['token'];
+  setToken(
+    ref.watch(sharedPreferencesProvider),
+    token,
+    refreshToken: tokenResp.data['refresh_token'] as String?,
+    expiresIn: (tokenResp.data['expires_in'] as num?)?.toInt(),
+    refreshExpiresIn: (tokenResp.data['refresh_expires_in'] as num?)?.toInt(),
+  );
+  ref.invalidate(tokenProvider);
+  if (!context.mounted) return;
+  await performPostLogin(context, ref);
 }
 
 Future<void> handleLockedError(
@@ -102,22 +204,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
     }, [isBusy]);
 
     Future<void> getToken({String? code}) async {
-      // Get token if challenge is completed
-      final client = ref.watch(apiClientProvider);
-      final tokenResp = await client.post(
-        '/padlock/auth/token',
-        data: {
-          'grant_type': 'authorization_code',
-          'code': code ?? challenge!.id,
-        },
-      );
-      final token = tokenResp.data['token'];
-      setToken(ref.watch(sharedPreferencesProvider), token);
-      ref.invalidate(tokenProvider);
-      if (!context.mounted) return;
-
-      // Do post login tasks
-      await performPostLogin(context, ref);
+      await exchangeAuthCodeForToken(context, ref, code: code ?? challenge!.id);
     }
 
     useEffect(() {
@@ -1032,6 +1119,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ).padding(horizontal: 7),
+        if (_supportsQrLoginOnCurrentPlatform)
+          const _QrLoginCard().padding(horizontal: 7, vertical: 12),
         if (!kIsWeb)
           Row(
             spacing: 6,
@@ -1153,6 +1242,308 @@ class _LoginLookupScreen extends HookConsumerWidget {
           ).padding(horizontal: 16),
         ),
       ],
+    );
+  }
+}
+
+class _QrLoginCard extends HookConsumerWidget {
+  const _QrLoginCard();
+
+  Color _statusBackground(BuildContext context, String status) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch (status) {
+      'Scanned' => scheme.tertiaryContainer,
+      'Approved' => scheme.primaryContainer,
+      'Declined' => scheme.errorContainer,
+      _ => scheme.surfaceContainerHighest,
+    };
+  }
+
+  Color _statusForeground(BuildContext context, String status) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch (status) {
+      'Scanned' => scheme.onTertiaryContainer,
+      'Approved' => scheme.onPrimaryContainer,
+      'Declined' => scheme.onErrorContainer,
+      _ => scheme.onSurfaceVariant,
+    };
+  }
+
+  String _statusLabel(String status) {
+    return switch (status) {
+      'Scanned' => 'loginQrCodeStatusScanned'.tr(),
+      'Approved' => 'loginQrCodeStatusApproved'.tr(),
+      'Declined' => 'loginQrCodeStatusDeclined'.tr(),
+      _ => 'loginQrCodeStatusPending'.tr(),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final challenge = useState<_QrLoginChallenge?>(null);
+    final status = useState('Pending');
+    final remainingSeconds = useState<int?>(null);
+    final isLoading = useState(false);
+    final isExchanging = useState(false);
+
+    Future<void> exchangeApprovedCode(String code) async {
+      if (isExchanging.value) return;
+      isExchanging.value = true;
+      try {
+        await exchangeAuthCodeForToken(context, ref, code: code);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isExchanging.value = false;
+      }
+    }
+
+    Future<void> refreshQrStatus() async {
+      final current = challenge.value;
+      if (current == null) return;
+
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        final resp = await client.dio.get(
+          '/padlock/auth/qr/${current.qrChallengeId}',
+        );
+        final snapshot = _QrLoginStatusSnapshot.fromJson(
+          Map<String, dynamic>.from(resp.data as Map),
+        );
+        status.value = snapshot.status;
+        if (snapshot.status == 'Approved') {
+          await exchangeApprovedCode(snapshot.authChallengeId);
+        }
+      } catch (_) {
+        // Best-effort polling. WebSocket remains the primary update path.
+      }
+    }
+
+    Future<void> generateQrChallenge() async {
+      isLoading.value = true;
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        final resp = await client.dio.post(
+          '/padlock/auth/qr/generate',
+          data: {
+            'device_id': await getUdid(),
+            'device_name': await getDeviceName(),
+            'platform': _currentPlatformCode(),
+            'audiences': const <String>[],
+            'scopes': const <String>[],
+          },
+        );
+        challenge.value = _QrLoginChallenge.fromJson(
+          Map<String, dynamic>.from(resp.data as Map),
+        );
+        status.value = 'Pending';
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    useEffect(() {
+      Future.microtask(generateQrChallenge);
+      return null;
+    }, const []);
+
+    useEffect(() {
+      final current = challenge.value;
+      if (current == null) {
+        remainingSeconds.value = null;
+        return null;
+      }
+
+      void syncRemaining() {
+        final diff = current.expiresAt.difference(DateTime.now()).inSeconds;
+        remainingSeconds.value = diff > 0 ? diff : 0;
+      }
+
+      syncRemaining();
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        syncRemaining();
+      });
+      return timer.cancel;
+    }, [challenge.value?.qrChallengeId]);
+
+    final isExpired =
+        remainingSeconds.value != null && remainingSeconds.value! <= 0;
+
+    useEffect(() {
+      final current = challenge.value;
+      if (current == null || isExpired || status.value == 'Approved') {
+        return null;
+      }
+
+      final timer = Timer.periodic(const Duration(seconds: 3), (_) {
+        refreshQrStatus();
+      });
+      return timer.cancel;
+    }, [challenge.value?.qrChallengeId, status.value, isExpired]);
+
+    useEffect(() {
+      final current = challenge.value;
+      if (current == null) return null;
+
+      final ws = ref.read(websocketProvider);
+      final sub = ws.dataStream.listen((packet) {
+        final payload = _webSocketPayload(packet);
+        final packetChallengeId = payload['qr_challenge_id'] as String?;
+        if (packetChallengeId != current.qrChallengeId) return;
+
+        if (packet.type == 'auth.qr.scanned') {
+          status.value = 'Scanned';
+        } else if (packet.type == 'auth.qr.approved') {
+          status.value = 'Approved';
+          final authChallengeId =
+              payload['auth_challenge_id'] as String? ??
+              current.authChallengeId;
+          exchangeApprovedCode(authChallengeId);
+        } else if (packet.type == 'auth.qr.declined') {
+          status.value = 'Declined';
+        }
+      });
+      return sub.cancel;
+    }, [challenge.value?.qrChallengeId]);
+
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    Symbols.qr_code_2,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'loginWithQrCodeTitle'.tr(),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        'loginWithQrCodeDescription'.tr(),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Gap(16),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: SizedBox(
+                  width: 220,
+                  height: 220,
+                  child: switch ((challenge.value, isLoading.value)) {
+                    (null, true) => const Center(
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                    (final current?, _) => QrImageView(
+                      data: current.qrData,
+                      version: QrVersions.auto,
+                      size: 220,
+                      errorCorrectionLevel: QrErrorCorrectLevel.H,
+                      eyeStyle: QrEyeStyle(
+                        eyeShape: QrEyeShape.circle,
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                      dataModuleStyle: QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.circle,
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                      backgroundColor: theme.colorScheme.surface,
+                    ),
+                    _ => Icon(
+                      Symbols.qr_code_2,
+                      size: 48,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  },
+                ),
+              ),
+            ),
+            const Gap(16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _statusBackground(context, status.value),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    _statusLabel(status.value),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: _statusForeground(context, status.value),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  isExpired
+                      ? 'loginQrCodeExpired'.tr()
+                      : 'loginQrCodeExpiresIn'.tr(
+                          args: ['${remainingSeconds.value ?? 0}'],
+                        ),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isExpired
+                        ? theme.colorScheme.error
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            FilledButton.tonalIcon(
+              onPressed: isLoading.value || isExchanging.value
+                  ? null
+                  : generateQrChallenge,
+              icon: isLoading.value
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Symbols.refresh),
+              label: Text('loginQrCodeRefresh'.tr()),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

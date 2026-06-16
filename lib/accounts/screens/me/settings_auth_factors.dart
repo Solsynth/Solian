@@ -64,7 +64,7 @@ class AuthFactorSheet extends HookConsumerWidget {
     }
 
     Future<void> enableFactor() async {
-      final needsVerification = factor.type != 5;
+      final needsVerification = factor.type != 5 && factor.type != 8;
       String? verificationCode;
 
       if (needsVerification) {
