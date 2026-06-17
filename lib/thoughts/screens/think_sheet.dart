@@ -165,17 +165,9 @@ class ThoughtSheet extends HookConsumerWidget {
     void closeSidebar() => showSidebar.value = false;
 
     void handleServiceChanged(String serviceId) {
-      final previousServiceId = chatState.selectedServiceId;
-      if (serviceId == previousServiceId) {
-        return;
-      }
-
+      if (serviceId == chatState.selectedServiceId) return;
       chatNotifier.clearChat(selectedServiceId: serviceId);
       showSidebar.value = false;
-
-      if (serviceId == 'michan') {
-        chatNotifier.loadMichanCanonicalThread();
-      }
     }
 
     return Container(
@@ -225,6 +217,7 @@ class ThoughtSheet extends HookConsumerWidget {
           sidebarWidth: 320,
           sidebarContent: ThoughtSidebar(
             selectedSequenceId: chatState.sequenceId,
+            onSequenceSelected: chatNotifier.loadConversation,
             onClose: closeSidebar,
           ),
           mainContent: BillingStatusHandler(
@@ -376,6 +369,7 @@ class _ThoughtOverlayPanel extends HookConsumerWidget {
     );
 
     final chatState = ref.watch(thoughtChatProvider(args));
+    final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
 
     void closeSidebar() => showSidebar.value = false;
     void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
@@ -416,6 +410,7 @@ class _ThoughtOverlayPanel extends HookConsumerWidget {
                 sidebarWidth: 280,
                 sidebarContent: ThoughtSidebar(
                   selectedSequenceId: chatState.sequenceId,
+                  onSequenceSelected: chatNotifier.loadConversation,
                   onClose: closeSidebar,
                 ),
                 mainContent: BillingStatusHandler(

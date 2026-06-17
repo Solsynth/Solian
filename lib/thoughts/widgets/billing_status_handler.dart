@@ -1,9 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/network.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 /// A widget that handles billing status and displays a banner when there are unpaid orders.
@@ -35,24 +32,6 @@ class BillingStatusHandler extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return statusAsync.maybeWhen(
       data: (status) {
-        final retry = useMemoized(
-          () => () async {
-            showLoadingModal(context);
-            try {
-              await ref
-                  .read(solarNetworkClientProvider)
-                  .dio
-                  .post('/insight/billing/retry');
-              showSnackBar('Retried billing process');
-              onRefreshStatus();
-            } catch (e) {
-              showSnackBar('Failed to retry billing');
-            }
-            if (context.mounted) hideLoadingModal(context);
-          },
-          [context, ref],
-        );
-
         return status
             ? child
             : Column(
@@ -64,7 +43,10 @@ class BillingStatusHandler extends HookConsumerWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     actions: [
-                      TextButton(onPressed: retry, child: Text('retry'.tr())),
+                      TextButton(
+                        onPressed: onRefreshStatus,
+                        child: Text('retry'.tr()),
+                      ),
                     ],
                   ),
                   Expanded(child: child),
