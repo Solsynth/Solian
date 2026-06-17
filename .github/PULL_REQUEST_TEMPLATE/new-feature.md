@@ -1,8 +1,8 @@
+---
 name: New Feature
 about: Add new functionality
 title: "[Feature] "
 labels: enhancement
-
 ---
 
 ## Checklist
