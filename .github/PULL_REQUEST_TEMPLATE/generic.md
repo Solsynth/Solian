@@ -1,8 +1,8 @@
+---
 name: Generic
 about: Refactor, docs, cleanup, or other changes
 title: ""
 labels: ""
-
 ---
 
 ## Checklist

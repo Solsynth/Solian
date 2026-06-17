@@ -1,8 +1,8 @@
+---
 name: Bug Fix
 about: Fix an existing issue
 title: "[Bug] "
 labels: bug
-
 ---
 
 ## Checklist
