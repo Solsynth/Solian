@@ -69,14 +69,6 @@ bool get _supportsQrLoginOnCurrentPlatform {
   };
 }
 
-Map<String, dynamic> _webSocketPayload(WebSocketPacket packet) {
-  final data = packet.data ?? const <String, dynamic>{};
-  final payload = data['payload'];
-  if (payload is Map<String, dynamic>) return payload;
-  if (payload is Map) return Map<String, dynamic>.from(payload);
-  return data;
-}
-
 class _QrLoginChallenge {
   final String qrChallengeId;
   final String authChallengeId;
@@ -1378,36 +1370,11 @@ class _QrLoginCard extends HookConsumerWidget {
         return null;
       }
 
-      final timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      final timer = Timer.periodic(const Duration(seconds: 2), (_) {
         refreshQrStatus();
       });
       return timer.cancel;
     }, [challenge.value?.qrChallengeId, status.value, isExpired]);
-
-    useEffect(() {
-      final current = challenge.value;
-      if (current == null) return null;
-
-      final ws = ref.read(websocketProvider);
-      final sub = ws.dataStream.listen((packet) {
-        final payload = _webSocketPayload(packet);
-        final packetChallengeId = payload['qr_challenge_id'] as String?;
-        if (packetChallengeId != current.qrChallengeId) return;
-
-        if (packet.type == 'auth.qr.scanned') {
-          status.value = 'Scanned';
-        } else if (packet.type == 'auth.qr.approved') {
-          status.value = 'Approved';
-          final authChallengeId =
-              payload['auth_challenge_id'] as String? ??
-              current.authChallengeId;
-          exchangeApprovedCode(authChallengeId);
-        } else if (packet.type == 'auth.qr.declined') {
-          status.value = 'Declined';
-        }
-      });
-      return sub.cancel;
-    }, [challenge.value?.qrChallengeId]);
 
     return Card.filled(
       margin: EdgeInsets.zero,
