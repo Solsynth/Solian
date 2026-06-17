@@ -1,230 +1,402 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-part 'thought.freezed.dart';
-part 'thought.g.dart';
+enum ThinkingThoughtRole { assistant, user, system }
 
-enum ThinkingThoughtRole {
-  assistant(0),
-  user(1),
-  system(2);
-
-  const ThinkingThoughtRole(this.value);
-  final int value;
-
-  static ThinkingThoughtRole fromValue(int value) {
-    return values.firstWhere((e) => e.value == value);
+ThinkingThoughtRole _roleFromString(String? value) {
+  switch (value) {
+    case 'assistant':
+      return ThinkingThoughtRole.assistant;
+    case 'system':
+      return ThinkingThoughtRole.system;
+    case 'user':
+    default:
+      return ThinkingThoughtRole.user;
   }
 }
 
-class ThinkingThoughtRoleConverter
-    implements JsonConverter<ThinkingThoughtRole, int> {
-  const ThinkingThoughtRoleConverter();
+enum ThinkingMessagePartType { text, functionCall, functionResult, reasoning }
 
-  @override
-  ThinkingThoughtRole fromJson(int json) => ThinkingThoughtRole.fromValue(json);
+class SnFunctionCall {
+  const SnFunctionCall({
+    required this.id,
+    required this.name,
+    required this.arguments,
+  });
 
-  @override
-  int toJson(ThinkingThoughtRole object) => object.value;
+  final String id;
+  final String name;
+  final String arguments;
+
+  factory SnFunctionCall.fromJson(Map<String, dynamic> json) {
+    return SnFunctionCall(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      arguments: json['arguments']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'arguments': arguments,
+  };
 }
 
-class ThinkingChunkTypeConverter
-    implements JsonConverter<ThinkingChunkType, int> {
-  const ThinkingChunkTypeConverter();
+class SnFunctionResult {
+  const SnFunctionResult({
+    required this.callId,
+    required this.result,
+    required this.isError,
+  });
 
-  @override
-  ThinkingChunkType fromJson(int json) => ThinkingChunkType.fromValue(json);
+  final String callId;
+  final dynamic result;
+  final bool isError;
 
-  @override
-  int toJson(ThinkingChunkType object) => object.value;
+  factory SnFunctionResult.fromJson(Map<String, dynamic> json) {
+    return SnFunctionResult(
+      callId: json['callId']?.toString() ?? '',
+      result: json['result'],
+      isError: json['isError'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'callId': callId,
+    'result': result,
+    'isError': isError,
+  };
 }
 
-enum ThinkingMessagePartType {
-  text(0),
-  functionCall(1),
-  functionResult(2),
-  reasoning(3);
+class SnThinkingMessagePart {
+  const SnThinkingMessagePart({
+    required this.type,
+    this.text,
+    this.reasoning,
+    this.metadata,
+    this.files,
+    this.functionCall,
+    this.functionResult,
+  });
 
-  const ThinkingMessagePartType(this.value);
-  final int value;
+  final ThinkingMessagePartType type;
+  final String? text;
+  final String? reasoning;
+  final Map<String, dynamic>? metadata;
+  final List<SnCloudFileReference>? files;
+  final SnFunctionCall? functionCall;
+  final SnFunctionResult? functionResult;
+}
 
-  static ThinkingMessagePartType fromValue(int value) {
-    return values.firstWhere((e) => e.value == value, orElse: () => text);
+class SnThinkingSequence {
+  const SnThinkingSequence({
+    required this.id,
+    this.topic,
+    this.totalToken = 0,
+    this.paidToken = 0,
+    required this.accountId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    this.agentInitiated = false,
+    this.userLastReadAt,
+    required this.lastMessageAt,
+    this.isPublic = false,
+    this.botName,
+  });
+
+  final String id;
+  final String? topic;
+  final int totalToken;
+  final int paidToken;
+  final String accountId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final bool agentInitiated;
+  final DateTime? userLastReadAt;
+  final DateTime lastMessageAt;
+  final bool isPublic;
+  final String? botName;
+
+  factory SnThinkingSequence.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.tryParse(json['created_at']?.toString() ?? '');
+    final updatedAt = DateTime.tryParse(json['updated_at']?.toString() ?? '');
+    return SnThinkingSequence(
+      id: json['id']?.toString() ?? '',
+      topic: json['title']?.toString(),
+      accountId: json['account_id']?.toString() ?? '',
+      createdAt: createdAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? createdAt ?? DateTime.now(),
+      lastMessageAt: updatedAt ?? createdAt ?? DateTime.now(),
+      botName: json['agent_id']?.toString(),
+    );
   }
 }
 
-class ThinkingMessagePartTypeConverter
-    implements JsonConverter<ThinkingMessagePartType, int> {
-  const ThinkingMessagePartTypeConverter();
+class SnThinkingThought {
+  const SnThinkingThought({
+    required this.id,
+    this.parts = const [],
+    required this.role,
+    this.tokenCount,
+    this.modelName,
+    this.botName,
+    required this.sequenceId,
+    this.sequence,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.isArchived,
+  });
 
-  @override
-  ThinkingMessagePartType fromJson(int json) =>
-      ThinkingMessagePartType.fromValue(json);
+  final String id;
+  final List<SnThinkingMessagePart> parts;
+  final ThinkingThoughtRole role;
+  final int? tokenCount;
+  final String? modelName;
+  final String? botName;
+  final String sequenceId;
+  final SnThinkingSequence? sequence;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final bool isArchived;
 
-  @override
-  int toJson(ThinkingMessagePartType object) => object.value;
-}
-
-@freezed
-sealed class StreamThinkingRequest with _$StreamThinkingRequest {
-  const factory StreamThinkingRequest({
-    required String userMessage,
-    String? sequenceId,
-    @Default([]) List<String> acceptProposals,
-    List<String>? attachedPosts,
-    List<Map<String, dynamic>>? attachedMessages,
-    List<String>? attachedFiles,
-    String? bot,
-    String? model,
-  }) = _StreamThinkingRequest;
-
-  factory StreamThinkingRequest.fromJson(Map<String, dynamic> json) =>
-      _$StreamThinkingRequestFromJson(json);
-}
-
-enum ThinkingChunkType {
-  text(0),
-  reasoning(1),
-  functionCall(2),
-  unknown(3);
-
-  const ThinkingChunkType(this.value);
-  final int value;
-
-  static ThinkingChunkType fromValue(int value) {
-    return values.firstWhere((e) => e.value == value);
+  factory SnThinkingThought.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.tryParse(json['created_at']?.toString() ?? '');
+    final sequenceId = json['thread_id']?.toString() ?? '';
+    return SnThinkingThought(
+      id: json['id']?.toString() ?? '',
+      role: _roleFromString(json['role']?.toString()),
+      sequenceId: sequenceId,
+      createdAt: createdAt ?? DateTime.now(),
+      updatedAt: createdAt ?? DateTime.now(),
+      isArchived: false,
+      parts: [
+        SnThinkingMessagePart(
+          type: ThinkingMessagePartType.text,
+          text: json['content']?.toString() ?? '',
+        ),
+      ],
+    );
   }
-}
 
-@freezed
-sealed class SnThinkingChunk with _$SnThinkingChunk {
-  const factory SnThinkingChunk({
-    @ThinkingChunkTypeConverter() required ThinkingChunkType type,
-    Map<String, dynamic>? data,
-  }) = _SnThinkingChunk;
-
-  factory SnThinkingChunk.fromJson(Map<String, dynamic> json) =>
-      _$SnThinkingChunkFromJson(json);
-}
-
-@freezed
-sealed class SnFunctionCall with _$SnFunctionCall {
-  const factory SnFunctionCall({
-    required String id,
-    required String name,
-    required String arguments,
-  }) = _SnFunctionCall;
-
-  factory SnFunctionCall.fromJson(Map<String, dynamic> json) =>
-      _$SnFunctionCallFromJson(json);
-}
-
-@freezed
-sealed class SnFunctionResult with _$SnFunctionResult {
-  const factory SnFunctionResult({
-    required String callId,
-    required dynamic result,
-    required bool isError,
-  }) = _SnFunctionResult;
-
-  factory SnFunctionResult.fromJson(Map<String, dynamic> json) =>
-      _$SnFunctionResultFromJson(json);
-}
-
-@freezed
-sealed class SnThinkingMessagePart with _$SnThinkingMessagePart {
-  const factory SnThinkingMessagePart({
-    @ThinkingMessagePartTypeConverter() required ThinkingMessagePartType type,
-    String? text,
-    String? reasoning,
-    Map<String, dynamic>? metadata,
-    List<SnCloudFileReference>? files,
-    SnFunctionCall? functionCall,
-    SnFunctionResult? functionResult,
-  }) = _SnThinkingMessagePart;
-
-  factory SnThinkingMessagePart.fromJson(Map<String, dynamic> json) =>
-      _$SnThinkingMessagePartFromJson(json);
-}
-
-@freezed
-sealed class SnThinkingSequence with _$SnThinkingSequence {
-  const factory SnThinkingSequence({
-    required String id,
-    String? topic,
-    @Default(0) int totalToken,
-    @Default(0) int paidToken,
-    required String accountId,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    DateTime? deletedAt,
-    @JsonKey(name: "agent_initiated") @Default(false) bool agentInitiated,
-    @JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,
-    @JsonKey(name: "last_message_at") required DateTime lastMessageAt,
-    @JsonKey(name: "is_public") @Default(false) bool isPublic,
-    String? botName,
-  }) = _SnThinkingSequence;
-
-  factory SnThinkingSequence.fromJson(Map<String, dynamic> json) =>
-      _$SnThinkingSequenceFromJson(json);
-}
-
-@freezed
-sealed class SnThinkingThought with _$SnThinkingThought {
-  const factory SnThinkingThought({
-    required String id,
-    @Default([]) List<SnThinkingMessagePart> parts,
-    @ThinkingThoughtRoleConverter() required ThinkingThoughtRole role,
-    int? tokenCount,
+  factory SnThinkingThought.fromMessage({
+    required PersonalityConversation conversation,
+    required PersonalityMessage message,
     String? modelName,
-    String? botName,
-    required String sequenceId,
-    SnThinkingSequence? sequence,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    DateTime? deletedAt,
-    required bool isArchived,
-  }) = _SnThinkingThought;
-
-  factory SnThinkingThought.fromJson(Map<String, dynamic> json) =>
-      _$SnThinkingThoughtFromJson(json);
+    int? tokenCount,
+    List<SnThinkingMessagePart>? parts,
+  }) {
+    return SnThinkingThought(
+      id: message.id,
+      parts:
+          parts ??
+          [
+            SnThinkingMessagePart(
+              type: ThinkingMessagePartType.text,
+              text: message.content,
+            ),
+          ],
+      role: _roleFromString(message.role),
+      tokenCount: tokenCount,
+      modelName: modelName,
+      botName: conversation.agentId,
+      sequenceId: conversation.id,
+      sequence: SnThinkingSequence.fromJson(conversation.toJson()),
+      createdAt: message.createdAt,
+      updatedAt: message.createdAt,
+      isArchived: false,
+    );
+  }
 }
 
-@freezed
-sealed class ThoughtServiceModel with _$ThoughtServiceModel {
-  const factory ThoughtServiceModel({
-    required String id,
-    @JsonKey(name: "display_name") required String displayName,
-    @JsonKey(name: "min_perk_level") @Default(0) int minPerkLevel,
-    @JsonKey(name: "is_default") @Default(false) bool isDefault,
-  }) = _ThoughtServiceModel;
+class ThoughtServiceModel {
+  const ThoughtServiceModel({
+    required this.id,
+    required this.displayName,
+    this.minPerkLevel = 0,
+    this.isDefault = false,
+  });
 
-  factory ThoughtServiceModel.fromJson(Map<String, dynamic> json) =>
-      _$ThoughtServiceModelFromJson(json);
+  final String id;
+  final String displayName;
+  final int minPerkLevel;
+  final bool isDefault;
+
+  factory ThoughtServiceModel.fromJson(Map<String, dynamic> json) {
+    return ThoughtServiceModel(
+      id: json['id']?.toString() ?? '',
+      displayName:
+          json['display_name']?.toString() ?? json['id']?.toString() ?? '',
+      minPerkLevel: (json['min_perk_level'] as num?)?.toInt() ?? 0,
+      isDefault: json['is_default'] == true,
+    );
+  }
 }
 
-@freezed
-sealed class ThoughtService with _$ThoughtService {
-  const factory ThoughtService({
-    required String id,
-    required String name,
-    required String description,
-    @JsonKey(name: "available_models")
-    @Default([])
-    List<ThoughtServiceModel> availableModels,
-  }) = _ThoughtService;
+class ThoughtService {
+  const ThoughtService({
+    required this.id,
+    required this.name,
+    required this.description,
+    this.availableModels = const [],
+  });
 
-  factory ThoughtService.fromJson(Map<String, dynamic> json) =>
-      _$ThoughtServiceFromJson(json);
+  final String id;
+  final String name;
+  final String description;
+  final List<ThoughtServiceModel> availableModels;
+
+  factory ThoughtService.fromJson(Map<String, dynamic> json) {
+    final model = json['model']?.toString();
+    return ThoughtService(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      availableModels: model == null || model.isEmpty
+          ? const []
+          : [
+              ThoughtServiceModel(
+                id: model,
+                displayName: model,
+                isDefault: true,
+              ),
+            ],
+    );
+  }
 }
 
-@freezed
-sealed class ThoughtServicesResponse with _$ThoughtServicesResponse {
-  const factory ThoughtServicesResponse({
-    required String defaultBot,
-    @JsonKey(name: "bots") required List<ThoughtService> services,
-  }) = _ThoughtServicesResponse;
+class ThoughtServicesResponse {
+  const ThoughtServicesResponse({
+    required this.defaultBot,
+    required this.services,
+  });
 
-  factory ThoughtServicesResponse.fromJson(Map<String, dynamic> json) =>
-      _$ThoughtServicesResponseFromJson(json);
+  final String defaultBot;
+  final List<ThoughtService> services;
+}
+
+class PersonalityConversation {
+  const PersonalityConversation({
+    required this.id,
+    required this.accountId,
+    required this.agentId,
+    required this.title,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final String id;
+  final String accountId;
+  final String agentId;
+  final String title;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  factory PersonalityConversation.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.tryParse(json['created_at']?.toString() ?? '');
+    final updatedAt = DateTime.tryParse(json['updated_at']?.toString() ?? '');
+    return PersonalityConversation(
+      id: json['id']?.toString() ?? '',
+      accountId: json['account_id']?.toString() ?? '',
+      agentId: json['agent_id']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'New conversation',
+      createdAt: createdAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? createdAt ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'account_id': accountId,
+    'agent_id': agentId,
+    'title': title,
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+  };
+}
+
+class PersonalityMessage {
+  const PersonalityMessage({
+    required this.id,
+    required this.threadId,
+    required this.role,
+    required this.content,
+    required this.sequence,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String threadId;
+  final String role;
+  final String content;
+  final int sequence;
+  final DateTime createdAt;
+
+  factory PersonalityMessage.fromJson(Map<String, dynamic> json) {
+    return PersonalityMessage(
+      id: json['id']?.toString() ?? '',
+      threadId: json['thread_id']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'assistant',
+      content: json['content']?.toString() ?? '',
+      sequence: (json['sequence'] as num?)?.toInt() ?? 0,
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+}
+
+class PersonalityRun {
+  const PersonalityRun({
+    required this.id,
+    required this.status,
+    this.model,
+  });
+
+  final String id;
+  final String status;
+  final String? model;
+
+  factory PersonalityRun.fromJson(Map<String, dynamic> json) {
+    return PersonalityRun(
+      id: json['id']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+      model: json['model']?.toString(),
+    );
+  }
+}
+
+class PersonalityRunResponse {
+  const PersonalityRunResponse({
+    required this.thread,
+    required this.run,
+    required this.requestMessage,
+    required this.responseMessage,
+    required this.content,
+  });
+
+  final PersonalityConversation thread;
+  final PersonalityRun run;
+  final PersonalityMessage requestMessage;
+  final PersonalityMessage responseMessage;
+  final String content;
+
+  factory PersonalityRunResponse.fromJson(Map<String, dynamic> json) {
+    return PersonalityRunResponse(
+      thread: PersonalityConversation.fromJson(
+        json['thread'] as Map<String, dynamic>,
+      ),
+      run: PersonalityRun.fromJson(json['run'] as Map<String, dynamic>),
+      requestMessage: PersonalityMessage.fromJson(
+        json['request_message'] as Map<String, dynamic>,
+      ),
+      responseMessage: PersonalityMessage.fromJson(
+        json['response_message'] as Map<String, dynamic>,
+      ),
+      content: json['content']?.toString() ?? '',
+    );
+  }
 }
