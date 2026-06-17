@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
@@ -18,14 +16,12 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 
 part 'thought_chat_notifier.g.dart';
 
-/// A stream item represents a piece of data received from the thought streaming API
 class StreamItem {
   const StreamItem(this.type, this.data);
   final String type;
   final dynamic data;
 }
 
-/// Immutable state for the thought chat
 class ThoughtChatState {
   final String? sequenceId;
   final List<SnThinkingThought> localThoughts;
@@ -94,17 +90,16 @@ class ThoughtChatState {
     );
   }
 
-  /// Gets the available models for the currently selected service
   List<ThoughtServiceModel> get availableModels {
-    if (selectedServiceId.isEmpty) return [];
-    final service = services
-        .where((s) => s.id == selectedServiceId)
-        .firstOrNull;
-    return service?.availableModels ?? [];
+    if (selectedServiceId.isEmpty) return const [];
+    return services
+            .where((service) => service.id == selectedServiceId)
+            .firstOrNull
+            ?.availableModels ??
+        const [];
   }
 }
 
-/// Arguments for the thought chat notifier
 class ThoughtChatArgs {
   final String? initialSequenceId;
   final List<SnThinkingThought>? initialThoughts;
@@ -138,14 +133,11 @@ class ThoughtChatArgs {
       initialMessage.hashCode;
 }
 
-/// Notifier for managing thought chat state
 @riverpod
 class ThoughtChatNotifier extends _$ThoughtChatNotifier {
   TextEditingController? _messageController;
   ScrollController? _scrollController;
   ListController? _listController;
-
-  // Track attached messages and posts for sending
   late List<Map<String, dynamic>> _attachedMessages;
   late List<String> _attachedPosts;
 
@@ -166,66 +158,64 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
 
   @override
   ThoughtChatState build(ThoughtChatArgs args) {
-    // Initialize controllers
     _messageController = TextEditingController();
     _scrollController = ScrollController();
     _listController = ListController();
     _attachedMessages = args.attachedMessages;
     _attachedPosts = args.attachedPosts;
 
-    // Listen to services provider
     final servicesAsync = ref.watch(thoughtServicesProvider);
+    final services = servicesAsync.value?.services ?? const <ThoughtService>[];
+    final initialServiceId = _resolveInitialServiceId(
+      services,
+      args.initialThoughts,
+      args.initialSequenceId,
+    );
 
-    // Initialize state from args and services
-    String selectedServiceId = '';
-    String? selectedModel;
-    List<ThoughtService> services = [];
-
-    if (servicesAsync.hasValue) {
-      final response = servicesAsync.value!;
-      services = response.services;
-
-      // Check if initial thoughts have a botName to use as initial service
-      String? initialBotName;
-      final initialThoughts = args.initialThoughts;
-      if (initialThoughts != null && initialThoughts.isNotEmpty) {
-        initialBotName =
-            initialThoughts.first.botName ??
-            initialThoughts.first.sequence?.botName;
-      }
-
-      if (initialBotName != null &&
-          initialBotName.isNotEmpty &&
-          response.services.any((s) => s.id == initialBotName)) {
-        selectedServiceId = initialBotName;
-      } else {
-        selectedServiceId = response.defaultBot;
-      }
-      selectedModel = null;
-    }
-
-    // Handle initial message if provided
     if (args.initialMessage?.isNotEmpty ?? false) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         sendMessage(message: args.initialMessage);
       });
     }
 
-    // Dispose controllers when provider is disposed
     ref.onDispose(() {
       _messageController?.dispose();
       _scrollController?.dispose();
-      // ListController doesn't need disposal
     });
 
     return ThoughtChatState(
       sequenceId: args.initialSequenceId,
-      localThoughts: args.initialThoughts ?? [],
+      localThoughts: args.initialThoughts ?? const [],
       currentTopic: args.initialTopic ?? 'aiThought'.tr(),
       services: services,
-      selectedServiceId: selectedServiceId,
-      selectedModel: selectedModel,
+      selectedServiceId: initialServiceId,
     );
+  }
+
+  String _resolveInitialServiceId(
+    List<ThoughtService> services,
+    List<SnThinkingThought>? initialThoughts,
+    String? initialSequenceId,
+  ) {
+    final botName = initialThoughts?.firstOrNull?.botName;
+    if (botName != null && services.any((service) => service.id == botName)) {
+      return botName;
+    }
+    final serviceFromConversation = stateOrNull?.selectedServiceId;
+    if (serviceFromConversation != null &&
+        services.any((service) => service.id == serviceFromConversation)) {
+      return serviceFromConversation;
+    }
+    return services.firstOrNull?.id ?? '';
+  }
+
+  @override
+  ThoughtChatState? get stateOrNull {
+    try {
+      return state;
+    } catch (_) {
+      return null;
+    }
   }
 
   void _scrollToBottom() {
@@ -238,121 +228,73 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     }
   }
 
-  Future<void> loadMichanCanonicalThread() async {
+  Future<void> loadConversation(String conversationId) async {
     try {
-      final apiClient = ref.read(solarNetworkClientProvider).dio;
-      final sequenceResponse = await apiClient.get(
-        '/insight/thought/michan/sequence',
-      );
-      final sequence = SnThinkingSequence.fromJson(sequenceResponse.data);
-
-      final thoughtsResponse = await apiClient.get(
-        '/insight/thought/sequences/${sequence.id}',
-        queryParameters: {'offset': 0, 'take': 50},
-      );
-      final thoughts = (thoughtsResponse.data as List)
-          .map((e) => SnThinkingThought.fromJson(e))
-          .toList();
+      final client = ref.read(solarNetworkClientProvider);
+      final conversation = await client.thoughts.getSequence(conversationId);
+      final thoughts = await client.thoughts.getSequenceMessages(conversationId);
 
       state = state.copyWith(
-        sequenceId: sequence.id,
+        sequenceId: conversationId,
         localThoughts: thoughts,
-        currentTopic: sequence.topic ?? 'aiThought'.tr(),
-        selectedServiceId: 'michan',
-        selectedModel: null,
+        currentTopic: conversation.topic ?? 'aiThought'.tr(),
+        selectedServiceId: conversation.botName ?? state.selectedServiceId,
         attachments: const [],
         attachmentProgress: const {},
-        hasInitialAttachmentsBeenSent: false,
+        hasInitialAttachmentsBeenSent: true,
       );
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    } on DioException catch (error) {
-      if (error.response?.statusCode == 404) {
-        state = state.copyWith(
-          sequenceId: null,
-          localThoughts: const [],
-          currentTopic: 'aiThought'.tr(),
-          selectedServiceId: 'michan',
-          selectedModel: null,
-          attachments: const [],
-          attachmentProgress: const {},
-          hasInitialAttachmentsBeenSent: false,
-        );
-        return;
-      }
-      showErrorAlert(error);
     } catch (error) {
       showErrorAlert(error);
     }
   }
 
-  /// Updates the sequence ID (e.g., when loaded from external source)
   void updateSequenceId(String? sequenceId) {
-    state = state.copyWith(
-      sequenceId: sequenceId,
-      hasInitialAttachmentsBeenSent: false,
-    );
+    state = state.copyWith(sequenceId: sequenceId);
   }
 
-  /// Updates the thoughts list (e.g., when loaded from external source)
   void updateThoughts(List<SnThinkingThought> thoughts) {
     state = state.copyWith(localThoughts: thoughts);
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
-  /// Updates the topic
   void updateTopic(String? topic) {
-    if (topic != null) {
-      state = state.copyWith(currentTopic: topic);
-    }
+    if (topic == null) return;
+    state = state.copyWith(currentTopic: topic);
   }
 
-  /// Updates the services list and default service
   void updateServices(ThoughtServicesResponse response) {
     final currentValue = state.selectedServiceId;
-    final isValueValid =
-        currentValue.isNotEmpty &&
-        response.services.any((s) => s.id == currentValue);
-
-    final newServiceId = isValueValid ? currentValue : response.defaultBot;
-
+    final isValueValid = response.services.any((s) => s.id == currentValue);
     state = state.copyWith(
       services: response.services,
-      selectedServiceId: newServiceId,
+      selectedServiceId: isValueValid
+          ? currentValue
+          : (response.defaultBot.isNotEmpty
+                ? response.defaultBot
+                : response.services.firstOrNull?.id ?? ''),
       selectedModel: null,
     );
   }
 
-  /// Sets the selected service ID without side effects (for syncing from loaded sequences)
   void syncServiceId(String serviceId) {
     if (serviceId == state.selectedServiceId) return;
-    state = state.copyWith(selectedServiceId: serviceId, selectedModel: null);
+    state = state.copyWith(selectedServiceId: serviceId);
   }
 
-  /// Sets the selected service ID (user-initiated, clears chat and loads michan if needed)
   Future<void> setSelectedServiceId(String serviceId) async {
-    final previousServiceId = state.selectedServiceId;
-    if (serviceId == previousServiceId) return;
-
-    // Clear the chat state for the new service
+    if (serviceId == state.selectedServiceId) return;
     clearChat(selectedServiceId: serviceId);
-
-    // Load michan canonical thread when switching to michan
-    if (serviceId == 'michan') {
-      await loadMichanCanonicalThread();
-    }
   }
 
-  /// Sets the selected model ID
   void setSelectedModel(String? modelId) {
     state = state.copyWith(selectedModel: modelId);
   }
 
-  /// Updates attachments
   void updateAttachments(List<UniversalFile> attachments) {
     state = state.copyWith(attachments: attachments);
   }
 
-  /// Deletes an attachment at the given index
   void deleteAttachment(int index) {
     final newAttachments = [...state.attachments];
     if (index >= 0 && index < newAttachments.length) {
@@ -361,7 +303,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     }
   }
 
-  /// Uploads an attachment at the given index
   Future<UniversalFile> uploadAttachment(int index) async {
     final attachment = state.attachments[index];
     if (attachment.isOnCloud) return attachment;
@@ -371,15 +312,13 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     );
 
     try {
-      SnCloudFile? cloudFile;
-
       final pools = await ref.read(poolsProvider.future);
       final selectedPoolId = resolveDefaultPoolId(
         ref.read(appSettingsProvider),
         pools,
       );
 
-      cloudFile = await ref
+      final cloudFile = await ref
           .read(driveFileUploaderProvider)
           .createCloudFile(
             fileData: attachment,
@@ -400,12 +339,12 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           .future;
 
       if (cloudFile == null) {
-        throw ArgumentError('Failed to upload the file...');
+        throw ArgumentError('Failed to upload the file.');
       }
 
       final clone = List.of(state.attachments);
       clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
-      state.copyWith(attachments: clone);
+      state = state.copyWith(attachments: clone);
       return clone[index];
     } catch (err) {
       showErrorAlert(err);
@@ -417,303 +356,76 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     }
   }
 
-  /// Sends a message to the thought API
   Future<void> sendMessage({String? message}) async {
-    if (message == null && messageController.text.trim().isEmpty) {
-      return;
-    }
+    if (message == null && messageController.text.trim().isEmpty) return;
 
+    final client = ref.read(solarNetworkClientProvider);
     final userMessage = message ?? messageController.text.trim();
+    final uploadedAttachments = List<UniversalFile>.from(state.attachments);
 
-    // Upload any pending attachments first
-    List<String>? attachmentIds;
-    final attachments = List.from(state.attachments);
-    if (attachments.isNotEmpty) {
-      for (int i = 0; i < attachments.length; i++) {
-        if (!attachments[i].isOnCloud) {
-          final newFile = await uploadAttachment(i);
-          attachments[i] = newFile;
-        }
+    for (int i = 0; i < uploadedAttachments.length; i++) {
+      if (!uploadedAttachments[i].isOnCloud) {
+        uploadedAttachments[i] = await uploadAttachment(i);
       }
-      attachmentIds = attachments
-          .where((a) => a.isOnCloud)
-          .map((a) => (a.data as SnCloudFile).id)
-          .toList();
     }
 
-    // Add user message to local thoughts
-    final userInfo = ref.read(userInfoProvider);
     final now = DateTime.now();
+    final conversationId = await _ensureConversation(userMessage);
+
     final userThought = SnThinkingThought(
-      id: 'user-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'user-${now.microsecondsSinceEpoch}',
+      role: ThinkingThoughtRole.user,
+      sequenceId: conversationId,
+      botName: state.selectedServiceId,
+      createdAt: now,
+      updatedAt: now,
       isArchived: false,
       parts: [
         SnThinkingMessagePart(
           type: ThinkingMessagePartType.text,
           text: userMessage,
-          files: attachments
-              .where((a) => a.isOnCloud)
-              .map((a) => a.data)
+          files: uploadedAttachments
+              .map((item) => item.data)
               .whereType<SnCloudFileReference>()
               .toList(),
         ),
       ],
-      role: ThinkingThoughtRole.user,
-      sequenceId: state.sequenceId ?? '',
-      createdAt: now,
-      updatedAt: now,
-      sequence: SnThinkingSequence(
-        id: state.sequenceId ?? '',
-        accountId: userInfo.value!.id,
-        createdAt: now,
-        updatedAt: now,
-        lastMessageAt: now,
-      ),
     );
-
-    // Clear attachments after upload
-    state = state.copyWith(attachments: []);
 
     state = state.copyWith(
       localThoughts: [userThought, ...state.localThoughts],
+      attachments: const [],
     );
-
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
-    // Only include attached messages/posts on the first message of the conversation
-    final shouldIncludeAttachments = !state.hasInitialAttachmentsBeenSent;
-
-    final request = StreamThinkingRequest(
+    final inputParts = await _buildInputParts(
       userMessage: userMessage,
-      sequenceId: state.sequenceId,
-      acceptProposals: ['post_create'],
-      attachedMessages: shouldIncludeAttachments ? _attachedMessages : const [],
-      attachedPosts: shouldIncludeAttachments ? _attachedPosts : const [],
-      attachedFiles: attachmentIds,
-      bot: state.selectedServiceId.isNotEmpty
-          ? state.selectedServiceId
-          : 'snchan',
-      model: state.selectedModel,
+      attachments: uploadedAttachments,
     );
 
-    // Mark initial attachments as sent after first message
-    if (shouldIncludeAttachments) {
+    if (!state.hasInitialAttachmentsBeenSent) {
       state = state.copyWith(hasInitialAttachmentsBeenSent: true);
     }
 
     try {
-      state = state.copyWith(isStreaming: true, streamingItems: []);
+      state = state.copyWith(
+        isStreaming: true,
+        streamingItems: const [],
+        currentStatus: 'thoughtStatusPreparingContext'.tr(),
+      );
 
-      final apiClient = ref.read(solarNetworkClientProvider).dio;
-      final response = await apiClient.post(
-        '/insight/thought',
-        data: request.toJson(),
-        options: Options(
-          responseType: ResponseType.stream,
-          sendTimeout: Duration(hours: 1),
-          receiveTimeout: Duration(hours: 1),
-        ),
+      final response = await client.thoughts.createRun(
+        conversationId: conversationId,
+        stream: true,
+        data: {
+          'message': userMessage,
+          'stream': true,
+          if (inputParts.isNotEmpty) 'input_parts': inputParts,
+        },
       );
 
       final stream = response.data.stream as Stream<List<int>>;
-      final lineBuffer = StringBuffer();
-
-      stream.listen(
-        (data) {
-          final chunk = utf8.decode(data);
-          lineBuffer.write(chunk);
-          final lines = lineBuffer.toString().split('\n');
-          lineBuffer.clear();
-          lineBuffer.write(lines.last); // keep incomplete line
-
-          for (final line in lines.sublist(0, lines.length - 1)) {
-            if (line.trim().isEmpty) continue;
-            try {
-              if (line.startsWith('data: ')) {
-                final jsonStr = line.substring(6);
-                final event = jsonDecode(jsonStr);
-                final type = event['type'];
-                final eventData = event['data'];
-                if (type != 'text') {
-                  Logger.root.info(
-                    '[Thought] Received event: $type ${jsonEncode(eventData)}',
-                  );
-                }
-                switch (type) {
-                  case 'text':
-                    state = state.copyWith(
-                      streamingItems: [
-                        ...state.streamingItems,
-                        StreamItem('text', eventData),
-                      ],
-                    );
-                    break;
-                  case 'function_call':
-                    try {
-                      final mappedData = {
-                        'id': eventData['Id'],
-                        'name': eventData['Name'],
-                        'arguments': eventData['Arguments'] ?? '',
-                      };
-                      state = state.copyWith(
-                        streamingItems: [
-                          ...state.streamingItems,
-                          StreamItem(
-                            'function_call',
-                            SnFunctionCall.fromJson(mappedData),
-                          ),
-                        ],
-                      );
-                    } catch (e, st) {
-                      Logger.root.severe(
-                        'Failed to parse function_call: $eventData',
-                        e,
-                        st,
-                      );
-                    }
-                    break;
-                  case 'function_result':
-                    try {
-                      final mappedData = {
-                        'callId': eventData['CallId'],
-                        'result': eventData['Result'],
-                        'isError': eventData['IsError'] ?? false,
-                      };
-                      state = state.copyWith(
-                        streamingItems: [
-                          ...state.streamingItems,
-                          StreamItem(
-                            'function_result',
-                            SnFunctionResult.fromJson(mappedData),
-                          ),
-                        ],
-                      );
-                    } catch (e, st) {
-                      Logger.root.severe(
-                        'Failed to parse function_result: $eventData',
-                        e,
-                        st,
-                      );
-                    }
-                    break;
-                  case 'reasoning':
-                    final lastItem = state.streamingItems.isNotEmpty
-                        ? state.streamingItems.last
-                        : null;
-                    if (lastItem != null && lastItem.type == 'reasoning') {
-                      state = state.copyWith(
-                        streamingItems: [
-                          ...state.streamingItems.sublist(
-                            0,
-                            state.streamingItems.length - 1,
-                          ),
-                          StreamItem(
-                            'reasoning',
-                            '${lastItem.data}$eventData',
-                          ),
-                        ],
-                      );
-                    } else {
-                      state = state.copyWith(
-                        streamingItems: [
-                          ...state.streamingItems,
-                          StreamItem('reasoning', eventData),
-                        ],
-                      );
-                    }
-                    break;
-                  case 'status':
-                    final statusText = eventData as String?;
-                    String? localizedStatus;
-                    switch (statusText) {
-                      case 'compacting':
-                        localizedStatus = 'thoughtStatusCompacting'.tr();
-                        break;
-                      case 'preparing_context':
-                        localizedStatus = 'thoughtStatusPreparingContext'.tr();
-                        break;
-                      default:
-                        localizedStatus = statusText;
-                    }
-                    state = state.copyWith(currentStatus: localizedStatus);
-                    break;
-                  case 'context_cleared':
-                    state = state.copyWith(
-                      sequenceId: eventData['new_sequence_id'],
-                      compactSummary: eventData['summary'],
-                      archivedCount: eventData['archived_count'] as int?,
-                      currentStatus: 'thoughtStatusContextCleared'.tr(),
-                    );
-                    final newSeqId = eventData['new_sequence_id'] as String?;
-                    if (newSeqId != null) {
-                      ref.invalidate(thoughtSequenceProvider(newSeqId));
-                    }
-                    break;
-                  case 'compacted':
-                    state = state.copyWith(
-                      compactSummary: eventData['summary'],
-                      archivedCount: eventData['archived_count'] as int?,
-                      currentStatus: 'thoughtStatusCompacted'.tr(),
-                    );
-                    break;
-                  case 'auto_compacted':
-                    state = state.copyWith(
-                      compactSummary: eventData['summary'],
-                      archivedCount: eventData['archived_count'] as int?,
-                      currentStatus: 'thoughtStatusAutoCompacted'.tr(),
-                    );
-                    break;
-                  default:
-                    // ignore unknown types
-                    break;
-                }
-              } else if (line.startsWith('topic: ')) {
-                final jsonStr = line.substring(7);
-                final event = jsonDecode(jsonStr);
-                state = state.copyWith(currentTopic: event['data']);
-              } else if (line.startsWith('thought: ')) {
-                final jsonStr = line.substring(9);
-                final event = jsonDecode(jsonStr);
-                final aiThought = SnThinkingThought.fromJson(event['data']);
-                state = state.copyWith(
-                  localThoughts: [aiThought, ...state.localThoughts],
-                  isStreaming: false,
-                  streamingItems: [],
-                  currentStatus: null,
-                  compactSummary: null,
-                  archivedCount: null,
-                );
-                if (state.sequenceId == null &&
-                    aiThought.sequenceId.isNotEmpty) {
-                  state = state.copyWith(sequenceId: aiThought.sequenceId);
-                }
-
-                // Refresh quota after message response completes
-                ref.invalidate(thoughtQuotaProvider);
-              }
-            } catch (e) {
-              // Ignore parsing errors for individual events
-            }
-          }
-        },
-        onDone: () {
-          if (state.isStreaming) {
-            state = state.copyWith(
-              isStreaming: false,
-              streamingItems: [],
-              currentStatus: null,
-            );
-          }
-        },
-        onError: (error) {
-          final errorMessage =
-              error is DioException && error.response?.data is ResponseBody
-              ? 'thoughtParseError'.tr()
-              : error.toString();
-          _handleStreamError(errorMessage);
-        },
-      );
-
+      await _consumeRunStream(stream, conversationId);
       messageController.clear();
       FocusManager.instance.primaryFocus?.unfocus();
     } catch (error) {
@@ -721,10 +433,274 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     }
   }
 
+  Future<String> _ensureConversation(String firstMessage) async {
+    if (state.sequenceId != null && state.sequenceId!.isNotEmpty) {
+      return state.sequenceId!;
+    }
+
+    final client = ref.read(solarNetworkClientProvider);
+    final conversation = await client.thoughts.createConversation(
+      agentId: state.selectedServiceId.isNotEmpty
+          ? state.selectedServiceId
+          : (state.services.firstOrNull?.id ?? 'assistant'),
+      title: firstMessage.trim().isEmpty
+          ? 'New conversation'
+          : firstMessage.trim().split('\n').first,
+    );
+
+    state = state.copyWith(
+      sequenceId: conversation.id,
+      currentTopic: conversation.title,
+    );
+    return conversation.id;
+  }
+
+  Future<List<Map<String, dynamic>>> _buildInputParts({
+    required String userMessage,
+    required List<UniversalFile> attachments,
+  }) async {
+    final parts = <Map<String, dynamic>>[];
+    final contextLines = <String>[];
+    final serverUrl = ref.read(serverUrlProvider);
+
+    if (!state.hasInitialAttachmentsBeenSent) {
+      if (_attachedMessages.isNotEmpty) {
+        contextLines.add('Attached messages context:');
+        contextLines.add(const JsonEncoder.withIndent('  ').convert(_attachedMessages));
+      }
+      if (_attachedPosts.isNotEmpty) {
+        contextLines.add('Attached post IDs: ${_attachedPosts.join(', ')}');
+      }
+    }
+
+    for (final attachment in attachments) {
+      final cloudFile = attachment.data is SnCloudFile
+          ? attachment.data as SnCloudFile
+          : null;
+      if (cloudFile == null) continue;
+
+      final fileUrl = cloudFile.storageUrl ?? '$serverUrl/drive/files/${cloudFile.id}';
+      if (cloudFile.mimeType.startsWith('image/')) {
+        parts.add({
+          'type': 'image_url',
+          'image_url': fileUrl,
+          'detail': 'high',
+        });
+      } else {
+        contextLines.add(
+          'Attached file: ${cloudFile.name} (${cloudFile.mimeType}) $fileUrl',
+        );
+      }
+    }
+
+    if (contextLines.isNotEmpty) {
+      parts.insert(0, {
+        'type': 'text',
+        'text': contextLines.join('\n'),
+      });
+    }
+
+    return parts;
+  }
+
+  Future<void> _consumeRunStream(
+    Stream<List<int>> stream,
+    String conversationId,
+  ) async {
+    String? eventName;
+    final lineBuffer = StringBuffer();
+
+    await for (final data in stream) {
+      final chunk = utf8.decode(data);
+      lineBuffer.write(chunk);
+      final lines = lineBuffer.toString().split('\n');
+      lineBuffer
+        ..clear()
+        ..write(lines.last);
+
+      for (final rawLine in lines.take(lines.length - 1)) {
+        final line = rawLine.trimRight();
+        if (line.isEmpty) {
+          eventName = null;
+          continue;
+        }
+        if (line.startsWith('event: ')) {
+          eventName = line.substring(7).trim();
+          continue;
+        }
+        if (!line.startsWith('data: ')) continue;
+
+        final payload = line.substring(6);
+        final data = jsonDecode(payload) as Map<String, dynamic>;
+        _handleSseEvent(
+          eventName: eventName ?? '',
+          data: data,
+          conversationId: conversationId,
+        );
+      }
+    }
+
+    if (state.isStreaming) {
+      state = state.copyWith(
+        isStreaming: false,
+        streamingItems: const [],
+        currentStatus: null,
+      );
+    }
+  }
+
+  void _handleSseEvent({
+    required String eventName,
+    required Map<String, dynamic> data,
+    required String conversationId,
+  }) {
+    switch (eventName) {
+      case 'run.started':
+        state = state.copyWith(
+          sequenceId: data['conversation_id']?.toString() ?? conversationId,
+          currentStatus: 'Running',
+        );
+        break;
+      case 'reasoning.delta':
+        final delta = data['delta']?.toString() ?? '';
+        if (delta.isEmpty) break;
+        final lastItem = state.streamingItems.lastOrNull;
+        if (lastItem != null && lastItem.type == 'reasoning') {
+          state = state.copyWith(
+            streamingItems: [
+              ...state.streamingItems.sublist(0, state.streamingItems.length - 1),
+              StreamItem('reasoning', '${lastItem.data}$delta'),
+            ],
+          );
+        } else {
+          state = state.copyWith(
+            streamingItems: [...state.streamingItems, StreamItem('reasoning', delta)],
+          );
+        }
+        break;
+      case 'tool_call.delta':
+        state = state.copyWith(
+          streamingItems: [
+            ...state.streamingItems,
+            StreamItem('function_call', SnFunctionCall.fromJson(data)),
+          ],
+        );
+        break;
+      case 'message.delta':
+        final delta = data['delta']?.toString() ?? '';
+        if (delta.isEmpty) break;
+        state = state.copyWith(
+          streamingItems: [...state.streamingItems, StreamItem('text', delta)],
+          currentStatus: null,
+        );
+        break;
+      case 'message.completed':
+        final content = data['content']?.toString() ?? '';
+        final messageId = data['message_id']?.toString() ?? '';
+        final completedAt = DateTime.now();
+        final assistantThought = SnThinkingThought(
+          id: messageId.isNotEmpty
+              ? messageId
+              : 'assistant-${completedAt.microsecondsSinceEpoch}',
+          role: ThinkingThoughtRole.assistant,
+          sequenceId: conversationId,
+          botName: state.selectedServiceId,
+          createdAt: completedAt,
+          updatedAt: completedAt,
+          isArchived: false,
+          modelName: state.services
+              .where((service) => service.id == state.selectedServiceId)
+              .firstOrNull
+              ?.availableModels
+              .firstOrNull
+              ?.id,
+          parts: _streamingItemsToParts(state.streamingItems, fallbackText: content),
+        );
+        state = state.copyWith(
+          localThoughts: [assistantThought, ...state.localThoughts],
+          isStreaming: false,
+          streamingItems: const [],
+          currentStatus: null,
+          compactSummary: null,
+          archivedCount: null,
+        );
+        ref.invalidate(thoughtQuotaProvider);
+        break;
+      case 'run.completed':
+        state = state.copyWith(isStreaming: false, currentStatus: null);
+        break;
+      case 'run.failed':
+        _handleStreamError(data['error']?.toString() ?? 'Run failed');
+        break;
+      case 'heartbeat':
+        Logger.root.fine('[Thought] heartbeat');
+        break;
+    }
+  }
+
+  List<SnThinkingMessagePart> _streamingItemsToParts(
+    List<StreamItem> items, {
+    required String fallbackText,
+  }) {
+    final parts = <SnThinkingMessagePart>[];
+    for (final item in items) {
+      switch (item.type) {
+        case 'text':
+          parts.add(
+            SnThinkingMessagePart(
+              type: ThinkingMessagePartType.text,
+              text: item.data.toString(),
+            ),
+          );
+          break;
+        case 'reasoning':
+          parts.add(
+            SnThinkingMessagePart(
+              type: ThinkingMessagePartType.reasoning,
+              reasoning: item.data.toString(),
+            ),
+          );
+          break;
+        case 'function_call':
+          parts.add(
+            SnThinkingMessagePart(
+              type: ThinkingMessagePartType.functionCall,
+              functionCall: item.data as SnFunctionCall,
+            ),
+          );
+          break;
+        case 'function_result':
+          parts.add(
+            SnThinkingMessagePart(
+              type: ThinkingMessagePartType.functionResult,
+              functionResult: item.data as SnFunctionResult,
+            ),
+          );
+          break;
+      }
+    }
+
+    if (parts.where((part) => part.type == ThinkingMessagePartType.text).isEmpty &&
+        fallbackText.isNotEmpty) {
+      parts.add(
+        SnThinkingMessagePart(
+          type: ThinkingMessagePartType.text,
+          text: fallbackText,
+        ),
+      );
+    }
+    return parts;
+  }
+
   void _handleStreamError(String errorMessage) {
     final now = DateTime.now();
     final errorThought = SnThinkingThought(
-      id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'error-${now.microsecondsSinceEpoch}',
+      role: ThinkingThoughtRole.assistant,
+      sequenceId: state.sequenceId ?? '',
+      botName: state.selectedServiceId,
+      createdAt: now,
+      updatedAt: now,
       isArchived: false,
       parts: [
         SnThinkingMessagePart(
@@ -732,38 +708,23 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           text: 'Error: $errorMessage',
         ),
       ],
-      role: ThinkingThoughtRole.assistant,
-      sequenceId: state.sequenceId ?? '',
-      createdAt: now,
-      updatedAt: now,
-      sequence: SnThinkingSequence(
-        id: state.sequenceId ?? '',
-        accountId: '',
-        createdAt: now,
-        updatedAt: now,
-        lastMessageAt: now,
-      ),
     );
 
     state = state.copyWith(
       isStreaming: false,
       localThoughts: [errorThought, ...state.localThoughts],
-      streamingItems: [],
+      streamingItems: const [],
       currentStatus: null,
       compactSummary: null,
       archivedCount: null,
     );
   }
 
-  /// Clears the chat state for a new conversation
   void clearChat({String? selectedServiceId}) {
-    final serviceId = selectedServiceId ?? state.selectedServiceId;
-
     state = ThoughtChatState(
       currentTopic: 'aiThought'.tr(),
       services: state.services,
-      selectedServiceId: serviceId,
-      selectedModel: null,
+      selectedServiceId: selectedServiceId ?? state.selectedServiceId,
     );
     messageController.clear();
   }

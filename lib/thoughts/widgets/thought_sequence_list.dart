@@ -21,52 +21,21 @@ class ThoughtSequenceListNotifier
   @override
   Future<List<SnThinkingSequence>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
-
-    final queryParams = {
-      'offset': fetchedCount,
-      'take': pageSize,
-      'sort_by': 'last_message_at',
-      'sort_order': 'desc',
-    };
-
-    final response = await client.dio.get(
-      '/insight/thought/sequences',
-      queryParameters: queryParams,
+    final items = await client.thoughts.getSequences(
+      offset: fetchedCount,
+      take: pageSize,
     );
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    return data.map((json) => SnThinkingSequence.fromJson(json)).toList();
-  }
-
-  /// Deletes a sequence and refreshes the list
-  Future<void> deleteSequence(String sequenceId) async {
-    final client = ref.read(solarNetworkClientProvider);
-    await client.thoughts.deleteSequence(sequenceId);
-    refresh();
-  }
-
-  /// Updates the sharing settings of a sequence
-  Future<void> updateSharing(String sequenceId, bool isPublic) async {
-    final client = ref.read(solarNetworkClientProvider);
-    await client.thoughts.updateSequence(
-      sequenceId: sequenceId,
-      data: {'is_public': isPublic},
-    );
-    refresh();
-  }
-
-  /// Marks a sequence as read
-  Future<void> markAsRead(String sequenceId) async {
-    final client = ref.read(solarNetworkClientProvider);
-    await client.thoughts.markSequenceAsRead(sequenceId);
-    refresh();
+    totalCount =
+        (fetchedCount + items.length + (items.length == pageSize ? 1 : 0))
+            .toInt();
+    return items;
   }
 }
 
 class ThoughtSequenceSelector extends HookConsumerWidget {
-  final Function(String) onSequenceSelected;
-
   const ThoughtSequenceSelector({super.key, required this.onSequenceSelected});
+
+  final Function(String) onSequenceSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,9 +47,10 @@ class ThoughtSequenceSelector extends HookConsumerWidget {
         notifier: provider.notifier,
         itemBuilder: (context, index, sequence) {
           final colorScheme = Theme.of(context).colorScheme;
+          final botName = sequence.botName;
           return ListTile(
-            leading: sequence.botName != null && sequence.botName!.isNotEmpty
-                ? BotAvatarWidget(botName: sequence.botName!, radius: 14)
+            leading: botName != null && botName.isNotEmpty
+                ? BotAvatarWidget(botName: botName, radius: 14)
                 : Container(
                     width: 28,
                     height: 28,
@@ -97,12 +67,12 @@ class ThoughtSequenceSelector extends HookConsumerWidget {
             title: Text(sequence.topic ?? 'Untitled Conversation'),
             subtitle: Row(
               children: [
-                if (sequence.botName != null && sequence.botName!.isNotEmpty)
+                if (botName != null && botName.isNotEmpty)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       BotNameWidget(
-                        botName: sequence.botName!,
+                        botName: botName,
                         style: TextStyle(
                           fontSize: 12,
                           color: colorScheme.onSurfaceVariant,
