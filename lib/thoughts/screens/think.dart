@@ -97,6 +97,7 @@ class ThoughtScreen extends HookConsumerWidget {
 
     void handleSequenceSelected(String sequenceId) {
       selectedSequenceId.value = sequenceId;
+      showSidebar.value = false;
       chatNotifier.loadConversation(sequenceId);
     }
 
