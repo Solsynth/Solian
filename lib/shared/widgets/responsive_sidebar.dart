@@ -77,6 +77,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
     final wideSidebarWidth = useState(sidebarWidth);
+    final sheetContextRef = useRef<BuildContext?>(null);
     final animationController = useAnimationController(
       duration: animationDuration,
     );
@@ -102,9 +103,13 @@ class ResponsiveSidebar extends HookConsumerWidget {
         } else {
           if (showSidebar.value && !showDrawer.value) {
             showDrawer.value = true;
-            _openSheet(context);
+            _openSheet(context, sheetContextRef);
           } else if (!showSidebar.value && showDrawer.value) {
             showDrawer.value = false;
+            final sheetContext = sheetContextRef.value;
+            if (sheetContext != null && Navigator.of(sheetContext).canPop()) {
+              Navigator.of(sheetContext).pop();
+            }
           }
         }
       }
@@ -191,12 +196,13 @@ class ResponsiveSidebar extends HookConsumerWidget {
     }
   }
 
-  void _openSheet(BuildContext context) {
+  void _openSheet(BuildContext context, ObjectRef<BuildContext?> sheetContextRef) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) {
+        sheetContextRef.value = sheetContext;
         if (drawerBuilder != null) {
           return drawerBuilder!(sheetContext);
         }
@@ -204,6 +210,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
             SheetScaffold(showHeader: false, child: sidebarContent);
       },
     ).then((_) {
+      sheetContextRef.value = null;
       showSidebar.value = false;
       if (drawerBuilder != null) {
         // Let the owning screen clear any selection/inspector state.

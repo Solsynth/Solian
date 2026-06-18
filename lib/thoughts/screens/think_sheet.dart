@@ -164,10 +164,9 @@ class ThoughtSheet extends HookConsumerWidget {
     void toggleSidebar() => showSidebar.value = !showSidebar.value;
     void closeSidebar() => showSidebar.value = false;
 
-    void handleServiceChanged(String serviceId) {
-      if (serviceId == chatState.selectedServiceId) return;
-      chatNotifier.clearChat(selectedServiceId: serviceId);
+    void handleSequenceSelected(String sequenceId) {
       showSidebar.value = false;
+      chatNotifier.loadConversation(sequenceId);
     }
 
     return Container(
@@ -181,22 +180,6 @@ class ThoughtSheet extends HookConsumerWidget {
             icon: const Icon(Symbols.close),
             onPressed: () => Navigator.of(context).pop(),
             tooltip: 'close'.tr(),
-          ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(52),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                child: ServiceSelector(
-                  services: chatState.services,
-                  selectedServiceId: chatState.selectedServiceId,
-                  onServiceChanged: handleServiceChanged,
-                  isStreaming: chatState.isStreaming,
-                  isDisabled: statusAsync.value == false,
-                ),
-              ),
-            ),
           ),
           actions: [
             IconButton(
@@ -217,7 +200,7 @@ class ThoughtSheet extends HookConsumerWidget {
           sidebarWidth: 320,
           sidebarContent: ThoughtSidebar(
             selectedSequenceId: chatState.sequenceId,
-            onSequenceSelected: chatNotifier.loadConversation,
+            onSequenceSelected: handleSequenceSelected,
             onClose: closeSidebar,
           ),
           mainContent: BillingStatusHandler(
@@ -373,6 +356,10 @@ class _ThoughtOverlayPanel extends HookConsumerWidget {
 
     void closeSidebar() => showSidebar.value = false;
     void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
+    void handleSequenceSelected(String sequenceId) {
+      showSidebar.value = false;
+      chatNotifier.loadConversation(sequenceId);
+    }
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -410,7 +397,7 @@ class _ThoughtOverlayPanel extends HookConsumerWidget {
                 sidebarWidth: 280,
                 sidebarContent: ThoughtSidebar(
                   selectedSequenceId: chatState.sequenceId,
-                  onSequenceSelected: chatNotifier.loadConversation,
+                  onSequenceSelected: handleSequenceSelected,
                   onClose: closeSidebar,
                 ),
                 mainContent: BillingStatusHandler(

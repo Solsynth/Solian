@@ -362,12 +362,20 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     final client = ref.read(solarNetworkClientProvider);
     final userMessage = message ?? messageController.text.trim();
     final uploadedAttachments = List<UniversalFile>.from(state.attachments);
+    List<String>? attachmentIds;
 
     for (int i = 0; i < uploadedAttachments.length; i++) {
       if (!uploadedAttachments[i].isOnCloud) {
         uploadedAttachments[i] = await uploadAttachment(i);
       }
     }
+
+    attachmentIds = uploadedAttachments
+        .map((item) => item.data)
+        .whereType<SnCloudFile>()
+        .map((file) => file.id)
+        .where((id) => id.isNotEmpty)
+        .toList();
 
     final now = DateTime.now();
     final conversationId = await _ensureConversation(userMessage);
@@ -420,6 +428,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         data: {
           'message': userMessage,
           'stream': true,
+          if (attachmentIds.isNotEmpty) 'attachment_ids': attachmentIds,
           if (inputParts.isNotEmpty) 'input_parts': inputParts,
         },
       );
@@ -461,15 +470,18 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
   }) async {
     final parts = <Map<String, dynamic>>[];
     final contextLines = <String>[];
-    final serverUrl = ref.read(serverUrlProvider);
 
     if (!state.hasInitialAttachmentsBeenSent) {
       if (_attachedMessages.isNotEmpty) {
-        contextLines.add('Attached messages context:');
+        contextLines.add('thoughtInputAttachedMessagesContext'.tr());
         contextLines.add(const JsonEncoder.withIndent('  ').convert(_attachedMessages));
       }
       if (_attachedPosts.isNotEmpty) {
-        contextLines.add('Attached post IDs: ${_attachedPosts.join(', ')}');
+        contextLines.add(
+          'thoughtInputAttachedPostIds'.tr(
+            namedArgs: {'ids': _attachedPosts.join(', ')},
+          ),
+        );
       }
     }
 
@@ -478,17 +490,15 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           ? attachment.data as SnCloudFile
           : null;
       if (cloudFile == null) continue;
-
-      final fileUrl = cloudFile.storageUrl ?? '$serverUrl/drive/files/${cloudFile.id}';
-      if (cloudFile.mimeType.startsWith('image/')) {
-        parts.add({
-          'type': 'image_url',
-          'image_url': fileUrl,
-          'detail': 'high',
-        });
-      } else {
+      if (!cloudFile.mimeType.startsWith('image/')) {
         contextLines.add(
-          'Attached file: ${cloudFile.name} (${cloudFile.mimeType}) $fileUrl',
+          'thoughtInputAttachedFile'.tr(
+            namedArgs: {
+              'name': cloudFile.name,
+              'mimeType': cloudFile.mimeType,
+              'id': cloudFile.id,
+            },
+          ),
         );
       }
     }
