@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
-import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -94,13 +93,12 @@ class AudioCallButton extends HookConsumerWidget {
     );
     final callState = ref.watch(callProvider);
     final callNotifier = ref.read(callProvider.notifier);
-    final nativeBridge = ref.watch(nativeCallBridgeProvider);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
     final router = ref.read(routerProvider);
 
-    // On iOS/macOS, use native bridge state; on Android/Web, use Flutter state
-    final isInCall = isNativeCallAvailable ? nativeBridge.isConnected : callState.isConnected;
+    // ponytail: In-app calls always use Flutter. CallKit is only for system-level (push/lock screen).
+    final isInCall = callState.isConnected;
 
     Future<void> openCallScreen() async {
       await router.pushWidget(CallScreen(room: room));
@@ -109,12 +107,7 @@ class AudioCallButton extends HookConsumerWidget {
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        if (isNativeCallAvailable) {
-          final bridge = ref.read(nativeCallBridgeProvider.notifier);
-          await bridge.joinRoom(room.id);
-        } else {
-          await openCallScreen();
-        }
+        await openCallScreen();
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -126,12 +119,8 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         await apiClient.delete('/messager/chat/realtime/${room.id}');
-        if (isNativeCallAvailable) {
-          await ref.read(nativeCallBridgeProvider.notifier).leaveRoom();
-        } else {
-          await callNotifier.disconnect();
-          callNotifier.dispose();
-        }
+        await callNotifier.disconnect();
+        callNotifier.dispose();
         ref.invalidate(activeCallParticipantCountProvider(room.id));
         ref.read(callParticipantAccountCacheProvider.notifier).clear();
       } catch (e) {
@@ -178,11 +167,7 @@ class AudioCallButton extends HookConsumerWidget {
         onPressed: () async {
           isLoading.value = true;
           try {
-            if (isNativeCallAvailable) {
-              await ref.read(nativeCallBridgeProvider.notifier).joinRoom(room.id);
-            } else {
-              await openCallScreen();
-            }
+            await openCallScreen();
           } catch (e) {
             showErrorAlert(e);
           } finally {

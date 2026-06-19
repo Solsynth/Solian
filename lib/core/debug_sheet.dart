@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -19,6 +21,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
+import 'package:island_call/island_call.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
@@ -201,6 +204,46 @@ Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
                 if (navigatorContext.mounted) {
                   Navigator.of(navigatorContext).pop();
                 }
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<String?> _promptForRoomId(BuildContext context, String title) async {
+  final TextEditingController controller = TextEditingController();
+
+  return showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Room ID for $title'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Enter chat room ID',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Start'),
+            onPressed: () {
+              final roomId = controller.text.trim();
+              if (roomId.isNotEmpty) {
+                Navigator.of(context).pop(roomId);
               }
             },
           ),
@@ -1035,6 +1078,45 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             }
           },
         ),
+        if (!kIsWeb && Platform.isIOS) ...[
+          _Divider(),
+          _DebugItem(
+            icon: Symbols.call,
+            title: '[CallKit] Fake Incoming Call',
+            onTap: () async {
+              try {
+                final roomId = await _promptForRoomId(context, 'Incoming Call');
+                if (roomId == null) return;
+                const channel = MethodChannel('island_call');
+                await channel.invokeMethod('simulateIncomingCall', {
+                  'callerName': 'Test User',
+                  'roomId': roomId,
+                });
+                if (!context.mounted) return;
+                showSnackBar('Fake incoming call triggered for room: $roomId');
+              } catch (e) {
+                if (!context.mounted) return;
+                showErrorAlert(e);
+              }
+            },
+          ),
+          _DebugItem(
+            icon: Symbols.call_end,
+            title: '[CallKit] Fake Outgoing Call',
+            onTap: () async {
+              try {
+                final roomId = await _promptForRoomId(context, 'Outgoing Call');
+                if (roomId == null) return;
+                await IslandCall.startCall(roomId);
+                if (!context.mounted) return;
+                showSnackBar('Fake outgoing call triggered for room: $roomId');
+              } catch (e) {
+                if (!context.mounted) return;
+                showErrorAlert(e);
+              }
+            },
+          ),
+        ],
         const Gap(8),
       ],
     );
@@ -1751,6 +1833,51 @@ class DebugSheet extends HookConsumerWidget {
                 }
               },
             ),
+            const Divider(height: 8),
+            if (!kIsWeb && Platform.isIOS) ...[
+              ListTile(
+                minTileHeight: 48,
+                leading: const Icon(Symbols.call),
+                trailing: const Icon(Symbols.chevron_right),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                title: const Text('[CallKit] Fake Incoming Call'),
+                onTap: () async {
+                  try {
+                    final roomId = await _promptForRoomId(context, 'Incoming Call');
+                    if (roomId == null) return;
+                    const channel = MethodChannel('island_call');
+                    await channel.invokeMethod('simulateIncomingCall', {
+                      'callerName': 'Test User',
+                      'roomId': roomId,
+                    });
+                    if (!context.mounted) return;
+                    showSnackBar('Fake incoming call triggered for room: $roomId');
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    showErrorAlert(e);
+                  }
+                },
+              ),
+              ListTile(
+                minTileHeight: 48,
+                leading: const Icon(Symbols.call_end),
+                trailing: const Icon(Symbols.chevron_right),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                title: const Text('[CallKit] Fake Outgoing Call'),
+                onTap: () async {
+                  try {
+                    final roomId = await _promptForRoomId(context, 'Outgoing Call');
+                    if (roomId == null) return;
+                    await IslandCall.startCall(roomId);
+                    if (!context.mounted) return;
+                    showSnackBar('Fake outgoing call triggered for room: $roomId');
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    showErrorAlert(e);
+                  }
+                },
+              ),
+            ],
           ],
         ),
       ),

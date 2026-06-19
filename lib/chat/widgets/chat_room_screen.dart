@@ -14,7 +14,6 @@ import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
-import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/chat_input.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
@@ -857,7 +856,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                       ),
                     ),
                     chatRoom.when(
-                      data: (room) => room != null && !isNativeCallAvailable
+                      data: (room) => room != null
                           ? CallOverlayBar(room: room)
                           : const SizedBox.shrink(),
                       error: (_, _) => const SizedBox.shrink(),
