@@ -120,8 +120,9 @@ class NotificationsApi extends BaseApi {
     );
     final data = response.data;
     if (data is num) return data.toInt();
-    if (data is Map<String, dynamic>)
+    if (data is Map<String, dynamic>) {
       return (data['count'] as num?)?.toInt() ?? 0;
+    }
     return 0;
   }
 

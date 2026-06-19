@@ -123,31 +123,31 @@ PODS:
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
-  - GoogleUtilities/AppDelegateSwizzler (8.1.0):
+  - GoogleUtilities/AppDelegateSwizzler (8.1.1):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Environment (8.1.0):
+  - GoogleUtilities/Environment (8.1.1):
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Logger (8.1.0):
+  - GoogleUtilities/Logger (8.1.1):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
-  - GoogleUtilities/MethodSwizzler (8.1.0):
+  - GoogleUtilities/MethodSwizzler (8.1.1):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Network (8.1.0):
+  - GoogleUtilities/Network (8.1.1):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Privacy
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (8.1.0)":
+  - "GoogleUtilities/NSData+zlib (8.1.1)":
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Privacy (8.1.0)
-  - GoogleUtilities/Reachability (8.1.0):
+  - GoogleUtilities/Privacy (8.1.1)
+  - GoogleUtilities/Reachability (8.1.1):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/UserDefaults (8.1.0):
+  - GoogleUtilities/UserDefaults (8.1.1):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - in_app_purchase_storekit (0.0.1):
@@ -157,15 +157,26 @@ PODS:
     - FlutterMacOS
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
+  - island_call (0.0.1):
+    - FlutterMacOS
+    - Kingfisher (~> 8.0)
+    - LiveKitClient
   - island_desktop_presence (0.0.1):
     - FlutterMacOS
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
+  - Kingfisher (8.10.0)
   - livekit_client (2.5.4):
     - flutter_webrtc
     - FlutterMacOS
     - WebRTC-SDK (= 137.7151.04)
+  - LiveKitClient (2.15.0):
+    - LiveKitUniFFI (= 0.0.6)
+    - LiveKitWebRTC (= 144.7559.08)
+    - SwiftProtobuf
+  - LiveKitUniFFI (0.0.6)
+  - LiveKitWebRTC (144.7559.08)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -195,7 +206,7 @@ PODS:
     - FlutterMacOS
   - pasteboard (0.0.1):
     - FlutterMacOS
-  - PromisesObjC (2.4.0)
+  - PromisesObjC (2.4.1)
   - protocol_handler_macos (0.0.1):
     - FlutterMacOS
   - record_macos (2.0.0):
@@ -220,6 +231,7 @@ PODS:
     - FlutterMacOS
   - super_native_extensions (0.0.1):
     - FlutterMacOS
+  - SwiftProtobuf (1.38.0)
   - tray_manager (0.0.1):
     - FlutterMacOS
   - ua_client_hints (1.7.0):
@@ -258,9 +270,11 @@ DEPENDENCIES:
   - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
+  - island_call (from `Flutter/ephemeral/.symlinks/plugins/island_call/macos`)
   - island_desktop_presence (from `Flutter/ephemeral/.symlinks/plugins/island_desktop_presence/macos`)
   - just_audio (from `Flutter/ephemeral/.symlinks/plugins/just_audio/darwin`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
+  - LiveKitClient
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
@@ -286,6 +300,10 @@ DEPENDENCIES:
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
 SPEC REPOS:
+  https://github.com/livekit/podspecs.git:
+    - LiveKitClient
+    - LiveKitUniFFI
+    - LiveKitWebRTC
   trunk:
     - Firebase
     - FirebaseAnalytics
@@ -296,11 +314,13 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - Kingfisher
     - nanopb
     - ObjectBox
     - OrderedSet
     - PromisesObjC
     - Sentry
+    - SwiftProtobuf
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
@@ -354,6 +374,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/in_app_review/macos
   irondash_engine_context:
     :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
+  island_call:
+    :path: Flutter/ephemeral/.symlinks/plugins/island_call/macos
   island_desktop_presence:
     :path: Flutter/ephemeral/.symlinks/plugins/island_desktop_presence/macos
   just_audio:
@@ -438,13 +460,18 @@ SPEC CHECKSUMS:
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   GoogleAppMeasurement: 1987ffa55055dfb22c52e363c31aa50c1e11d349
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
-  GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  GoogleUtilities: 4f2618a4a1e762a1ee134a1e2323bba9843e06da
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   in_app_review: 66e7680752b632d83f4f0e88b34d52ed303fbff4
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
+  island_call: e0825db78a5948b0c7911686bf5a4051332527b6
   island_desktop_presence: 2360e0ca57129a334b22a67b4ba876861f680ba7
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
+  Kingfisher: db468f911dd666c9134dcbeec4db8bed52e4132d
   livekit_client: 3df5a1787d64010ca56c4002959d9e47c03ba3fb
+  LiveKitClient: 4755d67794a99ddc05f16b0b914713c408c179a5
+  LiveKitUniFFI: 64ffbba4f13f95918753dd81bbc8b326e3d0a924
+  LiveKitWebRTC: 18be0c863d158cb7713cc4cc1aade659f5d795d4
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
@@ -457,7 +484,7 @@ SPEC CHECKSUMS:
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   passkeys_darwin: 395f63bb4dbfe81344ada36400c391e86fc395ea
   pasteboard: b594eaf838d930b276d7a35a44a32b4f489170cb
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
   record_macos: 2e43c16b84ce188b8137754ee648322a2dcdf7fa
   screen_retriever_macos: c5508cc3c66ff0d4db650480cf0ab691e220d933
@@ -468,6 +495,7 @@ SPEC CHECKSUMS:
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
+  SwiftProtobuf: d724b5145bfc609d9a49c1e3e3a3dabb07273ffb
   tray_manager: 19c369010e59c073f13b82354d78a35f7972d609
   ua_client_hints: bb84da85d9d5d605d40598b3c1ae3bfd2598e201
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
@@ -475,6 +503,6 @@ SPEC CHECKSUMS:
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
-PODFILE CHECKSUM: bac2186806ea901d391c664c7bfc8ccce0ee7cb7
+PODFILE CHECKSUM: ba32830e01104e140858d23db7ce2890e09222a1
 
 COCOAPODS: 1.16.2
