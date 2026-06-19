@@ -157,16 +157,11 @@ PODS:
     - FlutterMacOS
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
-  - island_call (0.0.1):
-    - FlutterMacOS
-    - Kingfisher (~> 8.0)
-    - LiveKitClient
   - island_desktop_presence (0.0.1):
     - FlutterMacOS
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
-  - Kingfisher (8.10.0)
   - livekit_client (2.5.4):
     - flutter_webrtc
     - FlutterMacOS
@@ -270,7 +265,6 @@ DEPENDENCIES:
   - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
-  - island_call (from `Flutter/ephemeral/.symlinks/plugins/island_call/macos`)
   - island_desktop_presence (from `Flutter/ephemeral/.symlinks/plugins/island_desktop_presence/macos`)
   - just_audio (from `Flutter/ephemeral/.symlinks/plugins/just_audio/darwin`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
@@ -314,7 +308,6 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
-    - Kingfisher
     - nanopb
     - ObjectBox
     - OrderedSet
@@ -374,8 +367,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/in_app_review/macos
   irondash_engine_context:
     :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
-  island_call:
-    :path: Flutter/ephemeral/.symlinks/plugins/island_call/macos
   island_desktop_presence:
     :path: Flutter/ephemeral/.symlinks/plugins/island_desktop_presence/macos
   just_audio:
@@ -464,10 +455,8 @@ SPEC CHECKSUMS:
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   in_app_review: 66e7680752b632d83f4f0e88b34d52ed303fbff4
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
-  island_call: e0825db78a5948b0c7911686bf5a4051332527b6
   island_desktop_presence: 2360e0ca57129a334b22a67b4ba876861f680ba7
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
-  Kingfisher: db468f911dd666c9134dcbeec4db8bed52e4132d
   livekit_client: 3df5a1787d64010ca56c4002959d9e47c03ba3fb
   LiveKitClient: 4755d67794a99ddc05f16b0b914713c408c179a5
   LiveKitUniFFI: 64ffbba4f13f95918753dd81bbc8b326e3d0a924

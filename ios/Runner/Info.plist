@@ -158,5 +158,7 @@
 	<string>This app does not uses Health Record data directly, but a dependency may reference HealthKit APIs.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Solian uses your location data to provide the location pin feature that sharing your current location with your selected friends.</string>
+	<key>SupportsLiveActivities</key>
+	<true/>
 </dict>
 </plist>

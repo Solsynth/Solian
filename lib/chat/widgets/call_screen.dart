@@ -5,11 +5,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
+import 'package:island/chat/widgets/chat_member_list_tile.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 
 import 'package:livekit_client/livekit_client.dart';
@@ -26,7 +30,9 @@ class CallScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaQuery = MediaQuery.of(context);
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
+    final roomState = ref.watch(chatRoomProvider(room.id));
     final callState = ref.watch(callProvider);
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
     ref.watch(callProvider.select((state) => state.participantSyncVersion));
     final callNotifier = ref.read(callProvider.notifier);
     final controlsVisible = useState(true);
@@ -85,6 +91,54 @@ class CallScreen extends HookConsumerWidget {
           }).tr();
     final showReconnectBanner =
         callState.isReconnecting && callState.error == null;
+    Future<void> inviteToCall() async {
+      final currentRoom = roomState.value ?? room;
+      final members = currentRoom.members ?? const <SnChatMember>[];
+      final activeParticipantIds = callNotifier.participants
+          .map((live) => live.participant.identity)
+          .whereType<String>()
+          .toSet();
+
+      final inviteCandidates = members.where((member) {
+        if (member.joinedAt == null) return false;
+        if (member.accountId == currentUserId) return false;
+        return !activeParticipantIds.contains(member.account.name);
+      }).toList();
+
+      if (inviteCandidates.isEmpty) {
+        showErrorAlert('No available room members to invite into this call.');
+        return;
+      }
+
+      final target = await showModalBottomSheet<SnChatMember>(
+        context: context,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (context) => _CallInviteSheet(
+          members: inviteCandidates,
+          onInvite: (member) => Navigator.pop(context, member),
+        ),
+      );
+      if (target == null) return;
+
+      try {
+        final apiClient = ref.read(apiClientProvider);
+        await apiClient.post(
+          '/messager/chat/realtime/${room.id}/invite/${target.accountId}',
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Call invite sent to ${target.nick ?? target.account.nick}.',
+              ),
+            ),
+          );
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0E1117),
@@ -189,6 +243,14 @@ class CallScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
+                    IconButton(
+                      onPressed: inviteToCall,
+                      tooltip: 'Invite to call',
+                      icon: const Icon(
+                        Symbols.person_add,
+                        color: Colors.white,
+                      ),
+                    ),
                     if (!allAudioOnly)
                       SizedBox(
                         height: 34,
@@ -289,6 +351,60 @@ class CallScreen extends HookConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CallInviteSheet extends StatelessWidget {
+  final List<SnChatMember> members;
+  final ValueChanged<SnChatMember> onInvite;
+
+  const _CallInviteSheet({required this.members, required this.onInvite});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Invite to call',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Symbols.close),
+                ),
+              ],
+            ),
+          ),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: members.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final member = members[index];
+                return ChatMemberListTile(
+                  member: member,
+                  trailing: IconButton(
+                    icon: const Icon(Symbols.call),
+                    tooltip: 'Invite to call',
+                    onPressed: () => onInvite(member),
+                  ),
+                  onTap: () => onInvite(member),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

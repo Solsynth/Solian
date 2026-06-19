@@ -75,4 +75,16 @@ abstract class IslandCallPlatform extends PlatformInterface {
   Future<void> inviteToCall({required String roomId, required String targetAccountId}) {
     throw UnimplementedError();
   }
+
+  Future<void> startCallActivity({required String roomId, String? roomName, String? callerName}) {
+    throw UnimplementedError();
+  }
+
+  Future<void> updateCallActivity({bool? isMuted, int? participantCount, int? elapsedSeconds}) {
+    throw UnimplementedError();
+  }
+
+  Future<void> endCallActivity() {
+    throw UnimplementedError();
+  }
 }

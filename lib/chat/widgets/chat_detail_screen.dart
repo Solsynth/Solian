@@ -6,16 +6,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
-import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/widgets/chat_member_list_tile.dart';
 import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
-import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
 import 'package:island/route.gr.dart';
@@ -1115,49 +1113,9 @@ class _MemberListTile extends HookConsumerWidget {
         chatRoom.value?.type == 1;
     final memberNotifier = ref.read(chatMemberListProvider(roomId).notifier);
 
-    return ListTile(
-      contentPadding: EdgeInsets.only(left: 16, right: 12),
-      leading: AccountPfcRegion(
-        uname: member.account.name,
-        child: ProfilePictureWidget(file: member.account.profile.picture),
-      ),
-      title: Row(
-        spacing: 6,
-        children: [
-          Flexible(child: Text(member.account.nick)),
-          if (member.status != null)
-            Flexible(
-              child: AccountStatusLabel(
-                status: member.status!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          if (member.realmLabel != null)
-            RealmLabelWidget(label: member.realmLabel!, fontSize: 10),
-          if (member.joinedAt == null)
-            const Icon(Symbols.pending_actions, size: 20),
-          if (isE2eeReady)
-            Tooltip(
-              message: 'E2EE Ready',
-              child: Icon(
-                Symbols.lock,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            )
-          else
-            Tooltip(
-              message: 'E2EE Not Available',
-              child: Icon(
-                Symbols.lock_open,
-                size: 16,
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-        ],
-      ),
-      subtitle: Text("@${member.account.name}"),
+    return ChatMemberListTile(
+      member: member,
+      isE2eeReady: isE2eeReady,
       trailing: IconButton(
         icon: const Icon(Symbols.more_horiz),
         onPressed: () {
