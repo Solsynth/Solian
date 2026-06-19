@@ -67,14 +67,33 @@ final class CallManager: NSObject, @unchecked Sendable {
         pushRegistry.delegate = self
     }
 
+    private let appGroup = "group.solsynth.solian"
+    
     func initialize(serverUrl: String, authToken: String) {
         self.serverUrl = serverUrl
         self.authToken = authToken
+        
+        // Persist for VoIP push when app is terminated
+        if let shared = UserDefaults(suiteName: appGroup) {
+            shared.set(serverUrl, forKey: "island_call.serverUrl")
+            shared.set(authToken, forKey: "island_call.authToken")
+        }
+    }
+    
+    private func loadPersistedCredentials() {
+        guard serverUrl == nil || authToken == nil else { return }
+        if let shared = UserDefaults(suiteName: appGroup) {
+            if serverUrl == nil { serverUrl = shared.string(forKey: "island_call.serverUrl") }
+            if authToken == nil { authToken = shared.string(forKey: "island_call.authToken") }
+        }
     }
 
     // MARK: - Join
 
     func joinRoom(_ roomId: String) async throws {
+        // Load persisted credentials (for VoIP push when app is terminated)
+        loadPersistedCredentials()
+        
         guard let serverUrl, let authToken else {
             throw CallError.notInitialized
         }
@@ -205,17 +224,24 @@ final class CallManager: NSObject, @unchecked Sendable {
         activeRoomId = nil
     }
 
-    func reportIncomingCall(from callerId: String, callerName: String, roomId: String) {
+    func reportIncomingCall(from callerId: String, callerName: String, roomId: String, completion: (() -> Void)? = nil) {
         let callUUID = UUID()
         let update = CXCallUpdate()
         update.remoteHandle = CXHandle(type: .generic, value: roomId)
         update.localizedCallerName = callerName
         update.hasVideo = false
 
+        print("[CallKit] Reporting incoming call with UUID: \(callUUID)")
+        
         provider.reportNewIncomingCall(with: callUUID, update: update) { [weak self] error in
-            guard error == nil else { return }
-            self?.activeCallUUID = callUUID
-            self?.activeRoomId = roomId
+            if let error {
+                print("[CallKit] Failed to report incoming call: \(error)")
+            } else {
+                print("[CallKit] Incoming call reported successfully")
+                self?.activeCallUUID = callUUID
+                self?.activeRoomId = roomId
+            }
+            completion?()
         }
     }
 
@@ -531,13 +557,17 @@ extension CallManager: CXProviderDelegate {
         Task {
             do {
                 guard let roomId = activeRoomId else {
+                    print("[CallKit] Answer failed: no activeRoomId")
                     action.fail()
                     return
                 }
+                print("[CallKit] Answering call, joining room: \(roomId)")
                 try await joinRoom(roomId)
+                print("[CallKit] Call answered, room joined")
                 action.fulfill()
                 Task { @MainActor in self.onCallKitCallConnected?() }
             } catch {
+                print("[CallKit] Answer failed: \(error)")
                 action.fail()
                 Task { @MainActor in self.state.error = error.localizedDescription }
             }
@@ -584,15 +614,23 @@ extension CallManager: PKPushRegistryDelegate {
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
         guard type == .voIP else { return }
         voipToken = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
+        print("[PushKit] VoIP token updated: \(voipToken ?? "nil")")
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
         voipToken = nil
+        print("[PushKit] VoIP token invalidated")
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         guard type == .voIP else { completion(); return }
 
+        print("[PushKit] VoIP push received: \(payload.dictionaryPayload)")
+        
+        // Load persisted credentials for when app is terminated
+        loadPersistedCredentials()
+        print("[PushKit] Credentials loaded - serverUrl: \(serverUrl ?? "nil"), authToken: \(authToken != nil ? "exists" : "nil")")
+        
         // Backend sends call info nested in "meta"
         let rawPayload = payload.dictionaryPayload as? [String: Any] ?? [:]
         let meta = rawPayload["meta"] as? [String: Any] ?? rawPayload
@@ -600,8 +638,10 @@ extension CallManager: PKPushRegistryDelegate {
         let callerName = meta["caller_name"] as? String ?? "Unknown"
         let roomId = meta["room_id"] as? String ?? ""
 
-        reportIncomingCall(from: callerId, callerName: callerName, roomId: roomId)
-        completion()
+        print("[PushKit] Reporting incoming call - callerId: \(callerId), callerName: \(callerName), roomId: \(roomId)")
+        
+        // Must call completion AFTER reporting incoming call
+        reportIncomingCall(from: callerId, callerName: callerName, roomId: roomId, completion: completion)
     }
 }
 

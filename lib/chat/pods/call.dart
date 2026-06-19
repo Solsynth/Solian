@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/network.dart';
+import 'package:island_call/island_call.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -294,11 +295,15 @@ class CallNotifier extends _$CallNotifier {
   }
 
   Future<void> _performConnection(SnChatRoom room) async {
-    // Request microphone permission on macOS before connecting
+    // Request microphone and camera permissions on macOS before connecting
     if (!kIsWeb && Platform.isMacOS) {
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
         throw Exception('Microphone permission is required for calls');
+      }
+      final cameraStatus = await Permission.camera.request();
+      if (!cameraStatus.isGranted) {
+        throw Exception('Camera permission is required for calls');
       }
     }
 
@@ -329,6 +334,14 @@ class CallNotifier extends _$CallNotifier {
         state = state.copyWith(
           duration: DateTime.now().difference(baseJoinedAt),
         );
+        // Update Live Activity every 5 seconds
+        if (!kIsWeb && Platform.isIOS && state.duration.inSeconds % 5 == 0) {
+          IslandCall.updateCallActivity(
+            isMuted: !state.isMicrophoneEnabled,
+            participantCount: _participants.length,
+            elapsedSeconds: state.duration.inSeconds,
+          );
+        }
       });
     }
 
@@ -390,6 +403,13 @@ class CallNotifier extends _$CallNotifier {
       _isReconnecting = false;
       _reconnectGraceTimer?.cancel();
       state = state.copyWith(isReconnecting: false, reconnectAttempt: 0);
+      // Start Live Activity on iOS
+      if (!kIsWeb && Platform.isIOS) {
+        IslandCall.startCallActivity(
+          roomId: _roomId ?? '',
+          roomName: _chatRoom?.name ?? 'Voice Call',
+        );
+      }
       return;
     }
 
@@ -539,6 +559,14 @@ class CallNotifier extends _$CallNotifier {
         );
       }
       state = state.copyWith();
+      // Update Live Activity
+      if (!kIsWeb && Platform.isIOS) {
+        IslandCall.updateCallActivity(
+          isMuted: !target,
+          participantCount: _participants.length,
+          elapsedSeconds: state.duration.inSeconds,
+        );
+      }
     }
   }
 
@@ -610,6 +638,10 @@ class CallNotifier extends _$CallNotifier {
       _isManualDisconnect = false;
       // Disable wakelock when call disconnects
       WakelockPlus.disable();
+      // End Live Activity on iOS
+      if (!kIsWeb && Platform.isIOS) {
+        IslandCall.endCallActivity();
+      }
     }
   }
 
@@ -715,5 +747,9 @@ class CallNotifier extends _$CallNotifier {
     _participantInfoByIdentity.clear();
     participantsVolumes = {};
     WakelockPlus.disable();
+    // End Live Activity on iOS
+    if (!kIsWeb && Platform.isIOS) {
+      IslandCall.endCallActivity();
+    }
   }
 }

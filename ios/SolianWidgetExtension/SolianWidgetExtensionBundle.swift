@@ -14,5 +14,6 @@ struct SolianWidgetExtensionBundle: WidgetBundle {
         SolianCheckInWidget()
         SolianNotificationWidget()
         SolianPostShuffleWidget()
+        CallLiveActivity()
     }
 }
