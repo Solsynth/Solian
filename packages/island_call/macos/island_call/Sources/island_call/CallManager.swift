@@ -88,7 +88,9 @@ final class CallManager: @unchecked Sendable {
         state.isReconnecting = false
         state.reconnectAttempt = 0
         state.error = nil
-        state.startDurationTimer(from: Date())
+        state.startDurationTimer(from: Date()) { [weak self] in
+            self?.emitState()
+        }
         emitState()
 
         #if os(iOS)
@@ -167,7 +169,8 @@ final class CallManager: @unchecked Sendable {
                 isMuted: !lp.isMicrophoneEnabled(),
                 isScreenSharing: lp.isScreenShareEnabled(),
                 hasVideo: !lp.videoTracks.isEmpty,
-                audioLevel: lp.audioLevel
+                audioLevel: lp.audioLevel,
+                avatarAuthToken: authToken
             ))
         }
 
@@ -179,7 +182,8 @@ final class CallManager: @unchecked Sendable {
                 isMuted: !rp.isMicrophoneEnabled(),
                 isScreenSharing: rp.isScreenShareEnabled(),
                 hasVideo: !rp.videoTracks.isEmpty,
-                audioLevel: rp.audioLevel
+                audioLevel: rp.audioLevel,
+                avatarAuthToken: authToken
             ))
         }
 
@@ -196,7 +200,10 @@ final class CallManager: @unchecked Sendable {
         Task {
             for identity in identities {
                 guard !identity.isEmpty else { continue }
-                let urlString = "\(serverUrl)/passport/accounts/by-username/\(identity)"
+                guard let encodedIdentity = identity.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+                    continue
+                }
+                let urlString = "\(serverUrl)/passport/accounts/by-username/\(encodedIdentity)"
                 guard let url = URL(string: urlString) else { continue }
                 var req = URLRequest(url: url)
                 req.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
@@ -207,13 +214,12 @@ final class CallManager: @unchecked Sendable {
                     guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                           let profile = json["profile"] as? [String: Any],
                           let picture = profile["picture"] as? [String: Any],
-                          let pictureId = picture["id"] as? String else { continue }
-
-                    let avatarUrl = "\(serverUrl)/drive/files/\(pictureId)"
+                          let avatarUrl = resolveAvatarUrl(from: picture, serverUrl: serverUrl) else { continue }
 
                     // Update participant with avatar URL
                     if let idx = self.state.participants.firstIndex(where: { $0.id == identity }) {
                         self.state.participants[idx].avatarUrl = avatarUrl
+                        self.state.participants[idx].avatarAuthToken = authToken
                         self.emitParticipants()
                         self.emitState()
                     }
@@ -222,6 +228,22 @@ final class CallManager: @unchecked Sendable {
                 }
             }
         }
+    }
+
+    private func resolveAvatarUrl(from picture: [String: Any], serverUrl: String) -> String? {
+        if let storageUrl = picture["storage_url"] as? String, !storageUrl.isEmpty {
+            return storageUrl
+        }
+        if let directUrl = picture["url"] as? String, !directUrl.isEmpty {
+            if directUrl.hasPrefix("http://") || directUrl.hasPrefix("https://") {
+                return directUrl
+            }
+            return "\(serverUrl)\(directUrl.hasPrefix("/") ? "" : "/")\(directUrl)"
+        }
+        if let pictureId = picture["id"] as? String, !pictureId.isEmpty {
+            return "\(serverUrl)/drive/files/\(pictureId)"
+        }
+        return nil
     }
 
     // MARK: - Connection state
@@ -344,7 +366,8 @@ final class CallManager: @unchecked Sendable {
         let arr = state.participants.map { p -> [String: Any] in
             ["id": p.id, "name": p.name, "isSpeaking": p.isSpeaking,
              "isMuted": p.isMuted, "hasVideo": p.hasVideo, "audioLevel": p.audioLevel,
-             "avatarUrl": p.avatarUrl as Any]
+             "avatarUrl": p.avatarUrl as Any,
+             "avatarAuthToken": p.avatarAuthToken as Any]
         }
         onParticipantsChanged?(arr)
     }
