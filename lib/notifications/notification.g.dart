@@ -35,7 +35,7 @@ final class NotificationUnreadCountNotifierProvider
 }
 
 String _$notificationUnreadCountNotifierHash() =>
-    r'2e7b136051e29f20cca8a5b56294bbd8ffdfd4c9';
+    r'e99d1050bb33d3f679090249caebc6b602f5c02a';
 
 abstract class _$NotificationUnreadCountNotifier extends $AsyncNotifier<int> {
   FutureOr<int> build();

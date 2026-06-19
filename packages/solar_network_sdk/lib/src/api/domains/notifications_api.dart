@@ -10,6 +10,17 @@ class NotificationsApi extends BaseApi {
   /// Base path for all notification endpoints.
   static const String _basePath = '/ring';
 
+  Map<String, dynamic>? _queryWithApp(
+    String? app,
+    Map<String, dynamic>? query,
+  ) {
+    final next = <String, dynamic>{...?query};
+    if (app != null && app.isNotEmpty) {
+      next['app'] = app;
+    }
+    return next.isEmpty ? null : next;
+  }
+
   // Hardcoded notification topics
   static const List<SnNotificationTopic> _defaultTopics = [
     SnNotificationTopic(
@@ -53,10 +64,11 @@ class NotificationsApi extends BaseApi {
   Future<PaginatedResult<SnNotification>> getNotifications({
     int offset = 0,
     int take = 20,
+    String? app,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/notifications',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: _queryWithApp(app, {'offset': offset, 'take': take}),
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnNotification.fromJson);
@@ -81,8 +93,11 @@ class NotificationsApi extends BaseApi {
   }
 
   /// Marks all notifications as read.
-  Future<void> markAllAsRead() async {
-    await post('$_basePath/notifications/read-all');
+  Future<void> markAllAsRead({String? app}) async {
+    await post(
+      '$_basePath/notifications/all/read',
+      queryParameters: _queryWithApp(app, null),
+    );
   }
 
   /// Deletes a notification.
@@ -98,11 +113,16 @@ class NotificationsApi extends BaseApi {
   }
 
   /// Gets unread notification count.
-  Future<int> getUnreadCount() async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/notifications/unread-count',
+  Future<int> getUnreadCount({String? app}) async {
+    final response = await get<dynamic>(
+      '$_basePath/notifications/count',
+      queryParameters: _queryWithApp(app, null),
     );
-    return response.data!['count'] as int;
+    final data = response.data;
+    if (data is num) return data.toInt();
+    if (data is Map<String, dynamic>)
+      return (data['count'] as num?)?.toInt() ?? 0;
+    return 0;
   }
 
   // ==========================================
@@ -183,9 +203,12 @@ class NotificationsApi extends BaseApi {
   // ==========================================
 
   /// Lists all push subscriptions for the current account.
-  Future<List<SnNotificationPushSubscription>> getSubscriptions() async {
+  Future<List<SnNotificationPushSubscription>> getSubscriptions({
+    String? app,
+  }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/notifications/subscription',
+      queryParameters: _queryWithApp(app, null),
     );
     final data = response.data ?? [];
     return data
@@ -200,9 +223,12 @@ class NotificationsApi extends BaseApi {
   /// Gets the active push subscription for the current device session.
   ///
   /// Returns null if no subscription is active on this device.
-  Future<SnNotificationPushSubscription?> getCurrentSubscription() async {
+  Future<SnNotificationPushSubscription?> getCurrentSubscription({
+    String? app,
+  }) async {
     final response = await get<dynamic>(
       '$_basePath/notifications/subscription/current',
+      queryParameters: _queryWithApp(app, null),
     );
     if (response.data == null) return null;
     return SnNotificationPushSubscription.fromJson(
@@ -215,5 +241,39 @@ class NotificationsApi extends BaseApi {
   /// [subscriptionId] - The subscription ID to delete.
   Future<void> deleteSubscription(String subscriptionId) async {
     await delete('$_basePath/notifications/subscription/$subscriptionId');
+  }
+
+  /// Registers or updates a push subscription for the current device.
+  Future<void> registerPushSubscription({
+    required String deviceToken,
+    required SnNotificationPushSubscriptionProvider provider,
+    String? deviceName,
+    String? appId,
+  }) async {
+    await put(
+      '$_basePath/notifications/subscription',
+      data: {
+        'device_token': deviceToken,
+        'provider': provider.value,
+        if (deviceName != null && deviceName.isNotEmpty)
+          'device_name': deviceName,
+        if (appId != null && appId.isNotEmpty) 'app_id': appId,
+      },
+    );
+  }
+
+  /// Registers an SOP subscription for the current device.
+  Future<Map<String, dynamic>> registerSopSubscription({
+    required String deviceName,
+    String? appId,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/notifications/sop/subscription',
+      data: {
+        'device_name': deviceName,
+        if (appId != null && appId.isNotEmpty) 'app_id': appId,
+      },
+    );
+    return response.data ?? const {};
   }
 }

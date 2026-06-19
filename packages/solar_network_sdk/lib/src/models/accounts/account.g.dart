@@ -339,6 +339,7 @@ _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
     _SnNotification(
       createdAt: DateTime.parse(json['created_at'] as String),
       id: json['id'] as String,
+      appId: json['app_id'] as String?,
       topic: json['topic'] as String,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String? ?? '',
@@ -354,6 +355,7 @@ Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
     <String, dynamic>{
       'created_at': instance.createdAt.toIso8601String(),
       'id': instance.id,
+      'app_id': instance.appId,
       'topic': instance.topic,
       'title': instance.title,
       'subtitle': instance.subtitle,
@@ -626,6 +628,7 @@ _SnNotificationPushSubscription _$SnNotificationPushSubscriptionFromJson(
 ) => _SnNotificationPushSubscription(
   id: json['id'] as String,
   accountId: json['account_id'] as String,
+  appId: json['app_id'] as String?,
   deviceId: json['device_id'] as String,
   deviceToken: json['device_token'] as String,
   deviceName: json['device_name'] as String?,
@@ -646,6 +649,7 @@ Map<String, dynamic> _$SnNotificationPushSubscriptionToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'account_id': instance.accountId,
+  'app_id': instance.appId,
   'device_id': instance.deviceId,
   'device_token': instance.deviceToken,
   'device_name': instance.deviceName,

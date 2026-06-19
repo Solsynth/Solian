@@ -259,6 +259,7 @@ sealed class SnNotification with _$SnNotification {
   const factory SnNotification({
     required DateTime createdAt,
     required String id,
+    String? appId,
     required String topic,
     required String title,
     @Default('') String subtitle,
@@ -482,6 +483,7 @@ sealed class SnNotificationPushSubscription
   const factory SnNotificationPushSubscription({
     required String id,
     required String accountId,
+    String? appId,
     required String deviceId,
     required String deviceToken,
     String? deviceName,

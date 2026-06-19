@@ -226,9 +226,10 @@ Future<void> _putTokenToRemote(Dio apiClient, String token, int type) async {
   await apiClient.put(
     "/ring/notifications/subscription",
     data: {
-      "type": type,
+      "provider": type,
       "device_token": token,
       "device_name": await getDeviceName(),
+      "app_id": kNotificationTenantAppId,
     },
   );
 }
