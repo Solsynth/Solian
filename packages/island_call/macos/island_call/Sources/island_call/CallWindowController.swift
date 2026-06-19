@@ -30,19 +30,29 @@ final class CallWindowController {
         )
 
         let hostingView = NSHostingView(rootView: callView)
-        hostingView.frame = NSRect(x: 0, y: 0, width: 800, height: 600)
+        hostingView.frame = NSRect(x: 0, y: 0, width: 430, height: 860)
 
         let w = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
-            styleMask: [.titled, .closable, .resizable, .miniaturizable],
+            contentRect: NSRect(x: 0, y: 0, width: 430, height: 860),
+            styleMask: [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         w.title = manager.state.roomName ?? "Call"
         w.contentView = hostingView
         w.isReleasedWhenClosed = false
+        w.titleVisibility = .hidden
+        w.titlebarAppearsTransparent = true
+        w.isOpaque = false
+        w.backgroundColor = .clear
+        w.hasShadow = true
+        w.minSize = NSSize(width: 390, height: 760)
+        w.setContentSize(NSSize(width: 430, height: 860))
+        w.collectionBehavior = [.fullScreenNone, .moveToActiveSpace]
         w.center()
         w.makeKeyAndOrderFront(nil)
+
+        w.standardWindowButton(.zoomButton)?.isHidden = true
 
         // Close button = leave call
         w.delegate = WindowDelegate { [weak self] in

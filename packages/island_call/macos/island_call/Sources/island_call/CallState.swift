@@ -29,16 +29,18 @@ final class CallState: ObservableObject {
         var hasVideo = false
         var audioLevel: Float = 0
         var avatarUrl: String? = nil
+        var avatarAuthToken: String? = nil
     }
 
     private var durationTimer: Timer?
 
-    func startDurationTimer(from joinedAt: Date) {
+    func startDurationTimer(from joinedAt: Date, onTick: (() -> Void)? = nil) {
         durationTimer?.invalidate()
         duration = 0
         durationTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.duration = Date().timeIntervalSince(joinedAt)
+                onTick?()
             }
         }
     }
