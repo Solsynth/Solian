@@ -7,6 +7,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/network.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -293,6 +294,14 @@ class CallNotifier extends _$CallNotifier {
   }
 
   Future<void> _performConnection(SnChatRoom room) async {
+    // Request microphone permission on macOS before connecting
+    if (!kIsWeb && Platform.isMacOS) {
+      final micStatus = await Permission.microphone.request();
+      if (!micStatus.isGranted) {
+        throw Exception('Microphone permission is required for calls');
+      }
+    }
+
     final apiClient = ref.read(apiClientProvider);
     final response = await apiClient.get(
       '/messager/chat/realtime/${room.id}/join',

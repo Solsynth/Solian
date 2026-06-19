@@ -10,8 +10,8 @@ import 'package:logging/logging.dart';
 
 part 'native_call_bridge.g.dart';
 
-/// Whether native call UI is available (iOS/macOS only, not web).
-bool get isNativeCallAvailable => !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+/// Whether native call UI is available (iOS only for CallKit, not web or macOS).
+bool get isNativeCallAvailable => !kIsWeb && Platform.isIOS;
 
 /// Thin wrapper that listens to the native event channel and exposes
 /// call state to Flutter widgets that need it (e.g., showing "in call" badges).
