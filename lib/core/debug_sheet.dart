@@ -1116,6 +1116,26 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               }
             },
           ),
+          _DebugItem(
+            icon: Symbols.copy_all,
+            title: '[CallKit] Copy VoIP Token',
+            onTap: () async {
+              try {
+                final token = await IslandCall.getVoipToken();
+                if (token != null) {
+                  await Clipboard.setData(ClipboardData(text: token));
+                  if (!context.mounted) return;
+                  showSnackBar('VoIP token copied');
+                } else {
+                  if (!context.mounted) return;
+                  showSnackBar('No VoIP token available');
+                }
+              } catch (e) {
+                if (!context.mounted) return;
+                showErrorAlert(e);
+              }
+            },
+          ),
         ],
         const Gap(8),
       ],
@@ -1871,6 +1891,29 @@ class DebugSheet extends HookConsumerWidget {
                     await IslandCall.startCall(roomId);
                     if (!context.mounted) return;
                     showSnackBar('Fake outgoing call triggered for room: $roomId');
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    showErrorAlert(e);
+                  }
+                },
+              ),
+              ListTile(
+                minTileHeight: 48,
+                leading: const Icon(Symbols.copy_all),
+                trailing: const Icon(Symbols.chevron_right),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                title: const Text('[CallKit] Copy VoIP Token'),
+                onTap: () async {
+                  try {
+                    final token = await IslandCall.getVoipToken();
+                    if (token != null) {
+                      await Clipboard.setData(ClipboardData(text: token));
+                      if (!context.mounted) return;
+                      showSnackBar('VoIP token copied');
+                    } else {
+                      if (!context.mounted) return;
+                      showSnackBar('No VoIP token available');
+                    }
                   } catch (e) {
                     if (!context.mounted) return;
                     showErrorAlert(e);
