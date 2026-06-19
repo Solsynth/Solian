@@ -8,15 +8,12 @@ part of 'thought_chat_notifier.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Notifier for managing thought chat state
 
 @ProviderFor(ThoughtChatNotifier)
 final thoughtChatProvider = ThoughtChatNotifierFamily._();
 
-/// Notifier for managing thought chat state
 final class ThoughtChatNotifierProvider
     extends $NotifierProvider<ThoughtChatNotifier, ThoughtChatState> {
-  /// Notifier for managing thought chat state
   ThoughtChatNotifierProvider._({
     required ThoughtChatNotifierFamily super.from,
     required ThoughtChatArgs super.argument,
@@ -62,9 +59,7 @@ final class ThoughtChatNotifierProvider
 }
 
 String _$thoughtChatNotifierHash() =>
-    r'b2133daf4086f89d460ee6fa34c4102a2d048066';
-
-/// Notifier for managing thought chat state
+    r'976dd15c01c53bc82b17be5282b1cd7f7decdbd0';
 
 final class ThoughtChatNotifierFamily extends $Family
     with
@@ -84,16 +79,12 @@ final class ThoughtChatNotifierFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Notifier for managing thought chat state
-
   ThoughtChatNotifierProvider call(ThoughtChatArgs args) =>
       ThoughtChatNotifierProvider._(argument: args, from: this);
 
   @override
   String toString() => r'thoughtChatProvider';
 }
-
-/// Notifier for managing thought chat state
 
 abstract class _$ThoughtChatNotifier extends $Notifier<ThoughtChatState> {
   late final _$args = ref.$arg as ThoughtChatArgs;
