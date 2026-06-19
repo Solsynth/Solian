@@ -35,6 +35,7 @@ final class CallManager: NSObject, @unchecked Sendable {
             }
         }
     }
+    var activeRoomId: String?
     var voipToken: String?
 
     // Reconnection
@@ -191,6 +192,7 @@ final class CallManager: NSObject, @unchecked Sendable {
         do {
             try await callController.request(CXTransaction(action: action))
             activeCallUUID = callUUID
+            activeRoomId = handle
         } catch {
             // ponytail: failed to start CallKit call
         }
@@ -200,6 +202,7 @@ final class CallManager: NSObject, @unchecked Sendable {
         guard let callUUID = activeCallUUID else { return }
         let action = CXEndCallAction(call: callUUID)
         try? await callController.request(CXTransaction(action: action))
+        activeRoomId = nil
     }
 
     func reportIncomingCall(from callerId: String, callerName: String, roomId: String) {
@@ -212,6 +215,7 @@ final class CallManager: NSObject, @unchecked Sendable {
         provider.reportNewIncomingCall(with: callUUID, update: update) { [weak self] error in
             guard error == nil else { return }
             self?.activeCallUUID = callUUID
+            self?.activeRoomId = roomId
         }
     }
 
@@ -505,6 +509,7 @@ extension CallManager: RoomDelegate {
 extension CallManager: CXProviderDelegate {
     func providerDidReset(_ provider: CXProvider) {
         activeCallUUID = nil
+        activeRoomId = nil
     }
 
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
@@ -517,6 +522,7 @@ extension CallManager: CXProviderDelegate {
             } catch {
                 action.fail()
                 activeCallUUID = nil
+                activeRoomId = nil
             }
         }
     }
@@ -524,7 +530,11 @@ extension CallManager: CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         Task {
             do {
-                try await joinRoom(action.handle.value)
+                guard let roomId = activeRoomId else {
+                    action.fail()
+                    return
+                }
+                try await joinRoom(roomId)
                 action.fulfill()
                 Task { @MainActor in self.onCallKitCallConnected?() }
             } catch {
@@ -539,6 +549,7 @@ extension CallManager: CXProviderDelegate {
             await leaveRoom()
             action.fulfill()
             activeCallUUID = nil
+            activeRoomId = nil
             Task { @MainActor in self.onCallKitCallEnded?() }
         }
     }
@@ -583,7 +594,8 @@ extension CallManager: PKPushRegistryDelegate {
         guard type == .voIP else { completion(); return }
 
         // Backend sends call info nested in "meta"
-        let meta = payload.dictionaryPayload["meta"] as? [String: Any] ?? payload.dictionaryPayload
+        let rawPayload = payload.dictionaryPayload as? [String: Any] ?? [:]
+        let meta = rawPayload["meta"] as? [String: Any] ?? rawPayload
         let callerId = meta["caller_id"] as? String ?? "Unknown"
         let callerName = meta["caller_name"] as? String ?? "Unknown"
         let roomId = meta["room_id"] as? String ?? ""

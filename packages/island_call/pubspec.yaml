@@ -1,5 +1,5 @@
 name: island_call
-description: "Native call UI plugin using LiveKit client-sdk-swift for iOS and macOS."
+description: "Native call UI plugin using LiveKit client-sdk-swift for iOS."
 version: 0.0.1
 publish_to: none
 
@@ -35,8 +35,6 @@ flutter:
   plugin:
     platforms:
       ios:
-        pluginClass: IslandCallPlugin
-      macos:
         pluginClass: IslandCallPlugin
 
   # To add assets to your plugin package, add an assets section, like this:

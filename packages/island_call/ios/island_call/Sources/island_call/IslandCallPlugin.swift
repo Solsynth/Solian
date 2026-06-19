@@ -137,6 +137,13 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
             manager.reportIncomingCall(from: callerId, callerName: callerName, roomId: roomId)
             result(nil)
 
+        case "simulateIncomingCall":
+            let args = call.arguments as? [String: Any]
+            let callerName = args?["callerName"] as? String ?? "Test User"
+            let roomId = args?["roomId"] as? String ?? "test-room"
+            manager.reportIncomingCall(from: "test", callerName: callerName, roomId: roomId)
+            result(nil)
+
         case "getVoipToken":
             result(manager.voipToken)
 
