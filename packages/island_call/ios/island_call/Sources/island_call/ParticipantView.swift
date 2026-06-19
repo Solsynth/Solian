@@ -11,13 +11,20 @@ struct AvatarImage: View {
 
     var body: some View {
         if let urlString, let url = URL(string: urlString) {
+            avatarImage(url: url)
+        } else {
+            fallback
+        }
+    }
+
+    @ViewBuilder
+    private func avatarImage(url: URL) -> some View {
+        if let authToken {
             KFImage.url(url)
-                .requestModifier(authToken.map { token in
-                    AnyModifier { request in
-                        var request = request
-                        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                        return request
-                    }
+                .requestModifier(AnyModifier { request in
+                    var request = request
+                    request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+                    return request
                 })
                 .resizable()
                 .placeholder {
@@ -29,7 +36,16 @@ struct AvatarImage: View {
                 .frame(width: size, height: size)
                 .clipShape(Circle())
         } else {
-            fallback
+            KFImage(url)
+                .resizable()
+                .placeholder {
+                    ProgressView().tint(.white.opacity(0.45))
+                }
+                .onFailure { _ in /* ponytail: silent */ }
+                .fade(duration: 0.2)
+                .aspectRatio(contentMode: .fill)
+                .frame(width: size, height: size)
+                .clipShape(Circle())
         }
     }
 
