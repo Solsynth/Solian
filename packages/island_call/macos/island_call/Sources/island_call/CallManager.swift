@@ -1,13 +1,16 @@
 import Foundation
 import LiveKitClient
+import CallKit
 
-// Shared between iOS and macOS.
-// ponytail: All callers are main-thread (Flutter plugin + Task { @MainActor }),
-// @MainActor annotation would cause isolation errors in nonisolated contexts.
-final class CallManager: @unchecked Sendable {
+// ponytail: macOS has CXProvider but no PushKit. VoIP pushes handled server-side or via APNs.
+final class CallManager: NSObject, @unchecked Sendable {
     let state = CallState()
     var onStateChanged: (([String: Any]) -> Void)?
     var onParticipantsChanged: (([[String: Any]]) -> Void)?
+
+    // CallKit/CallUI callbacks
+    var onCallKitCallConnected: (() -> Void)?
+    var onCallKitCallEnded: (() -> Void)?
 
     private var room: Room?
     private var localParticipant: LocalParticipant?
@@ -15,6 +18,19 @@ final class CallManager: @unchecked Sendable {
     // Auth
     private var serverUrl: String?
     private var authToken: String?
+
+    // CallKit
+    private let callController = CXCallController()
+    private let provider: CXProvider
+
+    // CallKit state
+    var activeCallUUID: UUID? {
+        didSet {
+            Task { @MainActor [weak self] in
+                self?.state.activeCallUuid = self?.activeCallUUID?.uuidString
+            }
+        }
+    }
 
     // Reconnection
     private var reconnectAttempts = 0
@@ -29,6 +45,19 @@ final class CallManager: @unchecked Sendable {
     private var reconnectGraceTimer: Timer?
 
     // MARK: - Initialize
+
+    override init() {
+        let config = CXProviderConfiguration()
+        config.supportedHandleTypes = [.generic]
+        config.maximumCallsPerCallGroup = 1
+        config.maximumCallGroups = 1
+        config.supportsVideo = false
+        provider = CXProvider(configuration: config)
+
+        super.init()
+
+        provider.setDelegate(self, queue: nil)
+    }
 
     func initialize(serverUrl: String, authToken: String) {
         self.serverUrl = serverUrl
@@ -80,7 +109,6 @@ final class CallManager: @unchecked Sendable {
         localParticipant = newRoom.localParticipant
         newRoom.delegates.add(delegate: self)
 
-        // Enable microphone by default (matches Flutter behavior)
         _ = try? await localParticipant?.setMicrophone(enabled: true)
 
         state.hasJoined = true
@@ -92,11 +120,6 @@ final class CallManager: @unchecked Sendable {
             self?.emitState()
         }
         emitState()
-
-        #if os(iOS)
-        // ponytail: Hardware class removed in LiveKit 2.15.0
-        // try? AVAudioSession.sharedInstance().overrideOutputAudioPort(.speaker)
-        #endif
 
         startHealthMonitor()
         refreshParticipants()
@@ -143,16 +166,68 @@ final class CallManager: @unchecked Sendable {
     func toggleSpeaker() async {
         let target = !state.isSpeakerphone
         state.isSpeakerphone = target
-        // ponytail: Hardware class removed in LiveKit 2.15.0, use AVAudioSession directly if needed
-        #if os(iOS)
-        // try? AVAudioSession.sharedInstance().overrideOutputAudioPort(target ? .speaker : .none)
-        #endif
         emitState()
     }
 
     func toggleViewMode() {
         state.viewMode = state.viewMode == .grid ? .stage : .grid
         emitState()
+    }
+
+    // MARK: - CallKit
+
+    func startCall(handle: String) async {
+        let callUUID = UUID()
+        let cxHandle = CXHandle(type: .generic, value: handle)
+        let action = CXStartCallAction(call: callUUID, handle: cxHandle)
+        do {
+            try await callController.request(CXTransaction(action: action))
+            activeCallUUID = callUUID
+        } catch {
+            // ponytail: failed to start CallKit call
+        }
+    }
+
+    func endCall() async {
+        guard let callUUID = activeCallUUID else { return }
+        let action = CXEndCallAction(call: callUUID)
+        try? await callController.request(CXTransaction(action: action))
+    }
+
+    func reportIncomingCall(from callerId: String, callerName: String, roomId: String) {
+        let callUUID = UUID()
+        let update = CXCallUpdate()
+        update.remoteHandle = CXHandle(type: .generic, value: roomId)
+        update.localizedCallerName = callerName
+        update.hasVideo = false
+
+        provider.reportNewIncomingCall(with: callUUID, update: update) { [weak self] error in
+            guard error == nil else { return }
+            self?.activeCallUUID = callUUID
+        }
+    }
+
+    // MARK: - Invite
+
+    func inviteToCall(roomId: String, targetAccountId: String) async throws {
+        guard let serverUrl, let authToken else {
+            throw CallError.notInitialized
+        }
+
+        let urlString = "\(serverUrl)/messager/chat/realtime/\(roomId)/invite/\(targetAccountId)"
+        guard let url = URL(string: urlString) else {
+            throw CallError.apiFailed
+        }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        req.timeoutInterval = 10
+
+        let (_, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw CallError.apiFailed
+        }
     }
 
     // MARK: - Participant refresh
@@ -216,7 +291,6 @@ final class CallManager: @unchecked Sendable {
                           let picture = profile["picture"] as? [String: Any],
                           let avatarUrl = resolveAvatarUrl(from: picture, serverUrl: serverUrl) else { continue }
 
-                    // Update participant with avatar URL
                     if let idx = self.state.participants.firstIndex(where: { $0.id == identity }) {
                         self.state.participants[idx].avatarUrl = avatarUrl
                         self.state.participants[idx].avatarAuthToken = authToken
@@ -415,6 +489,60 @@ extension CallManager: RoomDelegate {
 
     nonisolated func room(_ room: Room, participantDidDisconnect participant: RemoteParticipant) {
         Task { @MainActor [weak self] in self?.refreshParticipants() }
+    }
+}
+
+// MARK: - CXProviderDelegate
+
+extension CallManager: CXProviderDelegate {
+    func providerDidReset(_ provider: CXProvider) {
+        activeCallUUID = nil
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
+        Task {
+            do {
+                provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
+                try await joinRoom(action.handle.value)
+                action.fulfill()
+                Task { @MainActor in self.onCallKitCallConnected?() }
+            } catch {
+                action.fail()
+                activeCallUUID = nil
+            }
+        }
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+        Task {
+            do {
+                try await joinRoom(action.handle.value)
+                action.fulfill()
+                Task { @MainActor in self.onCallKitCallConnected?() }
+            } catch {
+                action.fail()
+                Task { @MainActor in self.state.error = error.localizedDescription }
+            }
+        }
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+        Task {
+            await leaveRoom()
+            action.fulfill()
+            activeCallUUID = nil
+            Task { @MainActor in self.onCallKitCallEnded?() }
+        }
+    }
+
+    func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
+        Task {
+            if let lp = localParticipant {
+                _ = try? await lp.setMicrophone(enabled: !action.isMuted)
+                Task { @MainActor in self.state.isMicrophoneEnabled = !action.isMuted }
+            }
+            action.fulfill()
+        }
     }
 }
 

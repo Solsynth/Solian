@@ -30,6 +30,12 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
                 instance.participantsSink?(arr)
             }
         }
+        instance.manager.onCallKitCallConnected = { [weak instance] in
+            instance?.showCallUI()
+        }
+        instance.manager.onCallKitCallEnded = { [weak instance] in
+            instance?.dismissCallUI()
+        }
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -101,6 +107,53 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
             Task { @MainActor in
                 self.dismissExpandedView()
                 result(nil)
+            }
+
+        case "startCall":
+            guard let args = call.arguments as? [String: Any],
+                  let handle = args["handle"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "handle required", details: nil))
+                return
+            }
+            Task { @MainActor in
+                await manager.startCall(handle: handle)
+                result(nil)
+            }
+
+        case "endCall":
+            Task { @MainActor in
+                await manager.endCall()
+                result(nil)
+            }
+
+        case "reportIncomingCall":
+            guard let args = call.arguments as? [String: Any],
+                  let callerId = args["callerId"] as? String,
+                  let callerName = args["callerName"] as? String,
+                  let roomId = args["roomId"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "callerId, callerName, and roomId required", details: nil))
+                return
+            }
+            manager.reportIncomingCall(from: callerId, callerName: callerName, roomId: roomId)
+            result(nil)
+
+        case "getVoipToken":
+            result(manager.voipToken)
+
+        case "inviteToCall":
+            guard let args = call.arguments as? [String: Any],
+                  let roomId = args["roomId"] as? String,
+                  let targetAccountId = args["targetAccountId"] as? String else {
+                result(FlutterError(code: "INVALID_ARGS", message: "roomId and targetAccountId required", details: nil))
+                return
+            }
+            Task { @MainActor in
+                do {
+                    try await manager.inviteToCall(roomId: roomId, targetAccountId: targetAccountId)
+                    result(nil)
+                } catch {
+                    result(FlutterError(code: "INVITE_FAILED", message: error.localizedDescription, details: nil))
+                }
             }
 
         default:

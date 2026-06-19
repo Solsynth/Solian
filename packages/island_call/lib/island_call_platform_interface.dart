@@ -55,4 +55,24 @@ abstract class IslandCallPlatform extends PlatformInterface {
   Stream<List<Map<String, dynamic>>> get onParticipantsChanged {
     throw UnimplementedError();
   }
+
+  Future<void> startCall(String handle) {
+    throw UnimplementedError();
+  }
+
+  Future<void> endCall() {
+    throw UnimplementedError();
+  }
+
+  Future<void> reportIncomingCall({required String callerId, required String callerName, required String roomId}) {
+    throw UnimplementedError();
+  }
+
+  Future<String?> getVoipToken() {
+    throw UnimplementedError();
+  }
+
+  Future<void> inviteToCall({required String roomId, required String targetAccountId}) {
+    throw UnimplementedError();
+  }
 }

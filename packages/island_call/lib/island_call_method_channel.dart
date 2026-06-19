@@ -51,4 +51,32 @@ class MethodChannelIslandCall extends IslandCallPlatform {
         final list = e as List;
         return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
       });
+
+  @override
+  Future<void> startCall(String handle) =>
+      _channel.invokeMethod('startCall', {'handle': handle});
+
+  @override
+  Future<void> endCall() => _channel.invokeMethod('endCall');
+
+  @override
+  Future<void> reportIncomingCall({required String callerId, required String callerName, required String roomId}) =>
+      _channel.invokeMethod('reportIncomingCall', {
+        'callerId': callerId,
+        'callerName': callerName,
+        'roomId': roomId,
+      });
+
+  @override
+  Future<String?> getVoipToken() async {
+    final result = await _channel.invokeMethod('getVoipToken');
+    return result as String?;
+  }
+
+  @override
+  Future<void> inviteToCall({required String roomId, required String targetAccountId}) =>
+      _channel.invokeMethod('inviteToCall', {
+        'roomId': roomId,
+        'targetAccountId': targetAccountId,
+      });
 }
