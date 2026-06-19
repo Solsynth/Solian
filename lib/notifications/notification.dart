@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -117,8 +118,9 @@ class NotificationUnreadCountNotifier
 
     try {
       final client = ref.read(solarNetworkClientProvider);
-      final response = await client.dio.get('/ring/notifications/count');
-      return (response.data as num).toInt();
+      return await client.notifications.getUnreadCount(
+        app: kNotificationTenantAppId,
+      );
     } catch (_) {
       return 0;
     }
@@ -151,8 +153,10 @@ class NotificationUnreadCountNotifier
   Future<void> refresh() async {
     try {
       final client = ref.read(solarNetworkClientProvider);
-      final response = await client.dio.get('/ring/notifications/count');
-      state = AsyncData((response.data as num).toInt());
+      final count = await client.notifications.getUnreadCount(
+        app: kNotificationTenantAppId,
+      );
+      state = AsyncData(count);
     } catch (_) {
       // Keep the current state if refresh fails
     }
@@ -184,18 +188,13 @@ class NotificationListNotifier
   @override
   Future<List<SnNotification>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
-
-    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
-
-    final response = await client.dio.get(
-      '/ring/notifications',
-      queryParameters: queryParams,
+    final response = await client.notifications.getNotifications(
+      offset: fetchedCount,
+      take: pageSize,
+      app: kNotificationTenantAppId,
     );
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final notifications = response.data
-        .map((json) => SnNotification.fromJson(json))
-        .cast<SnNotification>()
-        .toList();
+    totalCount = response.totalCount;
+    final notifications = response.items;
 
     final unreadCount = notifications.where((n) => n.viewedAt == null).length;
     if (ref.mounted) {
@@ -225,7 +224,7 @@ class NotificationSheet extends HookConsumerWidget {
     Future<void> markAllRead() async {
       isLoading.value = true;
       final client = ref.watch(solarNetworkClientProvider);
-      await client.dio.post('/ring/notifications/all/read');
+      await client.notifications.markAllAsRead(app: kNotificationTenantAppId);
       if (!context.mounted) return;
       isLoading.value = false;
       ref.read(notificationListProvider.notifier).refresh();

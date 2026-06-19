@@ -26,6 +26,7 @@ const kTokenPairStoreKey = 'dyn_user_tk';
 
 const kNetworkServerDefault = 'https://api.solian.app';
 const kNetworkServerStoreKey = 'app_server_url';
+const kNotificationTenantAppId = 'dev.solsynth.solian';
 
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
 const kAppBackgroundStoreKey = 'app_has_background';
