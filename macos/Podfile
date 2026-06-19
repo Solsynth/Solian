@@ -1,3 +1,8 @@
+source "https://cdn.cocoapods.org/"
+# https://github.com/livekit/client-sdk-swift/blob/main/Docs/cocoapods.md
+# The client-sdk-swift supports SPM, but we keep using cocoapods for now
+source "https://github.com/livekit/podspecs.git"
+
 platform :osx, '13.5'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
@@ -28,6 +33,8 @@ flutter_macos_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+
+  pod 'LiveKitClient'
 
   flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
