@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RoomOverlays extends ConsumerWidget {
@@ -23,7 +24,7 @@ class RoomOverlays extends ConsumerWidget {
     return Stack(
       children: [
         roomAsync.when(
-          data: (data) => data != null
+          data: (data) => data != null && !isNativeCallAvailable
               ? CallOverlayBar(room: data)
               : const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),

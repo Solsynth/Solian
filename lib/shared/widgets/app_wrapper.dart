@@ -21,6 +21,7 @@ import 'package:island/accounts/screens/me/account_qr.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
@@ -107,6 +108,13 @@ class AppWrapper extends HookConsumerWidget {
 
     useEffect(() {
       ref.read(desktopPresenceProvider);
+      return null;
+    }, []);
+
+    useEffect(() {
+      if (isNativeCallAvailable) {
+        ref.read(nativeCallBridgeProvider.notifier).ensureInitialized(ref);
+      }
       return null;
     }, []);
 

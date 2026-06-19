@@ -1,3 +1,8 @@
+source "https://cdn.cocoapods.org/"
+# https://github.com/livekit/client-sdk-swift/blob/main/Docs/cocoapods.md
+# The client-sdk-swift supports SPM, but we keep using cocoapods for now
+source "https://github.com/livekit/podspecs.git"
+
 platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
@@ -33,6 +38,8 @@ target 'Runner' do
   pod 'Alamofire'
   pod 'Kingfisher', '~> 8.0'
   pod 'KingfisherWebP'
+
+  pod 'LiveKitClient'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
