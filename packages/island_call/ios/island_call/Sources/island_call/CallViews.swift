@@ -3,23 +3,19 @@ import Kingfisher
 import UIKit
 import LiveKitClient
 
-// MARK: - Design tokens (shared with macOS via same values)
-
 private enum CallDesign {
-    static let bg = Color(red: 0.055, green: 0.067, blue: 0.09)
-    static let surface = Color(red: 0.082, green: 0.094, blue: 0.114)
-    static let text = Color.white
-    static let textSecondary = Color.white.opacity(0.55)
-    static let textMuted = Color.white.opacity(0.35)
-    static let green = Color(red: 0.25, green: 0.81, blue: 0.56)
-    static let red = Color(red: 0.90, green: 0.24, blue: 0.24)
-    static let titleFont = Font.system(size: 15, weight: .semibold)
-    static let bodyFont = Font.system(size: 12, weight: .regular)
-    static let captionFont = Font.system(size: 11, weight: .medium)
-    static let monoFont = Font.system(size: 12, design: .monospaced)
+    static let background = Color(red: 0.03, green: 0.03, blue: 0.05)
+    static let backgroundSecondary = Color(red: 0.10, green: 0.10, blue: 0.13)
+    static let panel = Color(red: 0.08, green: 0.08, blue: 0.10)
+    static let panelSoft = Color(red: 0.14, green: 0.14, blue: 0.18)
+    static let chip = Color.white.opacity(0.12)
+    static let textPrimary = Color.white
+    static let textSecondary = Color.white.opacity(0.68)
+    static let textMuted = Color.white.opacity(0.42)
+    static let green = Color(red: 0.17, green: 0.68, blue: 0.35)
+    static let red = Color(red: 0.89, green: 0.20, blue: 0.25)
+    static let orange = Color(red: 0.98, green: 0.58, blue: 0.17)
 }
-
-// MARK: - Expanded Call View (iOS sheet)
 
 struct CallExpandedView: View {
     @ObservedObject var state: CallState
@@ -30,276 +26,366 @@ struct CallExpandedView: View {
     var onLeave: () -> Void
 
     @State private var controlsVisible = true
+    @State private var hasAppeared = false
 
-    private var allVoiceOnly: Bool {
-        !state.participants.contains { $0.hasVideo }
+    private var featuredParticipant: CallState.ParticipantInfo? {
+        state.participants.first(where: { $0.isSpeaking })
+            ?? state.participants.first(where: { $0.hasVideo })
+            ?? state.participants.first
+    }
+
+    private var secondaryParticipants: [CallState.ParticipantInfo] {
+        guard let featuredParticipant else { return state.participants }
+        return state.participants.filter { $0.id != featuredParticipant.id }
+    }
+
+    private var statusText: String {
+        if state.isConnected { return formatDuration(state.duration) }
+        if state.isReconnecting { return "Reconnecting" }
+        return "Connecting"
     }
 
     var body: some View {
-        ZStack {
-            CallDesign.bg.ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                backgroundView
 
+                VStack(spacing: 0) {
+                    if controlsVisible {
+                        topBar
+                            .padding(.horizontal, 28)
+                            .padding(.top, max(geo.safeAreaInsets.top, 16))
+                            .padding(.bottom, 10)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+
+                    Spacer(minLength: 0)
+
+                    contentBody
+                        .padding(.horizontal, 28)
+                        .scaleEffect(hasAppeared ? 1 : 0.97)
+                        .opacity(hasAppeared ? 1 : 0)
+
+                    Spacer(minLength: 24)
+
+                    if controlsVisible {
+                        lowerPanel
+                            .padding(.horizontal, 28)
+                            .padding(.bottom, max(geo.safeAreaInsets.bottom, 18))
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
+                    controlsVisible.toggle()
+                }
+            }
+            .onAppear {
+                withAnimation(.spring(response: 0.52, dampingFraction: 0.86)) {
+                    hasAppeared = true
+                }
+            }
+            .animation(.spring(response: 0.36, dampingFraction: 0.86), value: controlsVisible)
+        }
+    }
+
+    private var backgroundView: some View {
+        ZStack {
+            LinearGradient(
+                colors: [CallDesign.background, Color.black],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            Circle()
+                .fill(CallDesign.orange.opacity(0.12))
+                .frame(width: 10, height: 10)
+                .offset(y: -UIScreen.main.bounds.height * 0.42)
+
+            Circle()
+                .fill(Color(red: 0.42, green: 0.50, blue: 0.76).opacity(0.16))
+                .frame(width: 260, height: 260)
+                .blur(radius: 80)
+                .offset(x: 120, y: 140)
+
+            Circle()
+                .fill(CallDesign.green.opacity(0.12))
+                .frame(width: 220, height: 220)
+                .blur(radius: 90)
+                .offset(x: -150, y: 280)
+        }
+    }
+
+    private var contentBody: some View {
+        VStack(spacing: 22) {
             if let error = state.error {
                 ErrorStateView(message: error)
-            } else if state.participants.isEmpty {
-                WaitingStateView(isReconnecting: state.isReconnecting)
             } else {
-                mainContent
+                stagePanel
+
+                if state.participants.isEmpty {
+                    emptyStateCard
+                } else {
+                    if !secondaryParticipants.isEmpty {
+                        participantStrip
+                    }
+                }
             }
-
-            VStack {
-                if controlsVisible { headerBar }
-                Spacer()
-                if controlsVisible { controlsBar }
-            }
-        }
-        .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { controlsVisible.toggle() } }
-    }
-
-    // MARK: - Main content
-
-    @ViewBuilder
-    private var mainContent: some View {
-        if allVoiceOnly {
-            voiceChannelView
-        } else if state.viewMode == .stage {
-            stageView
-        } else {
-            videoGridView
         }
     }
 
-    // MARK: - Header
+    private var topBar: some View {
+        HStack(spacing: 14) {
+            Button(action: onToggleViewMode) {
+                Image(systemName: state.viewMode == .stage ? "square.grid.2x2.fill" : "rectangle.inset.filled.and.person.filled")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
+                    .background(Color.black.opacity(0.34))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(state.viewMode == .stage ? "Switch to grid view" : "Switch to stage view")
 
-    private var headerBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "phone.connection.fill")
-                .font(.system(size: 12))
-                .foregroundColor(CallDesign.green)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 7) {
+                    Text(state.roomName ?? "General")
+                        .font(.system(size: 19, weight: .bold))
+                        .foregroundColor(CallDesign.textPrimary)
 
-            Text(state.roomName ?? "Voice Channel")
-                .font(CallDesign.titleFont)
-                .foregroundColor(CallDesign.text)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(CallDesign.textMuted)
+                }
 
-            HStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(state.isConnected ? CallDesign.green : CallDesign.orange)
+                        .frame(width: 8, height: 8)
+                    Text(statusText)
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .foregroundColor(CallDesign.textSecondary)
+                }
+            }
+
+            Spacer()
+
+            Button(action: onToggleSpeaker) {
+                Image(systemName: state.isSpeakerphone ? "speaker.wave.3.fill" : "speaker.slash.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
+                    .background(Color.black.opacity(0.34))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(state.isSpeakerphone ? "Disable speaker" : "Enable speaker")
+
+            ZStack(alignment: .topTrailing) {
                 Circle()
-                    .fill(state.isConnected ? CallDesign.green : CallDesign.textMuted)
-                    .frame(width: 5, height: 5)
-                Text(state.isConnected ? formatDuration(state.duration) : state.isReconnecting ? "Reconnecting" : "Connecting")
-                    .font(CallDesign.monoFont)
-                    .foregroundColor(CallDesign.textSecondary)
-            }
+                    .fill(Color.black.opacity(0.34))
+                    .frame(width: 40, height: 40)
 
-            Spacer()
+                Image(systemName: "person.2.badge.plus")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
 
-            HStack(spacing: 4) {
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 9))
-                Text("\(state.participants.count)")
-                    .font(CallDesign.captionFont)
+                if !state.participants.isEmpty {
+                    Text("\(state.participants.count)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(CallDesign.green)
+                        .clipShape(Capsule())
+                        .offset(x: 9, y: -8)
+                }
             }
-            .foregroundColor(CallDesign.textMuted)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(CallDesign.surface)
-            .clipShape(Capsule())
+            .frame(width: 40, height: 40)
+            .accessibilityHidden(true)
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
+    }
+
+    private var stagePanel: some View {
+        Group {
+            if let featuredParticipant {
+                ParticipantTileView(participant: featuredParticipant, large: true)
+            } else {
+                waitingStage
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(10)
         .background(
-            LinearGradient(colors: [CallDesign.bg.opacity(0.95), CallDesign.bg.opacity(0)], startPoint: .top, endPoint: .bottom)
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .fill(Color.black.opacity(0.26))
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.34), radius: 28, y: 16)
     }
 
-    // MARK: - Voice channel (Discord-style)
-
-    private var voiceChannelView: some View {
-        GeometryReader { geo in
-            let avatarSize: CGFloat = geo.size.width > 400 ? 84 : 64
-            let spacing: CGFloat = geo.size.width > 400 ? 28 : 20
-
-            ScrollView(.vertical, showsIndicators: false) {
-                let columns = max(1, Int((geo.size.width - 32) / (avatarSize + spacing + 16)))
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.fixed(avatarSize + 16), spacing: spacing), count: columns),
-                    spacing: spacing + 4
-                ) {
-                    ForEach(state.participants) { p in
-                        VoiceParticipantView(participant: p, size: avatarSize)
+    private var participantStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 14) {
+                ForEach(secondaryParticipants.prefix(6)) { participant in
+                    VStack(spacing: 8) {
+                        SpeakingAvatarView(participant: participant, size: 58)
+                        Text(participant.name)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(CallDesign.textSecondary)
+                            .lineLimit(1)
                     }
-                }
-                .padding(.horizontal, max(16, (geo.size.width - CGFloat(columns) * (avatarSize + 16 + spacing)) / 2))
-                .padding(.vertical, 24)
-                .frame(maxWidth: .infinity, minHeight: geo.size.height - 140)
-            }
-        }
-        .padding(.top, 56)
-    }
-
-    // MARK: - Video grid
-
-    private var videoGridView: some View {
-        let count = state.participants.count
-        let columns: Int = switch count {
-        case ...1: 1
-        case ...4: 2
-        case ...9: 3
-        default: 4
-        }
-
-        return ScrollView {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: columns), spacing: 8) {
-                ForEach(state.participants) { p in
-                    ParticipantTileView(participant: p, large: false)
+                    .frame(width: 74)
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.top, 56)
-            .padding(.bottom, 100)
+            .padding(.horizontal, 6)
         }
     }
 
-    // MARK: - Stage
-
-    private var stageView: some View {
-        let participants = state.participants
-        let focused = participants.first(where: { $0.isSpeaking }) ?? participants.first!
-        let strip = participants.filter { $0.id != focused.id }
-
-        return VStack(spacing: 0) {
-            if !strip.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(strip) { p in
-                            ParticipantTileView(participant: p, large: false)
-                                .frame(width: 160)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                }
-                .frame(height: 108)
-                .padding(.top, 56)
-            }
-
-            ParticipantTileView(participant: focused, large: true)
-                .padding(.horizontal, 12)
-                .padding(.bottom, 8)
-        }
-    }
-
-    // MARK: - Controls bar (iOS, Discord-style pills)
-
-    private var controlsBar: some View {
-        HStack(spacing: 6) {
-            controlPill(
-                icon: state.isMicrophoneEnabled ? "mic.fill" : "mic.slash.fill",
-                isActive: state.isMicrophoneEnabled,
-                activeColor: CallDesign.surface,
-                inactiveColor: CallDesign.red,
-                action: onToggleMic
-            )
-
-            controlPill(
-                icon: state.isCameraEnabled ? "video.fill" : "video.slash.fill",
-                isActive: state.isCameraEnabled,
-                activeColor: CallDesign.surface,
-                inactiveColor: CallDesign.red,
-                action: onToggleCamera
-            )
-
-            controlPill(
-                icon: state.isSpeakerphone ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                isActive: state.isSpeakerphone,
-                activeColor: CallDesign.surface,
-                inactiveColor: CallDesign.red,
-                action: onToggleSpeaker
-            )
-
-            Spacer()
-
-            Button(action: onLeave) {
-                HStack(spacing: 5) {
-                    Image(systemName: "phone.down.fill")
-                        .font(.system(size: 12, weight: .medium))
-                    Text("Leave")
-                        .font(CallDesign.captionFont)
-                }
+    private var emptyStateCard: some View {
+        VStack(spacing: 10) {
+            Text("No one’s here yet!")
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(CallDesign.red)
-                .clipShape(Capsule())
-            }
+            Text("When you are ready to talk, just hop in.")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(CallDesign.textSecondary)
+                .multilineTextAlignment(.center)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 26)
         .background(
-            LinearGradient(colors: [CallDesign.bg.opacity(0), CallDesign.bg.opacity(0.95)], startPoint: .top, endPoint: .bottom)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(CallDesign.backgroundSecondary.opacity(0.88))
         )
     }
 
-    private func controlPill(
+    private var lowerPanel: some View {
+        VStack(spacing: 18) {
+            Capsule()
+                .fill(Color.white.opacity(0.34))
+                .frame(width: 74, height: 8)
+
+            HStack(spacing: 16) {
+                dockButton(
+                    icon: state.isCameraEnabled ? "video.fill" : "video.slash.fill",
+                    isDestructive: !state.isCameraEnabled,
+                    action: onToggleCamera
+                )
+
+                dockButton(
+                    icon: state.isMicrophoneEnabled ? "mic.fill" : "mic.slash.fill",
+                    isDestructive: !state.isMicrophoneEnabled,
+                    action: onToggleMic
+                )
+
+                dockButton(
+                    icon: state.isSpeakerphone ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                    isDestructive: !state.isSpeakerphone,
+                    action: onToggleSpeaker
+                )
+
+                dockButton(
+                    icon: state.viewMode == .stage ? "square.grid.2x2.fill" : "rectangle.inset.filled.and.person.filled",
+                    isDestructive: false,
+                    action: onToggleViewMode
+                )
+
+                dockButton(icon: "phone.down.fill", isDestructive: true, isHangup: true, action: onLeave)
+            }
+        }
+        .padding(.horizontal, 22)
+        .padding(.top, 14)
+        .padding(.bottom, 18)
+        .background(
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .fill(CallDesign.panel.opacity(0.97))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    private func dockButton(
         icon: String,
-        isActive: Bool,
-        activeColor: Color,
-        inactiveColor: Color,
+        isDestructive: Bool,
+        isHangup: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 25, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(width: 42, height: 38)
-                .background(isActive ? activeColor : inactiveColor)
-                .clipShape(Capsule())
+                .frame(width: 72, height: 72)
+                .background(buttonBackground(isDestructive: isDestructive, isHangup: isHangup))
+                .clipShape(Circle())
         }
+        .buttonStyle(.plain)
     }
-}
 
-// MARK: - Shared state views (iOS)
+    private func buttonBackground(isDestructive: Bool, isHangup: Bool) -> Color {
+        if isHangup { return CallDesign.red }
+        if isDestructive { return Color.white.opacity(0.10) }
+        return Color.white.opacity(0.14)
+    }
 
-private struct WaitingStateView: View {
-    let isReconnecting: Bool
-    var body: some View {
-        VStack(spacing: 16) {
-            if isReconnecting {
-                ProgressView()
-                    .tint(CallDesign.textSecondary)
-                Text("Reconnecting...")
-                    .font(CallDesign.bodyFont)
+    private var waitingStage: some View {
+        VStack(spacing: 22) {
+            Circle()
+                .fill(CallDesign.panelSoft)
+                .frame(width: 112, height: 112)
+                .overlay(
+                    Image(systemName: "person.wave.2.fill")
+                        .font(.system(size: 40, weight: .medium))
+                        .foregroundColor(.white.opacity(0.92))
+                )
+
+            VStack(spacing: 8) {
+                Text(state.isReconnecting ? "Reconnecting..." : "Waiting for participants")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                Text(state.isReconnecting ? "Your room is still active." : "Share the room and the stage will fill in here.")
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(CallDesign.textSecondary)
-            } else {
-                Image(systemName: "phone.badge.plus")
-                    .font(.system(size: 40))
-                    .foregroundColor(CallDesign.textMuted)
-                Text("Waiting for participants")
-                    .font(CallDesign.bodyFont)
-                    .foregroundColor(CallDesign.textSecondary)
+                    .multilineTextAlignment(.center)
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 28)
+        .padding(.vertical, 54)
     }
 }
 
 private struct ErrorStateView: View {
     let message: String
+
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 36))
-                .foregroundColor(CallDesign.red.opacity(0.7))
+                .foregroundColor(CallDesign.red)
             Text(message)
-                .font(CallDesign.bodyFont)
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(CallDesign.textSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 28)
+        .padding(.vertical, 54)
+        .background(
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(CallDesign.panel)
+        )
     }
 }
-
-// MARK: - CallHostingController
 
 class CallHostingController: UIHostingController<CallExpandedView> {
     init(manager: CallManager, onDismiss: @escaping () -> Void) {
