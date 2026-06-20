@@ -4,7 +4,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_screen.dart';
+import 'package:island/chat/widgets/pending_join_sheet.dart';
+import 'package:island_call/island_call.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/route.dart';
@@ -93,21 +96,44 @@ class AudioCallButton extends HookConsumerWidget {
     );
     final callState = ref.watch(callProvider);
     final callNotifier = ref.read(callProvider.notifier);
+    final nativeBridge = ref.watch(nativeCallBridgeProvider);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
     final router = ref.read(routerProvider);
 
     // ponytail: In-app calls always use Flutter. CallKit is only for system-level (push/lock screen).
-    final isInCall = callState.isConnected;
+    // Also check if a CallKit call is active for this room.
+    final isInCall = callState.isConnected || 
+        (nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id);
 
-    Future<void> openCallScreen() async {
-      await router.pushWidget(CallScreen(room: room));
+    Future<void> openCallScreen({bool cameraEnabled = false}) async {
+      await router.pushWidget(CallScreen(room: room, cameraEnabled: cameraEnabled));
     }
 
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        await openCallScreen();
+        // Show pending join sheet
+        final result = await showModalBottomSheet<({bool cameraEnabled})>(
+          context: context,
+          useSafeArea: true,
+          isScrollControlled: true,
+          builder: (context) => PendingJoinSheet(
+            room: room,
+            onJoin: (settings) => Navigator.pop(context, settings),
+          ),
+        );
+        
+        if (result == null) {
+          isLoading.value = false;
+          return;
+        }
+        
+        // Start CallKit call with video setting
+        await IslandCall.startCall(room.id, isVideo: result.cameraEnabled);
+        
+        // Open call screen with camera setting
+        await openCallScreen(cameraEnabled: result.cameraEnabled);
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -119,6 +145,10 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         await apiClient.delete('/messager/chat/realtime/${room.id}');
+        // End CallKit call if active
+        if (nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id) {
+          await IslandCall.endCall();
+        }
         await callNotifier.disconnect();
         callNotifier.dispose();
         ref.invalidate(activeCallParticipantCountProvider(room.id));
@@ -167,7 +197,26 @@ class AudioCallButton extends HookConsumerWidget {
         onPressed: () async {
           isLoading.value = true;
           try {
-            await openCallScreen();
+            // Show pending join sheet
+            final result = await showModalBottomSheet<({bool cameraEnabled})>(
+              context: context,
+              useSafeArea: true,
+              isScrollControlled: true,
+              builder: (context) => PendingJoinSheet(
+                room: room,
+                onJoin: (settings) => Navigator.pop(context, settings),
+              ),
+            );
+            
+            if (result == null) {
+              isLoading.value = false;
+              return;
+            }
+            
+            // Start CallKit call with video setting
+            await IslandCall.startCall(room.id, isVideo: result.cameraEnabled);
+            
+            await openCallScreen(cameraEnabled: result.cameraEnabled);
           } catch (e) {
             showErrorAlert(e);
           } finally {

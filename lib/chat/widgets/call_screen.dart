@@ -24,7 +24,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 @RoutePage()
 class CallScreen extends HookConsumerWidget {
   final SnChatRoom room;
-  const CallScreen({super.key, required this.room});
+  final bool cameraEnabled;
+  const CallScreen({super.key, required this.room, this.cameraEnabled = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +44,7 @@ class CallScreen extends HookConsumerWidget {
       hideCallOverlay();
 
       Logger.root.info('[Call] Joining the call...');
-      callNotifier.joinRoom(room).catchError((_) {
+      callNotifier.joinRoom(room, cameraEnabled: cameraEnabled).catchError((_) {
         showConfirmAlert(
           'Seems there already has a call connected, do you want override it?',
           'Call already connected',
@@ -52,7 +53,7 @@ class CallScreen extends HookConsumerWidget {
           Logger.root.info('[Call] Joining the call... with overrides');
           callNotifier.disconnect();
           callNotifier.dispose();
-          callNotifier.joinRoom(room);
+          callNotifier.joinRoom(room, cameraEnabled: cameraEnabled);
         });
       });
       return () {

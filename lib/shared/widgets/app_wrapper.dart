@@ -22,6 +22,9 @@ import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
+import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/widgets/call_screen.dart';
+import 'package:island_call/island_call.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
@@ -116,6 +119,53 @@ class AppWrapper extends HookConsumerWidget {
         ref.read(nativeCallBridgeProvider.notifier).ensureInitialized(ref);
       }
       return null;
+    }, []);
+
+    // Navigate to CallScreen when CallKit call is accepted
+    useEffect(() {
+      if (!isNativeCallAvailable) return null;
+      
+      final sub = ref.listenManual(
+        nativeCallBridgeProvider,
+        (previous, current) {
+          final prevRoomId = previous?.callKitAcceptedRoomId;
+          final currRoomId = current.callKitAcceptedRoomId;
+          
+          // CallKit call was accepted with a roomId
+          if (currRoomId != null && currRoomId != prevRoomId && current.isConnected) {
+            Logger.root.info('[AppWrapper] CallKit call accepted, navigating to CallScreen: $currRoomId');
+            // Find the chat room and navigate to call screen
+            _navigateToCallScreen(ref, currRoomId);
+          }
+        },
+      );
+      return sub.close;
+    }, []);
+
+    // Fulfill CallKit answer when Flutter call connects
+    useEffect(() {
+      if (!isNativeCallAvailable) return null;
+      
+      final sub = ref.listenManual(
+        callProvider,
+        (previous, current) {
+          final prevConnected = previous?.isConnected ?? false;
+          final currConnected = current.isConnected;
+          
+          // Flutter call just connected
+          if (!prevConnected && currConnected) {
+            Logger.root.info('[AppWrapper] Flutter call connected, fulfilling CallKit answer');
+            IslandCall.fulfillPendingAnswer();
+          }
+          
+          // Flutter call just disconnected with error
+          if (prevConnected && !currConnected && current.error != null) {
+            Logger.root.info('[AppWrapper] Flutter call failed: ${current.error}');
+            IslandCall.failPendingAnswer();
+          }
+        },
+      );
+      return sub.close;
     }, []);
 
     useEffect(() {
@@ -782,6 +832,25 @@ class AppWrapper extends HookConsumerWidget {
     queryParams.addAll(payload);
     final target = redirectUri.replace(queryParameters: queryParams).toString();
     await launchUrlString(target, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _navigateToCallScreen(WidgetRef ref, String roomId) async {
+    try {
+      final router = ref.read(routerProvider);
+      final ctx = router.navigatorKey.currentContext;
+      if (ctx == null || !ctx.mounted) return;
+
+      // Fetch the chat room
+      final apiClient = ref.read(apiClientProvider);
+      final resp = await apiClient.get('/messager/chat/$roomId');
+      final room = SnChatRoom.fromJson(resp.data);
+
+      if (!ctx.mounted) return;
+      // Navigate to call screen
+      await router.pushWidget(CallScreen(room: room));
+    } catch (e) {
+      Logger.root.severe('[AppWrapper] Failed to navigate to call screen: $e');
+    }
   }
 }
 

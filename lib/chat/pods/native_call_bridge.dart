@@ -19,12 +19,14 @@ bool get isNativeCallAvailable => !kIsWeb && Platform.isIOS;
 class NativeCallBridge extends _$NativeCallBridge {
   StreamSubscription<Map<String, dynamic>>? _stateSub;
   StreamSubscription<List<Map<String, dynamic>>>? _participantsSub;
+  StreamSubscription<Map<String, dynamic>>? _callKitEventsSub;
 
   @override
   NativeCallState build() {
     ref.onDispose(() {
       _stateSub?.cancel();
       _participantsSub?.cancel();
+      _callKitEventsSub?.cancel();
     });
     return const NativeCallState();
   }
@@ -32,6 +34,7 @@ class NativeCallBridge extends _$NativeCallBridge {
   void startListening() {
     _stateSub?.cancel();
     _participantsSub?.cancel();
+    _callKitEventsSub?.cancel();
 
     _stateSub = IslandCall.onStateChanged.listen((data) {
       state = state.copyWith(
@@ -42,11 +45,35 @@ class NativeCallBridge extends _$NativeCallBridge {
         participantCount: data['participantCount'] as int? ?? 0,
         roomId: data['roomId'] as String?,
         roomName: data['roomName'] as String?,
+        callerAvatarUrl: data['callerAvatarUrl'] as String?,
       );
     });
 
     _participantsSub = IslandCall.onParticipantsChanged.listen((data) {
       state = state.copyWith(participantCount: data.length);
+    });
+
+    // Listen for CallKit events (call accepted/ended/mute)
+    _callKitEventsSub = IslandCall.onCallKitEvents.listen((data) {
+      final event = data['event'] as String?;
+      if (event == 'callAccepted') {
+        final roomId = data['roomId'] as String?;
+        Logger.root.info('[NativeCallBridge] CallKit call accepted: $roomId');
+        state = state.copyWith(
+          callKitAcceptedRoomId: roomId,
+          isConnected: true,
+        );
+      } else if (event == 'callEnded') {
+        Logger.root.info('[NativeCallBridge] CallKit call ended');
+        state = state.copyWith(
+          callKitAcceptedRoomId: null,
+          isConnected: false,
+        );
+      } else if (event == 'muteChanged') {
+        final isMuted = data['isMuted'] as bool? ?? false;
+        Logger.root.info('[NativeCallBridge] CallKit mute changed: $isMuted');
+        state = state.copyWith(isMicrophoneEnabled: !isMuted);
+      }
     });
   }
 
@@ -96,6 +123,8 @@ class NativeCallState {
   final int participantCount;
   final String? roomId;
   final String? roomName;
+  final String? callKitAcceptedRoomId;
+  final String? callerAvatarUrl;
 
   const NativeCallState({
     this.isConnected = false,
@@ -105,6 +134,8 @@ class NativeCallState {
     this.participantCount = 0,
     this.roomId,
     this.roomName,
+    this.callKitAcceptedRoomId,
+    this.callerAvatarUrl,
   });
 
   NativeCallState copyWith({
@@ -115,6 +146,8 @@ class NativeCallState {
     int? participantCount,
     String? roomId,
     String? roomName,
+    String? callKitAcceptedRoomId,
+    String? callerAvatarUrl,
   }) {
     return NativeCallState(
       isConnected: isConnected ?? this.isConnected,
@@ -124,6 +157,8 @@ class NativeCallState {
       participantCount: participantCount ?? this.participantCount,
       roomId: roomId ?? this.roomId,
       roomName: roomName ?? this.roomName,
+      callKitAcceptedRoomId: callKitAcceptedRoomId ?? this.callKitAcceptedRoomId,
+      callerAvatarUrl: callerAvatarUrl ?? this.callerAvatarUrl,
     );
   }
 }

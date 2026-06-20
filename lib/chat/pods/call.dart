@@ -256,7 +256,7 @@ class CallNotifier extends _$CallNotifier {
   SnChatRoom? _chatRoom;
   SnChatRoom? get chatRoom => _chatRoom;
 
-  Future<void> joinRoom(SnChatRoom room) async {
+  Future<void> joinRoom(SnChatRoom room, {bool cameraEnabled = false}) async {
     var roomId = room.id;
     if (_roomId == roomId &&
         _room != null &&
@@ -288,22 +288,25 @@ class CallNotifier extends _$CallNotifier {
       _participants = [];
     }
     try {
-      await _performConnection(room);
+      await _performConnection(room, cameraEnabled: cameraEnabled);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
   }
 
-  Future<void> _performConnection(SnChatRoom room) async {
-    // Request microphone and camera permissions on macOS before connecting
-    if (!kIsWeb && Platform.isMacOS) {
+  Future<void> _performConnection(SnChatRoom room, {bool cameraEnabled = false}) async {
+    // Request microphone and camera permissions on iOS before connecting
+    // macOS uses entitlements, not runtime permission requests
+    if (!kIsWeb && Platform.isIOS) {
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
         throw Exception('Microphone permission is required for calls');
       }
-      final cameraStatus = await Permission.camera.request();
-      if (!cameraStatus.isGranted) {
-        throw Exception('Camera permission is required for calls');
+      if (cameraEnabled) {
+        final cameraStatus = await Permission.camera.request();
+        if (!cameraStatus.isGranted) {
+          throw Exception('Camera permission is required for calls');
+        }
       }
     }
 
@@ -355,6 +358,7 @@ class CallNotifier extends _$CallNotifier {
       roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
       fastConnectOptions: lk.FastConnectOptions(
         microphone: lk.TrackOption(enabled: true),
+        camera: lk.TrackOption(enabled: cameraEnabled),
       ),
     );
     _localParticipant = _room!.localParticipant;
@@ -526,7 +530,7 @@ class CallNotifier extends _$CallNotifier {
         _room = null;
         _localParticipant = null;
 
-        await _performConnection(_currentRoom!);
+        await _performConnection(_currentRoom!, cameraEnabled: state.isCameraEnabled);
         Logger.root.info('[Call] Reconnection successful');
         _reconnectAttempts = 0;
         _isReconnecting = false;
