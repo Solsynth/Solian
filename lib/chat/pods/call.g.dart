@@ -8,12 +8,18 @@ part of 'call.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Riverpod wrapper that delegates all call logic to [CallController].
+/// The controller is created lazily on first [joinRoom] call.
 
 @ProviderFor(CallNotifier)
 final callProvider = CallNotifierProvider._();
 
+/// Riverpod wrapper that delegates all call logic to [CallController].
+/// The controller is created lazily on first [joinRoom] call.
 final class CallNotifierProvider
     extends $NotifierProvider<CallNotifier, CallState> {
+  /// Riverpod wrapper that delegates all call logic to [CallController].
+  /// The controller is created lazily on first [joinRoom] call.
   CallNotifierProvider._()
     : super(
         from: null,
@@ -41,7 +47,10 @@ final class CallNotifierProvider
   }
 }
 
-String _$callNotifierHash() => r'ddf59de5d0eca0dd34ecd4a57adccd8c78d7e59f';
+String _$callNotifierHash() => r'ebf7e75e1a55a8fc3a471bddada536a845c78855';
+
+/// Riverpod wrapper that delegates all call logic to [CallController].
+/// The controller is created lazily on first [joinRoom] call.
 
 abstract class _$CallNotifier extends $Notifier<CallState> {
   CallState build();

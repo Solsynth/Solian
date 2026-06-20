@@ -25,6 +25,7 @@ import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/widgets/call_screen.dart';
+import 'package:island/chat/widgets/call_window.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -118,6 +119,10 @@ class AppWrapper extends HookConsumerWidget {
     useEffect(() {
       if (isNativeCallAvailable) {
         ref.read(nativeCallBridgeProvider.notifier).ensureInitialized();
+      }
+      // ponytail: setup inter-window call channel on desktop
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+        setupCallChannelHandler();
       }
       return null;
     }, []);
@@ -849,8 +854,12 @@ class AppWrapper extends HookConsumerWidget {
       final room = SnChatRoom.fromJson(resp.data);
 
       if (!ctx.mounted) return;
-      // Navigate to call screen
-      await router.pushWidget(CallScreen(room: room));
+      // Navigate to call screen — desktop: new window; mobile: push route
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+        await createCallWindow(room);
+      } else {
+        await router.pushWidget(CallScreen(room: room));
+      }
     } catch (e) {
       Logger.root.severe('[AppWrapper] Failed to navigate to call screen: $e');
     }

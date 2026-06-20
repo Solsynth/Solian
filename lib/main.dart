@@ -37,6 +37,9 @@ import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+// ponytail: desktop_multi_window for call window support
+import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'package:island/chat/widgets/call_window.dart';
 
 final List<LogRecord> _earlyLogs = [];
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
@@ -54,6 +57,48 @@ void main(List<String> args) async {
   });
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // ponytail: detect sub-window on desktop before heavy init
+  if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+    try {
+      final windowController = await WindowController.fromCurrentEngine();
+      final rawArgs = windowController.arguments;
+      if (rawArgs.isNotEmpty) {
+        final callArgs = parseCallWindowArgs(rawArgs);
+        if (callArgs != null) {
+          // Minimal init for call window — skip Firebase, plugins, full router
+          await windowManager.ensureInitialized();
+          WindowOptions windowOptions = WindowOptions(
+            size: const Size(800, 600),
+            center: true,
+            backgroundColor: Colors.transparent,
+            skipTaskbar: false,
+            titleBarStyle: TitleBarStyle.hidden,
+            windowButtonVisibility: true,
+          );
+          await windowManager.waitUntilReadyToShow(windowOptions, () async {
+            await windowManager.show();
+            await windowManager.focus();
+          });
+          runApp(
+            ProviderScope(
+              child: EasyLocalization(
+                supportedLocales: [Locale('en', 'US')],
+                path: 'assets/i18n',
+                fallbackLocale: Locale('en', 'US'),
+                useFallbackTranslations: true,
+                child: CallWindowApp(args: callArgs),
+              ),
+            ),
+          );
+          return;
+        }
+      }
+    } catch (_) {
+      // Not a sub-window or parse failed — continue with normal init
+    }
+  }
+
   MediaKit.ensureInitialized();
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {

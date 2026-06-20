@@ -12,7 +12,7 @@ part of 'call.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$CallState implements DiagnosticableTreeMixin {
+mixin _$CallState {
 
  bool get isConnected; bool get isReconnecting; bool get isMicrophoneEnabled; bool get isCameraEnabled; bool get isScreenSharing; bool get isSpeakerphone; Duration get duration; DateTime? get joinedAt; ViewMode get viewMode; int get participantSyncVersion; int get reconnectAttempt; bool get hasJoined; String? get error;
 /// Create a copy of CallState
@@ -22,12 +22,6 @@ mixin _$CallState implements DiagnosticableTreeMixin {
 $CallStateCopyWith<CallState> get copyWith => _$CallStateCopyWithImpl<CallState>(this as CallState, _$identity);
 
 
-@override
-void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
-    ..add(DiagnosticsProperty('type', 'CallState'))
-    ..add(DiagnosticsProperty('isConnected', isConnected))..add(DiagnosticsProperty('isReconnecting', isReconnecting))..add(DiagnosticsProperty('isMicrophoneEnabled', isMicrophoneEnabled))..add(DiagnosticsProperty('isCameraEnabled', isCameraEnabled))..add(DiagnosticsProperty('isScreenSharing', isScreenSharing))..add(DiagnosticsProperty('isSpeakerphone', isSpeakerphone))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('joinedAt', joinedAt))..add(DiagnosticsProperty('viewMode', viewMode))..add(DiagnosticsProperty('participantSyncVersion', participantSyncVersion))..add(DiagnosticsProperty('reconnectAttempt', reconnectAttempt))..add(DiagnosticsProperty('hasJoined', hasJoined))..add(DiagnosticsProperty('error', error));
-}
 
 @override
 bool operator ==(Object other) {
@@ -39,7 +33,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,isConnected,isReconnecting,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,isSpeakerphone,duration,joinedAt,viewMode,participantSyncVersion,reconnectAttempt,hasJoined,error);
 
 @override
-String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+String toString() {
   return 'CallState(isConnected: $isConnected, isReconnecting: $isReconnecting, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, isSpeakerphone: $isSpeakerphone, duration: $duration, joinedAt: $joinedAt, viewMode: $viewMode, participantSyncVersion: $participantSyncVersion, reconnectAttempt: $reconnectAttempt, hasJoined: $hasJoined, error: $error)';
 }
 
@@ -217,7 +211,7 @@ return $default(_that.isConnected,_that.isReconnecting,_that.isMicrophoneEnabled
 /// @nodoc
 
 
-class _CallState with DiagnosticableTreeMixin implements CallState {
+class _CallState implements CallState {
   const _CallState({required this.isConnected, this.isReconnecting = false, required this.isMicrophoneEnabled, required this.isCameraEnabled, required this.isScreenSharing, required this.isSpeakerphone, this.duration = const Duration(seconds: 0), this.joinedAt, this.viewMode = ViewMode.grid, this.participantSyncVersion = 0, this.reconnectAttempt = 0, this.hasJoined = false, this.error});
   
 
@@ -242,12 +236,6 @@ class _CallState with DiagnosticableTreeMixin implements CallState {
 _$CallStateCopyWith<_CallState> get copyWith => __$CallStateCopyWithImpl<_CallState>(this, _$identity);
 
 
-@override
-void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
-    ..add(DiagnosticsProperty('type', 'CallState'))
-    ..add(DiagnosticsProperty('isConnected', isConnected))..add(DiagnosticsProperty('isReconnecting', isReconnecting))..add(DiagnosticsProperty('isMicrophoneEnabled', isMicrophoneEnabled))..add(DiagnosticsProperty('isCameraEnabled', isCameraEnabled))..add(DiagnosticsProperty('isScreenSharing', isScreenSharing))..add(DiagnosticsProperty('isSpeakerphone', isSpeakerphone))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('joinedAt', joinedAt))..add(DiagnosticsProperty('viewMode', viewMode))..add(DiagnosticsProperty('participantSyncVersion', participantSyncVersion))..add(DiagnosticsProperty('reconnectAttempt', reconnectAttempt))..add(DiagnosticsProperty('hasJoined', hasJoined))..add(DiagnosticsProperty('error', error));
-}
 
 @override
 bool operator ==(Object other) {
@@ -259,7 +247,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,isConnected,isReconnecting,isMicrophoneEnabled,isCameraEnabled,isScreenSharing,isSpeakerphone,duration,joinedAt,viewMode,participantSyncVersion,reconnectAttempt,hasJoined,error);
 
 @override
-String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+String toString() {
   return 'CallState(isConnected: $isConnected, isReconnecting: $isReconnecting, isMicrophoneEnabled: $isMicrophoneEnabled, isCameraEnabled: $isCameraEnabled, isScreenSharing: $isScreenSharing, isSpeakerphone: $isSpeakerphone, duration: $duration, joinedAt: $joinedAt, viewMode: $viewMode, participantSyncVersion: $participantSyncVersion, reconnectAttempt: $reconnectAttempt, hasJoined: $hasJoined, error: $error)';
 }
 
@@ -311,7 +299,7 @@ as String?,
 }
 
 /// @nodoc
-mixin _$CallParticipantLive implements DiagnosticableTreeMixin {
+mixin _$CallParticipantLive {
 
  CallParticipant get participant; lk.Participant get remoteParticipant;
 /// Create a copy of CallParticipantLive
@@ -321,12 +309,6 @@ mixin _$CallParticipantLive implements DiagnosticableTreeMixin {
 $CallParticipantLiveCopyWith<CallParticipantLive> get copyWith => _$CallParticipantLiveCopyWithImpl<CallParticipantLive>(this as CallParticipantLive, _$identity);
 
 
-@override
-void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
-    ..add(DiagnosticsProperty('type', 'CallParticipantLive'))
-    ..add(DiagnosticsProperty('participant', participant))..add(DiagnosticsProperty('remoteParticipant', remoteParticipant));
-}
 
 @override
 bool operator ==(Object other) {
@@ -338,7 +320,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,participant,remoteParticipant);
 
 @override
-String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+String toString() {
   return 'CallParticipantLive(participant: $participant, remoteParticipant: $remoteParticipant)';
 }
 
@@ -514,7 +496,7 @@ return $default(_that.participant,_that.remoteParticipant);case _:
 /// @nodoc
 
 
-class _CallParticipantLive extends CallParticipantLive with DiagnosticableTreeMixin {
+class _CallParticipantLive extends CallParticipantLive {
   const _CallParticipantLive({required this.participant, required this.remoteParticipant}): super._();
   
 
@@ -528,12 +510,6 @@ class _CallParticipantLive extends CallParticipantLive with DiagnosticableTreeMi
 _$CallParticipantLiveCopyWith<_CallParticipantLive> get copyWith => __$CallParticipantLiveCopyWithImpl<_CallParticipantLive>(this, _$identity);
 
 
-@override
-void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
-    ..add(DiagnosticsProperty('type', 'CallParticipantLive'))
-    ..add(DiagnosticsProperty('participant', participant))..add(DiagnosticsProperty('remoteParticipant', remoteParticipant));
-}
 
 @override
 bool operator ==(Object other) {
@@ -545,7 +521,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,participant,remoteParticipant);
 
 @override
-String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+String toString() {
   return 'CallParticipantLive(participant: $participant, remoteParticipant: $remoteParticipant)';
 }
 

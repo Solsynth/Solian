@@ -617,10 +617,15 @@ class CallRoute extends _i71.PageRouteInfo<CallRouteArgs> {
   CallRoute({
     _i73.Key? key,
     required _i74.SnChatRoom room,
+    bool cameraEnabled = false,
     List<_i71.PageRouteInfo>? children,
   }) : super(
          CallRoute.name,
-         args: CallRouteArgs(key: key, room: room),
+         args: CallRouteArgs(
+           key: key,
+           room: room,
+           cameraEnabled: cameraEnabled,
+         ),
          initialChildren: children,
        );
 
@@ -630,32 +635,44 @@ class CallRoute extends _i71.PageRouteInfo<CallRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<CallRouteArgs>();
-      return _i16.CallScreen(key: args.key, room: args.room);
+      return _i16.CallScreen(
+        key: args.key,
+        room: args.room,
+        cameraEnabled: args.cameraEnabled,
+      );
     },
   );
 }
 
 class CallRouteArgs {
-  const CallRouteArgs({this.key, required this.room});
+  const CallRouteArgs({
+    this.key,
+    required this.room,
+    this.cameraEnabled = false,
+  });
 
   final _i73.Key? key;
 
   final _i74.SnChatRoom room;
 
+  final bool cameraEnabled;
+
   @override
   String toString() {
-    return 'CallRouteArgs{key: $key, room: $room}';
+    return 'CallRouteArgs{key: $key, room: $room, cameraEnabled: $cameraEnabled}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! CallRouteArgs) return false;
-    return key == other.key && room == other.room;
+    return key == other.key &&
+        room == other.room &&
+        cameraEnabled == other.cameraEnabled;
   }
 
   @override
-  int get hashCode => key.hashCode ^ room.hashCode;
+  int get hashCode => key.hashCode ^ room.hashCode ^ cameraEnabled.hashCode;
 }
 
 /// generated route for
