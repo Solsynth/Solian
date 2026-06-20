@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/widgets/call_button.dart';
+import 'package:island/drive/widgets/cloud_files.dart' show ProfilePictureWidget;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -30,74 +33,38 @@ class PendingJoinSheet extends HookConsumerWidget {
       heightFactor: 0.6,
       child: Column(
         children: [
-          // Camera toggle
+          // Toggles
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Row(
+            child: Column(
               children: [
-                Icon(
-                  cameraEnabled.value ? Symbols.videocam : Symbols.videocam_off,
-                  color: cameraEnabled.value
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                Row(
+                  children: [
+                    Icon(
+                      cameraEnabled.value ? Symbols.videocam : Symbols.videocam_off,
+                      color: cameraEnabled.value
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text('Camera', style: Theme.of(context).textTheme.bodyLarge),
+                    ),
+                    Switch(
+                      value: cameraEnabled.value,
+                      onChanged: (v) => cameraEnabled.value = v,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Camera',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      Text(
-                        'Your camera will be ${cameraEnabled.value ? 'on' : 'off'} when joining',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: cameraEnabled.value,
-                  onChanged: (v) => cameraEnabled.value = v,
-                ),
-              ],
-            ),
-          ),
-
-          // Mic info (always on)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Row(
-              children: [
-                Icon(
-                  Symbols.mic,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Microphone',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      Text(
-                        'Your microphone will be on',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Symbols.check_circle,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 20,
+                Row(
+                  children: [
+                    Icon(Symbols.mic, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text('Microphone', style: Theme.of(context).textTheme.bodyLarge),
+                    ),
+                    Icon(Symbols.check_circle, color: Theme.of(context).colorScheme.primary, size: 20),
+                  ],
                 ),
               ],
             ),
@@ -129,9 +96,9 @@ class PendingJoinSheet extends HookConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
-          // Participants list
+          // Participants — avatar grid like CallContent audio-only mode
           Expanded(
             child: participants.when(
               data: (list) {
@@ -145,13 +112,19 @@ class PendingJoinSheet extends HookConsumerWidget {
                     ),
                   );
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  itemCount: list.length,
-                  itemBuilder: (context, index) {
-                    final participant = list[index];
-                    return _ParticipantTile(participant: participant);
-                  },
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 20,
+                      runSpacing: 16,
+                      children: [
+                        for (final p in list)
+                          _ParticipantAvatar(participant: p),
+                      ],
+                    ),
+                  ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -171,9 +144,7 @@ class PendingJoinSheet extends HookConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: FilledButton.icon(
-                onPressed: () => onJoin((
-                  cameraEnabled: cameraEnabled.value,
-                )),
+                onPressed: () => onJoin((cameraEnabled: cameraEnabled.value)),
                 icon: const Icon(Symbols.call),
                 label: const Text('Join Call'),
                 style: FilledButton.styleFrom(
@@ -188,26 +159,51 @@ class PendingJoinSheet extends HookConsumerWidget {
   }
 }
 
-class _ParticipantTile extends StatelessWidget {
+/// Avatar + name tile matching CallContent's audio-only layout.
+class _ParticipantAvatar extends HookConsumerWidget {
   final CallParticipant participant;
-
-  const _ParticipantTile({required this.participant});
+  const _ParticipantAvatar({required this.participant});
 
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          participant.name.isNotEmpty ? participant.name[0].toUpperCase() : '?',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final account = ref.watch(callParticipantAccountProvider(participant.identity));
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        account.value?.profile.picture != null
+            ? ProfilePictureWidget(
+                file: account.value!.profile.picture,
+                radius: 42,
+              )
+            : CircleAvatar(
+                radius: 42,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Text(
+                  participant.name.isNotEmpty
+                      ? participant.name[0].toUpperCase()
+                      : '?',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 100,
+          child: account.value != null
+              ? AccountName(
+                  account: account.value!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  hideVerificationMark: true,
+                )
+              : Text(
+                  participant.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
         ),
-      ),
-      title: Text(participant.name),
-      subtitle: Text(
-        participant.identity,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
+      ],
     );
   }
 }

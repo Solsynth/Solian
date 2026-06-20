@@ -1,10 +1,8 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/check_in.dart';
@@ -14,7 +12,7 @@ import 'package:island/auth/captcha.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:lunar/lunar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -27,21 +25,7 @@ TextStyle checkInSerif(
   double? height,
   Color? color,
 }) {
-  final languageCode =
-      Localizations.maybeLocaleOf(context)?.languageCode.toLowerCase() ??
-      WidgetsBinding.instance.platformDispatcher.locale.languageCode
-          .toLowerCase();
-  if (languageCode.startsWith('zh')) {
-    return GoogleFonts.notoSerifSc(
-      textStyle: base,
-      fontWeight: fontWeight,
-      height: height,
-      color: color,
-    );
-  }
-
-  return GoogleFonts.notoSerif(
-    textStyle: base,
+  return (base ?? Theme.of(context).textTheme.bodyMedium!).copyWith(
     fontWeight: fontWeight,
     height: height,
     color: color,
@@ -72,7 +56,6 @@ Color checkInResultBackdrop(int level) {
   }
 }
 
-@RoutePage()
 class CheckInScreen extends HookConsumerWidget {
   const CheckInScreen({super.key});
 
@@ -102,29 +85,25 @@ class CheckInScreen extends HookConsumerWidget {
       }
     }
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(
-        title: Text('checkInTemple').tr(),
-        centerTitle: true,
-        actions: [
-          todayResult.when(
-            data: (result) => result == null
-                ? const SizedBox.shrink()
-                : IconButton(
-                    tooltip: 'share'.tr(),
-                    onPressed: () {
-                      shareCheckInAsScreenshot(context, ref, result);
-                    },
-                    icon: Icon(Symbols.share_reviews),
-                  ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
-          const Gap(8),
-        ],
-      ),
-      body: todayResult.when(
+    return SheetScaffold(
+      titleText: 'checkInTemple'.tr(),
+      actions: [
+        todayResult.when(
+          data: (result) => result == null
+              ? const SizedBox.shrink()
+              : IconButton(
+                  tooltip: 'share'.tr(),
+                  onPressed: () {
+                    shareCheckInAsScreenshot(context, ref, result);
+                  },
+                  icon: Icon(Symbols.share_reviews),
+                ),
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+        ),
+        const Gap(8),
+      ],
+      child: todayResult.when(
         data: (result) => Stack(
           children: [
             _CheckInContent(result: result, onCheckIn: () => checkIn()),
@@ -187,7 +166,6 @@ class _CheckInContent extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TempleHeader(date: DateTime.now()),
                     const Gap(24),
                     if (result == null)
                       _CheckInPrompt(onCheckIn: onCheckIn)

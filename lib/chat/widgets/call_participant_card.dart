@@ -9,7 +9,6 @@ import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
-import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -412,7 +411,7 @@ class CallParticipantRegion extends ConsumerWidget {
       child: child,
       onTapDown: (details) {
         showCallParticipantCard(
-          ref.read(routerProvider).navigatorKey.currentContext!,
+          context,
           participant,
           offset: details.localPosition,
         );
