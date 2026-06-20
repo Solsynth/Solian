@@ -6,6 +6,7 @@ class MethodChannelIslandCall extends IslandCallPlatform {
   static const _channel = MethodChannel('island_call');
   static const _stateChannel = EventChannel('island_call/state');
   static const _participantsChannel = EventChannel('island_call/participants');
+  static const _callKitEventsChannel = EventChannel('island_call/callkit_events');
 
   @override
   Future<void> initialize({required String serverUrl, required String authToken}) {
@@ -53,8 +54,8 @@ class MethodChannelIslandCall extends IslandCallPlatform {
       });
 
   @override
-  Future<void> startCall(String handle) =>
-      _channel.invokeMethod('startCall', {'handle': handle});
+  Future<void> startCall(String handle, {bool isVideo = false}) =>
+      _channel.invokeMethod('startCall', {'handle': handle, 'isVideo': isVideo});
 
   @override
   Future<void> endCall() => _channel.invokeMethod('endCall');
@@ -98,4 +99,20 @@ class MethodChannelIslandCall extends IslandCallPlatform {
 
   @override
   Future<void> endCallActivity() => _channel.invokeMethod('endCallActivity');
+
+  @override
+  Stream<Map<String, dynamic>> get onCallKitEvents =>
+      _callKitEventsChannel.receiveBroadcastStream().map((e) => Map<String, dynamic>.from(e as Map));
+
+  @override
+  Future<void> fulfillPendingAnswer() => _channel.invokeMethod('fulfillPendingAnswer');
+
+  @override
+  Future<void> failPendingAnswer() => _channel.invokeMethod('failPendingAnswer');
+
+  @override
+  Future<void> reportRemoteEnded() => _channel.invokeMethod('reportRemoteEnded');
+
+  @override
+  Future<void> reportConnectionFailed() => _channel.invokeMethod('reportConnectionFailed');
 }

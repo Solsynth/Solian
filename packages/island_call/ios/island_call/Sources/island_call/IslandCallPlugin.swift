@@ -19,6 +19,7 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
     fileprivate let manager = CallManager()
     fileprivate var stateSink: FlutterEventSink?
     fileprivate var participantsSink: FlutterEventSink?
+    fileprivate var callKitEventsSink: FlutterEventSink?
 
     // UI
     fileprivate var callWindow: UIWindow?
@@ -30,11 +31,13 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
         let channel = FlutterMethodChannel(name: "island_call", binaryMessenger: registrar.messenger())
         let stateChannel = FlutterEventChannel(name: "island_call/state", binaryMessenger: registrar.messenger())
         let participantsChannel = FlutterEventChannel(name: "island_call/participants", binaryMessenger: registrar.messenger())
+        let callKitEventsChannel = FlutterEventChannel(name: "island_call/callkit_events", binaryMessenger: registrar.messenger())
 
         let instance = IslandCallPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
         stateChannel.setStreamHandler(StateStreamHandler(plugin: instance))
         participantsChannel.setStreamHandler(ParticipantsStreamHandler(plugin: instance))
+        callKitEventsChannel.setStreamHandler(CallKitEventsStreamHandler(plugin: instance))
 
         // Wire up callbacks
         instance.manager.onStateChanged = { dict in
@@ -47,11 +50,21 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
                 instance.participantsSink?(arr)
             }
         }
-        instance.manager.onCallKitCallConnected = { [weak instance] in
-            instance?.showCallUI()
+        instance.manager.onCallKitCallConnected = { [weak instance] roomId in
+            DispatchQueue.main.async {
+                instance?.callKitEventsSink?(["event": "callAccepted", "roomId": roomId])
+            }
         }
         instance.manager.onCallKitCallEnded = { [weak instance] in
-            instance?.dismissCallUI()
+            DispatchQueue.main.async {
+                instance?.callKitEventsSink?(["event": "callEnded"])
+                instance?.dismissCallUI()
+            }
+        }
+        instance.manager.onCallKitMuteChanged = { [weak instance] isMuted in
+            DispatchQueue.main.async {
+                instance?.callKitEventsSink?(["event": "muteChanged", "isMuted": isMuted])
+            }
         }
     }
 
@@ -132,8 +145,9 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: "INVALID_ARGS", message: "handle required", details: nil))
                 return
             }
+            let isVideo = args["isVideo"] as? Bool ?? false
             Task { @MainActor in
-                await manager.startCall(handle: handle)
+                await manager.startCall(handle: handle, isVideo: isVideo)
                 result(nil)
             }
 
@@ -221,6 +235,30 @@ public class IslandCallPlugin: NSObject, FlutterPlugin {
                     result(nil)
                 }
             } else {
+                result(nil)
+            }
+            
+        case "fulfillPendingAnswer":
+            Task { @MainActor in
+                self.manager.fulfillPendingAnswer()
+                result(nil)
+            }
+            
+        case "failPendingAnswer":
+            Task { @MainActor in
+                self.manager.failPendingAnswer()
+                result(nil)
+            }
+            
+        case "reportRemoteEnded":
+            Task { @MainActor in
+                self.manager.reportRemoteEnded()
+                result(nil)
+            }
+            
+        case "reportConnectionFailed":
+            Task { @MainActor in
+                self.manager.reportConnectionFailed()
                 result(nil)
             }
 
@@ -387,6 +425,21 @@ private final class ParticipantsStreamHandler: NSObject, FlutterStreamHandler {
 
     func onCancel(withArguments arguments: Any?) -> FlutterError? {
         plugin?.participantsSink = nil
+        return nil
+    }
+}
+
+private final class CallKitEventsStreamHandler: NSObject, FlutterStreamHandler {
+    weak var plugin: IslandCallPlugin?
+    init(plugin: IslandCallPlugin) { self.plugin = plugin }
+
+    func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        plugin?.callKitEventsSink = events
+        return nil
+    }
+
+    func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        plugin?.callKitEventsSink = nil
         return nil
     }
 }
