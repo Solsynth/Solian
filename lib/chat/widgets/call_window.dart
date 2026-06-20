@@ -1,166 +1,162 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
-import 'package:island/chat/pods/call_controller.dart';
-import 'package:island/chat/widgets/call_overlay.dart' show hideCallOverlay;
-import 'package:island/chat/widgets/call_participant_tile.dart';
+import 'package:island/chat/widgets/call_content.dart';
+import 'package:island/chat/widgets/call_overlay.dart' show CallControlsBar, hideCallOverlay;
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/theme.dart';
+import 'package:island/drive/widgets/cloud_files.dart' show ProfilePictureWidget;
+import 'package:island/main.dart' show globalOverlay;
 import 'package:island/shared/widgets/alert.dart';
-import 'package:livekit_client/livekit_client.dart' as lk;
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// Minimal argument shape passed to the call window via desktop_multi_window.
+// ── Args / Channel ──────────────────────────────────────────────────────────
+
 class CallWindowArgs {
   final String roomId;
   final String? roomName;
   final bool cameraEnabled;
 
-  const CallWindowArgs({
-    required this.roomId,
-    this.roomName,
-    this.cameraEnabled = false,
-  });
+  const CallWindowArgs({required this.roomId, this.roomName, this.cameraEnabled = false});
 
-  factory CallWindowArgs.fromJson(Map<String, dynamic> json) =>
-      CallWindowArgs(
+  factory CallWindowArgs.fromJson(Map<String, dynamic> json) => CallWindowArgs(
         roomId: json['roomId'] as String,
         roomName: json['roomName'] as String?,
         cameraEnabled: json['cameraEnabled'] as bool? ?? false,
       );
 
-  Map<String, dynamic> toJson() => {
-        'roomId': roomId,
-        'roomName': roomName,
-        'cameraEnabled': cameraEnabled,
-      };
-
+  Map<String, dynamic> toJson() => {'roomId': roomId, 'roomName': roomName, 'cameraEnabled': cameraEnabled};
   String encode() => jsonEncode(toJson());
-
-  static CallWindowArgs decode(String raw) =>
-      CallWindowArgs.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  static CallWindowArgs decode(String raw) => CallWindowArgs.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 }
 
-/// ponytail: inter-window channel for call lifecycle sync
 const _callChannel = WindowMethodChannel('island/call');
 
-/// Send a 'callEnded' message from the call window to the main window.
 Future<void> notifyCallEnded(String roomId) async {
-  try {
-    await _callChannel.invokeMethod('callEnded', {'roomId': roomId});
-  } catch (_) {
-    // ponytail: main window may not have handler yet — swallow
-  }
+  try { await _callChannel.invokeMethod('callEnded', {'roomId': roomId}); } catch (_) {}
 }
 
-/// Register a handler on the main window side for call lifecycle events.
 void setupCallChannelHandler() {
   _callChannel.setMethodCallHandler((call) async {
     switch (call.method) {
-      case 'callEnded':
-        // ponytail: caller should hide the overlay
-        hideCallOverlay();
-        break;
+      case 'callEnded': hideCallOverlay(); break;
     }
     return null;
   });
 }
 
-/// Parse the raw arguments string from desktop_multi_window.
-/// Returns null if the string is empty or missing 'roomId'.
 CallWindowArgs? parseCallWindowArgs(String raw) {
   if (raw.isEmpty) return null;
   try {
     final json = jsonDecode(raw) as Map<String, dynamic>;
     if (!json.containsKey('roomId')) return null;
     return CallWindowArgs.fromJson(json);
-  } catch (_) {
-    return null;
-  }
+  } catch (_) { return null; }
 }
 
-/// Creates and shows a new desktop window for a call.
-/// Returns the [WindowController] for the new window.
-Future<WindowController> createCallWindow(
-  SnChatRoom room, {
-  bool cameraEnabled = false,
-}) async {
-  final args = CallWindowArgs(
-    roomId: room.id,
-    roomName: room.name,
-    cameraEnabled: cameraEnabled,
-  );
-
+Future<WindowController> createCallWindow(SnChatRoom room, {bool cameraEnabled = false}) async {
+  final args = CallWindowArgs(roomId: room.id, roomName: room.name, cameraEnabled: cameraEnabled);
   final controller = await WindowController.create(
-    WindowConfiguration(
-      hiddenAtLaunch: true,
-      arguments: args.encode(),
-    ),
+    WindowConfiguration(hiddenAtLaunch: true, arguments: args.encode()),
   );
-
   await controller.show();
-  // ponytail: WindowController.show() already focuses, but explicit focus helps
   await windowManager.focus();
   Logger.root.info('[CallWindow] Created call window for room ${room.id}');
   return controller;
 }
 
-/// Lightweight app for the dedicated call window.
-/// Runs independently from the main app — no full router, no tabs.
-class CallWindowApp extends StatelessWidget {
-  final CallWindowArgs args;
+// ── App ─────────────────────────────────────────────────────────────────────
 
+class CallWindowApp extends HookConsumerWidget {
+  final CallWindowArgs args;
   const CallWindowApp({super.key, required this.args});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final settings = ref.watch(appSettingsProvider);
+
+    ThemeMode getThemeMode() {
+      switch (settings.themeMode ?? 'system') {
+        case 'light': return ThemeMode.light;
+        case 'dark': return ThemeMode.dark;
+        default: return ThemeMode.system;
+      }
+    }
+
+    final overlayKey = useMemoized(() => GlobalKey<OverlayState>());
+
+    useEffect(() {
+      final previous = globalOverlay;
+      globalOverlay = overlayKey;
+      return () => globalOverlay = previous;
+    }, []);
+
     return MaterialApp(
       title: 'Call — ${args.roomName ?? args.roomId}',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true).copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0E1117),
-      ),
+      theme: theme.light,
+      darkTheme: theme.dark,
+      themeMode: getThemeMode(),
+      builder: (context, child) {
+        return Overlay(
+          key: overlayKey,
+          initialEntries: [
+            OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+          ],
+        );
+      },
       home: _CallWindowHome(args: args),
     );
   }
 }
 
+// ── Home ────────────────────────────────────────────────────────────────────
+
 class _CallWindowHome extends HookConsumerWidget {
   final CallWindowArgs args;
-
   const _CallWindowHome({required this.args});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final apiClient = ref.watch(apiClientProvider);
+    final callNotifier = ref.read(callProvider.notifier);
+    final chatRoom = useState<SnChatRoom?>(null);
+    final joinError = useState<String?>(null);
 
-    // ponytail: create a standalone controller for this window
-    final controller = useMemoized(
-      () => CallController(apiClient: apiClient),
-    );
-    final callState = useValueListenable(controller.stateNotifier);
-    final controlsVisible = useState(true);
-
+    // Eagerly join the call before building content
     useEffect(() {
-      // Fetch room info and join
       () async {
         try {
-          // Fetch minimal room data from API
           final resp = await apiClient.get('/messager/chat/${args.roomId}');
           final room = SnChatRoom.fromJson(resp.data);
-          await controller.joinRoom(room, cameraEnabled: args.cameraEnabled);
+          chatRoom.value = room;
+          await callNotifier.joinRoom(room, cameraEnabled: args.cameraEnabled);
         } catch (e) {
           Logger.root.severe('[CallWindow] Failed to join: $e');
+          joinError.value = e.toString();
         }
       }();
-      return () => controller.dispose();
+
+      windowManager.setPreventClose(true);
+      final listener = _CallWindowListener(notifier: callNotifier, roomId: args.roomId);
+      windowManager.addListener(listener);
+      return () {
+        windowManager.removeListener(listener);
+      };
     }, []);
 
     useEffect(() {
@@ -168,355 +164,281 @@ class _CallWindowHome extends HookConsumerWidget {
       return null;
     }, []);
 
-    // Notify main window when call disconnects
+    // Auto-close when call disconnects
     useEffect(() {
-      void listener() {
-        final s = controller.stateNotifier.value;
-        if (!s.isConnected && !s.isReconnecting && s.hasJoined) {
+      final sub = ref.listenManual(callProvider, (prev, next) {
+        if (prev != null && prev.isConnected && !next.isConnected && next.hasJoined) {
           notifyCallEnded(args.roomId);
+          _closeWindow();
         }
-      }
+      });
+      return sub.close;
+    }, []);
 
-      controller.stateNotifier.addListener(listener);
-      return () => controller.stateNotifier.removeListener(listener);
-    }, [controller]);
+    final roomTitle = chatRoom.value?.name ?? args.roomName ?? 'Call';
+
+    return Column(
+      children: [
+        // ── Title bar (matches main app WindowScaffold) ──
+        _TitleBar(title: roomTitle),
+        // ── Call body ──
+        Expanded(
+          child: joinError.value != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Symbols.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+                      const SizedBox(height: 8),
+                      Text(joinError.value!, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      FilledButton.tonal(onPressed: () => _closeWindow(), child: const Text('Close')),
+                    ],
+                  ),
+                )
+              : _CallBody(args: args, chatRoom: chatRoom),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Title bar ───────────────────────────────────────────────────────────────
+
+class _TitleBar extends StatelessWidget {
+  final String title;
+  const _TitleBar({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return DragToMoveArea(
+      child: Container(
+        height: 32,
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        child: Platform.isMacOS
+            ? Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(title, textAlign: TextAlign.center,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
+                ],
+              )
+            : Row(
+                children: [
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Symbols.close, size: 16),
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
+                    onPressed: () => _closeWindow(),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+// ── Call body (in-call overlay + content + controls) ─────────────────────────
+
+class _CallBody extends HookConsumerWidget {
+  final CallWindowArgs args;
+  final ValueNotifier<SnChatRoom?> chatRoom;
+  const _CallBody({required this.args, required this.chatRoom});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final callState = ref.watch(callProvider);
+    final controlsVisible = useState(true);
 
     final statusText = callState.isConnected
         ? formatDuration(callState.duration)
-        : callState.isReconnecting
-            ? 'reconnecting'.tr()
-            : 'connecting'.tr();
+        : callState.isReconnecting ? 'Reconnecting' : 'Connecting';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0E1117),
-      body: GestureDetector(
+    final roomTitle = chatRoom.value?.name ?? args.roomName ?? 'Call';
+
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => controlsVisible.value = !controlsVisible.value,
         child: Stack(
           children: [
+            // Content
             SafeArea(
               bottom: false,
-              child: callState.error != null
-                  ? Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 320),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Symbols.error_outline,
-                                size: 48, color: Colors.white70),
-                            const SizedBox(height: 8),
-                            Text(
-                              callState.error!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(height: 10),
-                            TextButton(
-                              onPressed: () async {
-                                // ponytail: retry not implemented — user should close and reopen
-                                showErrorAlert('Please close this window and try again.');
-                              },
-                              child: Text('retry'.tr()),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        const SizedBox(height: 6),
-                        Expanded(
-                          child: _CallWindowContent(controller: controller),
-                        ),
-                      ],
-                    ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 6),
+                  const Expanded(child: CallContent()),
+                ],
+              ),
             ),
-            // Top bar
+            // In-call info overlay (room name + actions)
             AnimatedPositioned(
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOutCubic,
-              top: controlsVisible.value ? 0 : -80,
-              left: 0,
-              right: 0,
+              top: controlsVisible.value ? 0 : -72,
+              left: 0, right: 0,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.64),
-                      Colors.transparent,
-                    ],
+                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                    colors: [Colors.black.withOpacity(0.64), Colors.transparent],
                   ),
                 ),
                 child: Row(
                   children: [
-                    IconButton(
-                      onPressed: () => windowManager.close(),
-                      icon:
-                          const Icon(Icons.close, color: Colors.white),
-                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            args.roomName ?? 'call'.tr(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            statusText,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
+                          Text(roomTitle, maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+                          Text(statusText, style: const TextStyle(color: Colors.white70, fontSize: 11)),
                         ],
                       ),
                     ),
-                    Text(
-                      '${controller.participants.length}',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    const Icon(Symbols.group,
-                        size: 16, color: Colors.white70),
-                  ],
-                ),
-              ),
-            ),
-            // Bottom controls
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutCubic,
-              bottom: controlsVisible.value ? 0 : -140,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.only(top: 8, bottom: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.64),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: _CallWindowControlsBar(controller: controller),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Content widget that watches the controller's state directly.
-class _CallWindowContent extends HookConsumerWidget {
-  final CallController controller;
-  const _CallWindowContent({required this.controller});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final callState = useValueListenable(controller.stateNotifier);
-    final participants = controller.participants;
-    final hasRenderableCall =
-        participants.isNotEmpty || callState.hasJoined || callState.isReconnecting;
-
-    if (!hasRenderableCall) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
-    }
-
-    if (participants.isEmpty) {
-      return Center(
-        child: Text(
-          callState.isReconnecting
-              ? 'Reconnecting call...'
-              : 'Waiting for participants...',
-          style: const TextStyle(color: Colors.white70),
-        ),
-      );
-    }
-
-    final allAudioOnly = participants.every(
-      (p) => !(p.hasVideo &&
-          p.remoteParticipant.trackPublications.values.any(
-            (pub) => pub.track != null && pub.kind == lk.TrackType.VIDEO && !pub.muted && !pub.isDisposed,
-          )),
-    );
-
-    if (allAudioOnly) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 24,
-            runSpacing: 24,
-            children: [
-              for (final live in participants)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SpeakingRippleAvatar(live: live, size: 84),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: 84,
-                      child: Text(
-                        live.participant.name,
-                        style: const TextStyle(color: Colors.white),
-                        textAlign: TextAlign.center,
+                    IconButton(
+                      onPressed: () => ref.read(callProvider.notifier).toggleViewMode(),
+                      tooltip: callState.viewMode == ViewMode.grid ? 'Stage view' : 'Grid view',
+                      icon: Icon(
+                        callState.viewMode == ViewMode.grid ? Symbols.view_list : Symbols.grid_view,
+                        color: Colors.white, size: 20,
                       ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
+                    IconButton(
+                      onPressed: () => _doInvite(context, ref, chatRoom.value),
+                      tooltip: 'Invite to call',
+                      icon: const Icon(Symbols.person_add, color: Colors.white, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                     ),
                   ],
                 ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Video grid
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final count = participants.length;
-        final crossAxisCount = switch (count) {
-          <= 1 => 1,
-          <= 4 => width > 900 ? 2 : 1,
-          <= 9 => width > 1200 ? 3 : 2,
-          _ => width > 1400 ? 4 : 3,
-        };
-
-        return GridView.builder(
-          padding: const EdgeInsets.all(10),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 16 / 9,
-          ),
-          itemCount: participants.length,
-          itemBuilder: (context, index) {
-            return _SimpleVideoTile(live: participants[index]);
-          },
-        );
-      },
-    );
-  }
-}
-
-/// Minimal video tile for the call window (no participant card interactions).
-class _SimpleVideoTile extends StatelessWidget {
-  final CallParticipantLive live;
-  const _SimpleVideoTile({required this.live});
-
-  @override
-  Widget build(BuildContext context) {
-    final videoTrack = live.remoteParticipant.videoTrackPublications
-        .where((pub) => pub.track != null && !pub.muted && !pub.isDisposed)
-        .map((pub) => pub.track!)
-        .firstOrNull;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        color: const Color(0xFF1A1D23),
-        child: videoTrack != null
-            ? lk.VideoTrackRenderer(videoTrack as lk.VideoTrack)
-            : Center(
-                child: Text(
-                  live.participant.name.isNotEmpty
-                      ? live.participant.name[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(color: Colors.white, fontSize: 32),
+              ),
+            ),
+          // Bottom controls
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            bottom: controlsVisible.value ? 0 : -160,
+            left: 0, right: 0,
+            child: Container(
+              padding: EdgeInsets.only(top: 8, bottom: MediaQuery.of(context).padding.bottom + 8),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter, end: Alignment.topCenter,
+                  colors: [Colors.black.withOpacity(0.64), Colors.transparent],
                 ),
               ),
-      ),
-    );
-  }
-}
-
-/// Controls bar for the call window — uses CallController directly.
-class _CallWindowControlsBar extends HookConsumerWidget {
-  final CallController controller;
-  const _CallWindowControlsBar({required this.controller});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final callState = useValueListenable(controller.stateNotifier);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        runSpacing: 16,
-        spacing: 16,
-        children: [
-          _ctrlBtn(
-            icon: callState.isCameraEnabled
-                ? Symbols.videocam
-                : Symbols.videocam_off,
-            onPressed: () => controller.toggleCamera(),
-          ),
-          _ctrlBtn(
-            icon: callState.isScreenSharing
-                ? Symbols.stop_screen_share
-                : Symbols.screen_share,
-            onPressed: () => controller.toggleScreenShare(context),
-          ),
-          _ctrlBtn(
-            icon: callState.isMicrophoneEnabled ? Symbols.mic : Symbols.mic_off,
-            onPressed: () => controller.toggleMicrophone(),
-          ),
-          _ctrlBtn(
-            icon: Icons.call_end,
-            backgroundColor: const Color(0xFFE53E3E),
-            onPressed: () async {
-              final confirmed = await showConfirmAlert(
-                'Are you sure you want to leave this call?',
-                'callLeave'.tr(),
-                icon: Symbols.logout,
-                isDanger: true,
-              );
-              if (!confirmed) return;
-              await controller.disconnect();
-              if (context.mounted) {
-                windowManager.close();
-              }
-            },
+              child: const Center(child: CallControlsBar()),
+            ),
           ),
         ],
       ),
+      ),
     );
   }
 
-  Widget _ctrlBtn({
-    required IconData icon,
-    required VoidCallback onPressed,
-    Color backgroundColor = const Color(0xFF424242),
-  }) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 24),
-        onPressed: onPressed,
+  Future<void> _doInvite(BuildContext context, WidgetRef ref, SnChatRoom? room) async {
+    if (room == null) return;
+    final apiClient = ref.read(apiClientProvider);
+    final currentUserId = ref.read(userInfoProvider).value?.id;
+    final callNotifier = ref.read(callProvider.notifier);
+    final members = room.members ?? const <SnChatMember>[];
+    final activeIds = callNotifier.participants
+        .map((p) => p.participant.identity).whereType<String>().toSet();
+    final candidates = members.where((m) {
+      if (m.joinedAt == null) return false;
+      if (m.accountId == currentUserId) return false;
+      return !activeIds.contains(m.account.name);
+    }).toList();
+
+    if (candidates.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No available room members to invite.')),
+        );
+      }
+      return;
+    }
+
+    final target = await showModalBottomSheet<SnChatMember>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (ctx) => SheetScaffold(
+        titleText: 'Invite to call',
+        heightFactor: 0.6,
+        child: ListView.separated(
+          itemCount: candidates.length,
+          separatorBuilder: (_, _) => const Divider(height: 1),
+          itemBuilder: (_, i) {
+            final m = candidates[i];
+            return ListTile(
+              leading: ProfilePictureWidget(file: m.account.profile.picture, radius: 18),
+              title: AccountName(account: m.account),
+              subtitle: Text(m.account.name, style: Theme.of(context).textTheme.bodySmall),
+              trailing: IconButton(
+                icon: const Icon(Symbols.call),
+                onPressed: () => Navigator.pop(ctx, m),
+              ),
+              onTap: () => Navigator.pop(ctx, m),
+            );
+          },
+        ),
       ),
     );
+    if (target == null) return;
+    try {
+      await apiClient.post('/messager/chat/realtime/${room.id}/invite/${target.accountId}');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invite sent to ${target.nick ?? target.account.nick}.')),
+        );
+      }
+    } catch (e) {
+      showErrorAlert(e);
+    }
+  }
+}
+
+// ── Invite sheet (uses AccountName + ProfilePicture) ────────────────────────
+
+// ── Listener ────────────────────────────────────────────────────────────────
+
+Future<void> _closeWindow() async {
+  await windowManager.setPreventClose(false);
+  await windowManager.close();
+}
+
+class _CallWindowListener with WindowListener {
+  final CallNotifier notifier;
+  final String roomId;
+  bool _closed = false;
+
+  _CallWindowListener({required this.notifier, required this.roomId});
+
+  @override
+  void onWindowClose() async {
+    if (_closed) return;
+    _closed = true;
+    try {
+      final bounds = await windowManager.getBounds();
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('callWindowSize', '${bounds.size.width},${bounds.size.height}');
+      }).catchError((_) {});
+    } catch (_) {}
+    // ponytail: don't disconnect — let the main window show the in-app overlay
+    await windowManager.setPreventClose(false);
+    await windowManager.close();
   }
 }

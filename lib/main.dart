@@ -68,8 +68,21 @@ void main(List<String> args) async {
         if (callArgs != null) {
           // Minimal init for call window — skip Firebase, plugins, full router
           await windowManager.ensureInitialized();
+          final callPrefs = await SharedPreferences.getInstance();
+          final savedSize = callPrefs.getString('callWindowSize');
+          Size initialSize = const Size(280, 160);
+          if (savedSize != null) {
+            try {
+              final parts = savedSize.split(',');
+              if (parts.length == 2) {
+                initialSize = Size(double.parse(parts[0]), double.parse(parts[1]));
+              }
+            } catch (_) {}
+          }
           WindowOptions windowOptions = WindowOptions(
-            size: const Size(800, 600),
+            size: initialSize,
+            minimumSize: const Size(200, 120),
+            maximumSize: const Size(1200, 900),
             center: true,
             backgroundColor: Colors.transparent,
             skipTaskbar: false,
@@ -79,18 +92,14 @@ void main(List<String> args) async {
           await windowManager.waitUntilReadyToShow(windowOptions, () async {
             await windowManager.show();
             await windowManager.focus();
+            await windowManager.setResizable(true);
+            // ponytail: prevent maximize — call window should stay compact
+            await windowManager.setMaximizable(false);
           });
-          final prefs = await SharedPreferences.getInstance();
           runApp(
             ProviderScope(
-              overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-              child: EasyLocalization(
-                supportedLocales: [Locale('en', 'US')],
-                path: 'assets/i18n',
-                fallbackLocale: Locale('en', 'US'),
-                useFallbackTranslations: true,
-                child: CallWindowApp(args: callArgs),
-              ),
+              overrides: [sharedPreferencesProvider.overrideWithValue(callPrefs)],
+              child: CallWindowApp(args: callArgs),
             ),
           );
           return;
@@ -332,7 +341,8 @@ void main(List<String> args) async {
 }
 
 // 以下是 IslandApp 等代码保持不变...
-final globalOverlay = GlobalKey<OverlayState>();
+// ponytail: non-final so call window can swap to its own overlay key
+GlobalKey<OverlayState> globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class IslandApp extends HookConsumerWidget {

@@ -151,7 +151,11 @@ dependencies:
   win32: ^5.15.0
   ffi: ^2.2.0
   pretty_diff_text: ^2.1.0
-  window_manager: ^0.5.1
+  window_manager:
+    git:
+      url: https://github.com/boyan01/window_manager.git
+      path: packages/window_manager
+      ref: 6fae92d21b4c80ce1b8f71c1190d7970cf722bd4
   desktop_multi_window: ^0.3.0
   dio_smart_retry: ^7.0.1
   event_bus: ^2.0.1
