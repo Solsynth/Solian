@@ -24,7 +24,7 @@ import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/widgets/call_screen.dart';
-import 'package:island_call/island_call.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
@@ -116,7 +116,7 @@ class AppWrapper extends HookConsumerWidget {
 
     useEffect(() {
       if (isNativeCallAvailable) {
-        ref.read(nativeCallBridgeProvider.notifier).ensureInitialized(ref);
+        ref.read(nativeCallBridgeProvider.notifier).ensureInitialized();
       }
       return null;
     }, []);
@@ -155,7 +155,7 @@ class AppWrapper extends HookConsumerWidget {
           // Flutter call just connected
           if (!prevConnected && currConnected) {
             Logger.root.info('[AppWrapper] Flutter call connected, setting CallKit call connected');
-            IslandCall.setCallConnected();
+            FlutterCallkitIncoming.setCallConnected('');
           }
           
           // Flutter call just disconnected with error
