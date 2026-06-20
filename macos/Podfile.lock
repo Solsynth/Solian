@@ -166,12 +166,6 @@ PODS:
     - flutter_webrtc
     - FlutterMacOS
     - WebRTC-SDK (= 137.7151.04)
-  - LiveKitClient (2.15.0):
-    - LiveKitUniFFI (= 0.0.6)
-    - LiveKitWebRTC (= 144.7559.08)
-    - SwiftProtobuf
-  - LiveKitUniFFI (0.0.6)
-  - LiveKitWebRTC (144.7559.08)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -226,7 +220,6 @@ PODS:
     - FlutterMacOS
   - super_native_extensions (0.0.1):
     - FlutterMacOS
-  - SwiftProtobuf (1.38.0)
   - tray_manager (0.0.1):
     - FlutterMacOS
   - ua_client_hints (1.7.0):
@@ -268,7 +261,6 @@ DEPENDENCIES:
   - island_desktop_presence (from `Flutter/ephemeral/.symlinks/plugins/island_desktop_presence/macos`)
   - just_audio (from `Flutter/ephemeral/.symlinks/plugins/just_audio/darwin`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
-  - LiveKitClient
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
@@ -294,10 +286,6 @@ DEPENDENCIES:
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
 SPEC REPOS:
-  https://github.com/livekit/podspecs.git:
-    - LiveKitClient
-    - LiveKitUniFFI
-    - LiveKitWebRTC
   trunk:
     - Firebase
     - FirebaseAnalytics
@@ -313,7 +301,6 @@ SPEC REPOS:
     - OrderedSet
     - PromisesObjC
     - Sentry
-    - SwiftProtobuf
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
@@ -458,9 +445,6 @@ SPEC CHECKSUMS:
   island_desktop_presence: 2360e0ca57129a334b22a67b4ba876861f680ba7
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
   livekit_client: 3df5a1787d64010ca56c4002959d9e47c03ba3fb
-  LiveKitClient: 4755d67794a99ddc05f16b0b914713c408c179a5
-  LiveKitUniFFI: 64ffbba4f13f95918753dd81bbc8b326e3d0a924
-  LiveKitWebRTC: 18be0c863d158cb7713cc4cc1aade659f5d795d4
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
@@ -484,7 +468,6 @@ SPEC CHECKSUMS:
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
-  SwiftProtobuf: d724b5145bfc609d9a49c1e3e3a3dabb07273ffb
   tray_manager: 19c369010e59c073f13b82354d78a35f7972d609
   ua_client_hints: bb84da85d9d5d605d40598b3c1ae3bfd2598e201
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
@@ -492,6 +475,6 @@ SPEC CHECKSUMS:
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
-PODFILE CHECKSUM: ba32830e01104e140858d23db7ce2890e09222a1
+PODFILE CHECKSUM: bac2186806ea901d391c664c7bfc8ccce0ee7cb7
 
 COCOAPODS: 1.16.2

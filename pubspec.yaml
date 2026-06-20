@@ -37,8 +37,6 @@ dependencies:
   island_desktop_presence:
     path: packages/island_desktop_presence
   flutter_callkit_incoming: ^3.1.2
-  island_call:
-    path: packages/island_call
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
