@@ -18,6 +18,7 @@ final class CallState: ObservableObject {
     @Published var isAdmin = false
     @Published var hasJoined = false
     @Published var activeCallUuid: String?
+    @Published var callerAvatarUrl: String?
 
     enum ViewMode: String { case grid, stage }
 
@@ -67,6 +68,7 @@ final class CallState: ObservableObject {
         isAdmin = false
         hasJoined = false
         activeCallUuid = nil
+        callerAvatarUrl = nil
         stopDurationTimer()
     }
 
@@ -86,6 +88,7 @@ final class CallState: ObservableObject {
             "isAdmin": isAdmin,
             "hasJoined": hasJoined,
             "activeCallUuid": activeCallUuid as Any,
+            "callerAvatarUrl": callerAvatarUrl as Any,
             "participantCount": participants.count,
         ]
     }

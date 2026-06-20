@@ -56,7 +56,7 @@ abstract class IslandCallPlatform extends PlatformInterface {
     throw UnimplementedError();
   }
 
-  Future<void> startCall(String handle) {
+  Future<void> startCall(String handle, {bool isVideo = false}) {
     throw UnimplementedError();
   }
 
@@ -85,6 +85,26 @@ abstract class IslandCallPlatform extends PlatformInterface {
   }
 
   Future<void> endCallActivity() {
+    throw UnimplementedError();
+  }
+
+  Stream<Map<String, dynamic>> get onCallKitEvents {
+    throw UnimplementedError();
+  }
+
+  Future<void> fulfillPendingAnswer() {
+    throw UnimplementedError();
+  }
+
+  Future<void> failPendingAnswer() {
+    throw UnimplementedError();
+  }
+
+  Future<void> reportRemoteEnded() {
+    throw UnimplementedError();
+  }
+
+  Future<void> reportConnectionFailed() {
     throw UnimplementedError();
   }
 }

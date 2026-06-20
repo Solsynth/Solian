@@ -3,6 +3,7 @@ import LiveKitClient
 import CallKit
 import PushKit
 import AVFoundation
+import Kingfisher
 
 final class CallManager: NSObject, @unchecked Sendable {
     let state = CallState()
@@ -10,8 +11,12 @@ final class CallManager: NSObject, @unchecked Sendable {
     var onParticipantsChanged: (([[String: Any]]) -> Void)?
 
     // CallKit/CallUI callbacks
-    var onCallKitCallConnected: (() -> Void)?
+    var onCallKitCallConnected: ((String) -> Void)?
     var onCallKitCallEnded: (() -> Void)?
+    var onCallKitMuteChanged: ((Bool) -> Void)?
+    
+    // Pending answer action (fulfilled when Flutter connects)
+    private var pendingAnswerAction: CXAnswerCallAction?
 
     private var room: Room?
     private var localParticipant: LocalParticipant?
@@ -204,10 +209,11 @@ final class CallManager: NSObject, @unchecked Sendable {
 
     // MARK: - CallKit
 
-    func startCall(handle: String) async {
+    func startCall(handle: String, isVideo: Bool = false) async {
         let callUUID = UUID()
         let cxHandle = CXHandle(type: .generic, value: handle)
         let action = CXStartCallAction(call: callUUID, handle: cxHandle)
+        action.isVideo = isVideo
         do {
             try await callController.request(CXTransaction(action: action))
             activeCallUUID = callUUID
@@ -222,6 +228,25 @@ final class CallManager: NSObject, @unchecked Sendable {
         let action = CXEndCallAction(call: callUUID)
         try? await callController.request(CXTransaction(action: action))
         activeRoomId = nil
+    }
+    
+    /// Report call ended with reason (remote ended, failed, etc.)
+    func reportCallEnded(reason: CXCallEndedReason) {
+        guard let callUUID = activeCallUUID else { return }
+        provider.reportCall(with: callUUID, endedAt: Date(), reason: reason)
+        activeCallUUID = nil
+        activeRoomId = nil
+        print("[CallKit] Call reported ended with reason: \(reason.rawValue)")
+    }
+    
+    /// Report connection failed
+    func reportConnectionFailed() {
+        reportCallEnded(reason: .failed)
+    }
+    
+    /// Report remote party ended the call
+    func reportRemoteEnded() {
+        reportCallEnded(reason: .remoteEnded)
     }
 
     func reportIncomingCall(from callerId: String, callerName: String, roomId: String, completion: (() -> Void)? = nil) {
@@ -544,7 +569,7 @@ extension CallManager: CXProviderDelegate {
                 provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
                 try await joinRoom(action.handle.value)
                 action.fulfill()
-                Task { @MainActor in self.onCallKitCallConnected?() }
+                Task { @MainActor in self.onCallKitCallConnected?(action.handle.value) }
             } catch {
                 action.fail()
                 activeCallUUID = nil
@@ -554,24 +579,32 @@ extension CallManager: CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        Task {
-            do {
-                guard let roomId = activeRoomId else {
-                    print("[CallKit] Answer failed: no activeRoomId")
-                    action.fail()
-                    return
-                }
-                print("[CallKit] Answering call, joining room: \(roomId)")
-                try await joinRoom(roomId)
-                print("[CallKit] Call answered, room joined")
-                action.fulfill()
-                Task { @MainActor in self.onCallKitCallConnected?() }
-            } catch {
-                print("[CallKit] Answer failed: \(error)")
-                action.fail()
-                Task { @MainActor in self.state.error = error.localizedDescription }
-            }
+        guard let roomId = activeRoomId else {
+            print("[CallKit] Answer failed: no activeRoomId")
+            action.fail()
+            return
         }
+        print("[CallKit] Answering call for room: \(roomId) - waiting for Flutter to connect")
+        // Store the action - will be fulfilled when Flutter reports connection
+        pendingAnswerAction = action
+        Task { @MainActor in self.onCallKitCallConnected?(roomId) }
+    }
+    
+    /// Called by Flutter when the LiveKit connection is established
+    func fulfillPendingAnswer() {
+        guard let action = pendingAnswerAction else { return }
+        print("[CallKit] Fulfilling pending answer action")
+        action.fulfill()
+        pendingAnswerAction = nil
+    }
+    
+    /// Called by Flutter when connection fails
+    func failPendingAnswer() {
+        guard let action = pendingAnswerAction else { return }
+        print("[CallKit] Failing pending answer action")
+        action.fail()
+        pendingAnswerAction = nil
+        reportConnectionFailed()
     }
 
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -588,7 +621,12 @@ extension CallManager: CXProviderDelegate {
         Task {
             if let lp = localParticipant {
                 _ = try? await lp.setMicrophone(enabled: !action.isMuted)
-                Task { @MainActor in self.state.isMicrophoneEnabled = !action.isMuted }
+                Task { @MainActor in
+                    self.state.isMicrophoneEnabled = !action.isMuted
+                    self.emitState()
+                    // Emit mute event to Flutter
+                    self.onCallKitMuteChanged?(action.isMuted)
+                }
             }
             action.fulfill()
         }
@@ -637,11 +675,46 @@ extension CallManager: PKPushRegistryDelegate {
         let callerId = meta["caller_id"] as? String ?? "Unknown"
         let callerName = meta["caller_name"] as? String ?? "Unknown"
         let roomId = meta["room_id"] as? String ?? ""
+        let pfpIdentifier = meta["pfp"] as? String
 
-        print("[PushKit] Reporting incoming call - callerId: \(callerId), callerName: \(callerName), roomId: \(roomId)")
+        print("[PushKit] Reporting incoming call - callerId: \(callerId), callerName: \(callerName), roomId: \(roomId), pfp: \(pfpIdentifier ?? "nil")")
         
-        // Must call completion AFTER reporting incoming call
-        reportIncomingCall(from: callerId, callerName: callerName, roomId: roomId, completion: completion)
+        // Download avatar if available
+        Task { [weak self] in
+            if let pfpId = pfpIdentifier, let urlStr = self?.resolveAvatarUrl(for: pfpId), let url = URL(string: urlStr) {
+                self?.state.callerAvatarUrl = urlStr
+                print("[PushKit] Avatar URL resolved: \(urlStr)")
+                
+                // Pre-download the image for later use
+                KingfisherManager.shared.retrieveImage(with: url) { result in
+                    switch result {
+                    case .success(_):
+                        print("[PushKit] Avatar image downloaded successfully")
+                    case .failure(let error):
+                        print("[PushKit] Avatar download failed: \(error)")
+                    }
+                }
+            }
+            
+            // ponytail: Wait for CXProvider to be ready after app launch from terminated state
+            // 2 seconds is usually enough; if it fails, the second push will work
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            self?.reportIncomingCall(from: callerId, callerName: callerName, roomId: roomId, completion: completion)
+        }
+    }
+    
+    // MARK: - Avatar URL Resolution
+    
+    private func resolveAvatarUrl(for identifier: String) -> String? {
+        guard let serverUrl else { return nil }
+        
+        // If it's already a full URL
+        if identifier.hasPrefix("http://") || identifier.hasPrefix("https://") {
+            return identifier
+        }
+        
+        // Otherwise treat as storage ID
+        return "\(serverUrl)/drive/files/\(identifier)"
     }
 }
 

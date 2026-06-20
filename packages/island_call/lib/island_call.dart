@@ -35,7 +35,7 @@ class IslandCall {
   static Stream<List<Map<String, dynamic>>> get onParticipantsChanged => _p.onParticipantsChanged;
 
   /// Start an outgoing call via CallKit. [handle] identifies the callee/room.
-  static Future<void> startCall(String handle) => _p.startCall(handle);
+  static Future<void> startCall(String handle, {bool isVideo = false}) => _p.startCall(handle, isVideo: isVideo);
 
   /// End the current call via CallKit.
   static Future<void> endCall() => _p.endCall();
@@ -61,4 +61,19 @@ class IslandCall {
 
   /// End the Live Activity when call ends.
   static Future<void> endCallActivity() => _p.endCallActivity();
+
+  /// CallKit events: callAccepted, callEnded, muteChanged
+  static Stream<Map<String, dynamic>> get onCallKitEvents => _p.onCallKitEvents;
+
+  /// Fulfill the pending answer action (call when LiveKit connected)
+  static Future<void> fulfillPendingAnswer() => _p.fulfillPendingAnswer();
+
+  /// Fail the pending answer action (call when connection failed)
+  static Future<void> failPendingAnswer() => _p.failPendingAnswer();
+
+  /// Report remote party ended the call
+  static Future<void> reportRemoteEnded() => _p.reportRemoteEnded();
+
+  /// Report connection failed
+  static Future<void> reportConnectionFailed() => _p.reportConnectionFailed();
 }
