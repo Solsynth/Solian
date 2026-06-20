@@ -1048,45 +1048,15 @@ class ChatRoomScreen extends HookConsumerWidget {
                               chatStateNotifier.setEditingTo(null);
                               chatStateNotifier.setReplyingTo(null);
                               chatStateNotifier.setForwardingTo(null);
-                              chatStateNotifier.setPoll(null);
-                              chatStateNotifier.setFund(null);
-                              chatStateNotifier.setLocation();
-                              chatStateNotifier.setMeet(null);
-                              chatStateNotifier.setCalendarEvent(null);
+                              chatStateNotifier.clearInput();
                             },
                             messageEditingTo: chatState.messageEditingTo,
                             messageReplyingTo: chatState.messageReplyingTo,
                             messageForwardingTo: chatState.messageForwardingTo,
-                            selectedPoll: chatState.selectedPoll,
-                            onPollSelected: (poll) =>
-                                chatStateNotifier.setPoll(poll),
-                            selectedFund: chatState.selectedFund,
-                            onFundSelected: (fund) =>
-                                chatStateNotifier.setFund(fund),
-                            selectedLocationName:
-                                chatState.selectedLocationName,
-                            selectedLocationAddress:
-                                chatState.selectedLocationAddress,
-                            selectedLocationWkt: chatState.selectedLocationWkt,
-                            selectedMeetId: chatState.selectedMeetId,
-                            onLocationSelected:
-                                ({
-                                  String? name,
-                                  String? address,
-                                  String? wkt,
-                                }) => chatStateNotifier.setLocation(
-                                  name: name,
-                                  address: address,
-                                  wkt: wkt,
-                                ),
-                            onMeetSelected: (meetId) =>
-                                chatStateNotifier.setMeet(meetId),
-                            selectedCalendarEventId:
-                                chatState.selectedCalendarEventId,
-                            onCalendarEventSelected: (calendarEventId) =>
-                                chatStateNotifier.setCalendarEvent(
-                                  calendarEventId,
-                                ),
+                            embeds: chatState.embeds,
+                            onEmbedsChanged: (embeds) {
+                              chatStateNotifier.setEmbeds(embeds);
+                            },
                             isMessageListScrolling: !isAtLatestMessages.value,
                             onPickFile: (isPhoto) {
                               if (isPhoto) {

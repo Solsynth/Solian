@@ -201,7 +201,7 @@ class ComposeToolbar extends HookConsumerWidget {
                           ),
                           // Poll button with visual state when a poll is linked
                           ListenableBuilder(
-                            listenable: state.pollId,
+                            listenable: state.embeds,
                             builder: (context, _) {
                               return IconButton(
                                 onPressed: pickPoll,
@@ -210,7 +210,7 @@ class ComposeToolbar extends HookConsumerWidget {
                                 color: colorScheme.primary,
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
-                                    state.pollId.value != null
+                                    state.embeds.value.any((e) => e['type'] == 'poll')
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),
@@ -220,7 +220,7 @@ class ComposeToolbar extends HookConsumerWidget {
                           ),
                           // Fund button with visual state when a fund is linked
                           ListenableBuilder(
-                            listenable: state.fundId,
+                            listenable: state.embeds,
                             builder: (context, _) {
                               return IconButton(
                                 onPressed: pickFund,
@@ -231,7 +231,7 @@ class ComposeToolbar extends HookConsumerWidget {
                                 color: colorScheme.primary,
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
-                                    state.fundId.value != null
+                                    state.embeds.value.any((e) => e['type'] == 'fund')
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),
@@ -242,16 +242,9 @@ class ComposeToolbar extends HookConsumerWidget {
 
                           // Location button with visual state when location is set
                           ListenableBuilder(
-                            listenable: Listenable.merge([
-                              state.locationName,
-                              state.locationAddress,
-                              state.locationWkt,
-                            ]),
+                            listenable: state.embeds,
                             builder: (context, _) {
-                              final hasLocation =
-                                  state.locationName.value != null ||
-                                  state.locationAddress.value != null ||
-                                  state.locationWkt.value != null;
+                              final hasLocation = state.embeds.value.any((e) => e['type'] == 'location');
                               return IconButton(
                                 onPressed: pickLocation,
                                 icon: const Icon(Symbols.location_on),
@@ -269,7 +262,7 @@ class ComposeToolbar extends HookConsumerWidget {
                           ),
                           // Meet button with visual state when a meet is linked
                           ListenableBuilder(
-                            listenable: state.meetId,
+                            listenable: state.embeds,
                             builder: (context, _) {
                               return IconButton(
                                 onPressed: pickMeet,
@@ -278,7 +271,7 @@ class ComposeToolbar extends HookConsumerWidget {
                                 color: colorScheme.primary,
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
-                                    state.meetId.value != null
+                                    state.embeds.value.any((e) => e['type'] == 'meet')
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),
@@ -288,7 +281,7 @@ class ComposeToolbar extends HookConsumerWidget {
                           ),
                           // Calendar event button with visual state when linked
                           ListenableBuilder(
-                            listenable: state.calendarEventId,
+                            listenable: state.embeds,
                             builder: (context, _) {
                               return IconButton(
                                 onPressed: pickCalendarEvent,
@@ -297,7 +290,7 @@ class ComposeToolbar extends HookConsumerWidget {
                                 color: colorScheme.primary,
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
-                                    state.calendarEventId.value != null
+                                    state.embeds.value.any((e) => e['type'] == 'calendar_event')
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),

@@ -67,13 +67,7 @@ class MessageSender {
     SnChatMessage? editingTo,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
-    SnPoll? poll,
-    SnWalletFund? fund,
-    String? locationName,
-    String? locationAddress,
-    String? locationWkt,
-    String? meetId,
-    String? calendarEventId,
+    List<Map<String, dynamic>>? embeds,
     Function(LocalChatMessage message)? onPending,
     Function(String messageId, Map<int, double?>)? onProgress,
   }) async {
@@ -116,13 +110,7 @@ class MessageSender {
         isEditing: editingTo != null,
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
-        poll: poll,
-        fund: fund,
-        locationName: locationName,
-        locationAddress: locationAddress,
-        locationWkt: locationWkt,
-        meetId: meetId,
-        calendarEventId: calendarEventId,
+        embeds: embeds,
       );
 
       _logger.info('[send:$clientMessageId] Sending to server');
@@ -450,15 +438,18 @@ class MessageSender {
     bool isEditing = false,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
-    SnPoll? poll,
-    SnWalletFund? fund,
-    String? locationName,
-    String? locationAddress,
-    String? locationWkt,
-    String? meetId,
-    String? calendarEventId,
+    List<Map<String, dynamic>>? embeds,
   }) async {
     if (_e2eeService?.isE2eeRoom == true) {
+      // For E2EE, we need to extract poll and fund IDs for the encrypted payload
+      String? pollId;
+      String? fundId;
+      if (embeds != null) {
+        for (final embed in embeds) {
+          if (embed['type'] == 'poll') pollId = embed['id'];
+          if (embed['type'] == 'fund') fundId = embed['id'];
+        }
+      }
       final result = await _e2eeService!.buildMessagePayload(
         clientMessageId: clientMessageId,
         messageType: isEditing ? 'messages.update' : 'text',
@@ -466,8 +457,8 @@ class MessageSender {
         attachmentIds: attachmentIds,
         repliedMessageId: replyingTo?.id,
         forwardedMessageId: forwardingTo?.id,
-        pollId: poll?.id,
-        fundId: fund?.id,
+        pollId: pollId,
+        fundId: fundId,
       );
       return (
         payload: result.serverPayload,
@@ -481,25 +472,10 @@ class MessageSender {
       'attachments_id': attachmentIds,
       'replied_message_id': replyingTo?.id,
       'forwarded_message_id': forwardingTo?.id,
-      'poll_id': poll?.id,
-      'fund_id': fund?.id,
+      if (embeds != null && embeds.isNotEmpty) 'embeds': embeds,
       'meta': meta,
       'client_message_id': clientMessageId,
     };
-
-    if (locationName != null ||
-        locationAddress != null ||
-        locationWkt != null) {
-      payload['location_name'] = locationName;
-      payload['location_address'] = locationAddress;
-      payload['location_wkt'] = locationWkt;
-    }
-    if (meetId != null) {
-      payload['meet_id'] = meetId;
-    }
-    if (calendarEventId != null) {
-      payload['calendar_event_id'] = calendarEventId;
-    }
 
     return (payload: payload, plaintextEnvelope: null);
   }

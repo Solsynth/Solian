@@ -50,25 +50,14 @@ class ComposeState {
   final String draftId;
   final ValueNotifier<String?> cloudDraftId;
   int postType;
-  // Linked poll id for this compose session (nullable)
-  final ValueNotifier<String?> pollId;
-  // Linked fund id for this compose session (nullable)
-  final ValueNotifier<String?> fundId;
 
-  // Linked location embed fields (nullable)
-  final ValueNotifier<String?> locationName;
-  final ValueNotifier<String?> locationAddress;
-  final ValueNotifier<String?> locationWkt;
-  // Linked meet id for this compose session (nullable)
-  final ValueNotifier<String?> meetId;
+  // Unified embeds list (polls, funds, meets, calendar events, locations, notable days)
+  final ValueNotifier<List<Map<String, dynamic>>> embeds;
+
   // Thumbnail id for article type post (nullable)
   final ValueNotifier<String?> thumbnailId;
   // Collection IDs to assign the post to on creation
   final ValueNotifier<List<String>> collectionIds;
-  // Linked calendar event id for this compose session (nullable)
-  final ValueNotifier<String?> calendarEventId;
-  // Linked notable day id for this compose session (nullable)
-  final ValueNotifier<String?> notableDayId;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -89,26 +78,12 @@ class ComposeState {
     required this.draftId,
     String? cloudDraftId,
     this.postType = 0,
-    String? pollId,
-    String? fundId,
-    String? locationName,
-    String? locationAddress,
-    String? locationWkt,
-    String? meetId,
+    List<Map<String, dynamic>>? embeds,
     String? thumbnailId,
     List<String>? collectionIds,
-    String? calendarEventId,
-    String? notableDayId,
-  }) : pollId = ValueNotifier<String?>(pollId),
-       fundId = ValueNotifier<String?>(fundId),
-       locationName = ValueNotifier<String?>(locationName),
-       locationAddress = ValueNotifier<String?>(locationAddress),
-       locationWkt = ValueNotifier<String?>(locationWkt),
-       meetId = ValueNotifier<String?>(meetId),
+  }) : embeds = ValueNotifier<List<Map<String, dynamic>>>(embeds ?? []),
        thumbnailId = ValueNotifier<String?>(thumbnailId),
        collectionIds = ValueNotifier<List<String>>(collectionIds ?? []),
-       calendarEventId = ValueNotifier<String?>(calendarEventId),
-       notableDayId = ValueNotifier<String?>(notableDayId),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
   void startAutoSave(WidgetRef ref) {
@@ -145,50 +120,12 @@ class ComposeLogic {
     // Initialize categories from original post
     final categories = originalPost?.categories ?? <SnPostCategory>[];
 
-    // Extract embed IDs from original post embeds
-    String? pollId;
-    String? fundId;
-    String? locationName;
-    String? locationAddress;
-    String? locationWkt;
-    String? meetId;
-    String? calendarEventId;
-    String? notableDayId;
-    if (originalPost?.meta?['embeds'] is List) {
-      final embeds = (originalPost!.meta!['embeds'] as List)
-          .cast<Map<String, dynamic>>();
-      try {
-        final pollEmbed = embeds.firstWhere((e) => e['type'] == 'poll');
-        pollId = pollEmbed['id'];
-      } catch (_) {}
-      try {
-        final fundEmbed = embeds.firstWhere((e) => e['type'] == 'fund');
-        fundId = fundEmbed['id'];
-      } catch (_) {}
-
-      try {
-        final locationEmbed = embeds.firstWhere((e) => e['type'] == 'location');
-        locationName = locationEmbed['name']?.toString();
-        locationAddress = locationEmbed['address']?.toString();
-        locationWkt = locationEmbed['wkt']?.toString();
-      } catch (_) {}
-      try {
-        final meetEmbed = embeds.firstWhere((e) => e['type'] == 'meet');
-        meetId = meetEmbed['id']?.toString();
-      } catch (_) {}
-      try {
-        final calendarEventEmbed = embeds.firstWhere(
-          (e) => e['type'] == 'calendar_event',
-        );
-        calendarEventId = calendarEventEmbed['id']?.toString();
-      } catch (_) {}
-      try {
-        final notableDayEmbed = embeds.firstWhere(
-          (e) => e['type'] == 'notable_day',
-        );
-        notableDayId = notableDayEmbed['id']?.toString();
-      } catch (_) {}
-    }
+    // Extract embeds from original post meta
+    final embeds = (originalPost?.meta?['embeds'] is List)
+        ? (originalPost!.meta!['embeds'] as List)
+            .cast<Map<String, dynamic>>()
+            .toList()
+        : <Map<String, dynamic>>[];
 
     // Extract thumbnail ID from meta
     final thumbnailId = originalPost?.meta?['thumbnail'] as String?;
@@ -235,16 +172,9 @@ class ComposeLogic {
           cloudDraftId ??
           (originalPost?.draftedAt != null ? originalPost?.id : null),
       postType: postType,
-      pollId: pollId,
-      fundId: fundId,
-      locationName: locationName,
-      locationAddress: locationAddress,
-      locationWkt: locationWkt,
-      meetId: meetId,
+      embeds: embeds,
       thumbnailId: thumbnailId,
       collectionIds: collectionIds,
-      calendarEventId: calendarEventId,
-      notableDayId: notableDayId,
     );
   }
 
@@ -256,6 +186,13 @@ class ComposeLogic {
             ?.map((e) => e.toString())
             .toList() ??
         <String>[];
+
+    // Extract embeds from draft meta
+    final embeds = (draft.meta?['embeds'] is List)
+        ? (draft.meta!['embeds'] as List)
+            .cast<Map<String, dynamic>>()
+            .toList()
+        : <Map<String, dynamic>>[];
 
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
@@ -277,8 +214,7 @@ class ComposeLogic {
       draftId: draft.id,
       cloudDraftId: draft.draftedAt != null ? draft.id : null,
       postType: postType,
-      pollId: null,
-      fundId: null,
+      embeds: embeds,
       thumbnailId: thumbnailId,
       collectionIds: collectionIds,
     );
@@ -354,36 +290,12 @@ class ComposeLogic {
 
   static Future<void> _saveLocalDraft(WidgetRef ref, ComposeState state) async {
     final localId = state.cloudDraftId.value ?? state.draftId;
-    final embeds = <Map<String, dynamic>>[
-      if (state.pollId.value != null)
-        {'type': 'poll', 'id': state.pollId.value},
-      if (state.fundId.value != null)
-        {'type': 'fund', 'id': state.fundId.value},
-
-      if (state.locationName.value != null ||
-          state.locationAddress.value != null ||
-          state.locationWkt.value != null)
-        {
-          'type': 'location',
-          if (state.locationName.value != null)
-            'name': state.locationName.value,
-          if (state.locationAddress.value != null)
-            'address': state.locationAddress.value,
-          if (state.locationWkt.value != null) 'wkt': state.locationWkt.value,
-        },
-      if (state.meetId.value != null)
-        {'type': 'meet', 'id': state.meetId.value},
-      if (state.calendarEventId.value != null)
-        {'type': 'calendar_event', 'id': state.calendarEventId.value},
-      if (state.notableDayId.value != null)
-        {'type': 'notable_day', 'id': state.notableDayId.value},
-    ];
     final meta = <String, dynamic>{
       if (state.postType == 1 && state.thumbnailId.value != null)
         'thumbnail': state.thumbnailId.value,
       if (state.collectionIds.value.isNotEmpty)
         'collection_ids': state.collectionIds.value,
-      if (embeds.isNotEmpty) 'embeds': embeds,
+      if (state.embeds.value.isNotEmpty) 'embeds': state.embeds.value,
     };
     final draft = SnPost(
       id: localId,
@@ -483,21 +395,7 @@ class ComposeLogic {
       'tags': state.tags.value,
       'categories': state.categories.value.map((e) => e.slug).toList(),
       if (state.realm.value != null) 'realm_id': state.realm.value?.id,
-      if (state.pollId.value != null) 'poll_id': state.pollId.value,
-      if (state.fundId.value != null) 'fund_id': state.fundId.value,
-      if (state.locationName.value != null ||
-          state.locationAddress.value != null ||
-          state.locationWkt.value != null)
-        'location_name': state.locationName.value,
-      if (state.locationAddress.value != null)
-        'location_address': state.locationAddress.value,
-      if (state.locationWkt.value != null)
-        'location_wkt': state.locationWkt.value,
-      if (state.meetId.value != null) 'meet_id': state.meetId.value,
-      if (state.calendarEventId.value != null)
-        'calendar_event_id': state.calendarEventId.value,
-      if (state.notableDayId.value != null)
-        'notable_day_id': state.notableDayId.value,
+      if (state.embeds.value.isNotEmpty) 'embeds': state.embeds.value,
       if (state.postType == 1 && state.thumbnailId.value != null)
         'thumbnail_id': state.thumbnailId.value,
       if (state.embedView.value != null)
@@ -799,6 +697,29 @@ class ComposeLogic {
     state.embedView.value = null;
   }
 
+  // --- Embed helpers for the unified embeds list ---
+
+  static bool hasEmbed(ComposeState state, String type) {
+    return state.embeds.value.any((e) => e['type'] == type);
+  }
+
+  static void addEmbed(ComposeState state, Map<String, dynamic> embed) {
+    state.embeds.value = [...state.embeds.value, embed];
+  }
+
+  static void removeEmbed(ComposeState state, String type) {
+    state.embeds.value =
+        state.embeds.value.where((e) => e['type'] != type).toList();
+  }
+
+  static void updateEmbed(
+      ComposeState state, String type, Map<String, dynamic> embed) {
+    state.embeds.value = [
+      for (final e in state.embeds.value)
+        if (e['type'] == type) embed else e,
+    ];
+  }
+
   static void setThumbnail(ComposeState state, String? thumbnailId) {
     state.thumbnailId.value = thumbnailId;
   }
@@ -808,8 +729,8 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    if (state.pollId.value != null) {
-      state.pollId.value = null;
+    if (hasEmbed(state, 'poll')) {
+      removeEmbed(state, 'poll');
       return;
     }
 
@@ -821,7 +742,7 @@ class ComposeLogic {
     );
 
     if (poll == null) return;
-    state.pollId.value = poll.id;
+    addEmbed(state, {'type': 'poll', 'id': poll.id});
   }
 
   static Future<void> pickFund(
@@ -829,8 +750,8 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    if (state.fundId.value != null) {
-      state.fundId.value = null;
+    if (hasEmbed(state, 'fund')) {
+      removeEmbed(state, 'fund');
       return;
     }
 
@@ -842,7 +763,7 @@ class ComposeLogic {
     );
 
     if (fund == null) return;
-    state.fundId.value = fund.id;
+    addEmbed(state, {'type': 'fund', 'id': fund.id});
   }
 
   static Future<void> pickLocation(
@@ -850,12 +771,8 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    if (state.locationName.value != null ||
-        state.locationAddress.value != null ||
-        state.locationWkt.value != null) {
-      state.locationName.value = null;
-      state.locationAddress.value = null;
-      state.locationWkt.value = null;
+    if (hasEmbed(state, 'location')) {
+      removeEmbed(state, 'location');
       return;
     }
 
@@ -867,9 +784,12 @@ class ComposeLogic {
     );
 
     if (location == null) return;
-    state.locationName.value = location['name'];
-    state.locationAddress.value = location['address'];
-    state.locationWkt.value = location['wkt'];
+    addEmbed(state, {
+      'type': 'location',
+      if (location['name'] != null) 'name': location['name'],
+      if (location['address'] != null) 'address': location['address'],
+      if (location['wkt'] != null) 'wkt': location['wkt'],
+    });
   }
 
   static Future<void> pickMeet(
@@ -877,8 +797,8 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    if (state.meetId.value != null) {
-      state.meetId.value = null;
+    if (hasEmbed(state, 'meet')) {
+      removeEmbed(state, 'meet');
       return;
     }
 
@@ -890,7 +810,7 @@ class ComposeLogic {
     );
 
     if (meet == null) return;
-    state.meetId.value = meet;
+    addEmbed(state, {'type': 'meet', 'id': meet});
   }
 
   static Future<void> pickCalendarEvent(
@@ -898,8 +818,8 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    if (state.calendarEventId.value != null) {
-      state.calendarEventId.value = null;
+    if (hasEmbed(state, 'calendar_event')) {
+      removeEmbed(state, 'calendar_event');
       return;
     }
 
@@ -911,7 +831,7 @@ class ComposeLogic {
     );
 
     if (event == null) return;
-    state.calendarEventId.value = event.id;
+    addEmbed(state, {'type': 'calendar_event', 'id': event.id});
   }
 
   /// Unified submit method that returns the created/updated post.
@@ -1004,21 +924,7 @@ class ComposeLogic {
         'tags': state.tags.value,
         'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
-        if (state.pollId.value != null) 'poll_id': state.pollId.value,
-        if (state.fundId.value != null) 'fund_id': state.fundId.value,
-        if (state.locationName.value != null ||
-            state.locationAddress.value != null ||
-            state.locationWkt.value != null)
-          'location_name': state.locationName.value,
-        if (state.locationAddress.value != null)
-          'location_address': state.locationAddress.value,
-        if (state.locationWkt.value != null)
-          'location_wkt': state.locationWkt.value,
-        if (state.meetId.value != null) 'meet_id': state.meetId.value,
-        if (state.calendarEventId.value != null)
-          'calendar_event_id': state.calendarEventId.value,
-        if (state.notableDayId.value != null)
-          'notable_day_id': state.notableDayId.value,
+        if (state.embeds.value.isNotEmpty) 'embeds': state.embeds.value,
         if (state.postType == 1 && state.thumbnailId.value != null)
           'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
@@ -1232,16 +1138,9 @@ class ComposeLogic {
     state.categories.dispose();
     state.realm.dispose();
     state.embedView.dispose();
-    state.pollId.dispose();
-    state.fundId.dispose();
-    state.locationName.dispose();
-    state.locationAddress.dispose();
-    state.locationWkt.dispose();
-    state.meetId.dispose();
+    state.embeds.dispose();
     state.thumbnailId.dispose();
     state.collectionIds.dispose();
-    state.calendarEventId.dispose();
-    state.notableDayId.dispose();
     state.cloudDraftId.dispose();
   }
 }
