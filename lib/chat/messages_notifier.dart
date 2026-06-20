@@ -965,27 +965,13 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void> sendMessage(
     String content,
     List<UniversalFile> attachments, {
-    SnPoll? poll,
-    SnWalletFund? fund,
-    String? locationName,
-    String? locationAddress,
-    String? locationWkt,
-    String? meetId,
-    String? calendarEventId,
+    List<Map<String, dynamic>>? embeds,
     SnChatMessage? editingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    if (content.trim().isEmpty &&
-        attachments.isEmpty &&
-        poll == null &&
-        fund == null &&
-        locationName == null &&
-        locationAddress == null &&
-        locationWkt == null &&
-        meetId == null &&
-        calendarEventId == null) {
+    if (content.trim().isEmpty && attachments.isEmpty && (embeds == null || embeds.isEmpty)) {
       return;
     }
 
@@ -1005,13 +991,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       editingTo: editingTo,
       replyingTo: replyingTo,
       forwardingTo: forwardingTo,
-      poll: poll,
-      fund: fund,
-      locationName: locationName,
-      locationAddress: locationAddress,
-      locationWkt: locationWkt,
-      meetId: meetId,
-      calendarEventId: calendarEventId,
+      embeds: embeds,
       onPending: editingTo == null
           ? (pending) {
               pendingMessageId = pending.id;
