@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island_call/island_call.dart';
 import 'package:island/core/config.dart';
@@ -17,62 +19,66 @@ bool get isNativeCallAvailable => !kIsWeb && Platform.isIOS;
 /// call state to Flutter widgets that need it (e.g., showing "in call" badges).
 @Riverpod(keepAlive: true)
 class NativeCallBridge extends _$NativeCallBridge {
-  StreamSubscription<Map<String, dynamic>>? _stateSub;
-  StreamSubscription<List<Map<String, dynamic>>>? _participantsSub;
-  StreamSubscription<Map<String, dynamic>>? _callKitEventsSub;
+  StreamSubscription<CallEvent?>? _callKitEventSub;
 
   @override
   NativeCallState build() {
     ref.onDispose(() {
-      _stateSub?.cancel();
-      _participantsSub?.cancel();
-      _callKitEventsSub?.cancel();
+      _callKitEventSub?.cancel();
     });
     return const NativeCallState();
   }
 
   void startListening() {
-    _stateSub?.cancel();
-    _participantsSub?.cancel();
-    _callKitEventsSub?.cancel();
+    _callKitEventSub?.cancel();
 
-    _stateSub = IslandCall.onStateChanged.listen((data) {
-      state = state.copyWith(
-        isConnected: data['isConnected'] as bool? ?? false,
-        isReconnecting: data['isReconnecting'] as bool? ?? false,
-        isMicrophoneEnabled: data['isMicrophoneEnabled'] as bool? ?? true,
-        isCameraEnabled: data['isCameraEnabled'] as bool? ?? false,
-        participantCount: data['participantCount'] as int? ?? 0,
-        roomId: data['roomId'] as String?,
-        roomName: data['roomName'] as String?,
-        callerAvatarUrl: data['callerAvatarUrl'] as String?,
-      );
-    });
-
-    _participantsSub = IslandCall.onParticipantsChanged.listen((data) {
-      state = state.copyWith(participantCount: data.length);
-    });
-
-    // Listen for CallKit events (call accepted/ended/mute)
-    _callKitEventsSub = IslandCall.onCallKitEvents.listen((data) {
-      final event = data['event'] as String?;
-      if (event == 'callAccepted') {
-        final roomId = data['roomId'] as String?;
-        Logger.root.info('[NativeCallBridge] CallKit call accepted: $roomId');
-        state = state.copyWith(
-          callKitAcceptedRoomId: roomId,
-          isConnected: true,
-        );
-      } else if (event == 'callEnded') {
-        Logger.root.info('[NativeCallBridge] CallKit call ended');
-        state = state.copyWith(
-          callKitAcceptedRoomId: null,
-          isConnected: false,
-        );
-      } else if (event == 'muteChanged') {
-        final isMuted = data['isMuted'] as bool? ?? false;
-        Logger.root.info('[NativeCallBridge] CallKit mute changed: $isMuted');
-        state = state.copyWith(isMicrophoneEnabled: !isMuted);
+    // Listen for CallKit events from flutter_callkit_incoming
+    _callKitEventSub = FlutterCallkitIncoming.onEvent.listen((event) {
+      if (event == null) return;
+      
+      Logger.root.info('[NativeCallBridge] CallKit event: ${event.eventName}');
+      
+      switch (event) {
+        case CallEventActionCallAccept(:final callKitParams):
+          final roomId = callKitParams.handle;
+          Logger.root.info('[NativeCallBridge] CallKit call accepted: $roomId');
+          state = state.copyWith(
+            callKitAcceptedRoomId: roomId,
+            isConnected: true,
+          );
+          break;
+          
+        case CallEventActionCallEnded():
+          Logger.root.info('[NativeCallBridge] CallKit call ended');
+          state = state.copyWith(
+            callKitAcceptedRoomId: null,
+            isConnected: false,
+          );
+          break;
+          
+        case CallEventActionCallToggleMute(:final isMuted):
+          Logger.root.info('[NativeCallBridge] CallKit mute changed: $isMuted');
+          state = state.copyWith(isMicrophoneEnabled: !isMuted);
+          break;
+          
+        case CallEventActionCallToggleHold(:final isOnHold):
+          Logger.root.info('[NativeCallBridge] CallKit hold toggled: $isOnHold');
+          break;
+          
+        case CallEventActionCallToggleAudioSession(:final isActive):
+          Logger.root.info('[NativeCallBridge] CallKit audio session: $isActive');
+          break;
+          
+        case CallEventActionCallDecline():
+          Logger.root.info('[NativeCallBridge] CallKit call declined');
+          state = state.copyWith(
+            callKitAcceptedRoomId: null,
+            isConnected: false,
+          );
+          break;
+          
+        default:
+          Logger.root.fine('[NativeCallBridge] Unhandled CallKit event: ${event.eventName}');
       }
     });
   }
@@ -102,16 +108,6 @@ class NativeCallBridge extends _$NativeCallBridge {
     } catch (e) {
       Logger.root.fine('[NativeCallBridge] Auto-init skipped: $e');
     }
-  }
-
-  Future<void> joinRoom(String roomId) async {
-    if (!isNativeCallAvailable) return;
-    await IslandCall.joinRoom(roomId);
-  }
-
-  Future<void> leaveRoom() async {
-    if (!isNativeCallAvailable) return;
-    await IslandCall.leaveRoom();
   }
 }
 

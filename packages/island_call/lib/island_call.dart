@@ -1,3 +1,6 @@
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+
 import 'island_call_platform_interface.dart';
 
 export 'island_call_platform_interface.dart';
@@ -10,29 +13,6 @@ class IslandCall {
   /// Initialize with server credentials. Call once on app startup.
   static Future<void> initialize({required String serverUrl, required String authToken}) =>
       _p.initialize(serverUrl: serverUrl, authToken: authToken);
-
-  /// Join a call room. Triggers native UI presentation.
-  static Future<void> joinRoom(String roomId) => _p.joinRoom(roomId);
-
-  /// Leave the current call and dismiss native UI.
-  static Future<void> leaveRoom() => _p.leaveRoom();
-
-  static Future<void> toggleMic() => _p.toggleMic();
-  static Future<void> toggleCamera() => _p.toggleCamera();
-  static Future<void> toggleSpeaker() => _p.toggleSpeaker();
-  static Future<void> toggleViewMode() => _p.toggleViewMode();
-
-  /// Show the expanded call view (iOS sheet / macOS window).
-  static Future<void> showExpandedView() => _p.showExpandedView();
-
-  /// Dismiss expanded view; floating widget persists on iOS.
-  static Future<void> dismissExpandedView() => _p.dismissExpandedView();
-
-  /// Call state changes: isConnected, isReconnecting, duration, etc.
-  static Stream<Map<String, dynamic>> get onStateChanged => _p.onStateChanged;
-
-  /// Participant list changes.
-  static Stream<List<Map<String, dynamic>>> get onParticipantsChanged => _p.onParticipantsChanged;
 
   /// Start an outgoing call via CallKit. [handle] identifies the callee/room.
   static Future<void> startCall(String handle, {bool isVideo = false}) => _p.startCall(handle, isVideo: isVideo);
@@ -62,18 +42,9 @@ class IslandCall {
   /// End the Live Activity when call ends.
   static Future<void> endCallActivity() => _p.endCallActivity();
 
-  /// CallKit events: callAccepted, callEnded, muteChanged
-  static Stream<Map<String, dynamic>> get onCallKitEvents => _p.onCallKitEvents;
+  /// Set the call as connected (fulfills the pending answer action).
+  static Future<void> setCallConnected() => _p.setCallConnected();
 
-  /// Fulfill the pending answer action (call when LiveKit connected)
-  static Future<void> fulfillPendingAnswer() => _p.fulfillPendingAnswer();
-
-  /// Fail the pending answer action (call when connection failed)
-  static Future<void> failPendingAnswer() => _p.failPendingAnswer();
-
-  /// Report remote party ended the call
-  static Future<void> reportRemoteEnded() => _p.reportRemoteEnded();
-
-  /// Report connection failed
-  static Future<void> reportConnectionFailed() => _p.reportConnectionFailed();
+  /// Listen to CallKit events from the package.
+  static Stream<CallEvent?> get onCallKitEvent => FlutterCallkitIncoming.onEvent;
 }

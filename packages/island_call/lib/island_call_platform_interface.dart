@@ -16,46 +16,6 @@ abstract class IslandCallPlatform extends PlatformInterface {
     throw UnimplementedError();
   }
 
-  Future<void> joinRoom(String roomId) {
-    throw UnimplementedError();
-  }
-
-  Future<void> leaveRoom() {
-    throw UnimplementedError();
-  }
-
-  Future<void> toggleMic() {
-    throw UnimplementedError();
-  }
-
-  Future<void> toggleCamera() {
-    throw UnimplementedError();
-  }
-
-  Future<void> toggleSpeaker() {
-    throw UnimplementedError();
-  }
-
-  Future<void> toggleViewMode() {
-    throw UnimplementedError();
-  }
-
-  Future<void> showExpandedView() {
-    throw UnimplementedError();
-  }
-
-  Future<void> dismissExpandedView() {
-    throw UnimplementedError();
-  }
-
-  Stream<Map<String, dynamic>> get onStateChanged {
-    throw UnimplementedError();
-  }
-
-  Stream<List<Map<String, dynamic>>> get onParticipantsChanged {
-    throw UnimplementedError();
-  }
-
   Future<void> startCall(String handle, {bool isVideo = false}) {
     throw UnimplementedError();
   }
@@ -88,23 +48,7 @@ abstract class IslandCallPlatform extends PlatformInterface {
     throw UnimplementedError();
   }
 
-  Stream<Map<String, dynamic>> get onCallKitEvents {
-    throw UnimplementedError();
-  }
-
-  Future<void> fulfillPendingAnswer() {
-    throw UnimplementedError();
-  }
-
-  Future<void> failPendingAnswer() {
-    throw UnimplementedError();
-  }
-
-  Future<void> reportRemoteEnded() {
-    throw UnimplementedError();
-  }
-
-  Future<void> reportConnectionFailed() {
+  Future<void> setCallConnected() {
     throw UnimplementedError();
   }
 }
