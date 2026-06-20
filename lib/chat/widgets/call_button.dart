@@ -137,7 +137,7 @@ class AudioCallButton extends HookConsumerWidget {
           appName: 'Solian',
           handle: room.id,
           type: result.cameraEnabled ? 1 : 0,
-          extra: {'roomId': room.id},
+          extra: {'room_id': room.id},
         );
         await FlutterCallkitIncoming.startCall(params);
         
@@ -229,7 +229,7 @@ class AudioCallButton extends HookConsumerWidget {
               appName: 'Solian',
               handle: room.id,
               type: result.cameraEnabled ? 1 : 0,
-              extra: {'roomId': room.id},
+              extra: {'room_id': room.id},
             );
             await FlutterCallkitIncoming.startCall(params);
             

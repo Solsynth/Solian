@@ -86,7 +86,7 @@ class NotificationService: UNNotificationServiceExtension {
         let metaCopy = meta as? [String: Any] ?? [:]
         let pfpUrl = pfpIdentifier != nil ? getAttachmentUrl(for: pfpIdentifier!) : nil
 
-        let handle = INPersonHandle(value: "\(metaCopy["user_id"] ?? "")", type: .unknown)
+        let handle = INPersonHandle(value: "@\(metaCopy["sender_name"] ?? "")", type: .unknown)
 
         let completeNotificationProcessing: (Data?) -> Void = { imageData in
             let sender = INPerson(
