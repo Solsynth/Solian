@@ -45,7 +45,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: AboutRoute.page, path: '/about'),
     AutoRoute(page: CfIpSpeedTestRoute.page, path: '/cf-ip-speed-test'),
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
-    AutoRoute(page: CheckInRoute.page, path: '/check-in'),
     AutoRoute(page: PostShuffleRoute.page, path: '/posts/shuffle'),
     AutoRoute(page: BookmarksRoute.page, path: '/posts/bookmarks'),
     AutoRoute(page: PostCategoriesListRoute.page, path: '/posts/categories'),

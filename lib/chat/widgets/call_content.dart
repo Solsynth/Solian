@@ -162,10 +162,10 @@ class CallContent extends HookConsumerWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SpeakingRippleAvatar(live: live, size: 84),
+                    SpeakingRippleAvatar(live: live, size: 108),
                     const SizedBox(height: 10),
                     SizedBox(
-                      width: 84,
+                      width: 108,
                       child: Consumer(
                         builder: (context, ref, _) {
                           final account = ref.watch(

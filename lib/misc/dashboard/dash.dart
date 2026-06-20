@@ -2,9 +2,9 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -167,8 +167,8 @@ class DashboardGrid extends HookConsumerWidget {
             ),
             padding: isAuthenticated
                 ? (isWide
-                    ? EdgeInsets.only(top: devicePadding.top)
-                    : EdgeInsets.only(top: 24 + devicePadding.top))
+                      ? EdgeInsets.only(top: devicePadding.top)
+                      : EdgeInsets.only(top: 24 + devicePadding.top))
                 : EdgeInsets.zero,
             child: isAuthenticated
                 ? Column(
@@ -185,10 +185,13 @@ class DashboardGrid extends HookConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Gap(8),
-                            if (appSettings.dashboardConfig?.showClockAndCountdown ??
+                            if (appSettings
+                                    .dashboardConfig
+                                    ?.showClockAndCountdown ??
                                 true)
                               Expanded(child: ClockCard(compact: true)),
-                            if (appSettings.dashboardConfig?.showSearchBar ?? true)
+                            if (appSettings.dashboardConfig?.showSearchBar ??
+                                true)
                               IconButton(
                                 onPressed: () {
                                   eventBus.fire(CommandPaletteTriggerEvent());
@@ -203,7 +206,8 @@ class DashboardGrid extends HookConsumerWidget {
                           (appSettings.dashboardConfig?.showSearchBar ?? true))
                         Padding(
                           padding: EdgeInsets.symmetric(
-                              horizontal: isWide ? 24 : 16),
+                            horizontal: isWide ? 24 : 16,
+                          ),
                           child: SearchBar(
                             hintText: 'searchAnything'.tr(),
                             constraints: const BoxConstraints(minHeight: 56),
@@ -217,30 +221,29 @@ class DashboardGrid extends HookConsumerWidget {
                           ),
                         ),
                       Expanded(
-                        child: (isWide
-                                ? _HoverHorizontalScrollArea(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                    ),
-                                    child: _DashboardGridWide(),
-                                  )
-                                : SingleChildScrollView(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    scrollDirection: Axis.vertical,
-                                    child: _DashboardGridNarrow(),
-                                  ))
-                            .clipRRect(
-                              topLeft: isWide ? 0 : 12,
-                              topRight: isWide ? 0 : 12,
-                            ),
+                        child:
+                            (isWide
+                                    ? _HoverHorizontalScrollArea(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                        ),
+                                        child: _DashboardGridWide(),
+                                      )
+                                    : SingleChildScrollView(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        scrollDirection: Axis.vertical,
+                                        child: _DashboardGridNarrow(),
+                                      ))
+                                .clipRRect(
+                                  topLeft: isWide ? 0 : 12,
+                                  topRight: isWide ? 0 : 12,
+                                ),
                       ),
                     ],
                   )
-                : Center(
-                    child: _UnauthorizedCard(isWide: isWide),
-                  ),
+                : Center(child: _UnauthorizedCard(isWide: isWide)),
           ),
           // Customize button (positioned for wide screens only)
           if (isWide && isAuthenticated)
@@ -572,14 +575,15 @@ class ClockCard extends HookConsumerWidget {
     final timer = useRef<Timer?>(null);
     final appSettings = ref.watch(appSettingsProvider);
     final userInfo = ref.watch(userInfoProvider);
-    
+
     // Only fetch countdowns if user is authenticated
     final isAuthenticated = userInfo.value != null;
     final query = isAuthenticated
         ? EventCountdownQuery(
             username: 'me',
             includeNotableDays:
-                appSettings.dashboardConfig?.countdownIncludeNotableDays ?? true,
+                appSettings.dashboardConfig?.countdownIncludeNotableDays ??
+                true,
           )
         : null;
     final countdowns = query != null
@@ -666,7 +670,10 @@ class ClockCard extends HookConsumerWidget {
                                 countdowns.when(
                                   data: (state) => state.items.isEmpty
                                       ? Text('countdownEmpty').tr().fontSize(12)
-                                      : _buildCountdownText(context, state.items.first),
+                                      : _buildCountdownText(
+                                          context,
+                                          state.items.first,
+                                        ),
                                   error: (err, _) =>
                                       Text(err.toString()).fontSize(12),
                                   loading: () =>
@@ -1023,9 +1030,7 @@ class TodayOracleCard extends ConsumerWidget {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
-                      context.router.push(
-                        EventHubRoute(name: 'me'),
-                      );
+                      context.router.push(EventHubRoute(name: 'me'));
                     },
                   ),
                 ],
@@ -1227,11 +1232,7 @@ class _UnauthorizedCard extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Symbols.person,
-              size: 64,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            Icon(Symbols.person, size: 64, color: colorScheme.onSurfaceVariant),
             const Gap(24),
             Text(
               'welcomeToSolarNetwork'.tr(),

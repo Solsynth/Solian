@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/screens/check_in.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -135,7 +136,12 @@ class CheckInWidget extends ConsumerWidget {
                   vertical: -2,
                 ),
                 onPressed: () {
-                  context.router.push(const CheckInRoute());
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useRootNavigator: true,
+                    builder: (context) => const CheckInScreen(),
+                  );
                 },
                 icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),

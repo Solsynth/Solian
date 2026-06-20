@@ -1,5 +1,5 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -60,6 +60,12 @@ sealed class CallParticipantLive with _$CallParticipantLive {
   bool get hasAudio => remoteParticipant.hasAudio;
 }
 
+/// ponytail: safe fallback when CallNotifier hasn't been initialized yet
+/// (e.g. overlay showing remote participants before local join)
+class _DummyCallController extends CallController {
+  _DummyCallController() : super(apiClient: Dio(BaseOptions()));
+}
+
 /// Riverpod wrapper that delegates all call logic to [CallController].
 /// The controller is created lazily on first [joinRoom] call.
 @Riverpod(keepAlive: true)
@@ -71,10 +77,12 @@ class CallNotifier extends _$CallNotifier {
 
   CallController get _ctrl {
     if (_controller == null) {
-      throw StateError('CallNotifier not initialized — call joinRoom first');
+      // ponytail: not initialized yet — return safe defaults
+      return _dummyController ??= _DummyCallController();
     }
     return _controller!;
   }
+  static _DummyCallController? _dummyController;
 
   // ponytail: expose controller for sub-windows that need direct access
   CallController? get controller => _controller;
