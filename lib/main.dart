@@ -80,8 +80,10 @@ void main(List<String> args) async {
             await windowManager.show();
             await windowManager.focus();
           });
+          final prefs = await SharedPreferences.getInstance();
           runApp(
             ProviderScope(
+              overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
               child: EasyLocalization(
                 supportedLocales: [Locale('en', 'US')],
                 path: 'assets/i18n',
