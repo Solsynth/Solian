@@ -862,14 +862,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.1"
-  flutter_card_swiper:
+  flutter_callkit_incoming:
     dependency: "direct main"
     description:
-      name: flutter_card_swiper
-      sha256: "895c6974729b51cf73a35f1b58ab57a0af3293131319e2cbccac3bc57ffcd69f"
+      name: flutter_callkit_incoming
+      sha256: "5e49358e4e49b7bfa60c97470873fe68d824e7885dc7c380572e46e524cae373"
       url: "https://pub.dev"
     source: hosted
-    version: "7.2.0"
+    version: "3.1.2"
   flutter_code_editor:
     dependency: "direct main"
     description:

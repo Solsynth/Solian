@@ -154,14 +154,14 @@ class AppWrapper extends HookConsumerWidget {
           
           // Flutter call just connected
           if (!prevConnected && currConnected) {
-            Logger.root.info('[AppWrapper] Flutter call connected, fulfilling CallKit answer');
-            IslandCall.fulfillPendingAnswer();
+            Logger.root.info('[AppWrapper] Flutter call connected, setting CallKit call connected');
+            IslandCall.setCallConnected();
           }
           
           // Flutter call just disconnected with error
           if (prevConnected && !currConnected && current.error != null) {
             Logger.root.info('[AppWrapper] Flutter call failed: ${current.error}');
-            IslandCall.failPendingAnswer();
+            // No need to fail pending answer with flutter_callkit_incoming
           }
         },
       );
