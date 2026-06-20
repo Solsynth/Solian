@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +8,7 @@ import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_screen.dart';
+import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -108,7 +111,11 @@ class AudioCallButton extends HookConsumerWidget {
         (nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id);
 
     Future<void> openCallScreen({bool cameraEnabled = false}) async {
-      await router.pushWidget(CallScreen(room: room, cameraEnabled: cameraEnabled));
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+        await createCallWindow(room, cameraEnabled: cameraEnabled);
+      } else {
+        await router.pushWidget(CallScreen(room: room, cameraEnabled: cameraEnabled));
+      }
     }
 
     Future<void> handleJoin() async {
@@ -130,16 +137,18 @@ class AudioCallButton extends HookConsumerWidget {
           return;
         }
         
-        // Start CallKit call with video setting
-        final params = CallKitParams(
-          id: room.id,
-          nameCaller: room.name ?? 'Voice Call',
-          appName: 'Solian',
-          handle: room.id,
-          type: result.cameraEnabled ? 1 : 0,
-          extra: {'room_id': room.id},
-        );
-        await FlutterCallkitIncoming.startCall(params);
+        // Start CallKit call with video setting (iOS only)
+        if (isNativeCallAvailable) {
+          final params = CallKitParams(
+            id: room.id,
+            nameCaller: room.name ?? 'Voice Call',
+            appName: 'Solian',
+            handle: room.id,
+            type: result.cameraEnabled ? 1 : 0,
+            extra: {'room_id': room.id},
+          );
+          await FlutterCallkitIncoming.startCall(params);
+        }
         
         // Open call screen with camera setting
         await openCallScreen(cameraEnabled: result.cameraEnabled);
@@ -154,8 +163,8 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         await apiClient.delete('/messager/chat/realtime/${room.id}');
-        // End CallKit call if active
-        if (nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id) {
+        // End CallKit call if active (iOS only)
+        if (isNativeCallAvailable && nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id) {
           await FlutterCallkitIncoming.endAllCalls();
         }
         await callNotifier.disconnect();
@@ -222,16 +231,18 @@ class AudioCallButton extends HookConsumerWidget {
               return;
             }
             
-            // Start CallKit call with video setting
-            final params = CallKitParams(
-              id: room.id,
-              nameCaller: room.name ?? 'Voice Call',
-              appName: 'Solian',
-              handle: room.id,
-              type: result.cameraEnabled ? 1 : 0,
-              extra: {'room_id': room.id},
-            );
-            await FlutterCallkitIncoming.startCall(params);
+            // Start CallKit call with video setting (iOS only)
+            if (isNativeCallAvailable) {
+              final params = CallKitParams(
+                id: room.id,
+                nameCaller: room.name ?? 'Voice Call',
+                appName: 'Solian',
+                handle: room.id,
+                type: result.cameraEnabled ? 1 : 0,
+                extra: {'room_id': room.id},
+              );
+              await FlutterCallkitIncoming.startCall(params);
+            }
             
             await openCallScreen(cameraEnabled: result.cameraEnabled);
           } catch (e) {

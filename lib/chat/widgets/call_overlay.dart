@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -10,6 +12,7 @@ import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:island/chat/widgets/call_screen.dart';
+import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/main.dart';
@@ -571,8 +574,12 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
               onPressed: room != null
                   ? () {
                       hideCallOverlay();
-                      final router = ref.read(routerProvider);
-                      router.pushWidget(CallScreen(room: room));
+                      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+                        createCallWindow(room);
+                      } else {
+                        final router = ref.read(routerProvider);
+                        router.pushWidget(CallScreen(room: room));
+                      }
                     }
                   : null,
               tooltip: 'Full Screen',
