@@ -36,6 +36,7 @@ dependencies:
     path: packages/solar_network_sdk
   island_desktop_presence:
     path: packages/island_desktop_presence
+  flutter_callkit_incoming: ^3.1.2
   island_call:
     path: packages/island_call
 
@@ -140,7 +141,6 @@ dependencies:
   firebase_analytics: ^12.4.2
   material_color_utilities: ^0.13.0
   screenshot: ^3.0.0
-  flutter_card_swiper: ^7.2.0
   file_saver: ^0.4.0
   tray_manager: ^0.5.3
   flutter_webrtc: ^1.2.1
