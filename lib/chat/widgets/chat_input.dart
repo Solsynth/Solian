@@ -587,19 +587,9 @@ class _ExpandedSection extends StatefulWidget {
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
   final String? roomEncryptKey;
-  final SnPoll? selectedPoll;
-  final Function(SnPoll?) onPollSelected;
-  final SnWalletFund? selectedFund;
-  final Function(SnWalletFund?) onFundSelected;
-  final String? selectedLocationName;
-  final String? selectedLocationAddress;
-  final String? selectedLocationWkt;
-  final String? selectedMeetId;
-  final Function({String? name, String? address, String? wkt})?
-  onLocationSelected;
-  final Function(String?)? onMeetSelected;
-  final String? selectedCalendarEventId;
-  final Function(String?)? onCalendarEventSelected;
+  // Unified embeds list (polls, funds, locations, meets, calendar events)
+  final List<Map<String, dynamic>> embeds;
+  final Function(List<Map<String, dynamic>>) onEmbedsChanged;
   final bool isE2eeRoom;
   final VoidCallback onEnableVoiceMode;
 
@@ -619,18 +609,8 @@ class _ExpandedSection extends StatefulWidget {
     required this.onAttachmentsChanged,
     required this.attachmentProgress,
     required this.roomEncryptKey,
-    this.selectedPoll,
-    required this.onPollSelected,
-    this.selectedFund,
-    required this.onFundSelected,
-    this.selectedLocationName,
-    this.selectedLocationAddress,
-    this.selectedLocationWkt,
-    this.selectedMeetId,
-    this.onLocationSelected,
-    this.onMeetSelected,
-    this.selectedCalendarEventId,
-    this.onCalendarEventSelected,
+    required this.embeds,
+    required this.onEmbedsChanged,
     this.isE2eeRoom = false,
     required this.onEnableVoiceMode,
   });
@@ -756,7 +736,10 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               builder: (context) => const ComposePollSheet(),
                             );
                             if (poll != null) {
-                              widget.onPollSelected(poll);
+                              widget.onEmbedsChanged([
+                                ...widget.embeds.where((e) => e['type'] != 'poll'),
+                                {'type': 'poll', 'id': poll.id},
+                              ]);
                             }
                           },
                           child: Card(
@@ -813,7 +796,10 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                       const ComposeFundSheet(),
                                 );
                             if (fund != null) {
-                              widget.onFundSelected(fund);
+                              widget.onEmbedsChanged([
+                                ...widget.embeds.where((e) => e['type'] != 'fund'),
+                                {'type': 'fund', 'id': fund.id},
+                              ]);
                             }
                           },
                           child: Card(
@@ -850,11 +836,14 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                         const ComposeLocationSheet(),
                                   );
                               if (location != null) {
-                                widget.onLocationSelected?.call(
-                                  name: location['name'],
-                                  address: location['address'],
-                                  wkt: location['wkt'],
-                                );
+                                widget.onEmbedsChanged([
+                                  ...widget.embeds.where((e) => e['type'] != 'location'),
+                                  {'type': 'location',
+                                   if (location['name'] != null) 'name': location['name'],
+                                   if (location['address'] != null) 'address': location['address'],
+                                   if (location['wkt'] != null) 'wkt': location['wkt'],
+                                  },
+                                ]);
                               }
                             },
                             child: Card(
@@ -889,7 +878,10 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                   builder: (context) => const ComposeMeetSheet(),
                                 );
                                 if (meetId != null) {
-                                  widget.onMeetSelected?.call(meetId);
+                                  widget.onEmbedsChanged([
+                                    ...widget.embeds.where((e) => e['type'] != 'meet'),
+                                    {'type': 'meet', 'id': meetId},
+                                  ]);
                                 }
                               },
                               child: Card(
@@ -925,7 +917,10 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                         const ComposeCalendarEventSheet(),
                                   );
                               if (event != null) {
-                                widget.onCalendarEventSelected?.call(event.id);
+                                widget.onEmbedsChanged([
+                                  ...widget.embeds.where((e) => e['type'] != 'calendar_event'),
+                                  {'type': 'calendar_event', 'id': event.id},
+                                ]);
                               }
                             },
                             child: Card(
@@ -1256,19 +1251,9 @@ class ChatInput extends HookConsumerWidget {
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
-  final SnPoll? selectedPoll;
-  final Function(SnPoll?) onPollSelected;
-  final SnWalletFund? selectedFund;
-  final Function(SnWalletFund?) onFundSelected;
-  final String? selectedLocationName;
-  final String? selectedLocationAddress;
-  final String? selectedLocationWkt;
-  final String? selectedMeetId;
-  final Function({String? name, String? address, String? wkt})?
-  onLocationSelected;
-  final Function(String?)? onMeetSelected;
-  final String? selectedCalendarEventId;
-  final Function(String?)? onCalendarEventSelected;
+  // Unified embeds list (polls, funds, locations, meets, calendar events)
+  final List<Map<String, dynamic>> embeds;
+  final Function(List<Map<String, dynamic>>) onEmbedsChanged;
   final bool isMessageListScrolling;
 
   const ChatInput({
@@ -1290,18 +1275,8 @@ class ChatInput extends HookConsumerWidget {
     required this.onMoveAttachment,
     required this.onAttachmentsChanged,
     required this.attachmentProgress,
-    this.selectedPoll,
-    required this.onPollSelected,
-    this.selectedFund,
-    required this.onFundSelected,
-    this.selectedLocationName,
-    this.selectedLocationAddress,
-    this.selectedLocationWkt,
-    this.selectedMeetId,
-    this.onLocationSelected,
-    this.onMeetSelected,
-    this.selectedCalendarEventId,
-    this.onCalendarEventSelected,
+    required this.embeds,
+    required this.onEmbedsChanged,
     required this.isMessageListScrolling,
   });
 
@@ -1764,7 +1739,7 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: selectedPoll != null
+                      child: embeds.any((e) => e['type'] == 'poll')
                           ? Container(
                               key: const ValueKey('selected-poll'),
                               padding: const EdgeInsets.symmetric(
@@ -1801,7 +1776,7 @@ class ChatInput extends HookConsumerWidget {
                                   const Gap(8),
                                   Expanded(
                                     child: Text(
-                                      selectedPoll!.title ?? 'Poll',
+                                      'Poll',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall!
@@ -1818,7 +1793,9 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () => onPollSelected(null),
+                                      onPressed: () => onEmbedsChanged(
+                                        embeds.where((e) => e['type'] != 'poll').toList(),
+                                      ),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
@@ -1850,7 +1827,7 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: selectedFund != null
+                      child: embeds.any((e) => e['type'] == 'fund')
                           ? Container(
                               key: const ValueKey('selected-fund'),
                               padding: const EdgeInsets.symmetric(
@@ -1886,43 +1863,16 @@ class ChatInput extends HookConsumerWidget {
                                   ),
                                   const Gap(8),
                                   Expanded(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${selectedFund!.totalAmount.toStringAsFixed(2)} ${selectedFund!.currency}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall!
-                                              .copyWith(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        if (selectedFund!.message != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 2,
-                                            ),
-                                            child: Text(
-                                              selectedFund!.message!,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall!
-                                                  .copyWith(
-                                                    fontSize: 10,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurfaceVariant,
-                                                  ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                    child: Text(
+                                      'fund'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall!
+                                          .copyWith(
+                                            fontWeight: FontWeight.w500,
                                           ),
-                                      ],
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   SizedBox(
@@ -1931,7 +1881,9 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () => onFundSelected(null),
+                                      onPressed: () => onEmbedsChanged(
+                                        embeds.where((e) => e['type'] != 'fund').toList(),
+                                      ),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
@@ -1964,9 +1916,7 @@ class ChatInput extends HookConsumerWidget {
                             );
                           },
                       child:
-                          selectedLocationName != null ||
-                              selectedLocationAddress != null ||
-                              selectedLocationWkt != null
+                          embeds.any((e) => e['type'] == 'location')
                           ? Container(
                               key: const ValueKey('selected-location'),
                               padding: const EdgeInsets.symmetric(
@@ -2007,9 +1957,9 @@ class ChatInput extends HookConsumerWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        if (selectedLocationName != null)
+                                        if (embeds.firstWhere((e) => e['type'] == 'location')['name'] != null)
                                           Text(
-                                            selectedLocationName!,
+                                            embeds.firstWhere((e) => e['type'] == 'location')['name'] as String,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall!
@@ -2019,9 +1969,9 @@ class ChatInput extends HookConsumerWidget {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                        if (selectedLocationAddress != null)
+                                        if (embeds.firstWhere((e) => e['type'] == 'location')['address'] != null)
                                           Text(
-                                            selectedLocationAddress!,
+                                            embeds.firstWhere((e) => e['type'] == 'location')['address'] as String,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall!
@@ -2043,8 +1993,9 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () =>
-                                          onLocationSelected?.call(),
+                                      onPressed: () => onEmbedsChanged(
+                                        embeds.where((e) => e['type'] != 'location').toList(),
+                                      ),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
@@ -2076,7 +2027,7 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: selectedMeetId != null
+                      child: embeds.any((e) => e['type'] == 'meet')
                           ? Container(
                               key: const ValueKey('selected-meet'),
                               padding: const EdgeInsets.symmetric(
@@ -2130,8 +2081,9 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () =>
-                                          onMeetSelected?.call(null),
+                                      onPressed: () => onEmbedsChanged(
+                                        embeds.where((e) => e['type'] != 'meet').toList(),
+                                      ),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
@@ -2163,7 +2115,7 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: selectedCalendarEventId != null
+                      child: embeds.any((e) => e['type'] == 'calendar_event')
                           ? Container(
                               key: const ValueKey('selected-calendar-event'),
                               padding: const EdgeInsets.symmetric(
@@ -2217,8 +2169,9 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () =>
-                                          onCalendarEventSelected?.call(null),
+                                      onPressed: () => onEmbedsChanged(
+                                        embeds.where((e) => e['type'] != 'calendar_event').toList(),
+                                      ),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
@@ -2768,24 +2721,13 @@ class ChatInput extends HookConsumerWidget {
                               onAttachmentsChanged: onAttachmentsChanged,
                               attachmentProgress: attachmentProgress,
                               roomEncryptKey: roomEncryptKey,
-                              selectedPoll: selectedPoll,
-                              onPollSelected: onPollSelected,
-                              selectedFund: selectedFund,
-                              onFundSelected: onFundSelected,
-                              selectedLocationName: selectedLocationName,
-                              selectedLocationAddress: selectedLocationAddress,
-                              selectedLocationWkt: selectedLocationWkt,
-                              selectedMeetId: selectedMeetId,
-                              onLocationSelected: onLocationSelected,
-                              onMeetSelected: onMeetSelected,
-                              selectedCalendarEventId: selectedCalendarEventId,
-                              onCalendarEventSelected: onCalendarEventSelected,
+                              embeds: embeds,
+                              onEmbedsChanged: onEmbedsChanged,
                               isE2eeRoom: roomEncryptKey != null,
                               onEnableVoiceMode: () {
                                 isVoiceMode.value = true;
                                 isExpanded.value = false;
-                                onPollSelected(null);
-                                onFundSelected(null);
+                                onEmbedsChanged([]);
                               },
                             )
                           : const SizedBox.shrink(key: ValueKey('collapsed')),

@@ -28,13 +28,8 @@ class ChatRoomState {
   final SnChatMessage? messageEditingTo;
   final SnChatMessage? messageReplyingTo;
   final SnChatMessage? messageForwardingTo;
-  final SnPoll? selectedPoll;
-  final SnWalletFund? selectedFund;
-  final String? selectedLocationName;
-  final String? selectedLocationAddress;
-  final String? selectedLocationWkt;
-  final String? selectedMeetId;
-  final String? selectedCalendarEventId;
+  // Unified embeds list (polls, funds, locations, meets, calendar events)
+  final List<Map<String, dynamic>> embeds;
 
   // Scroll state (not persisted - fresh on each navigation)
   final bool isScrollingToMessage;
@@ -52,13 +47,7 @@ class ChatRoomState {
     this.messageEditingTo,
     this.messageReplyingTo,
     this.messageForwardingTo,
-    this.selectedPoll,
-    this.selectedFund,
-    this.selectedLocationName,
-    this.selectedLocationAddress,
-    this.selectedLocationWkt,
-    this.selectedMeetId,
-    this.selectedCalendarEventId,
+    this.embeds = const [],
     this.isScrollingToMessage = false,
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
@@ -73,13 +62,7 @@ class ChatRoomState {
     SnChatMessage? messageEditingTo,
     SnChatMessage? messageReplyingTo,
     SnChatMessage? messageForwardingTo,
-    SnPoll? selectedPoll,
-    SnWalletFund? selectedFund,
-    String? selectedLocationName,
-    String? selectedLocationAddress,
-    String? selectedLocationWkt,
-    String? selectedMeetId,
-    String? selectedCalendarEventId,
+    List<Map<String, dynamic>>? embeds,
     bool? isScrollingToMessage,
     DateTime? roomOpenTime,
     String? lastReadAnchorMessageId,
@@ -87,11 +70,7 @@ class ChatRoomState {
     bool clearEditingTo = false,
     bool clearReplyingTo = false,
     bool clearForwardingTo = false,
-    bool clearPoll = false,
-    bool clearFund = false,
-    bool clearLocation = false,
-    bool clearMeet = false,
-    bool clearCalendarEvent = false,
+    bool clearEmbeds = false,
     bool clearLastReadAnchor = false,
     bool clearDismissedLastReadAnchor = false,
   }) {
@@ -109,23 +88,7 @@ class ChatRoomState {
       messageForwardingTo: clearForwardingTo
           ? null
           : (messageForwardingTo ?? this.messageForwardingTo),
-      selectedPoll: clearPoll ? null : (selectedPoll ?? this.selectedPoll),
-      selectedFund: clearFund ? null : (selectedFund ?? this.selectedFund),
-      selectedLocationName: clearLocation
-          ? null
-          : (selectedLocationName ?? this.selectedLocationName),
-      selectedLocationAddress: clearLocation
-          ? null
-          : (selectedLocationAddress ?? this.selectedLocationAddress),
-      selectedLocationWkt: clearLocation
-          ? null
-          : (selectedLocationWkt ?? this.selectedLocationWkt),
-      selectedMeetId: clearMeet
-          ? null
-          : (selectedMeetId ?? this.selectedMeetId),
-      selectedCalendarEventId: clearCalendarEvent
-          ? null
-          : (selectedCalendarEventId ?? this.selectedCalendarEventId),
+      embeds: clearEmbeds ? [] : (embeds ?? this.embeds),
       isScrollingToMessage: isScrollingToMessage ?? this.isScrollingToMessage,
       roomOpenTime: roomOpenTime ?? this.roomOpenTime,
       lastReadAnchorMessageId: clearLastReadAnchor
@@ -359,33 +322,8 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     );
   }
 
-  void setPoll(SnPoll? poll) {
-    state = state.copyWith(selectedPoll: poll, clearPoll: poll == null);
-  }
-
-  void setFund(SnWalletFund? fund) {
-    state = state.copyWith(selectedFund: fund, clearFund: fund == null);
-  }
-
-  void setLocation({String? name, String? address, String? wkt}) {
-    final hasLocation = name != null || address != null || wkt != null;
-    state = state.copyWith(
-      selectedLocationName: name,
-      selectedLocationAddress: address,
-      selectedLocationWkt: wkt,
-      clearLocation: !hasLocation,
-    );
-  }
-
-  void setMeet(String? meetId) {
-    state = state.copyWith(selectedMeetId: meetId, clearMeet: meetId == null);
-  }
-
-  void setCalendarEvent(String? calendarEventId) {
-    state = state.copyWith(
-      selectedCalendarEventId: calendarEventId,
-      clearCalendarEvent: calendarEventId == null,
-    );
+  void setEmbeds(List<Map<String, dynamic>> embeds) {
+    state = state.copyWith(embeds: embeds);
   }
 
   void clearInput() {
@@ -394,11 +332,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       clearEditingTo: true,
       clearReplyingTo: true,
       clearForwardingTo: true,
-      clearPoll: true,
-      clearFund: true,
-      clearLocation: true,
-      clearMeet: true,
-      clearCalendarEvent: true,
+      clearEmbeds: true,
       attachments: [],
     );
   }
@@ -479,15 +413,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   void sendMessage() {
     final text = messageController.text.trim();
     final attachments = List<UniversalFile>.of(state.attachments);
-    if (text.isEmpty &&
-        attachments.isEmpty &&
-        state.selectedPoll == null &&
-        state.selectedFund == null &&
-        state.selectedLocationName == null &&
-        state.selectedLocationAddress == null &&
-        state.selectedLocationWkt == null &&
-        state.selectedMeetId == null &&
-        state.selectedCalendarEventId == null) {
+    if (text.isEmpty && attachments.isEmpty && state.embeds.isEmpty) {
       return;
     }
 
@@ -497,13 +423,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     notifier.sendMessage(
       text,
       attachments,
-      poll: state.selectedPoll,
-      fund: state.selectedFund,
-      locationName: state.selectedLocationName,
-      locationAddress: state.selectedLocationAddress,
-      locationWkt: state.selectedLocationWkt,
-      meetId: state.selectedMeetId,
-      calendarEventId: state.selectedCalendarEventId,
+      embeds: state.embeds,
       editingTo: state.messageEditingTo,
       forwardingTo: state.messageForwardingTo,
       replyingTo: state.messageReplyingTo,
