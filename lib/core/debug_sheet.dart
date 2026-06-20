@@ -1114,7 +1114,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
                   appName: 'Solian',
                   handle: roomId,
                   type: 0,
-                  extra: {'roomId': roomId},
+                  extra: {'room_id': roomId},
                 );
                 await FlutterCallkitIncoming.startCall(params);
                 if (!context.mounted) return;
@@ -1903,7 +1903,7 @@ class DebugSheet extends HookConsumerWidget {
                       appName: 'Solian',
                       handle: roomId,
                       type: 0,
-                      extra: {'roomId': roomId},
+                      extra: {'room_id': roomId},
                     );
                     await FlutterCallkitIncoming.startCall(params);
                     if (!context.mounted) return;
