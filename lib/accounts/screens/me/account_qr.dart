@@ -1028,6 +1028,16 @@ String? _resolveScannedAccountName(String rawValue) {
   return null;
 }
 
+String _qrLoginStatusName(int status) {
+  return switch (status) {
+    1 => 'loginQrCodeStatusScanned'.tr(),
+    2 => 'loginQrCodeStatusApproved'.tr(),
+    3 => 'loginQrCodeStatusDeclined'.tr(),
+    4 => 'expired'.tr(),
+    _ => 'loginQrCodeStatusPending'.tr(),
+  };
+}
+
 IconData _qrLoginPlatformIcon(int? platform) {
   return switch (platform) {
     2 => Symbols.phone_iphone,
@@ -1053,7 +1063,7 @@ String _qrLoginPlatformName(int? platform) {
 class _QrLoginChallengeSnapshot {
   final String qrChallengeId;
   final String authChallengeId;
-  final String status;
+  final int status;
   final DateTime expiresAt;
 
   const _QrLoginChallengeSnapshot({
@@ -1067,7 +1077,7 @@ class _QrLoginChallengeSnapshot {
     return _QrLoginChallengeSnapshot(
       qrChallengeId: json['qr_challenge_id'] as String,
       authChallengeId: json['auth_challenge_id'] as String,
-      status: json['status'] as String? ?? 'Pending',
+      status: (json['status'] as num?)?.toInt() ?? 0,
       expiresAt: DateTime.parse(json['expires_at'] as String),
     );
   }
@@ -1254,7 +1264,7 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
                       _DetailRow(
                         icon: Symbols.info,
                         label: 'loginQrCodeStatusLabel'.tr(),
-                        value: snapshot.status,
+                        value: _qrLoginStatusName(snapshot.status),
                       ),
                       _DetailRow(
                         icon: Symbols.language,

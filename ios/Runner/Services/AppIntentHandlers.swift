@@ -98,10 +98,23 @@ struct ChatRoomEntityQuery: EntityQuery {
     }
 
     func entities(matching string: String) async throws -> [ChatRoomEntity] {
-        let rooms = try await Self.fetchRooms()
-        let lowercased = string.lowercased()
-        return rooms.filter { room in
-            room.name?.lowercased().contains(lowercased) ?? false
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
+        let rooms = try await NetworkService.shared.searchChatRooms(
+            query: string,
+            token: token,
+            serverUrl: serverUrl
+        )
+        return rooms.map { room in
+            ChatRoomEntity(
+                id: room.id,
+                name: room.name ?? room.description,
+                type: room.type,
+                pictureURL: room.picture?.url
+            )
         }
     }
 
@@ -389,14 +402,20 @@ struct SendMessageIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
-    @Parameter(title: "intent_chat_room_parameter")
+    @Parameter(
+        title: "intent_chat_room_parameter",
+        requestValueDialog: IntentDialog("Which chat should I send it to?")
+    )
     var chatRoom: ChatRoomEntity
 
-    @Parameter(title: "intent_message_parameter")
+    @Parameter(
+        title: "intent_message_parameter",
+        requestValueDialog: IntentDialog("What message would you like to send?")
+    )
     var message: String
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Send message to \(\.$chatRoom)")
+        Summary("Send \(\.$message) to \(\.$chatRoom)")
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
@@ -427,10 +446,17 @@ struct ReadMessagesIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
-    @Parameter(title: "intent_chat_room_parameter")
+    @Parameter(
+        title: "intent_chat_room_parameter",
+        requestValueDialog: IntentDialog("Which chat should I read messages from?")
+    )
     var chatRoom: ChatRoomEntity
 
-    @Parameter(title: "intent_message_count_parameter", default: 5)
+    @Parameter(
+        title: "intent_message_count_parameter",
+        default: 5,
+        requestValueDialog: IntentDialog("How many messages should I read?")
+    )
     var limit: Int
 
     static var parameterSummary: some ParameterSummary {

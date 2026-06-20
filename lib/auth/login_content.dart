@@ -95,7 +95,7 @@ class _QrLoginChallenge {
 class _QrLoginStatusSnapshot {
   final String qrChallengeId;
   final String authChallengeId;
-  final String status;
+  final int status;
   final DateTime expiresAt;
 
   const _QrLoginStatusSnapshot({
@@ -109,7 +109,7 @@ class _QrLoginStatusSnapshot {
     return _QrLoginStatusSnapshot(
       qrChallengeId: json['qr_challenge_id'] as String,
       authChallengeId: json['auth_challenge_id'] as String,
-      status: json['status'] as String? ?? 'Pending',
+      status: (json['status'] as num?)?.toInt() ?? 0,
       expiresAt: DateTime.parse(json['expires_at'] as String),
     );
   }
@@ -1241,31 +1241,31 @@ class _LoginLookupScreen extends HookConsumerWidget {
 class _QrLoginCard extends HookConsumerWidget {
   const _QrLoginCard();
 
-  Color _statusBackground(BuildContext context, String status) {
+  Color _statusBackground(BuildContext context, int status) {
     final scheme = Theme.of(context).colorScheme;
     return switch (status) {
-      'Scanned' => scheme.tertiaryContainer,
-      'Approved' => scheme.primaryContainer,
-      'Declined' => scheme.errorContainer,
+      1 => scheme.tertiaryContainer,  // Scanned
+      2 => scheme.primaryContainer,   // Approved
+      3 => scheme.errorContainer,     // Declined
       _ => scheme.surfaceContainerHighest,
     };
   }
 
-  Color _statusForeground(BuildContext context, String status) {
+  Color _statusForeground(BuildContext context, int status) {
     final scheme = Theme.of(context).colorScheme;
     return switch (status) {
-      'Scanned' => scheme.onTertiaryContainer,
-      'Approved' => scheme.onPrimaryContainer,
-      'Declined' => scheme.onErrorContainer,
+      1 => scheme.onTertiaryContainer,  // Scanned
+      2 => scheme.onPrimaryContainer,   // Approved
+      3 => scheme.onErrorContainer,     // Declined
       _ => scheme.onSurfaceVariant,
     };
   }
 
-  String _statusLabel(String status) {
+  String _statusLabel(int status) {
     return switch (status) {
-      'Scanned' => 'loginQrCodeStatusScanned'.tr(),
-      'Approved' => 'loginQrCodeStatusApproved'.tr(),
-      'Declined' => 'loginQrCodeStatusDeclined'.tr(),
+      1 => 'loginQrCodeStatusScanned'.tr(),
+      2 => 'loginQrCodeStatusApproved'.tr(),
+      3 => 'loginQrCodeStatusDeclined'.tr(),
       _ => 'loginQrCodeStatusPending'.tr(),
     };
   }
@@ -1274,7 +1274,7 @@ class _QrLoginCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final challenge = useState<_QrLoginChallenge?>(null);
-    final status = useState('Pending');
+    final status = useState(0);  // QrLoginStatus.pending
     final remainingSeconds = useState<int?>(null);
     final isLoading = useState(false);
     final isExchanging = useState(false);
@@ -1304,7 +1304,7 @@ class _QrLoginCard extends HookConsumerWidget {
           Map<String, dynamic>.from(resp.data as Map),
         );
         status.value = snapshot.status;
-        if (snapshot.status == 'Approved') {
+        if (snapshot.status == 2) {  // Approved
           await exchangeApprovedCode(snapshot.authChallengeId);
         }
       } catch (_) {
@@ -1329,7 +1329,7 @@ class _QrLoginCard extends HookConsumerWidget {
         challenge.value = _QrLoginChallenge.fromJson(
           Map<String, dynamic>.from(resp.data as Map),
         );
-        status.value = 'Pending';
+        status.value = 0;  // Pending
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -1366,7 +1366,7 @@ class _QrLoginCard extends HookConsumerWidget {
 
     useEffect(() {
       final current = challenge.value;
-      if (current == null || isExpired || status.value == 'Approved') {
+      if (current == null || isExpired || status.value == 2) {  // Approved
         return null;
       }
 
