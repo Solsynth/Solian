@@ -14,12 +14,21 @@ import flutter_callkit_incoming
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, PKPushRegistryDelegate, CallkitIncomingAppDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
+    
+    private func refreshAppIntents() {
+        guard #available(iOS 16.0, *) else {
+            return
+        }
+        
+        AppShortcuts.updateAppShortcutParameters()
+    }
 
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         sendCfgToAppGroup()
+        refreshAppIntents()
         WidgetCenter.shared.reloadAllTimelines()
 
         UNUserNotificationCenter.current().delegate = notifyDelegate
@@ -98,6 +107,7 @@ import flutter_callkit_incoming
         channel.setMethodCallHandler { (call, result) in
             if call.method == "sendCfgToAppGroup" {
                 sendCfgToAppGroup()
+                self.refreshAppIntents()
                 WidgetCenter.shared.reloadAllTimelines()
                 result(true)
             } else {
@@ -164,11 +174,13 @@ import flutter_callkit_incoming
 
     override func applicationDidEnterBackground(_ application: UIApplication) {
         sendCfgToAppGroup()
+        refreshAppIntents()
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     override func applicationWillTerminate(_ application: UIApplication) {
         sendCfgToAppGroup()
+        refreshAppIntents()
     }
     
     // MARK: - PKPushRegistryDelegate
