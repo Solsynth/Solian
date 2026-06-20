@@ -3,10 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island_call/island_call.dart';
-import 'package:island/core/config.dart';
-import 'package:island/core/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:logging/logging.dart';
 
@@ -35,9 +31,9 @@ class NativeCallBridge extends _$NativeCallBridge {
     // Listen for CallKit events from flutter_callkit_incoming
     _callKitEventSub = FlutterCallkitIncoming.onEvent.listen((event) {
       if (event == null) return;
-      
+
       Logger.root.info('[NativeCallBridge] CallKit event: ${event.eventName}');
-      
+
       switch (event) {
         case CallEventActionCallAccept(:final callKitParams):
           final roomId = callKitParams.handle;
@@ -47,7 +43,7 @@ class NativeCallBridge extends _$NativeCallBridge {
             isConnected: true,
           );
           break;
-          
+
         case CallEventActionCallEnded():
           Logger.root.info('[NativeCallBridge] CallKit call ended');
           state = state.copyWith(
@@ -55,20 +51,24 @@ class NativeCallBridge extends _$NativeCallBridge {
             isConnected: false,
           );
           break;
-          
+
         case CallEventActionCallToggleMute(:final isMuted):
           Logger.root.info('[NativeCallBridge] CallKit mute changed: $isMuted');
           state = state.copyWith(isMicrophoneEnabled: !isMuted);
           break;
-          
+
         case CallEventActionCallToggleHold(:final isOnHold):
-          Logger.root.info('[NativeCallBridge] CallKit hold toggled: $isOnHold');
+          Logger.root.info(
+            '[NativeCallBridge] CallKit hold toggled: $isOnHold',
+          );
           break;
-          
+
         case CallEventActionCallToggleAudioSession(:final isActive):
-          Logger.root.info('[NativeCallBridge] CallKit audio session: $isActive');
+          Logger.root.info(
+            '[NativeCallBridge] CallKit audio session: $isActive',
+          );
           break;
-          
+
         case CallEventActionCallDecline():
           Logger.root.info('[NativeCallBridge] CallKit call declined');
           state = state.copyWith(
@@ -76,38 +76,20 @@ class NativeCallBridge extends _$NativeCallBridge {
             isConnected: false,
           );
           break;
-          
+
         default:
-          Logger.root.fine('[NativeCallBridge] Unhandled CallKit event: ${event.eventName}');
+          Logger.root.fine(
+            '[NativeCallBridge] Unhandled CallKit event: ${event.eventName}',
+          );
       }
     });
   }
 
-  Future<void> initialize({required String serverUrl, required String authToken}) async {
+  /// Call this from app startup to start listening to CallKit events.
+  void ensureInitialized() {
     if (!isNativeCallAvailable) return;
-    try {
-      await IslandCall.initialize(serverUrl: serverUrl, authToken: authToken);
-      startListening();
-      Logger.root.info('[NativeCallBridge] Initialized with server: $serverUrl');
-    } catch (e) {
-      Logger.root.warning('[NativeCallBridge] Initialize failed: $e');
-    }
-  }
-
-  /// Call this from app startup to auto-initialize with stored credentials.
-  Future<void> ensureInitialized(WidgetRef ref) async {
-    if (!isNativeCallAvailable) return;
-    if (state.isConnected || state.isReconnecting) return; // already active
-    try {
-      final serverUrl = ref.read(serverUrlProvider);
-      // Use ref.read to get the token directly from the provider
-      final tokenPair = ref.read(tokenProvider);
-      if (tokenPair != null && tokenPair.token.isNotEmpty) {
-        await initialize(serverUrl: serverUrl, authToken: tokenPair.token);
-      }
-    } catch (e) {
-      Logger.root.fine('[NativeCallBridge] Auto-init skipped: $e');
-    }
+    startListening();
+    Logger.root.info('[NativeCallBridge] Initialized');
   }
 }
 
@@ -153,7 +135,8 @@ class NativeCallState {
       participantCount: participantCount ?? this.participantCount,
       roomId: roomId ?? this.roomId,
       roomName: roomName ?? this.roomName,
-      callKitAcceptedRoomId: callKitAcceptedRoomId ?? this.callKitAcceptedRoomId,
+      callKitAcceptedRoomId:
+          callKitAcceptedRoomId ?? this.callKitAcceptedRoomId,
       callerAvatarUrl: callerAvatarUrl ?? this.callerAvatarUrl,
     );
   }
