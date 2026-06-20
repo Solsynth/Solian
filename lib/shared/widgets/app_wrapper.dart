@@ -7,6 +7,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -146,6 +147,8 @@ class AppWrapper extends HookConsumerWidget {
     useEffect(() {
       if (!isNativeCallAvailable) return null;
       
+      const callKitChannel = MethodChannel('dev.solsynth.solian/callkit');
+      
       final sub = ref.listenManual(
         callProvider,
         (previous, current) {
@@ -154,14 +157,14 @@ class AppWrapper extends HookConsumerWidget {
           
           // Flutter call just connected
           if (!prevConnected && currConnected) {
-            Logger.root.info('[AppWrapper] Flutter call connected, setting CallKit call connected');
-            FlutterCallkitIncoming.setCallConnected('');
+            Logger.root.info('[AppWrapper] Flutter call connected, fulfilling CallKit answer');
+            callKitChannel.invokeMethod('fulfillPendingAnswer', null);
           }
           
-          // Flutter call just disconnected with error
-          if (prevConnected && !currConnected && current.error != null) {
-            Logger.root.info('[AppWrapper] Flutter call failed: ${current.error}');
-            // No need to fail pending answer with flutter_callkit_incoming
+          // Flutter call just disconnected
+          if (prevConnected && !currConnected) {
+            Logger.root.info('[AppWrapper] Flutter call disconnected');
+            FlutterCallkitIncoming.endAllCalls();
           }
         },
       );

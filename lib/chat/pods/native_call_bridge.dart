@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -16,6 +17,7 @@ bool get isNativeCallAvailable => !kIsWeb && Platform.isIOS;
 @Riverpod(keepAlive: true)
 class NativeCallBridge extends _$NativeCallBridge {
   StreamSubscription<CallEvent?>? _callKitEventSub;
+  static const _callKitChannel = MethodChannel('dev.solsynth.solian/callkit');
 
   @override
   NativeCallState build() {
@@ -28,7 +30,31 @@ class NativeCallBridge extends _$NativeCallBridge {
   void startListening() {
     _callKitEventSub?.cancel();
 
-    // Listen for CallKit events from flutter_callkit_incoming
+    // Listen for CallKit events via direct method channel (more reliable)
+    _callKitChannel.setMethodCallHandler((call) async {
+      Logger.root.info('[NativeCallBridge] CallKit method channel: ${call.method}');
+      
+      switch (call.method) {
+        case 'callAccepted':
+          final roomId = call.arguments['roomId'] as String?;
+          final callerName = call.arguments['callerName'] as String?;
+          Logger.root.info('[NativeCallBridge] CallKit call accepted via channel: $roomId ($callerName)');
+          state = state.copyWith(
+            callKitAcceptedRoomId: roomId,
+            isConnected: true,
+          );
+          break;
+        case 'callEnded':
+          Logger.root.info('[NativeCallBridge] CallKit call ended via channel');
+          state = state.copyWith(
+            callKitAcceptedRoomId: null,
+            isConnected: false,
+          );
+          break;
+      }
+    });
+
+    // Also listen for CallKit events from flutter_callkit_incoming
     _callKitEventSub = FlutterCallkitIncoming.onEvent.listen((event) {
       if (event == null) return;
 
@@ -63,10 +89,8 @@ class NativeCallBridge extends _$NativeCallBridge {
           );
           break;
 
-        case CallEventActionCallToggleAudioSession(:final isActive):
-          Logger.root.info(
-            '[NativeCallBridge] CallKit audio session: $isActive',
-          );
+        case CallEventActionCallToggleAudioSession():
+          Logger.root.info('[NativeCallBridge] CallKit audio session toggled');
           break;
 
         case CallEventActionCallDecline():
@@ -82,6 +106,9 @@ class NativeCallBridge extends _$NativeCallBridge {
             '[NativeCallBridge] Unhandled CallKit event: ${event.eventName}',
           );
       }
+    }, onError: (e) {
+      // ponytail: swallow errors from flutter_callkit_incoming (e.g., null id for audio session)
+      Logger.root.warning('[NativeCallBridge] CallKit event error: $e');
     });
   }
 
