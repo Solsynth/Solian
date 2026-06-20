@@ -200,7 +200,8 @@ import flutter_callkit_incoming
         
         let id = meta["room_id"] as? String ?? UUID().uuidString
         let nameCaller = meta["caller_name"] as? String ?? "Unknown"
-        let handle = meta["caller_id"] as? String ?? ""
+        let callerId = meta["caller_id"] as? String ?? ""
+        let handle = callerId.isEmpty ? "" : "@\(callerId)"
         
         let data = flutter_callkit_incoming.Data(
             id: id,
@@ -208,6 +209,7 @@ import flutter_callkit_incoming
             handle: handle,
             type: 0
         )
+        data.handleType = "generic"
         data.extra = meta as NSDictionary
         
         SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
