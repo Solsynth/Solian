@@ -24,14 +24,12 @@
 		7359B44A2F7ED2E9002F2C19 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 7359B4492F7ED2E9002F2C19 /* Alamofire */; };
 		7359B44D2F7ED3E2002F2C19 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 7359B44C2F7ED3E2002F2C19 /* Kingfisher */; };
 		7359B44F2F7ED451002F2C19 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 7359B44E2F7ED451002F2C19 /* Kingfisher */; };
-		7359B4512F7ED45E002F2C19 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 7359B4502F7ED45E002F2C19 /* Kingfisher */; };
 		7359B4D32F7ED7C3002F2C19 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 7359B4D22F7ED7C3002F2C19 /* FlutterGeneratedPluginSwiftPackage */; };
 		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
 		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73CA95E42F8019B000AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E32F8019B000AECCC0 /* KingfisherWebP */; };
 		73CA95E62F8019C400AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E52F8019C400AECCC0 /* KingfisherWebP */; };
-		73CA95E82F8019CB00AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E72F8019CB00AECCC0 /* KingfisherWebP */; };
 		73CDD6812DEC00480059D95D /* SolianNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73D4264B2DEB815D006C0AAE /* NotifyDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */; };
 		73D801DE2F65CF6900AC3735 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73D801DD2F65CF6900AC3735 /* StoreKit.framework */; };
@@ -295,8 +293,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				73CA95E82F8019CB00AECCC0 /* KingfisherWebP in Frameworks */,
-				7359B4512F7ED45E002F2C19 /* Kingfisher in Frameworks */,
 				2B148F1445B90FD424EBF824 /* Pods_Solian_Watch_App.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1353,6 +1349,7 @@
 				DEVELOPMENT_TEAM = W7HPZ53V6B;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
@@ -1404,6 +1401,7 @@
 				DEVELOPMENT_TEAM = W7HPZ53V6B;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
@@ -1453,6 +1451,7 @@
 				DEVELOPMENT_TEAM = W7HPZ53V6B;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WatchRunner-Watch-App-Info.plist";
