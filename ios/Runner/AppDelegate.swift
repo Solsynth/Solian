@@ -1,13 +1,17 @@
 import Flutter
+import AVFAudio
+import CallKit
 import WidgetKit
 import UIKit
 import WatchConnectivity
 import AppIntents
 import flutter_sharing_intent
 import Kingfisher
+import PushKit
+import flutter_callkit_incoming
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, PKPushRegistryDelegate, CallkitIncomingAppDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
 
@@ -39,14 +43,39 @@ import Kingfisher
         } else {
             print("[iOS] WCSession not supported on this device.")
         }
+        
+        // Setup VoIP PushKit
+        let voipRegistry = PKPushRegistry(queue: .main)
+        voipRegistry.delegate = self
+        voipRegistry.desiredPushTypes = [.voIP]
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
+    
+    private var callKitChannel: FlutterMethodChannel?
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
         
         setupWidgetSyncChannel(engineBridge: engineBridge)
+        
+        // Setup CallKit channel for direct communication
+        callKitChannel = FlutterMethodChannel(
+            name: "dev.solsynth.solian/callkit",
+            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+        )
+        callKitChannel?.setMethodCallHandler { [weak self] (call, result) in
+            switch call.method {
+            case "fulfillPendingAnswer":
+                self?.fulfillPendingAnswer()
+                result(nil)
+            case "endCall":
+                SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
+                result(nil)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
     }
     
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
@@ -140,6 +169,103 @@ import Kingfisher
 
     override func applicationWillTerminate(_ application: UIApplication) {
         sendCfgToAppGroup()
+    }
+    
+    // MARK: - PKPushRegistryDelegate
+    
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+        guard type == .voIP else { return }
+        let deviceToken = credentials.token.map { String(format: "%02x", $0) }.joined()
+        print("[PushKit] VoIP token updated: \(deviceToken)")
+        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP(deviceToken)
+    }
+    
+    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        print("[PushKit] VoIP token invalidated")
+        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP("")
+    }
+    
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+        guard type == .voIP else { completion(); return }
+        print("[PushKit] VoIP push received: \(payload.dictionaryPayload)")
+        
+        // Convert [AnyHashable: Any] to [String: Any]
+        let payloadDict = payload.dictionaryPayload.reduce(into: [String: Any]()) { result, pair in
+            if let key = pair.key as? String {
+                result[key] = pair.value
+            }
+        }
+        // Extract from nested 'meta' object if present
+        let meta = payloadDict["meta"] as? [String: Any] ?? payloadDict
+        
+        let id = meta["room_id"] as? String ?? UUID().uuidString
+        let nameCaller = meta["caller_name"] as? String ?? "Unknown"
+        let handle = meta["caller_id"] as? String ?? ""
+        
+        let data = flutter_callkit_incoming.Data(
+            id: id,
+            nameCaller: nameCaller,
+            handle: handle,
+            type: 0
+        )
+        data.extra = meta as NSDictionary
+        
+        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
+            completion()
+        }
+    }
+    
+    // MARK: - CallkitIncomingAppDelegate
+    
+    private var pendingAnswerAction: CXAnswerCallAction?
+    
+    func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
+        let roomId = call.data.uuid
+        print("[CallKit] Call accepted: \(roomId)")
+        
+        // Store the action - will be fulfilled when Flutter connects
+        pendingAnswerAction = action
+        
+        // Notify Flutter directly via method channel
+        callKitChannel?.invokeMethod("callAccepted", arguments: [
+            "roomId": roomId,
+            "callerName": call.data.nameCaller ?? "Unknown",
+            "callerId": call.data.handle ?? ""
+        ])
+    }
+    
+    /// Called by Flutter when the call is connected
+    func fulfillPendingAnswer() {
+        guard let action = pendingAnswerAction else { return }
+        print("[CallKit] Fulfilling pending answer action")
+        action.fulfill()
+        pendingAnswerAction = nil
+    }
+    
+    func onDecline(_ call: Call, _ action: CXEndCallAction) {
+        print("[CallKit] Call declined: \(call.data.uuid)")
+        action.fulfill()
+    }
+    
+    func onEnd(_ call: Call, _ action: CXEndCallAction) {
+        print("[CallKit] Call ended: \(call.data.uuid)")
+        action.fulfill()
+    }
+    
+    func onTimeOut(_ call: Call) {
+        print("[CallKit] Call timed out: \(call.data.uuid)")
+    }
+    
+    func didActivateAudioSession(_ audioSession: AVAudioSession) {
+        print("[CallKit] Audio session activated")
+    }
+    
+    func didDeactivateAudioSession(_ audioSession: AVAudioSession) {
+        print("[CallKit] Audio session deactivated")
+    }
+    
+    func providerDidReset() {
+        print("[CallKit] Provider did reset")
     }
 }
 
