@@ -21,7 +21,8 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
-import 'package:island_call/island_call.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
@@ -1107,7 +1108,15 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               try {
                 final roomId = await _promptForRoomId(context, 'Outgoing Call');
                 if (roomId == null) return;
-                await IslandCall.startCall(roomId);
+                final params = CallKitParams(
+                  id: roomId,
+                  nameCaller: 'Debug Call',
+                  appName: 'Solian',
+                  handle: roomId,
+                  type: 0,
+                  extra: {'roomId': roomId},
+                );
+                await FlutterCallkitIncoming.startCall(params);
                 if (!context.mounted) return;
                 showSnackBar('Fake outgoing call triggered for room: $roomId');
               } catch (e) {
@@ -1121,7 +1130,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             title: '[CallKit] Copy VoIP Token',
             onTap: () async {
               try {
-                final token = await IslandCall.getVoipToken();
+                final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                 if (token != null) {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (!context.mounted) return;
@@ -1888,7 +1897,15 @@ class DebugSheet extends HookConsumerWidget {
                   try {
                     final roomId = await _promptForRoomId(context, 'Outgoing Call');
                     if (roomId == null) return;
-                    await IslandCall.startCall(roomId);
+                    final params = CallKitParams(
+                      id: roomId,
+                      nameCaller: 'Debug Call',
+                      appName: 'Solian',
+                      handle: roomId,
+                      type: 0,
+                      extra: {'roomId': roomId},
+                    );
+                    await FlutterCallkitIncoming.startCall(params);
                     if (!context.mounted) return;
                     showSnackBar('Fake outgoing call triggered for room: $roomId');
                   } catch (e) {
@@ -1905,7 +1922,7 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Copy VoIP Token'),
                 onTap: () async {
                   try {
-                    final token = await IslandCall.getVoipToken();
+                    final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                     if (token != null) {
                       await Clipboard.setData(ClipboardData(text: token));
                       if (!context.mounted) return;

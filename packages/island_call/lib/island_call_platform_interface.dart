@@ -12,30 +12,6 @@ abstract class IslandCallPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> initialize({required String serverUrl, required String authToken}) {
-    throw UnimplementedError();
-  }
-
-  Future<void> startCall(String handle, {bool isVideo = false}) {
-    throw UnimplementedError();
-  }
-
-  Future<void> endCall() {
-    throw UnimplementedError();
-  }
-
-  Future<void> reportIncomingCall({required String callerId, required String callerName, required String roomId}) {
-    throw UnimplementedError();
-  }
-
-  Future<String?> getVoipToken() {
-    throw UnimplementedError();
-  }
-
-  Future<void> inviteToCall({required String roomId, required String targetAccountId}) {
-    throw UnimplementedError();
-  }
-
   Future<void> startCallActivity({required String roomId, String? roomName, String? callerName}) {
     throw UnimplementedError();
   }
@@ -45,10 +21,6 @@ abstract class IslandCallPlatform extends PlatformInterface {
   }
 
   Future<void> endCallActivity() {
-    throw UnimplementedError();
-  }
-
-  Future<void> setCallConnected() {
     throw UnimplementedError();
   }
 }
