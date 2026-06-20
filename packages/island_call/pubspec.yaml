@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_callkit_incoming: ^3.1.2
   plugin_platform_interface: ^2.0.2
 
 dev_dependencies:

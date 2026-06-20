@@ -1,12 +1,11 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 
 import 'island_call_platform_interface.dart';
 
 class MethodChannelIslandCall extends IslandCallPlatform {
   static const _channel = MethodChannel('island_call');
-  static const _stateChannel = EventChannel('island_call/state');
-  static const _participantsChannel = EventChannel('island_call/participants');
-  static const _callKitEventsChannel = EventChannel('island_call/callkit_events');
 
   @override
   Future<void> initialize({required String serverUrl, required String authToken}) {
@@ -17,56 +16,36 @@ class MethodChannelIslandCall extends IslandCallPlatform {
   }
 
   @override
-  Future<void> joinRoom(String roomId) {
-    return _channel.invokeMethod('joinRoom', {'roomId': roomId});
+  Future<void> startCall(String handle, {bool isVideo = false}) async {
+    final params = CallKitParams(
+      id: handle,
+      nameCaller: 'Solian',
+      appName: 'Solian',
+      handle: handle,
+      type: isVideo ? 1 : 0,
+      extra: {'roomId': handle},
+    );
+    await FlutterCallkitIncoming.startCall(params);
   }
 
   @override
-  Future<void> leaveRoom() => _channel.invokeMethod('leaveRoom');
+  Future<void> endCall() async {
+    // Get current call ID from the state
+    await FlutterCallkitIncoming.endAllCalls();
+  }
 
   @override
-  Future<void> toggleMic() => _channel.invokeMethod('toggleMic');
-
-  @override
-  Future<void> toggleCamera() => _channel.invokeMethod('toggleCamera');
-
-  @override
-  Future<void> toggleSpeaker() => _channel.invokeMethod('toggleSpeaker');
-
-  @override
-  Future<void> toggleViewMode() => _channel.invokeMethod('toggleViewMode');
-
-  @override
-  Future<void> showExpandedView() => _channel.invokeMethod('showExpandedView');
-
-  @override
-  Future<void> dismissExpandedView() => _channel.invokeMethod('dismissExpandedView');
-
-  @override
-  Stream<Map<String, dynamic>> get onStateChanged =>
-      _stateChannel.receiveBroadcastStream().map((e) => Map<String, dynamic>.from(e as Map));
-
-  @override
-  Stream<List<Map<String, dynamic>>> get onParticipantsChanged =>
-      _participantsChannel.receiveBroadcastStream().map((e) {
-        final list = e as List;
-        return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
-      });
-
-  @override
-  Future<void> startCall(String handle, {bool isVideo = false}) =>
-      _channel.invokeMethod('startCall', {'handle': handle, 'isVideo': isVideo});
-
-  @override
-  Future<void> endCall() => _channel.invokeMethod('endCall');
-
-  @override
-  Future<void> reportIncomingCall({required String callerId, required String callerName, required String roomId}) =>
-      _channel.invokeMethod('reportIncomingCall', {
-        'callerId': callerId,
-        'callerName': callerName,
-        'roomId': roomId,
-      });
+  Future<void> reportIncomingCall({required String callerId, required String callerName, required String roomId}) async {
+    final params = CallKitParams(
+      id: roomId,
+      nameCaller: callerName,
+      appName: 'Solian',
+      handle: roomId,
+      type: 0,
+      extra: {'callerId': callerId, 'roomId': roomId},
+    );
+    await FlutterCallkitIncoming.showCallkitIncoming(params);
+  }
 
   @override
   Future<String?> getVoipToken() async {
@@ -101,18 +80,7 @@ class MethodChannelIslandCall extends IslandCallPlatform {
   Future<void> endCallActivity() => _channel.invokeMethod('endCallActivity');
 
   @override
-  Stream<Map<String, dynamic>> get onCallKitEvents =>
-      _callKitEventsChannel.receiveBroadcastStream().map((e) => Map<String, dynamic>.from(e as Map));
-
-  @override
-  Future<void> fulfillPendingAnswer() => _channel.invokeMethod('fulfillPendingAnswer');
-
-  @override
-  Future<void> failPendingAnswer() => _channel.invokeMethod('failPendingAnswer');
-
-  @override
-  Future<void> reportRemoteEnded() => _channel.invokeMethod('reportRemoteEnded');
-
-  @override
-  Future<void> reportConnectionFailed() => _channel.invokeMethod('reportConnectionFailed');
+  Future<void> setCallConnected() async {
+    await FlutterCallkitIncoming.setCallConnected('');
+  }
 }
