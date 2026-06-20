@@ -236,7 +236,7 @@ Future<T?> showOverlayDialog<T>({
   );
 
   _activeOverlayDialogs.add(() => close(null));
-  globalOverlay.currentState!.insert(entry);
+  globalOverlay.currentState?.insert(entry);
   return completer.future;
 }
 
@@ -260,7 +260,12 @@ Future<void> _playSfx(String assetPath, double volume) async {
 }
 
 void showErrorAlert(dynamic err, {IconData? icon}) {
-  final context = globalOverlay.currentState!.context;
+  final state = globalOverlay.currentState;
+  if (state == null) {
+    Logger.root.severe('[Alert] showErrorAlert called but overlay not ready: $err');
+    return;
+  }
+  final context = state.context;
   final ref = ProviderScope.containerOf(context);
   final settings = ref.read(appSettingsProvider);
   if (settings.soundEffects) {
@@ -317,7 +322,9 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
 }
 
 void showInfoAlert(String message, String title, {IconData? icon}) {
-  final context = globalOverlay.currentState!.context;
+  final state = globalOverlay.currentState;
+  if (state == null) return;
+  final context = state.context;
   final ref = ProviderScope.containerOf(context);
   final settings = ref.read(appSettingsProvider);
   if (settings.soundEffects) {
@@ -365,7 +372,9 @@ Future<bool> showConfirmAlert(
   IconData? icon,
   bool isDanger = false,
 }) async {
-  final context = globalOverlay.currentState!.context;
+  final state = globalOverlay.currentState;
+  if (state == null) return false;
+  final context = state.context;
   final ref = ProviderScope.containerOf(context);
   final settings = ref.read(appSettingsProvider);
   if (settings.soundEffects) {
@@ -424,7 +433,9 @@ void showNotification({
   Map<String, dynamic> meta = const {},
   Duration? duration,
 }) {
-  final context = globalOverlay.currentState!.context;
+  final state = globalOverlay.currentState;
+  if (state == null) return;
+  final context = state.context;
   final ref = ProviderScope.containerOf(context);
   final notification = SnNotification(
     createdAt: DateTime.now(),
@@ -443,9 +454,11 @@ void showNotification({
 }
 
 Future<void> openExternalLink(Uri url, WidgetRef ref) async {
+  final state = globalOverlay.currentState;
+  if (state == null) return;
   await openExternalLinkWithContainer(
     url,
-    ProviderScope.containerOf(globalOverlay.currentState!.context),
+    ProviderScope.containerOf(state.context),
   );
 }
 
