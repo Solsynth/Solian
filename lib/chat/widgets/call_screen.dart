@@ -237,6 +237,30 @@ class CallScreen extends HookConsumerWidget {
                       tooltip: 'inviteToCall'.tr(),
                       icon: const Icon(Symbols.person_add, color: Colors.white),
                     ),
+                    IconButton(
+                      onPressed: callNotifier.toggleSpeakerphone,
+                      tooltip: callState.isSpeakerphone
+                          ? 'Speaker on'
+                          : 'Speaker off',
+                      icon: Icon(
+                        callState.isSpeakerphone
+                            ? Symbols.mobile_speaker
+                            : Symbols.ear_sound,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: callNotifier.toggleViewMode,
+                      tooltip: callState.viewMode == ViewMode.grid
+                          ? 'Grid view'
+                          : 'List view',
+                      icon: Icon(
+                        callState.viewMode == ViewMode.grid
+                            ? Symbols.grid_view
+                            : Symbols.view_list,
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -312,7 +336,13 @@ class CallScreen extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                child: const Center(child: CallControlsBar(popOnLeaves: true)),
+                child: const Center(
+                  child: CallControlsBar(
+                    popOnLeaves: true,
+                    showSpeakerToggle: false,
+                    showViewToggle: false,
+                  ),
+                ),
               ),
             ),
           ],
