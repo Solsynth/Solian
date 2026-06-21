@@ -10,7 +10,7 @@ import flutter_sharing_intent
 import Kingfisher
 import PushKit
 import flutter_callkit_incoming
-import LiveKitWebRTC
+import WebRTC
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, PKPushRegistryDelegate, CallkitIncomingAppDelegate {
@@ -413,12 +413,12 @@ import LiveKitWebRTC
     
     func didActivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] Audio session activated")
-        LKRTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
     }
     
     func didDeactivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] Audio session deactivated")
-        LKRTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+        RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
     }
     
     func providerDidReset() {
