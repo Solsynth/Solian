@@ -87,11 +87,22 @@ class CallScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    final roomTitle = ongoingCall.value?.room.name ?? room.name ?? 'call'.tr();
+    // Resolve room title: prefer explicit name, then other DM member's name
+    final roomForTitle = roomState.value ?? room;
+    final roomTitle = ongoingCall.value?.room.name ??
+        roomForTitle.name ??
+        (roomForTitle.members ?? [])
+            .where((m) => m.accountId != currentUserId)
+            .map((m) => m.nick ?? m.account.nick)
+            .firstOrNull ??
+        'call'.tr();
+    // Prefer callState over livekit room state to avoid stale 'connecting'
     final statusText = callState.isConnected
         ? formatDuration(callState.duration)
         : callState.isReconnecting
         ? 'reconnecting'.tr()
+        : callState.hasJoined
+        ? formatDuration(callState.duration)
         : (switch (callNotifier.room?.connectionState) {
             ConnectionState.connected => 'connected',
             ConnectionState.connecting => 'connecting',

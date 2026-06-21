@@ -228,7 +228,15 @@ class _CallWindowHome extends HookConsumerWidget {
       return sub.close;
     }, []);
 
-    final roomTitle = chatRoom.value?.name ?? args.roomName ?? 'Call';
+    final userInfo = ref.watch(userInfoProvider).value;
+    final roomForTitle = chatRoom.value;
+    final roomTitle = roomForTitle?.name ??
+        args.roomName ??
+        (roomForTitle?.members ?? [])
+            .where((m) => m.accountId != userInfo?.id)
+            .map((m) => m.nick ?? m.account.nick)
+            .firstOrNull ??
+        'Call';
 
     return Material(
       color: Theme.of(context).colorScheme.surface,
@@ -334,9 +342,19 @@ class _CallBody extends HookConsumerWidget {
         ? formatDuration(callState.duration)
         : callState.isReconnecting
         ? 'Reconnecting'
+        : callState.hasJoined
+        ? formatDuration(callState.duration)
         : 'Connecting';
 
-    final roomTitle = chatRoom.value?.name ?? args.roomName ?? 'Call';
+    final userInfo = ref.watch(userInfoProvider).value;
+    final roomForTitle = chatRoom.value;
+    final roomTitle = roomForTitle?.name ??
+        args.roomName ??
+        (roomForTitle?.members ?? [])
+            .where((m) => m.accountId != userInfo?.id)
+            .map((m) => m.nick ?? m.account.nick)
+            .firstOrNull ??
+        'Call';
 
     return Material(
       color: Theme.of(context).colorScheme.surface,
