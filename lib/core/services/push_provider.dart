@@ -6,12 +6,14 @@ import 'package:island/core/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum PushNotificationProvider {
+  fcm,
   apple,
-  fcm;
+  appk;
 
   int get remoteType => switch (this) {
-    PushNotificationProvider.apple => 0,
-    PushNotificationProvider.fcm => 1,
+    PushNotificationProvider.fcm => 0,
+    PushNotificationProvider.apple => 1,
+    PushNotificationProvider.appk => 4,
   };
 
   String get storageValue => name;

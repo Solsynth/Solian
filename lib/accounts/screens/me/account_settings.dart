@@ -1427,6 +1427,10 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
                 itemCount: subs.length,
                 itemBuilder: (context, index) {
                   final sub = subs[index];
+                  final presentation =
+                      _NotificationSubscriptionPresentation.forProvider(
+                        sub.provider,
+                      );
                   return ListTile(
                     minLeadingWidth: 48,
                     contentPadding: const EdgeInsets.only(
@@ -1435,12 +1439,22 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
                       top: 2,
                       bottom: 4,
                     ),
-                    title: Text(
-                      sub.deviceName ?? _getProviderLabel(sub.provider),
-                    ),
+                    title: Text(presentation.label),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (sub.deviceName != null &&
+                            sub.deviceName!.isNotEmpty)
+                          Text(sub.deviceName!),
+                        const SizedBox(height: 2),
+                        Text(
+                          presentation.roleHint,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
                         Text(
                           sub.deviceId,
                           style: TextStyle(
@@ -1466,7 +1480,7 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
                       backgroundColor: Theme.of(
                         context,
                       ).colorScheme.primaryContainer,
-                      child: Icon(_getProviderIcon(sub.provider), size: 16),
+                      child: Icon(presentation.icon, size: 16),
                     ).padding(top: 4),
                     trailing: const Icon(Symbols.chevron_right),
                     onTap: () {
@@ -1494,32 +1508,6 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
       ),
     );
   }
-
-  static String _getProviderLabel(
-    SnNotificationPushSubscriptionProvider provider,
-  ) {
-    switch (provider) {
-      case SnNotificationPushSubscriptionProvider.apple:
-        return 'Apple Push (APNS)';
-      case SnNotificationPushSubscriptionProvider.fcm:
-        return 'Firebase (FCM)';
-      case SnNotificationPushSubscriptionProvider.sop:
-        return 'Solar Network Push (SOP)';
-    }
-  }
-
-  static IconData _getProviderIcon(
-    SnNotificationPushSubscriptionProvider provider,
-  ) {
-    switch (provider) {
-      case SnNotificationPushSubscriptionProvider.apple:
-        return Symbols.phone_iphone;
-      case SnNotificationPushSubscriptionProvider.fcm:
-        return Symbols.android;
-      case SnNotificationPushSubscriptionProvider.sop:
-        return Symbols.cloud;
-    }
-  }
 }
 
 class NotificationSubscriptionDetailSheet extends ConsumerWidget {
@@ -1532,6 +1520,10 @@ class NotificationSubscriptionDetailSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final presentation = _NotificationSubscriptionPresentation.forProvider(
+      subscription.provider,
+    );
+
     Future<void> unsubscribe() async {
       final confirm = await showConfirmAlert(
         'notificationSubscriptionDeleteHint'.tr(),
@@ -1566,19 +1558,29 @@ class NotificationSubscriptionDetailSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  NotificationSubscriptionsSheet._getProviderIcon(
-                    subscription.provider,
-                  ),
+                  presentation.icon,
                   size: 32,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  subscription.deviceName ??
-                      NotificationSubscriptionsSheet._getProviderLabel(
-                        subscription.provider,
-                      ),
+                  presentation.label,
                   style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                if (subscription.deviceName != null &&
+                    subscription.deviceName!.isNotEmpty) ...[
+                  Text(
+                    subscription.deviceName!,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                Text(
+                  presentation.roleHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -1632,5 +1634,57 @@ class NotificationSubscriptionDetailSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+class _NotificationSubscriptionPresentation {
+  final String label;
+  final String roleHint;
+  final IconData icon;
+
+  const _NotificationSubscriptionPresentation({
+    required this.label,
+    required this.roleHint,
+    required this.icon,
+  });
+
+  factory _NotificationSubscriptionPresentation.forProvider(
+    SnNotificationPushSubscriptionProvider provider,
+  ) {
+    return switch (provider) {
+      SnNotificationPushSubscriptionProvider.fcm =>
+        const _NotificationSubscriptionPresentation(
+          label: 'Firebase Cloud Messaging',
+          roleHint:
+              'Standard push notifications on Android and supported web flows.',
+          icon: Symbols.android,
+        ),
+      SnNotificationPushSubscriptionProvider.apple =>
+        const _NotificationSubscriptionPresentation(
+          label: 'Apple Push (APNs)',
+          roleHint:
+              'Standard alerts, badges, and message notifications on Apple devices.',
+          icon: Symbols.phone_iphone,
+        ),
+      SnNotificationPushSubscriptionProvider.sop =>
+        const _NotificationSubscriptionPresentation(
+          label: 'Solar Network Push (SOP)',
+          roleHint:
+              'Solar Network native stream-based delivery for this device session.',
+          icon: Symbols.cloud,
+        ),
+      SnNotificationPushSubscriptionProvider.unifiedPush =>
+        const _NotificationSubscriptionPresentation(
+          label: 'UnifiedPush',
+          roleHint: 'Self-hosted push endpoint registration.',
+          icon: Symbols.link,
+        ),
+      SnNotificationPushSubscriptionProvider.appk =>
+        const _NotificationSubscriptionPresentation(
+          label: 'Apple PushKit',
+          roleHint: 'VoIP push delivery for incoming calls on iPhone and iPad.',
+          icon: Symbols.call,
+        ),
+    };
   }
 }
