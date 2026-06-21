@@ -1,40 +1,91 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "채팅 열기";
 "intent_open_chat_desc" = "특정 채팅방 열기";
+"intent_open_chat_short_title" = "채팅 열기";
+"intent_open_chat_summary" = "%@와 채팅 열기";
+"intent_open_chat_result_room" = "채팅 %@ 여는 중";
+"intent_open_chat_result_list" = "채팅 목록 여는 중";
 "intent_chat_room_title" = "채팅방";
 "intent_chat_room_parameter" = "채팅방";
+"intent_chat_room_fallback_format" = "채팅방 %@";
+"intent_chat_room_kind_direct" = "다이렉트 메시지";
+"intent_chat_room_kind_group" = "그룹 채팅";
+"intent_chat_room_kind_generic" = "채팅";
+"intent_chat_room_direct_fallback" = "다이렉트 메시지";
 "intent_message_parameter" = "메시지";
 
 /* App Intents - Post */
 "intent_open_post_title" = "게시물 열기";
 "intent_open_post_desc" = "특정 게시물 열기";
+"intent_open_post_short_title" = "게시물 열기";
+"intent_open_post_summary" = "게시물 %@ 열기";
+"intent_open_post_result" = "게시물 %@ 여는 중";
 "intent_post_title" = "게시물";
 "intent_post_parameter" = "게시물";
+"intent_post_fallback_format" = "게시물 %@";
+"intent_post_author_format" = "%@의 게시물";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "글쓰기 열기";
 "intent_open_compose_desc" = "글쓰기 화면 열기";
+"intent_open_compose_short_title" = "새 게시물";
+"intent_open_compose_result" = "작성 화면 여는 중";
 "intent_compose_post_title" = "게시물 작성";
 "intent_compose_post_desc" = "새 게시물 작성";
 
 /* App Intents - Search */
 "intent_search_title" = "검색";
 "intent_search_desc" = "콘텐츠 검색";
+"intent_search_short_title" = "검색";
+"intent_search_summary" = "%@ 검색";
+"intent_search_result" = "\"%@\" 검색 중";
 "intent_search_query_parameter" = "검색어";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "알림 보기";
 "intent_notifications_desc" = "알림 보기";
+"intent_notifications_result" = "알림 여는 중";
 "intent_check_notifications_title" = "알림 확인";
 "intent_check_notifications_desc" = "알림 수 확인";
+"intent_check_notifications_short_title" = "알림 확인";
+"intent_check_notifications_none" = "새 알림이 없습니다";
+"intent_check_notifications_one" = "새 알림이 1개 있습니다";
+"intent_check_notifications_many" = "새 알림이 %d개 있습니다";
+"intent_check_notifications_failed" = "알림 확인 실패: %@";
 
 /* App Intents - Messages */
 "intent_send_message_title" = "메시지 보내기";
 "intent_send_message_desc" = "채팅 채널에 메시지 보내기";
+"intent_send_message_short_title" = "메시지 보내기";
+"intent_send_message_chat_prompt" = "어느 채팅으로 보낼까요?";
+"intent_send_message_body_prompt" = "어떤 메시지를 보낼까요?";
+"intent_send_message_summary" = "%@를 %@에게 보내기";
+"intent_send_message_result" = "%@에 메시지를 보냈습니다";
+"intent_send_message_success" = "메시지를 보냈습니다";
+"intent_send_message_failed" = "메시지 전송 실패: %@";
 "intent_read_messages_title" = "메시지 읽기";
 "intent_read_messages_desc" = "채팅 채널에서 최근 메시지 읽기";
+"intent_read_messages_short_title" = "메시지 읽기";
+"intent_read_messages_chat_prompt" = "어느 채팅의 메시지를 읽을까요?";
+"intent_read_messages_count_prompt" = "메시지를 몇 개 읽을까요?";
+"intent_read_messages_summary" = "%@의 메시지 읽기";
+"intent_read_messages_none" = "%@에 메시지가 없습니다";
+"intent_read_messages_none_dialog" = "메시지를 찾지 못했습니다";
+"intent_read_messages_found" = "메시지 %d개를 찾았습니다";
+"intent_read_messages_failed" = "메시지 읽기 실패: %@";
 "intent_unread_chats_title" = "읽지 않은 채팅 확인";
 "intent_unread_chats_desc" = "읽지 않은 채팅 메시지 수 확인";
+"intent_unread_chats_short_title" = "읽지 않은 채팅";
+"intent_unread_chats_none" = "읽지 않은 메시지가 없습니다";
+"intent_unread_chats_one" = "읽지 않은 메시지가 1개 있습니다";
+"intent_unread_chats_many" = "읽지 않은 메시지가 %d개 있습니다";
+"intent_unread_chats_failed" = "읽지 않은 메시지 확인 실패: %@";
 "intent_mark_read_title" = "알림 읽음 처리";
 "intent_mark_read_desc" = "모든 알림을 읽음으로 처리";
+"intent_mark_read_short_title" = "읽음 처리";
+"intent_mark_read_result" = "모든 알림을 읽음으로 표시했습니다";
+"intent_mark_read_failed" = "알림 읽음 처리 실패: %@";
 "intent_message_count_parameter" = "메시지 수";
+"intent_unknown_sender" = "알 수 없음";
+"intent_error_required_suffix" = "항목은 필수입니다";
+"intent_error_network_prefix" = "네트워크 오류:";

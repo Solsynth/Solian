@@ -170,6 +170,11 @@ final class NetworkService {
         return response.rooms
     }
 
+    func getCurrentAccount(token: String, serverUrl: String) async throws -> AccountResponse {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.currentAccount)
+        return try await get(baseUrl: serverUrl, token: token, url: url)
+    }
+
     func searchChatRooms(query: String, token: String, serverUrl: String) async throws -> [ChatRoomResponse] {
         let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.chatRooms, queryItems: [
             URLQueryItem(name: "query", value: query)
@@ -242,12 +247,32 @@ struct ChatRoomResponse: Decodable {
     let background: SnCloudFile?
     let realmId: String?
     let accountId: String?
+    let account: AccountResponse?
     let createdAt: String
     let updatedAt: String
+    let members: [ChatMemberResponse]?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, description, type, isPublic, isCommunity, picture, background, realmId, accountId, createdAt, updatedAt
+        case id, name, description, type, isPublic, isCommunity, picture, background, realmId, accountId, account, createdAt, updatedAt, members
     }
+}
+
+struct ChatMemberResponse: Decodable {
+    let id: String
+    let accountId: String?
+    let account: AccountResponse?
+    let nick: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, account, nick
+        case accountId = "account_id"
+    }
+}
+
+struct AccountResponse: Decodable {
+    let id: String
+    let name: String
+    let nick: String
 }
 
 struct SnCloudFile: Codable {

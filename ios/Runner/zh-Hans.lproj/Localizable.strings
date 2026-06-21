@@ -1,40 +1,91 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "打开聊天";
 "intent_open_chat_desc" = "打开特定聊天室";
+"intent_open_chat_short_title" = "打开聊天";
+"intent_open_chat_summary" = "打开与 %@ 的聊天";
+"intent_open_chat_result_room" = "正在打开聊天 %@";
+"intent_open_chat_result_list" = "正在打开聊天列表";
 "intent_chat_room_title" = "聊天室";
 "intent_chat_room_parameter" = "聊天室";
+"intent_chat_room_fallback_format" = "聊天室 %@";
+"intent_chat_room_kind_direct" = "私信";
+"intent_chat_room_kind_group" = "群聊";
+"intent_chat_room_kind_generic" = "聊天";
+"intent_chat_room_direct_fallback" = "私信";
 "intent_message_parameter" = "消息内容";
 
 /* App Intents - Post */
 "intent_open_post_title" = "打开帖子";
 "intent_open_post_desc" = "打开特定帖子";
+"intent_open_post_short_title" = "打开帖子";
+"intent_open_post_summary" = "打开帖子 %@";
+"intent_open_post_result" = "正在打开帖子 %@";
 "intent_post_title" = "帖子";
 "intent_post_parameter" = "帖子";
+"intent_post_fallback_format" = "帖子 %@";
+"intent_post_author_format" = "来自 %@";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "打开撰写";
 "intent_open_compose_desc" = "打开撰写帖子页面";
+"intent_open_compose_short_title" = "新帖子";
+"intent_open_compose_result" = "正在打开撰写页面";
 "intent_compose_post_title" = "撰写帖子";
 "intent_compose_post_desc" = "创建新帖子";
 
 /* App Intents - Search */
 "intent_search_title" = "搜索内容";
 "intent_search_desc" = "搜索内容";
+"intent_search_short_title" = "搜索";
+"intent_search_summary" = "搜索 %@";
+"intent_search_result" = "正在搜索“%@”";
 "intent_search_query_parameter" = "搜索关键词";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "查看通知";
 "intent_notifications_desc" = "查看通知";
+"intent_notifications_result" = "正在打开通知";
 "intent_check_notifications_title" = "检查通知";
 "intent_check_notifications_desc" = "检查通知数量";
+"intent_check_notifications_short_title" = "检查通知";
+"intent_check_notifications_none" = "你没有新通知";
+"intent_check_notifications_one" = "你有 1 条新通知";
+"intent_check_notifications_many" = "你有 %d 条新通知";
+"intent_check_notifications_failed" = "检查通知失败：%@";
 
 /* App Intents - Messages */
 "intent_send_message_title" = "发送消息";
 "intent_send_message_desc" = "发送消息到聊天频道";
+"intent_send_message_short_title" = "发送消息";
+"intent_send_message_chat_prompt" = "要发送到哪个聊天？";
+"intent_send_message_body_prompt" = "你想发送什么消息？";
+"intent_send_message_summary" = "发送 %@ 给 %@";
+"intent_send_message_result" = "消息已发送到 %@";
+"intent_send_message_success" = "消息发送成功";
+"intent_send_message_failed" = "发送消息失败：%@";
 "intent_read_messages_title" = "读取消息";
 "intent_read_messages_desc" = "从聊天频道读取最近消息";
+"intent_read_messages_short_title" = "读取消息";
+"intent_read_messages_chat_prompt" = "要读取哪个聊天的消息？";
+"intent_read_messages_count_prompt" = "要读取多少条消息？";
+"intent_read_messages_summary" = "读取 %@ 的消息";
+"intent_read_messages_none" = "%@ 中没有消息";
+"intent_read_messages_none_dialog" = "没有找到消息";
+"intent_read_messages_found" = "找到 %d 条消息";
+"intent_read_messages_failed" = "读取消息失败：%@";
 "intent_unread_chats_title" = "检查未读聊天";
 "intent_unread_chats_desc" = "检查未读聊天消息数量";
+"intent_unread_chats_short_title" = "未读聊天";
+"intent_unread_chats_none" = "你没有未读消息";
+"intent_unread_chats_one" = "你有 1 条未读消息";
+"intent_unread_chats_many" = "你有 %d 条未读消息";
+"intent_unread_chats_failed" = "检查未读消息失败：%@";
 "intent_mark_read_title" = "标记通知已读";
 "intent_mark_read_desc" = "将所有通知标记为已读";
+"intent_mark_read_short_title" = "标记已读";
+"intent_mark_read_result" = "所有通知都已标记为已读";
+"intent_mark_read_failed" = "标记通知失败：%@";
 "intent_message_count_parameter" = "消息数量";
+"intent_unknown_sender" = "未知";
+"intent_error_required_suffix" = "为必填项";
+"intent_error_network_prefix" = "网络错误：";

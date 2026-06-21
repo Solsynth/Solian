@@ -15,6 +15,7 @@ enum SharedConstants {
     static let defaultServerUrl = "https://api.solian.app"
 
     enum API {
+        static let currentAccount = "/passport/accounts/me"
         static let notificationsCount = "/ring/notifications/count"
         static let notificationsMarkRead = "/ring/notifications/all/read"
         static let unreadChats = "/messager/chat/unread"
