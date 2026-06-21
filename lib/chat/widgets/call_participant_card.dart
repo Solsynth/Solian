@@ -66,14 +66,8 @@ class CallParticipantCard extends HookConsumerWidget {
 
       moderationLoading.value = true;
       try {
-        try {
-          await callNotifier.kickParticipantByAccountId(targetAccountId!);
-          showSnackBar('Participant removed');
-        } catch (err) {
-          showErrorAlert(err);
-        } finally {
-          moderationLoading.value = false;
-        }
+        await callNotifier.kickParticipantByAccountId(targetAccountId!);
+        showSnackBar('Participant removed');
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -82,10 +76,40 @@ class CallParticipantCard extends HookConsumerWidget {
     }
 
     final volumeSliderValue = useState(callNotifier.getParticipantVolume(live));
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final qualityInfo = switch (live.remoteParticipant.connectionQuality) {
+      ConnectionQuality.excellent => (
+        Symbols.signal_cellular_alt,
+        'Excellent',
+        colorScheme.primary,
+      ),
+      ConnectionQuality.good => (
+        Symbols.signal_cellular_alt_2_bar,
+        'Good',
+        colorScheme.secondary,
+      ),
+      ConnectionQuality.poor => (
+        Symbols.signal_cellular_alt_1_bar,
+        'Bad',
+        colorScheme.error,
+      ),
+      ConnectionQuality.lost => (
+        Symbols.signal_cellular_off,
+        'Lost',
+        colorScheme.error,
+      ),
+      _ => (
+        Symbols.signal_cellular_null,
+        'Connecting',
+        colorScheme.onSurfaceVariant,
+      ),
+    };
 
     return PopupCard(
       elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SizedBox(
         width: width,
         child: Column(
@@ -93,15 +117,18 @@ class CallParticipantCard extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Column(
-              spacing: 4,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (canModerate)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.start,
-                    runAlignment: WrapAlignment.start,
+                if (canModerate) ...[
+                  Text(
+                    'Moderation',
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Gap(8),
+                  Row(
                     children: [
                       IconButton.filledTonal(
                         onPressed: moderationLoading.value
@@ -115,64 +142,83 @@ class CallParticipantCard extends HookConsumerWidget {
                         tooltip: live.remoteParticipant.isMuted
                             ? 'Unmute'
                             : 'Mute',
-                        visualDensity: VisualDensity.compact,
                       ),
+                      const Gap(8),
                       IconButton.filledTonal(
                         onPressed: moderationLoading.value
                             ? null
                             : handleKickParticipant,
                         icon: const Icon(Symbols.person_remove),
-                        tooltip: 'Kick',
-                        style: FilledButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
+                        tooltip: 'Remove',
+                        style: IconButton.styleFrom(
+                          foregroundColor: colorScheme.error,
                         ),
-                        visualDensity: VisualDensity.compact,
                       ),
                     ],
-                  ).padding(bottom: 8),
+                  ),
+                  const Gap(12),
+                ],
+                // Volume
+                Text(
+                  'Volume',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Gap(4),
                 Row(
                   children: [
-                    const Icon(Symbols.sound_detection_loud_sound, size: 16),
-                    const Gap(8),
+                    Icon(
+                      Symbols.volume_up,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     Expanded(
                       child: Slider(
                         max: 2,
                         value: volumeSliderValue.value,
-                        onChanged: (value) {
-                          volumeSliderValue.value = value;
-                        },
-                        onChangeEnd: (value) {
-                          callNotifier.setParticipantVolume(live, value);
-                        },
+                        onChanged: (v) => volumeSliderValue.value = v,
+                        onChangeEnd: (v) =>
+                            callNotifier.setParticipantVolume(live, v),
                         year2023: true,
-                        padding: EdgeInsets.zero,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                       ),
                     ),
-                    const Gap(16),
                     SizedBox(
-                      width: 40,
+                      width: 44,
                       child: Text(
                         '${(volumeSliderValue.value * 100).toStringAsFixed(0)}%',
+                        textAlign: TextAlign.end,
+                        style: textTheme.labelLarge?.copyWith(
+                          fontFeatures: [const FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                   ],
                 ),
+                const Gap(8),
+                // Connection
                 Row(
                   children: [
-                    const Icon(Symbols.wifi, size: 16),
+                    Icon(qualityInfo.$1, size: 20, color: qualityInfo.$3),
                     const Gap(8),
-                    Text(switch (live.remoteParticipant.connectionQuality) {
-                      ConnectionQuality.excellent => 'Excellent',
-                      ConnectionQuality.good => 'Good',
-                      ConnectionQuality.poor => 'Bad',
-                      ConnectionQuality.lost => 'Lost',
-                      _ => 'Connecting',
-                    }),
+                    Text(
+                      qualityInfo.$2,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: qualityInfo.$3,
+                      ),
+                    ),
                   ],
                 ),
+                const Gap(4),
+                // Stats
                 _CallParticipantStatsPanel(participant: live.remoteParticipant),
               ],
-            ).padding(horizontal: 20, top: 16),
+            ).padding(horizontal: 16, top: 16),
             AccountNameplate(
               name: live.participant.identity,
               isOutlined: false,
@@ -341,31 +387,23 @@ class _CallParticipantStatsPanelState
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodySmall;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final labelStyle = textTheme.labelSmall;
+    final valueStyle = textTheme.bodySmall?.copyWith(
+      fontFamily: 'monospace',
+      fontFeatures: [const FontFeature.tabularFigures()],
+    );
+
     final totalTx = _audioTxKbps + _videoTxKbps;
     final totalRx = _audioRxKbps + _videoRxKbps;
-
-    Widget section(String title, Map<String, String> data) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: textStyle?.copyWith(fontWeight: FontWeight.w700)),
-          if (data.isEmpty)
-            Text('-', style: textStyle)
-          else
-            ...data.entries.map(
-              (entry) => Text('${entry.key}: ${entry.value}', style: textStyle),
-            ),
-        ],
-      );
-    }
 
     return Container(
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: colorScheme.surfaceContainerHighest,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxHeight: 180),
@@ -373,21 +411,53 @@ class _CallParticipantStatsPanelState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Icon(Symbols.upload, size: 14),
-                  const Gap(6),
-                  Text('Up ${_toKbps(totalTx)}', style: textStyle),
-                  const Gap(12),
-                  const Icon(Symbols.download, size: 14),
-                  const Gap(6),
-                  Text('Down ${_toKbps(totalRx)}', style: textStyle),
-                ],
+              Text(
+                'Stats',
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const Gap(8),
-              section('Audio', _audioStats),
-              const Gap(8),
-              section('Video', _videoStats),
+              Row(
+                children: [
+                  Icon(
+                    Symbols.upload,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const Gap(6),
+                  Text('Up ${_toKbps(totalTx)}', style: valueStyle),
+                  const Gap(16),
+                  Icon(
+                    Symbols.download,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const Gap(6),
+                  Text('Down ${_toKbps(totalRx)}', style: valueStyle),
+                ],
+              ),
+              if (_audioStats.isNotEmpty) ...[
+                const Gap(10),
+                Text('Audio', style: labelStyle),
+                ..._audioStats.entries.map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text('${e.key}: ${e.value}', style: valueStyle),
+                  ),
+                ),
+              ],
+              if (_videoStats.isNotEmpty) ...[
+                const Gap(10),
+                Text('Video', style: labelStyle),
+                ..._videoStats.entries.map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text('${e.key}: ${e.value}', style: valueStyle),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
