@@ -107,14 +107,19 @@ class AudioCallButton extends HookConsumerWidget {
 
     // ponytail: In-app calls always use Flutter. CallKit is only for system-level (push/lock screen).
     // Also check if a CallKit call is active for this room.
-    final isInCall = callState.isConnected || 
-        (nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id);
+    final hasNativeAcceptedCall =
+        nativeBridge.callKitAcceptedRoomId == room.id &&
+        (nativeBridge.isConnected || nativeBridge.isAcceptedPending);
+    final isInCall = callState.isConnected || hasNativeAcceptedCall;
 
     Future<void> openCallScreen({bool cameraEnabled = false}) async {
-      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+      if (!kIsWeb &&
+          (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
         await createCallWindow(room, cameraEnabled: cameraEnabled);
       } else {
-        await router.pushWidget(CallScreen(room: room, cameraEnabled: cameraEnabled));
+        await router.pushWidget(
+          CallScreen(room: room, cameraEnabled: cameraEnabled),
+        );
       }
     }
 
@@ -131,12 +136,12 @@ class AudioCallButton extends HookConsumerWidget {
             onJoin: (settings) => Navigator.pop(context, settings),
           ),
         );
-        
+
         if (result == null) {
           isLoading.value = false;
           return;
         }
-        
+
         // Start CallKit call with video setting (iOS only)
         if (isNativeCallAvailable) {
           final params = CallKitParams(
@@ -149,7 +154,7 @@ class AudioCallButton extends HookConsumerWidget {
           );
           await FlutterCallkitIncoming.startCall(params);
         }
-        
+
         // Open call screen with camera setting
         await openCallScreen(cameraEnabled: result.cameraEnabled);
       } catch (e) {
@@ -164,7 +169,7 @@ class AudioCallButton extends HookConsumerWidget {
       try {
         await apiClient.delete('/messager/chat/realtime/${room.id}');
         // End CallKit call if active (iOS only)
-        if (isNativeCallAvailable && nativeBridge.isConnected && nativeBridge.callKitAcceptedRoomId == room.id) {
+        if (isNativeCallAvailable && hasNativeAcceptedCall) {
           await FlutterCallkitIncoming.endAllCalls();
         }
         await callNotifier.disconnect();
@@ -225,12 +230,12 @@ class AudioCallButton extends HookConsumerWidget {
                 onJoin: (settings) => Navigator.pop(context, settings),
               ),
             );
-            
+
             if (result == null) {
               isLoading.value = false;
               return;
             }
-            
+
             // Start CallKit call with video setting (iOS only)
             if (isNativeCallAvailable) {
               final params = CallKitParams(
@@ -243,7 +248,7 @@ class AudioCallButton extends HookConsumerWidget {
               );
               await FlutterCallkitIncoming.startCall(params);
             }
-            
+
             await openCallScreen(cameraEnabled: result.cameraEnabled);
           } catch (e) {
             showErrorAlert(e);

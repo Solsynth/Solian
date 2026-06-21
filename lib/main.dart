@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -22,6 +23,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/realtime_posts.dart';
 import 'package:island/route.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -43,11 +45,20 @@ import 'package:island/chat/widgets/call_window.dart';
 
 final List<LogRecord> _earlyLogs = [];
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+final _callkitBackgroundHold = Completer<void>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Logger.root.info('Handling a background message: ${message.messageId}');
+}
+
+@pragma('vm:entry-point')
+Future<void> callkitBackgroundMain() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Logger.root.level = Level.ALL;
+  NativeCallBackgroundBridge.ensureInitialized();
+  await _callkitBackgroundHold.future;
 }
 
 void main(List<String> args) async {
@@ -75,7 +86,10 @@ void main(List<String> args) async {
             try {
               final parts = savedSize.split(',');
               if (parts.length == 2) {
-                initialSize = Size(double.parse(parts[0]), double.parse(parts[1]));
+                initialSize = Size(
+                  double.parse(parts[0]),
+                  double.parse(parts[1]),
+                );
               }
             } catch (_) {}
           }
@@ -98,7 +112,9 @@ void main(List<String> args) async {
           });
           runApp(
             ProviderScope(
-              overrides: [sharedPreferencesProvider.overrideWithValue(callPrefs)],
+              overrides: [
+                sharedPreferencesProvider.overrideWithValue(callPrefs),
+              ],
               child: CallWindowApp(args: callArgs),
             ),
           );
@@ -195,10 +211,7 @@ void main(List<String> args) async {
         "[Plugin] Plugin system ready with ${manager.plugins.length} plugins",
       );
     } catch (err) {
-      Logger.root.severe(
-        "[Plugin] Failed to initialize plugin system...",
-        err,
-      );
+      Logger.root.severe("[Plugin] Failed to initialize plugin system...", err);
     }
 
     final prefs = await SharedPreferences.getInstance();

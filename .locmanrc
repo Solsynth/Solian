@@ -1,0 +1,23 @@
+{
+  "sourceLanguage": "en",
+  "filePattern": "{lang}.json",
+  "ignorePatterns": [
+    "node_modules",
+    ".git",
+    ".dart_tool",
+    ".idea",
+    ".vscode",
+    ".trae",
+    ".wrangler",
+    ".github",
+    "build",
+    "android",
+    "ios",
+    "linux",
+    "macos",
+    "windows",
+    "web",
+    "packages"
+  ],
+  "excludedKeys": []
+}
