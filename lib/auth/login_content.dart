@@ -20,6 +20,7 @@ import 'package:island/core/services/nfc_scan_service.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
@@ -1112,7 +1113,26 @@ class _LoginLookupScreen extends HookConsumerWidget {
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ).padding(horizontal: 7),
         if (_supportsQrLoginOnCurrentPlatform)
-          const _QrLoginCard().padding(horizontal: 7, vertical: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useRootNavigator: true,
+                builder: (_) => const _QrLoginSheet(),
+              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 4,
+                children: [
+                  Text('loginWithQrCodeTitle'.tr()),
+                  const Icon(Symbols.qr_code_2),
+                ],
+              ),
+            ).padding(left: 12),
+          ),
         if (!kIsWeb)
           Row(
             spacing: 6,
@@ -1238,8 +1258,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
   }
 }
 
-class _QrLoginCard extends HookConsumerWidget {
-  const _QrLoginCard();
+class _QrLoginSheet extends HookConsumerWidget {
+  const _QrLoginSheet();
 
   Color _statusBackground(BuildContext context, int status) {
     final scheme = Theme.of(context).colorScheme;
@@ -1376,51 +1396,20 @@ class _QrLoginCard extends HookConsumerWidget {
       return timer.cancel;
     }, [challenge.value?.qrChallengeId, status.value, isExpired]);
 
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return SheetScaffold(
+      titleText: 'loginWithQrCodeTitle'.tr(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Symbols.qr_code_2,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'loginWithQrCodeTitle'.tr(),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const Gap(4),
-                      Text(
-                        'loginWithQrCodeDescription'.tr(),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            Text(
+              'loginWithQrCodeDescription'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
-            const Gap(16),
+            const Gap(24),
             Center(
               child: Container(
                 padding: const EdgeInsets.all(18),
@@ -1429,8 +1418,8 @@ class _QrLoginCard extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(28),
                 ),
                 child: SizedBox(
-                  width: 220,
-                  height: 220,
+                  width: 240,
+                  height: 240,
                   child: switch ((challenge.value, isLoading.value)) {
                     (null, true) => const Center(
                       child: CircularProgressIndicator.adaptive(),
@@ -1438,7 +1427,7 @@ class _QrLoginCard extends HookConsumerWidget {
                     (final current?, _) => QrImageView(
                       data: current.qrData,
                       version: QrVersions.auto,
-                      size: 220,
+                      size: 240,
                       errorCorrectionLevel: QrErrorCorrectLevel.H,
                       eyeStyle: QrEyeStyle(
                         eyeShape: QrEyeShape.circle,
@@ -1459,7 +1448,7 @@ class _QrLoginCard extends HookConsumerWidget {
                 ),
               ),
             ),
-            const Gap(16),
+            const Gap(20),
             Row(
               children: [
                 Container(
@@ -1494,19 +1483,22 @@ class _QrLoginCard extends HookConsumerWidget {
                 ),
               ],
             ),
-            const Gap(12),
-            FilledButton.tonalIcon(
-              onPressed: isLoading.value || isExchanging.value
-                  ? null
-                  : generateQrChallenge,
-              icon: isLoading.value
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Symbols.refresh),
-              label: Text('loginQrCodeRefresh'.tr()),
+            const Gap(20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.tonalIcon(
+                onPressed: isLoading.value || isExchanging.value
+                    ? null
+                    : generateQrChallenge,
+                icon: isLoading.value
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Symbols.refresh),
+                label: Text('loginQrCodeRefresh'.tr()),
+              ),
             ),
           ],
         ),
