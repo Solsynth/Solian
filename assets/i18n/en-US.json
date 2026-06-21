@@ -3705,5 +3705,6 @@
   "roleOwner": "Owner",
   "roleModerator": "Moderator",
   "roleCustomRole": "Custom Role",
-  "roleMember": "Member"
+  "roleMember": "Member",
+  "inviteToCall": "Invite to call"
 }

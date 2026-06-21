@@ -24,8 +24,10 @@ import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/widgets/incoming_call_invite_sheet.dart';
 import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/chat/widgets/call_window.dart';
+import 'package:island/chat/widgets/pending_join_sheet.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -100,6 +102,8 @@ class AppWrapper extends HookConsumerWidget {
     final bootstrapCompleted = useState(false);
     final startupGateResolved = useState(false);
     final onboardingChecked = useState(false);
+    final activeInviteKey = useRef<String?>(null);
+    final recentlyHandledInvites = useRef(<String, DateTime>{});
 
     useEffect(() {
       ref.read(progressionWebSocketProvider);
@@ -121,58 +125,148 @@ class AppWrapper extends HookConsumerWidget {
         ref.read(nativeCallBridgeProvider.notifier).ensureInitialized();
       }
       // ponytail: setup inter-window call channel on desktop
-      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+      if (!kIsWeb &&
+          (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
         setupCallChannelHandler();
       }
       return null;
     }, []);
 
+    useEffect(() {
+      void pruneRecentInvites() {
+        final now = DateTime.now();
+        recentlyHandledInvites.value.removeWhere(
+          (_, expiresAt) => expiresAt.isBefore(now),
+        );
+      }
+
+      bool shouldSuppressInvite(IncomingCallInvite invite) {
+        final callState = ref.read(callProvider);
+        final callNotifier = ref.read(callProvider.notifier);
+        final nativeCallState = ref.read(nativeCallBridgeProvider);
+
+        if (callNotifier.roomId == invite.roomId &&
+            (callState.isConnected || callState.isReconnecting)) {
+          return true;
+        }
+        if (nativeCallState.callKitAcceptedRoomId == invite.roomId &&
+            nativeCallState.isConnected) {
+          return true;
+        }
+        return false;
+      }
+
+      Future<void> handleIncomingInvite(IncomingCallInvite invite) async {
+        pruneRecentInvites();
+        if (!invite.isValid || shouldSuppressInvite(invite)) {
+          return;
+        }
+        if (activeInviteKey.value == invite.dedupeKey ||
+            recentlyHandledInvites.value.containsKey(invite.dedupeKey)) {
+          return;
+        }
+
+        final router = ref.read(routerProvider);
+        final navigatorContext = router.navigatorKey.currentContext;
+        if (navigatorContext == null || !navigatorContext.mounted) {
+          return;
+        }
+
+        activeInviteKey.value = invite.dedupeKey;
+        final shouldJoin = await showModalBottomSheet<bool>(
+          context: navigatorContext,
+          useRootNavigator: true,
+          useSafeArea: true,
+          isScrollControlled: true,
+          builder: (context) => IncomingCallInviteSheet(
+            invite: invite,
+            onJoin: () => Navigator.pop(context, true),
+            onDismiss: () => Navigator.pop(context, false),
+          ),
+        );
+        activeInviteKey.value = null;
+
+        final now = DateTime.now();
+        recentlyHandledInvites.value[invite.dedupeKey] = shouldJoin == true
+            ? now.add(const Duration(minutes: 2))
+            : now.add(const Duration(seconds: 30));
+
+        if (shouldJoin == true) {
+          await _navigateToCallScreen(
+            ref,
+            invite.roomId,
+            showPendingJoin: true,
+          );
+        }
+      }
+
+      final subscription = ref.read(websocketProvider).dataStream.listen((
+        packet,
+      ) {
+        if (packet.type != 'call.invited' || packet.data == null) return;
+        try {
+          final invite = IncomingCallInvite.fromJson(packet.data!);
+          unawaited(handleIncomingInvite(invite));
+        } catch (err) {
+          Logger.root.warning(
+            '[AppWrapper] Failed to parse call.invited packet: $err',
+          );
+        }
+      });
+      return () {
+        subscription.cancel();
+      };
+    }, []);
+
     // Navigate to CallScreen when CallKit call is accepted
     useEffect(() {
       if (!isNativeCallAvailable) return null;
-      
-      final sub = ref.listenManual(
-        nativeCallBridgeProvider,
-        (previous, current) {
-          final prevRoomId = previous?.callKitAcceptedRoomId;
-          final currRoomId = current.callKitAcceptedRoomId;
-          
-          // CallKit call was accepted with a roomId
-          if (currRoomId != null && currRoomId != prevRoomId && current.isConnected) {
-            Logger.root.info('[AppWrapper] CallKit call accepted, navigating to CallScreen: $currRoomId');
-            // Find the chat room and navigate to call screen
-            _navigateToCallScreen(ref, currRoomId);
-          }
-        },
-      );
+
+      final sub = ref.listenManual(nativeCallBridgeProvider, (
+        previous,
+        current,
+      ) {
+        final prevRoomId = previous?.callKitAcceptedRoomId;
+        final currRoomId = current.callKitAcceptedRoomId;
+
+        // CallKit call was accepted with a roomId
+        if (currRoomId != null &&
+            currRoomId != prevRoomId &&
+            current.isConnected) {
+          Logger.root.info(
+            '[AppWrapper] CallKit call accepted, navigating to CallScreen: $currRoomId',
+          );
+          // Find the chat room and navigate to call screen
+          _navigateToCallScreen(ref, currRoomId);
+        }
+      });
       return sub.close;
     }, []);
 
     // Fulfill CallKit answer when Flutter call connects
     useEffect(() {
       if (!isNativeCallAvailable) return null;
-      
+
       const callKitChannel = MethodChannel('dev.solsynth.solian/callkit');
-      
-      final sub = ref.listenManual(
-        callProvider,
-        (previous, current) {
-          final prevConnected = previous?.isConnected ?? false;
-          final currConnected = current.isConnected;
-          
-          // Flutter call just connected
-          if (!prevConnected && currConnected) {
-            Logger.root.info('[AppWrapper] Flutter call connected, fulfilling CallKit answer');
-            callKitChannel.invokeMethod('fulfillPendingAnswer', null);
-          }
-          
-          // Flutter call just disconnected
-          if (prevConnected && !currConnected) {
-            Logger.root.info('[AppWrapper] Flutter call disconnected');
-            FlutterCallkitIncoming.endAllCalls();
-          }
-        },
-      );
+
+      final sub = ref.listenManual(callProvider, (previous, current) {
+        final prevConnected = previous?.isConnected ?? false;
+        final currConnected = current.isConnected;
+
+        // Flutter call just connected
+        if (!prevConnected && currConnected) {
+          Logger.root.info(
+            '[AppWrapper] Flutter call connected, fulfilling CallKit answer',
+          );
+          callKitChannel.invokeMethod('fulfillPendingAnswer', null);
+        }
+
+        // Flutter call just disconnected
+        if (prevConnected && !currConnected) {
+          Logger.root.info('[AppWrapper] Flutter call disconnected');
+          FlutterCallkitIncoming.endAllCalls();
+        }
+      });
       return sub.close;
     }, []);
 
@@ -842,7 +936,11 @@ class AppWrapper extends HookConsumerWidget {
     await launchUrlString(target, mode: LaunchMode.externalApplication);
   }
 
-  Future<void> _navigateToCallScreen(WidgetRef ref, String roomId) async {
+  Future<void> _navigateToCallScreen(
+    WidgetRef ref,
+    String roomId, {
+    bool showPendingJoin = false,
+  }) async {
     try {
       final router = ref.read(routerProvider);
       final ctx = router.navigatorKey.currentContext;
@@ -852,13 +950,31 @@ class AppWrapper extends HookConsumerWidget {
       final apiClient = ref.read(apiClientProvider);
       final resp = await apiClient.get('/messager/chat/$roomId');
       final room = SnChatRoom.fromJson(resp.data);
+      var cameraEnabled = false;
 
       if (!ctx.mounted) return;
+      if (showPendingJoin) {
+        final result = await showModalBottomSheet<({bool cameraEnabled})>(
+          context: ctx,
+          useSafeArea: true,
+          isScrollControlled: true,
+          useRootNavigator: true,
+          builder: (context) => PendingJoinSheet(
+            room: room,
+            onJoin: (settings) => Navigator.pop(context, settings),
+          ),
+        );
+        if (result == null) return;
+        cameraEnabled = result.cameraEnabled;
+      }
       // Navigate to call screen — desktop: new window; mobile: push route
-      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
-        await createCallWindow(room);
+      if (!kIsWeb &&
+          (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+        await createCallWindow(room, cameraEnabled: cameraEnabled);
       } else {
-        await router.pushWidget(CallScreen(room: room));
+        await router.pushWidget(
+          CallScreen(room: room, cameraEnabled: cameraEnabled),
+        );
       }
     } catch (e) {
       Logger.root.severe('[AppWrapper] Failed to navigate to call screen: $e');

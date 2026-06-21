@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -293,12 +294,26 @@ Future<void> subscribePushNotification(
   }
 
   FirebaseMessaging.instance.onTokenRefresh
-      .listen((fcmToken) {
-        _putTokenToRemote(
-          apiClient,
-          fcmToken,
-          PushNotificationProvider.fcm.remoteType,
-        );
+      .listen((fcmToken) async {
+        if (kIsWeb || Platform.isAndroid) {
+          await _putTokenToRemote(
+            apiClient,
+            fcmToken,
+            PushNotificationProvider.fcm.remoteType,
+          );
+          return;
+        }
+        if (Platform.isIOS) {
+          final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+          if (apnsToken != null && apnsToken.isNotEmpty) {
+            await _putTokenToRemote(
+              apiClient,
+              apnsToken,
+              PushNotificationProvider.apple.remoteType,
+            );
+          }
+          await _registerVoipTokenIfAvailable(apiClient);
+        }
       })
       .onError((err) {
         Logger.root.severe(
@@ -307,16 +322,41 @@ Future<void> subscribePushNotification(
         );
       });
 
-  if (deviceToken != null) {
-    _putTokenToRemote(
+  var registered = false;
+  if (deviceToken != null && deviceToken.isNotEmpty) {
+    registered = true;
+    await _putTokenToRemote(
       apiClient,
       deviceToken,
       !kIsWeb && (Platform.isIOS || Platform.isMacOS)
           ? PushNotificationProvider.apple.remoteType
           : PushNotificationProvider.fcm.remoteType,
     );
-  } else if (detailedErrors) {
+  }
+  if (!kIsWeb && Platform.isIOS) {
+    registered = await _registerVoipTokenIfAvailable(apiClient) || registered;
+  }
+  if (!registered && detailedErrors) {
     throw Exception("Failed to get device token for push notifications.");
+  }
+}
+
+Future<bool> _registerVoipTokenIfAvailable(Dio apiClient) async {
+  if (kIsWeb || !Platform.isIOS) return false;
+  try {
+    final voipToken = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+    if (voipToken is! String || voipToken.isEmpty) {
+      return false;
+    }
+    await _putTokenToRemote(
+      apiClient,
+      voipToken,
+      PushNotificationProvider.appk.remoteType,
+    );
+    return true;
+  } catch (err) {
+    Logger.root.warning('[Notification] Failed to register VoIP token: $err');
+    return false;
   }
 }
 
