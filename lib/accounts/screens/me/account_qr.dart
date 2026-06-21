@@ -196,53 +196,52 @@ class AccountQrScreen extends HookConsumerWidget {
     }
 
     Future<void> openScanner() async {
-      showModalBottomSheet(
+      final value = await showModalBottomSheet<String>(
         context: context,
         isScrollControlled: true,
-        builder: (context) => _AccountQrScannerSheet(
-          onScanned: (value) async {
-            final qrChallengeId = parseAuthQrChallengeId(value);
-            if (qrChallengeId != null && context.mounted) {
-              await handleQrLoginChallengeScan(
-                context: context,
-                ref: ref,
-                qrChallengeId: qrChallengeId,
-              );
-              return;
-            }
-
-            final requestId = parseWalletTransferRequestId(value);
-            if (requestId != null && context.mounted) {
-              await startTransferFromRequest(requestId);
-              return;
-            }
-
-            final transferPayload = parseWalletTransferQrPayload(value);
-            if (transferPayload != null && context.mounted) {
-              await handleWalletTransferPayloadDeepLink(
-                context: context,
-                ref: ref,
-                payload: transferPayload,
-              );
-              return;
-            }
-
-            final target = _resolveScannedAccountName(value);
-            if (target != null && context.mounted) {
-              await context.router.push(AccountProfileRoute(name: target));
-              return;
-            }
-
-            final uri = Uri.tryParse(value);
-            if (uri != null && (uri.hasScheme || uri.hasAuthority)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-              return;
-            }
-
-            showSnackBar('accountQrScanUnsupported'.tr());
-          },
-        ),
+        builder: (context) => const _AccountQrScannerSheet(),
       );
+      if (value == null || !context.mounted) return;
+
+      final qrChallengeId = parseAuthQrChallengeId(value);
+      if (qrChallengeId != null) {
+        await handleQrLoginChallengeScan(
+          context: context,
+          ref: ref,
+          qrChallengeId: qrChallengeId,
+        );
+        return;
+      }
+
+      final requestId = parseWalletTransferRequestId(value);
+      if (requestId != null) {
+        await startTransferFromRequest(requestId);
+        return;
+      }
+
+      final transferPayload = parseWalletTransferQrPayload(value);
+      if (transferPayload != null) {
+        await handleWalletTransferPayloadDeepLink(
+          context: context,
+          ref: ref,
+          payload: transferPayload,
+        );
+        return;
+      }
+
+      final target = _resolveScannedAccountName(value);
+      if (target != null) {
+        await context.router.push(AccountProfileRoute(name: target));
+        return;
+      }
+
+      final uri = Uri.tryParse(value);
+      if (uri != null && (uri.hasScheme || uri.hasAuthority)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      showSnackBar('accountQrScanUnsupported'.tr());
     }
 
     return AppScaffold(
@@ -904,9 +903,7 @@ class _TransferRequestSheetState extends State<_TransferRequestSheet> {
 }
 
 class _AccountQrScannerSheet extends StatefulWidget {
-  final ValueChanged<String> onScanned;
-
-  const _AccountQrScannerSheet({required this.onScanned});
+  const _AccountQrScannerSheet();
 
   @override
   State<_AccountQrScannerSheet> createState() => _AccountQrScannerSheetState();
@@ -926,15 +923,16 @@ class _AccountQrScannerSheetState extends State<_AccountQrScannerSheet> {
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) {
+  Future<void> _onDetect(BarcodeCapture capture) async {
     if (_hasScanned) return;
 
     for (final barcode in capture.barcodes) {
       final code = barcode.rawValue;
       if (code != null && code.isNotEmpty) {
         setState(() => _hasScanned = true);
-        widget.onScanned(code);
-        Navigator.of(context).pop();
+        await _controller.stop();
+        if (!mounted) return;
+        Navigator.of(context).pop(code);
         break;
       }
     }
@@ -1077,7 +1075,17 @@ class _QrLoginChallengeSnapshot {
     return _QrLoginChallengeSnapshot(
       qrChallengeId: json['qr_challenge_id'] as String,
       authChallengeId: json['auth_challenge_id'] as String,
-      status: (json['status'] as num?)?.toInt() ?? 0,
+      status: switch (json['status']) {
+        num value => value.toInt(),
+        String value => switch (value.toLowerCase()) {
+          'scanned' => 1,
+          'approved' => 2,
+          'declined' => 3,
+          'expired' => 4,
+          _ => 0,
+        },
+        _ => 0,
+      },
       expiresAt: DateTime.parse(json['expires_at'] as String),
     );
   }
