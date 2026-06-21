@@ -86,7 +86,8 @@ class WindowScaffold extends HookConsumerWidget {
 
     useEffect(() {
       ShakeDetector? detactor;
-      if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      final shakeEnabled = ref.read(shakeDetectionEnabledProvider);
+      if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) && shakeEnabled) {
         detactor = ShakeDetector.autoStart(
           onPhoneShake: (_) {
             showPalette.value = true;
