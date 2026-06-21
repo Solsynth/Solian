@@ -48,54 +48,54 @@ PODS:
     - Flutter
   - file_saver (0.3.1):
     - Flutter
-  - Firebase/CoreOnly (12.14.0):
-    - FirebaseCore (~> 12.14.0)
-  - Firebase/Messaging (12.14.0):
+  - Firebase/CoreOnly (12.15.0):
+    - FirebaseCore (~> 12.15.0)
+  - Firebase/Messaging (12.15.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 12.14.0)
-  - firebase_analytics (12.4.2):
+    - FirebaseMessaging (~> 12.15.0)
+  - firebase_analytics (12.4.3):
     - firebase_core
-    - FirebaseAnalytics (= 12.14.0)
+    - FirebaseAnalytics (= 12.15.0)
     - Flutter
-  - firebase_core (4.10.0):
-    - Firebase/CoreOnly (= 12.14.0)
+  - firebase_core (4.11.0):
+    - Firebase/CoreOnly (= 12.15.0)
     - Flutter
-  - firebase_messaging (16.3.0):
-    - Firebase/Messaging (= 12.14.0)
+  - firebase_messaging (16.4.0):
+    - Firebase/Messaging (= 12.15.0)
     - firebase_core
     - Flutter
-  - FirebaseAnalytics (12.14.0):
-    - FirebaseAnalytics/Default (= 12.14.0)
-    - FirebaseCore (~> 12.14.0)
-    - FirebaseInstallations (~> 12.14.0)
+  - FirebaseAnalytics (12.15.0):
+    - FirebaseAnalytics/Default (= 12.15.0)
+    - FirebaseCore (~> 12.15.0)
+    - FirebaseInstallations (~> 12.15.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - FirebaseAnalytics/Default (12.14.0):
-    - FirebaseCore (~> 12.14.0)
-    - FirebaseInstallations (~> 12.14.0)
-    - GoogleAppMeasurement/Default (= 12.14.0)
+  - FirebaseAnalytics/Default (12.15.0):
+    - FirebaseCore (~> 12.15.0)
+    - FirebaseInstallations (~> 12.15.0)
+    - GoogleAppMeasurement/Default (= 12.15.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - FirebaseCore (12.14.0):
-    - FirebaseCoreInternal (~> 12.14.0)
+  - FirebaseCore (12.15.0):
+    - FirebaseCoreInternal (~> 12.15.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreInternal (12.14.0):
+  - FirebaseCoreInternal (12.15.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
-  - FirebaseInstallations (12.14.0):
-    - FirebaseCore (~> 12.14.0)
+  - FirebaseInstallations (12.15.0):
+    - FirebaseCore (~> 12.15.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (12.14.0):
-    - FirebaseCore (~> 12.14.0)
-    - FirebaseInstallations (~> 12.14.0)
+  - FirebaseMessaging (12.15.0):
+    - FirebaseCore (~> 12.15.0)
+    - FirebaseInstallations (~> 12.15.0)
     - GoogleDataTransport (~> 10.1)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/Environment (~> 8.1)
@@ -149,23 +149,23 @@ PODS:
     - GoogleUtilities/Logger (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/Core (12.14.0):
+  - GoogleAppMeasurement/Core (12.15.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/Default (12.14.0):
+  - GoogleAppMeasurement/Default (12.15.0):
     - GoogleAdsOnDeviceConversion (~> 3.6.0)
-    - GoogleAppMeasurement/Core (= 12.14.0)
-    - GoogleAppMeasurement/IdentitySupport (= 12.14.0)
+    - GoogleAppMeasurement/Core (= 12.15.0)
+    - GoogleAppMeasurement/IdentitySupport (= 12.15.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/IdentitySupport (12.14.0):
-    - GoogleAppMeasurement/Core (= 12.14.0)
+  - GoogleAppMeasurement/IdentitySupport (12.15.0):
+    - GoogleAppMeasurement/Core (= 12.15.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
@@ -201,8 +201,6 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.1):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - health (13.1.4):
-    - Flutter
   - image_picker_ios (0.0.1):
     - Flutter
   - in_app_purchase_storekit (0.0.1):
@@ -340,7 +338,6 @@ DEPENDENCIES:
   - gal (from `.symlinks/plugins/gal/darwin`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
-  - health (from `.symlinks/plugins/health/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
@@ -457,8 +454,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/geocoding_ios/ios"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
-  health:
-    :path: ".symlinks/plugins/health/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   in_app_purchase_storekit:
@@ -536,15 +531,15 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   file_saver: 33b08000e02d10789a0acf35b9decf5bce5ca9de
-  Firebase: 7cc10425300768ec86292688af5cb228f0604bde
-  firebase_analytics: 9ea6c22e60e1d37ee76772de57b4addddb03e276
-  firebase_core: 383e19b49a08df5d7a6cf5017616de6a357ed7af
-  firebase_messaging: ab03d6090864c0fb8136521231df6a66cb13be49
-  FirebaseAnalytics: 99364329a3ea4d1ab4a3744b5464371b7351c481
-  FirebaseCore: 4939b340b9c598dc1f965d68f8fe57e630b65407
-  FirebaseCoreInternal: 090369a5fffd7423cf88006ab4d2ccc2173a8db9
-  FirebaseInstallations: 7cdc919e29dc54306edeffdbdc1eed1a40d7d1e7
-  FirebaseMessaging: 4803888ce3002188f24e19faa8d2326261538426
+  Firebase: a8539b633d474fbeb654c7043f9c1649e274045b
+  firebase_analytics: 5e356f558625ce2d8b21deff00946b56d6e8d0d5
+  firebase_core: fc23178af8ea070194d09031ae4198a9608a3d22
+  firebase_messaging: cbffc91e44e4e29d5a255c63f6cde1d1a7f98745
+  FirebaseAnalytics: 9c9fa7915fc52ea03077000d5a7b6a8947b2d76e
+  FirebaseCore: 2e86a4ea1684d4381707069e4a6d89ac808e901e
+  FirebaseCoreInternal: 6ab6a02c94446c026d2cf35cf5383842ebaa4992
+  FirebaseInstallations: eb29ccbf64eaedf86fd5b2ccc7fabde567660b52
+  FirebaseMessaging: 40017d7bc8457ee295b0f41d480a80fdabc9994e
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
   flutter_blue_plus_darwin: ee2377ea51a6c9e481f2ed76ec597717ef5d287d
@@ -562,10 +557,9 @@ SPEC CHECKSUMS:
   geocoding_ios: 33776c9ebb98d037b5e025bb0e7537f6dd19646e
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   GoogleAdsOnDeviceConversion: 80ce443fa1b4b5750913d53a04ecda644ff57744
-  GoogleAppMeasurement: 1987ffa55055dfb22c52e363c31aa50c1e11d349
+  GoogleAppMeasurement: a6d37949071d456e9147dac6789c4342e0e7a8c5
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 4f2618a4a1e762a1ee134a1e2323bba9843e06da
-  health: 32d2fbc7f26f9a2388d1a514ce168adbfa5bda65
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
