@@ -14,6 +14,16 @@ import flutter_callkit_incoming
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, PKPushRegistryDelegate, CallkitIncomingAppDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
+    private let pendingAcceptedCallKey = "dev.solsynth.solian.pendingAcceptedCall"
+    private let callKitChannelName = "dev.solsynth.solian/callkit"
+    private let callBridgeEngineName = "dev.solsynth.solian.callkit_bridge"
+    private let pendingAnswerTimeout: TimeInterval = 15
+    private var voipRegistry: PKPushRegistry?
+    private var bridgeFlutterEngine: FlutterEngine?
+    private var implicitCallKitChannel: FlutterMethodChannel?
+    private var bridgeCallKitChannel: FlutterMethodChannel?
+    private var pendingAnswerAction: CXAnswerCallAction?
+    private var pendingAnswerTimeoutWorkItem: DispatchWorkItem?
     
     private func refreshAppIntents() {
         guard #available(iOS 16.0, *) else {
@@ -52,39 +62,73 @@ import flutter_callkit_incoming
         } else {
             print("[iOS] WCSession not supported on this device.")
         }
+
+        ensureCallBridgeEngine()
         
         // Setup VoIP PushKit
         let voipRegistry = PKPushRegistry(queue: .main)
         voipRegistry.delegate = self
         voipRegistry.desiredPushTypes = [.voIP]
+        self.voipRegistry = voipRegistry
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-    
-    private var callKitChannel: FlutterMethodChannel?
-    
-    func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-        GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-        
-        setupWidgetSyncChannel(engineBridge: engineBridge)
-        
-        // Setup CallKit channel for direct communication
-        callKitChannel = FlutterMethodChannel(
-            name: "dev.solsynth.solian/callkit",
-            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+
+    private func ensureCallBridgeEngine() {
+        if bridgeFlutterEngine == nil {
+            let engine = FlutterEngine(
+                name: callBridgeEngineName,
+                project: nil,
+                allowHeadlessExecution: true
+            )
+            bridgeFlutterEngine = engine
+            engine.run(withEntrypoint: "callkitBackgroundMain")
+            GeneratedPluginRegistrant.register(with: engine)
+            bridgeCallKitChannel = makeCallKitChannel(binaryMessenger: engine.binaryMessenger)
+            print("[CallKit] Bridge Flutter engine started")
+        } else if bridgeCallKitChannel == nil, let messenger = bridgeFlutterEngine?.binaryMessenger {
+            bridgeCallKitChannel = makeCallKitChannel(binaryMessenger: messenger)
+        }
+    }
+
+    private func makeCallKitChannel(binaryMessenger: FlutterBinaryMessenger) -> FlutterMethodChannel {
+        let channel = FlutterMethodChannel(
+            name: callKitChannelName,
+            binaryMessenger: binaryMessenger
         )
-        callKitChannel?.setMethodCallHandler { [weak self] (call, result) in
+        channel.setMethodCallHandler { [weak self] call, result in
+            guard let self = self else {
+                result(FlutterError(code: "APP_DELEGATE_DEALLOCATED", message: nil, details: nil))
+                return
+            }
             switch call.method {
             case "fulfillPendingAnswer":
-                self?.fulfillPendingAnswer()
+                self.fulfillPendingAnswer()
+                result(nil)
+            case "getPendingAcceptedCall":
+                result(self.loadPendingAcceptedCall())
+            case "clearPendingAcceptedCall":
+                self.clearPendingAcceptedCall()
                 result(nil)
             case "endCall":
+                self.failPendingAnswerIfNeeded(endNativeCall: false)
                 SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
                 result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }
         }
+        return channel
+    }
+    
+    func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+        
+        setupWidgetSyncChannel(engineBridge: engineBridge)
+        
+        implicitCallKitChannel = makeCallKitChannel(
+            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+        )
     }
     
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
@@ -200,6 +244,7 @@ import flutter_callkit_incoming
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         guard type == .voIP else { completion(); return }
         print("[PushKit] VoIP push received: \(payload.dictionaryPayload)")
+        ensureCallBridgeEngine()
         
         // Convert [AnyHashable: Any] to [String: Any]
         let payloadDict = payload.dictionaryPayload.reduce(into: [String: Any]()) { result, pair in
@@ -230,43 +275,48 @@ import flutter_callkit_incoming
     }
     
     // MARK: - CallkitIncomingAppDelegate
-    
-    private var pendingAnswerAction: CXAnswerCallAction?
-    
+
     func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
         let roomId = call.data.uuid
         print("[CallKit] Call accepted: \(roomId)")
-        
-        // Store the action - will be fulfilled when Flutter connects
+
         pendingAnswerAction = action
-        
-        // Notify Flutter directly via method channel
-        callKitChannel?.invokeMethod("callAccepted", arguments: [
+        persistPendingAcceptedCall([
             "roomId": roomId,
             "callerName": call.data.nameCaller ?? "Unknown",
             "callerId": call.data.handle ?? ""
         ])
+        schedulePendingAnswerTimeout(for: action)
+
+        let payload = loadPendingAcceptedCall()
+        implicitCallKitChannel?.invokeMethod("callAccepted", arguments: payload)
+        bridgeCallKitChannel?.invokeMethod("callAccepted", arguments: payload)
     }
     
     /// Called by Flutter when the call is connected
     func fulfillPendingAnswer() {
         guard let action = pendingAnswerAction else { return }
         print("[CallKit] Fulfilling pending answer action")
+        cancelPendingAnswerTimeout()
         action.fulfill()
         pendingAnswerAction = nil
+        clearPendingAcceptedCall()
     }
     
     func onDecline(_ call: Call, _ action: CXEndCallAction) {
+        failPendingAnswerIfNeeded(endNativeCall: false)
         print("[CallKit] Call declined: \(call.data.uuid)")
         action.fulfill()
     }
     
     func onEnd(_ call: Call, _ action: CXEndCallAction) {
+        failPendingAnswerIfNeeded(endNativeCall: false)
         print("[CallKit] Call ended: \(call.data.uuid)")
         action.fulfill()
     }
     
     func onTimeOut(_ call: Call) {
+        failPendingAnswerIfNeeded(endNativeCall: false)
         print("[CallKit] Call timed out: \(call.data.uuid)")
     }
     
@@ -279,7 +329,50 @@ import flutter_callkit_incoming
     }
     
     func providerDidReset() {
+        failPendingAnswerIfNeeded(endNativeCall: false)
         print("[CallKit] Provider did reset")
+    }
+
+    private func schedulePendingAnswerTimeout(for action: CXAnswerCallAction) {
+        cancelPendingAnswerTimeout()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self, self.pendingAnswerAction?.callUUID == action.callUUID else {
+                return
+            }
+            print("[CallKit] Pending answer timed out for call: \(action.callUUID.uuidString)")
+            self.failPendingAnswerIfNeeded(endNativeCall: true)
+        }
+        pendingAnswerTimeoutWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + pendingAnswerTimeout, execute: workItem)
+    }
+
+    private func cancelPendingAnswerTimeout() {
+        pendingAnswerTimeoutWorkItem?.cancel()
+        pendingAnswerTimeoutWorkItem = nil
+    }
+
+    private func failPendingAnswerIfNeeded(endNativeCall: Bool) {
+        cancelPendingAnswerTimeout()
+        if let action = pendingAnswerAction {
+            action.fail()
+            pendingAnswerAction = nil
+        }
+        clearPendingAcceptedCall()
+        if endNativeCall {
+            SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
+        }
+    }
+
+    private func persistPendingAcceptedCall(_ payload: [String: Any]) {
+        UserDefaults.standard.set(payload, forKey: pendingAcceptedCallKey)
+    }
+
+    private func loadPendingAcceptedCall() -> [String: Any]? {
+        UserDefaults.standard.dictionary(forKey: pendingAcceptedCallKey)
+    }
+
+    private func clearPendingAcceptedCall() {
+        UserDefaults.standard.removeObject(forKey: pendingAcceptedCallKey)
     }
 }
 
