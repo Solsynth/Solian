@@ -135,7 +135,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 360,
+      width: double.infinity,
       height: 220,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -409,12 +409,12 @@ class StickerPickerEmbedded extends HookConsumerWidget {
         );
       },
       loading: () => SizedBox(
-        width: 320,
+        width: double.infinity,
         height: height ?? 320,
         child: const Center(child: CircularProgressIndicator()),
       ),
       error: (err, _) => SizedBox(
-        width: 360,
+        width: double.infinity,
         height: height ?? 200,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -223,7 +223,13 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/i18n/
+    - assets/i18n/en-US.json
+    - assets/i18n/es-ES.json
+    - assets/i18n/ja-JP.json
+    - assets/i18n/ko-KR.json
+    - assets/i18n/zh-CN.json
+    - assets/i18n/zh-OG.json
+    - assets/i18n/zh-TW.json
     - assets/images/
     - assets/images/oidc/
     - assets/images/stickers/
