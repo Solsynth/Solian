@@ -73,20 +73,20 @@ class CloudFileLinkPicker extends HookConsumerWidget {
         children: [
           TabBar(
             tabs: [
-              Tab(text: 'indexedFiles'.tr()),
               Tab(text: 'attachmentsRecentUploads'.tr()),
+              Tab(text: 'indexedFiles'.tr()),
               Tab(text: 'attachmentsManualInput'.tr()),
             ],
           ),
           Expanded(
             child: TabBarView(
               children: [
-                _IndexedCloudFilesBrowser(onSelected: onSelected),
                 _RecentCloudFilesWaterfall(
                   padding: padding,
                   onSelected: onSelected,
                   sliverHeaders: recentUploadsSliverHeaders,
                 ),
+                _IndexedCloudFilesBrowser(onSelected: onSelected),
                 _ManualCloudFileLinkForm(
                   idController: idController,
                   errorMessage: errorMessage,
