@@ -14,6 +14,7 @@ import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_member_list_tile.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -110,17 +111,33 @@ class CallScreen extends HookConsumerWidget {
       }).toList();
 
       if (inviteCandidates.isEmpty) {
-        showErrorAlert('No available room members to invite into this call.');
+        showErrorAlert('noMembersToInvite'.tr());
         return;
       }
 
       final target = await showModalBottomSheet<SnChatMember>(
         context: context,
         useSafeArea: true,
-        showDragHandle: true,
-        builder: (context) => _CallInviteSheet(
-          members: inviteCandidates,
-          onInvite: (member) => Navigator.pop(context, member),
+        isScrollControlled: true,
+        builder: (ctx) => SheetScaffold(
+          titleText: 'inviteToCall'.tr(),
+          heightFactor: 0.6,
+          child: ListView.separated(
+            itemCount: inviteCandidates.length,
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final m = inviteCandidates[i];
+              return ChatMemberListTile(
+                member: m,
+                trailing: IconButton(
+                  icon: const Icon(Symbols.call),
+                  tooltip: 'inviteToCall'.tr(),
+                  onPressed: () => Navigator.pop(ctx, m),
+                ),
+                onTap: () => Navigator.pop(ctx, m),
+              );
+            },
+          ),
         ),
       );
       if (target == null) return;
@@ -133,9 +150,7 @@ class CallScreen extends HookConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Call invite sent to ${target.nick ?? target.account.nick}.',
-              ),
+              content: Text('inviteSentTo'.tr(args: [target.nick ?? target.account.nick])),
             ),
           );
         }
@@ -381,56 +396,4 @@ class CallScreen extends HookConsumerWidget {
   }
 }
 
-class _CallInviteSheet extends StatelessWidget {
-  final List<SnChatMember> members;
-  final ValueChanged<SnChatMember> onInvite;
 
-  const _CallInviteSheet({required this.members, required this.onInvite});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Invite to call',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Symbols.close),
-                ),
-              ],
-            ),
-          ),
-          Flexible(
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: members.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final member = members[index];
-                return ChatMemberListTile(
-                  member: member,
-                  trailing: IconButton(
-                    icon: const Icon(Symbols.call),
-                    tooltip: 'Invite to call',
-                    onPressed: () => onInvite(member),
-                  ),
-                  onTap: () => onInvite(member),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

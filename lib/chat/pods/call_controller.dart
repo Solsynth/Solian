@@ -79,6 +79,10 @@ class CallController {
 
   SnChatRoom? _currentRoom;
 
+  // Cached credentials for reconnection (avoid token exchange on every retry)
+  String? _cachedEndpoint;
+  String? _cachedToken;
+
   void _bumpParticipantSync() {
     _state = state.copyWith(
       participantSyncVersion: state.participantSyncVersion + 1,
@@ -312,6 +316,10 @@ class CallController {
     final String token = joinResponse.token;
     _isAdmin = joinResponse.isAdmin;
 
+    // Cache for reconnection
+    _cachedEndpoint = endpoint;
+    _cachedToken = token;
+
     final joinedAt = DateTime.now();
     if (!state.hasJoined || state.joinedAt == null) {
       _state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
@@ -497,8 +505,14 @@ class CallController {
         _room = null;
         _localParticipant = null;
 
-        await _performConnection(
+        // ponytail: reuse cached token instead of fetching a new one
+        if (_cachedEndpoint == null || _cachedToken == null) {
+          throw StateError('No cached credentials for reconnection');
+        }
+        await _performReconnect(
           _currentRoom!,
+          endpoint: _cachedEndpoint!,
+          token: _cachedToken!,
           cameraEnabled: state.isCameraEnabled,
         );
         Logger.root.info('[Call] Reconnection successful');
@@ -506,6 +520,9 @@ class CallController {
         _isReconnecting = false;
       } catch (e) {
         Logger.root.severe('[Call] Reconnection failed: $e');
+        // Clear cached credentials so next attempt fetches fresh ones
+        _cachedEndpoint = null;
+        _cachedToken = null;
         _isReconnecting = false;
         _state = state.copyWith(
           isConnected: false,
@@ -516,6 +533,73 @@ class CallController {
         _scheduleReconnect(force: true);
       }
     });
+  }
+
+  /// Reconnect using cached credentials (no token exchange).
+  Future<void> _performReconnect(
+    SnChatRoom room, {
+    required String endpoint,
+    required String token,
+    bool cameraEnabled = false,
+  }) async {
+    if (!kIsWeb && Platform.isIOS) {
+      final micStatus = await Permission.microphone.request();
+      if (!micStatus.isGranted) {
+        throw Exception('Microphone permission is required for calls');
+      }
+      if (cameraEnabled) {
+        final cameraStatus = await Permission.camera.request();
+        if (!cameraStatus.isGranted) {
+          throw Exception('Camera permission is required for calls');
+        }
+      }
+    }
+
+    final joinedAt = DateTime.now();
+    if (!state.hasJoined || state.joinedAt == null) {
+      _state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
+      _durationTimer?.cancel();
+      _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        final baseJoinedAt = state.joinedAt;
+        if (baseJoinedAt == null) return;
+        _state = state.copyWith(
+          duration: DateTime.now().difference(baseJoinedAt),
+        );
+      });
+    }
+
+    _room = lk.Room();
+
+    await _room!.connect(
+      endpoint,
+      token,
+      connectOptions: lk.ConnectOptions(autoSubscribe: true),
+      roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
+      fastConnectOptions: lk.FastConnectOptions(
+        microphone: lk.TrackOption(enabled: true),
+        camera: lk.TrackOption(enabled: cameraEnabled),
+      ),
+    );
+    _localParticipant = _room!.localParticipant;
+
+    _initRoomListeners();
+    _refreshLiveParticipants();
+    _startConnectionHealthMonitor();
+    _reconnectGraceTimer?.cancel();
+
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      lk.Hardware.instance.setSpeakerphoneOn(true);
+    }
+
+    _room!.addListener(_onConnectionStateChange);
+    _state = state.copyWith(
+      isConnected: true,
+      isReconnecting: false,
+      reconnectAttempt: 0,
+      hasJoined: true,
+      error: null,
+    );
+    WakelockPlus.enable();
   }
 
   Future<void> toggleMicrophone() async {
@@ -591,6 +675,8 @@ class CallController {
     _isTerminalDisconnect = false;
     _reconnectGraceTimer?.cancel();
     _reconnectTimer?.cancel();
+    _cachedEndpoint = null;
+    _cachedToken = null;
     if (_room != null) {
       _isManualDisconnect = true;
       await _room!.disconnect();
@@ -704,6 +790,8 @@ class CallController {
     _durationTimer?.cancel();
     _roomId = null;
     _currentRoom = null;
+    _cachedEndpoint = null;
+    _cachedToken = null;
     _isAdmin = false;
     _participants = [];
     _participantInfoByIdentity.clear();
