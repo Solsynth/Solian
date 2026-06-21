@@ -13,6 +13,7 @@ enum SharedConstants {
     static let serverUrlKey = "flutter.app_server_url"
     static let tokenKey = "flutter.dyn_user_tk"
     static let defaultServerUrl = "https://api.solian.app"
+    static let pendingShareTargetRoomIdKey = "dev.solsynth.solian.shareSuggestions.pendingRoomId"
 
     enum API {
         static let currentAccount = "/passport/accounts/me"
