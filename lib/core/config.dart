@@ -87,6 +87,7 @@ const kAppMacosNowPlayingReuseFixedManualId =
 const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
+const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 // Will be overrided by the ProviderScope
@@ -365,6 +366,26 @@ class DesktopRpcServerEnabledNotifier extends Notifier<bool> {
 final desktopRpcServerEnabledProvider =
     NotifierProvider<DesktopRpcServerEnabledNotifier, bool>(
       DesktopRpcServerEnabledNotifier.new,
+    );
+
+class ShakeDetectionEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    if (kIsWeb) return false;
+    return prefs.getBool(kAppShakeDetectionEnabled) ?? true;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppShakeDetectionEnabled, value);
+    state = value;
+  }
+}
+
+final shakeDetectionEnabledProvider =
+    NotifierProvider<ShakeDetectionEnabledNotifier, bool>(
+      ShakeDetectionEnabledNotifier.new,
     );
 
 @freezed
