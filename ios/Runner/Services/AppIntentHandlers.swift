@@ -503,7 +503,7 @@ struct SendMessageIntent: AppIntent {
 
             return .result(
                 value: AppIntentL10n.string("intent_send_message_result", chatRoom.name ?? chatRoom.id),
-                dialog: IntentDialog(AppIntentL10n.string("intent_send_message_success"))
+                dialog: "\(AppIntentL10n.string("intent_send_message_success"))"
             )
         } catch {
             throw AppIntentError.networkError(AppIntentL10n.string("intent_send_message_failed", error.localizedDescription))
@@ -557,7 +557,7 @@ struct ReadMessagesIntent: AppIntent {
             if messages.isEmpty {
                 return .result(
                     value: AppIntentL10n.string("intent_read_messages_none", chatRoom.name ?? chatRoom.id),
-                    dialog: IntentDialog(AppIntentL10n.string("intent_read_messages_none_dialog"))
+                    dialog: "\(AppIntentL10n.string("intent_read_messages_none_dialog"))"
                 )
             }
 
@@ -569,7 +569,7 @@ struct ReadMessagesIntent: AppIntent {
 
             return .result(
                 value: formattedMessages,
-                dialog: IntentDialog(AppIntentL10n.string("intent_read_messages_found", messages.count))
+                dialog: "\(AppIntentL10n.string("intent_read_messages_found", messages.count))"
             )
         } catch {
             throw AppIntentError.networkError(AppIntentL10n.string("intent_read_messages_failed", error.localizedDescription))
@@ -634,7 +634,7 @@ struct MarkNotificationsReadIntent: AppIntent {
 
             return .result(
                 value: AppIntentL10n.string("intent_mark_read_result"),
-                dialog: IntentDialog(AppIntentL10n.string("intent_mark_read_result"))
+                dialog: "\(AppIntentL10n.string("intent_mark_read_result"))"
             )
         } catch {
             throw AppIntentError.networkError(AppIntentL10n.string("intent_mark_read_failed", error.localizedDescription))
