@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/drive/widgets/upload_menu.dart';
@@ -11,6 +12,8 @@ import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+const _kStickerExpandHeight = 280.0;
 
 class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;
@@ -40,30 +43,6 @@ class ComposeToolbar extends HookConsumerWidget {
       );
     }
 
-    void showStickerPicker() {
-      final buttonContext = context;
-      final box = buttonContext.findRenderObject() as RenderBox?;
-      final rawOffset = box?.localToGlobal(Offset.zero) ?? Offset.zero;
-      final screenHeight = MediaQuery.of(context).size.height;
-      const popoverHeight = 480.0;
-      final offset = Offset(
-        rawOffset.dx,
-        rawOffset.dy + popoverHeight > screenHeight
-            ? (rawOffset.dy - popoverHeight - 16).clamp(16.0, screenHeight)
-            : rawOffset.dy,
-      );
-
-      showStickerPickerPopover(
-        context,
-        offset,
-        onPick: (pack, sticker) {
-          insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
-        },
-        onLongPress: (pack, sticker) {
-          insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
-        },
-      );
-    }
 
     void pickPhotoMedia() async {
       final oldCount = state.attachments.value.length;
@@ -168,18 +147,69 @@ class ComposeToolbar extends HookConsumerWidget {
       UploadMenuItemData(Symbols.videocam, 'addVideo', pickVideoMedia),
       UploadMenuItemData(Symbols.mic, 'addAudio', addAudio),
       UploadMenuItemData(Symbols.file_upload, 'uploadFile', pickGeneralFile),
+      UploadMenuItemData(Symbols.attach_file, 'linkAttachment', linkAttachment),
     ];
 
+    final isStickerExpanded = useState(false);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Material(
-      elevation: 8,
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child:
-              Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, -0.25),
+                end: Offset.zero,
+              ).animate(animation),
+              child: FadeTransition(
+                opacity: animation,
+                child: SizeTransition(
+                  sizeFactor: animation,
+                  axisAlignment: -1.0,
+                  child: child,
+                ),
+              ),
+            );
+          },
+          child: isStickerExpanded.value
+              ? Container(
+                  key: const ValueKey('sticker-picker'),
+                  height: _kStickerExpandHeight,
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 1,
+                      color: Theme.of(context).dividerColor,
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    child: StickerPickerEmbedded(
+                      height: _kStickerExpandHeight,
+                      onPick: (pack, sticker) {
+                        insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
+                      },
+                      onLongPress: (pack, sticker) {
+                        insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
+                      },
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(key: ValueKey('sticker-collapsed')),
+        ),
+        Material(
+          elevation: 8,
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Row(
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
@@ -188,18 +218,14 @@ class ComposeToolbar extends HookConsumerWidget {
                         children: [
                           UploadMenu(items: uploadMenuItems),
                           IconButton(
-                            onPressed: showStickerPicker,
+                            onPressed: () {
+                              isStickerExpanded.value = !isStickerExpanded.value;
+                            },
                             icon: const Icon(Symbols.sticky_note_2),
+                            color: colorScheme.primary,
                             tooltip: 'stickers'.tr(),
-                            color: colorScheme.primary,
                           ),
-                          IconButton(
-                            onPressed: linkAttachment,
-                            icon: const Icon(Symbols.attach_file),
-                            tooltip: 'linkAttachment'.tr(),
-                            color: colorScheme.primary,
-                          ),
-                          // Poll button with visual state when a poll is linked
+                          // Poll
                           ListenableBuilder(
                             listenable: state.embeds,
                             builder: (context, _) {
@@ -218,29 +244,7 @@ class ComposeToolbar extends HookConsumerWidget {
                               );
                             },
                           ),
-                          // Fund button with visual state when a fund is linked
-                          ListenableBuilder(
-                            listenable: state.embeds,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickFund,
-                                icon: const Icon(
-                                  Symbols.account_balance_wallet,
-                                ),
-                                tooltip: 'fund'.tr(),
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.embeds.value.any((e) => e['type'] == 'fund')
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-
-                          // Location button with visual state when location is set
+                          // Location
                           ListenableBuilder(
                             listenable: state.embeds,
                             builder: (context, _) {
@@ -260,7 +264,26 @@ class ComposeToolbar extends HookConsumerWidget {
                               );
                             },
                           ),
-                          // Meet button with visual state when a meet is linked
+                          // Fund
+                          ListenableBuilder(
+                            listenable: state.embeds,
+                            builder: (context, _) {
+                              return IconButton(
+                                onPressed: pickFund,
+                                icon: const Icon(Symbols.account_balance_wallet),
+                                tooltip: 'fund'.tr(),
+                                color: colorScheme.primary,
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    state.embeds.value.any((e) => e['type'] == 'fund')
+                                        ? colorScheme.primary.withOpacity(0.15)
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Meet
                           ListenableBuilder(
                             listenable: state.embeds,
                             builder: (context, _) {
@@ -279,7 +302,7 @@ class ComposeToolbar extends HookConsumerWidget {
                               );
                             },
                           ),
-                          // Calendar event button with visual state when linked
+                          // Calendar event
                           ListenableBuilder(
                             listenable: state.embeds,
                             builder: (context, _) {
@@ -298,7 +321,7 @@ class ComposeToolbar extends HookConsumerWidget {
                               );
                             },
                           ),
-                          // Embed button with visual state when embed is present
+                          // Embed
                           ListenableBuilder(
                             listenable: state.embedView,
                             builder: (context, _) {
@@ -342,8 +365,10 @@ class ComposeToolbar extends HookConsumerWidget {
                 horizontal: 16,
                 top: 8,
               ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
