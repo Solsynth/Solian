@@ -1,40 +1,91 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "Abrir chat";
 "intent_open_chat_desc" = "Abrir sala de chat específica";
+"intent_open_chat_short_title" = "Abrir chat";
+"intent_open_chat_summary" = "Abrir chat con %@";
+"intent_open_chat_result_room" = "Abriendo chat %@";
+"intent_open_chat_result_list" = "Abriendo lista de chats";
 "intent_chat_room_title" = "Sala de chat";
 "intent_chat_room_parameter" = "Sala de chat";
+"intent_chat_room_fallback_format" = "Sala de chat %@";
+"intent_chat_room_kind_direct" = "Mensaje directo";
+"intent_chat_room_kind_group" = "Chat grupal";
+"intent_chat_room_kind_generic" = "Chat";
+"intent_chat_room_direct_fallback" = "Mensaje directo";
 "intent_message_parameter" = "Mensaje";
 
 /* App Intents - Post */
 "intent_open_post_title" = "Abrir publicación";
 "intent_open_post_desc" = "Abrir publicación específica";
+"intent_open_post_short_title" = "Abrir publicación";
+"intent_open_post_summary" = "Abrir publicación %@";
+"intent_open_post_result" = "Abriendo publicación %@";
 "intent_post_title" = "Publicación";
 "intent_post_parameter" = "Publicación";
+"intent_post_fallback_format" = "Publicación %@";
+"intent_post_author_format" = "por %@";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "Abrir compose";
 "intent_open_compose_desc" = "Abrir pantalla de publicación";
+"intent_open_compose_short_title" = "Nueva publicación";
+"intent_open_compose_result" = "Abriendo pantalla de redacción";
 "intent_compose_post_title" = "Redactar publicación";
 "intent_compose_post_desc" = "Crear nueva publicación";
 
 /* App Intents - Search */
 "intent_search_title" = "Buscar contenido";
 "intent_search_desc" = "Buscar contenido";
+"intent_search_short_title" = "Buscar";
+"intent_search_summary" = "Buscar %@";
+"intent_search_result" = "Buscando \"%@\"";
 "intent_search_query_parameter" = "Consulta de búsqueda";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "Ver notificaciones";
 "intent_notifications_desc" = "Ver notificaciones";
+"intent_notifications_result" = "Abriendo notificaciones";
 "intent_check_notifications_title" = "Ver notificaciones";
 "intent_check_notifications_desc" = "Ver número de notificaciones";
+"intent_check_notifications_short_title" = "Notificaciones";
+"intent_check_notifications_none" = "No tienes notificaciones nuevas";
+"intent_check_notifications_one" = "Tienes 1 notificación nueva";
+"intent_check_notifications_many" = "Tienes %d notificaciones nuevas";
+"intent_check_notifications_failed" = "No se pudieron comprobar las notificaciones: %@";
 
 /* App Intents - Messages */
 "intent_send_message_title" = "Enviar mensaje";
 "intent_send_message_desc" = "Enviar mensaje a canal de chat";
+"intent_send_message_short_title" = "Enviar mensaje";
+"intent_send_message_chat_prompt" = "¿A qué chat quieres enviarlo?";
+"intent_send_message_body_prompt" = "¿Qué mensaje quieres enviar?";
+"intent_send_message_summary" = "Enviar %@ a %@";
+"intent_send_message_result" = "Mensaje enviado a %@";
+"intent_send_message_success" = "Mensaje enviado correctamente";
+"intent_send_message_failed" = "No se pudo enviar el mensaje: %@";
 "intent_read_messages_title" = "Leer mensajes";
 "intent_read_messages_desc" = "Leer mensajes recientes de un canal de chat";
+"intent_read_messages_short_title" = "Leer mensajes";
+"intent_read_messages_chat_prompt" = "¿De qué chat quieres leer mensajes?";
+"intent_read_messages_count_prompt" = "¿Cuántos mensajes quieres leer?";
+"intent_read_messages_summary" = "Leer mensajes de %@";
+"intent_read_messages_none" = "No se encontraron mensajes en %@";
+"intent_read_messages_none_dialog" = "No se encontraron mensajes";
+"intent_read_messages_found" = "Se encontraron %d mensajes";
+"intent_read_messages_failed" = "No se pudieron leer los mensajes: %@";
 "intent_unread_chats_title" = "Ver chats no leídos";
 "intent_unread_chats_desc" = "Ver mensajes no leídos";
+"intent_unread_chats_short_title" = "Chats no leídos";
+"intent_unread_chats_none" = "No tienes mensajes sin leer";
+"intent_unread_chats_one" = "Tienes 1 mensaje sin leer";
+"intent_unread_chats_many" = "Tienes %d mensajes sin leer";
+"intent_unread_chats_failed" = "No se pudieron comprobar los mensajes sin leer: %@";
 "intent_mark_read_title" = "Marcar notificaciones leídas";
 "intent_mark_read_desc" = "Marcar todas como leídas";
+"intent_mark_read_short_title" = "Marcar leídas";
+"intent_mark_read_result" = "Todas las notificaciones se marcaron como leídas";
+"intent_mark_read_failed" = "No se pudieron marcar las notificaciones: %@";
 "intent_message_count_parameter" = "Número de mensajes";
+"intent_unknown_sender" = "Desconocido";
+"intent_error_required_suffix" = "es obligatorio";
+"intent_error_network_prefix" = "Error de red:";

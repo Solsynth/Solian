@@ -1,40 +1,91 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "Open Chat";
 "intent_open_chat_desc" = "Open a specific chat room";
+"intent_open_chat_short_title" = "Open Chat";
+"intent_open_chat_summary" = "Open chat with %@";
+"intent_open_chat_result_room" = "Opening chat %@";
+"intent_open_chat_result_list" = "Opening chat list";
 "intent_chat_room_title" = "Chat Room";
 "intent_chat_room_parameter" = "Chat Room";
+"intent_chat_room_fallback_format" = "Chat Room %@";
+"intent_chat_room_kind_direct" = "Direct Message";
+"intent_chat_room_kind_group" = "Group Chat";
+"intent_chat_room_kind_generic" = "Chat";
+"intent_chat_room_direct_fallback" = "Direct Message";
 "intent_message_parameter" = "Message";
 
 /* App Intents - Post */
 "intent_open_post_title" = "Open Post";
 "intent_open_post_desc" = "Open a specific post";
+"intent_open_post_short_title" = "Open Post";
+"intent_open_post_summary" = "Open post %@";
+"intent_open_post_result" = "Opening post %@";
 "intent_post_title" = "Post";
 "intent_post_parameter" = "Post";
+"intent_post_fallback_format" = "Post %@";
+"intent_post_author_format" = "by %@";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "Open Compose";
 "intent_open_compose_desc" = "Open compose post screen";
+"intent_open_compose_short_title" = "New Post";
+"intent_open_compose_result" = "Opening compose screen";
 "intent_compose_post_title" = "Compose Post";
 "intent_compose_post_desc" = "Create a new post";
 
 /* App Intents - Search */
 "intent_search_title" = "Search Content";
 "intent_search_desc" = "Search for content";
+"intent_search_short_title" = "Search";
+"intent_search_summary" = "Search for %@";
+"intent_search_result" = "Searching for \"%@\"";
 "intent_search_query_parameter" = "Search Query";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "View Notifications";
 "intent_notifications_desc" = "View notifications";
+"intent_notifications_result" = "Opening notifications";
 "intent_check_notifications_title" = "Check Notifications";
 "intent_check_notifications_desc" = "Check notification count";
+"intent_check_notifications_short_title" = "Check Notifications";
+"intent_check_notifications_none" = "You have no new notifications";
+"intent_check_notifications_one" = "You have 1 new notification";
+"intent_check_notifications_many" = "You have %d new notifications";
+"intent_check_notifications_failed" = "Failed to check notifications: %@";
 
 /* App Intents - Messages */
 "intent_send_message_title" = "Send Message";
 "intent_send_message_desc" = "Send a message to a chat channel";
+"intent_send_message_short_title" = "Send Message";
+"intent_send_message_chat_prompt" = "Which chat should I send it to?";
+"intent_send_message_body_prompt" = "What message would you like to send?";
+"intent_send_message_summary" = "Send %@ to %@";
+"intent_send_message_result" = "Message sent to %@";
+"intent_send_message_success" = "Message sent successfully";
+"intent_send_message_failed" = "Failed to send message: %@";
 "intent_read_messages_title" = "Read Messages";
 "intent_read_messages_desc" = "Read recent messages from a chat channel";
+"intent_read_messages_short_title" = "Read Messages";
+"intent_read_messages_chat_prompt" = "Which chat should I read messages from?";
+"intent_read_messages_count_prompt" = "How many messages should I read?";
+"intent_read_messages_summary" = "Read messages from %@";
+"intent_read_messages_none" = "No messages found in %@";
+"intent_read_messages_none_dialog" = "No messages found";
+"intent_read_messages_found" = "Found %d messages";
+"intent_read_messages_failed" = "Failed to read messages: %@";
 "intent_unread_chats_title" = "Check Unread Chats";
 "intent_unread_chats_desc" = "Check number of unread chat messages";
+"intent_unread_chats_short_title" = "Unread Chats";
+"intent_unread_chats_none" = "You have no unread messages";
+"intent_unread_chats_one" = "You have 1 unread message";
+"intent_unread_chats_many" = "You have %d unread messages";
+"intent_unread_chats_failed" = "Failed to check unread chats: %@";
 "intent_mark_read_title" = "Mark Notifications Read";
 "intent_mark_read_desc" = "Mark all notifications as read";
+"intent_mark_read_short_title" = "Mark Read";
+"intent_mark_read_result" = "All notifications marked as read";
+"intent_mark_read_failed" = "Failed to mark notifications: %@";
 "intent_message_count_parameter" = "Number of Messages";
+"intent_unknown_sender" = "Unknown";
+"intent_error_required_suffix" = "is required";
+"intent_error_network_prefix" = "Network error:";

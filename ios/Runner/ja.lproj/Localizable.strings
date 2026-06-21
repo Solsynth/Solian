@@ -1,40 +1,91 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "チャットを開く";
 "intent_open_chat_desc" = "特定のチャットルームを開く";
+"intent_open_chat_short_title" = "チャットを開く";
+"intent_open_chat_summary" = "%@ とのチャットを開く";
+"intent_open_chat_result_room" = "チャット %@ を開いています";
+"intent_open_chat_result_list" = "チャット一覧を開いています";
 "intent_chat_room_title" = "チャットルーム";
 "intent_chat_room_parameter" = "チャットルーム";
+"intent_chat_room_fallback_format" = "チャットルーム %@";
+"intent_chat_room_kind_direct" = "ダイレクトメッセージ";
+"intent_chat_room_kind_group" = "グループチャット";
+"intent_chat_room_kind_generic" = "チャット";
+"intent_chat_room_direct_fallback" = "ダイレクトメッセージ";
 "intent_message_parameter" = "メッセージ";
 
 /* App Intents - Post */
 "intent_open_post_title" = "投稿を開く";
 "intent_open_post_desc" = "特定の投稿を開く";
+"intent_open_post_short_title" = "投稿を開く";
+"intent_open_post_summary" = "投稿 %@ を開く";
+"intent_open_post_result" = "投稿 %@ を開いています";
 "intent_post_title" = "投稿";
 "intent_post_parameter" = "投稿";
+"intent_post_fallback_format" = "投稿 %@";
+"intent_post_author_format" = "%@ による投稿";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "作成を開く";
 "intent_open_compose_desc" = "投稿作成画面を開く";
+"intent_open_compose_short_title" = "新規投稿";
+"intent_open_compose_result" = "投稿作成画面を開いています";
 "intent_compose_post_title" = "投稿を作成する";
 "intent_compose_post_desc" = "新規投稿を作成する";
 
 /* App Intents - Search */
 "intent_search_title" = "検索";
 "intent_search_desc" = "コンテンツを検索";
+"intent_search_short_title" = "検索";
+"intent_search_summary" = "%@ を検索";
+"intent_search_result" = "「%@」を検索しています";
 "intent_search_query_parameter" = "検索キーワード";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "通知を見る";
 "intent_notifications_desc" = "通知を見る";
+"intent_notifications_result" = "通知を開いています";
 "intent_check_notifications_title" = "通知を確認";
 "intent_check_notifications_desc" = "通知数を確認";
+"intent_check_notifications_short_title" = "通知を確認";
+"intent_check_notifications_none" = "新しい通知はありません";
+"intent_check_notifications_one" = "新しい通知が 1 件あります";
+"intent_check_notifications_many" = "新しい通知が %d 件あります";
+"intent_check_notifications_failed" = "通知の確認に失敗しました: %@";
 
 /* App Intents - Messages */
 "intent_send_message_title" = "メッセージを送信";
 "intent_send_message_desc" = "チャットチャンネルにメッセージを送信";
+"intent_send_message_short_title" = "メッセージ送信";
+"intent_send_message_chat_prompt" = "どのチャットに送信しますか？";
+"intent_send_message_body_prompt" = "どんなメッセージを送信しますか？";
+"intent_send_message_summary" = "%@ を %@ に送信";
+"intent_send_message_result" = "%@ にメッセージを送信しました";
+"intent_send_message_success" = "メッセージを送信しました";
+"intent_send_message_failed" = "メッセージの送信に失敗しました: %@";
 "intent_read_messages_title" = "メッセージを読む";
 "intent_read_messages_desc" = "チャットチャンネルから最近のメッセージを読む";
+"intent_read_messages_short_title" = "メッセージを読む";
+"intent_read_messages_chat_prompt" = "どのチャットのメッセージを読みますか？";
+"intent_read_messages_count_prompt" = "何件のメッセージを読みますか？";
+"intent_read_messages_summary" = "%@ のメッセージを読む";
+"intent_read_messages_none" = "%@ にメッセージはありません";
+"intent_read_messages_none_dialog" = "メッセージは見つかりませんでした";
+"intent_read_messages_found" = "%d 件のメッセージが見つかりました";
+"intent_read_messages_failed" = "メッセージの読み取りに失敗しました: %@";
 "intent_unread_chats_title" = "未読チャットを確認";
 "intent_unread_chats_desc" = "未読チャットメッセージ数を確認";
+"intent_unread_chats_short_title" = "未読チャット";
+"intent_unread_chats_none" = "未読メッセージはありません";
+"intent_unread_chats_one" = "未読メッセージが 1 件あります";
+"intent_unread_chats_many" = "未読メッセージが %d 件あります";
+"intent_unread_chats_failed" = "未読メッセージの確認に失敗しました: %@";
 "intent_mark_read_title" = "通知を既読にする";
 "intent_mark_read_desc" = "すべての通知を既読にする";
+"intent_mark_read_short_title" = "既読にする";
+"intent_mark_read_result" = "すべての通知を既読にしました";
+"intent_mark_read_failed" = "通知を既読にできませんでした: %@";
 "intent_message_count_parameter" = "メッセージ数";
+"intent_unknown_sender" = "不明";
+"intent_error_required_suffix" = "は必須です";
+"intent_error_network_prefix" = "ネットワークエラー:";

@@ -1,40 +1,91 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "開啟聊天";
 "intent_open_chat_desc" = "開啟特定聊天室";
+"intent_open_chat_short_title" = "開啟聊天";
+"intent_open_chat_summary" = "開啟與 %@ 的聊天";
+"intent_open_chat_result_room" = "正在開啟聊天 %@";
+"intent_open_chat_result_list" = "正在開啟聊天列表";
 "intent_chat_room_title" = "聊天室";
 "intent_chat_room_parameter" = "聊天室";
+"intent_chat_room_fallback_format" = "聊天室 %@";
+"intent_chat_room_kind_direct" = "私訊";
+"intent_chat_room_kind_group" = "群組聊天";
+"intent_chat_room_kind_generic" = "聊天";
+"intent_chat_room_direct_fallback" = "私訊";
 "intent_message_parameter" = "訊息內容";
 
 /* App Intents - Post */
 "intent_open_post_title" = "開啟貼文";
 "intent_open_post_desc" = "開啟特定貼文";
+"intent_open_post_short_title" = "開啟貼文";
+"intent_open_post_summary" = "開啟貼文 %@";
+"intent_open_post_result" = "正在開啟貼文 %@";
 "intent_post_title" = "貼文";
 "intent_post_parameter" = "貼文";
+"intent_post_fallback_format" = "貼文 %@";
+"intent_post_author_format" = "來自 %@";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "開啟撰寫";
 "intent_open_compose_desc" = "開啟撰寫貼文頁面";
+"intent_open_compose_short_title" = "新貼文";
+"intent_open_compose_result" = "正在開啟撰寫頁面";
 "intent_compose_post_title" = "撰寫貼文";
 "intent_compose_post_desc" = "建立新貼文";
 
 /* App Intents - Search */
 "intent_search_title" = "搜尋內容";
 "intent_search_desc" = "搜尋內容";
+"intent_search_short_title" = "搜尋";
+"intent_search_summary" = "搜尋 %@";
+"intent_search_result" = "正在搜尋「%@」";
 "intent_search_query_parameter" = "搜尋關鍵字";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "查看通知";
 "intent_notifications_desc" = "查看通知";
+"intent_notifications_result" = "正在開啟通知";
 "intent_check_notifications_title" = "檢查通知";
 "intent_check_notifications_desc" = "檢查通知數量";
+"intent_check_notifications_short_title" = "檢查通知";
+"intent_check_notifications_none" = "你沒有新通知";
+"intent_check_notifications_one" = "你有 1 則新通知";
+"intent_check_notifications_many" = "你有 %d 則新通知";
+"intent_check_notifications_failed" = "檢查通知失敗：%@";
 
 /* App Intents - Messages */
 "intent_send_message_title" = "傳送訊息";
 "intent_send_message_desc" = "傳送訊息到聊天頻道";
+"intent_send_message_short_title" = "傳送訊息";
+"intent_send_message_chat_prompt" = "要傳送到哪個聊天？";
+"intent_send_message_body_prompt" = "你想傳送什麼訊息？";
+"intent_send_message_summary" = "傳送 %@ 給 %@";
+"intent_send_message_result" = "訊息已傳送到 %@";
+"intent_send_message_success" = "訊息傳送成功";
+"intent_send_message_failed" = "傳送訊息失敗：%@";
 "intent_read_messages_title" = "讀取訊息";
 "intent_read_messages_desc" = "從聊天頻道讀取最近訊息";
+"intent_read_messages_short_title" = "讀取訊息";
+"intent_read_messages_chat_prompt" = "要讀取哪個聊天的訊息？";
+"intent_read_messages_count_prompt" = "要讀取多少則訊息？";
+"intent_read_messages_summary" = "讀取 %@ 的訊息";
+"intent_read_messages_none" = "%@ 中沒有訊息";
+"intent_read_messages_none_dialog" = "沒有找到訊息";
+"intent_read_messages_found" = "找到 %d 則訊息";
+"intent_read_messages_failed" = "讀取訊息失敗：%@";
 "intent_unread_chats_title" = "檢查未讀聊天";
 "intent_unread_chats_desc" = "檢查未讀聊天訊息數量";
+"intent_unread_chats_short_title" = "未讀聊天";
+"intent_unread_chats_none" = "你沒有未讀訊息";
+"intent_unread_chats_one" = "你有 1 則未讀訊息";
+"intent_unread_chats_many" = "你有 %d 則未讀訊息";
+"intent_unread_chats_failed" = "檢查未讀訊息失敗：%@";
 "intent_mark_read_title" = "標記通知已讀";
 "intent_mark_read_desc" = "將所有通知標記為已讀";
+"intent_mark_read_short_title" = "標記已讀";
+"intent_mark_read_result" = "所有通知都已標記為已讀";
+"intent_mark_read_failed" = "標記通知失敗：%@";
 "intent_message_count_parameter" = "訊息數量";
+"intent_unknown_sender" = "未知";
+"intent_error_required_suffix" = "為必填項";
+"intent_error_network_prefix" = "網路錯誤：";
