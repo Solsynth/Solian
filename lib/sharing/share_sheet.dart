@@ -168,6 +168,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   late ShareContent _content;
   late String? _title;
   late bool _toSystem;
+  bool _hasCompleted = false;
 
   static const _sectionPadding = EdgeInsets.symmetric(horizontal: 16);
 
@@ -335,6 +336,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
               }
               attachmentIds.add(cloudFile.id);
             }
+            if (mounted) setState(() => _hasCompleted = true);
           }
           break;
       }
@@ -474,6 +476,8 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
         }
         uploadedFiles.add(cloudFile);
       }
+
+      if (mounted) setState(() => _hasCompleted = true);
 
       if (mounted) {
         // Show success message
@@ -690,37 +694,42 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
             ),
           ),
 
-          // Loading indicator and file upload progress
-          if (_isLoading)
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 8),
-                  if (_fileUploadProgress.isNotEmpty)
-                    ..._fileUploadProgress.entries.map((entry) {
-                      final progress = entry.value;
-                      final averageProgress = progress.isEmpty
-                          ? 0.0
-                          : progress.reduce((a, b) => a + b) / progress.length;
-                      return Column(
-                        children: [
-                          Text(
-                            'uploadingFiles'.tr(),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 4),
-                          LinearProgressIndicator(value: averageProgress),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${(averageProgress * 100).toInt()}%',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
-                      );
-                    }),
-                ],
+          // Linear progress bar with tween animation and slide-out
+          if (_fileUploadProgress.isNotEmpty)
+            AnimatedSlide(
+              offset: Offset(0, _hasCompleted ? 1 : 0),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeIn,
+              onEnd: () {
+                if (_hasCompleted) {
+                  setState(() {
+                    _fileUploadProgress.clear();
+                    _hasCompleted = false;
+                  });
+                }
+              },
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(
+                  end: _fileUploadProgress.values
+                        .expand((v) => v)
+                        .fold<double>(0.0, (a, b) => a + b) /
+                      _fileUploadProgress.values
+                          .expand((v) => v)
+                          .length
+                          .clamp(1, double.infinity),
+                ),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                builder: (context, value, child) => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: LinearProgressIndicator(
+                    value: value.clamp(0.0, 1.0),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
               ),
             ),
         ],
