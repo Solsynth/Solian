@@ -163,6 +163,10 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   bool _shouldIncludeInActiveList(LocalChatMessage message) {
+    if (message.type == 'messages.sync.finalize' ||
+        message.type == 'messages.sync.links') {
+      return false;
+    }
     final mode = ref.read(appSettingsProvider).chatEventMessageMode;
     if (mode == kChatEventMessageModeVerbose) return true;
     if (mode == kChatEventMessageModeNone) {
