@@ -60,16 +60,6 @@ int _currentPlatformCode() {
   };
 }
 
-bool get _supportsQrLoginOnCurrentPlatform {
-  if (kIsWeb) return true;
-  return switch (defaultTargetPlatform) {
-    TargetPlatform.macOS ||
-    TargetPlatform.windows ||
-    TargetPlatform.linux => true,
-    _ => false,
-  };
-}
-
 class _QrLoginChallenge {
   final String qrChallengeId;
   final String authChallengeId;
@@ -1112,35 +1102,29 @@ class _LoginLookupScreen extends HookConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ).padding(horizontal: 7),
-        if (_supportsQrLoginOnCurrentPlatform)
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                useRootNavigator: true,
-                builder: (_) => const _QrLoginSheet(),
+        Row(
+          spacing: 6,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Text("loginOr").tr().fontSize(11).opacity(0.85),
+            const Gap(8),
+            Spacer(),
+            IconButton.filledTonal(
+                onPressed: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (_) => const _QrLoginSheet(),
+                ),
+                padding: EdgeInsets.zero,
+                icon: Icon(
+                  Symbols.qr_code_2,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                tooltip: 'QR Code',
               ),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 4,
-                children: [
-                  Text('loginWithQrCodeTitle'.tr()),
-                  const Icon(Symbols.qr_code_2),
-                ],
-              ),
-            ).padding(left: 12),
-          ),
-        if (!kIsWeb)
-          Row(
-            spacing: 6,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text("loginOr").tr().fontSize(11).opacity(0.85),
-              const Gap(8),
-              Spacer(),
+            if (!kIsWeb) ...[
               IconButton.filledTonal(
                 onPressed: () => withOidc('github'),
                 padding: EdgeInsets.zero,
@@ -1172,7 +1156,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
                 tooltip: 'Apple Account',
               ),
             ],
-          ).padding(horizontal: 8, vertical: 8)
+          ],
+        ).padding(horizontal: 8, vertical: 8)
         else
           const Gap(12),
         Align(
