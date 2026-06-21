@@ -48,8 +48,6 @@ class CallScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaQuery = MediaQuery.of(context);
-    const topControlsHeight = 96.0;
-    const bottomControlsHeight = 140.0;
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
     final roomState = ref.watch(chatRoomProvider(room.id));
     final callState = ref.watch(callProvider);
@@ -89,7 +87,8 @@ class CallScreen extends HookConsumerWidget {
 
     // Resolve room title: prefer explicit name, then other DM member's name
     final roomForTitle = roomState.value ?? room;
-    final roomTitle = ongoingCall.value?.room.name ??
+    final roomTitle =
+        ongoingCall.value?.room.name ??
         roomForTitle.name ??
         (roomForTitle.members ?? [])
             .where((m) => m.accountId != currentUserId)
@@ -113,7 +112,21 @@ class CallScreen extends HookConsumerWidget {
         callState.isReconnecting && callState.error == null;
     Future<void> inviteToCall() async {
       final currentRoom = roomState.value ?? room;
-      final members = currentRoom.members ?? const <SnChatMember>[];
+      var members = currentRoom.members ?? const <SnChatMember>[];
+
+      // Fetch members if not available
+      if (members.isEmpty) {
+        try {
+          final apiClient = ref.read(apiClientProvider);
+          final resp = await apiClient.get(
+            '/messager/chat/${room.id}/members',
+            queryParameters: {'take': '100', 'withStatus': 'true'},
+          );
+          members = (resp.data as List)
+              .map((e) => SnChatMember.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } catch (_) {}
+      }
 
       final inviteCandidates = members.where((member) {
         if (member.joinedAt == null) return false;
@@ -158,13 +171,9 @@ class CallScreen extends HookConsumerWidget {
         await apiClient.post(
           '/messager/chat/realtime/${room.id}/invite/${target.accountId}',
         );
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('inviteSentTo'.tr(args: [target.nick ?? target.account.nick])),
-            ),
-          );
-        }
+        showSnackBar(
+          'inviteSentTo'.tr(args: [target.nick ?? target.account.nick]),
+        );
       } catch (err) {
         showErrorAlert(err);
       }
@@ -179,59 +188,47 @@ class CallScreen extends HookConsumerWidget {
           children: [
             SafeArea(
               bottom: false,
-              child: AnimatedPadding(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                padding: EdgeInsets.only(
-                  top: controlsVisible.value ? topControlsHeight : 0,
-                  bottom: controlsVisible.value
-                      ? mediaQuery.padding.bottom + bottomControlsHeight
-                      : 0,
-                ),
-                child: callState.error != null
-                    ? Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 320),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Symbols.error_outline,
-                                size: 48,
-                                color: Colors.white70,
-                              ),
-                              const Gap(8),
-                              Text(
-                                callState.error!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                              const Gap(10),
-                              TextButton(
-                                onPressed: () {
-                                  callNotifier.disconnect();
-                                  callNotifier.dispose();
-                                  callNotifier.joinRoom(room);
-                                },
-                                child: Text('retry').tr(),
-                              ),
-                            ],
+              child: callState.error != null
+                  ? Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Symbols.error_outline,
+                              size: 48,
+                              color: Colors.white70,
+                            ),
+                            const Gap(8),
+                            Text(
+                              callState.error!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            const Gap(10),
+                            TextButton(
+                              onPressed: () {
+                                callNotifier.disconnect();
+                                callNotifier.dispose();
+                                callNotifier.joinRoom(room);
+                              },
+                              child: Text('retry').tr(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        const SizedBox(height: 6),
+                        Expanded(
+                          child: CallContent(
+                            outerMaxHeight: MediaQuery.of(context).size.height,
                           ),
                         ),
-                      )
-                    : Column(
-                        children: [
-                          const SizedBox(height: 6),
-                          Expanded(
-                            child: CallContent(
-                              outerMaxHeight: MediaQuery.of(
-                                context,
-                              ).size.height,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
+                      ],
+                    ),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 180),
@@ -288,32 +285,34 @@ class CallScreen extends HookConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: inviteToCall,
-                      tooltip: 'inviteToCall'.tr(),
-                      icon: const Icon(Symbols.person_add, color: Colors.white),
-                    ),
-                    IconButton(
-                      onPressed: callNotifier.toggleSpeakerphone,
-                      tooltip: callState.isSpeakerphone
-                          ? 'Speaker on'
-                          : 'Speaker off',
+                      onPressed: callNotifier.toggleViewMode,
+                      tooltip: callState.viewMode == ViewMode.grid
+                          ? 'Stage view'
+                          : 'Grid view',
                       icon: Icon(
-                        callState.isSpeakerphone
-                            ? Symbols.mobile_speaker
-                            : Symbols.ear_sound,
+                        callState.viewMode == ViewMode.grid
+                            ? Symbols.view_list
+                            : Symbols.grid_view,
                         color: Colors.white,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
                       ),
                     ),
                     IconButton(
-                      onPressed: callNotifier.toggleViewMode,
-                      tooltip: callState.viewMode == ViewMode.grid
-                          ? 'Grid view'
-                          : 'List view',
-                      icon: Icon(
-                        callState.viewMode == ViewMode.grid
-                            ? Symbols.grid_view
-                            : Symbols.view_list,
+                      onPressed: inviteToCall,
+                      tooltip: 'inviteToCall'.tr(),
+                      icon: const Icon(
+                        Symbols.person_add,
                         color: Colors.white,
+                        size: 20,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
                       ),
                     ),
                   ],
@@ -394,7 +393,6 @@ class CallScreen extends HookConsumerWidget {
                 child: const Center(
                   child: CallControlsBar(
                     popOnLeaves: true,
-                    showSpeakerToggle: false,
                     showViewToggle: false,
                   ),
                 ),
@@ -406,5 +404,3 @@ class CallScreen extends HookConsumerWidget {
     );
   }
 }
-
-

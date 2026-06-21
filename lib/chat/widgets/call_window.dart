@@ -152,21 +152,35 @@ class CallWindowApp extends HookConsumerWidget {
       return () => globalOverlay = previous;
     }, []);
 
-    return MaterialApp(
-      title: 'Call - ${args.roomName ?? args.roomId}',
-      debugShowCheckedModeBanner: false,
-      theme: theme.light,
-      darkTheme: theme.dark,
-      themeMode: getThemeMode(),
-      builder: (context, child) {
-        return Overlay(
-          key: overlayKey,
-          initialEntries: [
-            OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-          ],
-        );
-      },
-      home: _CallWindowHome(args: args),
+    return EasyLocalization(
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('zh', 'CN'),
+        Locale('zh', 'TW'),
+        Locale('zh', 'OG'),
+        Locale('ja', 'JP'),
+        Locale('ko', 'KR'),
+        Locale('es', 'ES'),
+      ],
+      path: 'assets/i18n',
+      fallbackLocale: const Locale('en', 'US'),
+      useFallbackTranslations: true,
+      child: MaterialApp(
+        title: 'Call - ${args.roomName ?? args.roomId}',
+        debugShowCheckedModeBanner: false,
+        theme: theme.light,
+        darkTheme: theme.dark,
+        themeMode: getThemeMode(),
+        builder: (context, child) {
+          return Overlay(
+            key: overlayKey,
+            initialEntries: [
+              OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+            ],
+          );
+        },
+        home: _CallWindowHome(args: args),
+      ),
     );
   }
 }
@@ -189,7 +203,20 @@ class _CallWindowHome extends HookConsumerWidget {
       () async {
         try {
           final resp = await apiClient.get('/messager/chat/${args.roomId}');
-          final room = SnChatRoom.fromJson(resp.data);
+          var room = SnChatRoom.fromJson(resp.data);
+          // Fetch members if not included
+          if (room.members == null || room.members!.isEmpty) {
+            try {
+              final membersResp = await apiClient.get(
+                '/messager/chat/${args.roomId}/members',
+                queryParameters: {'take': '100', 'withStatus': 'true'},
+              );
+              final members = (membersResp.data as List)
+                  .map((e) => SnChatMember.fromJson(e as Map<String, dynamic>))
+                  .toList();
+              room = room.copyWith(members: members);
+            } catch (_) {}
+          }
           chatRoom.value = room;
           await callNotifier.joinRoom(room, cameraEnabled: args.cameraEnabled);
         } catch (e) {
@@ -230,7 +257,8 @@ class _CallWindowHome extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider).value;
     final roomForTitle = chatRoom.value;
-    final roomTitle = roomForTitle?.name ??
+    final roomTitle =
+        roomForTitle?.name ??
         args.roomName ??
         (roomForTitle?.members ?? [])
             .where((m) => m.accountId != userInfo?.id)
@@ -348,7 +376,8 @@ class _CallBody extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider).value;
     final roomForTitle = chatRoom.value;
-    final roomTitle = roomForTitle?.name ??
+    final roomTitle =
+        roomForTitle?.name ??
         args.roomName ??
         (roomForTitle?.members ?? [])
             .where((m) => m.accountId != userInfo?.id)
@@ -478,7 +507,12 @@ class _CallBody extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                child: const Center(child: CallControlsBar()),
+                child: const Center(
+                  child: CallControlsBar(
+                    showSpeakerToggle: false,
+                    showViewToggle: false,
+                  ),
+                ),
               ),
             ),
           ],
@@ -496,7 +530,21 @@ class _CallBody extends HookConsumerWidget {
     final apiClient = ref.read(apiClientProvider);
     final currentUserId = ref.read(userInfoProvider).value?.id;
     final callNotifier = ref.read(callProvider.notifier);
-    final members = room.members ?? const <SnChatMember>[];
+    var members = room.members ?? const <SnChatMember>[];
+
+    // Fetch members if not available
+    if (members.isEmpty) {
+      try {
+        final resp = await apiClient.get(
+          '/messager/chat/${room.id}/members',
+          queryParameters: {'take': '100', 'withStatus': 'true'},
+        );
+        members = (resp.data as List)
+            .map((e) => SnChatMember.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } catch (_) {}
+    }
+
     final candidates = members.where((m) {
       if (m.joinedAt == null) return false;
       if (m.accountId == currentUserId) return false;
@@ -504,11 +552,7 @@ class _CallBody extends HookConsumerWidget {
     }).toList();
 
     if (candidates.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('noMembersToInvite'.tr())),
-        );
-      }
+      showErrorAlert('noMembersToInvite'.tr());
       return;
     }
 
@@ -549,13 +593,9 @@ class _CallBody extends HookConsumerWidget {
       await apiClient.post(
         '/messager/chat/realtime/${room.id}/invite/${target.accountId}',
       );
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('inviteSentTo'.tr(args: [target.nick ?? target.account.nick])),
-          ),
-        );
-      }
+      showSnackBar(
+        'inviteSentTo'.tr(args: [target.nick ?? target.account.nick]),
+      );
     } catch (e) {
       showErrorAlert(e);
     }
