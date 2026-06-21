@@ -138,7 +138,8 @@ class RealtimeMessageHandler {
 
         switch (message.type) {
           case 'messages.update':
-          case 'messages.update.links':
+          case 'messages.sync.finalize':
+          case 'messages.sync.links':
             _handleUpdateMessage(message);
             break;
           case 'messages.delete':
@@ -227,8 +228,12 @@ class RealtimeMessageHandler {
       MessageStatus.sent,
     );
 
-    await _repository.saveMessage(updateEvent);
-    onNewMessage?.call(updateEvent);
+    final isPlaceholderFinalize = updateEvent.type == 'messages.sync.finalize';
+
+    if (!isPlaceholderFinalize) {
+      await _repository.saveMessage(updateEvent);
+      onNewMessage?.call(updateEvent);
+    }
 
     final updated = _buildUpdatedMessage(existing, updateEvent);
 
@@ -252,7 +257,7 @@ class RealtimeMessageHandler {
 
     // Handle edit/delete events
     if (type == 'messages.update' ||
-        type == 'messages.update.links' ||
+        type == 'messages.sync.links' ||
         type == 'messages.delete') {
       if (type == 'messages.delete') {
         await _handleDeleteMessageEvent(event.message);
@@ -537,10 +542,18 @@ class RealtimeMessageHandler {
     LocalChatMessage updateEvent,
   ) {
     final updateRemote = updateEvent.toRemoteMessage();
-    final mergedMeta = Map<String, dynamic>.of(existing.toRemoteMessage().meta);
-    mergedMeta.addAll(updateRemote.meta);
-    mergedMeta.remove('message_id');
-    final isLinkPreviewUpdate = updateEvent.type == 'messages.update.links';
+    final isLinkPreviewUpdate = updateEvent.type == 'messages.sync.links';
+    final isPlaceholderFinalize = updateEvent.type == 'messages.sync.finalize';
+    final mergedMeta = isPlaceholderFinalize
+        ? Map<String, dynamic>.of(updateRemote.meta)
+        : Map<String, dynamic>.of(existing.toRemoteMessage().meta)
+            ..addAll(updateRemote.meta);
+    mergedMeta
+      ..remove('message_id')
+      ..remove('placeholder_kind')
+      ..remove('placeholder_content')
+      ..remove('placeholder_progress')
+      ..remove('placeholder_expires_at');
 
     return LocalChatMessage.fromRemoteMessage(
       existing.toRemoteMessage().copyWith(
@@ -552,8 +565,8 @@ class RealtimeMessageHandler {
         id: existing.id,
         createdAt: existing.createdAt,
         meta: mergedMeta,
-        type: existing.type,
-        editedAt: updateEvent.createdAt,
+        type: isPlaceholderFinalize ? 'text' : existing.type,
+        editedAt: isPlaceholderFinalize ? existing.editedAt : updateEvent.createdAt,
       ),
       existing.status,
     );

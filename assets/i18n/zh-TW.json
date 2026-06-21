@@ -404,7 +404,7 @@
   "biweekly": "每兩週",
   "blockUser": "遮蔽用戶",
   "bodyFat": "體脂",
-  "boostInfo": "助推有效期為",
+  "boostInfo": "助推有效期為 {}",
   "boostLevel": "助推等級",
   "boostRequiredToUnlockLabels": "將此領域助推至1級以解鎖標籤。",
   "boosts": "轉推",

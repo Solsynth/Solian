@@ -504,7 +504,7 @@
   "bodyFat": "body fat",
   "bookmark": "Bookmark",
   "bookmarks": "Bookmarks",
-  "boostInfo": "Boosts are active for",
+  "boostInfo": "Boosts are active for {}",
   "boostLevel": "Boost Level",
   "boostRequiredToUnlockLabels": "Boost this realm to level 1 to unlock labels.",
   "boosts": "Boosts",
