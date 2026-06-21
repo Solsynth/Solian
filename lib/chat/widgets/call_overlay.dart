@@ -252,8 +252,8 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
       chatRoomName =
           r.name ??
           (r.members ?? [])
-              .where((element) => element.id != userInfo.id)
-              .map((element) => element.account.nick)
+              .where((element) => element.accountId != userInfo.id)
+              .map((element) => element.nick ?? element.account.nick)
               .firstOrNull ??
           'unnamed'.tr();
     }
