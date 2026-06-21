@@ -16,14 +16,16 @@ import "package:island/core/config.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
+import "package:island/core/services/ios_share_suggestions.dart";
 import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
+import "package:island/accounts/account_pod.dart";
+import "package:island/accounts/screens/profile.dart";
 import "package:logging/logging.dart";
 import "package:island/shared/widgets/alert.dart";
 import "package:island/plugins/plugin_hooks.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
-import "package:island/accounts/screens/profile.dart";
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'messages_notifier.g.dart';
@@ -971,7 +973,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    if (content.trim().isEmpty && attachments.isEmpty && (embeds == null || embeds.isEmpty)) {
+    if (content.trim().isEmpty &&
+        attachments.isEmpty &&
+        (embeds == null || embeds.isEmpty)) {
       return;
     }
 
@@ -1015,6 +1019,18 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     final sentMessage = result.message!;
+    final room = await ref.read(chatRoomProvider(roomId).future);
+    final currentUserId = await ref
+        .read(userInfoProvider.future)
+        .then((account) => account?.id);
+    if (room != null) {
+      unawaited(
+        IosShareSuggestionsService.instance.donateChatRoom(
+          room,
+          currentUserId: currentUserId,
+        ),
+      );
+    }
     if (pendingMessageId != null) {
       _pendingMessages.remove(pendingMessageId);
     }
@@ -1190,12 +1206,14 @@ class MessagesNotifier extends _$MessagesNotifier {
       id: pinId ?? '',
       messageId: targetMessageId,
       chatRoomId: roomId,
-      pinnedByMemberId: remoteMessage.meta['pinned_by_member_id']?.toString() ?? '',
+      pinnedByMemberId:
+          remoteMessage.meta['pinned_by_member_id']?.toString() ?? '',
       expiresAt: remoteMessage.meta['expires_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(
               remoteMessage.meta['expires_at'] is int
                   ? remoteMessage.meta['expires_at']
-                  : int.tryParse(remoteMessage.meta['expires_at'].toString()) ?? 0,
+                  : int.tryParse(remoteMessage.meta['expires_at'].toString()) ??
+                        0,
             )
           : null,
       createdAt: remoteMessage.createdAt,
@@ -1261,10 +1279,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  bool isMessagePinned(String messageId) => _pinnedMessages.containsKey(messageId);
+  bool isMessagePinned(String messageId) =>
+      _pinnedMessages.containsKey(messageId);
 
   List<SnChatMessagePin> get pinnedMessagesList => _pinnedMessages.values
-      .where((pin) => pin.expiresAt == null || pin.expiresAt!.isAfter(DateTime.now()))
+      .where(
+        (pin) =>
+            pin.expiresAt == null || pin.expiresAt!.isAfter(DateTime.now()),
+      )
       .toList();
 
   Map<String, int> _extractLocalReactionCounts(LocalChatMessage message) {

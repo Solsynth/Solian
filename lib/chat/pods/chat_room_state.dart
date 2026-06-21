@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -438,6 +439,23 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     );
 
     clearInput();
+  }
+
+  void applySharedPayload(ChatComposerSharePayload payload) {
+    if (payload.text.trim().isNotEmpty) {
+      final existingText = messageController.text.trim();
+      final nextText = existingText.isEmpty
+          ? payload.text.trim()
+          : '$existingText\n\n${payload.text.trim()}';
+      messageController.value = TextEditingValue(
+        text: nextText,
+        selection: TextSelection.collapsed(offset: nextText.length),
+      );
+    }
+
+    if (payload.attachments.isNotEmpty) {
+      updateAttachments([...state.attachments, ...payload.attachments]);
+    }
   }
 
   double _calculateOverallUploadProgress(

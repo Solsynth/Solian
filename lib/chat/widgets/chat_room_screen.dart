@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
@@ -19,6 +20,7 @@ import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/chat/widgets/pinned_messages_sheet.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/chat/widgets/room_app_bar.dart';
@@ -29,6 +31,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/ios_share_suggestions.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/data/message.dart';
@@ -62,8 +65,12 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatState = ref.watch(chatRoomStateProvider(id));
     final chatStateNotifier = ref.read(chatRoomStateProvider(id).notifier);
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
+    final pendingSharePayloadNotifier = ref.watch(chatSharePayloadProvider(id));
+    final pendingSharePayload = useValueListenable(pendingSharePayloadNotifier);
 
     final analyticsLogged = useRef(false);
+    final donatedRoomId = useRef<String?>(null);
+    final appliedSharePayloadSignature = useRef<String?>(null);
     useEffect(() {
       if (!analyticsLogged.value &&
           !chatRoom.isLoading &&
@@ -76,6 +83,24 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
       return null;
     }, [chatRoom]);
+
+    useEffect(() {
+      final room = chatRoom.value;
+      final currentUserId = ref.read(userInfoProvider).value?.id;
+      if (room == null || room.id == donatedRoomId.value) {
+        return null;
+      }
+
+      Future.microtask(() async {
+        await IosShareSuggestionsService.instance.donateChatRoom(
+          room,
+          currentUserId: currentUserId,
+        );
+        donatedRoomId.value = room.id;
+      });
+
+      return null;
+    }, [chatRoom.value]);
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
@@ -173,6 +198,26 @@ class ChatRoomScreen extends HookConsumerWidget {
     final savedLastReadAt = useState<DateTime?>(chatIdentity.value?.lastReadAt);
     final pinnedPins = useState<List<SnChatMessagePin>>([]);
     final isPinnedBarCollapsed = useState(false);
+
+    useEffect(() {
+      final payload = pendingSharePayload;
+      if (payload == null) return null;
+
+      final signature =
+          '${payload.text}|${payload.attachments.map((file) => file.data.path).join(",")}';
+      if (appliedSharePayloadSignature.value == signature) {
+        return null;
+      }
+
+      Future.microtask(() {
+        if (!context.mounted) return;
+        chatStateNotifier.applySharedPayload(payload);
+        ref.read(chatSharePayloadProvider(id)).value = null;
+        appliedSharePayloadSignature.value = signature;
+      });
+
+      return null;
+    }, [pendingSharePayload]);
 
     useEffect(() {
       final identity = chatIdentity.value;

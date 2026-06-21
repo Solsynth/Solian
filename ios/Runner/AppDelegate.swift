@@ -5,6 +5,7 @@ import WidgetKit
 import UIKit
 import WatchConnectivity
 import AppIntents
+import Intents
 import flutter_sharing_intent
 import Kingfisher
 import PushKit
@@ -16,6 +17,7 @@ import flutter_callkit_incoming
     private static var sharedWatchConnectivityService: WatchConnectivityService?
     private let pendingAcceptedCallKey = "dev.solsynth.solian.pendingAcceptedCall"
     private let callKitChannelName = "dev.solsynth.solian/callkit"
+    private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private let callBridgeEngineName = "dev.solsynth.solian.callkit_bridge"
     private let pendingAnswerTimeout: TimeInterval = 15
     private var voipRegistry: PKPushRegistry?
@@ -175,6 +177,94 @@ import flutter_callkit_incoming
                 result(FlutterMethodNotImplemented)
             }
         }
+
+        let shareSuggestionsChannel = FlutterMethodChannel(
+            name: shareSuggestionsChannelName,
+            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+        )
+
+        shareSuggestionsChannel.setMethodCallHandler { [weak self] call, result in
+            guard let self = self else {
+                result(FlutterError(code: "APP_DELEGATE_DEALLOCATED", message: nil, details: nil))
+                return
+            }
+
+            switch call.method {
+            case "donateChatConversation":
+                guard let arguments = call.arguments as? [String: Any] else {
+                    result(FlutterError(code: "INVALID_ARGUMENTS", message: "Expected donation payload", details: nil))
+                    return
+                }
+                self.donateChatConversation(arguments: arguments)
+                result(nil)
+            case "consumePendingShareTarget":
+                result(self.consumePendingShareTarget())
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+
+    private func donateChatConversation(arguments: [String: Any]) {
+        guard let roomId = arguments["roomId"] as? String,
+              !roomId.isEmpty,
+              let displayName = arguments["displayName"] as? String,
+              !displayName.isEmpty else {
+            return
+        }
+
+        let isDirect = arguments["isDirect"] as? Bool ?? false
+        let recipientAccountName = arguments["recipientAccountName"] as? String
+        let recipientNick = arguments["recipientNick"] as? String
+
+        let recipients: [INPerson]?
+        if isDirect, let recipientIdentifier = (recipientAccountName?.isEmpty == false ? recipientAccountName : recipientNick), !recipientIdentifier.isEmpty {
+            let handle = INPersonHandle(value: recipientIdentifier, type: .unknown)
+            var components = PersonNameComponents()
+            components.nickname = recipientNick ?? recipientIdentifier
+            recipients = [
+                INPerson(
+                    personHandle: handle,
+                    nameComponents: components,
+                    displayName: recipientNick ?? recipientIdentifier,
+                    image: nil,
+                    contactIdentifier: nil,
+                    customIdentifier: recipientAccountName ?? recipientIdentifier
+                )
+            ]
+        } else {
+            recipients = nil
+        }
+
+        let intent = INSendMessageIntent(
+            recipients: recipients,
+            outgoingMessageType: .outgoingMessageText,
+            content: nil,
+            speakableGroupName: INSpeakableString(spokenPhrase: displayName),
+            conversationIdentifier: roomId,
+            serviceName: Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
+            sender: nil,
+            attachments: nil
+        )
+
+        let interaction = INInteraction(intent: intent, response: nil)
+        interaction.direction = .outgoing
+        interaction.donate(completion: nil)
+    }
+
+    private func consumePendingShareTarget() -> [String: String]? {
+        let defaults = UserDefaults.shared
+        defer {
+            defaults.removeObject(forKey: SharedConstants.pendingShareTargetRoomIdKey)
+            defaults.synchronize()
+        }
+
+        guard let roomId = defaults.string(forKey: SharedConstants.pendingShareTargetRoomIdKey),
+              !roomId.isEmpty else {
+            return nil
+        }
+
+        return ["roomId": roomId]
     }
     
     private func clearImageCache(result: @escaping FlutterResult) {

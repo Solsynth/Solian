@@ -10,6 +10,10 @@
     <dict>
         <key>NSExtensionAttributes</key>
         <dict>
+            <key>IntentsSupported</key>
+            <array>
+                <string>INSendMessageIntent</string>
+            </array>
             <key>PHSupportedMediaTypes</key>
             <array>
                 <!--TODO: Add this flag, if you want to support sharing video into your app-->

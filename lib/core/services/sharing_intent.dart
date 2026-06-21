@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/ios_share_suggestions.dart';
 import 'package:island/route.dart';
+import 'package:island/route.gr.dart';
 import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:logging/logging.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class SharingIntentService {
   static final SharingIntentService _instance =
@@ -38,7 +42,7 @@ class SharingIntentService {
     Logger.root.info("SharingIntentService: checkAndShowShareSheet called");
     final files = _pendingSharedFiles!;
     _pendingSharedFiles = null;
-    _handleSharedContentWithRef(files);
+    unawaited(_handleSharedContentWithRef(files));
   }
 
   void _setupSharingListeners() {
@@ -77,10 +81,10 @@ class SharingIntentService {
     });
   }
 
-  void _handleSharedContentWithRef(
+  Future<void> _handleSharedContentWithRef(
     List<SharedFile> sharedFiles, {
     int retryCount = 0,
-  }) {
+  }) async {
     Logger.root.info(
       "SharingIntentService: Received ${sharedFiles.length} shared files",
     );
@@ -97,13 +101,21 @@ class SharingIntentService {
               file.type == SharedMediaType.VIDEO ||
               file.type == SharedMediaType.FILE,
         )
-        .map((file) => XFile(file.value!, name: file.value!.split('/').last))
+        .map(
+          (file) => XFile(
+            file.value!,
+            name: file.value!.split('/').last,
+            mimeType: file.mimeType,
+          ),
+        )
         .toList();
 
     final List<String> links = sharedFiles
         .where((file) => file.type == SharedMediaType.URL)
         .map((file) => file.value!)
         .toList();
+    final pendingTarget = await IosShareSuggestionsService.instance
+        .consumePendingTarget();
 
     String? solianDeepLink;
     for (final url in links) {
@@ -136,27 +148,109 @@ class SharingIntentService {
         "SharingIntentService: Navigator context not ready, retrying...",
       );
       Future.delayed(const Duration(milliseconds: 250), () {
-        _handleSharedContentWithRef(sharedFiles, retryCount: retryCount + 1);
+        unawaited(
+          _handleSharedContentWithRef(sharedFiles, retryCount: retryCount + 1),
+        );
       });
       return;
     }
 
+    if (pendingTarget != null) {
+      Logger.root.info(
+        "SharingIntentService: Routing suggested share to room ${pendingTarget.roomId}",
+      );
+      _widgetRef!.read(chatSharePayloadProvider(pendingTarget.roomId)).value =
+          _buildChatComposerSharePayload(sharedFiles);
+      _widgetRef!
+          .read(routerProvider)
+          .navigate(ChatRoomRoute(id: pendingTarget.roomId));
+      return;
+    }
+
     Logger.root.info("SharingIntentService: Showing share sheet");
+    final currentContext = _widgetRef!
+        .read(routerProvider)
+        .navigatorKey
+        .currentContext;
+    if (currentContext == null || !currentContext.mounted) {
+      return;
+    }
     if (files.isNotEmpty) {
-      showShareSheet(context: ctx, content: ShareContent.files(files));
+      showShareSheet(
+        context: currentContext,
+        content: ShareContent.files(files),
+      );
     } else if (links.isNotEmpty) {
-      showShareSheet(context: ctx, content: ShareContent.link(links.first));
+      showShareSheet(
+        context: currentContext,
+        content: ShareContent.link(links.first),
+      );
     } else {
       showShareSheet(
-        context: ctx,
+        context: currentContext,
         content: ShareContent.text(
           sharedFiles
               .where((file) => file.type == SharedMediaType.TEXT)
-              .map((text) => text.message)
+              .map((text) => text.value ?? text.message ?? '')
               .join('\n'),
         ),
       );
     }
+  }
+
+  ChatComposerSharePayload _buildChatComposerSharePayload(
+    List<SharedFile> sharedFiles,
+  ) {
+    final attachments = sharedFiles
+        .where(
+          (file) =>
+              file.value != null &&
+              (file.type == SharedMediaType.IMAGE ||
+                  file.type == SharedMediaType.VIDEO ||
+                  file.type == SharedMediaType.FILE),
+        )
+        .map((file) {
+          final type = switch (file.type) {
+            SharedMediaType.IMAGE => UniversalFileType.image,
+            SharedMediaType.VIDEO => UniversalFileType.video,
+            _ => UniversalFileType.file,
+          };
+          return UniversalFile(
+            data: XFile(
+              file.value!,
+              name: file.value!.split('/').last,
+              mimeType: file.mimeType,
+            ),
+            type: type,
+          );
+        })
+        .toList();
+
+    final segments = <String>[];
+    final shareMessage = sharedFiles
+        .map((file) => file.message?.trim() ?? '')
+        .firstWhere((message) => message.isNotEmpty, orElse: () => '');
+    if (shareMessage.isNotEmpty) {
+      segments.add(shareMessage);
+    }
+
+    segments.addAll(
+      sharedFiles
+          .where((file) => file.type == SharedMediaType.TEXT)
+          .map((file) => file.value?.trim() ?? '')
+          .where((text) => text.isNotEmpty),
+    );
+    segments.addAll(
+      sharedFiles
+          .where((file) => file.type == SharedMediaType.URL)
+          .map((file) => file.value?.trim() ?? '')
+          .where((link) => link.isNotEmpty),
+    );
+
+    return ChatComposerSharePayload(
+      text: segments.join('\n\n'),
+      attachments: attachments,
+    );
   }
 
   void dispose() {
