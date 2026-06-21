@@ -311,6 +311,10 @@ class MessageContent extends StatelessWidget {
   }
 
   static bool hasContent(SnChatMessage item) {
+    if (item.type == 'messages.sync.finalize' ||
+        item.type == 'messages.sync.links') {
+      return false;
+    }
     final resolved = resolveE2eeDisplayContentForMessage(item);
     return item.type != 'text' ||
         (resolved.content?.isNotEmpty ?? false) ||

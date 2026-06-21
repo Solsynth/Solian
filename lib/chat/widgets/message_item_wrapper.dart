@@ -128,6 +128,11 @@ class MessageItemWrapper extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (message.type == 'messages.sync.finalize' ||
+        message.type == 'messages.sync.links') {
+      return const SizedBox.shrink();
+    }
+
     // Animation logic
     final animatedMessages = ref.watch(animatedMessagesProvider);
     final isSelectionMode = ref.watch(
