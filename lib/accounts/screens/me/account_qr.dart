@@ -1063,12 +1063,16 @@ class _QrLoginChallengeSnapshot {
   final String authChallengeId;
   final int status;
   final DateTime expiresAt;
+  final String? deviceName;
+  final int? platform;
 
   const _QrLoginChallengeSnapshot({
     required this.qrChallengeId,
     required this.authChallengeId,
     required this.status,
     required this.expiresAt,
+    this.deviceName,
+    this.platform,
   });
 
   factory _QrLoginChallengeSnapshot.fromJson(Map<String, dynamic> json) {
@@ -1087,6 +1091,8 @@ class _QrLoginChallengeSnapshot {
         _ => 0,
       },
       expiresAt: DateTime.parse(json['expires_at'] as String),
+      deviceName: json['device_name'] as String?,
+      platform: (json['platform'] as num?)?.toInt(),
     );
   }
 }
@@ -1174,8 +1180,8 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
 
     final expired = remaining.value != null && remaining.value! <= 0;
     final currentChallenge = challenge;
-    final deviceName = currentChallenge?.deviceName ?? 'unknownDevice'.tr();
-    final platform = _qrLoginPlatformName(currentChallenge?.platform);
+    final deviceName = currentChallenge?.deviceName ?? snapshot.deviceName ?? 'unknownDevice'.tr();
+    final platform = _qrLoginPlatformName(currentChallenge?.platform ?? snapshot.platform);
 
     Future<void> resolveQrLogin(bool approve) async {
       isBusy.value = true;
@@ -1233,7 +1239,7 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
                               ),
                               child: Icon(
                                 _qrLoginPlatformIcon(
-                                  currentChallenge?.platform,
+                                  currentChallenge?.platform ?? snapshot.platform,
                                 ),
                                 color: Theme.of(
                                   context,

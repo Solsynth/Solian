@@ -1114,7 +1114,13 @@ class _LoginLookupScreen extends HookConsumerWidget {
                 context: context,
                 isScrollControlled: true,
                 useRootNavigator: true,
-                builder: (_) => const _QrLoginSheet(),
+                builder: (sheetContext) => _QrLoginSheet(
+                  onLoginSuccess: () {
+                    if (Navigator.canPop(sheetContext)) {
+                      Navigator.pop(sheetContext, true);
+                    }
+                  },
+                ),
               ),
               padding: EdgeInsets.zero,
               icon: Icon(
@@ -1242,7 +1248,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
 }
 
 class _QrLoginSheet extends HookConsumerWidget {
-  const _QrLoginSheet();
+  final VoidCallback? onLoginSuccess;
+  const _QrLoginSheet({this.onLoginSuccess});
 
   Color _statusBackground(BuildContext context, int status) {
     final scheme = Theme.of(context).colorScheme;
@@ -1287,6 +1294,7 @@ class _QrLoginSheet extends HookConsumerWidget {
       isExchanging.value = true;
       try {
         await exchangeAuthCodeForToken(context, ref, code: code);
+        onLoginSuccess?.call(); // ponytail: also close parent sheet
       } catch (err) {
         showErrorAlert(err);
       } finally {
