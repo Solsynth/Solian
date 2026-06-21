@@ -85,7 +85,7 @@ SnChatMessage _mergeUpdatedRemoteMessage(
   final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
   mergedMeta.addAll(updateRemote.meta);
   mergedMeta.remove('message_id');
-  final isLinkPreviewUpdate = updateRemote.type == 'messages.update.links';
+  final isLinkPreviewUpdate = updateRemote.type == 'messages.sync.links';
 
   return existingRemote.copyWith(
     content: isLinkPreviewUpdate ? existingRemote.content : updateRemote.content,
@@ -348,24 +348,28 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           eventBus.fire(ChatMessageNewEvent(message));
         }
       case 'messages.update':
-      case 'messages.update.links':
+      case 'messages.sync.finalize':
+      case 'messages.sync.links':
         {
-          var eventMessage = LocalChatMessage.fromRemoteMessage(
-            message,
-            MessageStatus.sent,
-          );
-          final existingEvent = await _fetchMessageFromDb(
-            db,
-            message.id,
-            roomId,
-          );
-          if (existingEvent != null) {
-            eventMessage = _mergeReactionFieldsFromExisting(
-              eventMessage,
-              existingEvent,
+          final shouldPersistEventRow = message.type == 'messages.update';
+          if (shouldPersistEventRow) {
+            var eventMessage = LocalChatMessage.fromRemoteMessage(
+              message,
+              MessageStatus.sent,
             );
+            final existingEvent = await _fetchMessageFromDb(
+              db,
+              message.id,
+              roomId,
+            );
+            if (existingEvent != null) {
+              eventMessage = _mergeReactionFieldsFromExisting(
+                eventMessage,
+                existingEvent,
+              );
+            }
+            await db.saveMessageWithSender(eventMessage);
           }
-          await db.saveMessageWithSender(eventMessage);
 
           final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
           final existingMsg = await _fetchMessageFromDb(db, targetId, roomId);
@@ -948,7 +952,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           final reactionMessages = <SnChatMessage>[];
           for (final msg in messages) {
             if (msg.type == 'messages.update' ||
-                msg.type == 'messages.update.links') {
+                msg.type == 'messages.sync.finalize' ||
+                msg.type == 'messages.sync.links') {
               updateMessages.add(msg);
               continue;
             }
@@ -993,9 +998,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
           for (final msg in updateMessages) {
             try {
-              await db.saveMessageWithSender(
-                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
-              );
+              if (msg.type == 'messages.update') {
+                await db.saveMessageWithSender(
+                  LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+                );
+              }
               await _applyMessageUpdateToTarget(db, msg);
               updatedRoomIds.add(msg.chatRoomId);
               roundSynced += 1;

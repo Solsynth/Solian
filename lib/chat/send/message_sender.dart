@@ -74,6 +74,22 @@ class MessageSender {
     final clientMessageId = const Uuid().v4();
     _logger.info('[send:$clientMessageId] Starting message send');
 
+    if (_shouldUseAttachmentPlaceholder(
+      attachments: attachments,
+      editingTo: editingTo,
+      replyingTo: replyingTo,
+      forwardingTo: forwardingTo,
+      embeds: embeds,
+    )) {
+      return _sendWithAttachmentPlaceholder(
+        content: content,
+        attachments: attachments,
+        sender: sender,
+        onPending: onPending,
+        onProgress: onProgress,
+      );
+    }
+
     try {
       // Create pending message
       final pending = _createPendingMessage(
@@ -158,6 +174,175 @@ class MessageSender {
       _logger.severe('[send:$clientMessageId] Send failed', e, stackTrace);
 
       // Mark pending as failed
+      final pendingId = 'pending_$clientMessageId';
+      _pendingCache.markFailed(pendingId);
+      await _repository.updateStatus(pendingId, MessageStatus.failed);
+
+      return SendResult.failure(e.toString());
+    }
+  }
+
+  Future<SendResult> _sendWithAttachmentPlaceholder({
+    required String content,
+    required List<UniversalFile> attachments,
+    required SnChatMember sender,
+    Function(LocalChatMessage message)? onPending,
+    Function(String messageId, Map<int, double?>)? onProgress,
+  }) async {
+    final placeholder = await createPlaceholder('uploading');
+    if (placeholder == null) {
+      _logger.warning(
+        '[placeholder] Failed to create upload placeholder, falling back to normal send',
+      );
+      return _sendWithoutPlaceholder(
+        content: content,
+        attachments: attachments,
+        sender: sender,
+        onPending: onPending,
+        onProgress: onProgress,
+      );
+    }
+
+    final pending = LocalChatMessage.fromRemoteMessage(
+      placeholder,
+      MessageStatus.pending,
+    )..localAttachments = attachments;
+
+    _pendingCache.add(pending);
+    await _repository.saveMessage(pending);
+    onPending?.call(pending);
+
+    try {
+      final cloudAttachments = await _uploadAttachments(
+        attachments: attachments,
+        pendingMessageId: pending.id,
+        onProgress: (messageId, progress) {
+          final overallProgress = _calculateOverallProgress(
+            attachments.length,
+            progress,
+          );
+          updatePlaceholder(messageId, progress: overallProgress);
+          onProgress?.call(messageId, progress);
+        },
+      );
+
+      final finalized = await _finalizePlaceholderAndWait(
+        pending.id,
+        content: content,
+        attachmentsId: cloudAttachments.map((file) => file.id).toList(),
+      );
+
+      final sent = LocalChatMessage.fromRemoteMessage(
+        finalized,
+        MessageStatus.sent,
+      );
+
+      _pendingCache.remove(pending.id);
+      await _repository.saveMessage(sent);
+
+      return SendResult.success(sent);
+    } catch (e, stackTrace) {
+      _logger.severe(
+        '[placeholder:${pending.id}] Placeholder send failed',
+        e,
+        stackTrace,
+      );
+      _pendingCache.markFailed(pending.id);
+      await _repository.updateStatus(pending.id, MessageStatus.failed);
+      return SendResult.failure(e.toString());
+    }
+  }
+
+  Future<SendResult> _sendWithoutPlaceholder({
+    required String content,
+    required List<UniversalFile> attachments,
+    required SnChatMember sender,
+    SnChatMessage? editingTo,
+    SnChatMessage? replyingTo,
+    SnChatMessage? forwardingTo,
+    List<Map<String, dynamic>>? embeds,
+    Function(LocalChatMessage message)? onPending,
+    Function(String messageId, Map<int, double?>)? onProgress,
+  }) async {
+    final clientMessageId = const Uuid().v4();
+    _logger.info('[send:$clientMessageId] Starting message send');
+
+    try {
+      final pending = _createPendingMessage(
+        clientMessageId: clientMessageId,
+        content: content,
+        sender: sender,
+        attachments: attachments,
+        replyingTo: replyingTo,
+        forwardingTo: forwardingTo,
+      );
+
+      _pendingCache.add(pending);
+      onPending?.call(pending);
+
+      _logger.info(
+        '[send:$clientMessageId] Uploading ${attachments.length} attachments',
+      );
+
+      final cloudAttachments = await _uploadAttachments(
+        attachments: attachments,
+        pendingMessageId: pending.id,
+        onProgress: onProgress,
+      );
+
+      _logger.info('[send:$clientMessageId] Building payload');
+
+      final (:payload, :plaintextEnvelope) = await _buildPayload(
+        clientMessageId: clientMessageId,
+        content: content,
+        attachmentIds: cloudAttachments.map((a) => a.id).toList(),
+        isEditing: editingTo != null,
+        replyingTo: replyingTo,
+        forwardingTo: forwardingTo,
+        embeds: embeds,
+      );
+
+      _logger.info('[send:$clientMessageId] Sending to server');
+
+      final remoteMessage = await _sendToServer(
+        payload: payload,
+        editingTo: editingTo,
+      );
+
+      _logger.info(
+        '[send:$clientMessageId] Message sent successfully: ${remoteMessage.id}',
+      );
+
+      final withPlaintext = _e2eeService?.isE2eeRoom == true
+          ? E2eeMessageService.preserveSenderPlaintext(
+              remoteMessage,
+              plaintextEnvelope: plaintextEnvelope,
+            )
+          : remoteMessage;
+
+      final sent = LocalChatMessage.fromRemoteMessage(
+        editingTo != null
+            ? _buildEditedTargetMessage(editingTo, withPlaintext)
+            : withPlaintext,
+        MessageStatus.sent,
+      );
+      final eventMessage = editingTo == null
+          ? null
+          : LocalChatMessage.fromRemoteMessage(
+              withPlaintext,
+              MessageStatus.sent,
+            );
+
+      _pendingCache.remove(pending.id);
+      await _repository.saveMessage(sent);
+      if (eventMessage != null) {
+        await _repository.saveMessage(eventMessage);
+      }
+
+      return SendResult.success(sent, eventMessage: eventMessage);
+    } catch (e, stackTrace) {
+      _logger.severe('[send:$clientMessageId] Send failed', e, stackTrace);
+
       final pendingId = 'pending_$clientMessageId';
       _pendingCache.markFailed(pendingId);
       await _repository.updateStatus(pendingId, MessageStatus.failed);
@@ -428,6 +613,35 @@ class MessageSender {
     return cloudFiles;
   }
 
+  bool _shouldUseAttachmentPlaceholder({
+    required List<UniversalFile> attachments,
+    SnChatMessage? editingTo,
+    SnChatMessage? replyingTo,
+    SnChatMessage? forwardingTo,
+    List<Map<String, dynamic>>? embeds,
+  }) {
+    if (attachments.isEmpty) return false;
+    if (_e2eeService?.isE2eeRoom == true) return false;
+    if (!_isWebSocketConnected) return false;
+    if (editingTo != null || replyingTo != null || forwardingTo != null) {
+      return false;
+    }
+    if (embeds != null && embeds.isNotEmpty) return false;
+    return true;
+  }
+
+  double _calculateOverallProgress(
+    int attachmentCount,
+    Map<int, double?> progressByAttachment,
+  ) {
+    if (attachmentCount <= 0) return 0;
+    var total = 0.0;
+    for (var i = 0; i < attachmentCount; i++) {
+      total += progressByAttachment[i] ?? 0.0;
+    }
+    return (total / attachmentCount).clamp(0.0, 1.0);
+  }
+
   Future<
     ({Map<String, dynamic> payload, Map<String, dynamic>? plaintextEnvelope})
   >
@@ -554,6 +768,44 @@ class MessageSender {
     });
 
     wsState.sendMessage(jsonEncode(packet));
+    return completer.future;
+  }
+
+  Future<SnChatMessage> _finalizePlaceholderAndWait(
+    String messageId, {
+    String? content,
+    List<String>? attachmentsId,
+  }) async {
+    final ws = _ref.read(websocketProvider);
+    final completer = Completer<SnChatMessage>();
+    StreamSubscription? subscription;
+
+    subscription = ws.dataStream
+        .where((pkt) => pkt.type == 'messages.placeholder.finalize')
+        .map((pkt) => pkt.data)
+        .where((data) => data is Map<String, dynamic>)
+        .cast<Map<String, dynamic>>()
+        .listen((data) {
+          final message = _parseMessage(data);
+          if (message == null || message.id != messageId) return;
+          subscription?.cancel();
+          completer.complete(message);
+        });
+
+    Future.delayed(const Duration(seconds: 12), () {
+      if (completer.isCompleted) return;
+      subscription?.cancel();
+      completer.completeError(
+        TimeoutException('Placeholder finalize timeout'),
+      );
+    });
+
+    finalizePlaceholder(
+      messageId,
+      content: content,
+      attachmentsId: attachmentsId,
+    );
+
     return completer.future;
   }
 

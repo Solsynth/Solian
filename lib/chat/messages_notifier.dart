@@ -4,6 +4,7 @@ import "package:easy_localization/easy_localization.dart";
 import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/pods/chat_room.dart";
+import "package:island/chat/pods/chat_room_state.dart";
 import "package:island/chat/data/message_cache.dart";
 import "package:island/chat/data/message_repository.dart";
 import "package:island/chat/models/chat_view_state.dart";
@@ -130,7 +131,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (type.startsWith('system.')) return true;
     switch (type) {
       case 'messages.update':
-      case 'messages.update.links':
+      case 'messages.sync.finalize':
+      case 'messages.sync.links':
       case 'messages.delete':
       case 'messages.reaction.added':
       case 'messages.reaction.removed':
@@ -145,7 +147,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isImportantEventType(String type) {
     if (type == 'call.start' || type == 'call.ended') return true;
     if (type == 'messages.update' ||
-        type == 'messages.update.links' ||
+        type == 'messages.sync.finalize' ||
+        type == 'messages.sync.links' ||
         type == 'messages.delete') {
       return true;
     }
@@ -898,7 +901,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
     final isMessageUpdate =
         localMessage.type == 'messages.update' ||
-        localMessage.type == 'messages.update.links';
+        localMessage.type == 'messages.sync.finalize' ||
+        localMessage.type == 'messages.sync.links';
     final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
     final shouldShowMessage = _shouldIncludeInActiveList(localMessage);
     final shouldShowEditTrail =
@@ -949,7 +953,8 @@ class MessagesNotifier extends _$MessagesNotifier {
           remoteMessage.meta['message_id'] ?? remoteMessage.id,
         );
       case "messages.update":
-      case "messages.update.links":
+      case "messages.sync.finalize":
+      case "messages.sync.links":
         await receiveMessageUpdate(remoteMessage);
       case "messages.reaction.added":
         await receiveReactionAdded(remoteMessage);
@@ -1059,6 +1064,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     if (pendingMessageId != null) {
+      ref
+          .read(chatRoomStateProvider(roomId).notifier)
+          .updateAttachmentProgress(pendingMessageId!, null);
       _replaceMessage(pendingMessageId!, sentMessage);
     } else {
       _emitMessages([sentMessage, ..._currentMessages]);

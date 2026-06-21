@@ -91,7 +91,8 @@ class SystemEventTypes {
     if (type.startsWith('system.')) return true;
     return switch (type) {
       'messages.update' ||
-      'messages.update.links' ||
+      'messages.sync.finalize' ||
+      'messages.sync.links' ||
       'messages.delete' ||
       'messages.reaction.added' ||
       'messages.reaction.removed' =>
@@ -104,7 +105,8 @@ class SystemEventTypes {
         'call.start' ||
         'call.ended' ||
         'messages.update' ||
-        'messages.update.links' ||
+        'messages.sync.finalize' ||
+        'messages.sync.links' ||
         'messages.delete' ||
         'system.e2ee.enabled' ||
         'system.call.member.joined' ||

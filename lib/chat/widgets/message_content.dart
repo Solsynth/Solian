@@ -100,15 +100,12 @@ class MessageContent extends StatelessWidget {
           duration: item.meta['duration']?.toDouble(),
         );
       case 'messages.update':
-      case 'messages.update.links':
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              item.type == 'messages.update.links'
-                  ? Symbols.link
-                  : Symbols.edit,
+              Symbols.edit,
               size: 16,
               color: Theme.of(
                 context,
@@ -120,10 +117,7 @@ class MessageContent extends StatelessWidget {
                 child: PrettyDiffText(
                   oldText: item.meta['previous_content'],
                   newText:
-                      item.content ??
-                      (item.type == 'messages.update.links'
-                          ? 'messageUpdateLinks'.tr()
-                          : 'messageUpdateEdited'.tr()),
+                      item.content ?? 'messageUpdateEdited'.tr(),
                   defaultTextStyle: Theme.of(context).textTheme.bodyMedium!
                       .copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -810,15 +804,20 @@ class _PlaceholderMessageContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: colorScheme.primary.withOpacity(0.7),
+          SizedBox.square(
+            dimension: 14,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                progressIndicatorTheme: const ProgressIndicatorThemeData(
+                  circularTrackPadding: EdgeInsets.zero,
+                ),
+              ),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colorScheme.primary.withOpacity(0.7),
+              ),
             ),
           ),
-          const Gap(8),
           Flexible(
             child: Text(
               content.isNotEmpty ? content : 'chatPlaceholderStreaming'.tr(),
@@ -840,16 +839,21 @@ class _PlaceholderMessageContent extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(
-                  value: progress > 0 ? progress : null,
-                  strokeWidth: 2,
-                  color: colorScheme.primary.withOpacity(0.7),
+              SizedBox.square(
+                dimension: 14,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    progressIndicatorTheme: const ProgressIndicatorThemeData(
+                      circularTrackPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  child: CircularProgressIndicator(
+                    value: progress > 0 ? progress : null,
+                    strokeWidth: 2,
+                    color: colorScheme.primary.withOpacity(0.7),
+                  ),
                 ),
               ),
-              const Gap(8),
               Text(
                 'chatPlaceholderUploading'.tr(args: ['${(progress * 100).toInt()}%']),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -879,15 +883,20 @@ class _PlaceholderMessageContent extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: colorScheme.primary.withOpacity(0.7),
+        SizedBox.square(
+          dimension: 14,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              progressIndicatorTheme: const ProgressIndicatorThemeData(
+                circularTrackPadding: EdgeInsets.zero,
+              ),
+            ),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.primary.withOpacity(0.7),
+            ),
           ),
         ),
-        const Gap(8),
         Text(
           'Processing...',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
