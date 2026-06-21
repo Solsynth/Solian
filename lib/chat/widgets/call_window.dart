@@ -152,7 +152,7 @@ class CallWindowApp extends HookConsumerWidget {
     }, []);
 
     return MaterialApp(
-      title: 'Call — ${args.roomName ?? args.roomId}',
+      title: 'Call - ${args.roomName ?? args.roomId}',
       debugShowCheckedModeBanner: false,
       theme: theme.light,
       darkTheme: theme.dark,
@@ -229,35 +229,39 @@ class _CallWindowHome extends HookConsumerWidget {
 
     final roomTitle = chatRoom.value?.name ?? args.roomName ?? 'Call';
 
-    return Column(
-      children: [
-        // ── Title bar (matches main app WindowScaffold) ──
-        _TitleBar(title: roomTitle),
-        // ── Call body ──
-        Expanded(
-          child: joinError.value != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.error_outline,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(joinError.value!, textAlign: TextAlign.center),
-                      const SizedBox(height: 12),
-                      FilledButton.tonal(
-                        onPressed: () => _closeWindow(),
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  ),
-                )
-              : _CallBody(args: args, chatRoom: chatRoom),
-        ),
-      ],
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: Column(
+        crossAxisAlignment: .stretch,
+        children: [
+          // ── Title bar (matches main app WindowScaffold) ──
+          _TitleBar(title: roomTitle),
+          // ── Call body ──
+          Expanded(
+            child: joinError.value != null
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Symbols.error_outline,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(joinError.value!, textAlign: TextAlign.center),
+                        const SizedBox(height: 12),
+                        FilledButton.tonal(
+                          onPressed: () => _closeWindow(),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _CallBody(args: args, chatRoom: chatRoom),
+          ),
+        ],
+      ),
     );
   }
 }
