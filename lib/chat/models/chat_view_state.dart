@@ -105,8 +105,6 @@ class SystemEventTypes {
         'call.start' ||
         'call.ended' ||
         'messages.update' ||
-        'messages.sync.finalize' ||
-        'messages.sync.links' ||
         'messages.delete' ||
         'system.e2ee.enabled' ||
         'system.call.member.joined' ||
