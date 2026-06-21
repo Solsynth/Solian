@@ -11,11 +11,9 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
-import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:island/chat/widgets/chat_member_list_tile.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
-
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -66,18 +64,6 @@ class CallScreen extends HookConsumerWidget {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       return null;
     }, []);
-
-    final allAudioOnly = callNotifier.participants.every(
-      (p) =>
-          !(p.hasVideo &&
-              p.remoteParticipant.trackPublications.values.any(
-                (pub) =>
-                    pub.track != null &&
-                    pub.kind == TrackType.VIDEO &&
-                    !pub.muted &&
-                    !pub.isDisposed,
-              )),
-    );
 
     final roomTitle = ongoingCall.value?.room.name ?? room.name ?? 'call'.tr();
     final statusText = callState.isConnected
@@ -199,7 +185,12 @@ class CallScreen extends HookConsumerWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: EdgeInsets.fromLTRB(10, mediaQuery.padding.top + 6, 10, 10),
+                padding: EdgeInsets.fromLTRB(
+                  10,
+                  mediaQuery.padding.top + 6,
+                  10,
+                  10,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -214,10 +205,7 @@ class CallScreen extends HookConsumerWidget {
                   children: [
                     IconButton(
                       onPressed: () => context.router.maybePop(),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
                     Expanded(
                       child: Column(
@@ -246,30 +234,9 @@ class CallScreen extends HookConsumerWidget {
                     ),
                     IconButton(
                       onPressed: inviteToCall,
-                      tooltip: 'Invite to call',
-                      icon: const Icon(
-                        Symbols.person_add,
-                        color: Colors.white,
-                      ),
+                      tooltip: 'inviteToCall'.tr(),
+                      icon: const Icon(Symbols.person_add, color: Colors.white),
                     ),
-                    if (!allAudioOnly)
-                      SizedBox(
-                        height: 34,
-                        child: ListView(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            for (final live in callNotifier.participants)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 6),
-                                child: SpeakingRippleAvatar(
-                                  live: live,
-                                  size: 28,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -345,9 +312,7 @@ class CallScreen extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                child: const Center(
-                  child: CallControlsBar(popOnLeaves: true),
-                ),
+                child: const Center(child: CallControlsBar(popOnLeaves: true)),
               ),
             ),
           ],

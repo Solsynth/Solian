@@ -462,9 +462,11 @@ sealed class SnNotificationTopic with _$SnNotificationTopic {
 
 @JsonEnum(valueField: 'value')
 enum SnNotificationPushSubscriptionProvider {
-  apple(0),
-  fcm(1),
-  sop(2);
+  fcm(0),
+  apple(1),
+  sop(2),
+  unifiedPush(3),
+  appk(4);
 
   final int value;
   const SnNotificationPushSubscriptionProvider(this.value);

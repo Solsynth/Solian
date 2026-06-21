@@ -1110,20 +1110,20 @@ class _LoginLookupScreen extends HookConsumerWidget {
             const Gap(8),
             Spacer(),
             IconButton.filledTonal(
-                onPressed: () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder: (_) => const _QrLoginSheet(),
-                ),
-                padding: EdgeInsets.zero,
-                icon: Icon(
-                  Symbols.qr_code_2,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-                tooltip: 'QR Code',
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useRootNavigator: true,
+                builder: (_) => const _QrLoginSheet(),
               ),
+              padding: EdgeInsets.zero,
+              icon: Icon(
+                Symbols.qr_code_2,
+                size: 16,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+              tooltip: 'qrCode'.tr(),
+            ),
             if (!kIsWeb) ...[
               IconButton.filledTonal(
                 onPressed: () => withOidc('github'),
@@ -1157,9 +1157,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
               ),
             ],
           ],
-        ).padding(horizontal: 8, vertical: 8)
-        else
-          const Gap(12),
+        ).padding(horizontal: 8, vertical: 8),
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
@@ -1249,9 +1247,9 @@ class _QrLoginSheet extends HookConsumerWidget {
   Color _statusBackground(BuildContext context, int status) {
     final scheme = Theme.of(context).colorScheme;
     return switch (status) {
-      1 => scheme.tertiaryContainer,  // Scanned
-      2 => scheme.primaryContainer,   // Approved
-      3 => scheme.errorContainer,     // Declined
+      1 => scheme.tertiaryContainer, // Scanned
+      2 => scheme.primaryContainer, // Approved
+      3 => scheme.errorContainer, // Declined
       _ => scheme.surfaceContainerHighest,
     };
   }
@@ -1259,9 +1257,9 @@ class _QrLoginSheet extends HookConsumerWidget {
   Color _statusForeground(BuildContext context, int status) {
     final scheme = Theme.of(context).colorScheme;
     return switch (status) {
-      1 => scheme.onTertiaryContainer,  // Scanned
-      2 => scheme.onPrimaryContainer,   // Approved
-      3 => scheme.onErrorContainer,     // Declined
+      1 => scheme.onTertiaryContainer, // Scanned
+      2 => scheme.onPrimaryContainer, // Approved
+      3 => scheme.onErrorContainer, // Declined
       _ => scheme.onSurfaceVariant,
     };
   }
@@ -1279,7 +1277,7 @@ class _QrLoginSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final challenge = useState<_QrLoginChallenge?>(null);
-    final status = useState(0);  // QrLoginStatus.pending
+    final status = useState(0); // QrLoginStatus.pending
     final remainingSeconds = useState<int?>(null);
     final isLoading = useState(false);
     final isExchanging = useState(false);
@@ -1309,7 +1307,8 @@ class _QrLoginSheet extends HookConsumerWidget {
           Map<String, dynamic>.from(resp.data as Map),
         );
         status.value = snapshot.status;
-        if (snapshot.status == 2) {  // Approved
+        if (snapshot.status == 2) {
+          // Approved
           await exchangeApprovedCode(snapshot.authChallengeId);
         }
       } catch (_) {
@@ -1334,7 +1333,7 @@ class _QrLoginSheet extends HookConsumerWidget {
         challenge.value = _QrLoginChallenge.fromJson(
           Map<String, dynamic>.from(resp.data as Map),
         );
-        status.value = 0;  // Pending
+        status.value = 0; // Pending
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -1371,7 +1370,8 @@ class _QrLoginSheet extends HookConsumerWidget {
 
     useEffect(() {
       final current = challenge.value;
-      if (current == null || isExpired || status.value == 2) {  // Approved
+      if (current == null || isExpired || status.value == 2) {
+        // Approved
         return null;
       }
 
