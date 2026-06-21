@@ -67,6 +67,7 @@ class CallController {
   bool _isReconnecting = false;
   bool _shouldAutoReconnect = true;
   bool _isManualDisconnect = false;
+  bool _isTerminalDisconnect = false;
 
   static int get maxReconnectAttempts => _maxReconnectAttempts;
 
@@ -100,8 +101,49 @@ class CallController {
           return;
         }
         Logger.root.warning('[Call] Room disconnected event: ${e.reason}');
+        if (!_shouldReconnectAfterDisconnectReason(e.reason)) {
+          _handleTerminalDisconnect(e.reason);
+          return;
+        }
         _scheduleReconnect(force: true);
       });
+  }
+
+  bool _shouldReconnectAfterDisconnectReason(Object? reason) {
+    if (reason == null) return true;
+    final normalized = reason.toString().toLowerCase();
+    const terminalMarkers = <String>[
+      'kick',
+      'kicked',
+      'removed',
+      'participantremoved',
+      'roomdeleted',
+      'room_deleted',
+      'duplicate',
+      'statemismatch',
+      'state_mismatch',
+    ];
+    return !terminalMarkers.any(normalized.contains);
+  }
+
+  void _handleTerminalDisconnect(Object? reason) {
+    _isTerminalDisconnect = true;
+    _shouldAutoReconnect = false;
+    _reconnectGraceTimer?.cancel();
+    _reconnectTimer?.cancel();
+    _connectionHealthTimer?.cancel();
+    _isReconnecting = false;
+    final normalized = reason?.toString().toLowerCase() ?? '';
+    final message =
+        normalized.contains('kick') || normalized.contains('removed')
+        ? 'You were removed from the call.'
+        : 'The call ended.';
+    _state = state.copyWith(
+      isConnected: false,
+      isReconnecting: false,
+      reconnectAttempt: 0,
+      error: message,
+    );
   }
 
   void _onRoomChange() {
@@ -216,6 +258,7 @@ class CallController {
     _chatRoom = room;
     _currentRoom = room;
     _shouldAutoReconnect = true;
+    _isTerminalDisconnect = false;
     _reconnectAttempts = 0;
     _isReconnecting = false;
     _isManualDisconnect = false;
@@ -237,8 +280,10 @@ class CallController {
     }
   }
 
-  Future<void> _performConnection(SnChatRoom room,
-      {bool cameraEnabled = false}) async {
+  Future<void> _performConnection(
+    SnChatRoom room, {
+    bool cameraEnabled = false,
+  }) async {
     if (!kIsWeb && Platform.isIOS) {
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
@@ -321,7 +366,7 @@ class CallController {
     final isNowConnected = connectionState == lk.ConnectionState.connected;
     final isNowReconnecting =
         connectionState == lk.ConnectionState.reconnecting ||
-            connectionState == lk.ConnectionState.connecting;
+        connectionState == lk.ConnectionState.connecting;
 
     _state = state.copyWith(
       isConnected: isNowConnected,
@@ -346,7 +391,8 @@ class CallController {
     }
 
     if (connectionState == lk.ConnectionState.disconnected &&
-        !_isManualDisconnect) {
+        !_isManualDisconnect &&
+        !_isTerminalDisconnect) {
       _scheduleReconnect(force: true);
     }
   }
@@ -369,7 +415,7 @@ class CallController {
       return;
     }
 
-    if (!_isManualDisconnect) {
+    if (!_isManualDisconnect && !_isTerminalDisconnect) {
       Logger.root.warning(
         '[Call] Connection health check failed: $connectionState',
       );
@@ -451,8 +497,10 @@ class CallController {
         _room = null;
         _localParticipant = null;
 
-        await _performConnection(_currentRoom!,
-            cameraEnabled: state.isCameraEnabled);
+        await _performConnection(
+          _currentRoom!,
+          cameraEnabled: state.isCameraEnabled,
+        );
         Logger.root.info('[Call] Reconnection successful');
         _reconnectAttempts = 0;
         _isReconnecting = false;
@@ -540,6 +588,7 @@ class CallController {
 
   Future<void> disconnect() async {
     _shouldAutoReconnect = false;
+    _isTerminalDisconnect = false;
     _reconnectGraceTimer?.cancel();
     _reconnectTimer?.cancel();
     if (_room != null) {
@@ -616,7 +665,9 @@ class CallController {
 
   void toggleViewMode() {
     _state = state.copyWith(
-      viewMode: state.viewMode == ViewMode.grid ? ViewMode.stage : ViewMode.grid,
+      viewMode: state.viewMode == ViewMode.grid
+          ? ViewMode.stage
+          : ViewMode.grid,
     );
   }
 
@@ -632,6 +683,7 @@ class CallController {
     _reconnectGraceTimer?.cancel();
     _isReconnecting = false;
     _isManualDisconnect = true;
+    _isTerminalDisconnect = false;
 
     _state = state.copyWith(
       error: null,
