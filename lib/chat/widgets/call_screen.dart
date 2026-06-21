@@ -19,6 +19,25 @@ import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+String _normalizedCallIdentity(String? value) =>
+    value?.trim().toLowerCase() ?? '';
+
+bool _isMemberAlreadyInCall(
+  SnChatMember member,
+  Iterable<CallParticipantLive> participants,
+) {
+  final activeKeys = <String>{
+    for (final live in participants) ...[
+      _normalizedCallIdentity(live.participant.identity),
+      _normalizedCallIdentity(live.participant.name),
+    ],
+  }..remove('');
+
+  return activeKeys.contains(_normalizedCallIdentity(member.account.name)) ||
+      activeKeys.contains(_normalizedCallIdentity(member.account.nick)) ||
+      activeKeys.contains(_normalizedCallIdentity(member.nick));
+}
+
 @RoutePage()
 class CallScreen extends HookConsumerWidget {
   final SnChatRoom room;
@@ -28,6 +47,8 @@ class CallScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaQuery = MediaQuery.of(context);
+    const topControlsHeight = 96.0;
+    const bottomControlsHeight = 140.0;
     final ongoingCall = ref.watch(ongoingCallProvider(room.id));
     final roomState = ref.watch(chatRoomProvider(room.id));
     final callState = ref.watch(callProvider);
@@ -81,15 +102,11 @@ class CallScreen extends HookConsumerWidget {
     Future<void> inviteToCall() async {
       final currentRoom = roomState.value ?? room;
       final members = currentRoom.members ?? const <SnChatMember>[];
-      final activeParticipantIds = callNotifier.participants
-          .map((live) => live.participant.identity)
-          .whereType<String>()
-          .toSet();
 
       final inviteCandidates = members.where((member) {
         if (member.joinedAt == null) return false;
         if (member.accountId == currentUserId) return false;
-        return !activeParticipantIds.contains(member.account.name);
+        return !_isMemberAlreadyInCall(member, callNotifier.participants);
       }).toList();
 
       if (inviteCandidates.isEmpty) {
@@ -136,47 +153,59 @@ class CallScreen extends HookConsumerWidget {
           children: [
             SafeArea(
               bottom: false,
-              child: callState.error != null
-                  ? Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 320),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Symbols.error_outline,
-                              size: 48,
-                              color: Colors.white70,
-                            ),
-                            const Gap(8),
-                            Text(
-                              callState.error!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                            const Gap(10),
-                            TextButton(
-                              onPressed: () {
-                                callNotifier.disconnect();
-                                callNotifier.dispose();
-                                callNotifier.joinRoom(room);
-                              },
-                              child: Text('retry').tr(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        const SizedBox(height: 6),
-                        Expanded(
-                          child: CallContent(
-                            outerMaxHeight: MediaQuery.of(context).size.height,
+              child: AnimatedPadding(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding: EdgeInsets.only(
+                  top: controlsVisible.value ? topControlsHeight : 0,
+                  bottom: controlsVisible.value
+                      ? mediaQuery.padding.bottom + bottomControlsHeight
+                      : 0,
+                ),
+                child: callState.error != null
+                    ? Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 320),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Symbols.error_outline,
+                                size: 48,
+                                color: Colors.white70,
+                              ),
+                              const Gap(8),
+                              Text(
+                                callState.error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                              const Gap(10),
+                              TextButton(
+                                onPressed: () {
+                                  callNotifier.disconnect();
+                                  callNotifier.dispose();
+                                  callNotifier.joinRoom(room);
+                                },
+                                child: Text('retry').tr(),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      )
+                    : Column(
+                        children: [
+                          const SizedBox(height: 6),
+                          Expanded(
+                            child: CallContent(
+                              outerMaxHeight: MediaQuery.of(
+                                context,
+                              ).size.height,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 180),
