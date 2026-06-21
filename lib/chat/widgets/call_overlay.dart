@@ -311,7 +311,10 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
 
               if (lastSpeaker == null) {
                 if (isReconnecting) {
-                  return _buildReconnectingCard(theme, callState.reconnectAttempt);
+                  return _buildReconnectingCard(
+                    theme,
+                    callState.reconnectAttempt,
+                  );
                 }
                 return const SizedBox.shrink();
               }
@@ -395,7 +398,8 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
       onTap: () {
         if (room == null) return;
         hideCallOverlay();
-        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+        if (!kIsWeb &&
+            (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
           createCallWindow(room);
         } else {
           final router = ref.read(routerProvider);
@@ -416,7 +420,9 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
               const Gap(6),
               Text(
                 chatRoomName,
-                style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -427,14 +433,26 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
                   Icon(
                     isMicrophoneEnabled ? Icons.mic : Icons.mic_off,
                     size: 12,
-                    color: isMicrophoneEnabled ? theme.colorScheme.primary : theme.colorScheme.error,
+                    color: isMicrophoneEnabled
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.error,
                   ),
                   const Gap(4),
-                  Text(formatDuration(duration), style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
+                  Text(
+                    formatDuration(duration),
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                  ),
                   const Gap(4),
-                  Icon(Symbols.group, size: 12, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Symbols.group,
+                    size: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const Gap(2),
-                  Text('${participants.length}', style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
+                  Text(
+                    '${participants.length}',
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                  ),
                 ],
               ),
             ],
@@ -481,10 +499,14 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
 class CallControlsBar extends HookConsumerWidget {
   final bool isCompact;
   final bool popOnLeaves;
+  final bool showSpeakerToggle;
+  final bool showViewToggle;
   const CallControlsBar({
     super.key,
     this.isCompact = false,
     this.popOnLeaves = false,
+    this.showSpeakerToggle = true,
+    this.showViewToggle = true,
   });
 
   @override
@@ -529,20 +551,22 @@ class CallControlsBar extends HookConsumerWidget {
             hasDropdown: true,
             deviceType: 'audioinput',
           ),
-          _buildCircularButton(
-            icon: callState.isSpeakerphone
-                ? Symbols.mobile_speaker
-                : Symbols.ear_sound,
-            onPressed: () => callNotifier.toggleSpeakerphone(),
-            backgroundColor: const Color(0xFF424242),
-          ),
-          _buildCircularButton(
-            icon: callState.viewMode == ViewMode.grid
-                ? Symbols.grid_view
-                : Symbols.view_list,
-            onPressed: () => callNotifier.toggleViewMode(),
-            backgroundColor: const Color(0xFF424242),
-          ),
+          if (showSpeakerToggle)
+            _buildCircularButton(
+              icon: callState.isSpeakerphone
+                  ? Symbols.mobile_speaker
+                  : Symbols.ear_sound,
+              onPressed: () => callNotifier.toggleSpeakerphone(),
+              backgroundColor: const Color(0xFF424242),
+            ),
+          if (showViewToggle)
+            _buildCircularButton(
+              icon: callState.viewMode == ViewMode.grid
+                  ? Symbols.grid_view
+                  : Symbols.view_list,
+              onPressed: () => callNotifier.toggleViewMode(),
+              backgroundColor: const Color(0xFF424242),
+            ),
           _buildCircularButton(
             icon: Icons.call_end,
             onPressed: () async {
