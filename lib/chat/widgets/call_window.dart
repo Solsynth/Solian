@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -421,7 +422,7 @@ class _CallBody extends HookConsumerWidget {
                     ),
                     IconButton(
                       onPressed: () => _doInvite(context, ref, chatRoom.value),
-                      tooltip: 'Invite to call',
+                      tooltip: 'inviteToCall'.tr(),
                       icon: const Icon(
                         Symbols.person_add,
                         color: Colors.white,
@@ -487,7 +488,7 @@ class _CallBody extends HookConsumerWidget {
     if (candidates.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No available room members to invite.')),
+          SnackBar(content: Text('noMembersToInvite'.tr())),
         );
       }
       return;
@@ -498,7 +499,7 @@ class _CallBody extends HookConsumerWidget {
       useSafeArea: true,
       isScrollControlled: true,
       builder: (ctx) => SheetScaffold(
-        titleText: 'Invite to call',
+        titleText: 'inviteToCall'.tr(),
         heightFactor: 0.6,
         child: ListView.separated(
           itemCount: candidates.length,
@@ -533,9 +534,7 @@ class _CallBody extends HookConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Invite sent to ${target.nick ?? target.account.nick}.',
-            ),
+            content: Text('inviteSentTo'.tr(args: [target.nick ?? target.account.nick])),
           ),
         );
       }
