@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:island/core/config.dart';
@@ -13,13 +15,20 @@ final sfxPlayerProvider = Provider<AudioPlayer>((ref) {
 
 Future<void> _configureAudioSession() async {
   final session = await AudioSession.instance;
-  await session.configure(
-    const AudioSessionConfiguration(
-      avAudioSessionCategory: AVAudioSessionCategory.playback,
-      avAudioSessionCategoryOptions:
-          AVAudioSessionCategoryOptions.mixWithOthers,
-    ),
-  );
+  if (Platform.isIOS) {
+    // Let CallKit/LiveKit own the iOS audio session during calls.
+    // A startup-wide playback session can override CallKit's voiceChat routing
+    // after accepting from the lock screen, which leaves media connected but silent.
+    await session.configure(
+      const AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.ambient,
+        avAudioSessionCategoryOptions:
+            AVAudioSessionCategoryOptions.mixWithOthers,
+      ),
+    );
+    return;
+  }
+  await session.configure(const AudioSessionConfiguration.music());
   await session.setActive(true);
 }
 
