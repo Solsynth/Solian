@@ -110,6 +110,8 @@ void main(List<String> args) async {
             // ponytail: prevent maximize — call window should stay compact
             await windowManager.setMaximizable(false);
           });
+          await EasyLocalization.ensureInitialized();
+          EasyLocalization.logger.enableBuildModes = [];
           runApp(
             ProviderScope(
               overrides: [
