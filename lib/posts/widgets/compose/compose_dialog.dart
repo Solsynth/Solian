@@ -30,9 +30,13 @@ class PostComposeDialog extends HookConsumerWidget {
     SnPost? originalPost,
     PostComposeInitialState? initialState,
   }) {
-    // Check if editing an article
+    // Check if editing an article or blog
     if (originalPost != null && originalPost.type == 1) {
       context.router.push(ArticleEditRoute(id: originalPost.id));
+      return Future.value(true);
+    }
+    if (originalPost != null && originalPost.type == 2) {
+      context.router.push(BlogEditRoute(id: originalPost.id));
       return Future.value(true);
     }
 

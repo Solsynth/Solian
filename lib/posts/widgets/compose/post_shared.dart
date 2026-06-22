@@ -142,6 +142,73 @@ Widget _buildArticlePreviewCard(
   );
 }
 
+Widget _buildBlogPreviewCard(
+  BuildContext context,
+  SnPost post, {
+  EdgeInsetsGeometry padding = const EdgeInsets.only(top: 4),
+}) {
+  final uri = Uri.tryParse(post.content ?? '');
+  final host = uri?.host ?? '';
+
+  return Container(
+    padding: padding,
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      border: Border.all(
+        color: Theme.of(context).dividerColor.withOpacity(0.5),
+      ),
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Badge(
+                  label: const Text('postBlog').tr(),
+                  backgroundColor: Theme.of(context).colorScheme.tertiary,
+                  textColor: Theme.of(context).colorScheme.onTertiary,
+                ),
+                const Spacer(),
+                Icon(
+                  Symbols.open_in_new,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+            const Gap(4),
+            if (post.title?.isNotEmpty ?? false)
+              Text(
+                post.title!,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium!
+                    .copyWith(fontWeight: FontWeight.bold),
+              ),
+            if (post.description?.isNotEmpty ?? false)
+              Text(
+                post.description!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            if (host.isNotEmpty)
+              Text(
+                host,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+          ],
+        ).padding(horizontal: 16, vertical: 12),
+      ],
+    ),
+  );
+}
+
 class RepliesState {
   final List<ThreadedReplyNode> flatNodes;
   final Map<String, List<ThreadedReplyNode>> childrenByParentId;
@@ -1118,7 +1185,9 @@ class ReferencedPostWidget extends HookConsumerWidget {
                     Expanded(
                       child: referencePost.type == 1
                           ? _buildArticlePreviewCard(context, referencePost)
-                          : Builder(
+                          : referencePost.type == 2
+                              ? _buildBlogPreviewCard(context, referencePost)
+                              : Builder(
                               builder: (context) {
                                 final referenceContent =
                                     _convertContentToMarkdown(referencePost);
@@ -1570,6 +1639,8 @@ class PostBody extends ConsumerWidget {
     final metadataChildren = <Widget>[];
     final useCompactArticlePreview =
         item.type == 1 && (!isFullPost || item.forwardedPostId != null);
+    final useCompactBlogPreview =
+        item.type == 2 && (!isFullPost || item.forwardedPostId != null);
     final resolvedContent = _convertContentToMarkdown(item);
     final shouldClampRegularBody =
         !isFullPost &&
@@ -1755,6 +1826,19 @@ class PostBody extends ConsumerWidget {
               padding: EdgeInsets.zero,
             ),
           )
+        else if (useCompactBlogPreview)
+          Padding(
+            padding: EdgeInsets.only(
+              top: 4,
+              left: renderingPadding.horizontal,
+              right: renderingPadding.horizontal,
+            ),
+            child: _buildBlogPreviewCard(
+              context,
+              item,
+              padding: EdgeInsets.zero,
+            ),
+          )
         else if ((item.content?.isNotEmpty ?? false) ||
             (item.title?.isNotEmpty ?? false) ||
             (item.description?.isNotEmpty ?? false))
@@ -1798,7 +1882,7 @@ class PostBody extends ConsumerWidget {
               ],
             ),
           ),
-        if ((item.isTruncated && item.type != 1) || shouldClampRegularBody)
+        if ((item.isTruncated && item.type != 1 && item.type != 2) || shouldClampRegularBody)
           PostTruncateHint(
             isCompact: true,
             withArrow: isInteractive,
@@ -1809,7 +1893,7 @@ class PostBody extends ConsumerWidget {
               right: renderingPadding.horizontal,
             ),
           ),
-        if (item.attachments.isNotEmpty && item.type != 1 && !hideAttachments)
+        if (item.attachments.isNotEmpty && item.type != 1 && item.type != 2 && !hideAttachments)
           CloudFileList(
             files: item.attachments,
             sourcePost: item,

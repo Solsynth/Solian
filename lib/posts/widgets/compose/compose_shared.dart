@@ -988,7 +988,11 @@ class ComposeLogic {
         statusMessage: 'Published',
       );
 
-      final postTypeStr = state.postType == 0 ? 'regular' : 'article';
+      final postTypeStr = state.postType == 0
+          ? 'regular'
+          : state.postType == 1
+              ? 'article'
+              : 'blog';
       final visibilityStr = state.visibility.value.toString();
       final publisherId = state.currentPublisher.value?.id ?? 'unknown';
 

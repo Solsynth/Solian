@@ -894,6 +894,21 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           minTileHeight: 48,
+          title: Text('verifiedDomains').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.domain),
+          onTap: () {
+            context.router.push(
+              CreatorDomainManageRoute(
+                  pubName: currentPublisher.value!.name),
+            );
+          },
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
           title: Text('deletePublisher').tr(),
           trailing: Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.delete),

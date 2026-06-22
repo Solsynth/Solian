@@ -24,6 +24,12 @@ class AppRouter extends RootStackRouter {
     // Standalone routes (outside of tabs)
     AutoRoute(page: ArticleComposeRoute.page, path: '/articles/compose'),
     AutoRoute(page: ArticleEditRoute.page, path: '/articles/:id/edit'),
+    AutoRoute(page: BlogComposeRoute.page, path: '/blogs/compose'),
+    AutoRoute(page: BlogEditRoute.page, path: '/blogs/:id/edit'),
+    AutoRoute(
+      page: CreatorDomainManageRoute.page,
+      path: '/creators/:pubName/domains',
+    ),
     // AutoRoute(page: LogsRoute.page, path: '/logs'),
 
 

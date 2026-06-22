@@ -53,6 +53,7 @@ export 'src/models/posts/publisher.dart';
 export 'src/models/posts/publisher_leaderboard.dart';
 export 'src/models/posts/publisher_rating_record.dart';
 export 'src/models/posts/tag_quota.dart';
+export 'src/models/posts/verified_domain.dart';
 
 // Realms models
 export 'src/models/realms/realm.dart';
