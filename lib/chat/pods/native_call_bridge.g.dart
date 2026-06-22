@@ -47,7 +47,7 @@ final class NativeCallBridgeProvider
   }
 }
 
-String _$nativeCallBridgeHash() => r'029299e39e85f072537dc36868a6128ee9d8ca57';
+String _$nativeCallBridgeHash() => r'aece23641db5093925e3ed7f9df66272075816d0';
 
 /// Thin wrapper that listens to the native event channel and exposes
 /// call state to Flutter widgets that need it (e.g., showing "in call" badges).

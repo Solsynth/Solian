@@ -59,6 +59,14 @@ class PostItemCreator extends HookConsumerWidget {
                       onRefresh?.call();
                     }
                   });
+                } else if (item.type == 2) {
+                  context.router.push(BlogEditRoute(id: item.id)).then((
+                    value,
+                  ) {
+                    if (value != null) {
+                      onRefresh?.call();
+                    }
+                  });
                 } else {
                   PostComposeDialog.show(context, originalPost: item).then((
                     value,

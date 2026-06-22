@@ -39,6 +39,7 @@ import 'package:island/sharing/share_sheet.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -404,6 +405,12 @@ class PostActionButtons extends HookConsumerWidget {
         onPressed: () {
           if (post.type == 1) {
             context.router.push(ArticleEditRoute(id: post.id)).then((value) {
+              if (value != null) {
+                onRefresh?.call();
+              }
+            });
+          } else if (post.type == 2) {
+            context.router.push(BlogEditRoute(id: post.id)).then((value) {
               if (value != null) {
                 onRefresh?.call();
               }
@@ -1686,6 +1693,31 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           hideAttachments: true,
                                           textScale: post.type == 1 ? 1.2 : 1.1,
                                         ),
+                                        // Blog CTA: open blog URL
+                                        if (post.type == 2 &&
+                                            post.embedView != null)
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 12),
+                                            child: FilledButton.icon(
+                                              onPressed: () async {
+                                                final uri = Uri.tryParse(
+                                                    post.embedView!.uri);
+                                                if (uri != null &&
+                                                    await canLaunchUrl(uri)) {
+                                                  await launchUrl(
+                                                    uri,
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  );
+                                                }
+                                              },
+                                              icon: const Icon(
+                                                  Symbols.open_in_new),
+                                              label:
+                                                  Text('openBlog'.tr()),
+                                            ),
+                                          ),
                                         if (post
                                             .publisherCollections
                                             .isNotEmpty)

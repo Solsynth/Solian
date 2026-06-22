@@ -74,7 +74,11 @@ Future<void> sharePostAsScreenshot(
         showErrorAlert(err);
       })
       .whenComplete(() {
-        final postTypeStr = post.type == 0 ? 'regular' : 'article';
+        final postTypeStr = post.type == 0
+            ? 'regular'
+            : post.type == 1
+                ? 'article'
+                : 'blog';
         AnalyticsService().logPostShared(post.id, 'screenshot', postTypeStr);
       });
 }

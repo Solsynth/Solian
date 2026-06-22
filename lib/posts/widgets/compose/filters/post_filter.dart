@@ -526,6 +526,7 @@ class _TypeFilterChip extends StatelessWidget {
     final label = switch (value) {
       0 => 'postTypePost'.tr(),
       1 => 'postArticle'.tr(),
+      2 => 'postBlog'.tr(),
       _ => 'all'.tr(),
     };
 
@@ -545,6 +546,10 @@ class _TypeFilterChip extends StatelessWidget {
         PopupMenuItem<int?>(
           value: 1,
           child: Text('postArticle'.tr()),
+        ),
+        PopupMenuItem<int?>(
+          value: 2,
+          child: Text('postBlog'.tr()),
         ),
       ],
       child: Material(
