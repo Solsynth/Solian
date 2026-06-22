@@ -80,12 +80,15 @@ int _safeToInt(dynamic value, {int fallback = 0}) {
 SnChatMessage _mergeUpdatedRemoteMessage(
   SnChatMessage existingRemote,
   SnChatMessage updateRemote, {
-  required DateTime editedAt,
+  DateTime? editedAt,
 }) {
   final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
   mergedMeta.addAll(updateRemote.meta);
   mergedMeta.remove('message_id');
   final isLinkPreviewUpdate = updateRemote.type == 'messages.sync.links';
+  final isSilentSync =
+      updateRemote.type == 'messages.sync.links' ||
+      updateRemote.type == 'messages.sync.finalize';
 
   return existingRemote.copyWith(
     content: isLinkPreviewUpdate ? existingRemote.content : updateRemote.content,
@@ -94,7 +97,7 @@ SnChatMessage _mergeUpdatedRemoteMessage(
     repliedMessageId: updateRemote.repliedMessageId,
     forwardedMessageId: updateRemote.forwardedMessageId,
     meta: mergedMeta,
-    editedAt: editedAt,
+    editedAt: isSilentSync ? existingRemote.editedAt : editedAt,
   );
 }
 

@@ -544,6 +544,7 @@ class RealtimeMessageHandler {
     final updateRemote = updateEvent.toRemoteMessage();
     final isLinkPreviewUpdate = updateEvent.type == 'messages.sync.links';
     final isPlaceholderFinalize = updateEvent.type == 'messages.sync.finalize';
+    final isSilentSync = isLinkPreviewUpdate || isPlaceholderFinalize;
     final mergedMeta = isPlaceholderFinalize
         ? Map<String, dynamic>.of(updateRemote.meta)
         : Map<String, dynamic>.of(existing.toRemoteMessage().meta)
@@ -566,7 +567,7 @@ class RealtimeMessageHandler {
         createdAt: existing.createdAt,
         meta: mergedMeta,
         type: isPlaceholderFinalize ? 'text' : existing.type,
-        editedAt: isPlaceholderFinalize ? existing.editedAt : updateEvent.createdAt,
+        editedAt: isSilentSync ? existing.editedAt : updateEvent.createdAt,
       ),
       existing.status,
     );
