@@ -49,12 +49,9 @@ import 'package:island/creators/screens/publishers_form.dart' as _i33;
 import 'package:island/creators/screens/stickers/pack_detail_screen.dart'
     as _i30;
 import 'package:island/creators/screens/stickers/stickers.dart' as _i29;
-import 'package:island/creators/screens/webfeed/webfeed_list.dart' as _i24;
 import 'package:island/discovery/explore.dart' as _i35;
-import 'package:island/discovery/screens/article_detail.dart' as _i11;
-import 'package:island/discovery/screens/articles.dart' as _i12;
-import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i37;
-import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i38;
+
+
 import 'package:island/discovery/search.dart' as _i68;
 import 'package:island/drive/files/file_detail.dart' as _i39;
 import 'package:island/drive/files/file_list.dart' as _i40;
@@ -388,58 +385,6 @@ class ArticleComposeRouteArgs {
 }
 
 /// generated route for
-/// [_i11.ArticleDetailScreen]
-class ArticleDetailRoute extends _i70.PageRouteInfo<ArticleDetailRouteArgs> {
-  ArticleDetailRoute({
-    _i72.Key? key,
-    required String articleId,
-    List<_i70.PageRouteInfo>? children,
-  }) : super(
-         ArticleDetailRoute.name,
-         args: ArticleDetailRouteArgs(key: key, articleId: articleId),
-         rawPathParams: {'id': articleId},
-         initialChildren: children,
-       );
-
-  static const String name = 'ArticleDetailRoute';
-
-  static _i70.PageInfo page = _i70.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<ArticleDetailRouteArgs>(
-        orElse: () =>
-            ArticleDetailRouteArgs(articleId: pathParams.getString('id')),
-      );
-      return _i11.ArticleDetailScreen(key: args.key, articleId: args.articleId);
-    },
-  );
-}
-
-class ArticleDetailRouteArgs {
-  const ArticleDetailRouteArgs({this.key, required this.articleId});
-
-  final _i72.Key? key;
-
-  final String articleId;
-
-  @override
-  String toString() {
-    return 'ArticleDetailRouteArgs{key: $key, articleId: $articleId}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! ArticleDetailRouteArgs) return false;
-    return key == other.key && articleId == other.articleId;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ articleId.hashCode;
-}
-
-/// generated route for
 /// [_i10.ArticleEditScreen]
 class ArticleEditRoute extends _i70.PageRouteInfo<ArticleEditRouteArgs> {
   ArticleEditRoute({
@@ -488,22 +433,6 @@ class ArticleEditRouteArgs {
 
   @override
   int get hashCode => key.hashCode ^ id.hashCode;
-}
-
-/// generated route for
-/// [_i12.ArticleStandScreen]
-class ArticleStandRoute extends _i70.PageRouteInfo<void> {
-  const ArticleStandRoute({List<_i70.PageRouteInfo>? children})
-    : super(ArticleStandRoute.name, initialChildren: children);
-
-  static const String name = 'ArticleStandRoute';
-
-  static _i70.PageInfo page = _i70.PageInfo(
-    name,
-    builder: (data) {
-      return const _i12.ArticleStandScreen();
-    },
-  );
 }
 
 /// generated route for
@@ -870,59 +799,6 @@ class CreateAccountRoute extends _i70.PageRouteInfo<void> {
       return const _i23.CreateAccountScreen();
     },
   );
-}
-
-/// generated route for
-/// [_i24.CreatorFeedListScreen]
-class CreatorFeedListRoute
-    extends _i70.PageRouteInfo<CreatorFeedListRouteArgs> {
-  CreatorFeedListRoute({
-    _i72.Key? key,
-    required String pubName,
-    List<_i70.PageRouteInfo>? children,
-  }) : super(
-         CreatorFeedListRoute.name,
-         args: CreatorFeedListRouteArgs(key: key, pubName: pubName),
-         rawPathParams: {'pubName': pubName},
-         initialChildren: children,
-       );
-
-  static const String name = 'CreatorFeedListRoute';
-
-  static _i70.PageInfo page = _i70.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<CreatorFeedListRouteArgs>(
-        orElse: () =>
-            CreatorFeedListRouteArgs(pubName: pathParams.getString('pubName')),
-      );
-      return _i24.CreatorFeedListScreen(key: args.key, pubName: args.pubName);
-    },
-  );
-}
-
-class CreatorFeedListRouteArgs {
-  const CreatorFeedListRouteArgs({this.key, required this.pubName});
-
-  final _i72.Key? key;
-
-  final String pubName;
-
-  @override
-  String toString() {
-    return 'CreatorFeedListRouteArgs{key: $key, pubName: $pubName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! CreatorFeedListRouteArgs) return false;
-    return key == other.key && pubName == other.pubName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ pubName.hashCode;
 }
 
 /// generated route for
@@ -1493,75 +1369,6 @@ class FediverseActorProfileRouteArgs {
 
   @override
   int get hashCode => key.hashCode ^ id.hashCode ^ fullHandle.hashCode;
-}
-
-/// generated route for
-/// [_i37.FeedMarketplaceDetailScreen]
-class FeedMarketplaceDetailRoute
-    extends _i70.PageRouteInfo<FeedMarketplaceDetailRouteArgs> {
-  FeedMarketplaceDetailRoute({
-    _i72.Key? key,
-    required String id,
-    List<_i70.PageRouteInfo>? children,
-  }) : super(
-         FeedMarketplaceDetailRoute.name,
-         args: FeedMarketplaceDetailRouteArgs(key: key, id: id),
-         rawPathParams: {'feedId': id},
-         initialChildren: children,
-       );
-
-  static const String name = 'FeedMarketplaceDetailRoute';
-
-  static _i70.PageInfo page = _i70.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<FeedMarketplaceDetailRouteArgs>(
-        orElse: () =>
-            FeedMarketplaceDetailRouteArgs(id: pathParams.getString('feedId')),
-      );
-      return _i37.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
-    },
-  );
-}
-
-class FeedMarketplaceDetailRouteArgs {
-  const FeedMarketplaceDetailRouteArgs({this.key, required this.id});
-
-  final _i72.Key? key;
-
-  final String id;
-
-  @override
-  String toString() {
-    return 'FeedMarketplaceDetailRouteArgs{key: $key, id: $id}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! FeedMarketplaceDetailRouteArgs) return false;
-    return key == other.key && id == other.id;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ id.hashCode;
-}
-
-/// generated route for
-/// [_i38.FeedMarketplaceScreen]
-class FeedMarketplaceRoute extends _i70.PageRouteInfo<void> {
-  const FeedMarketplaceRoute({List<_i70.PageRouteInfo>? children})
-    : super(FeedMarketplaceRoute.name, initialChildren: children);
-
-  static const String name = 'FeedMarketplaceRoute';
-
-  static _i70.PageInfo page = _i70.PageInfo(
-    name,
-    builder: (data) {
-      return const _i38.FeedMarketplaceScreen();
-    },
-  );
 }
 
 /// generated route for

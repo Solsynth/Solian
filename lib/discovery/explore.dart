@@ -17,7 +17,7 @@ import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
-import 'package:island/discovery/models/webfeed.dart';
+
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
@@ -31,7 +31,7 @@ import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/discovery/web_article_card.dart';
+
 import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/discovery/widgets/discovery_profile_sheet.dart';
 import 'package:island/discovery/widgets/friend_presence_widgets.dart';
@@ -437,19 +437,6 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
                 itemBuilder: (context) => [
                   PopupMenuItem(
-                    value: _ExploreAction.articles,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Symbols.auto_stories,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        const Gap(12),
-                        Text('webArticlesStand').tr(),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
                     value: _ExploreAction.categories,
                     child: Row(
                       children: [
@@ -491,9 +478,6 @@ class ExploreScreen extends HookConsumerWidget {
                 ],
                 onSelected: (value) {
                   switch (value) {
-                    case _ExploreAction.articles:
-                      context.router.push(const ArticleStandRoute());
-                      break;
                     case _ExploreAction.categories:
                       context.router.push(PostCategoriesListRoute());
                       break;
@@ -1122,16 +1106,6 @@ class _ExploreFilterToolbar extends StatelessWidget {
                       ),
                     ),
                     PopupMenuItem(
-                      value: _ExploreAction.articles,
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.auto_stories),
-                          const Gap(12),
-                          Text('webArticlesStand').tr(),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
                       value: _ExploreAction.categories,
                       child: Row(
                         children: [
@@ -1164,9 +1138,6 @@ class _ExploreFilterToolbar extends StatelessWidget {
                   ],
                   onSelected: (value) {
                     switch (value) {
-                      case _ExploreAction.articles:
-                        context.router.push(const ArticleStandRoute());
-                        break;
                       case _ExploreAction.search:
                         context.router.push(UniversalSearchRoute());
                         break;
@@ -1301,7 +1272,7 @@ class _FilterToggleButton extends StatelessWidget {
   }
 }
 
-enum _ExploreAction { articles, search, categories, shuffle, footprints }
+enum _ExploreAction { search, categories, shuffle, footprints }
 
 class _RankingToolbar extends StatelessWidget {
   final String currentMode;
@@ -1682,10 +1653,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
         account: SnAccount.fromJson(itemData),
         maxWidth: maxWidth ?? 280,
       ),
-      'article' => WebArticleDiscoveryCard(
-        article: SnWebArticle.fromJson(itemData),
-        maxWidth: maxWidth ?? 280,
-      ),
+
       _ => const SizedBox.shrink(),
     };
   }

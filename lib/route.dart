@@ -26,9 +26,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ArticleEditRoute.page, path: '/articles/:id/edit'),
     // AutoRoute(page: LogsRoute.page, path: '/logs'),
 
-    // Web articles
-    AutoRoute(page: ArticleStandRoute.page, path: '/feeds/articles'),
-    AutoRoute(page: ArticleDetailRoute.page, path: '/feeds/articles/:id'),
+
 
     // Auth routes
     AutoRoute(page: LoginRoute.page, path: '/auth/login'),
@@ -116,11 +114,7 @@ class AppRouter extends RootStackRouter {
               page: StickerMarketplacePackDetailRoute.page,
               path: 'stickers/:id',
             ),
-            AutoRoute(page: FeedMarketplaceRoute.page, path: 'feeds'),
-            AutoRoute(
-              page: FeedMarketplaceDetailRoute.page,
-              path: 'feeds/:feedId',
-            ),
+
             AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
             AutoRoute(page: LevelingRoute.page, path: 'me/leveling'),
@@ -161,7 +155,6 @@ class AppRouter extends RootStackRouter {
           children: [
             // Default child route -> Creator hub list
             AutoRoute(page: CreatorHubListRoute.page, path: '', initial: true),
-            AutoRoute(page: CreatorFeedListRoute.page, path: ':pubName/feeds'),
             AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
             AutoRoute(
               page: CreatorPostCollectionsRoute.page,

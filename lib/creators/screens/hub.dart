@@ -757,20 +757,6 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             );
           },
         ),
-        ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
-          title: const Text('webFeeds').tr(),
-          trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.rss_feed),
-          onTap: () {
-            context.router.push(
-              CreatorFeedListRoute(pubName: currentPublisher.value!.name),
-            );
-          },
-        ),
       ];
 
       final rightItems = [

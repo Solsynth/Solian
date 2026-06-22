@@ -289,13 +289,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const StickerMarketplaceRoute());
                     },
                   },
-                  {
-                    'icon': Symbols.rss_feed_rounded,
-                    'title': 'webFeeds',
-                    'onTap': () {
-                      context.router.push(const FeedMarketplaceRoute());
-                    },
-                  },
+
                 ];
                 return Column(
                   children: menuItems.map((item) {
