@@ -77,6 +77,41 @@ import WebRTC
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
+    private func configureAudioSessionForCallKit() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(
+                .playAndRecord,
+                mode: .voiceChat,
+                options: [.allowBluetooth, .allowBluetoothA2DP, .mixWithOthers]
+            )
+        } catch {
+            print("[CallKit] Failed to configure AVAudioSession: \(error.localizedDescription)")
+        }
+    }
+
+    private func prepareWebRTCAudioForCallKitActivation() {
+        configureAudioSessionForCallKit()
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.useManualAudio = true
+        rtcSession.isAudioEnabled = false
+    }
+
+    private func enableWebRTCAudioForActiveCallKitSession(_ audioSession: AVAudioSession) {
+        configureAudioSessionForCallKit()
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.useManualAudio = true
+        rtcSession.audioSessionDidActivate(audioSession)
+        rtcSession.isAudioEnabled = true
+    }
+
+    private func disableWebRTCAudioForCallKitSession(_ audioSession: AVAudioSession) {
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.isAudioEnabled = false
+        rtcSession.audioSessionDidDeactivate(audioSession)
+        rtcSession.useManualAudio = false
+    }
+
     private func ensureCallBridgeEngine() {
         if bridgeFlutterEngine == nil {
             let engine = FlutterEngine(
@@ -359,6 +394,9 @@ import WebRTC
         )
         data.handleType = "generic"
         data.extra = meta as NSDictionary
+        data.configureAudioSession = false
+
+        prepareWebRTCAudioForCallKitActivation()
         
         SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
             completion()
@@ -371,6 +409,7 @@ import WebRTC
         let roomId = call.data.uuid
         print("[CallKit] Call accepted: \(roomId)")
 
+        prepareWebRTCAudioForCallKitActivation()
         pendingAnswerAction = action
         persistPendingAcceptedCall([
             "roomId": roomId,
@@ -413,12 +452,12 @@ import WebRTC
     
     func didActivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] Audio session activated")
-        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        enableWebRTCAudioForActiveCallKitSession(audioSession)
     }
     
     func didDeactivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] Audio session deactivated")
-        RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+        disableWebRTCAudioForCallKitSession(audioSession)
     }
     
     func providerDidReset() {

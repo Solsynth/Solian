@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:logging/logging.dart';
@@ -82,7 +83,7 @@ class NativeCallBridge extends _$NativeCallBridge {
 
         switch (event) {
           case CallEventActionCallAccept(:final callKitParams):
-            final roomId = callKitParams.handle;
+            final roomId = _roomIdFromCallKitParams(callKitParams);
             Logger.root.info(
               '[NativeCallBridge] CallKit call accepted: $roomId',
             );
@@ -129,6 +130,18 @@ class NativeCallBridge extends _$NativeCallBridge {
         Logger.root.warning('[NativeCallBridge] CallKit event error: $e');
       },
     );
+  }
+
+  String? _roomIdFromCallKitParams(CallKitParams params) {
+    final extraRoomId = params.extra?['room_id'] ?? params.extra?['roomId'];
+    if (extraRoomId is String && extraRoomId.isNotEmpty) {
+      return extraRoomId;
+    }
+    if (params.id.isNotEmpty) {
+      return params.id;
+    }
+    final handle = params.handle;
+    return handle == null || handle.isEmpty ? null : handle;
   }
 
   Future<void> _restorePendingAcceptedCall() async {
