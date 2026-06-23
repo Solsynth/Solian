@@ -336,7 +336,7 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          'NoRolePermissions'.tr(),
+                          'noRolePermissions'.tr(),
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
@@ -652,7 +652,7 @@ class _RealmRolePermissionEditorSheet extends HookConsumerWidget {
                   ),
                   const Divider(height: 24),
                   Text(
-                    'Moderation'.tr(),
+                    'moderation'.tr(),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.tertiary,
                     ),
@@ -903,7 +903,7 @@ class _RealmUserPermissionEditorSheet extends HookConsumerWidget {
                   ),
                   const Divider(height: 24),
                   Text(
-                    'Moderation'.tr(),
+                    'moderation'.tr(),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.tertiary,
                     ),
@@ -1565,7 +1565,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'RealmBoost'.tr(),
+                    'realmBoost'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -1600,7 +1600,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     visualDensity: VisualDensity(vertical: -3),
                   ),
                   icon: const Icon(Symbols.volunteer_activism),
-                  label: Text('Boost'.tr()),
+                  label: Text('boost'.tr()),
                 ),
               ],
             ),
@@ -1641,7 +1641,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                 Icon(Symbols.local_fire_department, size: 17, fill: 1),
                 Text(
                   nextThreshold == null
-                      ? 'BoostMax'.tr()
+                      ? 'boostMax'.tr()
                       : '${boost.boostPoints}/$nextThreshold boosts',
                 ).fontSize(12),
               ],
@@ -1660,12 +1660,12 @@ class RealmDetailScreen extends HookConsumerWidget {
             const Gap(8),
             Text(
               boost.boostLevel >= 3
-                  ? 'BoostAllUnlocked'.tr()
+                  ? 'boostAllUnlocked'.tr()
                   : switch (boost.boostLevel) {
-                      0 => 'BoostLevel1Hint'.tr(),
-                      1 => 'BoostLevel2Hint'.tr(),
-                      2 => 'BoostLevel3Hint'.tr(),
-                      _ => 'BoostProgressAvailable'.tr(),
+                      0 => 'boostLevel1Hint'.tr(),
+                      1 => 'boostLevel2Hint'.tr(),
+                      2 => 'boostLevel3Hint'.tr(),
+                      _ => 'boostProgressAvailable'.tr(),
                     },
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -1696,7 +1696,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'RealmIdentity'.tr(),
+                    'realmIdentity'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -1758,8 +1758,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                 (identity.nick?.isEmpty ?? true))
               Text(
                 realm.boostLevel >= 1
-                    ? 'NoRealmSpecSet'.tr()
-                    : 'RealmBoostFunction'.tr(),
+                    ? 'noRealmSpecSet'.tr()
+                    : 'realmBoostFunction'.tr(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             if (identity.labelId != null) ...[
@@ -1791,7 +1791,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             context,
                           ).colorScheme.onSecondaryContainer,
                         ),
-                        Text('RealmLabel'.tr())
+                        Text('realmLabel'.tr())
                             .fontSize(12)
                             .textColor(
                               Theme.of(
@@ -1843,7 +1843,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'RealmLabels'.tr(),
+                    'realmLabels'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -1866,7 +1866,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                           );
                         },
                   icon: const Icon(Symbols.add),
-                  label: Text('Add'.tr()),
+                  label: Text('add'.tr()),
                 ),
               ],
             ),
@@ -1893,7 +1893,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               data: (labels) {
                 if (labels.isEmpty) {
                   return Text(
-                    'NoLabelsCreated'.tr(),
+                    'noLabelsCreated'.tr(),
                     style: Theme.of(context).textTheme.bodySmall,
                   );
                 }
