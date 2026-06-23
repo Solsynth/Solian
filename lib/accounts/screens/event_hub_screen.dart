@@ -476,8 +476,16 @@ class _CountdownCard extends StatelessWidget {
     return [const Color(0xFFF59E0B), const Color(0xFFEF4444)];
   }
 
+  List<Shadow>? _textShadow(bool hasBackground) {
+    if (!hasBackground) return null;
+    return const [
+      Shadow(color: Colors.black54, blurRadius: 8, offset: Offset(0, 2)),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isUserEvent = item.eventType == SnEventCountdownType.userEvent;
     final defaultIcon = isUserEvent ? Symbols.event : Symbols.celebration;
@@ -486,11 +494,199 @@ class _CountdownCard extends StatelessWidget {
     final durationText = _formatDuration(duration);
     final hasBackground = item.background != null;
     final hasIcon = item.icon != null;
+    final textShadow = _textShadow(hasBackground);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: AspectRatio(
+    final card = Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            if (hasBackground)
+              Positioned.fill(
+                child: CloudFileWidget(
+                  item: item.background!,
+                  fit: BoxFit.cover,
+                  useInternalGate: false,
+                ),
+              ),
+            if (hasBackground)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.08),
+                        Colors.black.withOpacity(0.35),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (!hasBackground)
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.06,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Icon(
+                        defaultIcon,
+                        size: 80,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            Align(
+              alignment: hasBackground
+                  ? Alignment.bottomLeft
+                  : Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      padding: hasIcon
+                          ? EdgeInsets.zero
+                          : const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: hasBackground
+                            ? Colors.white.withOpacity(0.2)
+                            : colors.first.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: hasIcon
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: CloudFileWidget(
+                                item: item.icon!,
+                                fit: BoxFit.cover,
+                                useInternalGate: false,
+                              ),
+                            )
+                          : Icon(
+                              defaultIcon,
+                              color: hasBackground
+                                  ? Colors.white
+                                  : colors.first,
+                              size: 22,
+                            ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: textTheme.titleMedium?.copyWith(
+                              shadows: textShadow,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            DateFormat.yMMMd()
+                                .format(item.startTime.toLocal()),
+                            style: textTheme.bodySmall?.copyWith(
+                              color: hasBackground
+                                  ? Colors.white.withOpacity(0.9)
+                                  : colorScheme.onSurfaceVariant,
+                              shadows: textShadow,
+                            ),
+                          ),
+                          if (item.location != null)
+                            Text(
+                              item.location!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: hasBackground
+                                    ? Colors.white.withOpacity(0.82)
+                                    : colorScheme.onSurfaceVariant,
+                                shadows: textShadow,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (item.isOngoing)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: hasBackground
+                                  ? Colors.white.withOpacity(0.2)
+                                  : colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              'countdownOngoing'.tr(),
+                              style: textTheme.labelSmall?.copyWith(
+                                color: hasBackground
+                                    ? Colors.white
+                                    : colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: hasBackground
+                                ? Colors.white.withOpacity(0.2)
+                                : colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            _isPast
+                                ? 'countdownPast'.tr(args: [durationText])
+                                : 'countdownFuture'
+                                    .tr(args: [durationText]),
+                            style: textTheme.labelMedium?.copyWith(
+                              color: hasBackground
+                                  ? Colors.white
+                                  : colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              shadows: textShadow,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (hasBackground) {
+      return AspectRatio(
         aspectRatio: 16 / 9,
         child: InkWell(
           onTap: isUserEvent && item.eventId != null
@@ -503,180 +699,24 @@ class _CountdownCard extends StatelessWidget {
                   );
                 }
               : null,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Background
-              if (hasBackground)
-                CloudFileWidget(
-                  item: item.background!,
-                  fit: BoxFit.cover,
-                  useInternalGate: false,
-                )
-              else
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: colors,
-                    ),
-                  ),
-                ),
-              // Pattern overlay
-              if (!hasBackground)
-                Positioned.fill(
-                  child: Opacity(
-                    opacity: 0.1,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 20),
-                        child: Icon(
-                          defaultIcon,
-                          size: 120,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              // Gradient shadow
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.5),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          padding: hasIcon ? EdgeInsets.zero : const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: hasIcon
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: CloudFileWidget(
-                                    item: item.icon!,
-                                    fit: BoxFit.cover,
-                                    useInternalGate: false,
-                                  ),
-                                )
-                              : Icon(defaultIcon, color: Colors.white, size: 18),
-                        ),
-                        const Gap(8),
-                        if (item.isOngoing)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              'countdownOngoing'.tr(),
-                              style: textTheme.labelSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            _isPast
-                                ? 'countdownPast'.tr(args: [durationText])
-                                : 'countdownFuture'.tr(args: [durationText]),
-                            style: textTheme.labelMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Text(
-                      item.title,
-                      style: textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Gap(6),
-                    Row(
-                      children: [
-                        Icon(
-                          Symbols.calendar_today,
-                          size: 14,
-                          color: Colors.white.withOpacity(0.8),
-                        ),
-                        const Gap(4),
-                        Text(
-                          DateFormat.yMMMd().format(item.startTime.toLocal()),
-                          style: textTheme.labelMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                        ),
-                        if (item.location != null) ...[
-                          const Gap(12),
-                          Icon(
-                            Symbols.location_on,
-                            size: 14,
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                          const Gap(4),
-                          Flexible(
-                            child: Text(
-                              item.location!,
-                              style: textTheme.labelMedium?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          child: card,
         ),
-      ),
+      );
+    }
+
+    return InkWell(
+      onTap: isUserEvent && item.eventId != null
+          ? () {
+              context.router.push(
+                CalendarEventDetailRoute(
+                  username: username,
+                  eventId: item.eventId!,
+                ),
+              );
+            }
+          : null,
+      borderRadius: BorderRadius.circular(12),
+      child: card,
     );
   }
 }
