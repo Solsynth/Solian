@@ -139,6 +139,7 @@ class CallScreen extends HookConsumerWidget {
         return;
       }
 
+      if (!context.mounted) return;
       final target = await showModalBottomSheet<SnChatMember>(
         context: context,
         useSafeArea: true,
