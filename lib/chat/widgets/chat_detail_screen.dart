@@ -1519,7 +1519,7 @@ class _DownloadMessagesSheet extends HookConsumerWidget {
       downloadProgress.value = 'downloading'.tr();
       totalDownloaded.value = 0;
 
-      const batchSize = 500;
+      const batchSize = 100;
 
       try {
         final database = ref.read(databaseProvider);
