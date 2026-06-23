@@ -384,7 +384,54 @@ class MessageItem extends HookConsumerWidget {
                       title: 'chatSelectText'.tr(),
                       image: MenuImage.icon(Symbols.text_select_start),
                       callback: () {
-                        // Handle text selection
+                        final text =
+                            translatedText.value ??
+                            resolvedDisplay.content ??
+                            '';
+                        if (text.trim().isEmpty) return;
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            opaque: false,
+                            barrierColor: Colors.black54,
+                            transitionDuration: const Duration(
+                              milliseconds: 260,
+                            ),
+                            reverseTransitionDuration: const Duration(
+                              milliseconds: 220,
+                            ),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    _MessageTextSelectionView(
+                                      text: text,
+                                      sender: remoteMessage.sender,
+                                      roomId: message.roomId,
+                                      sentAt: message.createdAt.formatSystem(),
+                                    ),
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  final curved = CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOutCubic,
+                                    reverseCurve: Curves.easeInCubic,
+                                  );
+                                  return FadeTransition(
+                                    opacity: curved,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0, 0.06),
+                                        end: Offset.zero,
+                                      ).animate(curved),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                          ),
+                        );
                       },
                     ),
                   MenuAction(
@@ -1032,11 +1079,6 @@ class _MessageTextSelectionView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final roomAsync = ref.watch(chatRoomProvider(roomId));
-    final roomName = roomAsync.value?.name;
-    final roomLabel = (roomName != null && roomName.trim().isNotEmpty)
-        ? roomName
-        : 'room';
 
     return Material(
       color: colorScheme.surface,
@@ -1120,16 +1162,15 @@ class _MessageTextSelectionView extends HookConsumerWidget {
                               color: colorScheme.onSurface.withOpacity(0.8),
                             ),
                           ),
-                          Text(
-                            'in $roomLabel',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                              color: colorScheme.onSurface.withOpacity(0.8),
-                            ),
-                          ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: text));
+                        showSnackBar('copiedToClipboard'.tr());
+                      },
+                      icon: const Icon(Symbols.copy_all),
                     ),
                   ],
                 ),
