@@ -198,6 +198,7 @@ class _CountdownContent extends HookConsumerWidget {
             provider: eventCountdownListProvider(query),
             notifier: eventCountdownListProvider(query).notifier,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            seperatorBuilder: (_, _, _) => const Gap(8),
             itemBuilder: (context, index, item) {
               return _CountdownCard(item: item, username: name);
             },
@@ -497,7 +498,6 @@ class _CountdownCard extends StatelessWidget {
     final textShadow = _textShadow(hasBackground);
 
     final card = Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
@@ -530,23 +530,7 @@ class _CountdownCard extends StatelessWidget {
                   ),
                 ),
               ),
-            if (!hasBackground)
-              Positioned.fill(
-                child: Opacity(
-                  opacity: 0.06,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Icon(
-                        defaultIcon,
-                        size: 80,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+
             Align(
               alignment: hasBackground
                   ? Alignment.bottomLeft
@@ -598,8 +582,7 @@ class _CountdownCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            DateFormat.yMMMd()
-                                .format(item.startTime.toLocal()),
+                            DateFormat.yMMMd().format(item.startTime.toLocal()),
                             style: textTheme.bodySmall?.copyWith(
                               color: hasBackground
                                   ? Colors.white.withOpacity(0.9)
@@ -663,8 +646,7 @@ class _CountdownCard extends StatelessWidget {
                           child: Text(
                             _isPast
                                 ? 'countdownPast'.tr(args: [durationText])
-                                : 'countdownFuture'
-                                    .tr(args: [durationText]),
+                                : 'countdownFuture'.tr(args: [durationText]),
                             style: textTheme.labelMedium?.copyWith(
                               color: hasBackground
                                   ? Colors.white
