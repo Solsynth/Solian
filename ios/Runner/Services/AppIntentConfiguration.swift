@@ -56,6 +56,17 @@ struct AppShortcuts: AppShortcutsProvider {
             systemImageName: "magnifyingglass"
         )
         AppShortcut(
+            intent: OpenSearchIntent(),
+            phrases: [
+                "Open search in \(.applicationName)",
+                "Search screen in \(.applicationName)",
+                "在 \(.applicationName) 打开搜索",
+                "在 \(.applicationName) 打開搜尋"
+            ],
+            shortTitle: "intent_search_short_title",
+            systemImageName: "magnifyingglass.circle"
+        )
+        AppShortcut(
             intent: CheckNotificationsIntent(),
             phrases: [
                 "Check notifications with \(.applicationName)",
