@@ -68,14 +68,25 @@ class ChatRoomMemberCard extends HookConsumerWidget {
     this.onUpdated,
   });
 
-  void _openActionSheet(BuildContext context, WidgetRef ref) {
-    final effectiveMember = ref.read(
-      chatRoomMemberDetailsProvider((
-        roomId: roomId,
-        accountId: member.accountId,
-      )),
-    );
-    if (effectiveMember.value == null) return;
+  Future<void> _openActionSheet(BuildContext context, WidgetRef ref) async {
+    final lookup = (roomId: roomId, accountId: member.accountId);
+    final cached = ref.read(chatRoomMemberDetailsProvider(lookup));
+    SnChatMember? effectiveMember = cached.value;
+
+    if (effectiveMember == null) {
+      showLoadingModal(context);
+      try {
+        effectiveMember = await ref.read(
+          chatRoomMemberDetailsProvider(lookup).future,
+        );
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    if (effectiveMember == null || !context.mounted) return;
+
+    final resolvedMember = effectiveMember;
 
     showModalBottomSheet(
       context: context,
@@ -83,7 +94,7 @@ class ChatRoomMemberCard extends HookConsumerWidget {
       useSafeArea: true,
       builder: (context) => _ChatRoomMemberActionSheet(
         roomId: roomId,
-        member: effectiveMember.value!,
+        member: resolvedMember,
         canModerate: canModerate,
         onUpdated: onUpdated,
       ),
@@ -393,12 +404,34 @@ class ChatRoomMemberCard extends HookConsumerWidget {
                     label: Text('invitePending'.tr()),
                   ),
                 if (hasActiveTimeout)
-                  Chip(
-                    avatar: const Icon(Symbols.timer_pause, size: 18),
-                    label: Text(
-                      'timedOutUntil'.tr(
-                        args: [activeTimeoutUntil.formatSystem()],
-                      ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.error,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Symbols.timer_pause,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.onError,
+                        ),
+                        const Gap(4),
+                        Text(
+                          'timedOutUntil'.tr(
+                            args: [activeTimeoutUntil.formatSystem()],
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onError,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
