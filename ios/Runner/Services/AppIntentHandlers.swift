@@ -42,6 +42,25 @@ enum AppIntentL10n {
     }
 }
 
+// MARK: - Navigation Helper
+
+@available(iOS 16.0, *)
+enum AppIntentNavigation {
+    static func queueDeepLink(path: String, queryItems: [URLQueryItem] = []) throws {
+        guard var components = URLComponents(string: "\(SharedConstants.urlScheme)://\(path)") else {
+            throw AppIntentError.networkError("Invalid app URL")
+        }
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+        guard let url = components.url else {
+            throw AppIntentError.networkError("Invalid app URL")
+        }
+        UserDefaults.shared.set(url.absoluteString, forKey: SharedConstants.pendingDeepLinkUrlKey)
+        UserDefaults.shared.synchronize()
+    }
+}
+
 // MARK: - Cache Helper
 
 @available(iOS 16.0, *)
@@ -318,10 +337,10 @@ struct OpenChatIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & OpensIntent {
         if let chatRoom = chatRoom {
-            DeepLinkHandler.shared.handle(url: URL(string: "solian://chat/\(chatRoom.id)")!)
+            try AppIntentNavigation.queueDeepLink(path: "chat/\(chatRoom.id)")
             return .result(value: AppIntentL10n.string("intent_open_chat_result_room", chatRoom.name ?? chatRoom.id))
         } else {
-            DeepLinkHandler.shared.handle(url: URL(string: "solian://chat")!)
+            try AppIntentNavigation.queueDeepLink(path: "chat")
             return .result(value: AppIntentL10n.string("intent_open_chat_result_list"))
         }
     }
@@ -348,8 +367,7 @@ struct OpenPostIntent: AppIntent {
             throw AppIntentError.requiredParameter("Post")
         }
 
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://posts/\(post.id)")!)
-
+        try AppIntentNavigation.queueDeepLink(path: "posts/\(post.id)")
         return .result(value: AppIntentL10n.string("intent_open_post_result", post.id))
     }
 }
@@ -364,8 +382,7 @@ struct OpenComposeIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://compose")!)
-
+        try AppIntentNavigation.queueDeepLink(path: "compose")
         return .result(value: AppIntentL10n.string("intent_open_compose_result"))
     }
 }
@@ -380,8 +397,7 @@ struct ComposePostIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://compose")!)
-
+        try AppIntentNavigation.queueDeepLink(path: "compose")
         return .result(value: AppIntentL10n.string("intent_open_compose_result"))
     }
 }
@@ -390,6 +406,69 @@ struct ComposePostIntent: AppIntent {
 
 @available(iOS 16.0, *)
 struct SearchContentIntent: AppIntent {
+    static var title: LocalizedStringResource = "intent_search_title"
+    static var description = IntentDescription("intent_search_desc")
+    static var isDiscoverable = true
+    static var openAppWhenRun = false
+
+    @Parameter(title: "intent_search_query_parameter")
+    var query: String?
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("intent_search_summary \(\.$query)")
+    }
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let query = query, !query.isEmpty else {
+            throw AppIntentError.requiredParameter(AppIntentL10n.string("intent_search_query_parameter"))
+        }
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
+        do {
+            let posts = try await NetworkService.shared.searchPosts(
+                query: query,
+                limit: 3,
+                token: token,
+                serverUrl: serverUrl
+            )
+
+            if posts.isEmpty {
+                let message = AppIntentL10n.string("intent_search_result", query)
+                return .result(
+                    value: message,
+                    dialog: "\(message)"
+                )
+            }
+
+            let lines = posts.enumerated().map { index, post in
+                let title = post.content?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .replacingOccurrences(of: "\n", with: " ")
+                    .prefix(60)
+                    .description
+                    ?? AppIntentL10n.string("intent_post_fallback_format", String(post.id.prefix(8)))
+                let author = post.author?.name ?? AppIntentL10n.string("intent_unknown_sender")
+                return "\(index + 1). \(title) (\(author))"
+            }
+            let message = lines.joined(separator: "\n")
+
+            return .result(
+                value: message,
+                dialog: "\(AppIntentL10n.string("intent_search_result", query))"
+            )
+        } catch {
+            throw AppIntentError.networkError(error.localizedDescription)
+        }
+    }
+}
+
+// MARK: - Open Search Intent
+
+@available(iOS 16.0, *)
+struct OpenSearchIntent: AppIntent {
     static var title: LocalizedStringResource = "intent_search_title"
     static var description = IntentDescription("intent_search_desc")
     static var isDiscoverable = true
@@ -403,14 +482,17 @@ struct SearchContentIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        guard let query = query, !query.isEmpty else {
-            throw AppIntentError.requiredParameter(AppIntentL10n.string("intent_search_query_parameter"))
-        }
+        let normalizedQuery = query?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        try AppIntentNavigation.queueDeepLink(
+            path: "search",
+            queryItems: normalizedQuery.isEmpty ? [] : [
+                URLQueryItem(name: "q", value: normalizedQuery)
+            ]
+        )
 
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://search?q=\(encodedQuery)")!)
-
-        return .result(value: AppIntentL10n.string("intent_search_result", query))
+        return .result(value: normalizedQuery.isEmpty
+            ? AppIntentL10n.string("intent_search_short_title")
+            : AppIntentL10n.string("intent_search_result", normalizedQuery))
     }
 }
 
@@ -424,8 +506,7 @@ struct ViewNotificationsIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://notifications")!)
-
+        try AppIntentNavigation.queueDeepLink(path: "notifications")
         return .result(value: AppIntentL10n.string("intent_notifications_result"))
     }
 }

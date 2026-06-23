@@ -18,12 +18,14 @@ import WebRTC
     private static var sharedWatchConnectivityService: WatchConnectivityService?
     private let pendingAcceptedCallKey = "dev.solsynth.solian.pendingAcceptedCall"
     private let callKitChannelName = "dev.solsynth.solian/callkit"
+    private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private let callBridgeEngineName = "dev.solsynth.solian.callkit_bridge"
     private let pendingAnswerTimeout: TimeInterval = 15
     private var voipRegistry: PKPushRegistry?
     private var bridgeFlutterEngine: FlutterEngine?
     private var implicitCallKitChannel: FlutterMethodChannel?
+    private var implicitDeepLinkChannel: FlutterMethodChannel?
     private var bridgeCallKitChannel: FlutterMethodChannel?
     private var pendingAnswerAction: CXAnswerCallAction?
     private var pendingAnswerTimeoutWorkItem: DispatchWorkItem?
@@ -43,6 +45,10 @@ import WebRTC
         sendCfgToAppGroup()
         refreshAppIntents()
         WidgetCenter.shared.reloadAllTimelines()
+
+        if let launchUrl = launchOptions?[.url] as? URL {
+            _ = handleIncomingDeepLink(launchUrl)
+        }
 
         UNUserNotificationCenter.current().delegate = notifyDelegate
 
@@ -167,6 +173,10 @@ import WebRTC
         implicitCallKitChannel = makeCallKitChannel(
             binaryMessenger: engineBridge.applicationRegistrar.messenger()
         )
+        implicitDeepLinkChannel = makeDeepLinkChannel(
+            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+        )
+        emitPendingDeepLinkIfNeeded()
     }
     
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
@@ -176,9 +186,61 @@ import WebRTC
              return sharingIntent.application(app, open: url, options: options)
          }
 
+         if handleIncomingDeepLink(url) {
+             return true
+         }
+
          // Proceed url handling for other Flutter libraries like uni_links
          return super.application(app, open: url, options:options)
        }
+
+    private func makeDeepLinkChannel(binaryMessenger: FlutterBinaryMessenger) -> FlutterMethodChannel {
+        let channel = FlutterMethodChannel(
+            name: deepLinkChannelName,
+            binaryMessenger: binaryMessenger
+        )
+        channel.setMethodCallHandler { call, result in
+            switch call.method {
+            case "consumePendingDeepLink":
+                result(self.consumePendingDeepLink())
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+        return channel
+    }
+
+    private func handleIncomingDeepLink(_ url: URL) -> Bool {
+        guard url.scheme == SharedConstants.urlScheme else {
+            return false
+        }
+
+        let urlString = url.absoluteString
+        UserDefaults.shared.set(urlString, forKey: SharedConstants.pendingDeepLinkUrlKey)
+        UserDefaults.shared.synchronize()
+        emitPendingDeepLinkIfNeeded()
+        return true
+    }
+
+    private func emitPendingDeepLinkIfNeeded() {
+        guard let urlString = UserDefaults.shared.string(forKey: SharedConstants.pendingDeepLinkUrlKey),
+              !urlString.isEmpty,
+              let channel = implicitDeepLinkChannel else {
+            return
+        }
+
+        channel.invokeMethod("onDeepLink", arguments: urlString)
+    }
+
+    private func consumePendingDeepLink() -> String? {
+        let defaults = UserDefaults.shared
+        defer {
+            defaults.removeObject(forKey: SharedConstants.pendingDeepLinkUrlKey)
+            defaults.synchronize()
+        }
+
+        return defaults.string(forKey: SharedConstants.pendingDeepLinkUrlKey)
+    }
 
     private func setupWidgetSyncChannel(engineBridge: FlutterImplicitEngineBridge) {
         let channel = FlutterMethodChannel(
@@ -346,6 +408,10 @@ import WebRTC
         sendCfgToAppGroup()
         refreshAppIntents()
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    override func applicationDidBecomeActive(_ application: UIApplication) {
+        emitPendingDeepLinkIfNeeded()
     }
 
     override func applicationWillTerminate(_ application: UIApplication) {
