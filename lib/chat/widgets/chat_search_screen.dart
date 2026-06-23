@@ -447,13 +447,13 @@ class SearchMessagesScreen extends HookConsumerWidget {
               },
               loading: () {
                 if (searchState.value == SearchState.searching) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CircularProgressIndicator(),
                         SizedBox(height: 16),
-                        Text('Searching...'),
+                        Text('searching'.tr()),
                       ],
                     ),
                   );

@@ -785,7 +785,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: const Text('settingsShowChatEventMessages').tr(),
-            subtitle: const Text('ShowChatEventsMessagesHelper').tr(),
+            subtitle: const Text('showChatEventsMessagesHelper').tr(),
             contentPadding: const EdgeInsets.only(left: 24, right: 17),
             leading: const Icon(Symbols.info),
             trailing: DropdownButtonHideUnderline(
