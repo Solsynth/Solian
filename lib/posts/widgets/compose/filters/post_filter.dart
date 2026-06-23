@@ -186,18 +186,6 @@ class PostFilterWidget extends HookConsumerWidget {
                         updateQuery();
                       },
                     ),
-                    _FilterChipButton(
-                      icon: Symbols.sort,
-                      label: 'descendingOrder'.tr(),
-                      stateIcon: orderDesc.value
-                          ? Symbols.south
-                          : Symbols.north,
-                      emphasized: orderDesc.value,
-                      onTap: () {
-                        orderDesc.value = !orderDesc.value;
-                        updateQuery();
-                      },
-                    ),
                   ],
                 ),
                 const Gap(8),
@@ -362,7 +350,11 @@ class PostFilterWidget extends HookConsumerWidget {
                                   },
                                 ),
                               ),
-                              const Gap(8),
+                            ],
+                          ),
+                          const Gap(8),
+                          Row(
+                            children: [
                               Expanded(
                                 child: DropdownButtonFormField<String?>(
                                   decoration: InputDecoration(
@@ -382,6 +374,30 @@ class PostFilterWidget extends HookConsumerWidget {
                                   ],
                                   onChanged: (value) {
                                     order.value = value;
+                                    updateQuery();
+                                  },
+                                ),
+                              ),
+                              const Gap(8),
+                              Expanded(
+                                child: DropdownButtonFormField<bool>(
+                                  decoration: InputDecoration(
+                                    labelText: 'order'.tr(),
+                                    prefixIcon: const Icon(Symbols.sort),
+                                  ),
+                                  initialValue: orderDesc.value,
+                                  items: [
+                                    const DropdownMenuItem<bool>(
+                                      value: true,
+                                      child: Text('Descending'),
+                                    ),
+                                    const DropdownMenuItem<bool>(
+                                      value: false,
+                                      child: Text('Ascending'),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    orderDesc.value = value ?? true;
                                     updateQuery();
                                   },
                                 ),
@@ -535,22 +551,10 @@ class _TypeFilterChip extends StatelessWidget {
       tooltip: 'type'.tr(),
       onSelected: onSelected,
       itemBuilder: (context) => [
-        PopupMenuItem<int?>(
-          value: null,
-          child: Text('all'.tr()),
-        ),
-        PopupMenuItem<int?>(
-          value: 0,
-          child: Text('postTypePost'.tr()),
-        ),
-        PopupMenuItem<int?>(
-          value: 1,
-          child: Text('postArticle'.tr()),
-        ),
-        PopupMenuItem<int?>(
-          value: 2,
-          child: Text('postBlog'.tr()),
-        ),
+        PopupMenuItem<int?>(value: null, child: Text('all'.tr())),
+        PopupMenuItem<int?>(value: 0, child: Text('postTypePost'.tr())),
+        PopupMenuItem<int?>(value: 1, child: Text('postArticle'.tr())),
+        PopupMenuItem<int?>(value: 2, child: Text('postBlog'.tr())),
       ],
       child: Material(
         color: value != null

@@ -11,6 +11,7 @@ import 'package:island/accounts/widgets/account/event_calendar_content.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
+import 'package:flutter/rendering.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -131,6 +132,7 @@ class _CountdownContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final includeNotableDays = useState(true);
     final selectedTag = useState<String?>(null);
+    final isFilterVisible = useState(true);
     final query = EventCountdownQuery(
       username: name,
       includeNotableDays: includeNotableDays.value,
@@ -140,68 +142,124 @@ class _CountdownContent extends HookConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Material(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          elevation: 1,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'includeNotableDays'.tr(),
-                        style: Theme.of(context).textTheme.bodyMedium,
+        AnimatedSlide(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          offset: isFilterVisible.value ? Offset.zero : const Offset(0, -0.08),
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: isFilterVisible.value
+                  ? Card(
+                      key: const ValueKey('filters-visible'),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
                       ),
-                    ),
-                    Switch(
-                      value: includeNotableDays.value,
-                      onChanged: (value) {
-                        includeNotableDays.value = value;
-                      },
-                    ),
-                  ],
-                ),
-                const Gap(8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _availableTags.map((tag) {
-                      final isSelected = selectedTag.value == tag;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Text(
-                            tag == null
-                                ? 'countdownTagAll'.tr()
-                                : 'countdownTag$tag'.tr(),
-                          ),
-                          selected: isSelected,
-                          onSelected: (_) {
-                            selectedTag.value = tag;
-                          },
-                          showCheckmark: false,
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Symbols.tune,
+                                    size: 18,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                                const Gap(8),
+                                Expanded(
+                                  child: Text(
+                                    'includeNotableDays'.tr(),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelLarge,
+                                  ),
+                                ),
+                                Switch(
+                                  value: includeNotableDays.value,
+                                  onChanged: (value) {
+                                    includeNotableDays.value = value;
+                                  },
+                                ),
+                              ],
+                            ),
+                            const Gap(8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _availableTags.map((tag) {
+                                final isSelected = selectedTag.value == tag;
+                                return FilterChip(
+                                  label: Text(
+                                    tag == null
+                                        ? 'countdownTagAll'.tr()
+                                        : 'countdownTag$tag'.tr(),
+                                  ),
+                                  selected: isSelected,
+                                  onSelected: (_) {
+                                    selectedTag.value = tag;
+                                  },
+                                  showCheckmark: false,
+                                );
+                              }).toList(),
+                            ),
+                            const Gap(8),
+                            const _TimeProgressPageView(),
+                          ],
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
+                      ),
+                    )
+                  : const SizedBox(key: ValueKey('filters-hidden')),
             ),
           ),
         ),
-        const _TimeProgressPageView(),
-        const Gap(8),
         Expanded(
-          child: PaginationList<SnEventCountdownItem>(
-            provider: eventCountdownListProvider(query),
-            notifier: eventCountdownListProvider(query).notifier,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            seperatorBuilder: (_, _, _) => const Gap(8),
-            itemBuilder: (context, index, item) {
-              return _CountdownCard(item: item, username: name);
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              if (notification.depth != 0) return false;
+              switch (notification.direction) {
+                case ScrollDirection.reverse:
+                  if (isFilterVisible.value) {
+                    isFilterVisible.value = false;
+                  }
+                case ScrollDirection.forward:
+                  if (!isFilterVisible.value) {
+                    isFilterVisible.value = true;
+                  }
+                case ScrollDirection.idle:
+                  break;
+              }
+              return false;
             },
+            child: PaginationList<SnEventCountdownItem>(
+              provider: eventCountdownListProvider(query),
+              notifier: eventCountdownListProvider(query).notifier,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              seperatorBuilder: (_, _, _) => const Gap(8),
+              itemBuilder: (context, index, item) {
+                return _CountdownCard(item: item, username: name);
+              },
+            ),
           ),
         ),
       ],
@@ -297,7 +355,7 @@ class _TimeProgressCard extends HookWidget {
     final currentBlock = _getCurrentBlock(currentTime.value);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      margin: const EdgeInsets.fromLTRB(0, 12, 0, 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
