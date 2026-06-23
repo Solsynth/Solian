@@ -1613,6 +1613,8 @@
   "settingsMixedFeed": "Mixed Feed",
   "settingsNoChatMessages": "No chat messages stored",
   "settingsNotifyWithHaptic": "Notification with Haptic Feedback",
+  "settingsShakeDetection": "Shake to Open Command Palette",
+  "settingsShakeDetectionHelper": "Shake your device to open the command palette",
   "settingsRealmCompactView": "Compact Realm View",
   "settingsResetCustomColors": "Restablecer colores personalizados",
   "settingsSaved": "Configuración guardada",

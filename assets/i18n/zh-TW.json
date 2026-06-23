@@ -2949,6 +2949,8 @@
   "settingsNativeCache": "系統快取",
   "settingsNoChatMessages": "No chat messages stored",
   "settingsNotifyWithHaptic": "通知觸感反饋",
+  "settingsShakeDetection": "搖一搖開啟命令面板",
+  "settingsShakeDetectionHelper": "搖動裝置以開啟命令面板",
   "settingsPluginEditor": "外掛編輯器",
   "settingsPluginEditorDescription": "編寫並測試 Python 外掛",
   "settingsRealmCompactView": "緊湊領域檢視",

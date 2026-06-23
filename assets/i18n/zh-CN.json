@@ -2949,6 +2949,8 @@
   "settingsNativeCache": "系统缓存",
   "settingsNoChatMessages": "No chat messages stored",
   "settingsNotifyWithHaptic": "通知触感反馈",
+  "settingsShakeDetection": "摇一摇打开命令面板",
+  "settingsShakeDetectionHelper": "摇动设备以打开命令面板",
   "settingsPluginEditor": "插件编辑器",
   "settingsPluginEditorDescription": "编写并测试 Python 插件",
   "settingsRealmCompactView": "紧凑领域视图",

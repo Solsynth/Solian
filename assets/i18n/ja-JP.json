@@ -1700,6 +1700,8 @@
   "settingsMixedFeed": "ミックスフィード",
   "settingsNoChatMessages": "No chat messages stored",
   "settingsNotifyWithHaptic": "触覚フィードバック付き通知",
+  "settingsShakeDetection": "シェイクでコマンドパレットを開く",
+  "settingsShakeDetectionHelper": "デバイスを振ってコマンドパレットを開きます",
   "settingsRealmCompactView": "コンパクトレルム表示",
   "settingsResetCustomColors": "カスタムカラーをリセット",
   "settingsSaved": "設定を保存しました",

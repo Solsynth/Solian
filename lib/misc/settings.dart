@@ -619,6 +619,9 @@ class SettingsScreen extends HookConsumerWidget {
           'festival features',
           'haptic feedback',
           'friend status',
+          'shake detection',
+          'shake to open',
+          'shake gesture',
         ],
         children: [
           ListTile(
@@ -869,6 +872,23 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
+          if (!isDesktop)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsShakeDetection').tr(),
+              subtitle: Text('settingsShakeDetectionHelper').tr().fontSize(12),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.vibration),
+              trailing: Switch(
+                value: ref.watch(shakeDetectionEnabledProvider),
+                onChanged: (value) {
+                  ref
+                      .read(shakeDetectionEnabledProvider.notifier)
+                      .setEnabled(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
           if (isDesktop)
             ListTile(
               minLeadingWidth: 48,

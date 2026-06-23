@@ -3092,6 +3092,8 @@
   "settingsNativeCache": "Native Cache",
   "settingsNoChatMessages": "No chat messages stored",
   "settingsNotifyWithHaptic": "Notification with Haptic Feedback",
+  "settingsShakeDetection": "Shake to Open Command Palette",
+  "settingsShakeDetectionHelper": "Shake your device to open the command palette",
   "settingsNowPlaying": "Now Playing",
   "settingsNowPlayingDisableAppleMusic": "Disable Apple Music Integration",
   "settingsNowPlayingDisableAppleMusicHelper": "Disable MusicKit integration. Basic now playing info will still be shared.",

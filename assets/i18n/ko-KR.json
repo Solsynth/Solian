@@ -1926,6 +1926,8 @@
   "settingsMixedFeed": "혼합 피드",
   "settingsNoChatMessages": "No chat messages stored",
   "settingsNotifyWithHaptic": "햅틱 피드백과 함께 알림",
+  "settingsShakeDetection": "흔들어서 명령 팔레트 열기",
+  "settingsShakeDetectionHelper": "기기를 흔들어 명령 팔레트를 엽니다",
   "settingsRealmCompactView": "컴팩트 레얼름 보기",
   "settingsResetCustomColors": "사용자 정의 색상 재설정",
   "settingsSaved": "설정이 저장되었습니다",
