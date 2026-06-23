@@ -8,6 +8,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -39,23 +40,6 @@ class CreatorDomainManageScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final domains = ref.watch(publisherDomainsProvider(pubName));
-    final addController = useTextEditingController();
-
-    Future<void> addDomain() async {
-      final domain = addController.text.trim();
-      if (domain.isEmpty) return;
-      try {
-        final apiClient = ref.read(apiClientProvider);
-        await apiClient.post(
-          '/sphere/publishers/$pubName/domains',
-          data: {'domain': domain},
-        );
-        addController.clear();
-        ref.invalidate(publisherDomainsProvider(pubName));
-      } catch (err) {
-        showErrorAlert(err);
-      }
-    }
 
     Future<void> removeDomain(String domainId) async {
       final confirm = await showConfirmAlert(
@@ -90,130 +74,96 @@ class CreatorDomainManageScreen extends HookConsumerWidget {
       }
     }
 
+    void showAddDomainSheet() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder: (_) => _AddDomainSheet(pubName: pubName),
+      );
+    }
+
     return AppScaffold(
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text('verifiedDomains'.tr()),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: showAddDomainSheet,
+        child: const Icon(Symbols.add),
+      ),
       body: domains.when(
-        data: (items) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Add domain form
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+        data: (items) {
+          if (items.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Symbols.domain_disabled,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const Gap(8),
+                  Text('noDomains'.tr()),
+                ],
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final domain = items[index];
+              return ListTile(
+                leading: Icon(
+                  _statusIcon(domain.status),
+                  color: _statusColor(domain.status, context),
+                ),
+                title: Text(domain.domain),
+                subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('addDomain'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const Gap(8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: addController,
-                            decoration: InputDecoration(
-                              hintText: 'blog.example.com',
-                              border: const OutlineInputBorder(),
-                              isDense: true,
+                    Text(_statusLabel(domain.status).tr()),
+                    if (domain.verifiedAt != null)
+                      Text(
+                        'verifiedAt'.tr(
+                          args: [domain.verifiedAt!.formatRelative(context)],
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    if (domain.lastError != null)
+                      Text(
+                        domain.lastError!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.error,
                             ),
-                            keyboardType: TextInputType.url,
-                            onSubmitted: (_) => addDomain(),
-                          ),
-                        ),
-                        const Gap(8),
-                        FilledButton(
-                          onPressed: addDomain,
-                          child: Text('add'.tr()),
-                        ),
-                      ],
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Symbols.refresh),
+                      tooltip: 'recheck'.tr(),
+                      onPressed: () => recheckDomain(domain.id),
                     ),
-                    const Gap(4),
-                    Text(
-                      'domainVerificationHint'.tr(),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                    IconButton(
+                      icon: const Icon(Symbols.delete),
+                      tooltip: 'removeDomain'.tr(),
+                      onPressed: () => removeDomain(domain.id),
                     ),
                   ],
                 ),
-              ),
-            ),
-            const Gap(16),
-
-            // Domain list
-            if (items.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      Icon(Symbols.domain_disabled,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      const Gap(8),
-                      Text('noDomains'.tr()),
-                    ],
-                  ),
-                ),
-              ),
-            for (final domain in items)
-              Card(
-                child: ListTile(
-                  leading: Icon(
-                    _statusIcon(domain.status),
-                    color: _statusColor(domain.status, context),
-                  ),
-                  title: Text(domain.domain),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_statusLabel(domain.status).tr()),
-                      if (domain.verifiedAt != null)
-                        Text(
-                          'verifiedAt'.tr(
-                            args: [domain.verifiedAt!.formatRelative(context)],
-                          ),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      if (domain.lastError != null)
-                        Text(
-                          domain.lastError!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Symbols.refresh),
-                        tooltip: 'recheck'.tr(),
-                        onPressed: () => recheckDomain(domain.id),
-                      ),
-                      IconButton(
-                        icon: const Icon(Symbols.delete),
-                        tooltip: 'removeDomain'.tr(),
-                        onPressed: () => removeDomain(domain.id),
-                      ),
-                    ],
-                  ),
-                  isThreeLine: domain.lastError != null ||
-                      domain.verifiedAt != null,
-                ),
-              ),
-          ],
-        ),
+                isThreeLine:
+                    domain.lastError != null || domain.verifiedAt != null,
+              );
+            },
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
@@ -248,5 +198,73 @@ class CreatorDomainManageScreen extends HookConsumerWidget {
       DomainVerificationStatus.failed => 'domainFailed',
       DomainVerificationStatus.revoked => 'domainRevoked',
     };
+  }
+}
+
+class _AddDomainSheet extends HookConsumerWidget {
+  final String pubName;
+  const _AddDomainSheet({required this.pubName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = useTextEditingController();
+    final submitting = useState(false);
+
+    Future<void> submit() async {
+      final domain = controller.text.trim();
+      if (domain.isEmpty) return;
+      submitting.value = true;
+      try {
+        final apiClient = ref.read(apiClientProvider);
+        await apiClient.post(
+          '/sphere/publishers/$pubName/domains',
+          data: {'domain': domain},
+        );
+        ref.invalidate(publisherDomainsProvider(pubName));
+        if (context.mounted) Navigator.pop(context);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        submitting.value = false;
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'addDomain'.tr(),
+      actions: [
+        IconButton(
+          onPressed: submitting.value ? null : submit,
+          icon: submitting.value
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Symbols.check),
+        ),
+      ],
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        children: [
+          TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.url,
+            decoration: InputDecoration(
+              hintText: 'blog.example.com',
+              prefixIcon: const Icon(Symbols.domain),
+            ),
+            onSubmitted: (_) => submit(),
+          ),
+          const Gap(12),
+          Text(
+            'domainVerificationHint'.tr(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 }
