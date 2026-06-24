@@ -229,6 +229,13 @@ class AccountQrScreen extends HookConsumerWidget {
         return;
       }
 
+      // ponytail: matches /auth/device?code=XXXX-XXXX from the doc
+      final deviceCode = _parseDeviceAuthUserCode(value);
+      if (deviceCode != null) {
+        await _checkAndShowDeviceApproval(context, ref, deviceCode);
+        return;
+      }
+
       final target = _resolveScannedAccountName(value);
       if (target != null) {
         await context.router.push(AccountProfileRoute(name: target));
@@ -249,10 +256,9 @@ class AccountQrScreen extends HookConsumerWidget {
         title: Text('accountQrCodeTitle').tr(),
         leading: const AutoLeadingButton(),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: openScanner,
-        icon: const Icon(Symbols.qr_code_scanner),
-        label: Text('accountQrStartScanning').tr(),
+        child: const Icon(Symbols.qr_code_scanner),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ListView(
@@ -314,6 +320,21 @@ class AccountQrScreen extends HookConsumerWidget {
                   ],
                 ),
               ),
+            ),
+          ),
+          const Gap(20),
+          _QrModeSection(
+            sectionId: _QrSectionId.deviceAuth,
+            title: 'accountQrDeviceAuthSectionTitle'.tr(),
+            subtitle: 'accountQrDeviceAuthHint'.tr(),
+            icon: Symbols.phonelink_lock,
+            isExpanded: selectedSection.value == _QrSectionId.deviceAuth,
+            onExpansionChanged: (value) {
+              selectedSection.value = value ? _QrSectionId.deviceAuth : null;
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _DeviceAuthSection(),
             ),
           ),
           const Gap(20),
@@ -504,7 +525,7 @@ class _QrPanel extends StatelessWidget {
   }
 }
 
-enum _QrSectionId { profile, transfer }
+enum _QrSectionId { profile, transfer, deviceAuth }
 
 class _QrModeSection extends StatelessWidget {
   final _QrSectionId sectionId;
@@ -1004,6 +1025,28 @@ class _AccountQrScannerSheetState extends State<_AccountQrScannerSheet> {
   }
 }
 
+String? _parseDeviceAuthUserCode(String rawValue) {
+  final value = rawValue.trim();
+  if (value.isEmpty) return null;
+
+  // Direct user code: XXXX-XXXX
+  final codePattern = RegExp(r'^[A-Z]{4}-[A-Z]{4}$');
+  if (codePattern.hasMatch(value.toUpperCase())) {
+    return value.toUpperCase();
+  }
+
+  // Verification URI with code param: /auth/device?code=XXXX-XXXX
+  final uri = Uri.tryParse(value);
+  if (uri != null) {
+    final code = uri.queryParameters['code'];
+    if (code != null && codePattern.hasMatch(code.toUpperCase())) {
+      return code.toUpperCase();
+    }
+  }
+
+  return null;
+}
+
 String? _resolveScannedAccountName(String rawValue) {
   final value = rawValue.trim();
   if (value.isEmpty) return null;
@@ -1463,6 +1506,342 @@ Future<void> handleWalletTransferRequestDeepLink({
 
   if (result != null && context.mounted) {
     await submitWalletTransfer(context, ref, result);
+  }
+}
+
+Future<void> _openDeviceAuthFlow(BuildContext context, WidgetRef ref) async {
+  final codeController = TextEditingController();
+  final userCode = await showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    builder: (context) => SheetScaffold(
+      titleText: 'accountQrDeviceAuthEnterCode'.tr(),
+      heightFactor: 0.5,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'accountQrDeviceAuthEnterCodeHint'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Gap(16),
+            TextField(
+              controller: codeController,
+              textCapitalization: TextCapitalization.characters,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'accountQrDeviceAuthUserCode'.tr(),
+                hintText: 'XXXX-XXXX',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const Spacer(),
+            FilledButton(
+              onPressed: () {
+                final code = codeController.text.trim();
+                if (code.isNotEmpty) Navigator.of(context).pop(code);
+              },
+              child: Text('accountQrDeviceAuthCheck').tr(),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+  codeController.dispose();
+  if (userCode == null || !context.mounted) return;
+  await _checkAndShowDeviceApproval(context, ref, userCode);
+}
+
+Future<void> _checkAndShowDeviceApproval(
+  BuildContext context,
+  WidgetRef ref,
+  String userCode,
+) async {
+  try {
+    showLoadingModal(context);
+    final client = ref.read(solarNetworkClientProvider);
+    final resp = await client.dio.get(
+      '/padlock/auth/open/device/code/$userCode',
+    );
+    if (context.mounted) hideLoadingModal(context);
+    final data = Map<String, dynamic>.from(resp.data as Map);
+    if (!context.mounted) return;
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => _DeviceAuthApprovalSheet(
+        userCode: userCode,
+        clientId: data['client_id'] as String? ?? 'unknownClient'.tr(),
+        scopes: (data['scopes'] as List?)?.cast<String>() ?? const [],
+        status: data['status'] as String? ?? 'pending',
+        expiresAt: data['expires_at'] != null
+            ? DateTime.parse(data['expires_at'] as String)
+            : null,
+      ),
+    );
+  } on DioException catch (err) {
+    if (context.mounted) hideLoadingModal(context);
+    if (err.response?.statusCode == 404) {
+      showErrorAlert('accountQrDeviceAuthInvalidCode'.tr());
+    } else {
+      showErrorAlert(err);
+    }
+  } catch (err) {
+    if (context.mounted) hideLoadingModal(context);
+    showErrorAlert(err);
+  }
+}
+
+class _DeviceAuthSection extends HookConsumerWidget {
+  const _DeviceAuthSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'accountQrDeviceAuthDescription'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(16),
+        FilledButton.icon(
+          onPressed: () => _openDeviceAuthFlow(context, ref),
+          icon: const Icon(Symbols.vpn_key),
+          label: Text('accountQrDeviceAuthEnterCode').tr(),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeviceAuthApprovalSheet extends HookConsumerWidget {
+  final String userCode;
+  final String clientId;
+  final List<String> scopes;
+  final String status;
+  final DateTime? expiresAt;
+
+  const _DeviceAuthApprovalSheet({
+    required this.userCode,
+    required this.clientId,
+    required this.scopes,
+    required this.status,
+    this.expiresAt,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isBusy = useState(false);
+    final remaining = useState<int?>(null);
+    final resolved = useState<String?>(status);
+
+    useEffect(() {
+      if (expiresAt == null) return null;
+      void sync() {
+        final diff = expiresAt!.difference(DateTime.now()).inSeconds;
+        remaining.value = diff > 0 ? diff : 0;
+      }
+
+      sync();
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) => sync());
+      return timer.cancel;
+    }, [userCode]);
+
+    final expired = remaining.value != null && remaining.value! <= 0;
+    final alreadyResolved = resolved.value == 'approved' ||
+        resolved.value == 'declined' ||
+        resolved.value == 'expired';
+
+    Future<void> resolve(bool approve) async {
+      isBusy.value = true;
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        await client.dio.post(
+          '/padlock/auth/open/device/code/$userCode/${approve ? 'approve' : 'decline'}',
+        );
+        resolved.value = approve ? 'approved' : 'declined';
+        if (!context.mounted) return;
+        showSnackBar(
+          approve
+              ? 'accountQrDeviceAuthApproved'.tr()
+              : 'accountQrDeviceAuthDeclined'.tr(),
+        );
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'accountQrDeviceAuthApprovalTitle'.tr(),
+      heightFactor: 0.75,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Symbols.devices,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    clientId,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const Gap(2),
+                                  Text(
+                                    userCode,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (scopes.isNotEmpty) ...[
+                        _DetailRow(
+                          icon: Symbols.shield,
+                          label: 'accountQrDeviceAuthScopes'.tr(),
+                          value: scopes.join(', '),
+                        ),
+                      ],
+                      _DetailRow(
+                        icon: Symbols.info,
+                        label: 'loginQrCodeStatusLabel'.tr(),
+                        value: resolved.value ?? status,
+                      ),
+                      if (remaining.value != null)
+                        _DetailRow(
+                          icon: Symbols.timer,
+                          label: 'challengeExpiresIn'.tr(),
+                          value: expired
+                              ? 'expired'.tr()
+                              : 'challengeSeconds'
+                                  .tr(args: ['${remaining.value}']),
+                          valueColor: expired ? theme.colorScheme.error : null,
+                        ),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer
+                              .withAlpha((255 * 0.3).round()),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.primary
+                                .withAlpha((255 * 0.3).round()),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Symbols.info,
+                              size: 20,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'accountQrDeviceAuthApprovalHint'.tr(),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Gap(16),
+              if (!alreadyResolved && !expired)
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: isBusy.value ? null : () => resolve(false),
+                        icon: const Icon(Symbols.close),
+                        label: Text('decline').tr(),
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: isBusy.value ? null : () => resolve(true),
+                        icon: isBusy.value
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
+                              )
+                            : const Icon(Symbols.check),
+                        label: Text('approve').tr(),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('done').tr(),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
