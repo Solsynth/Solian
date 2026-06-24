@@ -748,6 +748,23 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
+    if (path == '/auth/authorize') {
+      context.router.push(
+        AuthorizeRoute(
+          clientId: uri.queryParameters['client_id'],
+          redirectUri: uri.queryParameters['redirect_uri'],
+          scope: uri.queryParameters['scope'],
+          state: uri.queryParameters['state'],
+          responseType: uri.queryParameters['response_type'],
+        ),
+      );
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
+
     if (path == '/auth/web') {
       await _handleProtocolWebAuth(uri, ref, context);
       return;

@@ -33,6 +33,7 @@ class AppRouter extends RootStackRouter {
     // Auth routes
     AutoRoute(page: LoginRoute.page, path: '/auth/login'),
     AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),
+    AutoRoute(page: AuthorizeRoute.page, path: '/auth/authorize'),
 
     // Other standalone routes
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
@@ -182,5 +183,8 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: WalletRoute.page, path: 'wallet'),
       ],
     ),
+
+    // 404 catch-all (must be last)
+    AutoRoute(page: NotFoundRoute.page, path: '*', fullscreenDialog: true),
   ];
 }

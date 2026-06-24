@@ -488,15 +488,47 @@ class CommandPaletteWidget extends HookConsumerWidget {
 
     final List<FallbackAction> actions = [];
 
-    // Check if query is a URL
+    // Check if query is a solian:// deep link
     final Uri? uri = Uri.tryParse(query);
+    final isSolianLink = uri != null && uri.scheme == 'solian';
     final isValidUrl =
         uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
     final isDomain = RegExp(
       r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$',
     ).hasMatch(query);
 
-    if (isValidUrl || isDomain) {
+    if (isSolianLink) {
+      final path = '/${uri.host}${uri.path}';
+      actions.add(
+        FallbackAction(
+          name: 'Open Link',
+          description: 'Open $query in app',
+          icon: Symbols.open_in_new,
+          action: () {
+            final params = uri.queryParameters;
+            if (path == '/auth/authorize') {
+              ref.read(routerProvider).push(
+                AuthorizeRoute(
+                  clientId: params['client_id'],
+                  redirectUri: params['redirect_uri'],
+                  scope: params['scope'],
+                  state: params['state'],
+                  responseType: params['response_type'],
+                ),
+              );
+            } else if (path == '/auth/callback' &&
+                params.containsKey('token')) {
+              // Handled via deep link service; just navigate home
+              ref.read(routerProvider).navigatePath('/');
+            } else {
+              ref.read(routerProvider).navigatePath(path);
+            }
+          },
+        ),
+      );
+    }
+
+    if (!isSolianLink && (isValidUrl || isDomain)) {
       final finalUri = isDomain ? Uri.parse('https://$query') : uri!;
       actions.add(
         FallbackAction(
