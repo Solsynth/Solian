@@ -2573,12 +2573,11 @@ packages:
     source: hosted
     version: "0.2.0"
   protocol_handler_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: protocol_handler_windows
-      sha256: d8f3a58938386aca2c76292757392f4d059d09f11439d6d896d876ebe997f2c4
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/protocol_handler_windows"
+      relative: true
+    source: path
     version: "0.2.0"
   provider:
     dependency: transitive
