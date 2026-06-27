@@ -366,7 +366,8 @@ class PostActionButtons extends HookConsumerWidget {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => PostAwardHistorySheet(postId: post.id),
+            builder: (context) =>
+                PostSupportHistorySheet(postId: post.id),
           );
         },
       ),

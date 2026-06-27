@@ -13,6 +13,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'post_award_history_sheet.dart';
 
+/// Minimum sponsorship bid in golds.
+const int _kSponsorMinAmount = 5;
+
 class PostAwardSheet extends HookConsumerWidget {
   final SnPost post;
   const PostAwardSheet({super.key, required this.post});
@@ -73,150 +76,105 @@ class PostAwardSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messageController = useTextEditingController();
-    final amountController = useTextEditingController();
-    final selectedAttitude = useState<int>(0); // 0 for positive, 2 for negative
+    final awardAmountController = useTextEditingController();
+    final sponsorAmountController = useTextEditingController();
+    final mode = useState<SupportMode>(SupportMode.award);
+    final selectedAttitude = useState<int>(0); // 0 positive, 2 negative
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return SheetScaffold(
-      titleText: 'awardPost'.tr(),
+      titleText: mode.value == SupportMode.sponsor
+          ? 'sponsorPost'.tr()
+          : 'awardPost'.tr(),
+      actions: [
+        IconButton(
+          tooltip: 'supportViewHistory'.tr(),
+          icon: const Icon(Symbols.history),
+          style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+          onPressed: () => _openHistory(context, ref, mode.value),
+        ),
+      ],
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Post Preview Section at TOP
                   _buildPostPreview(context),
                   const Gap(16),
-
-                  // Existing Awards List
-                  Text(
-                    'Awards History',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  SegmentedButton<SupportMode>(
+                    segments: [
+                      ButtonSegment<SupportMode>(
+                        value: SupportMode.award,
+                        label: Text('award'.tr()),
+                        icon: const Icon(Symbols.star),
+                      ),
+                      ButtonSegment<SupportMode>(
+                        value: SupportMode.sponsor,
+                        label: Text('sponsor'.tr()),
+                        icon: const Icon(Symbols.trending_up),
+                      ),
+                    ],
+                    selected: {mode.value},
+                    onSelectionChanged: (selection) =>
+                        mode.value = selection.first,
                   ),
-                  const Gap(8),
+                  const Gap(16),
                 ],
               ),
             ),
           ),
-          Consumer(
-            builder: (context, ref, child) {
-              final awards = ref.watch(postAwardListNotifierProvider(post.id));
-              return awards.when(
-                loading: () => const SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                ),
-                error: (error, stackTrace) => SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text('Failed to load awards: $error'),
-                  ),
-                ),
-                data: (pagination) {
-                  if (pagination.items.isEmpty) {
-                    return const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('No awards yet.'),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: mode.value == SupportMode.sponsor
+                    ? _SponsorSummaryCard(
+                        key: const ValueKey('sponsor-summary'),
+                        postId: post.id,
+                        onViewHistory: () => _openHistory(
+                          context,
+                          ref,
+                          SupportMode.sponsor,
+                        ),
+                      )
+                    : _AwardSummaryCard(
+                        key: const ValueKey('award-summary'),
+                        postId: post.id,
+                        onViewHistory: () => _openHistory(
+                          context,
+                          ref,
+                          SupportMode.award,
+                        ),
                       ),
-                    );
-                  }
-                  return SliverList.separated(
-                    itemCount: pagination.items.length,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      return PostAwardItem(award: pagination.items[index]);
-                    },
-                  );
-                },
-              );
-            },
+              ),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Gap(16),
-                  // Award Result Explanation
-                  _buildAwardResultExplanation(context),
-                  const Gap(20),
-
-                  Text(
-                    'awardMessage'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: messageController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'awardMessageHint'.tr(),
-                    ),
-                  ),
-                  const Gap(16),
-                  Text(
-                    'awardAttitude'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const Gap(8),
-                  SegmentedButton<int>(
-                    segments: [
-                      ButtonSegment<int>(
-                        value: 0,
-                        label: Text('awardAttitudePositive'.tr()),
-                        icon: const Icon(Symbols.thumb_up),
-                      ),
-                      ButtonSegment<int>(
-                        value: 2,
-                        label: Text('awardAttitudeNegative'.tr()),
-                        icon: const Icon(Symbols.thumb_down),
-                      ),
-                    ],
-                    selected: {selectedAttitude.value},
-                    onSelectionChanged: (Set<int> selection) {
-                      selectedAttitude.value = selection.first;
-                    },
-                  ),
-                  const Gap(16),
-                  Text(
-                    'awardAmount'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: amountController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: 'awardAmountHint'.tr(),
-
-                      suffixText: 'NSP',
-                    ),
-                  ),
-                  const Gap(24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () => _submitAward(
+              padding: const EdgeInsets.all(16),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: mode.value == SupportMode.sponsor
+                    ? _buildSponsorForm(
                         context,
                         ref,
+                        colorScheme,
+                        sponsorAmountController,
+                      )
+                    : _buildAwardForm(
+                        context,
+                        ref,
+                        colorScheme,
                         messageController,
-                        amountController,
-                        selectedAttitude.value,
+                        awardAmountController,
+                        selectedAttitude,
                       ),
-                      icon: const Icon(Symbols.star),
-                      label: Text('awardSubmit'.tr()),
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
@@ -225,15 +183,160 @@ class PostAwardSheet extends HookConsumerWidget {
     );
   }
 
+  void _openHistory(
+    BuildContext context,
+    WidgetRef ref,
+    SupportMode initialMode,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (_) => PostSupportHistorySheet(
+        postId: post.id,
+        initialMode: initialMode,
+      ),
+    ).then((_) {
+      // Refresh totals/bids after returning from the history sheet.
+      ref.invalidate(postSponsorTotalProvider(post.id));
+    });
+  }
+
+  Widget _buildAwardForm(
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+    TextEditingController messageController,
+    TextEditingController amountController,
+    ValueNotifier<int> selectedAttitude,
+  ) {
+    return Column(
+      key: const ValueKey('award-form'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _BenefitsCard(
+          icon: Symbols.info,
+          title: 'awardBenefits'.tr(),
+          description: 'awardBenefitsDescription'.tr(),
+          accentColor: colorScheme.primary,
+          containerColor: colorScheme.primaryContainer.withOpacity(0.3),
+        ),
+        const Gap(20),
+        _FieldLabel(text: 'awardMessage'.tr()),
+        const Gap(8),
+        TextField(
+          controller: messageController,
+          maxLines: 3,
+          textInputAction: TextInputAction.newline,
+          decoration: InputDecoration(
+            hintText: 'awardMessageHint'.tr(),
+            alignLabelWithHint: true,
+            border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+          ),
+        ),
+        const Gap(16),
+        _FieldLabel(text: 'awardAttitude'.tr()),
+        const Gap(8),
+        SegmentedButton<int>(
+          segments: [
+            ButtonSegment<int>(
+              value: 0,
+              label: Text('awardAttitudePositive'.tr()),
+              icon: const Icon(Symbols.thumb_up),
+            ),
+            ButtonSegment<int>(
+              value: 2,
+              label: Text('awardAttitudeNegative'.tr()),
+              icon: const Icon(Symbols.thumb_down),
+            ),
+          ],
+          selected: {selectedAttitude.value},
+          onSelectionChanged: (selection) =>
+              selectedAttitude.value = selection.first,
+        ),
+        const Gap(16),
+        _FieldLabel(text: 'awardAmount'.tr()),
+        const Gap(8),
+        TextField(
+          controller: amountController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            hintText: 'awardAmountHint'.tr(),
+            suffixText: 'NSP',
+            border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+          ),
+        ),
+        const Gap(24),
+        FilledButton.icon(
+          onPressed: () => _submitAward(
+            context,
+            ref,
+            messageController,
+            amountController,
+            selectedAttitude.value,
+          ),
+          icon: const Icon(Symbols.star),
+          label: Text('awardSubmit'.tr()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSponsorForm(
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+    TextEditingController amountController,
+  ) {
+    return Column(
+      key: const ValueKey('sponsor-form'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _BenefitsCard(
+          icon: Symbols.trending_up,
+          title: 'sponsorBenefits'.tr(),
+          description: 'sponsorBenefitsDescription'.tr(),
+          accentColor: colorScheme.tertiary,
+          containerColor: colorScheme.tertiaryContainer.withOpacity(0.3),
+        ),
+        const Gap(20),
+        _FieldLabel(text: 'sponsorAmount'.tr()),
+        const Gap(8),
+        TextField(
+          controller: amountController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            hintText: 'sponsorAmountHint'.tr(),
+            helperText: 'sponsorMinAmount'.tr(),
+            suffixText: 'walletCurrencyShortGolds'.tr(),
+            border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+          ),
+        ),
+        const Gap(24),
+        FilledButton.tonalIcon(
+          onPressed: () =>
+              _submitSponsor(context, ref, amountController),
+          icon: const Icon(Symbols.trending_up),
+          label: Text('sponsorSubmit'.tr()),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPostPreview(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,14 +346,14 @@ class PostAwardSheet extends HookConsumerWidget {
               Icon(
                 Symbols.article,
                 size: 20,
-                color: Theme.of(context).colorScheme.primary,
+                color: colorScheme.primary,
               ),
               const Gap(8),
               Text(
                 'awardPostPreview'.tr(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -269,55 +372,13 @@ class PostAwardSheet extends HookConsumerWidget {
                 Text(
                   'awardByPublisher'.tr(args: ['@${_getPublisherName()}']),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 _buildProfilePicture(context, radius: 8),
               ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAwardResultExplanation(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Symbols.info,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const Gap(8),
-              Text(
-                'awardBenefits'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const Gap(8),
-          Text(
-            'awardBenefitsDescription'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
         ],
       ),
     );
@@ -378,6 +439,7 @@ class PostAwardSheet extends HookConsumerWidget {
         );
 
         if (paidOrder != null && context.mounted) {
+          ref.invalidate(postAwardListNotifierProvider(post.id));
           showSnackBar('awardSuccess'.tr());
           Navigator.of(context).pop();
         }
@@ -388,5 +450,244 @@ class PostAwardSheet extends HookConsumerWidget {
         showErrorAlert(err);
       }
     }
+  }
+
+  Future<void> _submitSponsor(
+    BuildContext context,
+    WidgetRef ref,
+    TextEditingController amountController,
+  ) async {
+    final amountText = amountController.text.trim();
+
+    if (amountText.isEmpty) {
+      showSnackBar('sponsorAmountRequired'.tr());
+      return;
+    }
+
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      showSnackBar('sponsorAmountInvalid'.tr());
+      return;
+    }
+
+    if (amount < _kSponsorMinAmount) {
+      showSnackBar('sponsorMinAmount'.tr());
+      return;
+    }
+
+    try {
+      showLoadingModal(context);
+
+      final client = ref.read(solarNetworkClientProvider);
+
+      // Create a sponsorship bid order (golds).
+      final response = await client.dio.post(
+        '/sphere/posts/${post.id}/sponsor',
+        data: {'amount': amount},
+      );
+
+      final orderId = response.data['order_id'] as String;
+
+      // Fetch order details then present the payment overlay.
+      final order = await client.wallet.getOrder(orderId);
+
+      if (!context.mounted) return;
+      hideLoadingModal(context);
+
+      final paidOrder = await PaymentOverlay.show(
+        context: context,
+        order: order,
+        enableBiometric: true,
+      );
+
+      if (paidOrder != null && context.mounted) {
+        ref.invalidate(postSponsorTotalProvider(post.id));
+        ref.invalidate(postSponsorBidListNotifierProvider(post.id));
+        showSnackBar('sponsorSuccess'.tr());
+        Navigator.of(context).pop();
+      }
+    } catch (err) {
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  final String text;
+  const _FieldLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+class _BenefitsCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color accentColor;
+  final Color containerColor;
+
+  const _BenefitsCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.accentColor,
+    required this.containerColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: containerColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: accentColor),
+              const Gap(8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: accentColor,
+                ),
+              ),
+            ],
+          ),
+          const Gap(8),
+          Text(
+            description,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact summary card for the award mode: shows the total award count and
+/// offers a shortcut to open the unified history sheet.
+class _AwardSummaryCard extends HookConsumerWidget {
+  final String postId;
+  final VoidCallback onViewHistory;
+
+  const _AwardSummaryCard({
+    super.key,
+    required this.postId,
+    required this.onViewHistory,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final awards = ref.watch(postAwardListNotifierProvider(postId));
+    final count =
+        awards.value?.totalCount ?? awards.value?.items.length ?? 0;
+
+    return _SummaryCard(
+      icon: Symbols.star,
+      iconColor: Theme.of(context).colorScheme.primary,
+      stat: 'awardCount'.tr(args: ['$count']),
+      onViewHistory: onViewHistory,
+    );
+  }
+}
+
+/// Compact summary card for the sponsor mode: shows the active sponsorship
+/// total (golds) and a shortcut to open the bid history.
+class _SponsorSummaryCard extends HookConsumerWidget {
+  final String postId;
+  final VoidCallback onViewHistory;
+
+  const _SponsorSummaryCard({
+    super.key,
+    required this.postId,
+    required this.onViewHistory,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final total = ref.watch(postSponsorTotalProvider(postId));
+
+    final value = total.maybeWhen(
+      data: (v) => v.toStringAsFixed(0),
+      orElse: () => '—',
+    );
+
+    return _SummaryCard(
+      icon: Symbols.trending_up,
+      iconColor: Theme.of(context).colorScheme.tertiary,
+      stat: 'sponsorBidAmount'.tr(args: [value]),
+      onViewHistory: onViewHistory,
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String stat;
+  final VoidCallback onViewHistory;
+
+  const _SummaryCard({
+    required this.icon,
+    required this.iconColor,
+    required this.stat,
+    required this.onViewHistory,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 18, color: iconColor),
+          ),
+          const Gap(12),
+          Expanded(
+            child: Text(
+              stat,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onViewHistory,
+            icon: const Icon(Symbols.history, size: 18),
+            label: Text('supportViewHistory'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 }
