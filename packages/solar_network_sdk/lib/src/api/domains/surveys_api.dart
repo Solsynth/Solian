@@ -1,203 +1,203 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
-import 'package:solar_network_sdk/src/models/posts/poll.dart';
+import 'package:solar_network_sdk/src/models/posts/survey.dart';
 
-/// API for poll-related endpoints (/poll).
+/// API for survey-related endpoints (/survey).
 ///
-/// Handles polls, voting, and poll statistics.
-class PollsApi extends BaseApi {
-  PollsApi(super.dio);
+/// Handles surveys, answers, and survey statistics.
+class SurveysApi extends BaseApi {
+  SurveysApi(super.dio);
 
-  /// Base path for all poll endpoints.
-  static const String _basePath = '/poll';
+  /// Base path for all survey endpoints.
+  static const String _basePath = '/survey';
 
   // ==========================================
-  // Poll endpoints
+  // Survey endpoints
   // ==========================================
 
-  /// Gets all polls.
+  /// Gets all surveys.
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<PaginatedResult<SnPoll>> getPolls({
+  Future<PaginatedResult<SnSurvey>> getSurveys({
     int offset = 0,
     int take = 20,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/polls',
+      '$_basePath/surveys',
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnPoll.fromJson);
+    final items = parseList(response, SnSurvey.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Gets a specific poll by ID.
+  /// Gets a specific survey by ID.
   ///
-  /// [pollId] - The poll ID.
-  Future<SnPollWithStats> getPoll(String pollId) async {
+  /// [surveyId] - The survey ID.
+  Future<SnSurveyWithStats> getSurvey(String surveyId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId',
+      '$_basePath/surveys/$surveyId',
     );
-    return SnPollWithStats.fromJson(response.data!);
+    return SnSurveyWithStats.fromJson(response.data!);
   }
 
-  /// Creates a new poll.
+  /// Creates a new survey.
   ///
-  /// [title] - The poll title.
-  /// [questions] - The poll questions.
+  /// [title] - The survey title.
+  /// [questions] - The survey questions.
   /// [expiresAt] - Optional expiration date.
-  Future<SnPoll> createPoll({
+  Future<SnSurvey> createSurvey({
     required String title,
-    required List<SnPollQuestion> questions,
+    required List<SnSurveyQuestion> questions,
     DateTime? expiresAt,
   }) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/polls',
+      '$_basePath/surveys',
       data: {
         'title': title,
         'questions': questions.map((q) => q.toJson()).toList(),
         if (expiresAt != null) 'expires_at': expiresAt.toIso8601String(),
       },
     );
-    return SnPoll.fromJson(response.data!);
+    return SnSurvey.fromJson(response.data!);
   }
 
-  /// Updates a poll.
+  /// Updates a survey.
   ///
-  /// [pollId] - The poll ID.
+  /// [surveyId] - The survey ID.
   /// [data] - The data to update.
-  Future<SnPoll> updatePoll({
-    required String pollId,
+  Future<SnSurvey> updateSurvey({
+    required String surveyId,
     required Map<String, dynamic> data,
   }) async {
     final response = await patch<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId',
+      '$_basePath/surveys/$surveyId',
       data: data,
     );
-    return SnPoll.fromJson(response.data!);
+    return SnSurvey.fromJson(response.data!);
   }
 
-  /// Deletes a poll.
+  /// Deletes a survey.
   ///
-  /// [pollId] - The poll ID.
-  Future<void> deletePoll(String pollId) async {
-    await delete('$_basePath/polls/$pollId');
+  /// [surveyId] - The survey ID.
+  Future<void> deleteSurvey(String surveyId) async {
+    await delete('$_basePath/surveys/$surveyId');
   }
 
-  /// Closes a poll.
+  /// Closes a survey.
   ///
-  /// [pollId] - The poll ID.
-  Future<SnPoll> closePoll(String pollId) async {
+  /// [surveyId] - The survey ID.
+  Future<SnSurvey> closeSurvey(String surveyId) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId/close',
+      '$_basePath/surveys/$surveyId/close',
     );
-    return SnPoll.fromJson(response.data!);
+    return SnSurvey.fromJson(response.data!);
   }
 
   // ==========================================
   // Answer endpoints
   // ==========================================
 
-  /// Gets answers for a poll.
+  /// Gets answers for a survey.
   ///
-  /// [pollId] - The poll ID.
+  /// [surveyId] - The survey ID.
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<PaginatedResult<SnPollAnswer>> getPollAnswers({
-    required String pollId,
+  Future<PaginatedResult<SnSurveyAnswer>> getSurveyAnswers({
+    required String surveyId,
     int offset = 0,
     int take = 50,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/polls/$pollId/answers',
+      '$_basePath/surveys/$surveyId/answers',
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnPollAnswer.fromJson);
+    final items = parseList(response, SnSurveyAnswer.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Submits an answer to a poll.
+  /// Submits an answer to a survey.
   ///
-  /// [pollId] - The poll ID.
+  /// [surveyId] - The survey ID.
   /// [questionId] - The question ID.
   /// [optionId] - The selected option ID.
-  Future<SnPollAnswer> submitAnswer({
-    required String pollId,
+  Future<SnSurveyAnswer> submitAnswer({
+    required String surveyId,
     required String questionId,
     required String optionId,
   }) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId/answers',
+      '$_basePath/surveys/$surveyId/answers',
       data: {'question_id': questionId, 'option_id': optionId},
     );
-    return SnPollAnswer.fromJson(response.data!);
+    return SnSurveyAnswer.fromJson(response.data!);
   }
 
   /// Updates an answer.
   ///
-  /// [pollId] - The poll ID.
+  /// [surveyId] - The survey ID.
   /// [answerId] - The answer ID.
   /// [optionId] - The new selected option ID.
-  Future<SnPollAnswer> updateAnswer({
-    required String pollId,
+  Future<SnSurveyAnswer> updateAnswer({
+    required String surveyId,
     required String answerId,
     required String optionId,
   }) async {
     final response = await patch<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId/answers/$answerId',
+      '$_basePath/surveys/$surveyId/answers/$answerId',
       data: {'option_id': optionId},
     );
-    return SnPollAnswer.fromJson(response.data!);
+    return SnSurveyAnswer.fromJson(response.data!);
   }
 
   /// Deletes an answer.
   ///
-  /// [pollId] - The poll ID.
+  /// [surveyId] - The survey ID.
   /// [answerId] - The answer ID.
   Future<void> deleteAnswer({
-    required String pollId,
+    required String surveyId,
     required String answerId,
   }) async {
-    await delete('$_basePath/polls/$pollId/answers/$answerId');
+    await delete('$_basePath/surveys/$surveyId/answers/$answerId');
   }
 
   // ==========================================
   // Statistics endpoints
   // ==========================================
 
-  /// Gets poll statistics.
+  /// Gets survey statistics.
   ///
-  /// [pollId] - The poll ID.
-  Future<SnPollWithStats> getPollStats(String pollId) async {
+  /// [surveyId] - The survey ID.
+  Future<SnSurveyWithStats> getSurveyStats(String surveyId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId/stats',
+      '$_basePath/surveys/$surveyId/stats',
     );
-    return SnPollWithStats.fromJson(response.data!);
+    return SnSurveyWithStats.fromJson(response.data!);
   }
 
-  /// Gets poll results (aggregated).
+  /// Gets survey results (aggregated).
   ///
-  /// [pollId] - The poll ID.
-  Future<Map<String, dynamic>> getPollResults(String pollId) async {
+  /// [surveyId] - The survey ID.
+  Future<Map<String, dynamic>> getSurveyResults(String surveyId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/polls/$pollId/results',
+      '$_basePath/surveys/$surveyId/results',
     );
     return response.data!;
   }
 
-  /// Gets poll participants.
+  /// Gets survey participants.
   ///
-  /// [pollId] - The poll ID.
+  /// [surveyId] - The survey ID.
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<List<dynamic>> getPollParticipants({
-    required String pollId,
+  Future<List<dynamic>> getSurveyParticipants({
+    required String surveyId,
     int offset = 0,
     int take = 50,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/polls/$pollId/participants',
+      '$_basePath/surveys/$surveyId/participants',
       queryParameters: {'offset': offset, 'take': take},
     );
     return response.data ?? [];
@@ -207,28 +207,28 @@ class PollsApi extends BaseApi {
   // User endpoints
   // ==========================================
 
-  /// Gets polls created by the current user.
+  /// Gets surveys created by the current user.
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<PaginatedResult<SnPoll>> getMyPolls({
+  Future<PaginatedResult<SnSurvey>> getMySurveys({
     int offset = 0,
     int take = 20,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/me/polls',
+      '$_basePath/me/surveys',
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnPoll.fromJson);
+    final items = parseList(response, SnSurvey.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Gets polls answered by the current user.
+  /// Gets surveys answered by the current user.
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<PaginatedResult<SnPoll>> getAnsweredPolls({
+  Future<PaginatedResult<SnSurvey>> getAnsweredSurveys({
     int offset = 0,
     int take = 20,
   }) async {
@@ -237,7 +237,7 @@ class PollsApi extends BaseApi {
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnPoll.fromJson);
+    final items = parseList(response, SnSurvey.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
@@ -245,11 +245,11 @@ class PollsApi extends BaseApi {
   // Feed endpoints
   // ==========================================
 
-  /// Gets polls in feed (from followed users).
+  /// Gets surveys in feed (from followed users).
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<PaginatedResult<SnPoll>> getPollFeed({
+  Future<PaginatedResult<SnSurvey>> getSurveyFeed({
     int offset = 0,
     int take = 20,
   }) async {
@@ -258,18 +258,18 @@ class PollsApi extends BaseApi {
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnPoll.fromJson);
+    final items = parseList(response, SnSurvey.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Gets trending polls.
+  /// Gets trending surveys.
   ///
-  /// [limit] - Number of polls to return.
-  Future<List<SnPoll>> getTrendingPolls({int limit = 10}) async {
+  /// [limit] - Number of surveys to return.
+  Future<List<SnSurvey>> getTrendingSurveys({int limit = 10}) async {
     final response = await get<List<dynamic>>(
       '$_basePath/trending',
       queryParameters: {'limit': limit},
     );
-    return parseList(response, SnPoll.fromJson);
+    return parseList(response, SnSurvey.fromJson);
   }
 }

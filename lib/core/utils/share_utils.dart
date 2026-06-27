@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/calendar_event_screenshot.dart';
 import 'package:island/accounts/widgets/check_in/check_in_result_screenshot.dart';
-import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/posts/widgets/compose/post_item_screenshot.dart';
@@ -69,8 +68,8 @@ Future<void> sharePostAsScreenshot(
         final postTypeStr = post.type == 0
             ? 'regular'
             : post.type == 1
-                ? 'article'
-                : 'blog';
+            ? 'article'
+            : 'blog';
         AnalyticsService().logPostShared(post.id, 'screenshot', postTypeStr);
       });
 }

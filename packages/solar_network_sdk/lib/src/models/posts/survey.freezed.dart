@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'poll.dart';
+part of 'survey.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -13,22 +13,22 @@ part of 'poll.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$SnPollWithStats {
+mixin _$SnSurveyWithStats {
 
- SnPollAnswer? get userAnswer; Map<String, dynamic> get stats; String get id; List<SnPollQuestion> get questions; String? get title; String? get description; DateTime? get endedAt; String get publisherId; SnPublisher? get publisher; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
-/// Create a copy of SnPollWithStats
+ SnSurveyAnswer? get userAnswer; Map<String, dynamic> get stats; String get id; List<SnSurveyQuestion> get questions; String? get title; String? get description; DateTime? get endedAt; String get publisherId; SnPublisher? get publisher; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPollWithStatsCopyWith<SnPollWithStats> get copyWith => _$SnPollWithStatsCopyWithImpl<SnPollWithStats>(this as SnPollWithStats, _$identity);
+$SnSurveyWithStatsCopyWith<SnSurveyWithStats> get copyWith => _$SnSurveyWithStatsCopyWithImpl<SnSurveyWithStats>(this as SnSurveyWithStats, _$identity);
 
-  /// Serializes this SnPollWithStats to a JSON map.
+  /// Serializes this SnSurveyWithStats to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPollWithStats&&(identical(other.userAnswer, userAnswer) || other.userAnswer == userAnswer)&&const DeepCollectionEquality().equals(other.stats, stats)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.questions, questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSurveyWithStats&&(identical(other.userAnswer, userAnswer) || other.userAnswer == userAnswer)&&const DeepCollectionEquality().equals(other.stats, stats)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.questions, questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,41 +37,41 @@ int get hashCode => Object.hash(runtimeType,userAnswer,const DeepCollectionEqual
 
 @override
 String toString() {
-  return 'SnPollWithStats(userAnswer: $userAnswer, stats: $stats, id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSurveyWithStats(userAnswer: $userAnswer, stats: $stats, id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnPollWithStatsCopyWith<$Res>  {
-  factory $SnPollWithStatsCopyWith(SnPollWithStats value, $Res Function(SnPollWithStats) _then) = _$SnPollWithStatsCopyWithImpl;
+abstract mixin class $SnSurveyWithStatsCopyWith<$Res>  {
+  factory $SnSurveyWithStatsCopyWith(SnSurveyWithStats value, $Res Function(SnSurveyWithStats) _then) = _$SnSurveyWithStatsCopyWithImpl;
 @useResult
 $Res call({
- SnPollAnswer? userAnswer, Map<String, dynamic> stats, String id, List<SnPollQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ SnSurveyAnswer? userAnswer, Map<String, dynamic> stats, String id, List<SnSurveyQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnPollAnswerCopyWith<$Res>? get userAnswer;$SnPublisherCopyWith<$Res>? get publisher;
+$SnSurveyAnswerCopyWith<$Res>? get userAnswer;$SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
-class _$SnPollWithStatsCopyWithImpl<$Res>
-    implements $SnPollWithStatsCopyWith<$Res> {
-  _$SnPollWithStatsCopyWithImpl(this._self, this._then);
+class _$SnSurveyWithStatsCopyWithImpl<$Res>
+    implements $SnSurveyWithStatsCopyWith<$Res> {
+  _$SnSurveyWithStatsCopyWithImpl(this._self, this._then);
 
-  final SnPollWithStats _self;
-  final $Res Function(SnPollWithStats) _then;
+  final SnSurveyWithStats _self;
+  final $Res Function(SnSurveyWithStats) _then;
 
-/// Create a copy of SnPollWithStats
+/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? userAnswer = freezed,Object? stats = null,Object? id = null,Object? questions = null,Object? title = freezed,Object? description = freezed,Object? endedAt = freezed,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 userAnswer: freezed == userAnswer ? _self.userAnswer : userAnswer // ignore: cast_nullable_to_non_nullable
-as SnPollAnswer?,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
+as SnSurveyAnswer?,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,questions: null == questions ? _self.questions : questions // ignore: cast_nullable_to_non_nullable
-as List<SnPollQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as List<SnSurveyQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
@@ -82,19 +82,19 @@ as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ign
 as DateTime?,
   ));
 }
-/// Create a copy of SnPollWithStats
+/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnPollAnswerCopyWith<$Res>? get userAnswer {
+$SnSurveyAnswerCopyWith<$Res>? get userAnswer {
     if (_self.userAnswer == null) {
     return null;
   }
 
-  return $SnPollAnswerCopyWith<$Res>(_self.userAnswer!, (value) {
+  return $SnSurveyAnswerCopyWith<$Res>(_self.userAnswer!, (value) {
     return _then(_self.copyWith(userAnswer: value));
   });
-}/// Create a copy of SnPollWithStats
+}/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -110,8 +110,8 @@ $SnPublisherCopyWith<$Res>? get publisher {
 }
 
 
-/// Adds pattern-matching-related methods to [SnPollWithStats].
-extension SnPollWithStatsPatterns on SnPollWithStats {
+/// Adds pattern-matching-related methods to [SnSurveyWithStats].
+extension SnSurveyWithStatsPatterns on SnSurveyWithStats {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -124,10 +124,10 @@ extension SnPollWithStatsPatterns on SnPollWithStats {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPollWithStats value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSurveyWithStats value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnPollWithStats() when $default != null:
+case _SnSurveyWithStats() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -146,10 +146,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPollWithStats value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSurveyWithStats value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollWithStats():
+case _SnSurveyWithStats():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -164,10 +164,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPollWithStats value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSurveyWithStats value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollWithStats() when $default != null:
+case _SnSurveyWithStats() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -185,9 +185,9 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnPollAnswer? userAnswer,  Map<String, dynamic> stats,  String id,  List<SnPollQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnSurveyAnswer? userAnswer,  Map<String, dynamic> stats,  String id,  List<SnSurveyQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnPollWithStats() when $default != null:
+case _SnSurveyWithStats() when $default != null:
 return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.title,_that.description,_that.endedAt,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
@@ -206,9 +206,9 @@ return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.titl
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnPollAnswer? userAnswer,  Map<String, dynamic> stats,  String id,  List<SnPollQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnSurveyAnswer? userAnswer,  Map<String, dynamic> stats,  String id,  List<SnSurveyQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
-case _SnPollWithStats():
+case _SnSurveyWithStats():
 return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.title,_that.description,_that.endedAt,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -223,9 +223,9 @@ return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.titl
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnPollAnswer? userAnswer,  Map<String, dynamic> stats,  String id,  List<SnPollQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnSurveyAnswer? userAnswer,  Map<String, dynamic> stats,  String id,  List<SnSurveyQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
-case _SnPollWithStats() when $default != null:
+case _SnSurveyWithStats() when $default != null:
 return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.title,_that.description,_that.endedAt,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
@@ -237,11 +237,11 @@ return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.titl
 /// @nodoc
 @JsonSerializable()
 
-class _SnPollWithStats implements SnPollWithStats {
-  const _SnPollWithStats({required this.userAnswer, final  Map<String, dynamic> stats = const {}, required this.id, required final  List<SnPollQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.createdAt, required this.updatedAt, this.deletedAt}): _stats = stats,_questions = questions;
-  factory _SnPollWithStats.fromJson(Map<String, dynamic> json) => _$SnPollWithStatsFromJson(json);
+class _SnSurveyWithStats implements SnSurveyWithStats {
+  const _SnSurveyWithStats({required this.userAnswer, final  Map<String, dynamic> stats = const {}, required this.id, required final  List<SnSurveyQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.createdAt, required this.updatedAt, this.deletedAt}): _stats = stats,_questions = questions;
+  factory _SnSurveyWithStats.fromJson(Map<String, dynamic> json) => _$SnSurveyWithStatsFromJson(json);
 
-@override final  SnPollAnswer? userAnswer;
+@override final  SnSurveyAnswer? userAnswer;
  final  Map<String, dynamic> _stats;
 @override@JsonKey() Map<String, dynamic> get stats {
   if (_stats is EqualUnmodifiableMapView) return _stats;
@@ -250,8 +250,8 @@ class _SnPollWithStats implements SnPollWithStats {
 }
 
 @override final  String id;
- final  List<SnPollQuestion> _questions;
-@override List<SnPollQuestion> get questions {
+ final  List<SnSurveyQuestion> _questions;
+@override List<SnSurveyQuestion> get questions {
   if (_questions is EqualUnmodifiableListView) return _questions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_questions);
@@ -266,20 +266,20 @@ class _SnPollWithStats implements SnPollWithStats {
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
 
-/// Create a copy of SnPollWithStats
+/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnPollWithStatsCopyWith<_SnPollWithStats> get copyWith => __$SnPollWithStatsCopyWithImpl<_SnPollWithStats>(this, _$identity);
+_$SnSurveyWithStatsCopyWith<_SnSurveyWithStats> get copyWith => __$SnSurveyWithStatsCopyWithImpl<_SnSurveyWithStats>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnPollWithStatsToJson(this, );
+  return _$SnSurveyWithStatsToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPollWithStats&&(identical(other.userAnswer, userAnswer) || other.userAnswer == userAnswer)&&const DeepCollectionEquality().equals(other._stats, _stats)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._questions, _questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSurveyWithStats&&(identical(other.userAnswer, userAnswer) || other.userAnswer == userAnswer)&&const DeepCollectionEquality().equals(other._stats, _stats)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._questions, _questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -288,41 +288,41 @@ int get hashCode => Object.hash(runtimeType,userAnswer,const DeepCollectionEqual
 
 @override
 String toString() {
-  return 'SnPollWithStats(userAnswer: $userAnswer, stats: $stats, id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSurveyWithStats(userAnswer: $userAnswer, stats: $stats, id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnPollWithStatsCopyWith<$Res> implements $SnPollWithStatsCopyWith<$Res> {
-  factory _$SnPollWithStatsCopyWith(_SnPollWithStats value, $Res Function(_SnPollWithStats) _then) = __$SnPollWithStatsCopyWithImpl;
+abstract mixin class _$SnSurveyWithStatsCopyWith<$Res> implements $SnSurveyWithStatsCopyWith<$Res> {
+  factory _$SnSurveyWithStatsCopyWith(_SnSurveyWithStats value, $Res Function(_SnSurveyWithStats) _then) = __$SnSurveyWithStatsCopyWithImpl;
 @override @useResult
 $Res call({
- SnPollAnswer? userAnswer, Map<String, dynamic> stats, String id, List<SnPollQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ SnSurveyAnswer? userAnswer, Map<String, dynamic> stats, String id, List<SnSurveyQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnPollAnswerCopyWith<$Res>? get userAnswer;@override $SnPublisherCopyWith<$Res>? get publisher;
+@override $SnSurveyAnswerCopyWith<$Res>? get userAnswer;@override $SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
-class __$SnPollWithStatsCopyWithImpl<$Res>
-    implements _$SnPollWithStatsCopyWith<$Res> {
-  __$SnPollWithStatsCopyWithImpl(this._self, this._then);
+class __$SnSurveyWithStatsCopyWithImpl<$Res>
+    implements _$SnSurveyWithStatsCopyWith<$Res> {
+  __$SnSurveyWithStatsCopyWithImpl(this._self, this._then);
 
-  final _SnPollWithStats _self;
-  final $Res Function(_SnPollWithStats) _then;
+  final _SnSurveyWithStats _self;
+  final $Res Function(_SnSurveyWithStats) _then;
 
-/// Create a copy of SnPollWithStats
+/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? userAnswer = freezed,Object? stats = null,Object? id = null,Object? questions = null,Object? title = freezed,Object? description = freezed,Object? endedAt = freezed,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_SnPollWithStats(
+  return _then(_SnSurveyWithStats(
 userAnswer: freezed == userAnswer ? _self.userAnswer : userAnswer // ignore: cast_nullable_to_non_nullable
-as SnPollAnswer?,stats: null == stats ? _self._stats : stats // ignore: cast_nullable_to_non_nullable
+as SnSurveyAnswer?,stats: null == stats ? _self._stats : stats // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,questions: null == questions ? _self._questions : questions // ignore: cast_nullable_to_non_nullable
-as List<SnPollQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as List<SnSurveyQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
@@ -334,19 +334,19 @@ as DateTime?,
   ));
 }
 
-/// Create a copy of SnPollWithStats
+/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnPollAnswerCopyWith<$Res>? get userAnswer {
+$SnSurveyAnswerCopyWith<$Res>? get userAnswer {
     if (_self.userAnswer == null) {
     return null;
   }
 
-  return $SnPollAnswerCopyWith<$Res>(_self.userAnswer!, (value) {
+  return $SnSurveyAnswerCopyWith<$Res>(_self.userAnswer!, (value) {
     return _then(_self.copyWith(userAnswer: value));
   });
-}/// Create a copy of SnPollWithStats
+}/// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -363,23 +363,23 @@ $SnPublisherCopyWith<$Res>? get publisher {
 
 
 /// @nodoc
-mixin _$SnPoll {
+mixin _$SnSurvey {
 
- String get id; List<SnPollQuestion> get questions; String? get title; String? get description; DateTime? get endedAt; String get publisherId; SnPublisher? get publisher;// ModelBase fields
+ String get id; List<SnSurveyQuestion> get questions; String? get title; String? get description; DateTime? get endedAt; String get publisherId; SnPublisher? get publisher;// ModelBase fields
  DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
-/// Create a copy of SnPoll
+/// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPollCopyWith<SnPoll> get copyWith => _$SnPollCopyWithImpl<SnPoll>(this as SnPoll, _$identity);
+$SnSurveyCopyWith<SnSurvey> get copyWith => _$SnSurveyCopyWithImpl<SnSurvey>(this as SnSurvey, _$identity);
 
-  /// Serializes this SnPoll to a JSON map.
+  /// Serializes this SnSurvey to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPoll&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.questions, questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSurvey&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.questions, questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -388,18 +388,18 @@ int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().ha
 
 @override
 String toString() {
-  return 'SnPoll(id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSurvey(id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnPollCopyWith<$Res>  {
-  factory $SnPollCopyWith(SnPoll value, $Res Function(SnPoll) _then) = _$SnPollCopyWithImpl;
+abstract mixin class $SnSurveyCopyWith<$Res>  {
+  factory $SnSurveyCopyWith(SnSurvey value, $Res Function(SnSurvey) _then) = _$SnSurveyCopyWithImpl;
 @useResult
 $Res call({
- String id, List<SnPollQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, List<SnSurveyQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -407,20 +407,20 @@ $SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
-class _$SnPollCopyWithImpl<$Res>
-    implements $SnPollCopyWith<$Res> {
-  _$SnPollCopyWithImpl(this._self, this._then);
+class _$SnSurveyCopyWithImpl<$Res>
+    implements $SnSurveyCopyWith<$Res> {
+  _$SnSurveyCopyWithImpl(this._self, this._then);
 
-  final SnPoll _self;
-  final $Res Function(SnPoll) _then;
+  final SnSurvey _self;
+  final $Res Function(SnSurvey) _then;
 
-/// Create a copy of SnPoll
+/// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? questions = null,Object? title = freezed,Object? description = freezed,Object? endedAt = freezed,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,questions: null == questions ? _self.questions : questions // ignore: cast_nullable_to_non_nullable
-as List<SnPollQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as List<SnSurveyQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
@@ -431,7 +431,7 @@ as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ign
 as DateTime?,
   ));
 }
-/// Create a copy of SnPoll
+/// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -447,8 +447,8 @@ $SnPublisherCopyWith<$Res>? get publisher {
 }
 
 
-/// Adds pattern-matching-related methods to [SnPoll].
-extension SnPollPatterns on SnPoll {
+/// Adds pattern-matching-related methods to [SnSurvey].
+extension SnSurveyPatterns on SnSurvey {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -461,10 +461,10 @@ extension SnPollPatterns on SnPoll {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPoll value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSurvey value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnPoll() when $default != null:
+case _SnSurvey() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -483,10 +483,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPoll value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSurvey value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnPoll():
+case _SnSurvey():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -501,10 +501,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPoll value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSurvey value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnPoll() when $default != null:
+case _SnSurvey() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -522,9 +522,9 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  List<SnPollQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  List<SnSurveyQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnPoll() when $default != null:
+case _SnSurvey() when $default != null:
 return $default(_that.id,_that.questions,_that.title,_that.description,_that.endedAt,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
@@ -543,9 +543,9 @@ return $default(_that.id,_that.questions,_that.title,_that.description,_that.end
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  List<SnPollQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  List<SnSurveyQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
-case _SnPoll():
+case _SnSurvey():
 return $default(_that.id,_that.questions,_that.title,_that.description,_that.endedAt,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -560,9 +560,9 @@ return $default(_that.id,_that.questions,_that.title,_that.description,_that.end
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  List<SnPollQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  List<SnSurveyQuestion> questions,  String? title,  String? description,  DateTime? endedAt,  String publisherId,  SnPublisher? publisher,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
-case _SnPoll() when $default != null:
+case _SnSurvey() when $default != null:
 return $default(_that.id,_that.questions,_that.title,_that.description,_that.endedAt,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
@@ -574,13 +574,13 @@ return $default(_that.id,_that.questions,_that.title,_that.description,_that.end
 /// @nodoc
 @JsonSerializable()
 
-class _SnPoll implements SnPoll {
-  const _SnPoll({required this.id, required final  List<SnPollQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.createdAt, required this.updatedAt, this.deletedAt}): _questions = questions;
-  factory _SnPoll.fromJson(Map<String, dynamic> json) => _$SnPollFromJson(json);
+class _SnSurvey implements SnSurvey {
+  const _SnSurvey({required this.id, required final  List<SnSurveyQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.createdAt, required this.updatedAt, this.deletedAt}): _questions = questions;
+  factory _SnSurvey.fromJson(Map<String, dynamic> json) => _$SnSurveyFromJson(json);
 
 @override final  String id;
- final  List<SnPollQuestion> _questions;
-@override List<SnPollQuestion> get questions {
+ final  List<SnSurveyQuestion> _questions;
+@override List<SnSurveyQuestion> get questions {
   if (_questions is EqualUnmodifiableListView) return _questions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_questions);
@@ -596,20 +596,20 @@ class _SnPoll implements SnPoll {
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
 
-/// Create a copy of SnPoll
+/// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnPollCopyWith<_SnPoll> get copyWith => __$SnPollCopyWithImpl<_SnPoll>(this, _$identity);
+_$SnSurveyCopyWith<_SnSurvey> get copyWith => __$SnSurveyCopyWithImpl<_SnSurvey>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnPollToJson(this, );
+  return _$SnSurveyToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPoll&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._questions, _questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSurvey&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._questions, _questions)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -618,18 +618,18 @@ int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().ha
 
 @override
 String toString() {
-  return 'SnPoll(id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnSurvey(id: $id, questions: $questions, title: $title, description: $description, endedAt: $endedAt, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnPollCopyWith<$Res> implements $SnPollCopyWith<$Res> {
-  factory _$SnPollCopyWith(_SnPoll value, $Res Function(_SnPoll) _then) = __$SnPollCopyWithImpl;
+abstract mixin class _$SnSurveyCopyWith<$Res> implements $SnSurveyCopyWith<$Res> {
+  factory _$SnSurveyCopyWith(_SnSurvey value, $Res Function(_SnSurvey) _then) = __$SnSurveyCopyWithImpl;
 @override @useResult
 $Res call({
- String id, List<SnPollQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, List<SnSurveyQuestion> questions, String? title, String? description, DateTime? endedAt, String publisherId, SnPublisher? publisher, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -637,20 +637,20 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnPollCopyWithImpl<$Res>
-    implements _$SnPollCopyWith<$Res> {
-  __$SnPollCopyWithImpl(this._self, this._then);
+class __$SnSurveyCopyWithImpl<$Res>
+    implements _$SnSurveyCopyWith<$Res> {
+  __$SnSurveyCopyWithImpl(this._self, this._then);
 
-  final _SnPoll _self;
-  final $Res Function(_SnPoll) _then;
+  final _SnSurvey _self;
+  final $Res Function(_SnSurvey) _then;
 
-/// Create a copy of SnPoll
+/// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? questions = null,Object? title = freezed,Object? description = freezed,Object? endedAt = freezed,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_SnPoll(
+  return _then(_SnSurvey(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,questions: null == questions ? _self._questions : questions // ignore: cast_nullable_to_non_nullable
-as List<SnPollQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as List<SnSurveyQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
@@ -662,7 +662,7 @@ as DateTime?,
   ));
 }
 
-/// Create a copy of SnPoll
+/// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -679,22 +679,22 @@ $SnPublisherCopyWith<$Res>? get publisher {
 
 
 /// @nodoc
-mixin _$SnPollQuestion {
+mixin _$SnSurveyQuestion {
 
- String get id; SnPollQuestionType get type; List<SnPollOption>? get options; String get title; String? get description; int get order; bool get isRequired;
-/// Create a copy of SnPollQuestion
+ String get id; SnSurveyQuestionType get type; List<SnSurveyOption>? get options; String get title; String? get description; int get order; bool get isRequired;
+/// Create a copy of SnSurveyQuestion
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPollQuestionCopyWith<SnPollQuestion> get copyWith => _$SnPollQuestionCopyWithImpl<SnPollQuestion>(this as SnPollQuestion, _$identity);
+$SnSurveyQuestionCopyWith<SnSurveyQuestion> get copyWith => _$SnSurveyQuestionCopyWithImpl<SnSurveyQuestion>(this as SnSurveyQuestion, _$identity);
 
-  /// Serializes this SnPollQuestion to a JSON map.
+  /// Serializes this SnSurveyQuestion to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPollQuestion&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.options, options)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order)&&(identical(other.isRequired, isRequired) || other.isRequired == isRequired));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSurveyQuestion&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.options, options)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order)&&(identical(other.isRequired, isRequired) || other.isRequired == isRequired));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -703,18 +703,18 @@ int get hashCode => Object.hash(runtimeType,id,type,const DeepCollectionEquality
 
 @override
 String toString() {
-  return 'SnPollQuestion(id: $id, type: $type, options: $options, title: $title, description: $description, order: $order, isRequired: $isRequired)';
+  return 'SnSurveyQuestion(id: $id, type: $type, options: $options, title: $title, description: $description, order: $order, isRequired: $isRequired)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnPollQuestionCopyWith<$Res>  {
-  factory $SnPollQuestionCopyWith(SnPollQuestion value, $Res Function(SnPollQuestion) _then) = _$SnPollQuestionCopyWithImpl;
+abstract mixin class $SnSurveyQuestionCopyWith<$Res>  {
+  factory $SnSurveyQuestionCopyWith(SnSurveyQuestion value, $Res Function(SnSurveyQuestion) _then) = _$SnSurveyQuestionCopyWithImpl;
 @useResult
 $Res call({
- String id, SnPollQuestionType type, List<SnPollOption>? options, String title, String? description, int order, bool isRequired
+ String id, SnSurveyQuestionType type, List<SnSurveyOption>? options, String title, String? description, int order, bool isRequired
 });
 
 
@@ -722,21 +722,21 @@ $Res call({
 
 }
 /// @nodoc
-class _$SnPollQuestionCopyWithImpl<$Res>
-    implements $SnPollQuestionCopyWith<$Res> {
-  _$SnPollQuestionCopyWithImpl(this._self, this._then);
+class _$SnSurveyQuestionCopyWithImpl<$Res>
+    implements $SnSurveyQuestionCopyWith<$Res> {
+  _$SnSurveyQuestionCopyWithImpl(this._self, this._then);
 
-  final SnPollQuestion _self;
-  final $Res Function(SnPollQuestion) _then;
+  final SnSurveyQuestion _self;
+  final $Res Function(SnSurveyQuestion) _then;
 
-/// Create a copy of SnPollQuestion
+/// Create a copy of SnSurveyQuestion
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? options = freezed,Object? title = null,Object? description = freezed,Object? order = null,Object? isRequired = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as SnPollQuestionType,options: freezed == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
-as List<SnPollOption>?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as SnSurveyQuestionType,options: freezed == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
+as List<SnSurveyOption>?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,isRequired: null == isRequired ? _self.isRequired : isRequired // ignore: cast_nullable_to_non_nullable
@@ -747,8 +747,8 @@ as bool,
 }
 
 
-/// Adds pattern-matching-related methods to [SnPollQuestion].
-extension SnPollQuestionPatterns on SnPollQuestion {
+/// Adds pattern-matching-related methods to [SnSurveyQuestion].
+extension SnSurveyQuestionPatterns on SnSurveyQuestion {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -761,10 +761,10 @@ extension SnPollQuestionPatterns on SnPollQuestion {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPollQuestion value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSurveyQuestion value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnPollQuestion() when $default != null:
+case _SnSurveyQuestion() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -783,10 +783,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPollQuestion value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSurveyQuestion value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollQuestion():
+case _SnSurveyQuestion():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -801,10 +801,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPollQuestion value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSurveyQuestion value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollQuestion() when $default != null:
+case _SnSurveyQuestion() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -822,9 +822,9 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  SnPollQuestionType type,  List<SnPollOption>? options,  String title,  String? description,  int order,  bool isRequired)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  SnSurveyQuestionType type,  List<SnSurveyOption>? options,  String title,  String? description,  int order,  bool isRequired)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnPollQuestion() when $default != null:
+case _SnSurveyQuestion() when $default != null:
 return $default(_that.id,_that.type,_that.options,_that.title,_that.description,_that.order,_that.isRequired);case _:
   return orElse();
 
@@ -843,9 +843,9 @@ return $default(_that.id,_that.type,_that.options,_that.title,_that.description,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  SnPollQuestionType type,  List<SnPollOption>? options,  String title,  String? description,  int order,  bool isRequired)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  SnSurveyQuestionType type,  List<SnSurveyOption>? options,  String title,  String? description,  int order,  bool isRequired)  $default,) {final _that = this;
 switch (_that) {
-case _SnPollQuestion():
+case _SnSurveyQuestion():
 return $default(_that.id,_that.type,_that.options,_that.title,_that.description,_that.order,_that.isRequired);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -860,9 +860,9 @@ return $default(_that.id,_that.type,_that.options,_that.title,_that.description,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  SnPollQuestionType type,  List<SnPollOption>? options,  String title,  String? description,  int order,  bool isRequired)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  SnSurveyQuestionType type,  List<SnSurveyOption>? options,  String title,  String? description,  int order,  bool isRequired)?  $default,) {final _that = this;
 switch (_that) {
-case _SnPollQuestion() when $default != null:
+case _SnSurveyQuestion() when $default != null:
 return $default(_that.id,_that.type,_that.options,_that.title,_that.description,_that.order,_that.isRequired);case _:
   return null;
 
@@ -874,14 +874,14 @@ return $default(_that.id,_that.type,_that.options,_that.title,_that.description,
 /// @nodoc
 @JsonSerializable()
 
-class _SnPollQuestion implements SnPollQuestion {
-  const _SnPollQuestion({required this.id, required this.type, final  List<SnPollOption>? options, required this.title, this.description, required this.order, required this.isRequired}): _options = options;
-  factory _SnPollQuestion.fromJson(Map<String, dynamic> json) => _$SnPollQuestionFromJson(json);
+class _SnSurveyQuestion implements SnSurveyQuestion {
+  const _SnSurveyQuestion({required this.id, required this.type, final  List<SnSurveyOption>? options, required this.title, this.description, required this.order, required this.isRequired}): _options = options;
+  factory _SnSurveyQuestion.fromJson(Map<String, dynamic> json) => _$SnSurveyQuestionFromJson(json);
 
 @override final  String id;
-@override final  SnPollQuestionType type;
- final  List<SnPollOption>? _options;
-@override List<SnPollOption>? get options {
+@override final  SnSurveyQuestionType type;
+ final  List<SnSurveyOption>? _options;
+@override List<SnSurveyOption>? get options {
   final value = _options;
   if (value == null) return null;
   if (_options is EqualUnmodifiableListView) return _options;
@@ -894,20 +894,20 @@ class _SnPollQuestion implements SnPollQuestion {
 @override final  int order;
 @override final  bool isRequired;
 
-/// Create a copy of SnPollQuestion
+/// Create a copy of SnSurveyQuestion
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnPollQuestionCopyWith<_SnPollQuestion> get copyWith => __$SnPollQuestionCopyWithImpl<_SnPollQuestion>(this, _$identity);
+_$SnSurveyQuestionCopyWith<_SnSurveyQuestion> get copyWith => __$SnSurveyQuestionCopyWithImpl<_SnSurveyQuestion>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnPollQuestionToJson(this, );
+  return _$SnSurveyQuestionToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPollQuestion&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._options, _options)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order)&&(identical(other.isRequired, isRequired) || other.isRequired == isRequired));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSurveyQuestion&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._options, _options)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order)&&(identical(other.isRequired, isRequired) || other.isRequired == isRequired));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -916,18 +916,18 @@ int get hashCode => Object.hash(runtimeType,id,type,const DeepCollectionEquality
 
 @override
 String toString() {
-  return 'SnPollQuestion(id: $id, type: $type, options: $options, title: $title, description: $description, order: $order, isRequired: $isRequired)';
+  return 'SnSurveyQuestion(id: $id, type: $type, options: $options, title: $title, description: $description, order: $order, isRequired: $isRequired)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnPollQuestionCopyWith<$Res> implements $SnPollQuestionCopyWith<$Res> {
-  factory _$SnPollQuestionCopyWith(_SnPollQuestion value, $Res Function(_SnPollQuestion) _then) = __$SnPollQuestionCopyWithImpl;
+abstract mixin class _$SnSurveyQuestionCopyWith<$Res> implements $SnSurveyQuestionCopyWith<$Res> {
+  factory _$SnSurveyQuestionCopyWith(_SnSurveyQuestion value, $Res Function(_SnSurveyQuestion) _then) = __$SnSurveyQuestionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, SnPollQuestionType type, List<SnPollOption>? options, String title, String? description, int order, bool isRequired
+ String id, SnSurveyQuestionType type, List<SnSurveyOption>? options, String title, String? description, int order, bool isRequired
 });
 
 
@@ -935,21 +935,21 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnPollQuestionCopyWithImpl<$Res>
-    implements _$SnPollQuestionCopyWith<$Res> {
-  __$SnPollQuestionCopyWithImpl(this._self, this._then);
+class __$SnSurveyQuestionCopyWithImpl<$Res>
+    implements _$SnSurveyQuestionCopyWith<$Res> {
+  __$SnSurveyQuestionCopyWithImpl(this._self, this._then);
 
-  final _SnPollQuestion _self;
-  final $Res Function(_SnPollQuestion) _then;
+  final _SnSurveyQuestion _self;
+  final $Res Function(_SnSurveyQuestion) _then;
 
-/// Create a copy of SnPollQuestion
+/// Create a copy of SnSurveyQuestion
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? options = freezed,Object? title = null,Object? description = freezed,Object? order = null,Object? isRequired = null,}) {
-  return _then(_SnPollQuestion(
+  return _then(_SnSurveyQuestion(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as SnPollQuestionType,options: freezed == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
-as List<SnPollOption>?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as SnSurveyQuestionType,options: freezed == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
+as List<SnSurveyOption>?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,isRequired: null == isRequired ? _self.isRequired : isRequired // ignore: cast_nullable_to_non_nullable
@@ -962,22 +962,22 @@ as bool,
 
 
 /// @nodoc
-mixin _$SnPollOption {
+mixin _$SnSurveyOption {
 
  String get id; String get label; String? get description; int get order;
-/// Create a copy of SnPollOption
+/// Create a copy of SnSurveyOption
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPollOptionCopyWith<SnPollOption> get copyWith => _$SnPollOptionCopyWithImpl<SnPollOption>(this as SnPollOption, _$identity);
+$SnSurveyOptionCopyWith<SnSurveyOption> get copyWith => _$SnSurveyOptionCopyWithImpl<SnSurveyOption>(this as SnSurveyOption, _$identity);
 
-  /// Serializes this SnPollOption to a JSON map.
+  /// Serializes this SnSurveyOption to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPollOption&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSurveyOption&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -986,15 +986,15 @@ int get hashCode => Object.hash(runtimeType,id,label,description,order);
 
 @override
 String toString() {
-  return 'SnPollOption(id: $id, label: $label, description: $description, order: $order)';
+  return 'SnSurveyOption(id: $id, label: $label, description: $description, order: $order)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnPollOptionCopyWith<$Res>  {
-  factory $SnPollOptionCopyWith(SnPollOption value, $Res Function(SnPollOption) _then) = _$SnPollOptionCopyWithImpl;
+abstract mixin class $SnSurveyOptionCopyWith<$Res>  {
+  factory $SnSurveyOptionCopyWith(SnSurveyOption value, $Res Function(SnSurveyOption) _then) = _$SnSurveyOptionCopyWithImpl;
 @useResult
 $Res call({
  String id, String label, String? description, int order
@@ -1005,14 +1005,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$SnPollOptionCopyWithImpl<$Res>
-    implements $SnPollOptionCopyWith<$Res> {
-  _$SnPollOptionCopyWithImpl(this._self, this._then);
+class _$SnSurveyOptionCopyWithImpl<$Res>
+    implements $SnSurveyOptionCopyWith<$Res> {
+  _$SnSurveyOptionCopyWithImpl(this._self, this._then);
 
-  final SnPollOption _self;
-  final $Res Function(SnPollOption) _then;
+  final SnSurveyOption _self;
+  final $Res Function(SnSurveyOption) _then;
 
-/// Create a copy of SnPollOption
+/// Create a copy of SnSurveyOption
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? description = freezed,Object? order = null,}) {
   return _then(_self.copyWith(
@@ -1027,8 +1027,8 @@ as int,
 }
 
 
-/// Adds pattern-matching-related methods to [SnPollOption].
-extension SnPollOptionPatterns on SnPollOption {
+/// Adds pattern-matching-related methods to [SnSurveyOption].
+extension SnSurveyOptionPatterns on SnSurveyOption {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -1041,10 +1041,10 @@ extension SnPollOptionPatterns on SnPollOption {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPollOption value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSurveyOption value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnPollOption() when $default != null:
+case _SnSurveyOption() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -1063,10 +1063,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPollOption value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSurveyOption value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollOption():
+case _SnSurveyOption():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -1081,10 +1081,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPollOption value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSurveyOption value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollOption() when $default != null:
+case _SnSurveyOption() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -1104,7 +1104,7 @@ return $default(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  String? description,  int order)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnPollOption() when $default != null:
+case _SnSurveyOption() when $default != null:
 return $default(_that.id,_that.label,_that.description,_that.order);case _:
   return orElse();
 
@@ -1125,7 +1125,7 @@ return $default(_that.id,_that.label,_that.description,_that.order);case _:
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  String? description,  int order)  $default,) {final _that = this;
 switch (_that) {
-case _SnPollOption():
+case _SnSurveyOption():
 return $default(_that.id,_that.label,_that.description,_that.order);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -1142,7 +1142,7 @@ return $default(_that.id,_that.label,_that.description,_that.order);}
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  String? description,  int order)?  $default,) {final _that = this;
 switch (_that) {
-case _SnPollOption() when $default != null:
+case _SnSurveyOption() when $default != null:
 return $default(_that.id,_that.label,_that.description,_that.order);case _:
   return null;
 
@@ -1154,29 +1154,29 @@ return $default(_that.id,_that.label,_that.description,_that.order);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _SnPollOption implements SnPollOption {
-  const _SnPollOption({required this.id, required this.label, this.description, required this.order});
-  factory _SnPollOption.fromJson(Map<String, dynamic> json) => _$SnPollOptionFromJson(json);
+class _SnSurveyOption implements SnSurveyOption {
+  const _SnSurveyOption({required this.id, required this.label, this.description, required this.order});
+  factory _SnSurveyOption.fromJson(Map<String, dynamic> json) => _$SnSurveyOptionFromJson(json);
 
 @override final  String id;
 @override final  String label;
 @override final  String? description;
 @override final  int order;
 
-/// Create a copy of SnPollOption
+/// Create a copy of SnSurveyOption
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnPollOptionCopyWith<_SnPollOption> get copyWith => __$SnPollOptionCopyWithImpl<_SnPollOption>(this, _$identity);
+_$SnSurveyOptionCopyWith<_SnSurveyOption> get copyWith => __$SnSurveyOptionCopyWithImpl<_SnSurveyOption>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnPollOptionToJson(this, );
+  return _$SnSurveyOptionToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPollOption&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSurveyOption&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.description, description) || other.description == description)&&(identical(other.order, order) || other.order == order));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1185,15 +1185,15 @@ int get hashCode => Object.hash(runtimeType,id,label,description,order);
 
 @override
 String toString() {
-  return 'SnPollOption(id: $id, label: $label, description: $description, order: $order)';
+  return 'SnSurveyOption(id: $id, label: $label, description: $description, order: $order)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnPollOptionCopyWith<$Res> implements $SnPollOptionCopyWith<$Res> {
-  factory _$SnPollOptionCopyWith(_SnPollOption value, $Res Function(_SnPollOption) _then) = __$SnPollOptionCopyWithImpl;
+abstract mixin class _$SnSurveyOptionCopyWith<$Res> implements $SnSurveyOptionCopyWith<$Res> {
+  factory _$SnSurveyOptionCopyWith(_SnSurveyOption value, $Res Function(_SnSurveyOption) _then) = __$SnSurveyOptionCopyWithImpl;
 @override @useResult
 $Res call({
  String id, String label, String? description, int order
@@ -1204,17 +1204,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnPollOptionCopyWithImpl<$Res>
-    implements _$SnPollOptionCopyWith<$Res> {
-  __$SnPollOptionCopyWithImpl(this._self, this._then);
+class __$SnSurveyOptionCopyWithImpl<$Res>
+    implements _$SnSurveyOptionCopyWith<$Res> {
+  __$SnSurveyOptionCopyWithImpl(this._self, this._then);
 
-  final _SnPollOption _self;
-  final $Res Function(_SnPollOption) _then;
+  final _SnSurveyOption _self;
+  final $Res Function(_SnSurveyOption) _then;
 
-/// Create a copy of SnPollOption
+/// Create a copy of SnSurveyOption
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? description = freezed,Object? order = null,}) {
-  return _then(_SnPollOption(
+  return _then(_SnSurveyOption(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -1228,42 +1228,42 @@ as int,
 
 
 /// @nodoc
-mixin _$SnPollAnswer {
+mixin _$SnSurveyAnswer {
 
- String get id; Map<String, dynamic> get answer; String get accountId; String get pollId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; SnAccount? get account;
-/// Create a copy of SnPollAnswer
+ String get id; Map<String, dynamic> get answer; String get accountId; String get surveyId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; SnAccount? get account;
+/// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPollAnswerCopyWith<SnPollAnswer> get copyWith => _$SnPollAnswerCopyWithImpl<SnPollAnswer>(this as SnPollAnswer, _$identity);
+$SnSurveyAnswerCopyWith<SnSurveyAnswer> get copyWith => _$SnSurveyAnswerCopyWithImpl<SnSurveyAnswer>(this as SnSurveyAnswer, _$identity);
 
-  /// Serializes this SnPollAnswer to a JSON map.
+  /// Serializes this SnSurveyAnswer to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPollAnswer&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.answer, answer)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.pollId, pollId) || other.pollId == pollId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.account, account) || other.account == account));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSurveyAnswer&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.answer, answer)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.surveyId, surveyId) || other.surveyId == surveyId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.account, account) || other.account == account));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(answer),accountId,pollId,createdAt,updatedAt,deletedAt,account);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(answer),accountId,surveyId,createdAt,updatedAt,deletedAt,account);
 
 @override
 String toString() {
-  return 'SnPollAnswer(id: $id, answer: $answer, accountId: $accountId, pollId: $pollId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, account: $account)';
+  return 'SnSurveyAnswer(id: $id, answer: $answer, accountId: $accountId, surveyId: $surveyId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, account: $account)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnPollAnswerCopyWith<$Res>  {
-  factory $SnPollAnswerCopyWith(SnPollAnswer value, $Res Function(SnPollAnswer) _then) = _$SnPollAnswerCopyWithImpl;
+abstract mixin class $SnSurveyAnswerCopyWith<$Res>  {
+  factory $SnSurveyAnswerCopyWith(SnSurveyAnswer value, $Res Function(SnSurveyAnswer) _then) = _$SnSurveyAnswerCopyWithImpl;
 @useResult
 $Res call({
- String id, Map<String, dynamic> answer, String accountId, String pollId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccount? account
+ String id, Map<String, dynamic> answer, String accountId, String surveyId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccount? account
 });
 
 
@@ -1271,21 +1271,21 @@ $SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
-class _$SnPollAnswerCopyWithImpl<$Res>
-    implements $SnPollAnswerCopyWith<$Res> {
-  _$SnPollAnswerCopyWithImpl(this._self, this._then);
+class _$SnSurveyAnswerCopyWithImpl<$Res>
+    implements $SnSurveyAnswerCopyWith<$Res> {
+  _$SnSurveyAnswerCopyWithImpl(this._self, this._then);
 
-  final SnPollAnswer _self;
-  final $Res Function(SnPollAnswer) _then;
+  final SnSurveyAnswer _self;
+  final $Res Function(SnSurveyAnswer) _then;
 
-/// Create a copy of SnPollAnswer
+/// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? pollId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? account = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? surveyId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? account = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,answer: null == answer ? _self.answer : answer // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,pollId: null == pollId ? _self.pollId : pollId // ignore: cast_nullable_to_non_nullable
+as String,surveyId: null == surveyId ? _self.surveyId : surveyId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -1293,7 +1293,7 @@ as DateTime?,account: freezed == account ? _self.account : account // ignore: ca
 as SnAccount?,
   ));
 }
-/// Create a copy of SnPollAnswer
+/// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -1309,8 +1309,8 @@ $SnAccountCopyWith<$Res>? get account {
 }
 
 
-/// Adds pattern-matching-related methods to [SnPollAnswer].
-extension SnPollAnswerPatterns on SnPollAnswer {
+/// Adds pattern-matching-related methods to [SnSurveyAnswer].
+extension SnSurveyAnswerPatterns on SnSurveyAnswer {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -1323,10 +1323,10 @@ extension SnPollAnswerPatterns on SnPollAnswer {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPollAnswer value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSurveyAnswer value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnPollAnswer() when $default != null:
+case _SnSurveyAnswer() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -1345,10 +1345,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPollAnswer value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSurveyAnswer value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollAnswer():
+case _SnSurveyAnswer():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -1363,10 +1363,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPollAnswer value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSurveyAnswer value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnPollAnswer() when $default != null:
+case _SnSurveyAnswer() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -1384,10 +1384,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  Map<String, dynamic> answer,  String accountId,  String pollId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccount? account)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  Map<String, dynamic> answer,  String accountId,  String surveyId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccount? account)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnPollAnswer() when $default != null:
-return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.account);case _:
+case _SnSurveyAnswer() when $default != null:
+return $default(_that.id,_that.answer,_that.accountId,_that.surveyId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.account);case _:
   return orElse();
 
 }
@@ -1405,10 +1405,10 @@ return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.created
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  Map<String, dynamic> answer,  String accountId,  String pollId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccount? account)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  Map<String, dynamic> answer,  String accountId,  String surveyId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccount? account)  $default,) {final _that = this;
 switch (_that) {
-case _SnPollAnswer():
-return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.account);}
+case _SnSurveyAnswer():
+return $default(_that.id,_that.answer,_that.accountId,_that.surveyId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.account);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1422,10 +1422,10 @@ return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.created
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  Map<String, dynamic> answer,  String accountId,  String pollId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccount? account)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  Map<String, dynamic> answer,  String accountId,  String surveyId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  SnAccount? account)?  $default,) {final _that = this;
 switch (_that) {
-case _SnPollAnswer() when $default != null:
-return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.account);case _:
+case _SnSurveyAnswer() when $default != null:
+return $default(_that.id,_that.answer,_that.accountId,_that.surveyId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.account);case _:
   return null;
 
 }
@@ -1436,9 +1436,9 @@ return $default(_that.id,_that.answer,_that.accountId,_that.pollId,_that.created
 /// @nodoc
 @JsonSerializable()
 
-class _SnPollAnswer implements SnPollAnswer {
-  const _SnPollAnswer({required this.id, required final  Map<String, dynamic> answer, required this.accountId, required this.pollId, required this.createdAt, required this.updatedAt, required this.deletedAt, this.account}): _answer = answer;
-  factory _SnPollAnswer.fromJson(Map<String, dynamic> json) => _$SnPollAnswerFromJson(json);
+class _SnSurveyAnswer implements SnSurveyAnswer {
+  const _SnSurveyAnswer({required this.id, required final  Map<String, dynamic> answer, required this.accountId, required this.surveyId, required this.createdAt, required this.updatedAt, required this.deletedAt, this.account}): _answer = answer;
+  factory _SnSurveyAnswer.fromJson(Map<String, dynamic> json) => _$SnSurveyAnswerFromJson(json);
 
 @override final  String id;
  final  Map<String, dynamic> _answer;
@@ -1449,46 +1449,46 @@ class _SnPollAnswer implements SnPollAnswer {
 }
 
 @override final  String accountId;
-@override final  String pollId;
+@override final  String surveyId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
 @override final  SnAccount? account;
 
-/// Create a copy of SnPollAnswer
+/// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnPollAnswerCopyWith<_SnPollAnswer> get copyWith => __$SnPollAnswerCopyWithImpl<_SnPollAnswer>(this, _$identity);
+_$SnSurveyAnswerCopyWith<_SnSurveyAnswer> get copyWith => __$SnSurveyAnswerCopyWithImpl<_SnSurveyAnswer>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnPollAnswerToJson(this, );
+  return _$SnSurveyAnswerToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPollAnswer&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._answer, _answer)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.pollId, pollId) || other.pollId == pollId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.account, account) || other.account == account));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSurveyAnswer&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._answer, _answer)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.surveyId, surveyId) || other.surveyId == surveyId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.account, account) || other.account == account));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_answer),accountId,pollId,createdAt,updatedAt,deletedAt,account);
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_answer),accountId,surveyId,createdAt,updatedAt,deletedAt,account);
 
 @override
 String toString() {
-  return 'SnPollAnswer(id: $id, answer: $answer, accountId: $accountId, pollId: $pollId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, account: $account)';
+  return 'SnSurveyAnswer(id: $id, answer: $answer, accountId: $accountId, surveyId: $surveyId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, account: $account)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnPollAnswerCopyWith<$Res> implements $SnPollAnswerCopyWith<$Res> {
-  factory _$SnPollAnswerCopyWith(_SnPollAnswer value, $Res Function(_SnPollAnswer) _then) = __$SnPollAnswerCopyWithImpl;
+abstract mixin class _$SnSurveyAnswerCopyWith<$Res> implements $SnSurveyAnswerCopyWith<$Res> {
+  factory _$SnSurveyAnswerCopyWith(_SnSurveyAnswer value, $Res Function(_SnSurveyAnswer) _then) = __$SnSurveyAnswerCopyWithImpl;
 @override @useResult
 $Res call({
- String id, Map<String, dynamic> answer, String accountId, String pollId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccount? account
+ String id, Map<String, dynamic> answer, String accountId, String surveyId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, SnAccount? account
 });
 
 
@@ -1496,21 +1496,21 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnPollAnswerCopyWithImpl<$Res>
-    implements _$SnPollAnswerCopyWith<$Res> {
-  __$SnPollAnswerCopyWithImpl(this._self, this._then);
+class __$SnSurveyAnswerCopyWithImpl<$Res>
+    implements _$SnSurveyAnswerCopyWith<$Res> {
+  __$SnSurveyAnswerCopyWithImpl(this._self, this._then);
 
-  final _SnPollAnswer _self;
-  final $Res Function(_SnPollAnswer) _then;
+  final _SnSurveyAnswer _self;
+  final $Res Function(_SnSurveyAnswer) _then;
 
-/// Create a copy of SnPollAnswer
+/// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? pollId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? account = freezed,}) {
-  return _then(_SnPollAnswer(
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? surveyId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? account = freezed,}) {
+  return _then(_SnSurveyAnswer(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,answer: null == answer ? _self._answer : answer // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String,pollId: null == pollId ? _self.pollId : pollId // ignore: cast_nullable_to_non_nullable
+as String,surveyId: null == surveyId ? _self.surveyId : surveyId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -1519,7 +1519,7 @@ as SnAccount?,
   ));
 }
 
-/// Create a copy of SnPollAnswer
+/// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

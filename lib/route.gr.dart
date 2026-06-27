@@ -43,14 +43,14 @@ import 'package:island/chat/widgets/chat_room_storage_screen.dart' as _i22;
 import 'package:island/chat/widgets/chat_search_screen.dart' as _i58;
 import 'package:island/creators/screens/domains/domain_manage.dart' as _i24;
 import 'package:island/creators/screens/hub.dart' as _i25;
-import 'package:island/creators/screens/poll/poll_list.dart' as _i26;
 import 'package:island/creators/screens/posts/post_collections_manage.dart'
-    as _i27;
-import 'package:island/creators/screens/posts/post_manage_list.dart' as _i28;
+    as _i26;
+import 'package:island/creators/screens/posts/post_manage_list.dart' as _i27;
 import 'package:island/creators/screens/publishers_form.dart' as _i33;
 import 'package:island/creators/screens/stickers/pack_detail_screen.dart'
-    as _i30;
-import 'package:island/creators/screens/stickers/stickers.dart' as _i29;
+    as _i29;
+import 'package:island/creators/screens/stickers/stickers.dart' as _i28;
+import 'package:island/creators/screens/survey/survey_list.dart' as _i30;
 import 'package:island/discovery/explore.dart' as _i35;
 import 'package:island/discovery/search.dart' as _i67;
 import 'package:island/drive/files/file_detail.dart' as _i37;
@@ -1100,60 +1100,7 @@ class CreatorHubRoute extends _i69.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i26.CreatorPollListScreen]
-class CreatorPollListRoute
-    extends _i69.PageRouteInfo<CreatorPollListRouteArgs> {
-  CreatorPollListRoute({
-    _i71.Key? key,
-    required String pubName,
-    List<_i69.PageRouteInfo>? children,
-  }) : super(
-         CreatorPollListRoute.name,
-         args: CreatorPollListRouteArgs(key: key, pubName: pubName),
-         rawPathParams: {'pubName': pubName},
-         initialChildren: children,
-       );
-
-  static const String name = 'CreatorPollListRoute';
-
-  static _i69.PageInfo page = _i69.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<CreatorPollListRouteArgs>(
-        orElse: () =>
-            CreatorPollListRouteArgs(pubName: pathParams.getString('pubName')),
-      );
-      return _i26.CreatorPollListScreen(key: args.key, pubName: args.pubName);
-    },
-  );
-}
-
-class CreatorPollListRouteArgs {
-  const CreatorPollListRouteArgs({this.key, required this.pubName});
-
-  final _i71.Key? key;
-
-  final String pubName;
-
-  @override
-  String toString() {
-    return 'CreatorPollListRouteArgs{key: $key, pubName: $pubName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! CreatorPollListRouteArgs) return false;
-    return key == other.key && pubName == other.pubName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ pubName.hashCode;
-}
-
-/// generated route for
-/// [_i27.CreatorPostCollectionsScreen]
+/// [_i26.CreatorPostCollectionsScreen]
 class CreatorPostCollectionsRoute
     extends _i69.PageRouteInfo<CreatorPostCollectionsRouteArgs> {
   CreatorPostCollectionsRoute({
@@ -1178,7 +1125,7 @@ class CreatorPostCollectionsRoute
           pubName: pathParams.getString('pubName'),
         ),
       );
-      return _i27.CreatorPostCollectionsScreen(
+      return _i26.CreatorPostCollectionsScreen(
         key: args.key,
         pubName: args.pubName,
       );
@@ -1210,7 +1157,7 @@ class CreatorPostCollectionsRouteArgs {
 }
 
 /// generated route for
-/// [_i28.CreatorPostListScreen]
+/// [_i27.CreatorPostListScreen]
 class CreatorPostListRoute
     extends _i69.PageRouteInfo<CreatorPostListRouteArgs> {
   CreatorPostListRoute({
@@ -1234,7 +1181,7 @@ class CreatorPostListRoute
         orElse: () =>
             CreatorPostListRouteArgs(pubName: pathParams.getString('pubName')),
       );
-      return _i28.CreatorPostListScreen(key: args.key, pubName: args.pubName);
+      return _i27.CreatorPostListScreen(key: args.key, pubName: args.pubName);
     },
   );
 }
@@ -1263,7 +1210,7 @@ class CreatorPostListRouteArgs {
 }
 
 /// generated route for
-/// [_i29.CreatorStickerListScreen]
+/// [_i28.CreatorStickerListScreen]
 class CreatorStickerListRoute
     extends _i69.PageRouteInfo<CreatorStickerListRouteArgs> {
   CreatorStickerListRoute({
@@ -1288,7 +1235,7 @@ class CreatorStickerListRoute
           pubName: pathParams.getString('pubName'),
         ),
       );
-      return _i29.CreatorStickerListScreen(
+      return _i28.CreatorStickerListScreen(
         key: args.key,
         pubName: args.pubName,
       );
@@ -1320,7 +1267,7 @@ class CreatorStickerListRouteArgs {
 }
 
 /// generated route for
-/// [_i30.CreatorStickerPackDetailScreen]
+/// [_i29.CreatorStickerPackDetailScreen]
 class CreatorStickerPackDetailRoute
     extends _i69.PageRouteInfo<CreatorStickerPackDetailRouteArgs> {
   CreatorStickerPackDetailRoute({
@@ -1351,7 +1298,7 @@ class CreatorStickerPackDetailRoute
           pubName: pathParams.getString('pubName'),
         ),
       );
-      return _i30.CreatorStickerPackDetailScreen(
+      return _i29.CreatorStickerPackDetailScreen(
         key: args.key,
         packId: args.packId,
         pubName: args.pubName,
@@ -1389,6 +1336,60 @@ class CreatorStickerPackDetailRouteArgs {
 
   @override
   int get hashCode => key.hashCode ^ packId.hashCode ^ pubName.hashCode;
+}
+
+/// generated route for
+/// [_i30.CreatorSurveyListScreen]
+class CreatorSurveyListRoute
+    extends _i69.PageRouteInfo<CreatorSurveyListRouteArgs> {
+  CreatorSurveyListRoute({
+    _i71.Key? key,
+    required String pubName,
+    List<_i69.PageRouteInfo>? children,
+  }) : super(
+         CreatorSurveyListRoute.name,
+         args: CreatorSurveyListRouteArgs(key: key, pubName: pubName),
+         rawPathParams: {'pubName': pubName},
+         initialChildren: children,
+       );
+
+  static const String name = 'CreatorSurveyListRoute';
+
+  static _i69.PageInfo page = _i69.PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<CreatorSurveyListRouteArgs>(
+        orElse: () => CreatorSurveyListRouteArgs(
+          pubName: pathParams.getString('pubName'),
+        ),
+      );
+      return _i30.CreatorSurveyListScreen(key: args.key, pubName: args.pubName);
+    },
+  );
+}
+
+class CreatorSurveyListRouteArgs {
+  const CreatorSurveyListRouteArgs({this.key, required this.pubName});
+
+  final _i71.Key? key;
+
+  final String pubName;
+
+  @override
+  String toString() {
+    return 'CreatorSurveyListRouteArgs{key: $key, pubName: $pubName}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! CreatorSurveyListRouteArgs) return false;
+    return key == other.key && pubName == other.pubName;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ pubName.hashCode;
 }
 
 /// generated route for

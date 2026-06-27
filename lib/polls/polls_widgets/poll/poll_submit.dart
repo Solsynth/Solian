@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/creators/screens/poll/poll_list.dart';
+import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/polls/polls_widgets/poll/poll_stats_widget.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -48,7 +48,7 @@ class PollSubmit extends ConsumerStatefulWidget {
 }
 
 class _PollSubmitState extends ConsumerState<PollSubmit> {
-  List<SnPollQuestion>? _questions;
+  List<SnSurveyQuestion>? _questions;
   int _index = 0;
   bool _submitting = false;
   bool _isModifying = false; // New state to track if user is modifying answers
@@ -96,7 +96,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  void _initializeFromPollData(SnPollWithStats poll) {
+  void _initializeFromPollData(SnSurveyWithStats poll) {
     // Initialize answers from poll data if available
     if (poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty) {
       _answers = Map<String, dynamic>.from(poll.userAnswer!.answer);
@@ -125,9 +125,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     super.dispose();
   }
 
-  SnPollQuestion get _current => _questions![_index];
+  SnSurveyQuestion get _current => _questions![_index];
 
-  bool _isExpired(SnPollWithStats poll) {
+  bool _isExpired(SnSurveyWithStats poll) {
     final endedAt = poll.endedAt;
     if (endedAt == null) return false;
     return endedAt.toUtc().isBefore(DateTime.now().toUtc());
@@ -144,21 +144,21 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       _ratingSelected = null;
 
       switch (q.type) {
-        case SnPollQuestionType.singleChoice:
+        case SnSurveyQuestionType.singleChoice:
           if (saved is String) _singleChoiceSelected = saved;
           break;
-        case SnPollQuestionType.multipleChoice:
+        case SnSurveyQuestionType.multipleChoice:
           if (saved is List) {
             _multiChoiceSelected.addAll(saved.whereType<String>());
           }
           break;
-        case SnPollQuestionType.yesNo:
+        case SnSurveyQuestionType.yesNo:
           if (saved is bool) _yesNoSelected = saved;
           break;
-        case SnPollQuestionType.rating:
+        case SnSurveyQuestionType.rating:
           if (saved is int) _ratingSelected = saved;
           break;
-        case SnPollQuestionType.freeText:
+        case SnSurveyQuestionType.freeText:
           if (saved is String) {
             _textController.removeListener(_controllerListener);
             _textController.text = saved;
@@ -174,15 +174,15 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     if (!q.isRequired) return true;
 
     switch (q.type) {
-      case SnPollQuestionType.singleChoice:
+      case SnSurveyQuestionType.singleChoice:
         return _singleChoiceSelected != null;
-      case SnPollQuestionType.multipleChoice:
+      case SnSurveyQuestionType.multipleChoice:
         return _multiChoiceSelected.isNotEmpty;
-      case SnPollQuestionType.yesNo:
+      case SnSurveyQuestionType.yesNo:
         return _yesNoSelected != null;
-      case SnPollQuestionType.rating:
+      case SnSurveyQuestionType.rating:
         return (_ratingSelected ?? 0) > 0;
-      case SnPollQuestionType.freeText:
+      case SnSurveyQuestionType.freeText:
         return _textController.text.trim().isNotEmpty;
     }
   }
@@ -190,35 +190,35 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   void _persistCurrentAnswer() {
     final q = _current;
     switch (q.type) {
-      case SnPollQuestionType.singleChoice:
+      case SnSurveyQuestionType.singleChoice:
         if (_singleChoiceSelected == null) {
           _answers.remove(q.id);
         } else {
           _answers[q.id] = _singleChoiceSelected!;
         }
         break;
-      case SnPollQuestionType.multipleChoice:
+      case SnSurveyQuestionType.multipleChoice:
         if (_multiChoiceSelected.isEmpty) {
           _answers.remove(q.id);
         } else {
           _answers[q.id] = _multiChoiceSelected.toList(growable: false);
         }
         break;
-      case SnPollQuestionType.yesNo:
+      case SnSurveyQuestionType.yesNo:
         if (_yesNoSelected == null) {
           _answers.remove(q.id);
         } else {
           _answers[q.id] = _yesNoSelected!;
         }
         break;
-      case SnPollQuestionType.rating:
+      case SnSurveyQuestionType.rating:
         if (_ratingSelected == null) {
           _answers.remove(q.id);
         } else {
           _answers[q.id] = _ratingSelected!;
         }
         break;
-      case SnPollQuestionType.freeText:
+      case SnSurveyQuestionType.freeText:
         final text = _textController.text.trim();
         if (text.isEmpty) {
           _answers.remove(q.id);
@@ -229,7 +229,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  Future<void> _submitToServer(SnPollWithStats poll) async {
+  Future<void> _submitToServer(SnSurveyWithStats poll) async {
     // Persist current question before final submit
     _persistCurrentAnswer();
 
@@ -241,12 +241,12 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       final dio = ref.read(solarNetworkClientProvider).dio;
 
       await dio.post(
-        '/sphere/polls/${poll.id}/answer',
+        '/sphere/surveys/${poll.id}/answer',
         data: {'answer': _answers},
       );
 
       // Refresh poll data to show submitted answer
-      ref.invalidate(pollWithStatsProvider(widget.pollId));
+      ref.invalidate(surveyWithStatsProvider(widget.pollId));
 
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
@@ -264,7 +264,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  void _next(SnPollWithStats poll) {
+  void _next(SnSurveyWithStats poll) {
     if (_submitting) return;
     if (!_isCurrentAnswered()) {
       showSnackBar('${'required'.tr()}: ${_current.title}');
@@ -298,7 +298,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
   }
 
-  Widget _buildHeader(BuildContext context, SnPollWithStats poll) {
+  Widget _buildHeader(BuildContext context, SnSurveyWithStats poll) {
     final q = _current;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,13 +347,13 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   Widget _buildStats(
     BuildContext context,
-    SnPollQuestion q,
+    SnSurveyQuestion q,
     Map<String, dynamic>? stats,
   ) {
     return PollStatsWidget(question: q, stats: stats);
   }
 
-  Widget _buildBody(BuildContext context, SnPollWithStats poll) {
+  Widget _buildBody(BuildContext context, SnSurveyWithStats poll) {
     final hasUserAnswer =
         poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
     if (hasUserAnswer && !widget.isReadonly && !_isModifying) {
@@ -361,20 +361,20 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     }
     final q = _current;
     switch (q.type) {
-      case SnPollQuestionType.singleChoice:
+      case SnSurveyQuestionType.singleChoice:
         return _buildSingleChoice(context, q);
-      case SnPollQuestionType.multipleChoice:
+      case SnSurveyQuestionType.multipleChoice:
         return _buildMultipleChoice(context, q);
-      case SnPollQuestionType.yesNo:
+      case SnSurveyQuestionType.yesNo:
         return _buildYesNo(context, q);
-      case SnPollQuestionType.rating:
+      case SnSurveyQuestionType.rating:
         return _buildRating(context, q);
-      case SnPollQuestionType.freeText:
+      case SnSurveyQuestionType.freeText:
         return _buildFreeText(context, q);
     }
   }
 
-  Widget _buildSingleChoice(BuildContext context, SnPollQuestion q) {
+  Widget _buildSingleChoice(BuildContext context, SnSurveyQuestion q) {
     final options = [...?q.options]..sort((a, b) => a.order.compareTo(b.order));
     return Column(
       children: [
@@ -393,7 +393,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildMultipleChoice(BuildContext context, SnPollQuestion q) {
+  Widget _buildMultipleChoice(BuildContext context, SnSurveyQuestion q) {
     final options = [...?q.options]..sort((a, b) => a.order.compareTo(b.order));
     return Column(
       children: [
@@ -417,7 +417,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildYesNo(BuildContext context, SnPollQuestion q) {
+  Widget _buildYesNo(BuildContext context, SnSurveyQuestion q) {
     return Row(
       children: [
         Expanded(
@@ -441,7 +441,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildRating(BuildContext context, SnPollQuestion q) {
+  Widget _buildRating(BuildContext context, SnSurveyQuestion q) {
     const max = 5;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -464,7 +464,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildFreeText(BuildContext context, SnPollQuestion q) {
+  Widget _buildFreeText(BuildContext context, SnSurveyQuestion q) {
     return TextField(
       controller: _textController,
       maxLines: 6,
@@ -476,7 +476,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildNavBar(BuildContext context, SnPollWithStats poll) {
+  Widget _buildNavBar(BuildContext context, SnSurveyWithStats poll) {
     final isLast = _index == _questions!.length - 1;
     final canProceed = _isCurrentAnswered() && !_submitting;
     final hasUserAnswer =
@@ -534,7 +534,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   Widget _buildStatsStepper(
     BuildContext context,
-    SnPollWithStats poll, {
+    SnSurveyWithStats poll, {
     required bool canModify,
   }) {
     final isLast = _index == _questions!.length - 1;
@@ -610,7 +610,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildReadonlyView(BuildContext context, SnPollWithStats poll) {
+  Widget _buildReadonlyView(BuildContext context, SnSurveyWithStats poll) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -646,7 +646,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     );
   }
 
-  Widget _buildCollapsedView(BuildContext context, SnPollWithStats poll) {
+  Widget _buildCollapsedView(BuildContext context, SnSurveyWithStats poll) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -716,7 +716,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   @override
   Widget build(BuildContext context) {
-    final pollAsync = ref.watch(pollWithStatsProvider(widget.pollId));
+    final pollAsync = ref.watch(surveyWithStatsProvider(widget.pollId));
 
     return pollAsync.when(
       loading: () => const Center(

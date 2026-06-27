@@ -163,7 +163,7 @@ class AppRouter extends RootStackRouter {
               page: CreatorPostCollectionsRoute.page,
               path: ':pubName/collections',
             ),
-            AutoRoute(page: CreatorPollListRoute.page, path: ':pubName/polls'),
+            AutoRoute(page: CreatorSurveyListRoute.page, path: ':pubName/surveys'),
             AutoRoute(
               page: CreatorStickerListRoute.page,
               path: ':pubName/stickers',

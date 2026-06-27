@@ -116,8 +116,7 @@ class MessageContent extends StatelessWidget {
               Flexible(
                 child: PrettyDiffText(
                   oldText: item.meta['previous_content'],
-                  newText:
-                      item.content ?? 'messageUpdateEdited'.tr(),
+                  newText: item.content ?? 'messageUpdateEdited'.tr(),
                   defaultTextStyle: Theme.of(context).textTheme.bodyMedium!
                       .copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -626,7 +625,7 @@ class _VoiceMessageContent extends HookConsumerWidget {
                               await ensureLoaded();
                               await player.seek(scrubPosition.value);
                               isScrubbing.value = false;
-                      },
+                            },
                     ),
                   ),
                 ),
@@ -835,7 +834,8 @@ class _PlaceholderMessageContent extends StatelessWidget {
     }
 
     if (kind == 'uploading') {
-      final progress = (item.meta['placeholder_progress'] as num?)?.toDouble() ?? 0;
+      final progress =
+          (item.meta['placeholder_progress'] as num?)?.toDouble() ?? 0;
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -858,8 +858,11 @@ class _PlaceholderMessageContent extends StatelessWidget {
                   ),
                 ),
               ),
+              const Gap(8),
               Text(
-                'chatPlaceholderUploading'.tr(args: ['${(progress * 100).toInt()}%']),
+                'chatPlaceholderUploading'.tr(
+                  args: ['${(progress * 100).toInt()}%'],
+                ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant.withOpacity(0.8),
                 ),

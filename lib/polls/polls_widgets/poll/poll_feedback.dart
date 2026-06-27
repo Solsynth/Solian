@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
-import 'package:island/creators/screens/poll/poll_list.dart';
+import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/polls/polls_widgets/poll/poll_stats_widget.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
@@ -18,26 +18,26 @@ final pollFeedbackNotifierProvider = AsyncNotifierProvider.autoDispose.family(
   PollFeedbackNotifier.new,
 );
 
-class PollFeedbackNotifier extends AsyncNotifier<PaginationState<SnPollAnswer>>
-    with AsyncPaginationController<SnPollAnswer> {
+class PollFeedbackNotifier extends AsyncNotifier<PaginationState<SnSurveyAnswer>>
+    with AsyncPaginationController<SnSurveyAnswer> {
   static const int pageSize = 20;
 
   final String arg;
   PollFeedbackNotifier(this.arg);
 
   @override
-  Future<List<SnPollAnswer>> fetch() async {
+  Future<List<SnSurveyAnswer>> fetch() async {
     final client = ref.read(solarNetworkClientProvider).dio;
 
     final queryParams = {'offset': fetchedCount, 'take': pageSize};
 
     final response = await client.get(
-      '/sphere/polls/$arg/feedback',
+      '/sphere/surveys/$arg/feedback',
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final List<dynamic> data = response.data;
-    return data.map((json) => SnPollAnswer.fromJson(json)).toList();
+    return data.map((json) => SnSurveyAnswer.fromJson(json)).toList();
   }
 }
 
@@ -48,7 +48,7 @@ class PollFeedbackSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final poll = ref.watch(pollWithStatsProvider(pollId));
+    final poll = ref.watch(surveyWithStatsProvider(pollId));
     final provider = pollFeedbackNotifierProvider(pollId);
 
     return SheetScaffold(
@@ -80,7 +80,7 @@ class PollFeedbackSheet extends HookConsumerWidget {
         ),
         error: (err, _) => ResponseErrorWidget(
           error: err,
-          onRetry: () => ref.invalidate(pollWithStatsProvider(pollId)),
+          onRetry: () => ref.invalidate(surveyWithStatsProvider(pollId)),
         ),
         loading: () => ResponseLoadingWidget(),
       ),
@@ -90,7 +90,7 @@ class PollFeedbackSheet extends HookConsumerWidget {
 
 class _PollHeader extends StatelessWidget {
   const _PollHeader({required this.poll});
-  final SnPollWithStats poll;
+  final SnSurveyWithStats poll;
 
   @override
   Widget build(BuildContext context) {
@@ -138,26 +138,26 @@ class _PollHeader extends StatelessWidget {
 }
 
 class _PollAnswerTile extends StatelessWidget {
-  final SnPollAnswer answer;
-  final SnPollWithStats poll;
+  final SnSurveyAnswer answer;
+  final SnSurveyWithStats poll;
   const _PollAnswerTile({required this.answer, required this.poll});
 
   String _formatPerQuestionAnswer(
-    SnPollQuestion q,
+    SnSurveyQuestion q,
     Map<String, dynamic> ansMap,
   ) {
     switch (q.type) {
-      case SnPollQuestionType.singleChoice:
+      case SnSurveyQuestionType.singleChoice:
         final val = ansMap[q.id];
         if (val is String) {
           final opt = q.options?.firstWhere(
             (o) => o.id == val,
-            orElse: () => SnPollOption(id: val, label: '#$val', order: 0),
+            orElse: () => SnSurveyOption(id: val, label: '#$val', order: 0),
           );
           return opt?.label ?? '#$val';
         }
         return '—';
-      case SnPollQuestionType.multipleChoice:
+      case SnSurveyQuestionType.multipleChoice:
         final val = ansMap[q.id];
         if (val is List) {
           final ids = val.whereType<String>().toList();
@@ -165,25 +165,25 @@ class _PollAnswerTile extends StatelessWidget {
           final labels = ids.map((id) {
             final opt = q.options?.firstWhere(
               (o) => o.id == id,
-              orElse: () => SnPollOption(id: id, label: '#$id', order: 0),
+              orElse: () => SnSurveyOption(id: id, label: '#$id', order: 0),
             );
             return opt?.label ?? '#$id';
           }).toList();
           return labels.join(', ');
         }
         return '—';
-      case SnPollQuestionType.yesNo:
+      case SnSurveyQuestionType.yesNo:
         final val = ansMap[q.id];
         if (val is bool) {
           return val ? 'yes'.tr() : 'no'.tr();
         }
         return '—';
-      case SnPollQuestionType.rating:
+      case SnSurveyQuestionType.rating:
         final val = ansMap[q.id];
         if (val is int) return val.toString();
         if (val is num) return val.toString();
         return '—';
-      case SnPollQuestionType.freeText:
+      case SnSurveyQuestionType.freeText:
         final val = ansMap[q.id];
         if (val is String && val.trim().isNotEmpty) return val;
         return '—';

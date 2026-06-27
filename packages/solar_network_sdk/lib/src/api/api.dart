@@ -14,7 +14,7 @@ export 'domains/drive_api.dart';
 export 'domains/stickers_api.dart';
 export 'domains/notifications_api.dart';
 export 'domains/tickets_api.dart';
-export 'domains/polls_api.dart';
+export 'domains/surveys_api.dart';
 export 'domains/sites_api.dart';
 export 'domains/developers_api.dart';
 export 'domains/payments_api.dart';
