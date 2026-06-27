@@ -44,7 +44,7 @@ class RoomAppBar extends ConsumerWidget {
     } else {
       title = room.name!;
     }
-    final subtitle = _buildSubtitle(context, room, validMembers, onlineStatus);
+    final subtitle = _buildSubtitle(context, room, validMembers, onlineStatus, userInfo.value?.id);
 
     return Row(
       spacing: 12,
@@ -76,6 +76,7 @@ Widget? _buildSubtitle(
   SnChatRoom room,
   List<SnChatMember> validMembers,
   SnChatOnlineStatus? onlineStatus,
+  String? currentUserId,
 ) {
   final subtitleStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
     fontSize: 11,
@@ -128,12 +129,9 @@ Widget? _buildSubtitle(
     );
   }
 
-  final validAccountIds = validMembers
-      .map((member) => member.account.id)
-      .toSet();
   final onlineNames =
       onlineStatus?.onlineAccounts
-          .where((account) => validAccountIds.contains(account.id))
+          .where((account) => account.id != currentUserId)
           .map((account) => account.nick.trim())
           .where((name) => name.isNotEmpty)
           .toList() ??
