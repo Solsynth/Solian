@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/calendar_event_screenshot.dart';
 import 'package:island/accounts/widgets/check_in/check_in_result_screenshot.dart';
@@ -33,21 +32,14 @@ Future<void> sharePostAsScreenshot(
       .captureFromLongWidget(
         MediaQuery(
           data: MediaQuery.of(context),
-          child: ProviderScope(
-            overrides: [
-              sharedPreferencesProvider.overrideWithValue(
-                ref.watch(sharedPreferencesProvider),
-              ),
-            ],
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: SizedBox(
-                width: 520,
-                child: PostItemScreenshot(
-                  item: post,
-                  isFullPost: true,
-                  thread: thread,
-                ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 520,
+              child: PostItemScreenshot(
+                item: post,
+                isFullPost: true,
+                thread: thread,
               ),
             ),
           ),
@@ -100,18 +92,11 @@ Future<void> shareCheckInAsScreenshot(
       .captureFromLongWidget(
         MediaQuery(
           data: MediaQuery.of(context),
-          child: ProviderScope(
-            overrides: [
-              sharedPreferencesProvider.overrideWithValue(
-                ref.watch(sharedPreferencesProvider),
-              ),
-            ],
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: SizedBox(
-                width: 400,
-                child: CheckInResultScreenshot(user: user, result: result),
-              ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 400,
+              child: CheckInResultScreenshot(user: user, result: result),
             ),
           ),
         ),
@@ -163,22 +148,15 @@ Future<void> shareCalendarEventAsScreenshot(
       .captureFromLongWidget(
         MediaQuery(
           data: MediaQuery.of(context),
-          child: ProviderScope(
-            overrides: [
-              sharedPreferencesProvider.overrideWithValue(
-                ref.watch(sharedPreferencesProvider),
-              ),
-            ],
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: SizedBox(
-                width: 400,
-                child: CalendarEventScreenshot(
-                  event: event,
-                  displayStartTime: displayStartTime,
-                  displayEndTime: displayEndTime,
-                  selectedOccurrenceIndex: selectedOccurrenceIndex,
-                ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 400,
+              child: CalendarEventScreenshot(
+                event: event,
+                displayStartTime: displayStartTime,
+                displayEndTime: displayEndTime,
+                selectedOccurrenceIndex: selectedOccurrenceIndex,
               ),
             ),
           ),
