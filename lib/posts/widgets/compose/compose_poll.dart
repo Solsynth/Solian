@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/creators/screens/poll/poll_list.dart';
+import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/polls/screens/poll_editor.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -13,7 +13,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// Bottom sheet for selecting or creating a poll. Returns SnPoll via Navigator.pop.
+/// Bottom sheet for selecting or creating a poll. Returns SnSurvey via Navigator.pop.
 class ComposePollSheet extends HookConsumerWidget {
   final SnPublisher? pub;
 
@@ -45,8 +45,8 @@ class ComposePollSheet extends HookConsumerWidget {
                 children: [
                   // Link/Select existing poll list
                   PaginationList(
-                    provider: pollListNotifierProvider(pub?.name),
-                    notifier: pollListNotifierProvider(pub?.name).notifier,
+                    provider: surveyListNotifierProvider(pub?.name),
+                    notifier: surveyListNotifierProvider(pub?.name).notifier,
                     itemBuilder: (context, index, poll) {
                       return ListTile(
                         leading: const Icon(Symbols.how_to_vote, fill: 1),
@@ -55,7 +55,7 @@ class ComposePollSheet extends HookConsumerWidget {
                         onTap: () {
                           Navigator.of(
                             context,
-                          ).pop(SnPoll.fromPollWithStats(poll));
+                          ).pop(SnSurvey.fromSurveyWithStats(poll));
                         },
                       );
                     },
@@ -151,7 +151,7 @@ class ComposePollSheet extends HookConsumerWidget {
                                     isPushing.value = true;
                                     // Show modal bottom sheet with poll editor and await result
                                     final result =
-                                        await showModalBottomSheet<SnPoll>(
+                                        await showModalBottomSheet<SnSurvey>(
                                           context: context,
                                           isScrollControlled: true,
                                           isDismissible: false,
@@ -186,9 +186,9 @@ class ComposePollSheet extends HookConsumerWidget {
     );
   }
 
-  Widget? _buildPollSubtitle(SnPollWithStats poll) {
+  Widget? _buildPollSubtitle(SnSurveyWithStats poll) {
     try {
-      final List<SnPollQuestion> options = poll.questions;
+      final List<SnSurveyQuestion> options = poll.questions;
       if (options.isEmpty) return null;
       final preview = options.take(3).map((e) => e.title).join(' · ');
       if (preview.trim().isEmpty) return null;

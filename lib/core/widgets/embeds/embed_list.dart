@@ -9,7 +9,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 
 import 'package:island/route.gr.dart';
-import 'package:island/creators/screens/poll/poll_list.dart';
+import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
@@ -758,7 +758,7 @@ class _PollEmbedCard extends ConsumerWidget {
       );
     }
 
-    final pollAsync = ref.watch(pollWithStatsProvider(pollId!));
+    final pollAsync = ref.watch(surveyWithStatsProvider(pollId!));
 
     return Card(
       margin: margin,

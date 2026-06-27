@@ -21,14 +21,14 @@ class PollEditorState {
   String? title;
   String? description;
   DateTime? endedAt;
-  List<SnPollQuestion> questions;
+  List<SnSurveyQuestion> questions;
 
   PollEditorState({
     this.id,
     this.title,
     this.description,
     this.endedAt,
-    List<SnPollQuestion>? questions,
+    List<SnSurveyQuestion>? questions,
   }) : questions = questions ?? const [];
 }
 
@@ -118,7 +118,7 @@ class PollEditor extends Notifier<PollEditorState> {
     showLoadingModal(context);
     final dio = ref.read(solarNetworkClientProvider).dio;
     try {
-      final res = await dio.get('/sphere/polls/$id');
+      final res = await dio.get('/sphere/surveys/$id');
 
       // Handle both plain object and wrapped response formats.
       final dynamic payload = res.data;
@@ -127,7 +127,7 @@ class PollEditor extends Notifier<PollEditorState> {
           ? Map<String, dynamic>.from(payload['data'] as Map)
           : Map<String, dynamic>.from(payload as Map);
 
-      final poll = SnPoll.fromJson(json);
+      final poll = SnSurvey.fromJson(json);
 
       _commitState(
         PollEditorState(
@@ -149,15 +149,15 @@ class PollEditor extends Notifier<PollEditorState> {
     }
   }
 
-  void addQuestion(SnPollQuestionType type) {
+  void addQuestion(SnSurveyQuestionType type) {
     final nextOrder = state.questions.length;
     final isOptionsType = _isOptionsType(type);
-    final q = SnPollQuestion(
+    final q = SnSurveyQuestion(
       id: _emptyGuid,
       type: type,
       options: isOptionsType
           ? [
-              SnPollOption(
+              SnSurveyOption(
                 id: _emptyGuid,
                 label: 'pollOptionDefaultLabel'.tr(),
                 order: 0,
@@ -229,7 +229,7 @@ class PollEditor extends Notifier<PollEditorState> {
     );
   }
 
-  void setQuestionType(int index, SnPollQuestionType type) {
+  void setQuestionType(int index, SnSurveyQuestionType type) {
     if (index < 0 || index >= state.questions.length) return;
     final q = state.questions[index];
     final isOptionsType = _isOptionsType(type);
@@ -237,7 +237,7 @@ class PollEditor extends Notifier<PollEditorState> {
         ? (q.options?.isNotEmpty == true
               ? q.options
               : [
-                  SnPollOption(
+                  SnSurveyOption(
                     id: _emptyGuid,
                     label: 'pollOptionDefaultLabel'.tr(),
                     order: 0,
@@ -269,10 +269,10 @@ class PollEditor extends Notifier<PollEditorState> {
     if (qIndex < 0 || qIndex >= state.questions.length) return;
     final q = state.questions[qIndex];
     if (!_isOptionsType(q.type)) return;
-    final opts = <SnPollOption>[...(q.options ?? [])];
+    final opts = <SnSurveyOption>[...(q.options ?? [])];
     final nextOrder = opts.length;
     opts.add(
-      SnPollOption(
+      SnSurveyOption(
         id: _emptyGuid,
         label: 'Option ${nextOrder + 1}',
         order: nextOrder,
@@ -285,7 +285,7 @@ class PollEditor extends Notifier<PollEditorState> {
     if (qIndex < 0 || qIndex >= state.questions.length) return;
     final q = state.questions[qIndex];
     if (!_isOptionsType(q.type)) return;
-    final opts = <SnPollOption>[...(q.options ?? [])];
+    final opts = <SnSurveyOption>[...(q.options ?? [])];
     if (optIndex < 0 || optIndex >= opts.length) return;
     opts.removeAt(optIndex);
     for (var i = 0; i < opts.length; i++) {
@@ -294,15 +294,15 @@ class PollEditor extends Notifier<PollEditorState> {
     _updateQuestion(qIndex, q.copyWith(options: opts));
   }
 
-  List<SnPollOption> _moveOptionByDelta(
-    List<SnPollOption> original,
+  List<SnSurveyOption> _moveOptionByDelta(
+    List<SnSurveyOption> original,
     int idx,
     int delta,
   ) {
     if (idx + delta < 0 || idx + delta >= original.length) {
       return original;
     }
-    final clone = List<SnPollOption>.from(original);
+    final clone = List<SnSurveyOption>.from(original);
     clone.insert(idx + delta, clone.removeAt(idx));
     for (var i = 0; i < clone.length; i++) {
       clone[i] = clone[i].copyWith(order: i);
@@ -314,7 +314,7 @@ class PollEditor extends Notifier<PollEditorState> {
     if (qIndex < 0 || qIndex >= state.questions.length) return;
     final q = state.questions[qIndex];
     if (!_isOptionsType(q.type)) return;
-    final original = q.options ?? const <SnPollOption>[];
+    final original = q.options ?? const <SnSurveyOption>[];
     if (optIndex <= 0 || optIndex >= original.length) return;
 
     final reordered = _moveOptionByDelta(original, optIndex, -1);
@@ -327,7 +327,7 @@ class PollEditor extends Notifier<PollEditorState> {
     if (qIndex < 0 || qIndex >= state.questions.length) return;
     final q = state.questions[qIndex];
     if (!_isOptionsType(q.type)) return;
-    final original = q.options ?? const <SnPollOption>[];
+    final original = q.options ?? const <SnSurveyOption>[];
     if (optIndex < 0 || optIndex >= original.length - 1) return;
 
     final reordered = _moveOptionByDelta(original, optIndex, 1);
@@ -339,7 +339,7 @@ class PollEditor extends Notifier<PollEditorState> {
   void setOptionLabel(int qIndex, int optIndex, String label) {
     final q = state.questions[qIndex];
     if (!_isOptionsType(q.type)) return;
-    final opts = <SnPollOption>[...(q.options ?? [])];
+    final opts = <SnSurveyOption>[...(q.options ?? [])];
     if (optIndex < 0 || optIndex >= opts.length) return;
     opts[optIndex] = opts[optIndex].copyWith(label: label);
     _updateQuestion(qIndex, q.copyWith(options: opts));
@@ -348,19 +348,19 @@ class PollEditor extends Notifier<PollEditorState> {
   void setOptionDescription(int qIndex, int optIndex, String? description) {
     final q = state.questions[qIndex];
     if (!_isOptionsType(q.type)) return;
-    final opts = <SnPollOption>[...(q.options ?? [])];
+    final opts = <SnSurveyOption>[...(q.options ?? [])];
     if (optIndex < 0 || optIndex >= opts.length) return;
     opts[optIndex] = opts[optIndex].copyWith(description: description);
     _updateQuestion(qIndex, q.copyWith(options: opts));
   }
 
-  bool _isOptionsType(SnPollQuestionType type) {
-    return type == SnPollQuestionType.singleChoice ||
-        type == SnPollQuestionType.multipleChoice;
+  bool _isOptionsType(SnSurveyQuestionType type) {
+    return type == SnSurveyQuestionType.singleChoice ||
+        type == SnSurveyQuestionType.multipleChoice;
   }
 
-  void _updateQuestion(int index, SnPollQuestion newQ) {
-    final list = <SnPollQuestion>[...state.questions];
+  void _updateQuestion(int index, SnSurveyQuestion newQ) {
+    final list = <SnSurveyQuestion>[...state.questions];
     list[index] = newQ;
     state = PollEditorState(
       id: state.id,
@@ -447,8 +447,8 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
     try {
       final isUpdate = model.id != null && model.id!.isNotEmpty;
       final String path = isUpdate
-          ? '/sphere/polls/${model.id}'
-          : '/sphere/polls';
+          ? '/sphere/surveys/${model.id}'
+          : '/sphere/surveys';
       final Response res = await (isUpdate
           ? dio.patch(
               path,
@@ -464,7 +464,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
       showSnackBar(isUpdate ? 'pollUpdated'.tr() : 'pollCreated'.tr());
 
       if (!context.mounted) return;
-      Navigator.of(context).maybePop(SnPoll.fromJson(res.data));
+      Navigator.of(context).maybePop(SnSurvey.fromJson(res.data));
     } catch (e) {
       showErrorAlert(e);
     }
@@ -585,7 +585,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
                               label: Text('pollAddQuestion'.tr()),
                             );
                           },
-                          menuChildren: SnPollQuestionType.values
+                          menuChildren: SnSurveyQuestionType.values
                               .map(
                                 (t) => MenuItemButton(
                                   leadingIcon: Icon(_iconForType(t)),
@@ -753,32 +753,32 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
 String _jsonStr(String? v) =>
     v == null ? 'null' : '"${v.replaceAll('"', '\\"')}"';
 
-IconData _iconForType(SnPollQuestionType t) {
+IconData _iconForType(SnSurveyQuestionType t) {
   switch (t) {
-    case SnPollQuestionType.singleChoice:
+    case SnSurveyQuestionType.singleChoice:
       return Icons.radio_button_checked;
-    case SnPollQuestionType.multipleChoice:
+    case SnSurveyQuestionType.multipleChoice:
       return Icons.check_box;
-    case SnPollQuestionType.freeText:
+    case SnSurveyQuestionType.freeText:
       return Icons.short_text;
-    case SnPollQuestionType.yesNo:
+    case SnSurveyQuestionType.yesNo:
       return Icons.toggle_on;
-    case SnPollQuestionType.rating:
+    case SnSurveyQuestionType.rating:
       return Icons.star_rate;
   }
 }
 
-String _labelForType(SnPollQuestionType t) {
+String _labelForType(SnSurveyQuestionType t) {
   switch (t) {
-    case SnPollQuestionType.singleChoice:
+    case SnSurveyQuestionType.singleChoice:
       return 'pollQuestionTypeSingleChoice'.tr();
-    case SnPollQuestionType.multipleChoice:
+    case SnSurveyQuestionType.multipleChoice:
       return 'pollQuestionTypeMultipleChoice'.tr();
-    case SnPollQuestionType.freeText:
+    case SnSurveyQuestionType.freeText:
       return 'pollQuestionTypeFreeText'.tr();
-    case SnPollQuestionType.yesNo:
+    case SnSurveyQuestionType.yesNo:
       return 'pollQuestionTypeYesNo'.tr();
-    case SnPollQuestionType.rating:
+    case SnSurveyQuestionType.rating:
       return 'pollQuestionTypeRating'.tr();
   }
 }
@@ -884,7 +884,7 @@ class _QuestionHeader extends StatelessWidget {
   });
 
   final int index;
-  final SnPollQuestion question;
+  final SnSurveyQuestion question;
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
   final VoidCallback? onDelete;
@@ -932,7 +932,7 @@ class _QuestionEditor extends ConsumerWidget {
   const _QuestionEditor({required this.index, required this.question});
 
   final int index;
-  final SnPollQuestion question;
+  final SnSurveyQuestion question;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1013,9 +1013,9 @@ class _QuestionEditor extends ConsumerWidget {
           ),
         ],
         if (question.options == null &&
-            (question.type == SnPollQuestionType.freeText ||
-                question.type == SnPollQuestionType.rating ||
-                question.type == SnPollQuestionType.yesNo)) ...[
+            (question.type == SnSurveyQuestionType.freeText ||
+                question.type == SnSurveyQuestionType.rating ||
+                question.type == SnSurveyQuestionType.yesNo)) ...[
           const Gap(16),
           _TextAnswerPreview(long: false),
         ],
@@ -1027,12 +1027,12 @@ class _QuestionEditor extends ConsumerWidget {
 class _QuestionTypePicker extends StatelessWidget {
   const _QuestionTypePicker({required this.value, required this.onChanged});
 
-  final SnPollQuestionType value;
-  final ValueChanged<SnPollQuestionType> onChanged;
+  final SnSurveyQuestionType value;
+  final ValueChanged<SnSurveyQuestionType> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<SnPollQuestionType>(
+    return DropdownButtonFormField<SnSurveyQuestionType>(
       value: value,
       decoration: InputDecoration(
         labelText: 'Type'.tr(),
@@ -1040,7 +1040,7 @@ class _QuestionTypePicker extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
-      items: SnPollQuestionType.values
+      items: SnSurveyQuestionType.values
           .map(
             (t) => DropdownMenuItem(
               value: t,
@@ -1065,7 +1065,7 @@ class _OptionsEditor extends ConsumerWidget {
   const _OptionsEditor({required this.index, required this.options});
 
   final int index;
-  final List<SnPollOption> options;
+  final List<SnSurveyOption> options;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

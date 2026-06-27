@@ -44,7 +44,7 @@ export 'src/models/drive/file_permission.dart';
 // Posts models
 export 'src/models/posts/embed.dart';
 export 'src/models/posts/heatmap.dart';
-export 'src/models/posts/poll.dart';
+export 'src/models/posts/survey.dart';
 export 'src/models/posts/post_collection.dart';
 export 'src/models/posts/post.dart';
 export 'src/models/posts/post_category.dart';

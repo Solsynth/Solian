@@ -15,24 +15,23 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-part 'poll_list.g.dart';
+part 'survey_list.g.dart';
 
-final pollListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
-  PollListNotifier.new,
+final surveyListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
+  SurveyListNotifier.new,
 );
 
-class PollListNotifier extends AsyncNotifier<PaginationState<SnPollWithStats>>
-    with AsyncPaginationController<SnPollWithStats> {
+class SurveyListNotifier extends AsyncNotifier<PaginationState<SnSurveyWithStats>>
+    with AsyncPaginationController<SnSurveyWithStats> {
   static const int pageSize = 20;
 
   final String? arg;
-  PollListNotifier(this.arg);
+  SurveyListNotifier(this.arg);
 
   @override
-  Future<List<SnPollWithStats>> fetch() async {
+  Future<List<SnSurveyWithStats>> fetch() async {
     final client = ref.read(solarNetworkClientProvider).dio;
 
-    // read the current family argument passed to provider
     final queryParams = {
       'offset': fetchedCount.toString(),
       'take': pageSize,
@@ -40,13 +39,13 @@ class PollListNotifier extends AsyncNotifier<PaginationState<SnPollWithStats>>
     };
 
     final response = await client.get(
-      '/sphere/polls/me',
+      '/sphere/surveys/me',
       queryParameters: queryParams,
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final items = response.data
-        .map((json) => SnPollWithStats.fromJson(json))
-        .cast<SnPollWithStats>()
+        .map((json) => SnSurveyWithStats.fromJson(json))
+        .cast<SnSurveyWithStats>()
         .toList();
 
     return items;
@@ -54,23 +53,23 @@ class PollListNotifier extends AsyncNotifier<PaginationState<SnPollWithStats>>
 }
 
 @riverpod
-Future<SnPollWithStats> pollWithStats(Ref ref, String id) async {
+Future<SnSurveyWithStats> surveyWithStats(Ref ref, String id) async {
   final apiClient = ref.watch(solarNetworkClientProvider).dio;
-  final resp = await apiClient.get('/sphere/polls/$id');
-  return SnPollWithStats.fromJson(resp.data);
+  final resp = await apiClient.get('/sphere/surveys/$id');
+  return SnSurveyWithStats.fromJson(resp.data);
 }
 
 @RoutePage()
-class CreatorPollListScreen extends HookConsumerWidget {
-  const CreatorPollListScreen({
+class CreatorSurveyListScreen extends HookConsumerWidget {
+  const CreatorSurveyListScreen({
     super.key,
     @PathParam("pubName") required this.pubName,
   });
 
   final String pubName;
 
-  Future<void> _createPoll(BuildContext context) async {
-    final result = await showModalBottomSheet<SnPollWithStats>(
+  Future<void> _createSurvey(BuildContext context) async {
+    final result = await showModalBottomSheet<SnSurveyWithStats>(
       context: context,
       isScrollControlled: true,
       isDismissible: false,
@@ -87,24 +86,24 @@ class CreatorPollListScreen extends HookConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         leading: const AutoLeadingButton(),
-        title: const Text('Polls'),
+        title: const Text('Surveys'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _createPoll(context),
+        onPressed: () => _createSurvey(context),
         child: const Icon(Icons.add),
       ),
       body: ExtendedRefreshIndicator(
-        onRefresh: () => ref.refresh(pollListNotifierProvider(pubName).future),
+        onRefresh: () => ref.refresh(surveyListNotifierProvider(pubName).future),
         child: PaginationList(
           footerSkeletonMaxWidth: 640,
-          provider: pollListNotifierProvider(pubName),
-          notifier: pollListNotifierProvider(pubName).notifier,
+          provider: surveyListNotifierProvider(pubName),
+          notifier: surveyListNotifierProvider(pubName).notifier,
           padding: const EdgeInsets.only(top: 12),
-          itemBuilder: (context, index, pollWithStats) {
+          itemBuilder: (context, index, surveyWithStats) {
             return ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 640),
-              child: _CreatorPollItem(
-                pollWithStats: pollWithStats,
+              child: _CreatorSurveyItem(
+                surveyWithStats: surveyWithStats,
                 pubName: pubName,
               ),
             ).center();
@@ -115,16 +114,16 @@ class CreatorPollListScreen extends HookConsumerWidget {
   }
 }
 
-class _CreatorPollItem extends HookConsumerWidget {
+class _CreatorSurveyItem extends HookConsumerWidget {
   final String pubName;
-  const _CreatorPollItem({required this.pollWithStats, required this.pubName});
+  const _CreatorSurveyItem({required this.surveyWithStats, required this.pubName});
 
-  final SnPollWithStats pollWithStats;
+  final SnSurveyWithStats surveyWithStats;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final ended = pollWithStats.endedAt;
+    final ended = surveyWithStats.endedAt;
     final endedText = ended == null
         ? 'No end'
         : MaterialLocalizations.of(context).formatFullDate(ended);
@@ -133,16 +132,16 @@ class _CreatorPollItem extends HookConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        title: Text(pollWithStats.title ?? 'Untitled poll'),
+        title: Text(surveyWithStats.title ?? 'Untitled survey'),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (pollWithStats.description != null &&
-                pollWithStats.description!.isNotEmpty)
+            if (surveyWithStats.description != null &&
+                surveyWithStats.description!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  pollWithStats.description!,
+                  surveyWithStats.description!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -150,7 +149,7 @@ class _CreatorPollItem extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'Questions: ${pollWithStats.questions.length} · Ends: $endedText',
+                'Questions: ${surveyWithStats.questions.length} · Ends: $endedText',
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -167,17 +166,17 @@ class _CreatorPollItem extends HookConsumerWidget {
                 ],
               ),
               onTap: () async {
-                final result = await showModalBottomSheet<SnPoll>(
+                final result = await showModalBottomSheet<SnSurvey>(
                   context: context,
                   isScrollControlled: true,
                   isDismissible: false,
                   builder: (context) => PollEditorScreen(
                     initialPublisher: pubName,
-                    initialPollId: pollWithStats.id,
+                    initialPollId: surveyWithStats.id,
                   ),
                 );
                 if (result != null && context.mounted) {
-                  ref.invalidate(pollListNotifierProvider(pubName));
+                  ref.invalidate(surveyListNotifierProvider(pubName));
                 }
               },
             ),
@@ -193,8 +192,8 @@ class _CreatorPollItem extends HookConsumerWidget {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: Text('Delete Poll'),
-                    content: Text('Are you sure you want to delete this poll?'),
+                    title: Text('Delete Survey'),
+                    content: Text('Are you sure you want to delete this survey?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -210,9 +209,9 @@ class _CreatorPollItem extends HookConsumerWidget {
                 if (confirmed == true) {
                   try {
                     final client = ref.read(solarNetworkClientProvider).dio;
-                    await client.delete('/sphere/polls/${pollWithStats.id}');
-                    ref.invalidate(pollListNotifierProvider(pubName));
-                    showSnackBar('Poll deleted successfully');
+                    await client.delete('/sphere/surveys/${surveyWithStats.id}');
+                    ref.invalidate(surveyListNotifierProvider(pubName));
+                    showSnackBar('Survey deleted successfully');
                   } catch (e) {
                     showErrorAlert(e);
                   }
@@ -226,7 +225,7 @@ class _CreatorPollItem extends HookConsumerWidget {
             context: context,
             useRootNavigator: true,
             isScrollControlled: true,
-            builder: (context) => PollFeedbackSheet(pollId: pollWithStats.id),
+            builder: (context) => PollFeedbackSheet(pollId: surveyWithStats.id),
           );
         },
       ),

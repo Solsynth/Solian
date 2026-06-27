@@ -748,12 +748,12 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           minTileHeight: 48,
-          title: Text('polls').tr(),
+          title: Text('surveys').tr(),
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.poll),
           onTap: () {
             context.router.push(
-              CreatorPollListRoute(pubName: currentPublisher.value!.name),
+              CreatorSurveyListRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),

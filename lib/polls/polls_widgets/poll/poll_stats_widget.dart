@@ -8,7 +8,7 @@ class PollStatsWidget extends StatelessWidget {
     required this.stats,
   });
 
-  final SnPollQuestion question;
+  final SnSurveyQuestion question;
   final Map<String, dynamic>? stats;
 
   @override
@@ -20,7 +20,7 @@ class PollStatsWidget extends StatelessWidget {
     Widget? body;
 
     switch (question.type) {
-      case SnPollQuestionType.rating:
+      case SnSurveyQuestionType.rating:
         // rating: avg score (double or int)
         final avg = (raw['rating'] as num?)?.toDouble();
         if (avg == null) break;
@@ -40,7 +40,7 @@ class PollStatsWidget extends StatelessWidget {
         );
         break;
 
-      case SnPollQuestionType.yesNo:
+      case SnSurveyQuestionType.yesNo:
         // yes/no: map {true: count, false: count}
         if (raw is Map) {
           final int yes = (raw['true'] is int)
@@ -81,8 +81,8 @@ class PollStatsWidget extends StatelessWidget {
         }
         break;
 
-      case SnPollQuestionType.singleChoice:
-      case SnPollQuestionType.multipleChoice:
+      case SnSurveyQuestionType.singleChoice:
+      case SnSurveyQuestionType.multipleChoice:
         // map optionId -> count
         if (raw is Map) {
           final options = [...?question.options]
@@ -124,7 +124,7 @@ class PollStatsWidget extends StatelessWidget {
         }
         break;
 
-      case SnPollQuestionType.freeText:
+      case SnSurveyQuestionType.freeText:
         // No stats
         break;
     }

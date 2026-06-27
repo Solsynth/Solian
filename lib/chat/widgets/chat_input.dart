@@ -730,7 +730,7 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                             Radius.circular(8),
                           ),
                           onTap: () async {
-                            final poll = await showModalBottomSheet<SnPoll>(
+                            final poll = await showModalBottomSheet<SnSurvey>(
                               context: context,
                               isScrollControlled: true,
                               builder: (context) => const ComposePollSheet(),

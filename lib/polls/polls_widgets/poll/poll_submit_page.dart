@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/creators/screens/poll/poll_list.dart';
+import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/route.gr.dart';
@@ -22,7 +22,7 @@ class PollSubmitPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pollAsync = ref.watch(pollWithStatsProvider(pollId));
+    final pollAsync = ref.watch(surveyWithStatsProvider(pollId));
 
     return Scaffold(
       appBar: AppBar(
