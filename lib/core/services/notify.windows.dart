@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
@@ -28,42 +27,6 @@ AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
 void _onAppLifecycleChanged(AppLifecycleState state) {
   _appLifecycleState = state;
-}
-
-Future<void> _speakNotification(
-  SnNotification notification,
-  WidgetRef ref,
-  String languageCode,
-) async {
-  final settings = ref.read(appSettingsProvider);
-  if (!settings.enableTts) return;
-
-  final tts = FlutterTts();
-  await tts.setVolume(settings.ttsVolume);
-  await tts.setSpeechRate(settings.ttsSpeechRate);
-  await tts.setPitch(settings.ttsPitch);
-  final lang = settings.ttsLanguage.isNotEmpty
-      ? settings.ttsLanguage
-      : languageCode;
-  await tts.setLanguage(lang);
-  if (settings.ttsVoice != null && settings.ttsVoice!.isNotEmpty) {
-    await tts.setVoice({'name': settings.ttsVoice!, 'locale': lang});
-  }
-  if (!kIsWeb) {
-    await tts.setIosAudioCategory(IosTextToSpeechAudioCategory.ambient, [
-      IosTextToSpeechAudioCategoryOptions.allowBluetooth,
-      IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
-      IosTextToSpeechAudioCategoryOptions.mixWithOthers,
-    ], IosTextToSpeechAudioMode.voicePrompt);
-  }
-  final parts = <String>[];
-  if (notification.title.isNotEmpty) parts.add(notification.title);
-  if (notification.subtitle.isNotEmpty) parts.add(notification.subtitle);
-  if (notification.body.isNotEmpty) parts.add(notification.body);
-
-  if (parts.isNotEmpty) {
-    await tts.speak(parts.join('. '));
-  }
 }
 
 Future<void> initializeLocalNotifications(WidgetRef _) async {
@@ -159,11 +122,6 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             notificationMessage,
           );
         }
-        // Speak notification via TTS
-        if (!context.mounted) return;
-        final locale = Localizations.localeOf(context);
-        final languageCode = localeToLanguageCode(locale);
-        await _speakNotification(notification, ref, languageCode);
       }
     }
   });
