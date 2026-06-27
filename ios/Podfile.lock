@@ -135,7 +135,7 @@ PODS:
     - Flutter
   - flutter_webrtc (1.4.0):
     - Flutter
-    - WebRTC-SDK (= 144.7559.09)
+    - WebRTC-SDK (= 144.7559.01)
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
@@ -229,10 +229,10 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
-  - livekit_client (2.9.0-dev.0):
+  - livekit_client (2.8.1):
     - Flutter
     - flutter_webrtc
-    - WebRTC-SDK (= 144.7559.09)
+    - WebRTC-SDK (= 144.7559.01)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -308,7 +308,7 @@ PODS:
     - libwebp
   - wakelock_plus (0.0.1):
     - Flutter
-  - WebRTC-SDK (144.7559.09)
+  - WebRTC-SDK (144.7559.01)
 
 DEPENDENCIES:
   - Alamofire
@@ -552,7 +552,7 @@ SPEC CHECKSUMS:
   flutter_sharing_intent: 0c1e53949f09fa8df8ac2268505687bde8ff264c
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
   flutter_tts: 35ac3c7d42412733e795ea96ad2d7e05d0a75113
-  flutter_webrtc: 3ee86aa10e0313c38c93fdb215dd86e77014f96a
+  flutter_webrtc: ec91d94b484ad49cf191ef93413f64a40ffd3b4c
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   geocoding_ios: 33776c9ebb98d037b5e025bb0e7537f6dd19646e
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
@@ -568,7 +568,7 @@ SPEC CHECKSUMS:
   Kingfisher: db468f911dd666c9134dcbeec4db8bed52e4132d
   KingfisherWebP: 064869d5f1201396ec121dcc4c9cfbdba6ecb900
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  livekit_client: b47ad395a714c455b517fb38b4436cb07b4b5116
+  livekit_client: a28e738fa0d6b16d780631bfe7a4ea76a9be382d
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   map_launcher: 8051ad5783913cafce93f2414c6858f2904fd8df
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
@@ -602,7 +602,7 @@ SPEC CHECKSUMS:
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_thumbnail: b637e0ad5f588ca9945f6e2c927f73a69a661140
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
-  WebRTC-SDK: e6006119cd730d6315d875e4a421b6cc8bb88833
+  WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
 PODFILE CHECKSUM: 6db690625d0185c30a415ef753111a25ab355ee1
 

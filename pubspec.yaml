@@ -306,11 +306,8 @@ msix_config:
   store: true
 
 dependency_overrides:
-  # super_context_menu pins device_info_plus <12 but livekit_client needs ^12; override to unblock
+  # super_context_menu 0.9.1 pins device_info_plus <12 but livekit_client needs >=12; override to unblock
   device_info_plus: ^12.3.0
-  # protocol_handler_windows 0.2.0 pins win32_registry ^1.0.2 but device_info_plus 12 needs ^2.1.0
-  win32_registry: ^2.1.0
-  # protocol_handler_windows 0.2.0 uses win32_registry v1 API; patched locally for v2 support
-  # we use a patched version of the protocol_handler_windows due to original version have compile issues
+  # protocol_handler_windows needs local patches for compile issues
   protocol_handler_windows:
     path: packages/protocol_handler_windows
