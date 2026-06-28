@@ -22,8 +22,8 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
-import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:island/core/utils/call_kit_utils.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
@@ -1118,15 +1118,12 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               try {
                 final roomId = await _promptForRoomId(context, 'Outgoing Call');
                 if (roomId == null) return;
-                final params = CallKitParams(
-                  id: roomId,
-                  nameCaller: 'Debug Call',
-                  appName: 'Solian',
-                  handle: roomId,
-                  type: 0,
-                  extra: {'room_id': roomId},
-                );
-                await FlutterCallkitIncoming.startCall(params);
+                await FlutterCallkitIncoming.startCall(
+                createCallKitParams(
+                  roomId: roomId,
+                  callerName: 'Debug Call',
+                ),
+              );
                 if (!context.mounted) return;
                 showSnackBar('Fake outgoing call triggered for room: $roomId');
               } catch (e) {
@@ -1941,15 +1938,12 @@ class DebugSheet extends HookConsumerWidget {
                       'Outgoing Call',
                     );
                     if (roomId == null) return;
-                    final params = CallKitParams(
-                      id: roomId,
-                      nameCaller: 'Debug Call',
-                      appName: 'Solian',
-                      handle: roomId,
-                      type: 0,
-                      extra: {'room_id': roomId},
+                    await FlutterCallkitIncoming.startCall(
+                      createCallKitParams(
+                        roomId: roomId,
+                        callerName: 'Debug Call',
+                      ),
                     );
-                    await FlutterCallkitIncoming.startCall(params);
                     if (!context.mounted) return;
                     showSnackBar(
                       'Fake outgoing call triggered for room: $roomId',
