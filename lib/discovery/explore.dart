@@ -6,9 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/pods/post_list.dart';
-import 'package:island/posts/compose_state_global.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
-import 'package:island/posts/widgets/compose/compose_sidebar.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
@@ -64,8 +62,6 @@ class ExploreScreen extends HookConsumerWidget {
     final filterTabController = useTabController(initialLength: 3);
     final selectedPostId = useState<String?>(null);
     final isDetailExpanded = useState(false);
-    final composeRequest = ref.watch(composeRequestProvider);
-
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
       notifier.applyFilter(filter);
@@ -104,7 +100,7 @@ class ExploreScreen extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider);
     final isSidePanelOpen =
-        isWide && (composeRequest != null || selectedPostId.value != null);
+        isWide && selectedPostId.value != null;
 
     if (isWide) {
       return AppScaffold(
@@ -133,7 +129,7 @@ class ExploreScreen extends HookConsumerWidget {
                           title: Text('postCompose').tr(),
                           onTap: () async {
                             Navigator.of(sheetContext).pop();
-                            await showCompose(parentContext, ref);
+                            await PostComposeDialog.show(parentContext);
                           },
                         ),
                         ListTile(
@@ -172,7 +168,6 @@ class ExploreScreen extends HookConsumerWidget {
           ref.read(appSettingsProvider.notifier),
           selectedPostId,
           isDetailExpanded,
-          composeRequest,
         ),
       );
     }
@@ -801,7 +796,6 @@ class ExploreScreen extends HookConsumerWidget {
     AppSettingsNotifier appSettingsNotifier,
     ValueNotifier<String?> selectedPostId,
     ValueNotifier<bool> isDetailExpanded,
-    ComposeRequest? composeRequest,
   ) {
     final usePostList =
         selectedPublishers.value.isNotEmpty ||
@@ -820,10 +814,6 @@ class ExploreScreen extends HookConsumerWidget {
     const timelineContentMaxWidth = 720.0;
 
     void handlePostTap(String postId) {
-      if (composeRequest != null) {
-        ref.read(composeRequestProvider.notifier).setRequest(null);
-      }
-
       if (selectedPostId.value == postId) {
         context.router.push(PostDetailRoute(id: postId));
       } else {
@@ -899,15 +889,14 @@ class ExploreScreen extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final hasCompose = composeRequest != null;
-        final hasSelection = selectedPostId.value != null && !hasCompose;
+        final hasSelection = selectedPostId.value != null;
         final totalWidth = constraints.maxWidth;
-        final listWidth = (hasCompose || hasSelection)
+        final listWidth = hasSelection
             ? (totalWidth - 28) / 2
             : (timelineContentMaxWidth < totalWidth
                   ? timelineContentMaxWidth
                   : totalWidth);
-        final detailWidth = (hasCompose || hasSelection)
+        final detailWidth = hasSelection
             ? (totalWidth - 28) / 2
             : 0.0;
 
@@ -924,26 +913,14 @@ class ExploreScreen extends HookConsumerWidget {
             AnimatedContainer(
               duration: const Duration(milliseconds: 280),
               curve: Curves.easeOutCubic,
-              width: (hasCompose || hasSelection) ? 16 : 0,
+              width: hasSelection ? 16 : 0,
               child: const SizedBox.shrink(),
             ),
             AnimatedContainer(
               duration: const Duration(milliseconds: 280),
               curve: Curves.easeOutCubic,
               width: detailWidth,
-              child: hasCompose
-                  ? Container(
-                      margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                      child: ComposeSidebar(
-                        request: composeRequest,
-                        onClose: () {
-                          ref
-                              .read(composeRequestProvider.notifier)
-                              .setRequest(null);
-                        },
-                      ),
-                    )
-                  : hasSelection
+              child: hasSelection
                   ? Container(
                       margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
                       decoration: BoxDecoration(
