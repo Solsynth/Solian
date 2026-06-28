@@ -10,10 +10,9 @@ import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
-import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
-import 'package:flutter_callkit_incoming/entities/ios_params.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/utils/call_kit_utils.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/route.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -145,16 +144,13 @@ class AudioCallButton extends HookConsumerWidget {
 
         // Start CallKit call with video setting (iOS only)
         if (isNativeCallAvailable) {
-          final params = CallKitParams(
-            id: room.id,
-            nameCaller: room.name ?? 'Voice Call',
-            appName: 'Solian',
-            handle: room.id,
-            type: result.cameraEnabled ? 1 : 0,
-            extra: {'room_id': room.id},
-            ios: const IOSParams(configureAudioSession: false),
+          await FlutterCallkitIncoming.startCall(
+            createCallKitParams(
+              roomId: room.id,
+              callerName: room.name ?? 'Voice Call',
+              isVideo: result.cameraEnabled,
+            ),
           );
-          await FlutterCallkitIncoming.startCall(params);
         }
 
         // Open call screen with camera setting
@@ -240,16 +236,13 @@ class AudioCallButton extends HookConsumerWidget {
 
             // Start CallKit call with video setting (iOS only)
             if (isNativeCallAvailable) {
-              final params = CallKitParams(
-                id: room.id,
-                nameCaller: room.name ?? 'Voice Call',
-                appName: 'Solian',
-                handle: room.id,
-                type: result.cameraEnabled ? 1 : 0,
-                extra: {'room_id': room.id},
-                ios: const IOSParams(configureAudioSession: false),
+              await FlutterCallkitIncoming.startCall(
+                createCallKitParams(
+                  roomId: room.id,
+                  callerName: room.name ?? 'Voice Call',
+                  isVideo: result.cameraEnabled,
+                ),
               );
-              await FlutterCallkitIncoming.startCall(params);
             }
 
             await openCallScreen(cameraEnabled: result.cameraEnabled);
