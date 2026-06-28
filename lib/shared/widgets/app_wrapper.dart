@@ -34,7 +34,6 @@ import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
-import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:island/wallets/wallet.dart';
 import 'package:logging/logging.dart';
@@ -268,7 +267,9 @@ class AppWrapper extends HookConsumerWidget {
           Logger.root.info(
             '[AppWrapper] Flutter call connected, syncing native call state',
           );
-          ref.read(nativeCallBridgeProvider.notifier).markFlutterCallConnected();
+          ref
+              .read(nativeCallBridgeProvider.notifier)
+              .markFlutterCallConnected();
         }
 
         // Flutter call just disconnected
@@ -624,7 +625,6 @@ class AppWrapper extends HookConsumerWidget {
                             ),
                           ),
                         ),
-                      const TaskOverlay(),
                     ],
                   ),
                 ),

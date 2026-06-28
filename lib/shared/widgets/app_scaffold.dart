@@ -15,6 +15,7 @@ import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart'
     hide isWideScreen, isWiderScreen, isWidestScreen;
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -49,9 +50,7 @@ class WindowScaffold extends HookConsumerWidget {
         });
       }
 
-      WidgetsBinding.instance.addObserver(
-        _WindowSizeObserver(saveWindowSize),
-      );
+      WidgetsBinding.instance.addObserver(_WindowSizeObserver(saveWindowSize));
 
       return () {
         WidgetsBinding.instance.removeObserver(
@@ -93,35 +92,38 @@ class WindowScaffold extends HookConsumerWidget {
       isDesktopPlatform: isDesktop,
       title: isDesktop
           ? Platform.isMacOS
-              ? Text(
-                  'Solar Network',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                )
-              : Row(
-                  children: [
-                    Image.asset(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? 'assets/icons/icon-dark.webp'
-                          : 'assets/icons/icon.webp',
-                      width: 20,
-                      height: 20,
+                ? Text(
+                    'Solar Network',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    const SizedBox(width: 8),
-                    Text('Solar Network'),
-                  ],
-                )
+                  )
+                : Row(
+                    children: [
+                      Image.asset(
+                        Theme.of(context).brightness == Brightness.dark
+                            ? 'assets/icons/icon-dark.webp'
+                            : 'assets/icons/icon.webp',
+                        width: 20,
+                        height: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text('Solar Network'),
+                    ],
+                  )
           : null,
       overlays: [
         ...overlays,
         if (showPalette.value)
-          CommandPaletteWidget(
-            onDismiss: () => showPalette.value = false,
-          ),
+          CommandPaletteWidget(onDismiss: () => showPalette.value = false),
       ],
       onClose: () => windowManager.hide(),
-      child: child,
+      child: Column(
+        children: [
+          Expanded(child: child),
+          const TaskOverlayHost(),
+        ],
+      ),
     );
   }
 }
@@ -195,6 +197,7 @@ class AppScaffold extends HookConsumerWidget {
     final appBarHeight = appBar?.preferredSize.height ?? 0;
     final safeTop = MediaQuery.of(context).padding.top;
     final keyboardFocusNode = useFocusNode();
+    final topReservedHeight = appBar != null ? appBarHeight + safeTop : 0.0;
 
     // Request focus to capture keyboard events
     useEffect(() {
@@ -225,11 +228,7 @@ class AppScaffold extends HookConsumerWidget {
         backgroundColor: Colors.transparent,
         body: Column(
           children: [
-            IgnorePointer(
-              child: SizedBox(
-                height: appBar != null ? appBarHeight + safeTop : 0,
-              ),
-            ),
+            IgnorePointer(child: SizedBox(height: topReservedHeight)),
             if (body != null) Expanded(child: body!),
           ],
         ),
