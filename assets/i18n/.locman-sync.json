@@ -3,18 +3,6 @@
   "sourceLanguage": "en",
   "questionableVersioning": false,
   "keys": {
-    "Searching...": {
-      "sourceHash": "78c9d9f6ace0e9b8",
-      "translations": {
-        "zh-OG": "1f27ec91cb84420e",
-        "ko-KR": "1f27ec91cb84420e",
-        "es-ES": "1f27ec91cb84420e",
-        "ja-JP": "1f27ec91cb84420e",
-        "zh-CN": "1f27ec91cb84420e",
-        "zh-TW": "1f27ec91cb84420e",
-        "en-US": "1f27ec91cb84420e"
-      }
-    },
     "about": {
       "sourceHash": "4efca0d10c5feb8e",
       "translations": {
@@ -13312,7 +13300,7 @@
       }
     },
     "poll": {
-      "sourceHash": "d54f7d124c7d588e",
+      "sourceHash": "211bb3de5686f88e",
       "translations": {
         "zh-OG": "1a04fca5cf32d230",
         "ko-KR": "1a04fca5cf32d230",
@@ -13348,7 +13336,7 @@
       }
     },
     "pollAnswerSubmitted": {
-      "sourceHash": "c7b3b144c67b33a6",
+      "sourceHash": "951bb18b03ccb24b",
       "translations": {
         "zh-OG": "8498ed594678605b",
         "ko-KR": "8498ed594678605b",
@@ -13360,7 +13348,7 @@
       }
     },
     "pollConfirmDiscard": {
-      "sourceHash": "2feee573f34a55fb",
+      "sourceHash": "7cb622e302f2d007",
       "translations": {
         "zh-OG": "a3faa1e467c48d8a",
         "ko-KR": "a3faa1e467c48d8a",
@@ -13372,7 +13360,7 @@
       }
     },
     "pollCreate": {
-      "sourceHash": "b2b9c2e81c4c5c8e",
+      "sourceHash": "bd7e7ce2ed4a5713",
       "translations": {
         "zh-OG": "b2f1852f508be698",
         "ko-KR": "b2f1852f508be698",
@@ -13396,7 +13384,7 @@
       }
     },
     "pollCreateNewHint": {
-      "sourceHash": "8deccb7e4d5da3cd",
+      "sourceHash": "4fde419e77a78e1a",
       "translations": {
         "zh-OG": "c41360d53545e926",
         "ko-KR": "c41360d53545e926",
@@ -13408,7 +13396,7 @@
       }
     },
     "pollCreated": {
-      "sourceHash": "7dfc4811e7dda1bd",
+      "sourceHash": "8b2ee952bc489daa",
       "translations": {
         "zh-OG": "4992adeebea3a966",
         "ko-KR": "4992adeebea3a966",
@@ -13432,7 +13420,7 @@
       }
     },
     "pollEdit": {
-      "sourceHash": "ef87e6154835c111",
+      "sourceHash": "189892640b964e57",
       "translations": {
         "zh-OG": "2c33a566ed681a57",
         "ko-KR": "2c33a566ed681a57",
@@ -13468,7 +13456,7 @@
       }
     },
     "pollNoQuestionsHint": {
-      "sourceHash": "2401a950edbf0b56",
+      "sourceHash": "d0b0b4ab8bd0af21",
       "translations": {
         "zh-OG": "a0a10f357a0e7bbf",
         "ko-KR": "a0a10f357a0e7bbf",
@@ -13672,7 +13660,7 @@
       }
     },
     "pollUpdated": {
-      "sourceHash": "547d944ce02aacf2",
+      "sourceHash": "401d7a4c401cdac2",
       "translations": {
         "zh-OG": "f5f9a3733fdb3de9",
         "ko-KR": "f5f9a3733fdb3de9",
@@ -13684,7 +13672,7 @@
       }
     },
     "polls": {
-      "sourceHash": "996729458535904a",
+      "sourceHash": "7c763b8fc78b7996",
       "translations": {
         "zh-OG": "1a04fca5cf32d230",
         "ko-KR": "1a04fca5cf32d230",
@@ -13696,7 +13684,7 @@
       }
     },
     "pollsRecent": {
-      "sourceHash": "545eb65660c24a58",
+      "sourceHash": "ff8f0618dd4beb3d",
       "translations": {
         "zh-OG": "1c7fc54772c030ee",
         "ko-KR": "1c7fc54772c030ee",
@@ -22162,178 +22150,6 @@
         "en-US": "08b041935798fbf6"
       }
     },
-    "2Weeks": {
-      "sourceHash": "fa33c08ffffe3c91",
-      "translations": {}
-    },
-    "ActiveGoals": {
-      "sourceHash": "589572002798bcee",
-      "translations": {}
-    },
-    "Add": {
-      "sourceHash": "9fd728c66c9a256b",
-      "translations": {}
-    },
-    "ArborDay": {
-      "sourceHash": "0d63e6bf4dc604c9",
-      "translations": {}
-    },
-    "Boost": {
-      "sourceHash": "0d791a0a6f011001",
-      "translations": {}
-    },
-    "BoostAllUnlocked": {
-      "sourceHash": "6a14689dfa0a1a06",
-      "translations": {}
-    },
-    "BoostLevel1Hint": {
-      "sourceHash": "f7f57dc2fc080aae",
-      "translations": {}
-    },
-    "BoostLevel2Hint": {
-      "sourceHash": "65907db405e30cc5",
-      "translations": {}
-    },
-    "BoostLevel3Hint": {
-      "sourceHash": "a851ef5e3e27b0e6",
-      "translations": {}
-    },
-    "BoostMax": {
-      "sourceHash": "81a57230066c0066",
-      "translations": {}
-    },
-    "BoostProgressAvailable": {
-      "sourceHash": "cc22340f324a4de7",
-      "translations": {}
-    },
-    "ChildrenDay": {
-      "sourceHash": "46207a0f5c32acd9",
-      "translations": {}
-    },
-    "Completed": {
-      "sourceHash": "22a970d2e5b1cc23",
-      "translations": {}
-    },
-    "DoubleNinthFestival": {
-      "sourceHash": "f5963045ede20baa",
-      "translations": {}
-    },
-    "DragonBoatFestival": {
-      "sourceHash": "a7192f61a6761136",
-      "translations": {}
-    },
-    "Goals": {
-      "sourceHash": "116cd3982a9bc435",
-      "translations": {}
-    },
-    "Import": {
-      "sourceHash": "2cff9baabf56ca00",
-      "translations": {}
-    },
-    "LabourDay": {
-      "sourceHash": "2f261725b9a19247",
-      "translations": {}
-    },
-    "LeaderBoard": {
-      "sourceHash": "6237db3050557ca3",
-      "translations": {}
-    },
-    "Metrics": {
-      "sourceHash": "a58da793c7250f1b",
-      "translations": {}
-    },
-    "MidAutumnFestival": {
-      "sourceHash": "96d7f1a6677a29d0",
-      "translations": {}
-    },
-    "NationalDay": {
-      "sourceHash": "477542c14aa6c43b",
-      "translations": {}
-    },
-    "NewYear": {
-      "sourceHash": "b901e214ebaeec4b",
-      "translations": {}
-    },
-    "NoLabelsCreated": {
-      "sourceHash": "87648e7db7383dd6",
-      "translations": {}
-    },
-    "NoRealmSpecSet": {
-      "sourceHash": "c4ba27d03f69070f",
-      "translations": {}
-    },
-    "NoWorkoutsHint": {
-      "sourceHash": "e2229941c3ae1294",
-      "translations": {}
-    },
-    "QingmingFestival": {
-      "sourceHash": "b8aa3be78ef0f424",
-      "translations": {}
-    },
-    "QixiFestival": {
-      "sourceHash": "076ee32827e665c6",
-      "translations": {}
-    },
-    "RealmBoost": {
-      "sourceHash": "ea182e5e7ebe4992",
-      "translations": {}
-    },
-    "RealmBoostFunction": {
-      "sourceHash": "3410c8a3dd38e882",
-      "translations": {}
-    },
-    "RealmIdentity": {
-      "sourceHash": "3f6457976629b068",
-      "translations": {}
-    },
-    "RealmLabel": {
-      "sourceHash": "8a8a1e33404754ab",
-      "translations": {}
-    },
-    "RealmLabels": {
-      "sourceHash": "1a85601f1fc8d677",
-      "translations": {}
-    },
-    "RecentWorkouts": {
-      "sourceHash": "ebef272454f1cb76",
-      "translations": {}
-    },
-    "SeeAll": {
-      "sourceHash": "44c9d36485b791c3",
-      "translations": {}
-    },
-    "ShowChatEventsMessagesHelper": {
-      "sourceHash": "daaf3e99fcd32d75",
-      "translations": {}
-    },
-    "SpringFestival": {
-      "sourceHash": "869856f31dc8901e",
-      "translations": {}
-    },
-    "TeachersDay": {
-      "sourceHash": "1dc7872e6f3803a2",
-      "translations": {}
-    },
-    "TrackFitnessGoals": {
-      "sourceHash": "cc239638cd3ef957",
-      "translations": {}
-    },
-    "ViewLeaderboard": {
-      "sourceHash": "a75e425d24decea2",
-      "translations": {}
-    },
-    "ViewLeaderboardHint": {
-      "sourceHash": "fa867461acd0f2db",
-      "translations": {}
-    },
-    "ViewMetrics": {
-      "sourceHash": "0c2f6867046704e5",
-      "translations": {}
-    },
-    "YouthDay": {
-      "sourceHash": "f44d15c956802593",
-      "translations": {}
-    },
     "aboutDeviceInformation": {
       "sourceHash": "975c96aa381d2c10",
       "translations": {}
@@ -26751,7 +26567,7 @@
       "translations": {}
     },
     "pollFeedback": {
-      "sourceHash": "721305953592cd90",
+      "sourceHash": "959b90adebc1e8d1",
       "translations": {}
     },
     "poolUsage": {
@@ -29218,26 +29034,6 @@
       "sourceHash": "429f98a67e369feb",
       "translations": {}
     },
-    "{}d": {
-      "sourceHash": "c697fa6280ce0c4c",
-      "translations": {}
-    },
-    "{}h": {
-      "sourceHash": "bb1507a55c81a737",
-      "translations": {}
-    },
-    "{}m": {
-      "sourceHash": "d8ed657311d824b7",
-      "translations": {}
-    },
-    "{}mo": {
-      "sourceHash": "daeecac94220d4f6",
-      "translations": {}
-    },
-    "{}y": {
-      "sourceHash": "fdbb8fcd7b212d9f",
-      "translations": {}
-    },
     "allowed": {
       "sourceHash": "1bb201d188352e9b",
       "translations": {}
@@ -29266,16 +29062,8 @@
       "sourceHash": "646fd15877990f7a",
       "translations": {}
     },
-    "Moderation": {
-      "sourceHash": "126d4415445de103",
-      "translations": {}
-    },
     "modPosts": {
       "sourceHash": "2577496794bf0d56",
-      "translations": {}
-    },
-    "NoRolePermissions": {
-      "sourceHash": "33c0a0cf93d5185b",
       "translations": {}
     },
     "permissionCanChat": {
@@ -29412,6 +29200,526 @@
     },
     "inviteSentTo": {
       "sourceHash": "16879a76567e36a1",
+      "translations": {}
+    },
+    "twoWeeks": {
+      "sourceHash": "fa33c08ffffe3c91",
+      "translations": {}
+    },
+    "activeGoals": {
+      "sourceHash": "589572002798bcee",
+      "translations": {}
+    },
+    "arborDay": {
+      "sourceHash": "0d63e6bf4dc604c9",
+      "translations": {}
+    },
+    "boost": {
+      "sourceHash": "0d791a0a6f011001",
+      "translations": {}
+    },
+    "boostAllUnlocked": {
+      "sourceHash": "6a14689dfa0a1a06",
+      "translations": {}
+    },
+    "boostLevel1Hint": {
+      "sourceHash": "f7f57dc2fc080aae",
+      "translations": {}
+    },
+    "boostLevel2Hint": {
+      "sourceHash": "65907db405e30cc5",
+      "translations": {}
+    },
+    "boostLevel3Hint": {
+      "sourceHash": "a851ef5e3e27b0e6",
+      "translations": {}
+    },
+    "boostMax": {
+      "sourceHash": "81a57230066c0066",
+      "translations": {}
+    },
+    "boostProgressAvailable": {
+      "sourceHash": "cc22340f324a4de7",
+      "translations": {}
+    },
+    "childrenDay": {
+      "sourceHash": "46207a0f5c32acd9",
+      "translations": {}
+    },
+    "doubleNinthFestival": {
+      "sourceHash": "f5963045ede20baa",
+      "translations": {}
+    },
+    "dragonBoatFestival": {
+      "sourceHash": "a7192f61a6761136",
+      "translations": {}
+    },
+    "import": {
+      "sourceHash": "2cff9baabf56ca00",
+      "translations": {}
+    },
+    "labourDay": {
+      "sourceHash": "2f261725b9a19247",
+      "translations": {}
+    },
+    "leaderBoard": {
+      "sourceHash": "6237db3050557ca3",
+      "translations": {}
+    },
+    "midAutumnFestival": {
+      "sourceHash": "96d7f1a6677a29d0",
+      "translations": {}
+    },
+    "nationalDay": {
+      "sourceHash": "477542c14aa6c43b",
+      "translations": {}
+    },
+    "newYear": {
+      "sourceHash": "b901e214ebaeec4b",
+      "translations": {}
+    },
+    "noLabelsCreated": {
+      "sourceHash": "87648e7db7383dd6",
+      "translations": {}
+    },
+    "noRealmSpecSet": {
+      "sourceHash": "c4ba27d03f69070f",
+      "translations": {}
+    },
+    "noWorkoutsHint": {
+      "sourceHash": "e2229941c3ae1294",
+      "translations": {}
+    },
+    "qingmingFestival": {
+      "sourceHash": "b8aa3be78ef0f424",
+      "translations": {}
+    },
+    "qixiFestival": {
+      "sourceHash": "076ee32827e665c6",
+      "translations": {}
+    },
+    "realmBoost": {
+      "sourceHash": "ea182e5e7ebe4992",
+      "translations": {}
+    },
+    "realmBoostFunction": {
+      "sourceHash": "3410c8a3dd38e882",
+      "translations": {}
+    },
+    "realmIdentity": {
+      "sourceHash": "3f6457976629b068",
+      "translations": {}
+    },
+    "realmLabel": {
+      "sourceHash": "8a8a1e33404754ab",
+      "translations": {}
+    },
+    "realmLabels": {
+      "sourceHash": "1a85601f1fc8d677",
+      "translations": {}
+    },
+    "recentWorkouts": {
+      "sourceHash": "ebef272454f1cb76",
+      "translations": {}
+    },
+    "searching": {
+      "sourceHash": "78c9d9f6ace0e9b8",
+      "translations": {}
+    },
+    "showChatEventsMessagesHelper": {
+      "sourceHash": "daaf3e99fcd32d75",
+      "translations": {}
+    },
+    "springFestival": {
+      "sourceHash": "869856f31dc8901e",
+      "translations": {}
+    },
+    "teachersDay": {
+      "sourceHash": "1dc7872e6f3803a2",
+      "translations": {}
+    },
+    "trackFitnessGoals": {
+      "sourceHash": "cc239638cd3ef957",
+      "translations": {}
+    },
+    "viewLeaderboard": {
+      "sourceHash": "a75e425d24decea2",
+      "translations": {}
+    },
+    "viewLeaderboardHint": {
+      "sourceHash": "fa867461acd0f2db",
+      "translations": {}
+    },
+    "viewMetrics": {
+      "sourceHash": "0c2f6867046704e5",
+      "translations": {}
+    },
+    "youthDay": {
+      "sourceHash": "f44d15c956802593",
+      "translations": {}
+    },
+    "accountQrDeviceAuthApprovalHint": {
+      "sourceHash": "a57bb13ea16a2624",
+      "translations": {}
+    },
+    "accountQrDeviceAuthApprovalTitle": {
+      "sourceHash": "197da3e17a78f6bb",
+      "translations": {}
+    },
+    "accountQrDeviceAuthApproved": {
+      "sourceHash": "04cc2559b1864ebc",
+      "translations": {}
+    },
+    "accountQrDeviceAuthCheck": {
+      "sourceHash": "a036c255280e113a",
+      "translations": {}
+    },
+    "accountQrDeviceAuthDeclined": {
+      "sourceHash": "ce3e4c1f20365980",
+      "translations": {}
+    },
+    "accountQrDeviceAuthDescription": {
+      "sourceHash": "3ecf42fd377ee2b0",
+      "translations": {}
+    },
+    "accountQrDeviceAuthEnterCode": {
+      "sourceHash": "7d493b66e8bbed1f",
+      "translations": {}
+    },
+    "accountQrDeviceAuthEnterCodeHint": {
+      "sourceHash": "8fc3aca802e0b50c",
+      "translations": {}
+    },
+    "accountQrDeviceAuthHint": {
+      "sourceHash": "3374c122c7441c46",
+      "translations": {}
+    },
+    "accountQrDeviceAuthInvalidCode": {
+      "sourceHash": "dee5ff1a1db2194e",
+      "translations": {}
+    },
+    "accountQrDeviceAuthScopes": {
+      "sourceHash": "b926213c0262d6c6",
+      "translations": {}
+    },
+    "accountQrDeviceAuthSectionTitle": {
+      "sourceHash": "197da3e17a78f6bb",
+      "translations": {}
+    },
+    "accountQrDeviceAuthUserCode": {
+      "sourceHash": "8cbf9f5f1610117d",
+      "translations": {}
+    },
+    "friendStatusCameOnline": {
+      "sourceHash": "37124d165056e2c4",
+      "translations": {}
+    },
+    "friendStatusEnabledDoNotDisturb": {
+      "sourceHash": "a9c77015b8288630",
+      "translations": {}
+    },
+    "friendStatusEyebrowActivityEnded": {
+      "sourceHash": "fbc7a5186badfff7",
+      "translations": {}
+    },
+    "friendStatusEyebrowActivityStarted": {
+      "sourceHash": "4c362bd34da84fc2",
+      "translations": {}
+    },
+    "friendStatusEyebrowOffline": {
+      "sourceHash": "96c34dd08f46436e",
+      "translations": {}
+    },
+    "friendStatusEyebrowOnline": {
+      "sourceHash": "9ed5b78563af308e",
+      "translations": {}
+    },
+    "friendStatusEyebrowStatusUpdate": {
+      "sourceHash": "2228090478ef42a1",
+      "translations": {}
+    },
+    "friendStatusIsNowBusy": {
+      "sourceHash": "e06a0bca88a6beb4",
+      "translations": {}
+    },
+    "friendStatusLiveUpdate": {
+      "sourceHash": "4f070f2ec862d1b4",
+      "translations": {}
+    },
+    "friendStatusStartedActivity": {
+      "sourceHash": "76762e9ee238bd60",
+      "translations": {}
+    },
+    "friendStatusStartedSpecificActivity": {
+      "sourceHash": "440debf8a32c79cd",
+      "translations": {}
+    },
+    "friendStatusStoppedActivity": {
+      "sourceHash": "9151507b9802a0bf",
+      "translations": {}
+    },
+    "friendStatusTapAnywhereToDismiss": {
+      "sourceHash": "ae86b1e089b2a50d",
+      "translations": {}
+    },
+    "friendStatusTapToDismiss": {
+      "sourceHash": "055e4def837171ff",
+      "translations": {}
+    },
+    "friendStatusWentOffline": {
+      "sourceHash": "5f66da8ceb28a2da",
+      "translations": {}
+    },
+    "newBlog": {
+      "sourceHash": "8dad9dbc58746030",
+      "translations": {}
+    },
+    "editBlog": {
+      "sourceHash": "9f4a01a3da4ebd22",
+      "translations": {}
+    },
+    "blogUrl": {
+      "sourceHash": "6eed84676670b042",
+      "translations": {}
+    },
+    "verifiedDomains": {
+      "sourceHash": "8cacc7510a6b5234",
+      "translations": {}
+    },
+    "addDomain": {
+      "sourceHash": "0f09df73147ae439",
+      "translations": {}
+    },
+    "removeDomain": {
+      "sourceHash": "07a1675d335b700f",
+      "translations": {}
+    },
+    "removeDomainHint": {
+      "sourceHash": "9bf6c0e4b7844a8f",
+      "translations": {}
+    },
+    "recheck": {
+      "sourceHash": "1f47d8366934f024",
+      "translations": {}
+    },
+    "noDomains": {
+      "sourceHash": "77625b2aadcc930c",
+      "translations": {}
+    },
+    "domainPending": {
+      "sourceHash": "417a6b7e1904940a",
+      "translations": {}
+    },
+    "domainVerified": {
+      "sourceHash": "4f7838402f37674e",
+      "translations": {}
+    },
+    "domainFailed": {
+      "sourceHash": "f0f2383f8af8d23d",
+      "translations": {}
+    },
+    "domainRevoked": {
+      "sourceHash": "f6f738d043929f59",
+      "translations": {}
+    },
+    "domainVerificationHint": {
+      "sourceHash": "a6d84093ba4b4e74",
+      "translations": {}
+    },
+    "verifiedAt": {
+      "sourceHash": "7e0c92741ade44d6",
+      "translations": {}
+    },
+    "chatPeopleOnline.one": {
+      "sourceHash": "15bf6c4f38a0e84d",
+      "translations": {}
+    },
+    "chatPeopleOnline.other": {
+      "sourceHash": "4cdc22c9a6ffd924",
+      "translations": {}
+    },
+    "chatNoOnlineMembers": {
+      "sourceHash": "452dfe104bf4b951",
+      "translations": {}
+    },
+    "surveys": {
+      "sourceHash": "7c763b8fc78b7996",
+      "translations": {}
+    },
+    "surveyAnonymousAnswers": {
+      "sourceHash": "e46156d364384e8b",
+      "translations": {}
+    },
+    "surveyAnonymousAnswersHint": {
+      "sourceHash": "41da00751b1afd2c",
+      "translations": {}
+    },
+    "surveyArchive": {
+      "sourceHash": "66f4804ee23ddc09",
+      "translations": {}
+    },
+    "surveyArchived": {
+      "sourceHash": "bdb86505f8062d15",
+      "translations": {}
+    },
+    "surveyArchivedSnackbar": {
+      "sourceHash": "39f4d9fd4867d1bc",
+      "translations": {}
+    },
+    "surveyArchiveConfirmContent": {
+      "sourceHash": "57c96be082eb19bb",
+      "translations": {}
+    },
+    "surveyArchiveConfirmTitle": {
+      "sourceHash": "8b8301a3cca4dee9",
+      "translations": {}
+    },
+    "surveyClone": {
+      "sourceHash": "5779f32fab00c2aa",
+      "translations": {}
+    },
+    "surveyClonedSnackbar": {
+      "sourceHash": "03292d9715f9218a",
+      "translations": {}
+    },
+    "surveyDraft": {
+      "sourceHash": "ebf12ef47cf575b3",
+      "translations": {}
+    },
+    "surveyNotifySubscribers": {
+      "sourceHash": "5b93e3e0c8ce07a7",
+      "translations": {}
+    },
+    "surveyNotifySubscribersHint": {
+      "sourceHash": "a2ff3d14300e8ef0",
+      "translations": {}
+    },
+    "surveyPublish": {
+      "sourceHash": "859390eb495b2ead",
+      "translations": {}
+    },
+    "surveyPublishConfirmContent": {
+      "sourceHash": "ae6eb33a9934123e",
+      "translations": {}
+    },
+    "surveyPublishConfirmTitle": {
+      "sourceHash": "6ccdfba494232b7e",
+      "translations": {}
+    },
+    "surveyPublished": {
+      "sourceHash": "2ef42ec21d9300dd",
+      "translations": {}
+    },
+    "surveyPublishedSnackbar": {
+      "sourceHash": "7f3872aa04e6020b",
+      "translations": {}
+    },
+    "postBlog": {
+      "sourceHash": "8c6bc099534a0251",
+      "translations": {}
+    },
+    "openBlog": {
+      "sourceHash": "5b2620396b7fae22",
+      "translations": {}
+    },
+    "settingsShakeDetection": {
+      "sourceHash": "4ba508e5f68ca7ee",
+      "translations": {}
+    },
+    "settingsShakeDetectionHelper": {
+      "sourceHash": "01ea1752b6d67d93",
+      "translations": {}
+    },
+    "sponsor": {
+      "sourceHash": "fd6e874f43f84791",
+      "translations": {}
+    },
+    "sponsorAmount": {
+      "sourceHash": "49e96d7cdf58069c",
+      "translations": {}
+    },
+    "sponsorAmountHint": {
+      "sourceHash": "23184846eb02bf8d",
+      "translations": {}
+    },
+    "sponsorAmountInvalid": {
+      "sourceHash": "010f1dd69a96c81c",
+      "translations": {}
+    },
+    "sponsorAmountRequired": {
+      "sourceHash": "46cf0ccbc262ca8a",
+      "translations": {}
+    },
+    "sponsorBenefits": {
+      "sourceHash": "39febdee167841dd",
+      "translations": {}
+    },
+    "sponsorBenefitsDescription": {
+      "sourceHash": "22c52a9de4344cc1",
+      "translations": {}
+    },
+    "sponsorBidAmount": {
+      "sourceHash": "a3b26412b33e058b",
+      "translations": {}
+    },
+    "sponsorBidExpires": {
+      "sourceHash": "d3e26c43ebb4124f",
+      "translations": {}
+    },
+    "sponsorHistoryEmpty": {
+      "sourceHash": "4483335d06b6febb",
+      "translations": {}
+    },
+    "sponsorMinAmount": {
+      "sourceHash": "4de7908786e6eb8d",
+      "translations": {}
+    },
+    "sponsorPost": {
+      "sourceHash": "819b87ed79615467",
+      "translations": {}
+    },
+    "sponsorSubmit": {
+      "sourceHash": "fd6e874f43f84791",
+      "translations": {}
+    },
+    "sponsorSuccess": {
+      "sourceHash": "f6d2d42c0167a082",
+      "translations": {}
+    },
+    "supportHistory": {
+      "sourceHash": "bcf701a5d0f8f3e4",
+      "translations": {}
+    },
+    "supportViewHistory": {
+      "sourceHash": "a5932bc4ce515954",
+      "translations": {}
+    },
+    "daysAbbrev": {
+      "sourceHash": "c697fa6280ce0c4c",
+      "translations": {}
+    },
+    "hoursAbbrev": {
+      "sourceHash": "bb1507a55c81a737",
+      "translations": {}
+    },
+    "minutesAbbrev": {
+      "sourceHash": "d8ed657311d824b7",
+      "translations": {}
+    },
+    "monthsAbbrev": {
+      "sourceHash": "daeecac94220d4f6",
+      "translations": {}
+    },
+    "yearsAbbrev": {
+      "sourceHash": "fdbb8fcd7b212d9f",
+      "translations": {}
+    },
+    "moderation": {
+      "sourceHash": "126d4415445de103",
+      "translations": {}
+    },
+    "noRolePermissions": {
+      "sourceHash": "33c0a0cf93d5185b",
       "translations": {}
     }
   }

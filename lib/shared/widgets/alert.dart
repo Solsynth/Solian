@@ -5,13 +5,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/main.dart';
 import 'package:island/core/config.dart';
+import 'package:island/main.dart';
 import 'package:island/core/notification.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/route.dart';
-
 import 'package:just_audio/just_audio.dart';
+export 'package:island/shared/widgets/snackbar_overlay.dart'
+    show
+        SnackBarEntryKey,
+        dismissSnackBar,
+        showCustomSnackBar,
+        showSnackBar,
+        showStyledSnackBar,
+        updateCustomSnackBar;
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -19,40 +25,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/network/domain_trust.dart';
 import 'package:island/shared/widgets/content/domain_trust_sheet.dart';
-
-const double kFloatingSnackBarWidth = 400.0;
-
-void showSnackBar(String message, {SnackBarAction? action}) {
-  final messenger = globalScaffoldMessengerKey.currentState;
-  if (messenger == null) return;
-
-  final context = messenger.context;
-  final screenWidth = MediaQuery.of(context).size.width;
-  final wideScreen = screenWidth > kWideScreenWidth;
-
-  messenger.hideCurrentSnackBar();
-  messenger.showSnackBar(
-    wideScreen
-        ? SnackBar(
-            content: Text(message),
-            action: action,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 1500),
-            margin: EdgeInsets.only(
-              left: screenWidth - kFloatingSnackBarWidth - 16,
-              right: 16,
-              bottom: 16,
-            ),
-          )
-        : SnackBar(
-            content: Text(message),
-            action: action,
-            behavior: SnackBarBehavior.fixed,
-            shape: RoundedRectangleBorder(),
-            duration: const Duration(milliseconds: 1500),
-          ),
-  );
-}
 
 OverlayEntry? _loadingOverlay;
 GlobalKey<_FadeOverlayState> _loadingOverlayKey = GlobalKey();
@@ -262,7 +234,9 @@ Future<void> _playSfx(String assetPath, double volume) async {
 void showErrorAlert(dynamic err, {IconData? icon}) {
   final state = globalOverlay.currentState;
   if (state == null) {
-    Logger.root.severe('[Alert] showErrorAlert called but overlay not ready: $err');
+    Logger.root.severe(
+      '[Alert] showErrorAlert called but overlay not ready: $err',
+    );
     return;
   }
   final context = state.context;

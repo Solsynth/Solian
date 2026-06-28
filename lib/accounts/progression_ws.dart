@@ -3,9 +3,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/main.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -16,8 +16,6 @@ final progressionWebSocketProvider =
 
 class ProgressionWebSocketNotifier extends Notifier<void> {
   StreamSubscription? _subscription;
-  final List<SnProgressionCompletedPacket> _pendingPackets = [];
-  bool _isShowing = false;
 
   @override
   void build() {
@@ -43,49 +41,42 @@ class ProgressionWebSocketNotifier extends Notifier<void> {
       final completedPacket = SnProgressionCompletedPacket.fromJson(
         packet.data!,
       );
-      _pendingPackets.add(completedPacket);
-      _showNextCompletion();
+      _showCompletionSnackBar(completedPacket);
     } catch (e) {
       // Handle parse error silently
     }
   }
 
-  void _showNextCompletion() {
-    if (_isShowing || _pendingPackets.isEmpty) return;
-
-    _isShowing = true;
-    final packet = _pendingPackets.removeAt(0);
-
+  void _showCompletionSnackBar(
+    SnProgressionCompletedPacket packet, {
+    bool noVibrate = false,
+  }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showCompletionOverlay(packet);
+      final context = globalOverlay.currentState?.context;
+      if (context == null) return;
+      final theme = Theme.of(context);
+      final isAchievement = packet.kind == 'achievement';
+      final accentColor = isAchievement ? Colors.amber : Colors.blue;
+      final containerColor = Color.alphaBlend(
+        accentColor.withValues(alpha: 0.05),
+        theme.colorScheme.surfaceContainer,
+      );
+
+      showCustomSnackBar(
+        duration: const Duration(seconds: 4),
+        noVibrate: noVibrate,
+        containerColor: containerColor,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        enableStackScale: false,
+        builder: (context, dismiss) => _ProgressionCompletionSnackBar(
+          kind: packet.kind,
+          title: packet.title,
+          identifier: packet.identifier,
+          reward: packet.reward,
+          onDismiss: dismiss,
+        ),
+      );
     });
-  }
-
-  void _showCompletionOverlay(SnProgressionCompletedPacket packet) {
-    final context = globalOverlay.currentState?.context;
-    if (context == null) {
-      _isShowing = false;
-      _showNextCompletion();
-      return;
-    }
-
-    OverlayEntry? entry;
-
-    entry = OverlayEntry(
-      builder: (context) => _ProgressionCompletionOverlay(
-        kind: packet.kind,
-        title: packet.title,
-        identifier: packet.identifier,
-        reward: packet.reward,
-        onDismiss: () {
-          entry?.remove();
-          _isShowing = false;
-          _showNextCompletion();
-        },
-      ),
-    );
-
-    globalOverlay.currentState?.insert(entry);
   }
 
   void testShowCompletion({
@@ -93,26 +84,26 @@ class ProgressionWebSocketNotifier extends Notifier<void> {
     required String title,
     String? identifier,
     SnProgressRewardDefinition? reward,
+    bool noVibrate = false,
   }) {
     final packet = SnProgressionCompletedPacket(
       kind: kind,
-      identifier: identifier ?? 'test_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
+      identifier: identifier ?? 'test_${DateTime.now().millisecondsSinceEpoch}',
       reward: reward,
     );
-    _pendingPackets.add(packet);
-    _showNextCompletion();
+    _showCompletionSnackBar(packet, noVibrate: noVibrate);
   }
 }
 
-class _ProgressionCompletionOverlay extends StatefulWidget {
+class _ProgressionCompletionSnackBar extends StatelessWidget {
   final String kind;
   final String title;
   final String identifier;
   final SnProgressRewardDefinition? reward;
   final VoidCallback onDismiss;
 
-  const _ProgressionCompletionOverlay({
+  const _ProgressionCompletionSnackBar({
     required this.kind,
     required this.title,
     required this.identifier,
@@ -121,149 +112,25 @@ class _ProgressionCompletionOverlay extends StatefulWidget {
   });
 
   @override
-  State<_ProgressionCompletionOverlay> createState() =>
-      _ProgressionCompletionOverlayState();
-}
-
-class _ProgressionCompletionOverlayState
-    extends State<_ProgressionCompletionOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      reverseDuration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<double>(
-      begin: 80.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 0.3,
-          end: 1.1,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 40,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.1,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.easeOutBack)),
-        weight: 60,
-      ),
-    ]).animate(_controller);
-
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _controller.forward();
-
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        _dismiss();
-      }
-    });
-  }
-
-  void _dismiss() async {
-    await _controller.reverse();
-    widget.onDismiss();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isAchievement = widget.kind == 'achievement';
+    final isAchievement = kind == 'achievement';
     final color = isAchievement ? Colors.amber : Colors.blue;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: bottomPadding + 16,
-            child: FadeTransition(
-              opacity: _opacityAnimation,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _slideAnimation.value),
-                    child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      alignment: Alignment.bottomCenter,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Center(
-                  child: GestureDetector(
-                    onTap: _dismiss,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        maxWidth: 500,
-                        minWidth: 200,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                          BoxShadow(
-                            color: color.withOpacity(0.3),
-                            blurRadius: 24,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(32),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          child: _CompletionPillContent(
-                            kind: widget.kind,
-                            title: widget.title,
-                            identifier: widget.identifier,
-                            color: color,
-                            reward: widget.reward,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: 500,
+        minWidth: 200,
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onDismiss,
+        child: _CompletionPillContent(
+          kind: kind,
+          title: title,
+          identifier: identifier,
+          color: color,
+          reward: reward,
+        ),
       ),
     );
   }
@@ -296,17 +163,18 @@ class _CompletionPillContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
+          DecoratedBox(
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
-              isAchievement ? Symbols.military_tech : Symbols.assignment,
-              size: 22,
-              color: color,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Icon(
+                isAchievement ? Symbols.military_tech : Symbols.assignment,
+                size: 20,
+                color: color,
+              ),
             ),
           ),
           const Gap(12),
@@ -318,16 +186,18 @@ class _CompletionPillContent extends StatelessWidget {
                 isAchievement
                     ? 'achievementUnlocked'.tr()
                     : 'questCompleted'.tr(),
-                style: theme.textTheme.bodySmall?.copyWith(
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.1,
                 ),
               ),
+              const Gap(2),
               Text(
                 displayTitle,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],
@@ -336,8 +206,8 @@ class _CompletionPillContent extends StatelessWidget {
             const Gap(12),
             Container(
               width: 1,
-              height: 32,
-              color: theme.colorScheme.outlineVariant,
+              height: 28,
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
             ),
             const Gap(12),
             _RewardRowCompact(reward: reward!),

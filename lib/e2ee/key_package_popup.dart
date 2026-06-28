@@ -1,18 +1,19 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/main.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:logging/logging.dart';
-
 import 'package:material_symbols_icons/symbols.dart';
+
 import 'package:island/e2ee/mls_identity_manager.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 const _mlsLogPrefix = '[MLS Popup] ';
+const _mlsSnackBarKey = 'mls-state-popup';
 
 void _mlsLog(dynamic msg) {
   Logger.root.info('$_mlsLogPrefix$msg');
@@ -41,12 +42,14 @@ class MlsStatePopupNotifier extends Notifier<void> {
   StreamSubscription? _subscription;
   StreamSubscription? _eventSubscription;
   MlsIdentityManager? _identityManager;
+  int _activeSerial = 0;
 
   @override
   void build() {
     ref.onDispose(() {
       _subscription?.cancel();
       _eventSubscription?.cancel();
+      dismissSnackBar(_mlsSnackBarKey);
     });
     _setupListeners();
   }
@@ -94,7 +97,7 @@ class MlsStatePopupNotifier extends Notifier<void> {
   }
 
   void showState(MlsPopupState state, {String? deviceLabel, int? count}) {
-    _showOverlay(state: state, deviceLabel: deviceLabel, count: count);
+    _showSnackBarState(state: state, deviceLabel: deviceLabel, count: count);
   }
 
   void _handleKeyPackageDepleted(WebSocketPacket packet) {
@@ -108,7 +111,7 @@ class MlsStatePopupNotifier extends Notifier<void> {
 
     if (mlsDeviceId == null) return;
 
-    _showOverlay(
+    _showSnackBarState(
       state: MlsPopupState.refillingKeyPackages,
       mlsDeviceId: mlsDeviceId,
       deviceLabel: deviceLabel,
@@ -116,7 +119,7 @@ class MlsStatePopupNotifier extends Notifier<void> {
     );
   }
 
-  void _showOverlay({
+  void _showSnackBarState({
     required MlsPopupState state,
     String? mlsDeviceId,
     String? deviceLabel,
@@ -125,21 +128,129 @@ class MlsStatePopupNotifier extends Notifier<void> {
     final context = globalOverlay.currentState?.context;
     if (context == null) return;
 
-    OverlayEntry? entry;
-    entry = OverlayEntry(
-      builder: (context) => _MlsStateOverlay(
-        identityManager: _identityManager,
+    final serial = ++_activeSerial;
+    final isComplete = false;
+    final accentColor = _resolveAccentColor(state, isComplete: isComplete);
+    final containerColor = Color.alphaBlend(
+      accentColor.withValues(alpha: 0.05),
+      Theme.of(context).colorScheme.surfaceContainer,
+    );
+
+    showCustomSnackBar(
+      entryKey: _mlsSnackBarKey,
+      duration: state == MlsPopupState.refillingKeyPackages
+          ? null
+          : const Duration(seconds: 3),
+      noVibrate: false,
+      containerColor: containerColor,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      enableStackScale: false,
+      builder: (context, dismiss) => _MlsStateSnackBarContent(
         state: state,
-        mlsDeviceId: mlsDeviceId,
+        isComplete: false,
         deviceLabel: deviceLabel,
-        count: count,
-        onComplete: () {
-          entry?.remove();
-        },
       ),
     );
 
-    globalOverlay.currentState?.insert(entry);
+    if (state == MlsPopupState.refillingKeyPackages) {
+      unawaited(
+        _runRefillFlow(
+          serial: serial,
+          mlsDeviceId: mlsDeviceId,
+          deviceLabel: deviceLabel,
+          count: count,
+        ),
+      );
+    }
+  }
+
+  Future<void> _runRefillFlow({
+    required int serial,
+    required String? mlsDeviceId,
+    required String? deviceLabel,
+    required int? count,
+  }) async {
+    final identityManager = _identityManager;
+    if (identityManager == null) {
+      _completeAndDismiss(
+        serial: serial,
+        state: MlsPopupState.refillingKeyPackages,
+        deviceLabel: deviceLabel,
+      );
+      return;
+    }
+
+    final currentCount = count ?? 0;
+    final needed = 3 - currentCount;
+    if (needed <= 0) {
+      _completeAndDismiss(
+        serial: serial,
+        state: MlsPopupState.refillingKeyPackages,
+        deviceLabel: deviceLabel,
+      );
+      return;
+    }
+
+    for (var i = 0; i < needed; i++) {
+      if (serial != _activeSerial) return;
+      _mlsLog('Uploading key package ${i + 1}/$needed');
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (serial != _activeSerial) return;
+      if (mlsDeviceId != null) {
+        _mlsLog('Refilling device: $mlsDeviceId');
+      }
+    }
+
+    _completeAndDismiss(
+      serial: serial,
+      state: MlsPopupState.refillingKeyPackages,
+      deviceLabel: deviceLabel,
+    );
+  }
+
+  void _completeAndDismiss({
+    required int serial,
+    required MlsPopupState state,
+    required String? deviceLabel,
+  }) {
+    if (serial != _activeSerial) return;
+
+    final context = globalOverlay.currentState?.context;
+    if (context == null) return;
+    final accentColor = _resolveAccentColor(state, isComplete: true);
+    final containerColor = Color.alphaBlend(
+      accentColor.withValues(alpha: 0.05),
+      Theme.of(context).colorScheme.surfaceContainer,
+    );
+
+    updateCustomSnackBar(
+      entryKey: _mlsSnackBarKey,
+      noVibrate: true,
+      duration: const Duration(seconds: 3),
+      containerColor: containerColor,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      enableStackScale: false,
+      builder: (context, dismiss) => _MlsStateSnackBarContent(
+        state: state,
+        isComplete: true,
+        deviceLabel: deviceLabel,
+      ),
+    );
+  }
+
+  Color _resolveAccentColor(MlsPopupState state, {required bool isComplete}) {
+    if (isComplete) return Colors.green;
+    switch (state) {
+      case MlsPopupState.refillingKeyPackages:
+      case MlsPopupState.uploadingGroupInfo:
+        return Colors.teal;
+      case MlsPopupState.externalJoin:
+      case MlsPopupState.processingWelcome:
+      case MlsPopupState.processingCommit:
+      case MlsPopupState.recoveringEpoch:
+      case MlsPopupState.genericProgress:
+        return Colors.blue;
+    }
   }
 
   void testShowRefill({
@@ -147,7 +258,7 @@ class MlsStatePopupNotifier extends Notifier<void> {
     String? deviceLabel,
     int currentCount = 0,
   }) {
-    _showOverlay(
+    _showSnackBarState(
       state: MlsPopupState.refillingKeyPackages,
       mlsDeviceId: mlsDeviceId,
       deviceLabel: deviceLabel,
@@ -156,254 +267,52 @@ class MlsStatePopupNotifier extends Notifier<void> {
   }
 
   void testShowExternalJoin({String? deviceLabel}) {
-    _showOverlay(state: MlsPopupState.externalJoin, deviceLabel: deviceLabel);
+    _showSnackBarState(
+      state: MlsPopupState.externalJoin,
+      deviceLabel: deviceLabel,
+    );
   }
 
   void testShowRecoveringEpoch({String? deviceLabel}) {
-    _showOverlay(
+    _showSnackBarState(
       state: MlsPopupState.recoveringEpoch,
       deviceLabel: deviceLabel,
     );
   }
 }
 
-class _MlsStateOverlay extends StatefulWidget {
-  final MlsIdentityManager? identityManager;
-  final MlsPopupState state;
-  final String? mlsDeviceId;
-  final String? deviceLabel;
-  final int? count;
-  final VoidCallback onComplete;
-
-  const _MlsStateOverlay({
-    this.identityManager,
-    required this.state,
-    this.mlsDeviceId,
-    this.deviceLabel,
-    this.count,
-    required this.onComplete,
-  });
-
-  @override
-  State<_MlsStateOverlay> createState() => _MlsStateOverlayState();
-}
-
-class _MlsStateOverlayState extends State<_MlsStateOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
-
-  bool _isComplete = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      reverseDuration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<double>(
-      begin: 80.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 0.3,
-          end: 1.1,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 40,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.1,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.easeOutBack)),
-        weight: 60,
-      ),
-    ]).animate(_controller);
-
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _controller.forward();
-
-    if (widget.state == MlsPopupState.refillingKeyPackages) {
-      _startRefill();
-    } else {
-      _startAutoDismissCountdown();
-    }
-  }
-
-  Future<void> _startRefill() async {
-    final identityManager = widget.identityManager;
-    if (identityManager == null) {
-      _startAutoDismissCountdown();
-      return;
-    }
-
-    final currentCount = widget.count ?? 0;
-    final needed = 3 - currentCount;
-    if (needed <= 0) {
-      _completeAndDismiss();
-      return;
-    }
-
-    for (var i = 0; i < needed; i++) {
-      if (!mounted) return;
-      _mlsLog('Uploading key package ${i + 1}/$needed');
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-
-    if (!mounted) return;
-    _completeAndDismiss();
-  }
-
-  void _completeAndDismiss() {
-    setState(() {
-      _isComplete = true;
-    });
-    _startAutoDismissCountdown();
-  }
-
-  void _startAutoDismissCountdown() {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        _dismiss();
-      }
-    });
-  }
-
-  void _dismiss() async {
-    await _controller.reverse();
-    widget.onComplete();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final color = _isComplete ? Colors.green : Colors.teal;
-
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: bottomPadding + 16,
-            child: FadeTransition(
-              opacity: _opacityAnimation,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _slideAnimation.value),
-                    child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      alignment: Alignment.bottomCenter,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Center(
-                  child: GestureDetector(
-                    onTap: _dismiss,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        maxWidth: 500,
-                        minWidth: 200,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                          BoxShadow(
-                            color: color.withOpacity(0.3),
-                            blurRadius: 24,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(32),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          child: _StatePillContent(
-                            state: widget.state,
-                            isComplete: _isComplete,
-                            deviceLabel: widget.deviceLabel,
-                            color: color,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatePillContent extends StatelessWidget {
-  final MlsPopupState state;
-  final bool isComplete;
-  final String? deviceLabel;
-  final Color color;
-
-  const _StatePillContent({
+class _MlsStateSnackBarContent extends StatelessWidget {
+  const _MlsStateSnackBarContent({
     required this.state,
     required this.isComplete,
     this.deviceLabel,
-    required this.color,
   });
+
+  final MlsPopupState state;
+  final bool isComplete;
+  final String? deviceLabel;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final color = isComplete ? Colors.green : _resolveAccentColor();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
+          DecoratedBox(
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: isComplete
-                ? Icon(Symbols.check_circle, size: 22, color: color)
-                : _buildIcon(),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: isComplete
+                  ? Icon(Symbols.check_circle, size: 20, color: color)
+                  : _buildProgressIcon(color),
+            ),
           ),
           const Gap(12),
           Column(
@@ -411,34 +320,32 @@ class _StatePillContent extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                isComplete ? state.completeText : state.inProgressText,
-                style: theme.textTheme.bodySmall?.copyWith(
+                _getStatusText(),
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.1,
                 ),
               ),
+              const Gap(2),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
+                mainAxisSize: MainAxisSize.min,
                 spacing: 8,
                 children: [
                   Text(
-                    _getStatusText(),
+                    _getCompleteText(),
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
-                  if (deviceLabel != null) ...[
+                  if (deviceLabel != null)
                     Text(
                       deviceLabel!,
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 11,
                       ),
                     ),
-                  ],
                 ],
               ),
             ],
@@ -448,62 +355,50 @@ class _StatePillContent extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon() {
+  Color _resolveAccentColor() {
     switch (state) {
+      case MlsPopupState.refillingKeyPackages:
+      case MlsPopupState.uploadingGroupInfo:
+        return Colors.teal;
       case MlsPopupState.externalJoin:
-      case MlsPopupState.recoveringEpoch:
-        return SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation(color),
-          ),
-        ).padding(all: 8);
       case MlsPopupState.processingWelcome:
-        return SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation(color),
-          ),
-        ).padding(all: 8);
-      default:
-        return SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation(color),
-          ),
-        ).padding(all: 8);
+      case MlsPopupState.processingCommit:
+      case MlsPopupState.recoveringEpoch:
+      case MlsPopupState.genericProgress:
+        return Colors.blue;
     }
   }
 
+  Widget _buildProgressIcon(Color color) {
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: CircularProgressIndicator(
+        strokeWidth: 2.5,
+        valueColor: AlwaysStoppedAnimation(color),
+      ),
+    );
+  }
+
   String _getStatusText() {
-    if (isComplete) {
-      return _getCompleteText();
-    }
-    return state.inProgressText;
+    return isComplete ? state.completeText : state.inProgressText;
   }
 
   String _getCompleteText() {
     switch (state) {
       case MlsPopupState.refillingKeyPackages:
-        return 'Key packages ready';
+        return 'Key packages';
       case MlsPopupState.externalJoin:
-        return 'Joined conversation';
       case MlsPopupState.processingWelcome:
-        return 'Joined conversation';
+        return 'Conversation';
       case MlsPopupState.processingCommit:
-        return 'Update processed';
+        return 'Update';
       case MlsPopupState.recoveringEpoch:
-        return 'Encryption recovered';
+        return 'Encryption';
       case MlsPopupState.uploadingGroupInfo:
-        return 'Group synced';
+        return 'Group state';
       case MlsPopupState.genericProgress:
-        return 'Done';
+        return 'Process';
     }
   }
 }

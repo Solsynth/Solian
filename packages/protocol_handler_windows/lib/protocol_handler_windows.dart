@@ -1,3 +1,3 @@
-library protocol_handler_windows;
+library;
 
 export 'src/protocol_handler_windows.dart';
