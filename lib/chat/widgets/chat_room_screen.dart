@@ -748,7 +748,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       final anchorTime = savedLastReadAt.value;
       final list = messages.value;
       if (anchorTime == null || list == null || list.isEmpty) return null;
-      if (isAtLatestMessages.value) return null;
       final anchorIndex = list.indexWhere(
         (m) =>
             m.createdAt.isBefore(anchorTime) ||
@@ -759,8 +758,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       return null;
     })();
     final effectiveLastReadAnchorMessageId =
-        visibleLastReadAnchorMessageId ==
-            chatState.dismissedLastReadAnchorMessageId
+        (isAtLatestMessages.value ||
+                visibleLastReadAnchorMessageId ==
+                    chatState.dismissedLastReadAnchorMessageId)
         ? null
         : visibleLastReadAnchorMessageId;
 

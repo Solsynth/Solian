@@ -96,8 +96,8 @@ class MessageItem extends HookConsumerWidget {
     this.onEnterSelectionMode,
   });
 
-  static const kFlashDuration = 300;
-  static const kFlashInterval = 120;
+  static const kFlashStepDuration = 120;
+  static const kFlashAnimationDuration = 100;
 
   bool get _hasSelectableText {
     final remoteMessage = message.toRemoteMessage();
@@ -167,41 +167,46 @@ class MessageItem extends HookConsumerWidget {
       flashingMessagesProvider.select((map) => map[message.id]),
     );
 
-    final isFlashing = useState(false);
+    final flashOpacity = useState(0.0);
     final flashTimer = useState<Timer?>(null);
 
     useEffect(() {
       if (flashToken != null) {
+        const pulseSequence = [1.0, 0.0, 0.82, 0.0, 0.55, 0.0];
+        var step = 0;
+
         flashTimer.value?.cancel();
-        isFlashing.value = true;
+        flashOpacity.value = pulseSequence[step];
+
         flashTimer.value = Timer.periodic(
-          const Duration(milliseconds: kFlashInterval),
+          const Duration(milliseconds: kFlashStepDuration),
           (timer) {
-            isFlashing.value = !isFlashing.value;
-            if (timer.tick >= 6) {
-              // 6 ticks: 1, 0, 1, 0, 1, 0
+            step++;
+            if (step >= pulseSequence.length) {
               timer.cancel();
               flashTimer.value = null;
-              isFlashing.value = false;
-              ref
-                  .read(flashingMessagesProvider.notifier)
-                  .clearMessage(message.id);
+              flashOpacity.value = 0;
+              ref.read(flashingMessagesProvider.notifier).clearMessage(
+                message.id,
+              );
+              return;
             }
+            flashOpacity.value = pulseSequence[step];
           },
         );
       } else {
         flashTimer.value?.cancel();
         flashTimer.value = null;
-        isFlashing.value = false;
+        flashOpacity.value = 0;
       }
       return () {
         flashTimer.value?.cancel();
       };
-    }, [flashToken]);
+    }, [flashToken, message.id, ref]);
 
-    final flashColor = isFlashing.value
-        ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8)
-        : Colors.transparent;
+    final flashColor = Theme.of(
+      context,
+    ).colorScheme.primaryContainer.withOpacity(0.34 * flashOpacity.value);
 
     final isHovered = useState(false);
     final reacting = useState(false);
@@ -515,88 +520,105 @@ class MessageItem extends HookConsumerWidget {
                 child: MouseRegion(
                   onEnter: (_) => isHovered.value = true,
                   onExit: (_) => isHovered.value = false,
-                  child: AnimatedContainer(
-                    curve: Curves.easeInOut,
-                    duration: Duration.zero,
-                    decoration: BoxDecoration(color: flashColor),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (isPinned)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: showAvatar ? 48 : 16,
-                              right: 16,
-                              bottom: 2,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Symbols.push_pin,
-                                  size: 12,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant
-                                      .withOpacity(0.6),
+                  child: Stack(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (isPinned)
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  left: showAvatar ? 48 : 16,
+                                  right: 16,
+                                  bottom: 2,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'pinnedMessage'.tr(),
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant
-                                            .withOpacity(0.6),
-                                      ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Symbols.push_pin,
+                                      size: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant
+                                          .withOpacity(0.6),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'pinnedMessage'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant
+                                                .withOpacity(0.6),
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            switch (settings.messageDisplayStyle) {
+                              'compact' => MessageItemDisplayIRC(
+                                message: message,
+                                isCurrentUser: isCurrentUser,
+                                progress: progress,
+                                showAvatar: showAvatar,
+                                onJump: onJump,
+                                translatedText: translatedText.value,
+                                translating: translating.value,
+                              ),
+                              'column' => MessageItemDisplayDiscord(
+                                message: message,
+                                isCurrentUser: isCurrentUser,
+                                progress: progress,
+                                showAvatar: showAvatar,
+                                showColumnAvatar: showColumnAvatar,
+                                onJump: onJump,
+                                translatedText: translatedText.value,
+                                translating: translating.value,
+                              ),
+                              _ => MessageItemDisplayBubble(
+                                message: message,
+                                isCurrentUser: isCurrentUser,
+                                progress: progress,
+                                showAvatar: showAvatar,
+                                showBubbleAvatar: showBubbleAvatar,
+                                onJump: onJump,
+                                translatedText: translatedText.value,
+                                translating: translating.value,
+                              ),
+                            },
+                            MessageReactionChips(
+                              displayStyle: settings.messageDisplayStyle,
+                              isCurrentUser: isCurrentUser,
+                              showAvatar: showAvatar,
+                              reactionsCount: reactionsCount,
+                              reactionsMade: reactionsMade,
+                              isExpanded: isSystemInfoExpanded.value,
+                              submitting: reacting.value,
+                              onReact: reactMessage,
                             ),
-                          ),
-                        switch (settings.messageDisplayStyle) {
-                          'compact' => MessageItemDisplayIRC(
-                            message: message,
-                            isCurrentUser: isCurrentUser,
-                            progress: progress,
-                            showAvatar: showAvatar,
-                            onJump: onJump,
-                            translatedText: translatedText.value,
-                            translating: translating.value,
-                          ),
-                          'column' => MessageItemDisplayDiscord(
-                            message: message,
-                            isCurrentUser: isCurrentUser,
-                            progress: progress,
-                            showAvatar: showAvatar,
-                            showColumnAvatar: showColumnAvatar,
-                            onJump: onJump,
-                            translatedText: translatedText.value,
-                            translating: translating.value,
-                          ),
-                          _ => MessageItemDisplayBubble(
-                            message: message,
-                            isCurrentUser: isCurrentUser,
-                            progress: progress,
-                            showAvatar: showAvatar,
-                            showBubbleAvatar: showBubbleAvatar,
-                            onJump: onJump,
-                            translatedText: translatedText.value,
-                            translating: translating.value,
-                          ),
-                        },
-                        MessageReactionChips(
-                          displayStyle: settings.messageDisplayStyle,
-                          isCurrentUser: isCurrentUser,
-                          showAvatar: showAvatar,
-                          reactionsCount: reactionsCount,
-                          reactionsMade: reactionsMade,
-                          isExpanded: isSystemInfoExpanded.value,
-                          submitting: reacting.value,
-                          onReact: reactMessage,
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: AnimatedContainer(
+                            curve: Curves.easeInOut,
+                            duration: MediaQuery.disableAnimationsOf(context)
+                                ? Duration.zero
+                                : const Duration(
+                                    milliseconds: kFlashAnimationDuration,
+                                  ),
+                            decoration: BoxDecoration(color: flashColor),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
