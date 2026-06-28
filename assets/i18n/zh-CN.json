@@ -2113,6 +2113,8 @@
   "onboardingWhatsNewDesc": "来看看我们带来的最新功能和改进：",
   "onboardingWhatsNewTitle": "{} 新动态",
   "online": "在线",
+  "chatPeopleOnline": { "one": "{} 人在线", "other": "{} 人在线" },
+  "chatNoOnlineMembers": "没有在线成员",
   "open": "打开",
   "openChat": "打开聊天",
   "openFileInWebBrowser": "在浏览器中打开文件",

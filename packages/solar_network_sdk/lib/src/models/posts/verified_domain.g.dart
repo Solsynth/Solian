@@ -22,7 +22,7 @@ _SnPublisherVerifiedDomain _$SnPublisherVerifiedDomainFromJson(
       ? null
       : DateTime.parse(json['last_checked_at'] as String),
   failedAttempts: (json['failed_attempts'] as num?)?.toInt() ?? 0,
-  lastError: json['last_error'] as String? ?? null,
+  lastError: json['last_error'] as String?,
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),

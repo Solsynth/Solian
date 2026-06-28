@@ -12,7 +12,6 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-
 /// Simplified RoomMessageList that uses universal chat room state.
 /// All state is managed by [ChatRoomStateNotifier] via [chatRoomStateProvider].
 class RoomMessageList extends HookConsumerWidget {
@@ -65,10 +64,6 @@ class RoomMessageList extends HookConsumerWidget {
       previousMessageCount.value = messages.length;
       return null;
     }, [messages.length]);
-
-    final handleDismiss = useCallback(() {
-      chatStateNotifier.dismissLastReadMarker();
-    }, [chatStateNotifier]);
 
     final useColumnDisplay = settings.messageDisplayStyle == 'column';
     final useBubbleDisplay =
@@ -146,9 +141,7 @@ class RoomMessageList extends HookConsumerWidget {
         );
         final showLastReadMarker =
             chatState.lastReadAnchorMessageId != null &&
-            message.id == chatState.lastReadAnchorMessageId &&
-            chatState.dismissedLastReadAnchorMessageId !=
-                chatState.lastReadAnchorMessageId;
+            message.id == chatState.lastReadAnchorMessageId;
 
         Widget buildMessage(
           LocalChatMessage item,
@@ -211,51 +204,7 @@ class RoomMessageList extends HookConsumerWidget {
           key: key,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (showLastReadMarker)
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.bookmark_added,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'newMessageBelow'.tr(),
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ),
-                    if (chatState.lastReadAnchorMessageId != null)
-                      IconButton(
-                        onPressed: handleDismiss,
-                        icon: Icon(
-                          Icons.close,
-                          size: 18,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                  ],
-                ),
-              ),
+            _LastReadMarker(visible: showLastReadMarker),
             messageContent,
           ],
         );
@@ -263,6 +212,63 @@ class RoomMessageList extends HookConsumerWidget {
     );
 
     return listWidget;
+  }
+}
+
+class _LastReadMarker extends StatelessWidget {
+  static const _duration = Duration(milliseconds: 240);
+
+  final bool visible;
+
+  const _LastReadMarker({required this.visible});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ClipRect(
+      child: AnimatedSize(
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : _duration,
+        curve: Curves.easeInOutCubic,
+        alignment: Alignment.topCenter,
+        child: Align(
+          alignment: Alignment.topCenter,
+          heightFactor: visible ? 1 : 0,
+          child: AnimatedSlide(
+            offset: visible ? Offset.zero : const Offset(0, -0.12),
+            duration: MediaQuery.disableAnimationsOf(context)
+                ? Duration.zero
+                : _duration,
+            curve: Curves.easeOutCubic,
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(color: colorScheme.primaryContainer),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.bookmark_added,
+                    size: 20,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'newMessageBelow'.tr(),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -401,5 +407,3 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     );
   }
 }
-
-

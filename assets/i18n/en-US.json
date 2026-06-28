@@ -2174,6 +2174,8 @@
   "onboardingWhatsNewDesc": "Check out the latest features and improvements:",
   "onboardingWhatsNewTitle": "What's New in {}",
   "online": "Online",
+  "chatPeopleOnline": {"one": "{} person online", "other": "{} people online"},
+  "chatNoOnlineMembers": "No online members",
   "open": "Open",
   "openChat": "Open chat",
   "openFileInWebBrowser": "Open file in web browser",
