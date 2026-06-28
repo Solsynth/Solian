@@ -127,6 +127,22 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
   });
 }
 
+Future<void> showDebugLocalNotification(WidgetRef _) async {
+  if (windowsNotification == null) return;
+
+  final id = DateTime.now().millisecondsSinceEpoch.toString();
+  final notificationMessage = NotificationMessage.fromPluginTemplate(
+    id,
+    'Debug Local Notification',
+    'This is a locally-triggered notification from Debug Sheet.',
+    group: 'debug',
+    launch: 'solian:///dashboard',
+  );
+  await windowsNotification!.showNotificationPluginTemplate(
+    notificationMessage,
+  );
+}
+
 Future<void> subscribePushNotification(
   Dio apiClient, {
   bool detailedErrors = false,

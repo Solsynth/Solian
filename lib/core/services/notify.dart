@@ -40,6 +40,17 @@ StreamSubscription? setupNotificationListener(
   }
 }
 
+Future<void> showDebugLocalNotification(WidgetRef ref) async {
+  if (kIsWeb) {
+    return;
+  }
+  if (Platform.isWindows) {
+    return windows_notify.showDebugLocalNotification(ref);
+  } else {
+    return universal_notify.showDebugLocalNotification(ref);
+  }
+}
+
 Future<void> subscribePushNotification(
   Dio apiClient, {
   bool detailedErrors = false,

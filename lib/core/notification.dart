@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -59,8 +57,6 @@ class NotificationItem {
 
 @riverpod
 class NotificationState extends _$NotificationState {
-  final Map<String, Timer> _timers = {};
-
   @override
   List<NotificationItem> build() {
     return [];
@@ -73,12 +69,9 @@ class NotificationState extends _$NotificationState {
       duration: duration,
     );
     state = [...state, newItem];
-    _timers[newItem.id] = Timer(newItem.duration, () => dismiss(newItem.id));
   }
 
   void dismiss(String id) {
-    _timers[id]?.cancel();
-    _timers.remove(id);
     final index = state.indexWhere((item) => item.id == id);
     if (index != -1) {
       state = List.from(state)
@@ -91,10 +84,6 @@ class NotificationState extends _$NotificationState {
   }
 
   void clear() {
-    for (final timer in _timers.values) {
-      timer.cancel();
-    }
-    _timers.clear();
     state = [];
   }
 }

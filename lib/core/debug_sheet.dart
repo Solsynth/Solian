@@ -12,6 +12,7 @@ import 'package:island/core/database.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/update_service.dart';
+import 'package:island/core/services/notify.dart' as local_notify;
 import 'package:island/drive/drive_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
 import 'package:island/e2ee/mls_storage.dart';
@@ -647,7 +648,9 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           icon: Symbols.check_circle,
           title: 'Show startup splash (after done)',
           onTap: () {
-            ref.read(forcedStartupSplashProvider.notifier).setVisible(true, afterDone: true);
+            ref
+                .read(forcedStartupSplashProvider.notifier)
+                .setVisible(true, afterDone: true);
           },
         ),
         _Divider(),
@@ -723,10 +726,17 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             ref.read(notificationStateProvider.notifier).add(notification);
           },
         ),
+        _DebugItem(
+          icon: Symbols.notifications_active,
+          title: 'Test local notification',
+          onTap: () {
+            local_notify.showDebugLocalNotification(ref);
+          },
+        ),
         _Divider(),
         _DebugItem(
           icon: Symbols.person_add,
-          title: 'Test friend online toast',
+          title: 'Test friend online update',
           onTap: () {
             final event = FriendStatusChangeEvent(
               account: _createTestAccount(
@@ -758,7 +768,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _DebugItem(
           icon: Symbols.person_remove,
-          title: 'Test friend offline toast',
+          title: 'Test friend offline update',
           onTap: () {
             final event = FriendStatusChangeEvent(
               account: _createTestAccount(
@@ -773,7 +783,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _DebugItem(
           icon: Symbols.sports_esports,
-          title: 'Test friend gaming toast',
+          title: 'Test friend gaming activity',
           onTap: () {
             final event = FriendStatusChangeEvent(
               account: _createTestAccount(
@@ -809,7 +819,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _DebugItem(
           icon: Symbols.music_note,
-          title: 'Test friend music toast',
+          title: 'Test friend music activity',
           onTap: () {
             final event = FriendStatusChangeEvent(
               account: _createTestAccount(
@@ -845,7 +855,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _DebugItem(
           icon: Symbols.do_not_disturb_on,
-          title: 'Test friend busy toast',
+          title: 'Test friend busy status',
           onTap: () {
             final event = FriendStatusChangeEvent(
               account: _createTestAccount(
@@ -877,7 +887,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _DebugItem(
           icon: Symbols.military_tech,
-          title: 'Test achievement completed',
+          title: 'Test achievement celebration',
           onTap: () {
             final notifier = ref.read(progressionWebSocketProvider.notifier);
             notifier.testShowCompletion(
@@ -1130,7 +1140,8 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             title: '[CallKit] Copy VoIP Token',
             onTap: () async {
               try {
-                final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+                final token =
+                    await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                 if (token != null) {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (!context.mounted) return;
@@ -1272,9 +1283,9 @@ class DebugSheet extends HookConsumerWidget {
               },
             ),
             const Divider(height: 8),
-             ListTile(
-               minTileHeight: 48,
-               leading: const Icon(Symbols.slideshow),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.slideshow),
               trailing: const Icon(Symbols.chevron_right),
               title: const Text('Show onboarding (new user)'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -1303,40 +1314,44 @@ class DebugSheet extends HookConsumerWidget {
                   version: info.version,
                   isFirstLaunch: false,
                   suggestAuth: false,
-                 );
-               },
-             ),
-             ListTile(
-               minTileHeight: 48,
-               leading: const Icon(Symbols.splitscreen),
-               trailing: const Icon(Symbols.chevron_right),
-               title: const Text('Force show startup splash'),
-               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-               onTap: () {
-                 ref.read(forcedStartupSplashProvider.notifier).setVisible(true);
-               },
-             ),
-             ListTile(
-               minTileHeight: 48,
-               leading: const Icon(Symbols.visibility_off),
-               trailing: const Icon(Symbols.chevron_right),
-               title: const Text('Hide startup splash'),
-               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-               onTap: () {
-                 ref.read(forcedStartupSplashProvider.notifier).setVisible(false);
-               },
-             ),
-             ListTile(
-               minTileHeight: 48,
-               leading: const Icon(Symbols.check_circle),
-               trailing: const Icon(Symbols.chevron_right),
-               title: const Text('Show startup splash (after done)'),
-               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-               onTap: () {
-                 ref.read(forcedStartupSplashProvider.notifier).setVisible(true, afterDone: true);
-               },
-             ),
-             const Divider(height: 8),
+                );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.splitscreen),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Force show startup splash'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                ref.read(forcedStartupSplashProvider.notifier).setVisible(true);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.visibility_off),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Hide startup splash'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                ref
+                    .read(forcedStartupSplashProvider.notifier)
+                    .setVisible(false);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.check_circle),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Show startup splash (after done)'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                ref
+                    .read(forcedStartupSplashProvider.notifier)
+                    .setVisible(true, afterDone: true);
+              },
+            ),
+            const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.wifi),
@@ -1432,13 +1447,24 @@ class DebugSheet extends HookConsumerWidget {
                 Navigator.pop(context);
               },
             ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.notifications_active),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test local notification'),
+              onTap: () {
+                local_notify.showDebugLocalNotification(ref);
+                Navigator.pop(context);
+              },
+            ),
             const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.person_add),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('Test friend online toast'),
+              title: const Text('Test friend online update'),
               onTap: () {
                 final event = FriendStatusChangeEvent(
                   account: _createTestAccount(
@@ -1473,7 +1499,7 @@ class DebugSheet extends HookConsumerWidget {
               leading: const Icon(Symbols.person_remove),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('Test friend offline toast'),
+              title: const Text('Test friend offline update'),
               onTap: () {
                 final event = FriendStatusChangeEvent(
                   account: _createTestAccount(
@@ -1491,7 +1517,7 @@ class DebugSheet extends HookConsumerWidget {
               leading: const Icon(Symbols.sports_esports),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('Test friend gaming toast'),
+              title: const Text('Test friend gaming activity'),
               onTap: () {
                 final event = FriendStatusChangeEvent(
                   account: _createTestAccount(
@@ -1530,7 +1556,7 @@ class DebugSheet extends HookConsumerWidget {
               leading: const Icon(Symbols.music_note),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('Test friend music toast'),
+              title: const Text('Test friend music activity'),
               onTap: () {
                 final event = FriendStatusChangeEvent(
                   account: _createTestAccount(
@@ -1572,7 +1598,7 @@ class DebugSheet extends HookConsumerWidget {
               leading: const Icon(Symbols.do_not_disturb_on),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('Test friend busy toast'),
+              title: const Text('Test friend busy status'),
               onTap: () {
                 final event = FriendStatusChangeEvent(
                   account: _createTestAccount(
@@ -1607,7 +1633,7 @@ class DebugSheet extends HookConsumerWidget {
               leading: const Icon(Symbols.military_tech),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('Test achievement completed'),
+              title: const Text('Test achievement celebration'),
               onTap: () {
                 final notifier = ref.read(
                   progressionWebSocketProvider.notifier,
@@ -1872,7 +1898,10 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Fake Incoming Call'),
                 onTap: () async {
                   try {
-                    final roomId = await _promptForRoomId(context, 'Incoming Call');
+                    final roomId = await _promptForRoomId(
+                      context,
+                      'Incoming Call',
+                    );
                     if (roomId == null) return;
                     const channel = MethodChannel('island_call');
                     await channel.invokeMethod('simulateIncomingCall', {
@@ -1880,7 +1909,9 @@ class DebugSheet extends HookConsumerWidget {
                       'roomId': roomId,
                     });
                     if (!context.mounted) return;
-                    showSnackBar('Fake incoming call triggered for room: $roomId');
+                    showSnackBar(
+                      'Fake incoming call triggered for room: $roomId',
+                    );
                   } catch (e) {
                     if (!context.mounted) return;
                     showErrorAlert(e);
@@ -1895,7 +1926,10 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Fake Outgoing Call'),
                 onTap: () async {
                   try {
-                    final roomId = await _promptForRoomId(context, 'Outgoing Call');
+                    final roomId = await _promptForRoomId(
+                      context,
+                      'Outgoing Call',
+                    );
                     if (roomId == null) return;
                     final params = CallKitParams(
                       id: roomId,
@@ -1907,7 +1941,9 @@ class DebugSheet extends HookConsumerWidget {
                     );
                     await FlutterCallkitIncoming.startCall(params);
                     if (!context.mounted) return;
-                    showSnackBar('Fake outgoing call triggered for room: $roomId');
+                    showSnackBar(
+                      'Fake outgoing call triggered for room: $roomId',
+                    );
                   } catch (e) {
                     if (!context.mounted) return;
                     showErrorAlert(e);
@@ -1922,7 +1958,8 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Copy VoIP Token'),
                 onTap: () async {
                   try {
-                    final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+                    final token =
+                        await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                     if (token != null) {
                       await Clipboard.setData(ClipboardData(text: token));
                       if (!context.mounted) return;

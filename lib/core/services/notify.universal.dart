@@ -226,6 +226,31 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
   });
 }
 
+Future<void> showDebugLocalNotification(WidgetRef ref) async {
+  if (kIsWeb || Platform.isIOS) return;
+
+  const darwinNotificationDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+
+  const notificationDetails = NotificationDetails(
+    android: androidNotificationDetails,
+    macOS: darwinNotificationDetails,
+    linux: LinuxNotificationDetails(),
+  );
+
+  final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  await flutterLocalNotificationsPlugin.show(
+    id: id,
+    title: 'Debug Local Notification',
+    body: 'This is a locally-triggered notification from Debug Sheet.',
+    notificationDetails: notificationDetails,
+    payload: '/dashboard',
+  );
+}
+
 Future<void> subscribePushNotification(
   Dio apiClient, {
   bool detailedErrors = false,

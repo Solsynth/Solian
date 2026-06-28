@@ -58,9 +58,11 @@ class NotificationItemWidget extends HookConsumerWidget {
         child: Stack(
           children: [
             Card(
-              elevation: 4,
+              elevation: 0,
               margin: EdgeInsets.zero,
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              color: Colors.transparent,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: const BorderRadius.all(
                   Radius.circular(kNotificationBorderRadius),
