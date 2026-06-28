@@ -1,36 +1,46 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
+import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/widgets/compose/compose_card.dart';
+import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/posts/widgets/compose/compose_state_utils.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// A dialog that wraps PostComposeCard for easy use in dialogs.
-/// This provides a convenient way to show the compose interface in a modal dialog.
 class PostComposeDialog extends HookConsumerWidget {
   final SnPost? originalPost;
   final PostComposeInitialState? initialState;
+  final VoidCallback onCancel;
+  final VoidCallback onSubmitted;
+  final BuildContext rootContext;
 
-  const PostComposeDialog({super.key, this.originalPost, this.initialState});
+  const PostComposeDialog({
+    super.key,
+    required this.onCancel,
+    required this.onSubmitted,
+    required this.rootContext,
+    this.originalPost,
+    this.initialState,
+  });
 
   static Future<bool?> show(
     BuildContext context, {
     SnPost? originalPost,
     PostComposeInitialState? initialState,
   }) {
-    // Check if editing an article or blog
     if (originalPost != null && originalPost.type == 1) {
       context.router.push(ArticleEditRoute(id: originalPost.id));
       return Future.value(true);
@@ -40,16 +50,26 @@ class PostComposeDialog extends HookConsumerWidget {
       return Future.value(true);
     }
 
-    return showDialog<bool>(
-      context: context,
-      useRootNavigator: true,
+    final completer = Completer<bool?>();
+    showAttentionModal(
+      id: 'post-compose',
+      replaceIfExists: true,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.6),
-      builder: (context) => PostComposeDialog(
+      builder: (overlayContext, dismiss) => PostComposeDialog(
         originalPost: originalPost,
         initialState: initialState,
+        rootContext: context,
+        onCancel: () {
+          if (!completer.isCompleted) completer.complete(null);
+          dismiss();
+        },
+        onSubmitted: () {
+          if (!completer.isCompleted) completer.complete(true);
+          dismiss();
+        },
       ),
     );
+    return completer.future;
   }
 
   @override
@@ -59,12 +79,10 @@ class PostComposeDialog extends HookConsumerWidget {
     final prompted = useState(false);
     final showPreview = useState(false);
 
-    // Fetch full post data if we're editing a post
     final fullPostData = originalPost != null
         ? ref.watch(postProvider(originalPost!.id))
         : const AsyncValue.data(null);
 
-    // Use the full post data if available, otherwise fall back to originalPost
     final effectiveOriginalPost = fullPostData.when(
       data: (fullPost) => fullPost ?? originalPost,
       loading: () => originalPost,
@@ -76,7 +94,6 @@ class PostComposeDialog extends HookConsumerWidget {
     final forwardedPost =
         initialState?.forwardingTo ?? effectiveOriginalPost?.forwardedPost;
 
-    // Create compose state
     final ComposeState state = useMemoized(
       () => ComposeLogic.createState(
         originalPost: effectiveOriginalPost,
@@ -93,7 +110,6 @@ class PostComposeDialog extends HookConsumerWidget {
       ],
     );
 
-    // Add a listener to the entire state to trigger rebuilds
     final stateNotifier = useMemoized(
       () => Listenable.merge([
         state.titleController,
@@ -109,7 +125,6 @@ class PostComposeDialog extends HookConsumerWidget {
     );
     useListenable(stateNotifier);
 
-    // Use shared state management utilities
     ComposeStateUtils.usePublisherInitialization(ref, state);
     ComposeStateUtils.useInitialStateLoader(state, initialState);
 
@@ -138,7 +153,6 @@ class PostComposeDialog extends HookConsumerWidget {
       ],
     );
 
-    // Auto-save drafts for new posts and save one final time on close.
     useEffect(() {
       final isNewPost =
           effectiveOriginalPost == null &&
@@ -156,9 +170,13 @@ class PostComposeDialog extends HookConsumerWidget {
       };
     }, [state, effectiveOriginalPost, repliedPost, forwardedPost]);
 
-    // Helper methods for actions
     void showSettingsSheet() {
-      ComposeLogic.showSettingsSheet(context, state);
+      showAttentionModal(
+        id: 'compose-settings',
+        replaceIfExists: true,
+        barrierDismissible: true,
+        builder: (context, dismiss) => ComposeSettingsSheet(state: state),
+      );
     }
 
     Future<void> performSubmit() async {
@@ -169,9 +187,7 @@ class PostComposeDialog extends HookConsumerWidget {
         originalPost: effectiveOriginalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
-        onSuccess: () {
-          Navigator.of(context).pop(true);
-        },
+        onSuccess: onSubmitted,
       );
     }
 
@@ -192,10 +208,10 @@ class PostComposeDialog extends HookConsumerWidget {
             ? null
             : performSubmit,
         icon: state.submitting.value
-            ? SizedBox(
+            ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: const CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Icon(
                 effectiveOriginalPost != null ? Symbols.edit : Symbols.upload,
@@ -206,96 +222,26 @@ class PostComposeDialog extends HookConsumerWidget {
       ),
     ];
 
-    // Calculate dialog dimensions based on screen size
-    final screenSize = MediaQuery.of(context).size;
-    final isWide = isWideScreen(context);
-
-    // On small screens, use full screen; on larger screens, use centered card
-    final useFullScreen = !isWide;
-    final dialogWidth = useFullScreen ? screenSize.width : 600.0;
-    final dialogHeight = useFullScreen
-        ? screenSize.height
-        : screenSize.height * 0.75;
-
-    return Center(
-      child: Material(
-        type: MaterialType.transparency,
-        child: Container(
-          width: dialogWidth,
-          height: dialogHeight,
-          constraints: BoxConstraints(
-            maxWidth: useFullScreen ? double.infinity : 600,
-            maxHeight: useFullScreen
-                ? double.infinity
-                : screenSize.height * 0.8,
-            minHeight: 400,
-          ),
-          decoration: useFullScreen
-              ? BoxDecoration(color: Theme.of(context).colorScheme.surface)
-              : BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-          child: useFullScreen
-              ? SheetScaffold(
-                  heightFactor: 1.0,
-                  titleText: 'postCompose'.tr(),
-                  actions: actions,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: SizedBox.expand(
-                      key: ValueKey(showPreview.value),
-                      child: showPreview.value
-                          ? _DialogPreviewPane(state: state)
-                          : PostComposeCard(
-                              originalPost: effectiveOriginalPost,
-                              initialState:
-                                  restoredInitialState.value ?? initialState,
-                              onCancel: () => Navigator.of(context).pop(),
-                              onSubmit: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              isContained: true,
-                              showHeader: false,
-                              providedState: state,
-                            ),
-                    ),
-                  ),
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: SheetScaffold(
-                    heightFactor: 1.0,
-                    titleText: 'postCompose'.tr(),
-                    actions: actions,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: SizedBox.expand(
-                        key: ValueKey(showPreview.value),
-                        child: showPreview.value
-                            ? _DialogPreviewPane(state: state)
-                            : PostComposeCard(
-                                originalPost: effectiveOriginalPost,
-                                initialState:
-                                    restoredInitialState.value ?? initialState,
-                                onCancel: () => Navigator.of(context).pop(),
-                                onSubmit: () {
-                                  Navigator.of(context).pop(true);
-                                },
-                                isContained: true,
-                                showHeader: false,
-                                providedState: state,
-                              ),
-                      ),
-                    ),
-                  ),
+    return AttentionModalScaffold(
+      titleText: 'postCompose'.tr(),
+      actions: actions,
+      onDismiss: onCancel,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: SizedBox.expand(
+          key: ValueKey(showPreview.value),
+          child: showPreview.value
+              ? _DialogPreviewPane(state: state)
+              : PostComposeCard(
+                  originalPost: effectiveOriginalPost,
+                  initialState:
+                      restoredInitialState.value ?? initialState,
+                  onCancel: onCancel,
+                  onSubmit: onSubmitted,
+                  isContained: true,
+                  showHeader: false,
+                  providedState: state,
+                  navigatorContext: rootContext,
                 ),
         ),
       ),
@@ -307,8 +253,8 @@ class PostComposeDialog extends HookConsumerWidget {
     ValueNotifier<PostComposeInitialState?> restoredInitialState,
     SnPost latestDraft,
   ) async {
-    final restore = await showDialog<bool>(
-      context: ref.context,
+      final restore = await showDialog<bool>(
+      context: rootContext,
       useRootNavigator: true,
       builder: (context) => AlertDialog(
         constraints: const BoxConstraints(maxWidth: 520),
