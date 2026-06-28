@@ -231,10 +231,10 @@ class FriendStatusToast extends HookConsumerWidget {
               ),
             Padding(
               padding: EdgeInsets.fromLTRB(
-                isActivityToast ? 12 : 16,
-                isActivityToast ? 12 : 16,
+                isActivityToast ? 12 : 14,
+                isActivityToast ? 12 : 14,
                 12,
-                isActivityToast ? 12 : 16,
+                isActivityToast ? 12 : 14,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +257,7 @@ class FriendStatusToast extends HookConsumerWidget {
                         ),
                         child: ProfilePictureWidget(
                           file: event.account.profile.picture,
-                          radius: isActivityToast ? 17 : 22,
+                          radius: isActivityToast ? 17 : 18,
                         ),
                       ),
                       Positioned(
@@ -296,7 +296,7 @@ class FriendStatusToast extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                  Gap(isActivityToast ? 10 : 14),
+                  Gap(isActivityToast ? 10 : 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,14 +309,14 @@ class FriendStatusToast extends HookConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (!isActivityToast) ...[
+                                  if (!isActivityToast && !embedded) ...[
                                     Text(
                                       _getEyebrow(),
-                                      style: theme.textTheme.labelMedium
+                                      style: theme.textTheme.labelSmall
                                           ?.copyWith(
                                             color: statusColor,
                                             fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.2,
+                                            letterSpacing: 0.1,
                                           ),
                                     ),
                                     const Gap(2),
@@ -326,7 +326,7 @@ class FriendStatusToast extends HookConsumerWidget {
                                     style:
                                         (isActivityToast
                                                 ? theme.textTheme.titleSmall
-                                                : theme.textTheme.titleMedium)
+                                                : theme.textTheme.titleSmall)
                                             ?.copyWith(
                                               fontWeight: FontWeight.w700,
                                               color:
@@ -347,7 +347,7 @@ class FriendStatusToast extends HookConsumerWidget {
                                       MaterialTapTargetSize.shrinkWrap,
                                   minimumSize: Size(
                                     isActivityToast ? 24 : 32,
-                                    isActivityToast ? 24 : 32,
+                                    isActivityToast ? 24 : 28,
                                   ),
                                   foregroundColor:
                                       theme.colorScheme.onSurfaceVariant,
@@ -359,13 +359,13 @@ class FriendStatusToast extends HookConsumerWidget {
                               ),
                           ],
                         ),
-                        Gap(isActivityToast ? 2 : 8),
+                        Gap(isActivityToast ? 2 : 4),
                         Text(
                           _getPrimaryMessage(),
                           style:
                               (isActivityToast
                                       ? theme.textTheme.labelLarge
-                                      : theme.textTheme.bodyMedium)
+                                      : theme.textTheme.bodySmall)
                                   ?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                     fontWeight: FontWeight.w600,
@@ -374,7 +374,7 @@ class FriendStatusToast extends HookConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (supportingText != null) ...[
-                          Gap(isActivityToast ? 2 : 8),
+                          Gap(isActivityToast ? 2 : 4),
                           if (isActivityToast)
                             Text(
                               supportingText,
@@ -385,76 +385,15 @@ class FriendStatusToast extends HookConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             )
                           else
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
+                            Text(
+                              supportingText,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                height: 1.25,
                               ),
-                              decoration: BoxDecoration(
-                                color: statusContainerColor,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                supportingText,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  height: 1.35,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                        ],
-                        if (!embedded && !isActivityToast) ...[
-                          const Gap(10),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: statusContainerColor,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: statusColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const Gap(6),
-                                    Text(
-                                      'friendStatusLiveUpdate'.tr(),
-                                      style: theme.textTheme.labelMedium
-                                          ?.copyWith(
-                                            color: statusColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Gap(10),
-                              Expanded(
-                                child: Text(
-                                  'friendStatusTapAnywhereToDismiss'.tr(),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ],
                     ),
