@@ -25,13 +25,11 @@ class PostComposeDialog extends HookConsumerWidget {
   final PostComposeInitialState? initialState;
   final VoidCallback onCancel;
   final VoidCallback onSubmitted;
-  final BuildContext rootContext;
 
   const PostComposeDialog({
     super.key,
     required this.onCancel,
     required this.onSubmitted,
-    required this.rootContext,
     this.originalPost,
     this.initialState,
   });
@@ -58,7 +56,6 @@ class PostComposeDialog extends HookConsumerWidget {
       builder: (overlayContext, dismiss) => PostComposeDialog(
         originalPost: originalPost,
         initialState: initialState,
-        rootContext: context,
         onCancel: () {
           if (!completer.isCompleted) completer.complete(null);
           dismiss();
@@ -175,7 +172,11 @@ class PostComposeDialog extends HookConsumerWidget {
         id: 'compose-settings',
         replaceIfExists: true,
         barrierDismissible: true,
-        builder: (context, dismiss) => ComposeSettingsSheet(state: state),
+        builder: (context, dismiss) => AttentionModalScaffold(
+          titleText: 'postSettings'.tr(),
+          onDismiss: dismiss,
+          child: ComposeSettingsSheet(state: state),
+        ),
       );
     }
 
@@ -241,7 +242,6 @@ class PostComposeDialog extends HookConsumerWidget {
                   isContained: true,
                   showHeader: false,
                   providedState: state,
-                  navigatorContext: rootContext,
                 ),
         ),
       ),
@@ -254,7 +254,7 @@ class PostComposeDialog extends HookConsumerWidget {
     SnPost latestDraft,
   ) async {
       final restore = await showDialog<bool>(
-      context: rootContext,
+      context: ref.context,
       useRootNavigator: true,
       builder: (context) => AlertDialog(
         constraints: const BoxConstraints(maxWidth: 520),

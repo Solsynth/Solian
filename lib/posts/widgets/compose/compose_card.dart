@@ -36,7 +36,6 @@ class PostComposeCard extends HookConsumerWidget {
   final bool isContained;
   final bool showHeader;
   final ComposeState? providedState;
-  final BuildContext? navigatorContext;
 
   const PostComposeCard({
     super.key,
@@ -48,12 +47,10 @@ class PostComposeCard extends HookConsumerWidget {
     this.isContained = false,
     this.showHeader = true,
     this.providedState,
-    this.navigatorContext,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final navContext = navigatorContext ?? context;
     final submitted = useState(false);
 
     final repliedPost = initialState?.replyingTo ?? originalPost?.repliedPost;
@@ -107,7 +104,7 @@ class PostComposeCard extends HookConsumerWidget {
       );
 
       showStickerPickerPopover(
-        navContext,
+        context,
         offset,
         onPick: (pack, sticker) {
           insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
@@ -162,7 +159,7 @@ class PostComposeCard extends HookConsumerWidget {
 
     // Helper methods
     void showSettingsSheet() {
-      ComposeLogic.showSettingsSheet(navContext, composeState);
+      ComposeLogic.showSettingsSheet(context, composeState);
     }
 
     Future<void> performSubmit() async {
@@ -293,7 +290,7 @@ class PostComposeCard extends HookConsumerWidget {
               forwardingTo: forwardedPost,
               onReferencePostTap: (context, post) {
                 showModalBottomSheet(
-                  context: navContext,
+                  context: context,
                   isScrollControlled: true,
                   useRootNavigator: true,
                   builder: (context) => SheetScaffold(
@@ -359,16 +356,8 @@ class PostComposeCard extends HookConsumerWidget {
                           ),
                           onTap: () {
                             if (composeState.currentPublisher.value == null) {
-                              // No publisher loaded, guide user to create one
-                              if (isContained) {
-                                if (navigatorContext != null) {
-                                  onCancel?.call();
-                                } else {
-                                  Navigator.of(context).pop();
-                                }
-                              }
                               showModalBottomSheet(
-                                context: navContext,
+                                context: context,
                                 isScrollControlled: true,
                                 useRootNavigator: true,
                                 builder: (context) =>
@@ -381,11 +370,10 @@ class PostComposeCard extends HookConsumerWidget {
                                 }
                               });
                             } else {
-                              // Show modal to select from existing publishers
                               showModalBottomSheet(
                                 isScrollControlled: true,
                                 useRootNavigator: true,
-                                context: navContext,
+                                context: context,
                                 builder: (context) => const PublisherModal(),
                               ).then((value) {
                                 if (value != null) {
@@ -407,16 +395,8 @@ class PostComposeCard extends HookConsumerWidget {
                                 onPublisherTap: () {
                                   if (composeState.currentPublisher.value ==
                                       null) {
-                                    // No publisher loaded, guide user to create one
-                                    if (isContained) {
-                                      if (navigatorContext != null) {
-                                        onCancel?.call();
-                                      } else {
-                                        Navigator.of(context).pop();
-                                      }
-                                    }
                                     showModalBottomSheet(
-                                      context: navContext,
+                                      context: context,
                                       isScrollControlled: true,
                                       useRootNavigator: true,
                                       builder: (context) =>
@@ -431,11 +411,10 @@ class PostComposeCard extends HookConsumerWidget {
                                       }
                                     });
                                   } else {
-                                    // Show modal to select from existing publishers
                                     showModalBottomSheet(
                                       isScrollControlled: true,
                                       useRootNavigator: true,
-                                      context: navContext,
+                                      context: context,
                                       builder: (context) =>
                                           const PublisherModal(),
                                     ).then((value) {

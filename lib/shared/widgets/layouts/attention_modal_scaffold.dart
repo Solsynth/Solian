@@ -24,7 +24,7 @@ class AttentionModalScaffold extends StatefulWidget {
     this.leading,
     this.actions = const [],
     this.showHeader = true,
-    this.maxWidth = 800,
+    this.maxWidth = 640,
     this.maxHeightFactor = 0.85,
   });
 

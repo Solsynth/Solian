@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/main.dart';
 
 class _AttentionModalEntry {
@@ -109,95 +108,173 @@ void _syncOverlay() {
   }
 }
 
-class _AttentionModalHost extends HookWidget {
+class _AttentionModalHost extends StatefulWidget {
   const _AttentionModalHost();
 
   @override
-  Widget build(BuildContext context) {
-    final stack = useValueListenable(_modalStack);
-    final topEntry = stack.isNotEmpty ? stack.last : null;
+  State<_AttentionModalHost> createState() => _AttentionModalHostState();
+}
 
-    final prevTopId = useRef<String?>(null);
-    final isDismissing = useRef(false);
+class _AttentionModalHostState extends State<_AttentionModalHost>
+    with TickerProviderStateMixin {
+  final Map<String, AnimationController> _controllers = {};
+  final FocusNode _focusNode = FocusNode(debugLabel: 'AttentionModalHost');
+  String? _dismissingId;
 
-    final animationController = useAnimationController(
-      duration: const Duration(milliseconds: 200),
-    );
-    final scaleAnimation = useAnimation(
-      Tween<double>(begin: 0.8, end: 1.0).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.easeOut),
-      ),
-    );
-    final opacityAnimation = useAnimation(
-      Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: animationController, curve: Curves.easeOut),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _modalStack.addListener(_onStackChanged);
+    _syncControllers(_modalStack.value);
+    _focusNode.requestFocus();
+  }
 
-    useEffect(() {
-      if (topEntry != null && topEntry.id != prevTopId.value) {
-        if (isDismissing.value) {
-          final dismissedId = prevTopId.value;
-          isDismissing.value = false;
-          if (dismissedId != null) {
-            dismissAttentionModal(dismissedId);
+  @override
+  void dispose() {
+    _modalStack.removeListener(_onStackChanged);
+    _focusNode.dispose();
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onStackChanged() {
+    _syncControllers(_modalStack.value);
+    _focusNode.requestFocus();
+    setState(() {});
+  }
+
+  void _syncControllers(List<_AttentionModalEntry> stack) {
+    final currentIds = stack.map((e) => e.id).toSet();
+
+    for (final entry in stack) {
+      if (entry.id == _dismissingId) continue;
+      if (!_controllers.containsKey(entry.id)) {
+        _controllers[entry.id] = AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 200),
+        );
+        _controllers[entry.id]!.forward();
+      }
+    }
+
+    _controllers.keys
+        .where((id) => !currentIds.contains(id))
+        .toList()
+        .forEach((id) {
+      _controllers[id]?.dispose();
+      _controllers.remove(id);
+    });
+  }
+
+  void _handleDismiss(String id) {
+    if (_dismissingId != null) return;
+    _dismissingId = id;
+    final controller = _controllers[id];
+    if (controller != null) {
+      controller.reverse().then((_) {
+        _controllers.remove(id)?.dispose();
+        _dismissingId = null;
+        if (_modalStack.value.isNotEmpty) {
+          final stillExists = _modalStack.value.any((e) => e.id == id);
+          if (stillExists) {
+            dismissAttentionModal(id);
           }
         }
-        animationController.reset();
-        animationController.forward();
-        prevTopId.value = topEntry.id;
-      }
-      return null;
-    }, [topEntry?.id]);
-
-    final handleDismiss = useCallback(() {
-      if (topEntry == null || isDismissing.value) return;
-      isDismissing.value = true;
-      final id = topEntry.id;
-      animationController.reverse().then((_) {
-        isDismissing.value = false;
-        if (_modalStack.value.isNotEmpty &&
-            _modalStack.value.last.id == id) {
-          dismissAttentionModal(id);
-        }
       });
-    }, [topEntry?.id]);
+    }
+  }
 
-    if (topEntry == null) return const SizedBox.shrink();
+  @override
+  Widget build(BuildContext context) {
+    final stack = _modalStack.value;
+    if (stack.isEmpty) return const SizedBox.shrink();
 
-    return KeyboardListener(
-      focusNode: useFocusNode(),
-      onKeyEvent: (event) {
+    final topEntry = stack.last;
+
+    return Focus(
+      autofocus: true,
+      focusNode: _focusNode,
+      onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.escape &&
             topEntry.barrierDismissible) {
-          handleDismiss();
+          _handleDismiss(topEntry.id);
+          return KeyEventResult.handled;
         }
+        return KeyEventResult.ignored;
       },
       child: GestureDetector(
         onTap: () {
           if (topEntry.barrierDismissible) {
-            handleDismiss();
+            _handleDismiss(topEntry.id);
           }
         },
         child: BackdropFilter(
           filter: ImageFilter.blur(
-            sigmaX: topEntry.blurSigma,
-            sigmaY: topEntry.blurSigma,
+            sigmaX: stack.first.blurSigma,
+            sigmaY: stack.first.blurSigma,
           ),
           child: Container(
-            color: topEntry.barrierColor ?? Colors.black.withOpacity(0.5),
-            child: Center(
-              child: AnimatedBuilder(
-                animation: animationController,
-                builder: (context, child) => Opacity(
-                  opacity: opacityAnimation,
-                  child: Transform.scale(
-                    scale: scaleAnimation,
-                    child: child,
+            color:
+                stack.first.barrierColor ?? Colors.black.withOpacity(0.5),
+            child: Stack(
+              children: [
+                for (var i = 0; i < stack.length; i++)
+                  _buildEntry(
+                    stack[i],
+                    depth: i,
+                    isTop: i == stack.length - 1,
                   ),
-                ),
-                child: topEntry.builder(context, handleDismiss),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEntry(
+    _AttentionModalEntry entry, {
+    required int depth,
+    required bool isTop,
+  }) {
+    final targetScale = (1.0 - depth * 0.15).clamp(0.4, 1.0);
+    final controller = _controllers[entry.id];
+    final dismiss = isTop ? () => _handleDismiss(entry.id) : () {};
+
+    return IgnorePointer(
+      ignoring: !isTop,
+      child: Center(
+        child: AnimatedBuilder(
+          animation: controller ?? const AlwaysStoppedAnimation(1.0),
+          builder: (context, child) {
+            final progress = controller?.value ?? 1.0;
+            final scale = targetScale *
+                Tween<double>(begin: 0.8, end: 1.0).transform(progress);
+            final opacity =
+                Tween<double>(begin: 0.0, end: 1.0).transform(progress);
+
+            return Opacity(
+              opacity: opacity,
+              child: Transform.scale(
+                scale: scale,
+                child: child,
+              ),
+            );
+          },
+          child: GestureDetector(
+            onTap: isTop ? () {} : null,
+            behavior: isTop ? null : HitTestBehavior.deferToChild,
+            child: HeroControllerScope.none(
+              child: Navigator(
+                pages: [
+                  MaterialPage(
+                    child: entry.builder(context, dismiss),
+                  ),
+                ],
+                onPopPage: (route, result) => route.didPop(result),
               ),
             ),
           ),
