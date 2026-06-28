@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -9,14 +10,17 @@ const kNotificationBaseDuration = Duration(seconds: 5);
 
 enum NotificationItemType { system, friendStatus }
 
-class NotificationItem {
+class NotificationItem implements OverlayNotificationItem {
+  @override
   final String id;
   final NotificationItemType type;
   final SnNotification? notification;
   final FriendStatusChangeEvent? friendStatusEvent;
   final DateTime createdAt;
   final int index;
+  @override
   final Duration duration;
+  @override
   final bool dismissed;
 
   NotificationItem({

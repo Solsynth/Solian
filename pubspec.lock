@@ -1651,6 +1651,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  island_ui_foundation:
+    dependency: "direct main"
+    description:
+      path: "packages/island_ui_foundation"
+      relative: true
+    source: path
+    version: "1.0.0"
   jni:
     dependency: transitive
     description:

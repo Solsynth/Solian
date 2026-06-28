@@ -28,6 +28,7 @@ import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:island/plugins/plugin.dart';
 import 'package:logging/logging.dart';
 import 'package:relative_time/relative_time.dart';
@@ -370,6 +371,9 @@ class IslandApp extends HookConsumerWidget {
 
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
+
+    IslandUIFoundation.configureOverlay(globalOverlay);
+    IslandUIFoundation.configureHaptic(() => settings.notifyWithHaptic);
 
     ThemeMode getThemeMode() {
       final themeMode = settings.themeMode ?? 'system';

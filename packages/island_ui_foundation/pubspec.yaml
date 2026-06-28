@@ -1,0 +1,16 @@
+name: island_ui_foundation
+description: "Island UI Foundation — reusable overlay systems and responsive helpers"
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_hooks: ^0.21.3+1
+  hooks_riverpod: ^3.3.1
+  styled_widget: ^0.4.1
+  gap: ^3.0.1
+  material_symbols_icons: ^4.2951.0

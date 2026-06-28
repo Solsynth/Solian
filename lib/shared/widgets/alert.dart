@@ -10,7 +10,7 @@ import 'package:island/main.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/route.dart';
 import 'package:just_audio/just_audio.dart';
-export 'package:island/shared/widgets/snackbar_overlay.dart'
+export 'package:island_ui_foundation/src/snackbar_overlay.dart'
     show
         SnackBarEntryKey,
         dismissSnackBar,

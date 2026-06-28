@@ -203,7 +203,7 @@ class WindowScaffold extends HookConsumerWidget {
                     ],
                   ),
                   _WebSocketIndicator(),
-                  const NotificationOverlay(),
+                  const SnNotificationOverlay(),
                   if (showPalette.value)
                     CommandPaletteWidget(
                       onDismiss: () => showPalette.value = false,
@@ -216,7 +216,7 @@ class WindowScaffold extends HookConsumerWidget {
               children: [
                 Positioned.fill(child: child),
                 _WebSocketIndicator(),
-                const NotificationOverlay(),
+                const SnNotificationOverlay(),
                 if (showPalette.value)
                   CommandPaletteWidget(
                     onDismiss: () => showPalette.value = false,
