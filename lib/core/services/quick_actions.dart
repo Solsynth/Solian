@@ -84,7 +84,7 @@ class QuickActionsService {
         break;
 
       case 'notifications':
-        eventBus.fire(ShowNotificationSheetEvent());
+        eventBus.fire(ShowNotificationModalEvent());
         break;
 
       default:

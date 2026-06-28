@@ -35,6 +35,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:island/wallets/wallet.dart';
@@ -424,11 +425,10 @@ class AppWrapper extends HookConsumerWidget {
         if (ctx.mounted) _showPostCompose(ctx);
       });
 
-      final notificationSheetSubs = eventBus
-          .on<ShowNotificationSheetEvent>()
+      final notificationModalSubs = eventBus
+          .on<ShowNotificationModalEvent>()
           .listen((event) {
-            final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-            if (ctx.mounted) _showNotificationSheet(ctx);
+            _showNotificationModal();
           });
 
       final thoughtSheetSubs = eventBus.on<ShowThoughtSheetEvent>().listen((
@@ -463,7 +463,7 @@ class AppWrapper extends HookConsumerWidget {
         );
         ntySubs?.cancel();
         composeSheetSubs.cancel();
-        notificationSheetSubs.cancel();
+        notificationModalSubs.cancel();
         thoughtSheetSubs.cancel();
         webAuthSubs.cancel();
         challengeSubs.cancel();
@@ -648,12 +648,12 @@ class AppWrapper extends HookConsumerWidget {
     PostComposeDialog.show(context);
   }
 
-  void _showNotificationSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      builder: (context) => const NotificationSheet(),
+  void _showNotificationModal() {
+    showAttentionModal(
+      id: 'notifications',
+      replaceIfExists: true,
+      barrierDismissible: true,
+      builder: (context, dismiss) => NotificationModal(onDismiss: dismiss),
     );
   }
 
@@ -791,7 +791,7 @@ class AppWrapper extends HookConsumerWidget {
     }
 
     if (path == '/notifications') {
-      eventBus.fire(ShowNotificationSheetEvent());
+      eventBus.fire(ShowNotificationModalEvent());
       return;
     }
 

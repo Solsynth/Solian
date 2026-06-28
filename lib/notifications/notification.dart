@@ -11,7 +11,7 @@ import 'package:island/core/websocket.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -205,12 +205,13 @@ class NotificationListNotifier
   }
 }
 
-class NotificationSheet extends HookConsumerWidget {
-  const NotificationSheet({super.key});
+class NotificationModal extends HookConsumerWidget {
+  final VoidCallback onDismiss;
+
+  const NotificationModal({super.key, required this.onDismiss});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Refresh unread count and notification list when sheet opens.
     useEffect(() {
       Future.microtask(() async {
         await ref.read(notificationUnreadCountProvider.notifier).refresh();
@@ -231,12 +232,16 @@ class NotificationSheet extends HookConsumerWidget {
       ref.watch(notificationUnreadCountProvider.notifier).clear();
     }
 
-    return SheetScaffold(
-      titleText: 'notifications'.tr(),
+    final titleText = 'notifications'.tr();
+
+    return AttentionModalScaffold(
+      titleText: titleText,
+      onDismiss: onDismiss,
       actions: [
         IconButton(
           onPressed: markAllRead,
           icon: const Icon(Symbols.mark_as_unread),
+          tooltip: 'markAllRead'.tr(),
         ),
       ],
       child: Column(

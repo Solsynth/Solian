@@ -122,9 +122,9 @@ class ShowComposeSheetEvent {
   const ShowComposeSheetEvent();
 }
 
-/// Event fired to show the notification sheet
-class ShowNotificationSheetEvent {
-  const ShowNotificationSheetEvent();
+/// Event fired to show the notification modal
+class ShowNotificationModalEvent {
+  const ShowNotificationModalEvent();
 }
 
 /// Event fired to show the thought sheet

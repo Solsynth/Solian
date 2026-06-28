@@ -18,6 +18,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/debug_sheet.dart';
 import 'package:island/core/config.dart';
@@ -231,11 +232,12 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     'title': 'notifications',
                     'badgeCount': notificationUnreadCount.value ?? 0,
                     'onTap': () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useRootNavigator: true,
-                        builder: (context) => const NotificationSheet(),
+                      showAttentionModal(
+                        id: 'notifications',
+                        replaceIfExists: true,
+                        barrierDismissible: true,
+                        builder: (context, dismiss) =>
+                            NotificationModal(onDismiss: dismiss),
                       );
                     },
                   },

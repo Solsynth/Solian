@@ -23,6 +23,7 @@ import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/post_featured.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/notifications/notification_tile.dart';
 import 'package:island/accounts/check_in.dart';
@@ -769,12 +770,12 @@ class NotificationsCard extends HookConsumerWidget {
       child: InkWell(
         borderRadius: BorderRadius.all(Radius.circular(12)),
         onTap: () {
-          // Show notification sheet similar to explore.dart
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (context) => const NotificationSheet(),
+          showAttentionModal(
+            id: 'notifications',
+            replaceIfExists: true,
+            barrierDismissible: true,
+            builder: (context, dismiss) =>
+                NotificationModal(onDismiss: dismiss),
           );
         },
         child: Column(

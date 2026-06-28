@@ -52,7 +52,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
         searchableAliases: ['notifications', 'alert', 'bell'],
         icon: Symbols.notifications,
         action: () {
-          eventBus.fire(const ShowNotificationSheetEvent());
+          eventBus.fire(const ShowNotificationModalEvent());
         },
       ),
       SpecialAction(
