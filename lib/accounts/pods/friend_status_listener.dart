@@ -8,6 +8,7 @@ import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/lifecycle.dart';
+import 'package:island/core/notification.dart';
 import 'package:island/core/websocket.dart';
 import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -116,9 +117,7 @@ class FriendStatusListener {
     };
   }
 
-  Future<void> _showDesktopNotification(
-    FriendStatusChangeEvent event,
-  ) async {
+  Future<void> _showDesktopNotification(FriendStatusChangeEvent event) async {
     final settings = _ref.read(appSettingsProvider);
     if (!settings.friendStatusDesktopNotification) return;
 
@@ -152,12 +151,8 @@ class FriendStatusListener {
       notificationDetails: notificationDetails,
     );
 
-    _log.info(
-      'Sent desktop notification for ${event.account.name}: $caption',
-    );
+    _log.info('Sent desktop notification for ${event.account.name}: $caption');
   }
-
-
 
   void _handleStatusUpdate(Map<String, dynamic> data) {
     final accountId = data['account_id'] as String?;
@@ -201,7 +196,7 @@ class FriendStatusListener {
 
       final isAppFocused = _isAppFocused();
       if (isAppFocused) {
-        _ref.read(friendStatusToastProvider.notifier).showEvent(event);
+        _ref.read(notificationStateProvider.notifier).addFriendStatus(event);
       } else {
         _showDesktopNotification(event);
       }
@@ -260,7 +255,7 @@ class FriendStatusListener {
 
       final isAppFocused = _isAppFocused();
       if (isAppFocused) {
-        _ref.read(friendStatusToastProvider.notifier).showEvent(event);
+        _ref.read(notificationStateProvider.notifier).addFriendStatus(event);
       } else {
         _showDesktopNotification(event);
       }

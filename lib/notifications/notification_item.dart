@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/route.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -25,17 +26,91 @@ class NotificationItemWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (item.type == NotificationItemType.friendStatus) {
+      final event = item.friendStatusEvent!;
+      return GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! > 100) {
+            onDismiss();
+          }
+        },
+        onVerticalDragEnd: !isDesktop
+            ? (details) {
+                if (details.primaryVelocity! < -100) {
+                  onDismiss();
+                }
+              }
+            : null,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: double.infinity),
+          child: Stack(
+            children: [
+              Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                color: Colors.transparent,
+                shadowColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(kNotificationBorderRadius),
+                  ),
+                ),
+                child: FriendStatusToast(
+                  event: event,
+                  onDismiss: onDismiss,
+                  autoDismissDuration: item.duration,
+                  embedded: true,
+                  showCloseButton: false,
+                  showProgress: false,
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton(
+                  icon: Icon(
+                    Symbols.close,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: onDismiss,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: AnimatedBuilder(
+                  animation: progress,
+                  builder: (context, child) => LinearProgressIndicator(
+                    value: progress.value,
+                    minHeight: 2,
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ).clipRRect(all: kNotificationBorderRadius),
+        ),
+      );
+    }
+
+    final notification = item.notification!;
     return GestureDetector(
       onTap: () {
-        if (item.notification.meta['action_uri'] != null) {
-          var uri = item.notification.meta['action_uri'] as String;
+        if (notification.meta['action_uri'] != null) {
+          var uri = notification.meta['action_uri'] as String;
           if (uri.startsWith('solian://')) {
             uri = uri.replaceFirst('solian://', '');
           }
           if (uri.startsWith('/')) {
-            ref
-                .read(routerProvider)
-                .pushPath(item.notification.meta['action_uri']);
+            ref.read(routerProvider).pushPath(notification.meta['action_uri']);
           } else {
             launchUrlString(uri);
           }
@@ -78,9 +153,9 @@ class NotificationItemWidget extends HookConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (item.notification.meta['pfp'] != null)
+                        if (notification.meta['pfp'] != null)
                           ProfilePictureWidget(
-                            fileId: item.notification.meta['pfp'],
+                            fileId: notification.meta['pfp'],
                             radius: 12,
                           ).padding(right: 12, top: 2)
                         else
@@ -95,18 +170,18 @@ class NotificationItemWidget extends HookConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                item.notification.title,
+                                notification.title,
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                              if (item.notification.body.isNotEmpty)
+                              if (notification.body.isNotEmpty)
                                 Text(
-                                  item.notification.body,
+                                  notification.body,
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
-                              if (item.notification.subtitle.isNotEmpty)
+                              if (notification.subtitle.isNotEmpty)
                                 Text(
-                                  item.notification.subtitle,
+                                  notification.subtitle,
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                             ],

@@ -17,7 +17,6 @@ import 'package:island/auth/challenge_approval_sheet.dart';
 import 'package:island/auth/challenge_ws_listener.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/accounts/pods/friend_status_listener.dart';
-import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/accounts/screens/me/account_qr.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/desktop_presence.dart';
@@ -637,7 +636,6 @@ class AppWrapper extends HookConsumerWidget {
                           ),
                         ),
                       const TaskOverlay(),
-                      const FriendStatusToastOverlay(),
                     ],
                   ),
                 ),
