@@ -1,15 +1,19 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'notification.g.dart';
 
 const kNotificationBaseDuration = Duration(seconds: 5);
-const kNotificationStackedDuration = Duration(seconds: 1);
+
+enum NotificationItemType { system, friendStatus }
 
 class NotificationItem {
   final String id;
-  final SnNotification notification;
+  final NotificationItemType type;
+  final SnNotification? notification;
+  final FriendStatusChangeEvent? friendStatusEvent;
   final DateTime createdAt;
   final int index;
   final Duration duration;
@@ -17,7 +21,9 @@ class NotificationItem {
 
   NotificationItem({
     String? id,
-    required this.notification,
+    required this.type,
+    this.notification,
+    this.friendStatusEvent,
     DateTime? createdAt,
     required this.index,
     Duration? duration,
@@ -27,9 +33,41 @@ class NotificationItem {
        duration =
            duration ?? kNotificationBaseDuration + Duration(seconds: index);
 
+  factory NotificationItem.system({
+    String? id,
+    required SnNotification notification,
+    required int index,
+    Duration? duration,
+  }) {
+    return NotificationItem(
+      id: id,
+      type: NotificationItemType.system,
+      notification: notification,
+      index: index,
+      duration: duration,
+    );
+  }
+
+  factory NotificationItem.friendStatus({
+    String? id,
+    required FriendStatusChangeEvent event,
+    required int index,
+    Duration? duration,
+  }) {
+    return NotificationItem(
+      id: id,
+      type: NotificationItemType.friendStatus,
+      friendStatusEvent: event,
+      index: index,
+      duration: duration,
+    );
+  }
+
   NotificationItem copyWith({
     String? id,
+    NotificationItemType? type,
     SnNotification? notification,
+    FriendStatusChangeEvent? friendStatusEvent,
     DateTime? createdAt,
     int? index,
     Duration? duration,
@@ -37,7 +75,9 @@ class NotificationItem {
   }) {
     return NotificationItem(
       id: id ?? this.id,
+      type: type ?? this.type,
       notification: notification ?? this.notification,
+      friendStatusEvent: friendStatusEvent ?? this.friendStatusEvent,
       createdAt: createdAt ?? this.createdAt,
       index: index ?? this.index,
       duration: duration ?? this.duration,
@@ -63,8 +103,17 @@ class NotificationState extends _$NotificationState {
   }
 
   void add(SnNotification notification, {Duration? duration}) {
-    final newItem = NotificationItem(
+    final newItem = NotificationItem.system(
       notification: notification,
+      index: state.length,
+      duration: duration,
+    );
+    state = [...state, newItem];
+  }
+
+  void addFriendStatus(FriendStatusChangeEvent event, {Duration? duration}) {
+    final newItem = NotificationItem.friendStatus(
+      event: event,
       index: state.length,
       duration: duration,
     );

@@ -763,7 +763,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               ),
               changeType: FriendStatusChangeType.online,
             );
-            ref.read(friendStatusToastProvider.notifier).showEvent(event);
+            ref.read(notificationStateProvider.notifier).addFriendStatus(event);
           },
         ),
         _DebugItem(
@@ -778,7 +778,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               ),
               changeType: FriendStatusChangeType.offline,
             );
-            ref.read(friendStatusToastProvider.notifier).showEvent(event);
+            ref.read(notificationStateProvider.notifier).addFriendStatus(event);
           },
         ),
         _DebugItem(
@@ -814,7 +814,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               ],
               changeType: FriendStatusChangeType.activityStarted,
             );
-            ref.read(friendStatusToastProvider.notifier).showEvent(event);
+            ref.read(notificationStateProvider.notifier).addFriendStatus(event);
           },
         ),
         _DebugItem(
@@ -850,7 +850,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               ],
               changeType: FriendStatusChangeType.activityStarted,
             );
-            ref.read(friendStatusToastProvider.notifier).showEvent(event);
+            ref.read(notificationStateProvider.notifier).addFriendStatus(event);
           },
         ),
         _DebugItem(
@@ -882,7 +882,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               ),
               changeType: FriendStatusChangeType.busy,
             );
-            ref.read(friendStatusToastProvider.notifier).showEvent(event);
+            ref.read(notificationStateProvider.notifier).addFriendStatus(event);
           },
         ),
         _DebugItem(
@@ -1491,7 +1491,9 @@ class DebugSheet extends HookConsumerWidget {
                   ),
                   changeType: FriendStatusChangeType.online,
                 );
-                ref.read(friendStatusToastProvider.notifier).showEvent(event);
+                ref
+                    .read(notificationStateProvider.notifier)
+                    .addFriendStatus(event);
               },
             ),
             ListTile(
@@ -1509,7 +1511,9 @@ class DebugSheet extends HookConsumerWidget {
                   ),
                   changeType: FriendStatusChangeType.offline,
                 );
-                ref.read(friendStatusToastProvider.notifier).showEvent(event);
+                ref
+                    .read(notificationStateProvider.notifier)
+                    .addFriendStatus(event);
               },
             ),
             ListTile(
@@ -1548,7 +1552,9 @@ class DebugSheet extends HookConsumerWidget {
                   ],
                   changeType: FriendStatusChangeType.activityStarted,
                 );
-                ref.read(friendStatusToastProvider.notifier).showEvent(event);
+                ref
+                    .read(notificationStateProvider.notifier)
+                    .addFriendStatus(event);
               },
             ),
             ListTile(
@@ -1590,7 +1596,9 @@ class DebugSheet extends HookConsumerWidget {
                   ],
                   changeType: FriendStatusChangeType.activityStarted,
                 );
-                ref.read(friendStatusToastProvider.notifier).showEvent(event);
+                ref
+                    .read(notificationStateProvider.notifier)
+                    .addFriendStatus(event);
               },
             ),
             ListTile(
@@ -1625,7 +1633,9 @@ class DebugSheet extends HookConsumerWidget {
                   ),
                   changeType: FriendStatusChangeType.busy,
                 );
-                ref.read(friendStatusToastProvider.notifier).showEvent(event);
+                ref
+                    .read(notificationStateProvider.notifier)
+                    .addFriendStatus(event);
               },
             ),
             ListTile(
