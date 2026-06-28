@@ -12,6 +12,7 @@ const double kFloatingSnackBarWidth = 400.0;
 const int kSnackBarVisibleLimit = 3;
 const Duration _kSnackBarDuration = Duration(milliseconds: 1500);
 const Duration _kSnackBarAnimationDuration = Duration(milliseconds: 220);
+const double _kMobileBottomNavClearance = 72.0;
 
 typedef SnackBarEntryKey = String;
 
@@ -265,13 +266,19 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
     final screenWidth = mediaQuery.size.width;
     final wideScreen = screenWidth > kWideScreenWidth;
     final horizontalPadding = wideScreen ? 16.0 : 12.0;
+    final bottomInset = mediaQuery.viewInsets.bottom;
+    final safeBottom = mediaQuery.viewPadding.bottom;
     final bottomOffset =
-        mediaQuery.viewInsets.bottom + mediaQuery.padding.bottom + 16;
+        bottomInset +
+        (wideScreen
+            ? safeBottom + 16
+            : (bottomInset > 0
+                  ? safeBottom + 16
+                  : safeBottom + _kMobileBottomNavClearance));
     final overlap = wideScreen ? 20.0 : 18.0;
 
     if (wideScreen) {
-      final visibleItems = widget.items
-          .reversed
+      final visibleItems = widget.items.reversed
           .take(kSnackBarVisibleLimit)
           .toList()
           .reversed
@@ -330,8 +337,7 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
       );
     }
 
-    final visibleItems = widget.items
-        .reversed
+    final visibleItems = widget.items.reversed
         .take(kSnackBarVisibleLimit)
         .toList()
         .reversed
@@ -395,10 +401,7 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
 }
 
 class _AnimatedHeldSnackBarBadge extends StatelessWidget {
-  const _AnimatedHeldSnackBarBadge({
-    required this.count,
-    required this.onTap,
-  });
+  const _AnimatedHeldSnackBarBadge({required this.count, required this.onTap});
 
   final int count;
   final VoidCallback onTap;
@@ -420,11 +423,7 @@ class _AnimatedHeldSnackBarBadge extends StatelessWidget {
         );
       },
       child: count > 0
-          ? _HeldSnackBarBadge(
-              key: ValueKey(count),
-              count: count,
-              onTap: onTap,
-            )
+          ? _HeldSnackBarBadge(key: ValueKey(count), count: count, onTap: onTap)
           : const SizedBox.shrink(key: ValueKey('empty-held-badge')),
     );
   }
@@ -556,9 +555,7 @@ class _AnimatedSnackBarItemState extends State<_AnimatedSnackBarItem>
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.shadow.withOpacity(0.14),
+                            color: Colors.black87,
                             blurRadius: 14,
                             offset: const Offset(0, -6),
                           ),
@@ -580,10 +577,7 @@ class _AnimatedSnackBarItemState extends State<_AnimatedSnackBarItem>
 }
 
 class _FloatingSnackBarCard extends StatelessWidget {
-  const _FloatingSnackBarCard({
-    required this.item,
-    required this.onDismiss,
-  });
+  const _FloatingSnackBarCard({required this.item, required this.onDismiss});
 
   final _OverlaySnackBarItem item;
   final VoidCallback onDismiss;
@@ -596,9 +590,9 @@ class _FloatingSnackBarCard extends StatelessWidget {
     final containerColor =
         item.containerColor ??
         Color.alphaBlend(
-      colorScheme.surfaceTint.withValues(alpha: 0.06),
-      colorScheme.surfaceContainerHigh,
-    );
+          colorScheme.surfaceTint.withValues(alpha: 0.06),
+          colorScheme.surfaceContainerHigh,
+        );
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
@@ -614,15 +608,12 @@ class _FloatingSnackBarCard extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: containerColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-          ),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.16),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
+              color: Colors.black54,
+              blurRadius: 14,
+              offset: const Offset(0, 7),
             ),
             BoxShadow(
               color: colorScheme.surfaceTint.withValues(alpha: 0.08),
@@ -632,13 +623,13 @@ class _FloatingSnackBarCard extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: item.padding ?? const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          padding:
+              item.padding ??
+              const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: item.contentBuilder(context, onDismiss),
-              ),
+              Expanded(child: item.contentBuilder(context, onDismiss)),
               if (action != null) ...[
                 const Gap(14),
                 TextButton(
