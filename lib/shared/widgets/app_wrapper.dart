@@ -7,7 +7,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -27,7 +26,6 @@ import 'package:island/chat/widgets/incoming_call_invite_sheet.dart';
 import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
-import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
@@ -249,10 +247,7 @@ class AppWrapper extends HookConsumerWidget {
                   .read(nativeCallBridgeProvider.notifier)
                   .clearPendingAcceptedCall();
             } else {
-              await const MethodChannel(
-                'dev.solsynth.solian/callkit',
-              ).invokeMethod('endCall');
-              ref.read(nativeCallBridgeProvider.notifier).clearAcceptedCall();
+              await ref.read(nativeCallBridgeProvider.notifier).endCall();
             }
           }());
         }
@@ -264,8 +259,6 @@ class AppWrapper extends HookConsumerWidget {
     useEffect(() {
       if (!isNativeCallAvailable) return null;
 
-      const callKitChannel = MethodChannel('dev.solsynth.solian/callkit');
-
       final sub = ref.listenManual(callProvider, (previous, current) {
         final prevConnected = previous?.isConnected ?? false;
         final currConnected = current.isConnected;
@@ -273,19 +266,15 @@ class AppWrapper extends HookConsumerWidget {
         // Flutter call just connected
         if (!prevConnected && currConnected) {
           Logger.root.info(
-            '[AppWrapper] Flutter call connected, fulfilling CallKit answer',
+            '[AppWrapper] Flutter call connected, syncing native call state',
           );
-          ref
-              .read(nativeCallBridgeProvider.notifier)
-              .markFlutterCallConnected();
-          callKitChannel.invokeMethod('fulfillPendingAnswer', null);
+          ref.read(nativeCallBridgeProvider.notifier).markFlutterCallConnected();
         }
 
         // Flutter call just disconnected
         if (prevConnected && !currConnected) {
           Logger.root.info('[AppWrapper] Flutter call disconnected');
-          ref.read(nativeCallBridgeProvider.notifier).clearAcceptedCall();
-          FlutterCallkitIncoming.endAllCalls();
+          ref.read(nativeCallBridgeProvider.notifier).endAllCalls();
         }
       });
       return sub.close;

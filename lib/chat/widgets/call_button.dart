@@ -10,9 +10,7 @@ import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
-import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/utils/call_kit_utils.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/route.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -142,15 +140,13 @@ class AudioCallButton extends HookConsumerWidget {
           return;
         }
 
-        // Start CallKit call with video setting (iOS only)
         if (isNativeCallAvailable) {
-          await FlutterCallkitIncoming.startCall(
-            createCallKitParams(
-              roomId: room.id,
-              callerName: room.name ?? 'Voice Call',
-              isVideo: result.cameraEnabled,
-            ),
+          await ref.read(nativeCallBridgeProvider.notifier).startOutgoingCall(
+            roomId: room.id,
+            callerName: room.name ?? 'Voice Call',
+            hasVideo: result.cameraEnabled,
           );
+          await ref.read(nativeCallBridgeProvider.notifier).markOutgoingConnecting();
         }
 
         // Open call screen with camera setting
@@ -166,9 +162,8 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         await apiClient.delete('/messager/chat/realtime/${room.id}');
-        // End CallKit call if active (iOS only)
         if (isNativeCallAvailable && hasNativeAcceptedCall) {
-          await FlutterCallkitIncoming.endAllCalls();
+          await ref.read(nativeCallBridgeProvider.notifier).endCall();
         }
         await callNotifier.disconnect();
         callNotifier.dispose();
@@ -234,15 +229,17 @@ class AudioCallButton extends HookConsumerWidget {
               return;
             }
 
-            // Start CallKit call with video setting (iOS only)
             if (isNativeCallAvailable) {
-              await FlutterCallkitIncoming.startCall(
-                createCallKitParams(
-                  roomId: room.id,
-                  callerName: room.name ?? 'Voice Call',
-                  isVideo: result.cameraEnabled,
-                ),
-              );
+              await ref
+                  .read(nativeCallBridgeProvider.notifier)
+                  .startOutgoingCall(
+                    roomId: room.id,
+                    callerName: room.name ?? 'Voice Call',
+                    hasVideo: result.cameraEnabled,
+                  );
+              await ref
+                  .read(nativeCallBridgeProvider.notifier)
+                  .markOutgoingConnecting();
             }
 
             await openCallScreen(cameraEnabled: result.cameraEnabled);
