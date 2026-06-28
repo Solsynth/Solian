@@ -14,3 +14,8 @@ dependencies:
   styled_widget: ^0.4.1
   gap: ^3.0.1
   material_symbols_icons: ^4.2951.0
+  window_manager:
+    git:
+      url: https://github.com/boyan01/window_manager.git
+      path: packages/window_manager
+      ref: 6fae92d21b4c80ce1b8f71c1190d7970cf722bd4
