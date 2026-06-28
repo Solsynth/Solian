@@ -31,6 +31,8 @@ import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/main.dart';
 import 'package:island/route.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -250,6 +252,86 @@ Future<String?> _promptForRoomId(BuildContext context, String title) async {
           ),
         ],
       );
+    },
+  );
+}
+
+void _startDebugProgressTask(WidgetRef ref) {
+  final tasks = ref.read(tasksProvider.notifier);
+  final taskId = tasks.addTask(
+    title: 'Debug upload task',
+    type: AppTaskType.driveUpload,
+    status: AppTaskStatus.inProgress,
+    metadata: {
+      'fileSize': 16 * 1024 * 1024,
+      'totalChunks': 8,
+      'uploadedChunks': 0,
+      'transmissionProgress': 0.0,
+    },
+  );
+
+  Future<void>(() async {
+    for (var i = 1; i <= 5; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 650));
+      tasks.updateTask(
+        taskId,
+        status: AppTaskStatus.inProgress,
+        progress: i / 5,
+        statusMessage: 'Uploading debug payload ${i * 20}%',
+        metadata: {
+          'fileSize': 16 * 1024 * 1024,
+          'totalChunks': 8,
+          'uploadedChunks': (i * 8 / 5).round(),
+          'transmissionProgress': i / 5,
+        },
+      );
+    }
+    tasks.updateTask(
+      taskId,
+      status: AppTaskStatus.completed,
+      progress: 1,
+      statusMessage: 'Debug upload completed',
+      metadata: {
+        'fileSize': 16 * 1024 * 1024,
+        'totalChunks': 8,
+        'uploadedChunks': 8,
+        'transmissionProgress': 1.0,
+      },
+    );
+  });
+}
+
+void _addDebugSuccessTask(WidgetRef ref) {
+  final tasks = ref.read(tasksProvider.notifier);
+  final taskId = tasks.addTask(
+    title: 'Debug completed task',
+    type: AppTaskType.postPublish,
+    status: AppTaskStatus.inProgress,
+  );
+  tasks.updateTask(
+    taskId,
+    status: AppTaskStatus.completed,
+    progress: 1,
+    statusMessage: 'Debug task finished',
+  );
+}
+
+void _addDebugFailedTask(WidgetRef ref) {
+  final tasks = ref.read(tasksProvider.notifier);
+  final taskId = tasks.addTask(
+    title: 'Debug failed task',
+    type: AppTaskType.driveDownload,
+    status: AppTaskStatus.inProgress,
+  );
+  tasks.updateTask(
+    taskId,
+    status: AppTaskStatus.failed,
+    progress: 0.62,
+    statusMessage: 'Debug download failed',
+    errorMessage: 'Injected failure for overlay testing.',
+    metadata: {
+      'totalBytes': 20 * 1024 * 1024,
+      'downloadedBytes': (20 * 1024 * 1024 * 0.62).round(),
     },
   );
 }
@@ -732,6 +814,27 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             local_notify.showDebugLocalNotification(ref);
           },
         ),
+        _DebugItem(
+          icon: Symbols.progress_activity,
+          title: 'Test task overlay progress',
+          onTap: () {
+            _startDebugProgressTask(ref);
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.check_circle,
+          title: 'Test task overlay success',
+          onTap: () {
+            _addDebugSuccessTask(ref);
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.error,
+          title: 'Test task overlay failure',
+          onTap: () {
+            _addDebugFailedTask(ref);
+          },
+        ),
         _Divider(),
         _DebugItem(
           icon: Symbols.person_add,
@@ -1097,10 +1200,9 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               try {
                 final roomId = await _promptForRoomId(context, 'Incoming Call');
                 if (roomId == null) return;
-                await ref.read(nativeCallBridgeProvider.notifier).showIncomingCall(
-                  roomId: roomId,
-                  callerName: 'Test User',
-                );
+                await ref
+                    .read(nativeCallBridgeProvider.notifier)
+                    .showIncomingCall(roomId: roomId, callerName: 'Test User');
                 if (!context.mounted) return;
                 showSnackBar('Fake incoming call triggered for room: $roomId');
               } catch (e) {
@@ -1116,10 +1218,12 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               try {
                 final roomId = await _promptForRoomId(context, 'Outgoing Call');
                 if (roomId == null) return;
-                await ref.read(nativeCallBridgeProvider.notifier).startOutgoingCall(
-                  roomId: roomId,
-                  callerName: 'Debug Call',
-                );
+                await ref
+                    .read(nativeCallBridgeProvider.notifier)
+                    .startOutgoingCall(
+                      roomId: roomId,
+                      callerName: 'Debug Call',
+                    );
                 if (!context.mounted) return;
                 showSnackBar('Fake outgoing call triggered for room: $roomId');
               } catch (e) {
@@ -1252,6 +1356,40 @@ class DebugSheet extends HookConsumerWidget {
         child: Column(
           children: [
             const Gap(4),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.progress_activity),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test task overlay progress'),
+              onTap: () {
+                _startDebugProgressTask(ref);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.check_circle),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test task overlay success'),
+              onTap: () {
+                _addDebugSuccessTask(ref);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.error),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test task overlay failure'),
+              onTap: () {
+                _addDebugFailedTask(ref);
+                Navigator.pop(context);
+              },
+            ),
+            const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.update),

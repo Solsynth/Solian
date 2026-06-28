@@ -93,6 +93,13 @@ class Tasks extends _$Tasks {
     state = state.where((task) => !task.isFinished).toList();
   }
 
+  void clearCompletedOlderThan(DateTime cutoff) {
+    state = state.where((task) {
+      if (task.status != AppTaskStatus.completed) return true;
+      return task.updatedAt.isAfter(cutoff);
+    }).toList();
+  }
+
   void clearAll() {
     state = [];
   }

@@ -260,7 +260,7 @@ packages:
   callkeep:
     dependency: "direct main"
     description:
-      path: third_party_callkeep
+      path: "packages/callkeep"
       relative: true
     source: path
     version: "0.4.1"

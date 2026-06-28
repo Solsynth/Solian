@@ -1,611 +1,454 @@
 import 'dart:async';
 import 'dart:math' as math;
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/drive/services/drive_task_ws_handler.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
-import 'package:island/core/services/responsive.dart';
-import 'package:island/drive/services/drive_task_ws_handler.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:styled_widget/styled_widget.dart';
+
+import 'task_overlay_state.dart';
 
 class TaskOverlay extends HookConsumerWidget {
   const TaskOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allTasks = ref.watch(tasksProvider);
-    // Ensure drive WebSocket task handler is initialized
     ref.watch(driveTaskWsHandlerProvider);
-    final activeTasks =
-        allTasks
-            .where(
-              (task) => task.isActive || task.status == AppTaskStatus.completed,
-            )
-            .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    final isVisibleOverride = useState<bool?>(null);
-    final pendingHide = useState(false);
-    final isExpandedLocal = useState(false);
-    final isCompactLocal = useState(true);
-    final autoHideTimer = useState<Timer?>(null);
-    final autoCompactTimer = useState<Timer?>(null);
-
-    final allFinished = activeTasks.every((task) => task.isFinished);
-
-    useEffect(() {
-      final hasUnfinishedTasks = activeTasks.any((task) => task.isActive);
-      if (hasUnfinishedTasks && pendingHide.value) {
-        pendingHide.value = false;
-      }
-
-      autoHideTimer.value?.cancel();
-      if (allFinished &&
-          activeTasks.isNotEmpty &&
-          !isExpandedLocal.value &&
-          !pendingHide.value) {
-        autoHideTimer.value = Timer(const Duration(seconds: 3), () {
-          pendingHide.value = true;
-        });
-      } else {
-        autoHideTimer.value?.cancel();
-        autoHideTimer.value = null;
-      }
-      return null;
-    }, [allFinished, activeTasks, isExpandedLocal.value, pendingHide.value]);
-
-    final isDesktop = isWideScreen(context);
-
-    useEffect(() {
-      if (!isDesktop && !isCompactLocal.value && !isExpandedLocal.value) {
-        autoCompactTimer.value?.cancel();
-        autoCompactTimer.value = Timer(const Duration(seconds: 5), () {
-          isCompactLocal.value = true;
-        });
-      } else {
-        autoCompactTimer.value?.cancel();
-        autoCompactTimer.value = null;
-      }
-      return null;
-    }, [isCompactLocal.value, isExpandedLocal.value, isDesktop]);
-    final isVisible =
-        (isVisibleOverride.value ?? activeTasks.isNotEmpty) &&
-        !pendingHide.value;
+    final allTasks = ref.watch(tasksProvider);
+    final snapshot = buildTaskOverlaySnapshot(allTasks, now: DateTime.now());
+    final isDesktop = DesktopWindowFrame.isPlatformDesktop;
+    final overlayHeight = taskOverlayHeight(isDesktop);
     final slideController = useAnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 320),
     );
-    final isTopPositioned = !isDesktop;
-
-    final slideAnimation = Tween<Offset>(
-      begin: isTopPositioned ? const Offset(0, -1) : const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: slideController, curve: Curves.easeOut));
 
     useEffect(() {
-      if (isVisible) {
+      if (snapshot.isVisible) {
         slideController.forward();
       } else {
         slideController.reverse();
       }
       return null;
-    }, [isVisible]);
+    }, [snapshot.isVisible]);
 
-    if (!isVisible && slideController.status == AnimationStatus.dismissed) {
+    if (!snapshot.isVisible &&
+        slideController.status == AnimationStatus.dismissed) {
       return const SizedBox.shrink();
     }
 
-    return Positioned(
-      top: isTopPositioned ? 0 : null,
-      bottom: !isTopPositioned ? 0 : null,
-      left: isDesktop ? null : 0,
-      right: isDesktop ? 24 : 0,
-      child: SlideTransition(
-        position: slideAnimation,
-        child:
-            _TaskOverlayContent(
-              activeTasks: activeTasks,
-              isExpanded: isExpandedLocal.value,
-              isCompact: isCompactLocal.value,
-              onExpansionChanged: (expanded) =>
-                  isExpandedLocal.value = expanded,
-              onCompactChanged: (compact) => isCompactLocal.value = compact,
-            ).padding(
-              top: isTopPositioned
-                  ? MediaQuery.of(context).padding.top + 16
-                  : 0,
-              bottom: !isTopPositioned
-                  ? 16 + MediaQuery.of(context).padding.bottom
-                  : 0,
-            ),
+    return IgnorePointer(
+      ignoring:
+          !snapshot.isVisible &&
+          slideController.status == AnimationStatus.dismissed,
+      child: AnimatedBuilder(
+        animation: slideController,
+        builder: (context, child) {
+          final offset =
+              Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).evaluate(
+                CurvedAnimation(
+                  parent: slideController,
+                  curve: Curves.easeOutCubic,
+                  reverseCurve: Curves.easeInCubic,
+                ),
+              );
+          return FractionalTranslation(translation: offset, child: child);
+        },
+        child: _TaskOverlayBar(
+          snapshot: snapshot,
+          allTasks: allTasks,
+          height: overlayHeight,
+          isDesktop: isDesktop,
+        ),
       ),
     );
   }
 }
 
-class _TaskOverlayContent extends HookConsumerWidget {
-  final List<AppTask> activeTasks;
-  final bool isExpanded;
-  final bool isCompact;
-  final Function(bool)? onExpansionChanged;
-  final Function(bool)? onCompactChanged;
-
-  const _TaskOverlayContent({
-    required this.activeTasks,
-    required this.isExpanded,
-    required this.isCompact,
-    this.onExpansionChanged,
-    this.onCompactChanged,
-  });
+class TaskOverlayHost extends ConsumerStatefulWidget {
+  const TaskOverlayHost({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final animationController = useAnimationController(
-      duration: const Duration(milliseconds: 200),
-      initialValue: 0.0,
+  ConsumerState<TaskOverlayHost> createState() => _TaskOverlayHostState();
+}
+
+class _TaskOverlayHostState extends ConsumerState<TaskOverlayHost> {
+  Timer? _clearTimer;
+
+  @override
+  void dispose() {
+    _clearTimer?.cancel();
+    super.dispose();
+  }
+
+  void _syncAutoClear(List<AppTask> allTasks) {
+    final staleCompletedIds = finishedTaskIdsToAutoClear(
+      allTasks,
+      now: DateTime.now(),
     );
-    final compactHeight = 32.0;
-    final collapsedHeight = 60.0;
-    final expandedHeight = 400.0;
-
-    final currentHeight = isCompact
-        ? compactHeight
-        : isExpanded
-        ? expandedHeight
-        : collapsedHeight;
-
-    final opacityAnimation = useAnimation(
-      CurvedAnimation(parent: animationController, curve: Curves.easeInOut),
-    );
-
-    useEffect(() {
-      if (isExpanded) {
-        animationController.forward();
-      } else {
-        animationController.reverse();
-      }
-      return null;
-    }, [isExpanded]);
-
-    final isMobile = !isWideScreen(context);
-
-    final tasks = ref.read(tasksProvider.notifier);
-
-    void handleInteraction() {
-      if (isCompact) {
-        onCompactChanged?.call(false);
-      } else if (!isExpanded) {
-        onExpansionChanged?.call(true);
-      } else {
-        onExpansionChanged?.call(false);
-      }
+    if (staleCompletedIds.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final notifier = ref.read(tasksProvider.notifier);
+        for (final id in staleCompletedIds) {
+          notifier.removeTask(id);
+        }
+      });
     }
 
-    Widget content = AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(isCompact ? 64 : 12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      width: isCompact
-          ? _getCompactWidth(activeTasks)
-          : (isMobile ? MediaQuery.of(context).size.width - 32 : 320),
-      height: currentHeight,
-      child: GestureDetector(
-        onTap: isMobile ? handleInteraction : null,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(isCompact ? 64 : 12),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            switchInCurve: Curves.easeInOut,
-            switchOutCurve: Curves.easeInOut,
-            child: isCompact
-                ? Container(
-                    key: const ValueKey('compact'),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 8,
-                      children: [
-                        Icon(
-                          _getOverallStatusIcon(activeTasks),
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        Expanded(
-                          child: Text(
-                            activeTasks.isEmpty
-                                ? '0 tasks'
-                                : _getOverallStatusText(activeTasks),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              CircularProgressIndicator(
-                                value: _getOverallProgress(activeTasks),
-                                strokeWidth: 3,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                                padding: EdgeInsets.zero,
-                              ),
-                              if (activeTasks.any(
-                                (task) =>
-                                    task.status == AppTaskStatus.inProgress &&
-                                    task.progress < 1.0,
-                              ))
-                                CircularProgressIndicator(
-                                  value: null,
-                                  strokeWidth: 3,
-                                  trackGap: 0,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.secondary.withOpacity(0.5),
-                                  ),
-                                  backgroundColor: Colors.transparent,
-                                  padding: EdgeInsets.zero,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ).padding(horizontal: 12),
-                  )
-                : Container(
-                    key: const ValueKey('expanded'),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          height: 60,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 150),
-                                transitionBuilder: (child, animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: child,
-                                  );
-                                },
-                                child: Icon(
-                                  key: ValueKey(isExpanded),
-                                  isExpanded
-                                      ? Symbols.list_rounded
-                                      : _getOverallStatusIcon(activeTasks),
-                                  size: 24,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      isExpanded
-                                          ? 'tasks'.tr()
-                                          : _getOverallStatusText(activeTasks),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    if (!isExpanded && activeTasks.isNotEmpty)
-                                      Text(
-                                        _getOverallProgressText(activeTasks),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              if (!isExpanded)
-                                SizedBox(
-                                  width: 32,
-                                  height: 32,
-                                  child: Stack(
-                                    children: [
-                                      CircularProgressIndicator(
-                                        value: _getOverallProgress(activeTasks),
-                                        strokeWidth: 3,
-                                        backgroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
-                                      ),
-                                      if (activeTasks.any(
-                                        (task) =>
-                                            task.status ==
-                                                AppTaskStatus.inProgress &&
-                                            task.progress < 1.0,
-                                      ))
-                                        CircularProgressIndicator(
-                                          value: null,
-                                          strokeWidth: 3,
-                                          trackGap: 0,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary
-                                                    .withOpacity(0.5),
-                                              ),
-                                          backgroundColor: Colors.transparent,
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              IconButton(
-                                icon: AnimatedRotation(
-                                  turns: opacityAnimation * 0.5,
-                                  duration: const Duration(milliseconds: 200),
-                                  child: Icon(
-                                    isExpanded
-                                        ? Symbols.expand_more
-                                        : Symbols.chevron_right,
-                                    size: 20,
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    onExpansionChanged?.call(!isExpanded),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isExpanded)
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  top: BorderSide(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outline,
-                                    width:
-                                        1 /
-                                        MediaQuery.of(context).devicePixelRatio,
-                                  ),
-                                ),
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: CustomScrollView(
-                                  slivers: [
-                                    SliverToBoxAdapter(
-                                      child: ListTile(
-                                        dense: true,
-                                        contentPadding: const EdgeInsets.only(
-                                          left: 18,
-                                          right: 16,
-                                        ),
-                                        title: const Text(
-                                          'clearCompleted',
-                                        ).tr(),
-                                        leading: Icon(
-                                          Symbols.clear_all,
-                                          size: 18,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                        onTap: () {
-                                          tasks.clearCompleted();
-                                          onExpansionChanged?.call(false);
-                                        },
-                                        trailing: IconButton(
-                                          tooltip: 'clearAll'.tr(),
-                                          icon: Icon(
-                                            Symbols.close,
-                                            size: 18,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
-                                          ),
-                                          padding: EdgeInsets.zero,
-                                          onPressed: () {
-                                            tasks.clearAll();
-                                            onExpansionChanged?.call(false);
-                                          },
-                                        ),
-                                        tileColor: Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHighest,
-                                      ),
-                                    ),
-                                    SliverList(
-                                      delegate: SliverChildBuilderDelegate((
-                                        context,
-                                        index,
-                                      ) {
-                                        final task = activeTasks[index];
-                                        return AnimatedOpacity(
-                                          opacity: opacityAnimation,
-                                          duration: const Duration(
-                                            milliseconds: 150,
-                                          ),
-                                          child: AppTaskTile(task: task),
-                                        );
-                                      }, childCount: activeTasks.length),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+    final nextCompletedTask =
+        allTasks
+            .where((task) => task.isFinished)
+            .where(
+              (task) =>
+                  DateTime.now().difference(task.updatedAt) <
+                  kTaskOverlayCompletedRetention,
+            )
+            .toList()
+          ..sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+
+    _clearTimer?.cancel();
+    if (nextCompletedTask.isNotEmpty) {
+      final oldestVisibleCompleted = nextCompletedTask.first;
+      final remaining =
+          kTaskOverlayCompletedRetention -
+          DateTime.now().difference(oldestVisibleCompleted.updatedAt);
+      _clearTimer = Timer(remaining.isNegative ? Duration.zero : remaining, () {
+        final notifier = ref.read(tasksProvider.notifier);
+        for (final id in finishedTaskIdsToAutoClear(
+          ref.read(tasksProvider),
+          now: DateTime.now(),
+        )) {
+          notifier.removeTask(id);
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allTasks = ref.watch(tasksProvider);
+    final snapshot = buildTaskOverlaySnapshot(allTasks, now: DateTime.now());
+    final isDesktop = DesktopWindowFrame.isPlatformDesktop;
+
+    _syncAutoClear(allTasks);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      height: snapshot.isVisible ? taskOverlayHeight(isDesktop) : 0,
+      child: ClipRect(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            height: taskOverlayHeight(isDesktop),
+            child: const TaskOverlay(),
           ),
         ),
       ),
     );
-
-    if (!isMobile) {
-      content = MouseRegion(
-        onEnter: (_) => onCompactChanged?.call(false),
-        onExit: (_) => onCompactChanged?.call(true),
-        child: content,
-      );
-    }
-
-    if (isCompact) {
-      content = Center(child: content);
-    }
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: isMobile ? 16 : 24,
-        left: isMobile ? 16 : 0,
-        right: isMobile ? 16 : 24,
-      ),
-      child: content,
-    );
-  }
-
-  double? _getTaskProgress(AppTask task) {
-    if (task.status == AppTaskStatus.completed || task.progress >= 1.0) {
-      return 1.0;
-    }
-    if (task.status != AppTaskStatus.inProgress) return 0.0;
-    return task.progress;
-  }
-
-  double _getOverallProgress(List<AppTask> tasks) {
-    if (tasks.isEmpty) return 0.0;
-    final progressValues = tasks.map((task) => _getTaskProgress(task));
-    final determinateProgresses = progressValues.where((p) => p != null);
-    if (determinateProgresses.isEmpty) return 0.0;
-    final totalProgress = determinateProgresses.fold<double>(
-      0.0,
-      (sum, progress) => sum + progress!,
-    );
-    return totalProgress / tasks.length;
-  }
-
-  String _getOverallProgressText(List<AppTask> tasks) {
-    final overallProgress = _getOverallProgress(tasks);
-    return '${(overallProgress * 100).toStringAsFixed(0)}%';
-  }
-
-  IconData _getOverallStatusIcon(List<AppTask> tasks) {
-    if (tasks.isEmpty) return Symbols.upload;
-
-    final hasDownload = tasks.any(
-      (task) => task.type == AppTaskType.driveDownload,
-    );
-    final hasInProgress = tasks.any(
-      (task) => task.status == AppTaskStatus.inProgress,
-    );
-    final hasPending = tasks.any(
-      (task) => task.status == AppTaskStatus.pending,
-    );
-    final hasPaused = tasks.any((task) => task.status == AppTaskStatus.paused);
-    final hasFailed = tasks.any(
-      (task) => task.isFinished && task.status != AppTaskStatus.completed,
-    );
-    final hasCompleted = tasks.any(
-      (task) => task.status == AppTaskStatus.completed,
-    );
-
-    if (hasInProgress) {
-      return hasDownload ? Symbols.download : Symbols.upload;
-    } else if (hasPending) {
-      return Symbols.schedule;
-    } else if (hasPaused) {
-      return Symbols.pause_circle;
-    } else if (hasFailed) {
-      return Symbols.error;
-    } else if (hasCompleted) {
-      return Symbols.check_circle;
-    } else {
-      return Symbols.upload;
-    }
-  }
-
-  String _getOverallStatusText(List<AppTask> tasks) {
-    if (tasks.isEmpty) return 'tasks'.plural(0);
-
-    final hasDownload = tasks.any(
-      (task) => task.type == AppTaskType.driveDownload,
-    );
-    final hasInProgress = tasks.any(
-      (task) => task.status == AppTaskStatus.inProgress,
-    );
-    final hasPending = tasks.any(
-      (task) => task.status == AppTaskStatus.pending,
-    );
-    final hasPaused = tasks.any((task) => task.status == AppTaskStatus.paused);
-    final hasFailed = tasks.any(
-      (task) => task.isFinished && task.status != AppTaskStatus.completed,
-    );
-    final hasCompleted = tasks.any(
-      (task) => task.status == AppTaskStatus.completed,
-    );
-
-    if (hasInProgress) {
-      if (hasDownload) {
-        return '${tasks.length} ${'downloading'.tr()}';
-      } else {
-        return '${tasks.length} ${'uploading'.tr()}';
-      }
-    } else if (hasPending) {
-      return '${tasks.length} ${'pending'.tr()}';
-    } else if (hasPaused) {
-      return '${tasks.length} ${'paused'.tr()}';
-    } else if (hasFailed) {
-      return '${tasks.length} ${'failed'.tr()}';
-    } else if (hasCompleted) {
-      return '${tasks.length} ${'completed'.tr()}';
-    } else {
-      return 'tasks'.plural(tasks.length);
-    }
-  }
-
-  double _getCompactWidth(List<AppTask> tasks) {
-    double width = 16 + 12 + 12;
-    final text = activeTasks.isEmpty ? '0 tasks' : _getOverallStatusText(tasks);
-    width += text.length * 8.0;
-    return width.clamp(200, 280);
   }
 }
+
+class _TaskOverlayBar extends ConsumerWidget {
+  final TaskOverlaySnapshot snapshot;
+  final List<AppTask> allTasks;
+  final double height;
+  final bool isDesktop;
+
+  const _TaskOverlayBar({
+    required this.snapshot,
+    required this.allTasks,
+    required this.height,
+    required this.isDesktop,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final primaryTask = snapshot.primaryTask;
+    final completedCount = snapshot.visibleTasks
+        .where((task) => task.status == AppTaskStatus.completed)
+        .length;
+    final title = _buildTitle(primaryTask);
+    final subtitle = _buildSubtitle(
+      primaryTask,
+      snapshot.visibleTasks.length,
+      completedCount,
+    );
+    final horizontalPadding = _overlayPadding(context);
+    final fillColor = _statusFillColor(colorScheme, primaryTask);
+    final trackColor = colorScheme.surfaceContainerHighest;
+    final contentColor = colorScheme.onSurface;
+
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: isDesktop ? 0 : horizontalPadding.left,
+          right: isDesktop ? 0 : horizontalPadding.right,
+        ),
+        child: GestureDetector(
+          onTap: () => _showTaskSheet(context, ref),
+          child: SizedBox(
+            height: height,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(isDesktop ? 0 : 18),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: trackColor,
+                      border: Border(
+                        top: BorderSide(
+                          color: colorScheme.outlineVariant.withOpacity(0.3),
+                        ),
+                        bottom: BorderSide(
+                          color: colorScheme.outlineVariant.withOpacity(0.5),
+                        ),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.14),
+                          blurRadius: 22,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final fillWidth =
+                          constraints.maxWidth * snapshot.progress.clamp(0, 1);
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 240),
+                          curve: Curves.easeOutCubic,
+                          width: fillWidth,
+                          decoration: BoxDecoration(
+                            color: fillColor,
+                            borderRadius: BorderRadius.horizontal(
+                              left: Radius.circular(isDesktop ? 0 : 18),
+                              right: Radius.circular(
+                                fillWidth >= constraints.maxWidth - 0.5
+                                    ? (isDesktop ? 0 : 18)
+                                    : 0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: isDesktop ? 22 : 36,
+                          height: isDesktop ? 22 : 36,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(
+                              isDesktop ? 7 : 12,
+                            ),
+                          ),
+                          child: Icon(
+                            _statusIcon(primaryTask),
+                            color: contentColor,
+                            size: isDesktop ? 14 : 20,
+                          ),
+                        ),
+                        Gap(isDesktop ? 8 : 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$title · $subtitle',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: contentColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: isDesktop ? 13 : null,
+                                  height: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Gap(isDesktop ? 8 : 12),
+                        Text(
+                          '${(snapshot.progress * 100).round()}%',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: contentColor,
+                            fontWeight: FontWeight.w800,
+                            fontSize: isDesktop ? 12 : null,
+                          ),
+                        ),
+                        Gap(isDesktop ? 6 : 8),
+                        Icon(
+                          Symbols.expand_less,
+                          color: contentColor.withOpacity(0.9),
+                          size: isDesktop ? 14 : 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _buildTitle(AppTask? task) {
+    if (task == null) return 'Tasks';
+    if (task.title.isNotEmpty) return task.title;
+    return task.status == AppTaskStatus.completed ? 'Completed' : 'Working';
+  }
+
+  String _buildSubtitle(AppTask? task, int visibleCount, int completedCount) {
+    final otherCount = visibleCount - 1;
+    if (task == null) return '$visibleCount tasks';
+
+    if (task.status == AppTaskStatus.completed &&
+        completedCount == visibleCount) {
+      return completedCount == 1
+          ? 'Completed just now'
+          : '$completedCount tasks finished just now';
+    }
+
+    final statusText = task.statusMessage?.trim();
+    if (statusText != null && statusText.isNotEmpty) {
+      return otherCount > 0 ? '$statusText · +$otherCount more' : statusText;
+    }
+
+    final label = switch (task.status) {
+      AppTaskStatus.pending => 'Queued',
+      AppTaskStatus.inProgress => 'In progress',
+      AppTaskStatus.paused => 'Paused',
+      AppTaskStatus.completed => 'Completed',
+      AppTaskStatus.failed => 'Failed',
+      AppTaskStatus.cancelled => 'Cancelled',
+      AppTaskStatus.expired => 'Expired',
+    };
+    return otherCount > 0 ? '$label · +$otherCount more' : label;
+  }
+
+  EdgeInsets _overlayPadding(BuildContext context) {
+    if (isDesktop) return EdgeInsets.zero;
+    final mediaQuery = MediaQuery.of(context);
+    return EdgeInsets.only(
+      left: 10 + mediaQuery.padding.left,
+      right: 10 + mediaQuery.padding.right,
+    );
+  }
+
+  IconData _statusIcon(AppTask? task) {
+    if (task == null) return Symbols.sync;
+    return switch (task.status) {
+      AppTaskStatus.pending => Symbols.schedule,
+      AppTaskStatus.inProgress =>
+        task.type == AppTaskType.driveDownload
+            ? Symbols.download
+            : Symbols.upload,
+      AppTaskStatus.paused => Symbols.pause_circle,
+      AppTaskStatus.completed => Symbols.check_circle,
+      AppTaskStatus.failed => Symbols.error,
+      AppTaskStatus.cancelled => Symbols.cancel,
+      AppTaskStatus.expired => Symbols.timer_off,
+    };
+  }
+
+  Color _statusFillColor(ColorScheme colorScheme, AppTask? task) {
+    if (task == null) return colorScheme.primary;
+    return switch (task.status) {
+      AppTaskStatus.completed => Colors.green,
+      AppTaskStatus.failed ||
+      AppTaskStatus.cancelled ||
+      AppTaskStatus.expired => Colors.red,
+      _ => colorScheme.primary,
+    };
+  }
+
+  void _showTaskSheet(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(tasksProvider.notifier);
+    final sortedTasks = [...allTasks]
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        return SheetScaffold(
+          titleText: 'Tasks',
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Row(
+                  children: [
+                    Text(
+                      '${sortedTasks.length} total',
+                      style: Theme.of(sheetContext).textTheme.bodySmall,
+                    ),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: notifier.clearCompleted,
+                      icon: const Icon(Symbols.done_all, size: 18),
+                      label: const Text('Clear done'),
+                    ),
+                    const Gap(8),
+                    TextButton.icon(
+                      onPressed: notifier.clearAll,
+                      icon: const Icon(Symbols.delete_sweep, size: 18),
+                      label: const Text('Clear all'),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: sortedTasks.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No tasks right now',
+                          style: Theme.of(sheetContext).textTheme.bodyMedium,
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: sortedTasks.length,
+                        itemBuilder: (context, index) {
+                          return AppTaskTile(task: sortedTasks[index]);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+double taskOverlayHeight(bool isDesktop) => isDesktop ? 32 : 56;
 
 class AppTaskTile extends StatefulWidget {
   final AppTask task;

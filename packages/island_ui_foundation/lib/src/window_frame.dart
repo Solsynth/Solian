@@ -15,7 +15,8 @@ class DesktopWindowFrame extends HookWidget {
   final List<Widget> Function(
     BuildContext context,
     ValueNotifier<bool> isMaximized,
-  )? additionalTitleBarActions;
+  )?
+  additionalTitleBarActions;
   final VoidCallback? onClose;
   final bool isDesktopPlatform;
 
@@ -54,6 +55,24 @@ class DesktopWindowFrame extends HookWidget {
       };
     }, [isDesktopPlatform]);
 
+    final framedChild = isDesktopPlatform
+        ? Material(
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Column(
+                  children: [
+                    DragToMoveArea(child: _buildTitleBar(context, isMaximized)),
+                    Expanded(child: child),
+                  ],
+                ),
+                ...overlays,
+              ],
+            ),
+          )
+        : Stack(fit: StackFit.expand, children: [child, ...overlays]);
+
     final builtWidget = Focus(
       focusNode: keyboardFocusNode,
       onKeyEvent: (node, event) {
@@ -64,43 +83,17 @@ class DesktopWindowFrame extends HookWidget {
         }
         return KeyEventResult.ignored;
       },
-      child: isDesktopPlatform
-          ? Material(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Column(
-                    children: [
-                      DragToMoveArea(
-                        child: _buildTitleBar(context, isMaximized),
-                      ),
-                      Expanded(child: child),
-                    ],
-                  ),
-                  ...overlays,
-                ],
-              ),
-            )
-          : child,
+      child: framedChild,
     );
 
     return builtWidget;
   }
 
-  Widget _buildTitleBar(
-    BuildContext context,
-    ValueNotifier<bool> isMaximized,
-  ) {
+  Widget _buildTitleBar(BuildContext context, ValueNotifier<bool> isMaximized) {
     if (Platform.isMacOS) {
       return SizedBox(
         height: 32,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            ?title,
-          ],
-        ),
+        child: Stack(alignment: Alignment.center, children: [?title]),
       );
     }
 
@@ -110,9 +103,7 @@ class DesktopWindowFrame extends HookWidget {
       children: [
         Expanded(
           child: Row(
-            children: [
-              if (title != null) Expanded(child: title!),
-            ],
+            children: [if (title != null) Expanded(child: title!)],
           ).padding(horizontal: 12, vertical: 5),
         ),
         if (additionalTitleBarActions != null)
