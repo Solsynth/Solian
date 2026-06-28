@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:island_ui_foundation/src/foundation.dart';
+import 'package:island_ui_foundation/src/responsive.dart';
 
 class _AttentionModalEntry {
   final String id;
@@ -156,7 +157,7 @@ class _AttentionModalHostState extends State<_AttentionModalHost>
       if (!_controllers.containsKey(entry.id)) {
         _controllers[entry.id] = AnimationController(
           vsync: this,
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 150),
         );
         _controllers[entry.id]!.forward();
       }
@@ -214,34 +215,46 @@ class _AttentionModalHostState extends State<_AttentionModalHost>
             _handleDismiss(topEntry.id);
           }
         },
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: stack.first.blurSigma,
-            sigmaY: stack.first.blurSigma,
-          ),
-          child: Container(
-            color:
-                stack.first.barrierColor ?? Colors.black.withOpacity(0.5),
-            child: Stack(
-              children: [
-                for (var i = 0; i < stack.length; i++)
-                  _buildEntry(
-                    stack[i],
-                    depth: i,
-                    isTop: i == stack.length - 1,
-                  ),
-              ],
-            ),
-          ),
-        ),
+        child: _buildLayeredBackdrop(context, stack),
       ),
     );
+  }
+
+  Widget _buildLayeredBackdrop(
+    BuildContext context,
+    List<_AttentionModalEntry> stack,
+  ) {
+    final useBlur = isWideScreen(context);
+    final children = <Widget>[];
+
+    for (var i = 0; i < stack.length; i++) {
+      final color = stack[i].barrierColor ?? Colors.black.withOpacity(0.5);
+      children.add(
+        Positioned.fill(
+          child: useBlur
+              ? BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: stack[i].blurSigma,
+                    sigmaY: stack[i].blurSigma,
+                  ),
+                  child: Container(color: color),
+                )
+              : Container(color: color),
+        ),
+      );
+      children.add(
+        _buildEntry(stack[i], depth: i, isTop: i == stack.length - 1, wide: useBlur),
+      );
+    }
+
+    return Stack(children: children);
   }
 
   Widget _buildEntry(
     _AttentionModalEntry entry, {
     required int depth,
     required bool isTop,
+    required bool wide,
   }) {
     final targetScale = (1.0 - depth * 0.15).clamp(0.4, 1.0);
     final controller = _controllers[entry.id];
@@ -254,16 +267,32 @@ class _AttentionModalHostState extends State<_AttentionModalHost>
           animation: controller ?? const AlwaysStoppedAnimation(1.0),
           builder: (context, child) {
             final progress = controller?.value ?? 1.0;
-            final scale = targetScale *
-                Tween<double>(begin: 0.8, end: 1.0).transform(progress);
-            final opacity =
-                Tween<double>(begin: 0.0, end: 1.0).transform(progress);
+            final t = Curves.easeOutCubic.transform(progress);
+            final opacity = Tween<double>(begin: 0.0, end: 1.0).transform(t);
 
+            if (wide) {
+              final scale = targetScale *
+                  Tween<double>(begin: 0.8, end: 1.0).transform(t);
+              return Opacity(
+                opacity: opacity,
+                child: Transform.scale(scale: scale, child: child),
+              );
+            }
+
+            final slideOffset =
+                Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+                    .transform(t);
             return Opacity(
               opacity: opacity,
-              child: Transform.scale(
-                scale: scale,
-                child: child,
+              child: Transform.translate(
+                offset: Offset(
+                  0,
+                  slideOffset.dy * MediaQuery.of(context).size.height,
+                ),
+                child: Transform.scale(
+                  scale: targetScale,
+                  child: child,
+                ),
               ),
             );
           },

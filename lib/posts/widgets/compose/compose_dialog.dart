@@ -175,6 +175,7 @@ class PostComposeDialog extends HookConsumerWidget {
         builder: (context, dismiss) => AttentionModalScaffold(
           titleText: 'postSettings'.tr(),
           onDismiss: dismiss,
+          forceCard: true,
           child: ComposeSettingsSheet(state: state),
         ),
       );

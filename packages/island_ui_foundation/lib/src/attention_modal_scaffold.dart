@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:island_ui_foundation/src/responsive.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -14,6 +16,7 @@ class AttentionModalScaffold extends StatefulWidget {
   final bool showHeader;
   final double? maxWidth;
   final double? maxHeightFactor;
+  final bool forceCard;
 
   const AttentionModalScaffold({
     super.key,
@@ -26,6 +29,7 @@ class AttentionModalScaffold extends StatefulWidget {
     this.showHeader = true,
     this.maxWidth = 640,
     this.maxHeightFactor = 0.85,
+    this.forceCard = false,
   });
 
   @override
@@ -84,7 +88,6 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
 
   Widget _buildContent(BuildContext context) {
     final cardContent = Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.showHeader) _buildHeader(context),
         Expanded(
@@ -104,23 +107,33 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
       ],
     );
 
-    if (!isWideScreen(context)) {
-      return SafeArea(
-        child: Container(
+    if (!isWideScreen(context) && !widget.forceCard) {
+      final isDesktop =
+          !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
+      final content = ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height *
+              (widget.maxHeightFactor ?? 0.85),
+        ),
+        child: Material(
           color: Theme.of(context).colorScheme.surface,
           child: cardContent,
         ),
       );
+      final paddedContent = isDesktop
+          ? Padding(padding: const EdgeInsets.only(top: 32), child: content)
+          : content;
+      return SafeArea(child: paddedContent);
     }
 
+    final wide = isWideScreen(context);
     return Padding(
       padding: EdgeInsets.symmetric(
-        vertical:
-            math.min(MediaQuery.of(context).size.height * 0.04, 32),
+        vertical: math.min(MediaQuery.of(context).size.height * 0.04, 32),
       ),
       child: Center(
         child: FractionallySizedBox(
-          widthFactor: 0.8,
+          widthFactor: wide ? 0.8 : 0.92,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: widget.maxWidth ?? 800,
@@ -129,7 +142,6 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
@@ -139,12 +151,13 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: cardContent,
+              child: Material(
+                color: Theme.of(context).colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
                 ),
+                clipBehavior: Clip.antiAlias,
+                child: cardContent,
               ),
             ),
           ),

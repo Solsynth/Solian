@@ -4,3 +4,5 @@ export 'src/attention_modal.dart';
 export 'src/attention_modal_scaffold.dart';
 export 'src/snackbar_overlay.dart';
 export 'src/notification_overlay.dart';
+export 'src/sheet_scaffold.dart';
+export 'src/window_frame.dart';
