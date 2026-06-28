@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -12,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/core/services/push_provider.dart';
 import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
@@ -258,6 +258,9 @@ Future<void> subscribePushNotification(
   if (!kIsWeb && Platform.isLinux) {
     return;
   }
+  if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+    await NativeCallBackgroundBridge.ensureInitialized();
+  }
   await FirebaseMessaging.instance.requestPermission(
     alert: true,
     badge: true,
@@ -327,8 +330,8 @@ Future<void> subscribePushNotification(
 Future<bool> _registerVoipTokenIfAvailable(Dio apiClient) async {
   if (kIsWeb || !Platform.isIOS) return false;
   try {
-    final voipToken = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
-    if (voipToken is! String || voipToken.isEmpty) {
+    final voipToken = await loadPersistedNativeCallPushToken();
+    if (voipToken == null || voipToken.isEmpty) {
       return false;
     }
     await _putTokenToRemote(

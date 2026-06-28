@@ -22,8 +22,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
-import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
-import 'package:island/core/utils/call_kit_utils.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
@@ -1098,11 +1097,10 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               try {
                 final roomId = await _promptForRoomId(context, 'Incoming Call');
                 if (roomId == null) return;
-                const channel = MethodChannel('island_call');
-                await channel.invokeMethod('simulateIncomingCall', {
-                  'callerName': 'Test User',
-                  'roomId': roomId,
-                });
+                await ref.read(nativeCallBridgeProvider.notifier).showIncomingCall(
+                  roomId: roomId,
+                  callerName: 'Test User',
+                );
                 if (!context.mounted) return;
                 showSnackBar('Fake incoming call triggered for room: $roomId');
               } catch (e) {
@@ -1118,12 +1116,10 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               try {
                 final roomId = await _promptForRoomId(context, 'Outgoing Call');
                 if (roomId == null) return;
-                await FlutterCallkitIncoming.startCall(
-                createCallKitParams(
+                await ref.read(nativeCallBridgeProvider.notifier).startOutgoingCall(
                   roomId: roomId,
                   callerName: 'Debug Call',
-                ),
-              );
+                );
                 if (!context.mounted) return;
                 showSnackBar('Fake outgoing call triggered for room: $roomId');
               } catch (e) {
@@ -1137,8 +1133,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             title: '[CallKit] Copy VoIP Token',
             onTap: () async {
               try {
-                final token =
-                    await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+                final token = await loadPersistedNativeCallPushToken();
                 if (token != null) {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (!context.mounted) return;
@@ -1910,11 +1905,12 @@ class DebugSheet extends HookConsumerWidget {
                       'Incoming Call',
                     );
                     if (roomId == null) return;
-                    const channel = MethodChannel('island_call');
-                    await channel.invokeMethod('simulateIncomingCall', {
-                      'callerName': 'Test User',
-                      'roomId': roomId,
-                    });
+                    await ref
+                        .read(nativeCallBridgeProvider.notifier)
+                        .showIncomingCall(
+                          roomId: roomId,
+                          callerName: 'Test User',
+                        );
                     if (!context.mounted) return;
                     showSnackBar(
                       'Fake incoming call triggered for room: $roomId',
@@ -1938,12 +1934,12 @@ class DebugSheet extends HookConsumerWidget {
                       'Outgoing Call',
                     );
                     if (roomId == null) return;
-                    await FlutterCallkitIncoming.startCall(
-                      createCallKitParams(
-                        roomId: roomId,
-                        callerName: 'Debug Call',
-                      ),
-                    );
+                    await ref
+                        .read(nativeCallBridgeProvider.notifier)
+                        .startOutgoingCall(
+                          roomId: roomId,
+                          callerName: 'Debug Call',
+                        );
                     if (!context.mounted) return;
                     showSnackBar(
                       'Fake outgoing call triggered for room: $roomId',
@@ -1962,8 +1958,7 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Copy VoIP Token'),
                 onTap: () async {
                   try {
-                    final token =
-                        await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+                    final token = await loadPersistedNativeCallPushToken();
                     if (token != null) {
                       await Clipboard.setData(ClipboardData(text: token));
                       if (!context.mounted) return;

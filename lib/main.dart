@@ -45,20 +45,18 @@ import 'package:island/chat/widgets/call_window.dart';
 
 final List<LogRecord> _earlyLogs = [];
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
-final _callkitBackgroundHold = Completer<void>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NativeCallBackgroundBridge.ensureInitialized();
+  final handled = await NativeCallBackgroundBridge.showIncomingCallFromPayload(
+    message.data,
+  );
   Logger.root.info('Handling a background message: ${message.messageId}');
-}
-
-@pragma('vm:entry-point')
-Future<void> callkitBackgroundMain() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  Logger.root.level = Level.ALL;
-  NativeCallBackgroundBridge.ensureInitialized();
-  await _callkitBackgroundHold.future;
+  if (handled) {
+    Logger.root.info('[NativeCall] Displayed background incoming call');
+  }
 }
 
 void main(List<String> args) async {

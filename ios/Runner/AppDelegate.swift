@@ -1,6 +1,5 @@
 import Flutter
-import AVFAudio
-import CallKit
+import callkeep
 import WidgetKit
 import UIKit
 import WatchConnectivity
@@ -8,27 +7,14 @@ import AppIntents
 import Intents
 import flutter_sharing_intent
 import Kingfisher
-import PushKit
-import flutter_callkit_incoming
-import WebRTC
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, PKPushRegistryDelegate, CallkitIncomingAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, CallKeepPushDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
-    private let pendingAcceptedCallKey = "dev.solsynth.solian.pendingAcceptedCall"
-    private let callKitChannelName = "dev.solsynth.solian/callkit"
     private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
-    private let callBridgeEngineName = "dev.solsynth.solian.callkit_bridge"
-    private let pendingAnswerTimeout: TimeInterval = 15
-    private var voipRegistry: PKPushRegistry?
-    private var bridgeFlutterEngine: FlutterEngine?
-    private var implicitCallKitChannel: FlutterMethodChannel?
     private var implicitDeepLinkChannel: FlutterMethodChannel?
-    private var bridgeCallKitChannel: FlutterMethodChannel?
-    private var pendingAnswerAction: CXAnswerCallAction?
-    private var pendingAnswerTimeoutWorkItem: DispatchWorkItem?
     
     private func refreshAppIntents() {
         guard #available(iOS 16.0, *) else {
@@ -71,108 +57,15 @@ import WebRTC
         } else {
             print("[iOS] WCSession not supported on this device.")
         }
-
-        ensureCallBridgeEngine()
-        
-        // Setup VoIP PushKit
-        let voipRegistry = PKPushRegistry(queue: .main)
-        voipRegistry.delegate = self
-        voipRegistry.desiredPushTypes = [.voIP]
-        self.voipRegistry = voipRegistry
+        CallKeep.setDelegate(self)
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    }
-
-    private func configureAudioSessionForCallKit() {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(
-                .playAndRecord,
-                mode: .voiceChat,
-                options: [.allowBluetooth, .allowBluetoothA2DP, .mixWithOthers]
-            )
-        } catch {
-            print("[CallKit] Failed to configure AVAudioSession: \(error.localizedDescription)")
-        }
-    }
-
-    private func prepareWebRTCAudioForCallKitActivation() {
-        configureAudioSessionForCallKit()
-        let rtcSession = RTCAudioSession.sharedInstance()
-        rtcSession.useManualAudio = true
-        rtcSession.isAudioEnabled = false
-    }
-
-    private func enableWebRTCAudioForActiveCallKitSession(_ audioSession: AVAudioSession) {
-        configureAudioSessionForCallKit()
-        let rtcSession = RTCAudioSession.sharedInstance()
-        rtcSession.useManualAudio = true
-        rtcSession.audioSessionDidActivate(audioSession)
-        rtcSession.isAudioEnabled = true
-    }
-
-    private func disableWebRTCAudioForCallKitSession(_ audioSession: AVAudioSession) {
-        let rtcSession = RTCAudioSession.sharedInstance()
-        rtcSession.isAudioEnabled = false
-        rtcSession.audioSessionDidDeactivate(audioSession)
-        rtcSession.useManualAudio = false
-    }
-
-    private func ensureCallBridgeEngine() {
-        if bridgeFlutterEngine == nil {
-            let engine = FlutterEngine(
-                name: callBridgeEngineName,
-                project: nil,
-                allowHeadlessExecution: true
-            )
-            bridgeFlutterEngine = engine
-            engine.run(withEntrypoint: "callkitBackgroundMain")
-            GeneratedPluginRegistrant.register(with: engine)
-            bridgeCallKitChannel = makeCallKitChannel(binaryMessenger: engine.binaryMessenger)
-            print("[CallKit] Bridge Flutter engine started")
-        } else if bridgeCallKitChannel == nil, let messenger = bridgeFlutterEngine?.binaryMessenger {
-            bridgeCallKitChannel = makeCallKitChannel(binaryMessenger: messenger)
-        }
-    }
-
-    private func makeCallKitChannel(binaryMessenger: FlutterBinaryMessenger) -> FlutterMethodChannel {
-        let channel = FlutterMethodChannel(
-            name: callKitChannelName,
-            binaryMessenger: binaryMessenger
-        )
-        channel.setMethodCallHandler { [weak self] call, result in
-            guard let self = self else {
-                result(FlutterError(code: "APP_DELEGATE_DEALLOCATED", message: nil, details: nil))
-                return
-            }
-            switch call.method {
-            case "fulfillPendingAnswer":
-                self.fulfillPendingAnswer()
-                result(nil)
-            case "getPendingAcceptedCall":
-                result(self.loadPendingAcceptedCall())
-            case "clearPendingAcceptedCall":
-                self.clearPendingAcceptedCall()
-                result(nil)
-            case "endCall":
-                self.failPendingAnswerIfNeeded(endNativeCall: false)
-                SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
-                result(nil)
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        }
-        return channel
     }
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
         
         setupWidgetSyncChannel(engineBridge: engineBridge)
-        
-        implicitCallKitChannel = makeCallKitChannel(
-            binaryMessenger: engineBridge.applicationRegistrar.messenger()
-        )
         implicitDeepLinkChannel = makeDeepLinkChannel(
             binaryMessenger: engineBridge.applicationRegistrar.messenger()
         )
@@ -418,159 +311,45 @@ import WebRTC
         sendCfgToAppGroup()
         refreshAppIntents()
     }
-    
-    // MARK: - PKPushRegistryDelegate
-    
-    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
-        guard type == .voIP else { return }
-        let deviceToken = credentials.token.map { String(format: "%02x", $0) }.joined()
-        print("[PushKit] VoIP token updated: \(deviceToken)")
-        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP(deviceToken)
-    }
-    
-    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        print("[PushKit] VoIP token invalidated")
-        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP("")
-    }
-    
-    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        guard type == .voIP else { completion(); return }
-        print("[PushKit] VoIP push received: \(payload.dictionaryPayload)")
-        ensureCallBridgeEngine()
-        
-        // Convert [AnyHashable: Any] to [String: Any]
-        let payloadDict = payload.dictionaryPayload.reduce(into: [String: Any]()) { result, pair in
+
+    // MARK: - CallKeepPushDelegate
+
+    func mapPushPayload(_ payload: [AnyHashable : Any]) -> [AnyHashable : Any]? {
+        let normalized = payload.reduce(into: [String: Any]()) { result, pair in
             if let key = pair.key as? String {
                 result[key] = pair.value
             }
         }
-        // Extract from nested 'meta' object if present
-        let meta = payloadDict["meta"] as? [String: Any] ?? payloadDict
-        
-        let id = meta["room_id"] as? String ?? UUID().uuidString
-        let nameCaller = meta["caller_name"] as? String ?? "Unknown"
+
+        let meta = normalized["meta"] as? [String: Any] ?? normalized
+        guard let roomId = meta["room_id"] as? String, !roomId.isEmpty else {
+            return meta
+        }
+
+        let callerName = (meta["caller_name"] as? String)?.isEmpty == false
+            ? meta["caller_name"] as? String
+            : "Voice Call"
         let callerId = meta["caller_id"] as? String ?? ""
-        let handle = callerId.isEmpty ? "" : "@\(callerId)"
-        
-        let data = flutter_callkit_incoming.Data(
-            id: id,
-            nameCaller: nameCaller,
-            handle: handle,
-            type: 0
-        )
-        data.handleType = "generic"
-        data.extra = meta as NSDictionary
-        data.configureAudioSession = false
+        let uuid = (meta["uuid"] as? String)?.isEmpty == false
+            ? meta["uuid"] as? String
+            : UUID().uuidString.lowercased()
+        let callerIdType = (meta["caller_id_type"] as? String)?.isEmpty == false
+            ? meta["caller_id_type"] as? String
+            : "generic"
+        let hasVideo = meta["has_video"] as? Bool ?? false
 
-        prepareWebRTCAudioForCallKitActivation()
-        
-        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
-            completion()
-        }
-    }
-    
-    // MARK: - CallkitIncomingAppDelegate
-
-    func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
-        let roomId = call.data.uuid
-        print("[CallKit] Call accepted: \(roomId)")
-
-        prepareWebRTCAudioForCallKitActivation()
-        pendingAnswerAction = action
-        persistPendingAcceptedCall([
-            "roomId": roomId,
-            "callerName": call.data.nameCaller ?? "Unknown",
-            "callerId": call.data.handle ?? ""
-        ])
-        schedulePendingAnswerTimeout(for: action)
-
-        let payload = loadPendingAcceptedCall()
-        implicitCallKitChannel?.invokeMethod("callAccepted", arguments: payload)
-        bridgeCallKitChannel?.invokeMethod("callAccepted", arguments: payload)
-    }
-    
-    /// Called by Flutter when the call is connected
-    func fulfillPendingAnswer() {
-        guard let action = pendingAnswerAction else { return }
-        print("[CallKit] Fulfilling pending answer action")
-        cancelPendingAnswerTimeout()
-        action.fulfill()
-        pendingAnswerAction = nil
-        clearPendingAcceptedCall()
-    }
-    
-    func onDecline(_ call: Call, _ action: CXEndCallAction) {
-        failPendingAnswerIfNeeded(endNativeCall: false)
-        print("[CallKit] Call declined: \(call.data.uuid)")
-        action.fulfill()
-    }
-    
-    func onEnd(_ call: Call, _ action: CXEndCallAction) {
-        failPendingAnswerIfNeeded(endNativeCall: false)
-        print("[CallKit] Call ended: \(call.data.uuid)")
-        action.fulfill()
-    }
-    
-    func onTimeOut(_ call: Call) {
-        failPendingAnswerIfNeeded(endNativeCall: false)
-        print("[CallKit] Call timed out: \(call.data.uuid)")
-    }
-    
-    func didActivateAudioSession(_ audioSession: AVAudioSession) {
-        print("[CallKit] Audio session activated")
-        enableWebRTCAudioForActiveCallKitSession(audioSession)
-    }
-    
-    func didDeactivateAudioSession(_ audioSession: AVAudioSession) {
-        print("[CallKit] Audio session deactivated")
-        disableWebRTCAudioForCallKitSession(audioSession)
-    }
-    
-    func providerDidReset() {
-        failPendingAnswerIfNeeded(endNativeCall: false)
-        print("[CallKit] Provider did reset")
+        var mapped = meta
+        mapped["uuid"] = uuid
+        mapped["caller_name"] = callerName
+        mapped["caller_id"] = callerId
+        mapped["caller_id_type"] = callerIdType
+        mapped["has_video"] = hasVideo
+        mapped["room_id"] = roomId
+        return mapped
     }
 
-    private func schedulePendingAnswerTimeout(for action: CXAnswerCallAction) {
-        cancelPendingAnswerTimeout()
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self = self, self.pendingAnswerAction?.callUUID == action.callUUID else {
-                return
-            }
-            print("[CallKit] Pending answer timed out for call: \(action.callUUID.uuidString)")
-            self.failPendingAnswerIfNeeded(endNativeCall: true)
-        }
-        pendingAnswerTimeoutWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + pendingAnswerTimeout, execute: workItem)
-    }
-
-    private func cancelPendingAnswerTimeout() {
-        pendingAnswerTimeoutWorkItem?.cancel()
-        pendingAnswerTimeoutWorkItem = nil
-    }
-
-    private func failPendingAnswerIfNeeded(endNativeCall: Bool) {
-        cancelPendingAnswerTimeout()
-        if let action = pendingAnswerAction {
-            action.fail()
-            pendingAnswerAction = nil
-        }
-        clearPendingAcceptedCall()
-        if endNativeCall {
-            SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endAllCalls()
-        }
-    }
-
-    private func persistPendingAcceptedCall(_ payload: [String: Any]) {
-        UserDefaults.standard.set(payload, forKey: pendingAcceptedCallKey)
-    }
-
-    private func loadPendingAcceptedCall() -> [String: Any]? {
-        UserDefaults.standard.dictionary(forKey: pendingAcceptedCallKey)
-    }
-
-    private func clearPendingAcceptedCall() {
-        UserDefaults.standard.removeObject(forKey: pendingAcceptedCallKey)
+    func onCallEvent(_ event: String, withCallData callData: [AnyHashable : Any]) {
+        print("[CallKeep] Event \(event): \(callData)")
     }
 }
 
