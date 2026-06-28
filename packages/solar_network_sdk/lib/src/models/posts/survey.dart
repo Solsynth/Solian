@@ -4,6 +4,15 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'survey.freezed.dart';
 part 'survey.g.dart';
 
+enum SnSurveyStatus {
+  @JsonValue(0)
+  draft,
+  @JsonValue(1)
+  published,
+  @JsonValue(2)
+  archived,
+}
+
 @freezed
 sealed class SnSurveyWithStats with _$SnSurveyWithStats {
   const factory SnSurveyWithStats({
@@ -16,6 +25,11 @@ sealed class SnSurveyWithStats with _$SnSurveyWithStats {
     DateTime? endedAt,
     required String publisherId,
     SnPublisher? publisher,
+    required SnSurveyStatus status,
+    DateTime? publishedAt,
+    @Default(false) bool notifySubscribers,
+    @Default(false) bool isAnonymous,
+    @Default([]) List<SnCloudFileReference> attachments,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
@@ -39,6 +53,12 @@ sealed class SnSurvey with _$SnSurvey {
     required String publisherId,
     SnPublisher? publisher,
 
+    required SnSurveyStatus status,
+    DateTime? publishedAt,
+    @Default(false) bool notifySubscribers,
+    @Default(false) bool isAnonymous,
+    @Default([]) List<SnCloudFileReference> attachments,
+
     // ModelBase fields
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -55,6 +75,11 @@ sealed class SnSurvey with _$SnSurvey {
     endedAt: surveyWithStats.endedAt,
     publisherId: surveyWithStats.publisherId,
     publisher: surveyWithStats.publisher,
+    status: surveyWithStats.status,
+    publishedAt: surveyWithStats.publishedAt,
+    notifySubscribers: surveyWithStats.notifySubscribers,
+    isAnonymous: surveyWithStats.isAnonymous,
+    attachments: surveyWithStats.attachments,
     createdAt: surveyWithStats.createdAt,
     updatedAt: surveyWithStats.updatedAt,
     deletedAt: surveyWithStats.deletedAt,
@@ -73,6 +98,12 @@ sealed class SnSurveyQuestion with _$SnSurveyQuestion {
     String? description,
     required int order,
     required bool isRequired,
+
+    int? maxSelections,
+    int? maxLength,
+    double? minValue,
+    double? maxValue,
+    @Default([]) List<SnCloudFileReference> attachments,
   }) = _SnSurveyQuestion;
 
   factory SnSurveyQuestion.fromJson(Map<String, dynamic> json) =>
@@ -120,4 +151,19 @@ sealed class SnSurveyAnswer with _$SnSurveyAnswer {
 
   factory SnSurveyAnswer.fromJson(Map<String, dynamic> json) =>
       _$SnSurveyAnswerFromJson(json);
+}
+
+@freezed
+sealed class SnSurveySubscription with _$SnSurveySubscription {
+  const factory SnSurveySubscription({
+    required String id,
+    required String surveyId,
+    required String accountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
+  }) = _SnSurveySubscription;
+
+  factory SnSurveySubscription.fromJson(Map<String, dynamic> json) =>
+      _$SnSurveySubscriptionFromJson(json);
 }

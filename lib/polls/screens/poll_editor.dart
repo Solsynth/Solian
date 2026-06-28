@@ -17,11 +17,13 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 const _emptyGuid = '00000000-0000-0000-0000-000000000000';
 
 class PollEditorState {
-  String? id; // for editing
+  String? id;
   String? title;
   String? description;
   DateTime? endedAt;
   List<SnSurveyQuestion> questions;
+  bool notifySubscribers;
+  bool isAnonymous;
 
   PollEditorState({
     this.id,
@@ -29,6 +31,8 @@ class PollEditorState {
     this.description,
     this.endedAt,
     List<SnSurveyQuestion>? questions,
+    this.notifySubscribers = false,
+    this.isAnonymous = false,
   }) : questions = questions ?? const [];
 }
 
@@ -49,6 +53,8 @@ class PollEditor extends Notifier<PollEditorState> {
       title: source.title,
       description: source.description,
       endedAt: source.endedAt,
+      notifySubscribers: source.notifySubscribers,
+      isAnonymous: source.isAnonymous,
       questions: source.questions
           .map(
             (q) => q.copyWith(
@@ -108,6 +114,32 @@ class PollEditor extends Notifier<PollEditorState> {
       title: state.title,
       description: state.description,
       endedAt: value,
+      notifySubscribers: state.notifySubscribers,
+      isAnonymous: state.isAnonymous,
+      questions: [...state.questions],
+    );
+  }
+
+  void setNotifySubscribers(bool value) {
+    state = PollEditorState(
+      id: state.id,
+      title: state.title,
+      description: state.description,
+      endedAt: state.endedAt,
+      notifySubscribers: value,
+      isAnonymous: state.isAnonymous,
+      questions: [...state.questions],
+    );
+  }
+
+  void setIsAnonymous(bool value) {
+    state = PollEditorState(
+      id: state.id,
+      title: state.title,
+      description: state.description,
+      endedAt: state.endedAt,
+      notifySubscribers: state.notifySubscribers,
+      isAnonymous: value,
       questions: [...state.questions],
     );
   }
@@ -420,6 +452,8 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
       'title': model.title,
       'description': model.description,
       'endedAt': model.endedAt?.toUtc().toIso8601String(),
+      'notify_subscribers': model.notifySubscribers,
+      'is_anonymous': model.isAnonymous,
       'questions': model.questions
           .map(
             (q) => {
@@ -564,6 +598,19 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
                     _EndDatePicker(
                       value: model.endedAt,
                       onChanged: notifier.setEndedAt,
+                    ),
+                    const Gap(12),
+                    SwitchListTile(
+                      title: Text('surveyNotifySubscribers'.tr()),
+                      subtitle: Text('surveyNotifySubscribersHint'.tr()),
+                      value: model.notifySubscribers,
+                      onChanged: (v) => notifier.setNotifySubscribers(v),
+                    ),
+                    SwitchListTile(
+                      title: Text('surveyAnonymousAnswers'.tr()),
+                      subtitle: Text('surveyAnonymousAnswersHint'.tr()),
+                      value: model.isAnonymous,
+                      onChanged: (v) => notifier.setIsAnonymous(v),
                     ),
                     const Gap(24),
                     Row(
