@@ -8,18 +8,12 @@ part of 'native_call_bridge.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Thin wrapper that listens to the native event channel and exposes
-/// call state to Flutter widgets that need it (e.g., showing "in call" badges).
 
 @ProviderFor(NativeCallBridge)
 final nativeCallBridgeProvider = NativeCallBridgeProvider._();
 
-/// Thin wrapper that listens to the native event channel and exposes
-/// call state to Flutter widgets that need it (e.g., showing "in call" badges).
 final class NativeCallBridgeProvider
     extends $NotifierProvider<NativeCallBridge, NativeCallState> {
-  /// Thin wrapper that listens to the native event channel and exposes
-  /// call state to Flutter widgets that need it (e.g., showing "in call" badges).
   NativeCallBridgeProvider._()
     : super(
         from: null,
@@ -47,10 +41,7 @@ final class NativeCallBridgeProvider
   }
 }
 
-String _$nativeCallBridgeHash() => r'aece23641db5093925e3ed7f9df66272075816d0';
-
-/// Thin wrapper that listens to the native event channel and exposes
-/// call state to Flutter widgets that need it (e.g., showing "in call" badges).
+String _$nativeCallBridgeHash() => r'e69198104a5130fbd02240c779fce9142313b93b';
 
 abstract class _$NativeCallBridge extends $Notifier<NativeCallState> {
   NativeCallState build();
