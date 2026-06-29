@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/services/drive_task_ws_handler.dart';
+import 'package:island/route.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart';
@@ -188,7 +189,6 @@ class _TaskOverlayBar extends ConsumerWidget {
     final horizontalPadding = _overlayPadding(context);
     final fillColor = _statusFillColor(colorScheme, primaryTask);
     final trackColor = colorScheme.surfaceContainerHighest;
-    final contentColor = colorScheme.onSurface;
 
     return Material(
       color: Colors.transparent,
@@ -204,34 +204,38 @@ class _TaskOverlayBar extends ConsumerWidget {
             height: height,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(isDesktop ? 0 : 18),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: trackColor,
-                      border: Border(
-                        top: BorderSide(
-                          color: colorScheme.outlineVariant.withOpacity(0.3),
-                        ),
-                        bottom: BorderSide(
-                          color: colorScheme.outlineVariant.withOpacity(0.5),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final fillWidth =
+                      constraints.maxWidth * snapshot.progress.clamp(0, 1);
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: trackColor,
+                          border: Border(
+                            top: BorderSide(
+                              color: colorScheme.outlineVariant.withOpacity(
+                                0.3,
+                              ),
+                            ),
+                            bottom: BorderSide(
+                              color: colorScheme.outlineVariant.withOpacity(
+                                0.5,
+                              ),
+                            ),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.14),
+                              blurRadius: 22,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.14),
-                          blurRadius: 22,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final fillWidth =
-                          constraints.maxWidth * snapshot.progress.clamp(0, 1);
-                      return Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 240),
@@ -249,72 +253,96 @@ class _TaskOverlayBar extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: isDesktop ? 22 : 36,
-                          height: isDesktop ? 22 : 36,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.14),
-                            borderRadius: BorderRadius.circular(
-                              isDesktop ? 7 : 12,
+                      ),
+                      _buildForeground(
+                        theme,
+                        color: Colors.white,
+                        text: '$title · $subtitle',
+                      ),
+                      ClipRect(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: snapshot.progress.clamp(0, 1),
+                          child: SizedBox(
+                            width: constraints.maxWidth,
+                            child: _buildForeground(
+                              theme,
+                              color: colorScheme.onPrimary,
+                              text: '$title · $subtitle',
                             ),
                           ),
-                          child: Icon(
-                            _statusIcon(primaryTask),
-                            color: contentColor,
-                            size: isDesktop ? 14 : 20,
-                          ),
                         ),
-                        Gap(isDesktop ? 8 : 12),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$title · $subtitle',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: contentColor,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: isDesktop ? 13 : null,
-                                  height: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Gap(isDesktop ? 8 : 12),
-                        Text(
-                          '${(snapshot.progress * 100).round()}%',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: contentColor,
-                            fontWeight: FontWeight.w800,
-                            fontSize: isDesktop ? 12 : null,
-                          ),
-                        ),
-                        Gap(isDesktop ? 6 : 8),
-                        Icon(
-                          Symbols.expand_less,
-                          color: contentColor.withOpacity(0.9),
-                          size: isDesktop ? 14 : 18,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildForeground(
+    ThemeData theme, {
+    required Color color,
+    required String text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Container(
+            width: isDesktop ? 22 : 36,
+            height: isDesktop ? 22 : 36,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(isDesktop ? 7 : 12),
+            ),
+            child: Icon(
+              _statusIcon(snapshot.primaryTask),
+              color: color,
+              size: isDesktop ? 14 : 20,
+            ),
+          ),
+          Gap(isDesktop ? 8 : 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: isDesktop ? 13 : null,
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Gap(isDesktop ? 8 : 12),
+          Text(
+            '${(snapshot.progress * 100).round()}%',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: isDesktop ? 12 : null,
+            ),
+          ),
+          Gap(isDesktop ? 6 : 8),
+          Icon(
+            Symbols.expand_less,
+            color: color.withOpacity(0.9),
+            size: isDesktop ? 14 : 18,
+          ),
+        ],
       ),
     );
   }
@@ -393,10 +421,11 @@ class _TaskOverlayBar extends ConsumerWidget {
     final notifier = ref.read(tasksProvider.notifier);
     final sortedTasks = [...allTasks]
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    final navigator = Navigator.of(context, rootNavigator: true);
+    final navigatorContext =
+        ref.read(routerProvider).navigatorKey.currentContext ?? context;
 
     showModalBottomSheet<void>(
-      context: navigator.context,
+      context: navigatorContext,
       isScrollControlled: true,
       useSafeArea: true,
       useRootNavigator: true,

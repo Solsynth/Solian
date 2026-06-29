@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/database.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/posts/screens/post_detail.dart';
@@ -150,17 +151,23 @@ class PostComposeDialog extends HookConsumerWidget {
     );
 
     useEffect(() {
+      final database = ref.read(databaseProvider);
       final isNewPost =
           effectiveOriginalPost == null &&
           repliedPost == null &&
           forwardedPost == null;
       if (isNewPost) {
-        state.startAutoSave(ref);
+        state.startAutoSave(
+          (composeState) => ComposeLogic.saveDraftWithoutUploadWithDatabase(
+            database,
+            composeState,
+          ),
+        );
       }
       return () {
         state.stopAutoSave();
         if (isNewPost) {
-          ComposeLogic.saveDraftWithoutUpload(ref, state);
+          ComposeLogic.saveDraftWithoutUploadWithDatabase(database, state);
         }
         ComposeLogic.dispose(state);
       };
