@@ -1,5 +1,4 @@
 import Flutter
-import callkeep
 import WidgetKit
 import UIKit
 import WatchConnectivity
@@ -9,7 +8,7 @@ import flutter_sharing_intent
 import Kingfisher
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, CallKeepPushDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
     private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
@@ -57,8 +56,6 @@ import Kingfisher
         } else {
             print("[iOS] WCSession not supported on this device.")
         }
-        CallKeep.setDelegate(self)
-
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
@@ -310,46 +307,6 @@ import Kingfisher
     override func applicationWillTerminate(_ application: UIApplication) {
         sendCfgToAppGroup()
         refreshAppIntents()
-    }
-
-    // MARK: - CallKeepPushDelegate
-
-    func mapPushPayload(_ payload: [AnyHashable : Any]) -> [AnyHashable : Any]? {
-        let normalized = payload.reduce(into: [String: Any]()) { result, pair in
-            if let key = pair.key as? String {
-                result[key] = pair.value
-            }
-        }
-
-        let meta = normalized["meta"] as? [String: Any] ?? normalized
-        guard let roomId = meta["room_id"] as? String, !roomId.isEmpty else {
-            return meta
-        }
-
-        let callerName = (meta["caller_name"] as? String)?.isEmpty == false
-            ? meta["caller_name"] as? String
-            : "Voice Call"
-        let callerId = meta["caller_id"] as? String ?? ""
-        let uuid = (meta["uuid"] as? String)?.isEmpty == false
-            ? meta["uuid"] as? String
-            : UUID().uuidString.lowercased()
-        let callerIdType = (meta["caller_id_type"] as? String)?.isEmpty == false
-            ? meta["caller_id_type"] as? String
-            : "generic"
-        let hasVideo = meta["has_video"] as? Bool ?? false
-
-        var mapped = meta
-        mapped["uuid"] = uuid
-        mapped["caller_name"] = callerName
-        mapped["caller_id"] = callerId
-        mapped["caller_id_type"] = callerIdType
-        mapped["has_video"] = hasVideo
-        mapped["room_id"] = roomId
-        return mapped
-    }
-
-    func onCallEvent(_ event: String, withCallData callData: [AnyHashable : Any]) {
-        print("[CallKeep] Event \(event): \(callData)")
     }
 }
 
