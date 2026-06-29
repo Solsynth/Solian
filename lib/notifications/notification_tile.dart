@@ -1,8 +1,10 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:relative_time/relative_time.dart';
@@ -10,7 +12,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class NotificationTile extends StatelessWidget {
+class NotificationTile extends ConsumerWidget {
   final SnNotification notification;
   final double? avatarRadius;
   final EdgeInsets? contentPadding;
@@ -52,7 +54,7 @@ class NotificationTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final pfp = notification.meta['pfp'] as String?;
     final images = notification.meta['images'] as List?;
     final imageIds = images?.cast<String>() ?? [];
@@ -166,13 +168,15 @@ class NotificationTile extends StatelessWidget {
         if (notification.meta['action_uri'] != null) {
           var uri = notification.meta['action_uri'] as String;
           if (uri.startsWith('/')) {
-            // In-app routes
-            context.router.pushPath(
+            // In-app routes — use global router so navigation works
+            // inside attention modals where context.router is unavailable.
+            ref.read(routerProvider).pushPath(
               notification.meta['action_uri'],
               onFailure: (err) {
                 showErrorAlert('Unable to open page: $err');
               },
             );
+            dismissAttentionModal('notifications');
           } else {
             // External URLs
             launchUrlString(uri);
