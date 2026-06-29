@@ -86,8 +86,8 @@ dependencies:
   firebase_core: ^4.11.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2951.0
-  objectbox: ^5.3.2
-  objectbox_flutter_libs: ^5.3.2
+  objectbox: ^6.0.0-preview.1
+  objectbox_flutter_libs: ^6.0.0-preview.1
   path: ^1.9.1
   open_file: ^4.0.0
   collection: ^1.19.1
@@ -110,12 +110,12 @@ dependencies:
   pasteboard: ^0.5.0
   flutter_colorpicker: ^1.1.0
   image: ^4.9.1
-  record: ^7.1.0
+  record: ^7.1.1
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.2.0
   flutter_staggered_grid_view: ^0.7.0
   flutter_popup_card: ^0.1.2
-  timezone: ^0.11.0
+  timezone: ^0.11.1
   flutter_timezone: ^5.1.0
   fl_chart: ^1.2.0
   sign_in_with_apple: ^8.1.0
@@ -206,10 +206,10 @@ dev_dependencies:
   freezed: ^3.2.5
   json_serializable: ^6.13.0
   riverpod_generator: ^4.0.3
-  objectbox_generator: ^5.3.2
+  objectbox_generator: ^6.0.0-preview.1
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
-  msix: ^3.17.0
+  msix: ^3.18.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
