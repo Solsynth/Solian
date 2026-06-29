@@ -3,17 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
-import 'package:island/polls/polls_widgets/poll/poll_stats_widget.dart';
+import 'package:island/polls/polls_widgets/poll/survey_stats_widget.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-enum PollSubmitVisualStyle { compact, fullPage }
+enum SurveySubmitVisualStyle { compact, fullPage }
 
-class PollSubmit extends ConsumerStatefulWidget {
-  const PollSubmit({
+class SurveySubmit extends ConsumerStatefulWidget {
+  const SurveySubmit({
     super.key,
-    required this.pollId,
+    required this.surveyId,
     required this.onSubmit,
     this.initialAnswers,
     this.onCancel,
@@ -21,10 +21,10 @@ class PollSubmit extends ConsumerStatefulWidget {
     this.isReadonly = false,
     this.isInitiallyExpanded = false,
     this.disableCollapse = false,
-    this.visualStyle = PollSubmitVisualStyle.compact,
+    this.visualStyle = SurveySubmitVisualStyle.compact,
   });
 
-  final String pollId;
+  final String surveyId;
 
   /// Callback when user submits all answers. Map questionId -> answer.
   final void Function(Map<String, dynamic> answers) onSubmit;
@@ -46,13 +46,13 @@ class PollSubmit extends ConsumerStatefulWidget {
   /// When true, the poll cannot be collapsed and always stays expanded.
   final bool disableCollapse;
 
-  final PollSubmitVisualStyle visualStyle;
+  final SurveySubmitVisualStyle visualStyle;
 
   @override
-  ConsumerState<PollSubmit> createState() => _PollSubmitState();
+  ConsumerState<SurveySubmit> createState() => _SurveySubmitState();
 }
 
-class _PollSubmitState extends ConsumerState<PollSubmit> {
+class _SurveySubmitState extends ConsumerState<SurveySubmit> {
   List<SnSurveyQuestion>? _questions;
   int _index = 0;
   bool _submitting = false;
@@ -113,9 +113,9 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   }
 
   @override
-  void didUpdateWidget(covariant PollSubmit oldWidget) {
+  void didUpdateWidget(covariant SurveySubmit oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.pollId != widget.pollId) {
+    if (oldWidget.surveyId != widget.surveyId) {
       _index = 0;
       _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
       // Reset modification state when poll changes
@@ -132,7 +132,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   SnSurveyQuestion get _current => _questions![_index];
 
-  bool get _isFullPage => widget.visualStyle == PollSubmitVisualStyle.fullPage;
+  bool get _isFullPage =>
+      widget.visualStyle == SurveySubmitVisualStyle.fullPage;
 
   bool _isExpired(SnSurveyWithStats poll) {
     final endedAt = poll.endedAt;
@@ -253,7 +254,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
       );
 
       // Refresh poll data to show submitted answer
-      ref.invalidate(surveyWithStatsProvider(widget.pollId));
+      ref.invalidate(surveyWithStatsProvider(widget.surveyId));
 
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
@@ -377,7 +378,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     SnSurveyQuestion q,
     Map<String, dynamic>? stats,
   ) {
-    return PollStatsWidget(question: q, stats: stats);
+    return SurveyStatsWidget(question: q, stats: stats);
   }
 
   Widget _buildBody(BuildContext context, SnSurveyWithStats poll) {
@@ -884,7 +885,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   @override
   Widget build(BuildContext context) {
-    final pollAsync = ref.watch(surveyWithStatsProvider(widget.pollId));
+    final pollAsync = ref.watch(surveyWithStatsProvider(widget.surveyId));
 
     return pollAsync.when(
       loading: () => const Center(

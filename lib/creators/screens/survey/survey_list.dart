@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/survey/survey_editor.dart';
-import 'package:island/polls/polls_widgets/poll/poll_feedback.dart';
+import 'package:island/polls/polls_widgets/poll/survey_feedback.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
@@ -377,10 +377,13 @@ class _CreatorSurveyItem extends HookConsumerWidget {
             ),
           ],
         ),
-        onTap: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (context) => PollFeedbackSheet(pollId: surveyWithStats.id),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SurveyFeedbackPage(
+              surveyId: surveyWithStats.id,
+              title: surveyWithStats.title,
+            ),
+          ),
         ),
       ),
     );
