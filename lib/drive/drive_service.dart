@@ -478,8 +478,9 @@ FileUploader driveFileUploader(Ref ref) {
 class FileUploader {
   static Future<void>? _activeQuotaSheetFuture;
   final Ref ref;
-  late final _client = ref.watch(solarNetworkClientProvider).dio;
-  late final _driveApi = ref.watch(solarNetworkClientProvider).drive;
+  late final _client = ref.read(solarNetworkClientProvider).dio;
+  late final _driveApi = ref.read(solarNetworkClientProvider).drive;
+  late final _navigatorKey = ref.read(routerProvider).navigatorKey;
   FileUploader(this.ref);
 
   String _parseUploadError(DioException err) {
@@ -532,7 +533,7 @@ class FileUploader {
     final activeSheet = _activeQuotaSheetFuture;
     if (activeSheet != null) return activeSheet;
 
-    final context = ref.read(routerProvider).navigatorKey.currentContext;
+    final context = _navigatorKey.currentContext;
     if (context == null || !context.mounted) {
       return Future.value();
     }
@@ -1738,7 +1739,9 @@ class FileDownloadService {
     await FileSaver.instance.saveFile(
       name: _getFileName(item, extName),
       file: File(tempFilePath),
-      mimeType: MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ?? MimeType.custom,
+      mimeType:
+          MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ??
+          MimeType.custom,
     );
     return null;
   }
@@ -1837,7 +1840,11 @@ class FileDownloadService {
             await FileSaver.instance.saveFile(
               name: _getFileName(item, extName),
               file: File(downloaded.filePath),
-              mimeType: MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ?? MimeType.custom,
+              mimeType:
+                  MimeType.values.firstWhereOrNull(
+                    (e) => e.type == item.mimeType,
+                  ) ??
+                  MimeType.custom,
             );
           }
           tasks.updateTask(
@@ -1927,7 +1934,11 @@ class FileDownloadService {
         await FileSaver.instance.saveFile(
           name: _getFileName(item, extName),
           file: File(downloaded.filePath),
-          mimeType: MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ?? MimeType.custom,
+          mimeType:
+              MimeType.values.firstWhereOrNull(
+                (e) => e.type == item.mimeType,
+              ) ??
+              MimeType.custom,
         );
       }
       tasks.updateTask(taskId, status: AppTaskStatus.completed, progress: 1.0);

@@ -31,10 +31,9 @@ class ExtendedRefreshIndicator extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isHoverActionVisible = useState(false);
     final scrollOffset = useState(0.0);
-    final scrollChild =
-        axis == Axis.vertical
-            ? RefreshIndicator(onRefresh: onRefresh, child: child)
-            : child;
+    final scrollChild = axis == Axis.vertical
+        ? RefreshIndicator(onRefresh: onRefresh, child: child)
+        : child;
 
     return Focus(
       autofocus: true,
@@ -57,11 +56,8 @@ class ExtendedRefreshIndicator extends HookConsumerWidget {
       },
       child: LayoutBuilder(
         builder: (context, _) {
-          final verticalActionTop =
-              (leadingEdgeInset + 12 - scrollOffset.value).clamp(
-                12.0,
-                leadingEdgeInset + 12,
-              );
+          final verticalActionTop = (leadingEdgeInset + 12 - scrollOffset.value)
+              .clamp(12.0, leadingEdgeInset + 12);
           final horizontalActionLeft = leadingEdgeInset + 12;
 
           bool isInHoverActivationZone(Offset localPosition) {
@@ -89,9 +85,8 @@ class ExtendedRefreshIndicator extends HookConsumerWidget {
               return false;
             },
             child: MouseRegion(
-              onHover:
-                  (event) => isHoverActionVisible.value =
-                      isInHoverActivationZone(event.localPosition),
+              onHover: (event) => isHoverActionVisible.value =
+                  isInHoverActivationZone(event.localPosition),
               onExit: (_) => isHoverActionVisible.value = false,
               child: Stack(
                 clipBehavior: Clip.none,
@@ -101,11 +96,11 @@ class ExtendedRefreshIndicator extends HookConsumerWidget {
                     if (axis == Axis.vertical)
                       Positioned(
                         top: verticalActionTop,
-                        left: 0,
-                        right: 0,
+                        left: 12,
+                        right: 12,
                         child: Center(
                           child: HoverEdgeAction(
-                            axis: Axis.vertical,
+                            axis: axis,
                             leading: true,
                             isVisible: isHoverActionVisible.value,
                             onTap: () => onRefresh(),
@@ -128,7 +123,7 @@ class ExtendedRefreshIndicator extends HookConsumerWidget {
                         bottom: 0,
                         child: Center(
                           child: HoverEdgeAction(
-                            axis: Axis.horizontal,
+                            axis: axis,
                             leading: true,
                             isVisible: isHoverActionVisible.value,
                             onTap: () => onRefresh(),

@@ -19,6 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:island/core/database.dart';
+import 'package:island/data/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
@@ -87,10 +89,10 @@ class ComposeState {
        collectionIds = ValueNotifier<List<String>>(collectionIds ?? []),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
-  void startAutoSave(WidgetRef ref) {
+  void startAutoSave(Future<void> Function(ComposeState state) saveDraft) {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      ComposeLogic.saveDraftWithoutUpload(ref, this);
+      saveDraft(this);
     });
   }
 
@@ -166,10 +168,7 @@ class ComposeLogic {
 
   static String _taskUploadingProgressMessage(int current, int total) {
     return 'taskPostPublishUploadingProgress'.tr(
-      namedArgs: {
-        'current': current.toString(),
-        'total': total.toString(),
-      },
+      namedArgs: {'current': current.toString(), 'total': total.toString()},
     );
   }
 
@@ -193,8 +192,8 @@ class ComposeLogic {
     // Extract embeds from original post meta
     final embeds = (originalPost?.meta?['embeds'] is List)
         ? (originalPost!.meta!['embeds'] as List)
-            .cast<Map<String, dynamic>>()
-            .toList()
+              .cast<Map<String, dynamic>>()
+              .toList()
         : <Map<String, dynamic>>[];
 
     // Extract thumbnail ID from meta
@@ -259,9 +258,7 @@ class ComposeLogic {
 
     // Extract embeds from draft meta
     final embeds = (draft.meta?['embeds'] is List)
-        ? (draft.meta!['embeds'] as List)
-            .cast<Map<String, dynamic>>()
-            .toList()
+        ? (draft.meta!['embeds'] as List).cast<Map<String, dynamic>>().toList()
         : <Map<String, dynamic>>[];
 
     return ComposeState(
@@ -306,7 +303,8 @@ class ComposeLogic {
     state.categories.value = draft.categories;
     state.realm.value = draft.realm;
     state.embedView.value = draft.embedView;
-    state.embeds.value = (draft.meta?['embeds'] as List<dynamic>?)
+    state.embeds.value =
+        (draft.meta?['embeds'] as List<dynamic>?)
             ?.whereType<Map<String, dynamic>>()
             .toList() ??
         <Map<String, dynamic>>[];
@@ -387,7 +385,7 @@ class ComposeLogic {
         }
       }
 
-      await _saveLocalDraft(ref, state);
+      await _saveLocalDraft(ref.read(databaseProvider), state);
       if (state.cloudDraftId.value != null) {
         await _saveCloudDraft(ref, state);
       }
@@ -398,6 +396,14 @@ class ComposeLogic {
 
   static Future<void> saveDraftWithoutUpload(
     WidgetRef ref,
+    ComposeState state,
+  ) async {
+    final database = ref.read(databaseProvider);
+    return saveDraftWithoutUploadWithDatabase(database, state);
+  }
+
+  static Future<void> saveDraftWithoutUploadWithDatabase(
+    AppDatabase database,
     ComposeState state,
   ) async {
     final hasContent =
@@ -411,7 +417,7 @@ class ComposeLogic {
     }
 
     try {
-      await _saveLocalDraft(ref, state);
+      await _saveLocalDraft(database, state);
     } catch (e) {
       Logger.root.severe(
         '[ComposeLogic] Failed to save draft without upload, error: $e',
@@ -419,7 +425,10 @@ class ComposeLogic {
     }
   }
 
-  static Future<void> _saveLocalDraft(WidgetRef ref, ComposeState state) async {
+  static Future<void> _saveLocalDraft(
+    AppDatabase database,
+    ComposeState state,
+  ) async {
     final localId = state.cloudDraftId.value ?? state.draftId;
     final meta = <String, dynamic>{
       if (state.postType == 1 && state.thumbnailId.value != null)
@@ -499,13 +508,15 @@ class ComposeLogic {
       updatedAt: DateTime.now(),
       deletedAt: null,
     );
-    await ref.read(composeStorageProvider.notifier).saveDraft(draft);
+    await database.addPostDraftFromPost(
+      draft.copyWith(updatedAt: draft.updatedAt ?? DateTime.now()),
+    );
   }
 
   static Future<void> _saveLocalDraftSnapshot(
-    WidgetRef ref,
     ComposeSubmissionSnapshot snapshot, {
     required List<UniversalFile> attachments,
+    required Future<void> Function(SnPost draft) saveDraft,
     String? cloudDraftId,
   }) async {
     final localId = cloudDraftId ?? snapshot.draftId;
@@ -566,7 +577,7 @@ class ComposeLogic {
       updatedAt: DateTime.now(),
       deletedAt: null,
     );
-    await ref.read(composeStorageProvider.notifier).saveDraft(draft);
+    await saveDraft(draft);
   }
 
   static Future<void> _saveCloudDraft(WidgetRef ref, ComposeState state) async {
@@ -908,12 +919,16 @@ class ComposeLogic {
   }
 
   static void removeEmbed(ComposeState state, String type) {
-    state.embeds.value =
-        state.embeds.value.where((e) => e['type'] != type).toList();
+    state.embeds.value = state.embeds.value
+        .where((e) => e['type'] != type)
+        .toList();
   }
 
   static void updateEmbed(
-      ComposeState state, String type, Map<String, dynamic> embed) {
+    ComposeState state,
+    String type,
+    Map<String, dynamic> embed,
+  ) {
     state.embeds.value = [
       for (final e in state.embeds.value)
         if (e['type'] == type) embed else e,
@@ -1192,8 +1207,8 @@ class ComposeLogic {
       final postTypeStr = state.postType == 0
           ? 'regular'
           : state.postType == 1
-              ? 'article'
-              : 'blog';
+          ? 'article'
+          : 'blog';
       final visibilityStr = state.visibility.value.toString();
       final publisherId = state.currentPublisher.value?.id ?? 'unknown';
 
@@ -1272,29 +1287,45 @@ class ComposeLogic {
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
       );
+      final tasks = ref.read(tasksProvider.notifier);
+      final database = ref.read(databaseProvider);
+      final client = ref.read(solarNetworkClientProvider);
+      final uploader = ref.read(driveFileUploaderProvider);
+      final pools = await ref.read(poolsProvider.future);
+      final selectedPoolId = resolveDefaultPoolId(
+        ref.read(appSettingsProvider),
+        pools,
+      );
       final localAttachments = snapshot.attachments
           .where((attachment) => attachment.isOnDevice)
           .length;
 
-      final taskId = ref
-          .read(tasksProvider.notifier)
-          .addTask(
-            title: _taskDraftTitle(snapshot.title),
-            type: AppTaskType.postPublish,
-            status: AppTaskStatus.inProgress,
-            metadata: PostPublishTaskMeta(
-              draftId: snapshot.activeDraftId,
-              attachmentCount: localAttachments,
-            ).toMap(),
-          );
+      final taskId = tasks.addTask(
+        title: _taskDraftTitle(snapshot.title),
+        type: AppTaskType.postPublish,
+        status: AppTaskStatus.inProgress,
+        metadata: PostPublishTaskMeta(
+          draftId: snapshot.activeDraftId,
+          attachmentCount: localAttachments,
+        ).toMap(),
+      );
 
       onSubmitted();
 
       unawaited(
         _runBackgroundSubmit(
-          ref,
           snapshot,
           taskId,
+          tasks: tasks,
+          saveDraft: (draft) async {
+            await database.addPostDraftFromPost(
+              draft.copyWith(updatedAt: draft.updatedAt ?? DateTime.now()),
+            );
+          },
+          deleteLocalDraft: database.deletePostDraft,
+          client: client,
+          uploader: uploader,
+          selectedPoolId: selectedPoolId,
           onSuccess: onSuccess,
         ),
       );
@@ -1305,20 +1336,14 @@ class ComposeLogic {
   }
 
   static Future<UniversalFile> _uploadAttachmentForSnapshot(
-    WidgetRef ref,
+    FileUploader uploader,
     UniversalFile attachment, {
+    required String? selectedPoolId,
     required void Function(double progress) onProgress,
   }) async {
     if (attachment.isOnCloud) return attachment;
 
-    final pools = await ref.read(poolsProvider.future);
-    final selectedPoolId = resolveDefaultPoolId(
-      ref.read(appSettingsProvider),
-      pools,
-    );
-
-    final cloudFile = await ref
-        .read(driveFileUploaderProvider)
+    final cloudFile = await uploader
         .createCloudFile(
           fileData: attachment,
           poolId: selectedPoolId,
@@ -1338,9 +1363,14 @@ class ComposeLogic {
   }
 
   static Future<void> _runBackgroundSubmit(
-    WidgetRef ref,
     ComposeSubmissionSnapshot snapshot,
     String taskId, {
+    required Tasks tasks,
+    required Future<void> Function(SnPost draft) saveDraft,
+    required Future<void> Function(String draftId) deleteLocalDraft,
+    required dynamic client,
+    required FileUploader uploader,
+    required String? selectedPoolId,
     VoidCallback? onSuccess,
   }) async {
     var cloudDraftId = snapshot.cloudDraftId;
@@ -1355,59 +1385,52 @@ class ComposeLogic {
           .toList();
 
       if (localAttachmentIndexes.isNotEmpty) {
-        ref
-            .read(tasksProvider.notifier)
-            .updateTask(
-              taskId,
-              progress: 0.1,
-              statusMessage: _taskUploadingMessage(
-                localAttachmentIndexes.length,
-              ),
-            );
+        tasks.updateTask(
+          taskId,
+          progress: 0.1,
+          statusMessage: _taskUploadingMessage(localAttachmentIndexes.length),
+        );
 
         for (var i = 0; i < localAttachmentIndexes.length; i++) {
           final index = localAttachmentIndexes[i];
           attachments[index] = await _uploadAttachmentForSnapshot(
-            ref,
+            uploader,
             attachments[index],
+            selectedPoolId: selectedPoolId,
             onProgress: (progress) {
               final base = i / localAttachmentIndexes.length;
               final step = progress / localAttachmentIndexes.length;
-              ref
-                  .read(tasksProvider.notifier)
-                  .updateTask(
-                    taskId,
-                    progress: 0.1 + ((base + step) * 0.5),
-                    statusMessage: _taskUploadingProgressMessage(
-                      i + 1,
-                      localAttachmentIndexes.length,
-                    ),
-                  );
+              tasks.updateTask(
+                taskId,
+                progress: 0.1 + ((base + step) * 0.5),
+                statusMessage: _taskUploadingProgressMessage(
+                  i + 1,
+                  localAttachmentIndexes.length,
+                ),
+              );
             },
           );
           await _saveLocalDraftSnapshot(
-            ref,
             snapshot,
             attachments: attachments,
+            saveDraft: saveDraft,
             cloudDraftId: cloudDraftId,
           );
         }
       } else {
         await _saveLocalDraftSnapshot(
-          ref,
           snapshot,
           attachments: attachments,
+          saveDraft: saveDraft,
           cloudDraftId: cloudDraftId,
         );
       }
 
-      ref
-          .read(tasksProvider.notifier)
-          .updateTask(
-            taskId,
-            progress: 0.65,
-            statusMessage: 'taskPostPublishPublishing'.tr(),
-          );
+      tasks.updateTask(
+        taskId,
+        progress: 0.65,
+        statusMessage: 'taskPostPublishPublishing'.tr(),
+      );
 
       final payload = {
         'title': snapshot.title,
@@ -1445,7 +1468,6 @@ class ComposeLogic {
       }
       final effectivePayload = hookResult.data ?? payload;
 
-      final client = ref.read(solarNetworkClientProvider);
       final publisherName = snapshot.publisher?.name;
       if (publisherName == null || publisherName.isEmpty) {
         throw Exception('Publisher is required');
@@ -1470,7 +1492,8 @@ class ComposeLogic {
         );
         post = SnPost.fromJson(publishResp.data);
       } else {
-        final endpoint = '/sphere${isNewPost ? '/posts' : '/posts/${snapshot.originalPostId}'}';
+        final endpoint =
+            '/sphere${isNewPost ? '/posts' : '/posts/${snapshot.originalPostId}'}';
         final response = await client.dio.request(
           endpoint,
           queryParameters: {'pub': publisherName},
@@ -1480,31 +1503,28 @@ class ComposeLogic {
         post = SnPost.fromJson(response.data);
       }
 
-      final storage = ref.read(composeStorageProvider.notifier);
       final draftIds = <String>{
         snapshot.draftId,
         ...?snapshot.cloudDraftId == null ? null : {snapshot.cloudDraftId!},
         ...?cloudDraftId == null ? null : {cloudDraftId},
       };
       for (final id in draftIds) {
-        await storage.deleteLocalDraft(id);
+        await deleteLocalDraft(id);
       }
 
-      ref
-          .read(tasksProvider.notifier)
-          .updateTask(
-            taskId,
-            status: AppTaskStatus.completed,
-            progress: 1.0,
-            statusMessage: 'taskPostPublishPublished'.tr(),
-            result: {'postId': post.id},
-          );
+      tasks.updateTask(
+        taskId,
+        status: AppTaskStatus.completed,
+        progress: 1.0,
+        statusMessage: 'taskPostPublishPublished'.tr(),
+        result: {'postId': post.id},
+      );
 
       final postTypeStr = snapshot.postType == 0
           ? 'regular'
           : snapshot.postType == 1
-              ? 'article'
-              : 'blog';
+          ? 'article'
+          : 'blog';
       AnalyticsService().logPostCreated(
         postTypeStr,
         snapshot.visibility.toString(),
@@ -1515,22 +1535,20 @@ class ComposeLogic {
       onSuccess?.call();
     } catch (err) {
       await _saveLocalDraftSnapshot(
-        ref,
         snapshot,
         attachments: attachments,
+        saveDraft: saveDraft,
         cloudDraftId: cloudDraftId,
       );
-      ref
-          .read(tasksProvider.notifier)
-          .updateTask(
-            taskId,
-            status: AppTaskStatus.failed,
-            errorMessage: err.toString(),
-            metadata: PostPublishTaskMeta(
-              draftId: cloudDraftId ?? snapshot.draftId,
-              attachmentCount: attachments.where((e) => e.isOnDevice).length,
-            ).toMap(),
-          );
+      tasks.updateTask(
+        taskId,
+        status: AppTaskStatus.failed,
+        errorMessage: err.toString(),
+        metadata: PostPublishTaskMeta(
+          draftId: cloudDraftId ?? snapshot.draftId,
+          attachmentCount: attachments.where((e) => e.isOnDevice).length,
+        ).toMap(),
+      );
     }
   }
 

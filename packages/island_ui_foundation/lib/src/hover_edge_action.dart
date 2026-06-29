@@ -58,13 +58,17 @@ class HoverEdgeAction extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: onTap,
-              child: ConstrainedBox(
-                constraints:
-                    constraints ??
-                    BoxConstraints.tightFor(width: size, height: size),
-                child: Padding(
-                  padding: padding,
-                  child: Center(child: child),
+              child: Align(
+                widthFactor: 1,
+                heightFactor: 1,
+                child: ConstrainedBox(
+                  constraints:
+                      constraints ??
+                      BoxConstraints.tightFor(width: size, height: size),
+                  child: Padding(
+                    padding: padding,
+                    child: Center(child: child),
+                  ),
                 ),
               ),
             ),
