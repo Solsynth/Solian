@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:callkeep/callkeep.dart';
@@ -13,6 +14,8 @@ part 'native_call_bridge.g.dart';
 
 const _unset = Object();
 const _nativeCallPushTokenKey = 'dev.solsynth.solian.native_call.push_token';
+const _nativeCallDescriptorStoreKey =
+    'dev.solsynth.solian.native_call.descriptors';
 
 bool get isNativeCallAvailable =>
     !kIsWeb && (Platform.isIOS || Platform.isAndroid);
@@ -52,17 +55,22 @@ Future<void> _ensureCallKeepSetup({required bool backgroundMode}) async {
     await _setupFuture;
     return;
   }
+
   _registerPlatformListeners();
   _setupFuture = _callKeep.setup(
-    showAlertDialog: null,
-    backgroundMode: backgroundMode,
-    options: <String, dynamic>{
+    null,
+    <String, dynamic>{
       'ios': {'appName': 'Solian'},
       'android': {
         'additionalPermissions': <String>[
           'android.permission.CALL_PHONE',
           'android.permission.READ_PHONE_NUMBERS',
         ],
+        'alertTitle': 'Permissions required',
+        'alertDescription':
+            'This application needs to access your phone accounts',
+        'cancelButton': 'Cancel',
+        'okButton': 'OK',
         'foregroundService': <String, String>{
           'channelId': 'dev.solsynth.solian.calls',
           'channelName': 'Solian Calls',
@@ -71,6 +79,7 @@ Future<void> _ensureCallKeepSetup({required bool backgroundMode}) async {
         },
       },
     },
+    backgroundMode: backgroundMode,
   );
   await _setupFuture;
   if (!backgroundMode) {
@@ -81,7 +90,7 @@ Future<void> _ensureCallKeepSetup({required bool backgroundMode}) async {
 void _registerPlatformListeners() {
   if (_platformListenersRegistered) return;
   _platformListenersRegistered = true;
-  _callKeep.on<CallKeepPushKitToken>((event) {
+  _callKeep.on(CallKeepPushKitToken(), (event) {
     unawaited(_persistPushToken(event.token));
   });
 }
@@ -98,50 +107,99 @@ Future<String?> loadPersistedNativeCallPushToken() async {
   return prefs.getString(_nativeCallPushTokenKey);
 }
 
+Future<Map<String, dynamic>> _loadDescriptorStore() async {
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getString(_nativeCallDescriptorStoreKey);
+  if (raw == null || raw.isEmpty) return <String, dynamic>{};
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is Map<String, dynamic>) return decoded;
+    if (decoded is Map) {
+      return decoded.map((key, value) => MapEntry(key.toString(), value));
+    }
+  } catch (_) {}
+  return <String, dynamic>{};
+}
+
+Future<void> _storeDescriptor(SystemCallDescriptor descriptor) async {
+  final prefs = await SharedPreferences.getInstance();
+  final store = await _loadDescriptorStore();
+  store[descriptor.callUuid] = <String, dynamic>{
+    'callUuid': descriptor.callUuid,
+    'roomId': descriptor.roomId,
+    'callerName': descriptor.callerName,
+    'handle': descriptor.handle,
+    'hasVideo': descriptor.hasVideo,
+    'source': descriptor.source.name,
+    'metadata': descriptor.metadata,
+  };
+  await prefs.setString(_nativeCallDescriptorStoreKey, jsonEncode(store));
+}
+
+NativeCallSource _sourceFromName(String? value) {
+  for (final source in NativeCallSource.values) {
+    if (source.name == value) return source;
+  }
+  return NativeCallSource.incomingForeground;
+}
+
+Future<SystemCallDescriptor?> _lookupDescriptor(String? callUuid) async {
+  if (callUuid == null || callUuid.isEmpty) return null;
+  final store = await _loadDescriptorStore();
+  final raw = store[callUuid];
+  if (raw is! Map) return null;
+
+  final data = raw.map((key, value) => MapEntry(key.toString(), value));
+  final metadataRaw = data['metadata'];
+  final metadata = metadataRaw is Map
+      ? metadataRaw.map((key, value) => MapEntry(key.toString(), value))
+      : const <String, dynamic>{};
+  final roomId = data['roomId']?.toString();
+  final callerName = data['callerName']?.toString();
+  final handle = data['handle']?.toString();
+  if (roomId == null || callerName == null || handle == null) return null;
+
+  return SystemCallDescriptor(
+    callUuid: callUuid,
+    roomId: roomId,
+    callerName: callerName,
+    handle: handle,
+    hasVideo: data['hasVideo'] == true,
+    source: _sourceFromName(data['source']?.toString()),
+    metadata: metadata,
+  );
+}
+
+Future<void> _removeDescriptor(String? callUuid) async {
+  if (callUuid == null || callUuid.isEmpty) return;
+  final prefs = await SharedPreferences.getInstance();
+  final store = await _loadDescriptorStore();
+  store.remove(callUuid);
+  await prefs.setString(_nativeCallDescriptorStoreKey, jsonEncode(store));
+}
+
 Future<void> _displayIncomingCall(SystemCallDescriptor descriptor) async {
+  await _storeDescriptor(descriptor);
   await _callKeep.displayIncomingCall(
-    uuid: descriptor.callUuid,
-    handle: descriptor.handle,
-    callerName: descriptor.callerName,
+    descriptor.callUuid,
+    descriptor.handle,
+    localizedCallerName: descriptor.callerName,
     handleType: descriptor.handle.startsWith('@') ? 'generic' : 'number',
     hasVideo: descriptor.hasVideo,
-    additionalData: descriptor.toAdditionalData(),
   );
 }
 
 Future<void> _startOutgoingCall(SystemCallDescriptor descriptor) async {
+  await _storeDescriptor(descriptor);
   await _callKeep.startCall(
-    uuid: descriptor.callUuid,
-    handle: descriptor.handle,
-    callerName: descriptor.callerName,
+    descriptor.callUuid,
+    descriptor.handle,
+    descriptor.callerName,
     handleType: descriptor.handle.startsWith('@') ? 'generic' : 'number',
     hasVideo: descriptor.hasVideo,
-    additionalData: descriptor.toAdditionalData(),
   );
 }
 
-String? _roomIdFromCallData(CallData data) {
-  final roomId = data.additionalData?['room_id']?.toString();
-  if (roomId != null && roomId.isNotEmpty) return roomId;
-  final fallback = data.handle?.toString();
-  if (fallback == null || fallback.isEmpty) return null;
-  return fallback.startsWith('@') ? null : fallback;
-}
-
-String? _callerNameFromCallData(CallData data) {
-  final caller = data.name?.toString();
-  if (caller != null && caller.isNotEmpty) return caller;
-  return data.handle?.toString();
-}
-
-String? _callUuidFromCallData(CallData data) {
-  final callUuid = data.callUUID?.toString();
-  if (callUuid != null && callUuid.isNotEmpty) return callUuid;
-  return data.additionalData?['call_uuid']?.toString();
-}
-
-/// Thin wrapper that listens to the native event channel and exposes
-/// call state to Flutter widgets that need it.
 @Riverpod(keepAlive: true)
 class NativeCallBridge extends _$NativeCallBridge {
   bool _isInitializing = false;
@@ -156,22 +214,32 @@ class NativeCallBridge extends _$NativeCallBridge {
     if (_listenersRegistered) return;
     _listenersRegistered = true;
 
-    _callKeep.on<CallKeepDidDisplayIncomingCall>((event) {
-      final callData = event.callData;
+    _callKeep.on(CallKeepDidDisplayIncomingCall(), (event) async {
+      SystemCallDescriptor? descriptor;
+      final payload = event.payload;
+      if (payload != null) {
+        descriptor = systemCallDescriptorFromPushPayload(payload);
+      }
+      descriptor ??= await _lookupDescriptor(event.callUUID);
+      if (descriptor == null) return;
+      await _storeDescriptor(descriptor);
+
       state = state.copyWith(
-        callUuid: _callUuidFromCallData(callData),
-        roomId: _roomIdFromCallData(callData),
-        roomName: _callerNameFromCallData(callData),
+        callUuid: descriptor.callUuid,
+        roomId: descriptor.roomId,
+        roomName: descriptor.callerName,
         isIncomingDisplayed: true,
-        source: NativeCallSource.incomingPush,
+        source: event.fromPushKit == true
+            ? NativeCallSource.incomingPush
+            : NativeCallSource.incomingForeground,
       );
     });
 
-    _callKeep.on<CallKeepPerformAnswerCallAction>((event) {
-      final callData = event.callData;
-      final roomId = _roomIdFromCallData(callData);
-      final callerName = _callerNameFromCallData(callData);
-      final callUuid = _callUuidFromCallData(callData);
+    _callKeep.on(CallKeepPerformAnswerCallAction(), (event) async {
+      final callUuid = event.callUUID;
+      final descriptor = await _lookupDescriptor(callUuid);
+      final roomId = descriptor?.roomId;
+      final callerName = descriptor?.callerName;
       Logger.root.info(
         '[NativeCallBridge] Native answer received: room=$roomId uuid=$callUuid',
       );
@@ -189,43 +257,41 @@ class NativeCallBridge extends _$NativeCallBridge {
       }
     });
 
-    _callKeep.on<CallKeepDidReceiveStartCallAction>((event) {
-      final callData = event.callData;
+    _callKeep.on(CallKeepDidReceiveStartCallAction(), (event) async {
+      final descriptor = await _lookupDescriptor(event.callUUID);
+      final roomId = descriptor?.roomId ?? event.handle;
+      final roomName = descriptor?.callerName ?? event.name;
       state = state.copyWith(
-        callUuid: _callUuidFromCallData(callData),
-        roomId: _roomIdFromCallData(callData),
-        roomName: _callerNameFromCallData(callData),
-        callKitAcceptedRoomId: _roomIdFromCallData(callData),
+        callUuid: event.callUUID,
+        roomId: roomId,
+        roomName: roomName,
+        callKitAcceptedRoomId: roomId,
         isAcceptedPending: true,
         isOutgoing: true,
         source: NativeCallSource.outgoingLocal,
       );
     });
 
-    _callKeep.on<CallKeepDidPerformSetMutedCallAction>((event) {
+    _callKeep.on(CallKeepDidPerformSetMutedCallAction(), (event) {
       state = state.copyWith(isMicrophoneEnabled: !(event.muted ?? false));
     });
 
-    _callKeep.on<CallKeepDidToggleHoldAction>((event) {
+    _callKeep.on(CallKeepDidToggleHoldAction(), (event) {
       state = state.copyWith(isOnHold: event.hold ?? false);
     });
 
-    _callKeep.on<CallKeepPerformRejectCallAction>((_) {
-      Logger.root.info('[NativeCallBridge] Native call rejected');
-      clearAcceptedCall();
-    });
-
-    _callKeep.on<CallKeepPerformEndCallAction>((_) {
+    _callKeep.on(CallKeepPerformEndCallAction(), (event) {
       Logger.root.info('[NativeCallBridge] Native call ended');
+      unawaited(_removeDescriptor(event.callUUID ?? state.callUuid));
       clearAcceptedCall();
     });
 
-    _callKeep.on<CallKeepProviderReset>((_) {
+    _callKeep.on(CallKeepProviderReset(), (_) {
       Logger.root.warning('[NativeCallBridge] Native provider reset');
       clearAcceptedCall();
     });
 
-    _callKeep.on<CallKeepPushKitToken>((event) {
+    _callKeep.on(CallKeepPushKitToken(), (event) {
       final token = event.token;
       state = state.copyWith(pushToken: token);
       unawaited(_persistPushToken(token));
@@ -327,6 +393,7 @@ class NativeCallBridge extends _$NativeCallBridge {
     final activeUuid = callUuid ?? state.callUuid;
     if (activeUuid != null && activeUuid.isNotEmpty) {
       await _callKeep.endCall(activeUuid);
+      await _removeDescriptor(activeUuid);
     } else {
       await _callKeep.endAllCalls();
     }
