@@ -1033,6 +1033,7 @@ class _QuestionEditor extends ConsumerWidget {
         TextFormField(
           initialValue: question.description ?? '',
           decoration: InputDecoration(
+            alignLabelWithHint: true,
             labelText: 'surveyQuestionDescriptionOptional'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
