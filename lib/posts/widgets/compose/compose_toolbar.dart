@@ -43,7 +43,6 @@ class ComposeToolbar extends HookConsumerWidget {
       );
     }
 
-
     void pickPhotoMedia() async {
       final oldCount = state.attachments.value.length;
       await ComposeLogic.pickPhotoMedia(ref, state);
@@ -200,162 +199,189 @@ class ComposeToolbar extends HookConsumerWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          UploadMenu(items: uploadMenuItems),
-                          IconButton(
-                            onPressed: () {
-                              isStickerExpanded.value = !isStickerExpanded.value;
-                            },
-                            icon: const Icon(Symbols.sticky_note_2),
-                            color: colorScheme.primary,
-                            tooltip: 'stickers'.tr(),
-                          ),
-                          // Poll
-                          ListenableBuilder(
-                            listenable: state.embeds,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickPoll,
-                                icon: const Icon(Symbols.how_to_vote),
-                                tooltip: 'poll'.tr(),
+              child:
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              UploadMenu(items: uploadMenuItems),
+                              IconButton(
+                                onPressed: () {
+                                  isStickerExpanded.value =
+                                      !isStickerExpanded.value;
+                                },
+                                icon: const Icon(Symbols.sticky_note_2),
                                 color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.embeds.value.any((e) => e['type'] == 'poll')
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
+                                tooltip: 'stickers'.tr(),
+                              ),
+                              // Poll
+                              ListenableBuilder(
+                                listenable: state.embeds,
+                                builder: (context, _) {
+                                  return IconButton(
+                                    onPressed: pickPoll,
+                                    icon: const Icon(Symbols.how_to_vote),
+                                    tooltip: 'poll'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        state.embeds.value.any(
+                                              (e) => e['type'] == 'poll',
+                                            )
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Location
+                              ListenableBuilder(
+                                listenable: state.embeds,
+                                builder: (context, _) {
+                                  final hasLocation = state.embeds.value.any(
+                                    (e) => e['type'] == 'location',
+                                  );
+                                  return IconButton(
+                                    onPressed: pickLocation,
+                                    icon: const Icon(Symbols.location_on),
+                                    tooltip: 'location'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        hasLocation
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Fund
+                              ListenableBuilder(
+                                listenable: state.embeds,
+                                builder: (context, _) {
+                                  return IconButton(
+                                    onPressed: pickFund,
+                                    icon: const Icon(
+                                      Symbols.account_balance_wallet,
+                                    ),
+                                    tooltip: 'fund'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        state.embeds.value.any(
+                                              (e) => e['type'] == 'fund',
+                                            )
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Meet
+                              ListenableBuilder(
+                                listenable: state.embeds,
+                                builder: (context, _) {
+                                  return IconButton(
+                                    onPressed: pickMeet,
+                                    icon: const Icon(Symbols.groups),
+                                    tooltip: 'meet'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        state.embeds.value.any(
+                                              (e) => e['type'] == 'meet',
+                                            )
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Calendar event
+                              ListenableBuilder(
+                                listenable: state.embeds,
+                                builder: (context, _) {
+                                  return IconButton(
+                                    onPressed: pickCalendarEvent,
+                                    icon: const Icon(Symbols.calendar_month),
+                                    tooltip: 'calendarEvent'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        state.embeds.value.any(
+                                              (e) =>
+                                                  e['type'] == 'calendar_event',
+                                            )
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Embed
+                              ListenableBuilder(
+                                listenable: state.embedView,
+                                builder: (context, _) {
+                                  return IconButton(
+                                    onPressed: showEmbedSheet,
+                                    icon: const Icon(Symbols.iframe),
+                                    tooltip: 'embedView'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        state.embedView.value != null
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                          // Location
-                          ListenableBuilder(
-                            listenable: state.embeds,
-                            builder: (context, _) {
-                              final hasLocation = state.embeds.value.any((e) => e['type'] == 'location');
-                              return IconButton(
-                                onPressed: pickLocation,
-                                icon: const Icon(Symbols.location_on),
-                                tooltip: 'location'.tr(),
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    hasLocation
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Fund
-                          ListenableBuilder(
-                            listenable: state.embeds,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickFund,
-                                icon: const Icon(Symbols.account_balance_wallet),
-                                tooltip: 'fund'.tr(),
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.embeds.value.any((e) => e['type'] == 'fund')
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Meet
-                          ListenableBuilder(
-                            listenable: state.embeds,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickMeet,
-                                icon: const Icon(Symbols.groups),
-                                tooltip: 'meet'.tr(),
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.embeds.value.any((e) => e['type'] == 'meet')
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Calendar event
-                          ListenableBuilder(
-                            listenable: state.embeds,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickCalendarEvent,
-                                icon: const Icon(Symbols.calendar_month),
-                                tooltip: 'calendarEvent'.tr(),
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.embeds.value.any((e) => e['type'] == 'calendar_event')
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Embed
-                          ListenableBuilder(
-                            listenable: state.embedView,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: showEmbedSheet,
-                                icon: const Icon(Symbols.iframe),
-                                tooltip: 'embedView'.tr(),
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.embedView.value != null
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      if (originalPost == null) ...[
+                        IconButton(
+                          icon: const Icon(Symbols.save),
+                          color: colorScheme.primary,
+                          onPressed: state.isEmpty ? null : saveDraft,
+                          onLongPress: showDraftManager,
+                          tooltip: 'saveDraft'.tr(),
+                        ),
+                        IconButton(
+                          icon: const Icon(Symbols.draft),
+                          color: colorScheme.primary,
+                          onPressed: showDraftManager,
+                          tooltip: 'drafts'.tr(),
+                        ),
+                      ],
+                    ],
+                  ).padding(
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                    horizontal: 16,
+                    top: 8,
                   ),
-                  if (originalPost == null && state.isEmpty)
-                    IconButton(
-                      icon: const Icon(Symbols.draft),
-                      color: colorScheme.primary,
-                      onPressed: showDraftManager,
-                      tooltip: 'drafts'.tr(),
-                    )
-                  else if (originalPost == null)
-                    IconButton(
-                      icon: const Icon(Symbols.save),
-                      color: colorScheme.primary,
-                      onPressed: saveDraft,
-                      onLongPress: showDraftManager,
-                      tooltip: 'saveDraft'.tr(),
-                    ),
-                ],
-              ).padding(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                horizontal: 16,
-                top: 8,
-              ),
             ),
           ),
         ),

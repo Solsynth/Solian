@@ -212,7 +212,7 @@ return $default(_that.id,_that.publisherId,_that.domain,_that.status,_that.verif
 @JsonSerializable()
 
 class _SnPublisherVerifiedDomain implements SnPublisherVerifiedDomain {
-  const _SnPublisherVerifiedDomain({required this.id, @JsonKey(name: 'publisher_id') required this.publisherId, required this.domain, this.status = DomainVerificationStatus.pending, @JsonKey(name: 'verified_at') this.verifiedAt = null, @JsonKey(name: 'last_checked_at') this.lastCheckedAt = null, @JsonKey(name: 'failed_attempts') this.failedAttempts = 0, @JsonKey(name: 'last_error') this.lastError = null, @JsonKey(name: 'created_at') this.createdAt = null, @JsonKey(name: 'updated_at') this.updatedAt = null});
+  const _SnPublisherVerifiedDomain({required this.id, @JsonKey(name: 'publisher_id') required this.publisherId, required this.domain, this.status = DomainVerificationStatus.pending, @JsonKey(name: 'verified_at') this.verifiedAt = null, @JsonKey(name: 'last_checked_at') this.lastCheckedAt, @JsonKey(name: 'failed_attempts') this.failedAttempts = 0, @JsonKey(name: 'last_error') this.lastError = null, @JsonKey(name: 'created_at') this.createdAt = null, @JsonKey(name: 'updated_at') this.updatedAt = null});
   factory _SnPublisherVerifiedDomain.fromJson(Map<String, dynamic> json) => _$SnPublisherVerifiedDomainFromJson(json);
 
 @override final  String id;

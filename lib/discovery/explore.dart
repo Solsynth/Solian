@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/pods/post_list.dart';
+import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/translate.dart';
@@ -99,8 +100,7 @@ class ExploreScreen extends HookConsumerWidget {
         selectedTagIds.value.isNotEmpty;
 
     final userInfo = ref.watch(userInfoProvider);
-    final isSidePanelOpen =
-        isWide && selectedPostId.value != null;
+    final isSidePanelOpen = isWide && selectedPostId.value != null;
 
     if (isWide) {
       return AppScaffold(
@@ -112,7 +112,6 @@ class ExploreScreen extends HookConsumerWidget {
                 child: const Icon(Symbols.create),
                 onPressed: () {
                   final parentContext = context;
-                  final router = context.router;
                   showModalBottomSheet(
                     context: parentContext,
                     isScrollControlled: true,
@@ -140,7 +139,18 @@ class ExploreScreen extends HookConsumerWidget {
                           title: Text('articleCompose').tr(),
                           onTap: () async {
                             Navigator.of(sheetContext).pop();
-                            await router.push(ArticleComposeRoute());
+                            await context.router.push(ArticleComposeRoute());
+                          },
+                        ),
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          leading: const Icon(Symbols.docs),
+                          title: Text('linkBlog').tr(),
+                          onTap: () async {
+                            Navigator.of(sheetContext).pop();
+                            await BlogComposeDialog.show(parentContext);
                           },
                         ),
                         const Gap(16),
@@ -179,7 +189,6 @@ class ExploreScreen extends HookConsumerWidget {
               child: const Icon(Symbols.create),
               onPressed: () {
                 final parentContext = context;
-                final router = context.router;
                 showModalBottomSheet(
                   context: parentContext,
                   isScrollControlled: true,
@@ -207,7 +216,18 @@ class ExploreScreen extends HookConsumerWidget {
                         title: Text('articleCompose').tr(),
                         onTap: () async {
                           Navigator.of(sheetContext).pop();
-                          await router.push(ArticleComposeRoute());
+                          await context.router.push(ArticleComposeRoute());
+                        },
+                      ),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                        ),
+                        leading: const Icon(Symbols.docs),
+                        title: Text('linkBlog').tr(),
+                        onTap: () async {
+                          Navigator.of(sheetContext).pop();
+                          await BlogComposeDialog.show(parentContext);
                         },
                       ),
                       const Gap(16),
@@ -904,9 +924,7 @@ class ExploreScreen extends HookConsumerWidget {
             : (timelineContentMaxWidth < totalWidth
                   ? timelineContentMaxWidth
                   : totalWidth);
-        final detailWidth = hasSelection
-            ? (totalWidth - 28) / 2
-            : 0.0;
+        final detailWidth = hasSelection ? (totalWidth - 28) / 2 : 0.0;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,

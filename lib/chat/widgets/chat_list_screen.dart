@@ -31,9 +31,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
-import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
-
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -523,7 +521,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 [unpinnedItems, chatGroups, summariesData],
               );
 
-              return ExtendedRefreshIndicator(
+              return RefreshIndicator(
                 onRefresh: () async {
                   // Invalidate the chat room provider to refresh the list
                   ref.invalidate(chatRoomJoinedProvider);

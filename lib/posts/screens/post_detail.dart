@@ -14,6 +14,7 @@ import 'package:island/posts/pods/bookmarks.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:island/posts/widgets/compose/post_award_history_sheet.dart';
@@ -366,8 +367,7 @@ class PostActionButtons extends HookConsumerWidget {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) =>
-                PostSupportHistorySheet(postId: post.id),
+            builder: (context) => PostSupportHistorySheet(postId: post.id),
           );
         },
       ),
@@ -411,7 +411,7 @@ class PostActionButtons extends HookConsumerWidget {
               }
             });
           } else if (post.type == 2) {
-            context.router.push(BlogEditRoute(id: post.id)).then((value) {
+            BlogComposeDialog.show(context, originalPost: post).then((value) {
               if (value != null) {
                 onRefresh?.call();
               }
@@ -1698,12 +1698,14 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                         if (post.type == 2 &&
                                             post.embedView != null)
                                           Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 12),
+                                            padding: const EdgeInsets.only(
+                                              top: 12,
+                                            ),
                                             child: FilledButton.icon(
                                               onPressed: () async {
                                                 final uri = Uri.tryParse(
-                                                    post.embedView!.uri);
+                                                  post.embedView!.uri,
+                                                );
                                                 if (uri != null &&
                                                     await canLaunchUrl(uri)) {
                                                   await launchUrl(
@@ -1714,9 +1716,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                                 }
                                               },
                                               icon: const Icon(
-                                                  Symbols.open_in_new),
-                                              label:
-                                                  Text('openBlog'.tr()),
+                                                Symbols.open_in_new,
+                                              ),
+                                              label: Text('openBlog'.tr()),
                                             ),
                                           ),
                                         if (post
@@ -2183,7 +2185,7 @@ class PostDetailScreen extends HookConsumerWidget {
           ];
 
           final trailing = PopupMenuButton<String>(
-      icon: const Icon(Symbols.more_horiz),
+            icon: const Icon(Symbols.more_horiz),
             style: ButtonStyle(
               visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
               padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),

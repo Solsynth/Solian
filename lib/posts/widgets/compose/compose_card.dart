@@ -346,108 +346,102 @@ class PostComposeCard extends HookConsumerWidget {
                 },
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
-                    child: Row(
-                      spacing: 12,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Publisher profile picture
-                        GestureDetector(
-                          child: ProfilePictureWidget(
-                            file: composeState.currentPublisher.value?.picture,
-                            radius: 20,
-                            borderRadius:
-                                composeState.currentPublisher.value?.type == 0
-                                ? null
-                                : 12,
-                            fallbackIcon:
-                                composeState.currentPublisher.value == null
-                                ? Symbols.question_mark
-                                : null,
-                          ),
-                          onTap: () {
-                            if (composeState.currentPublisher.value == null) {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                useRootNavigator: true,
-                                builder: (context) =>
-                                    const NewPublisherScreen(),
-                              ).then((value) {
-                                if (value != null) {
-                                  composeState.currentPublisher.value =
-                                      value as SnPublisher;
-                                  ref.invalidate(publishersManagedProvider);
-                                }
-                              });
-                            } else {
-                              showModalBottomSheet(
-                                isScrollControlled: true,
-                                useRootNavigator: true,
-                                context: context,
-                                builder: (context) => const PublisherModal(),
-                              ).then((value) {
-                                if (value != null) {
-                                  composeState.currentPublisher.value = value;
-                                }
-                              });
-                            }
-                          },
-                        ).padding(top: 8),
-
-                        // Post content form
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ComposeFormFields(
-                                state: composeState,
-                                showPublisherAvatar: false,
-                                onPublisherTap: () {
-                                  if (composeState.currentPublisher.value ==
-                                      null) {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      useRootNavigator: true,
-                                      builder: (context) =>
-                                          const NewPublisherScreen(),
-                                    ).then((value) {
-                                      if (value != null) {
-                                        composeState.currentPublisher.value =
-                                            value as SnPublisher;
-                                        ref.invalidate(
-                                          publishersManagedProvider,
-                                        );
-                                      }
-                                    });
-                                  } else {
-                                    showModalBottomSheet(
-                                      isScrollControlled: true,
-                                      useRootNavigator: true,
-                                      context: context,
-                                      builder: (context) =>
-                                          const PublisherModal(),
-                                    ).then((value) {
-                                      if (value != null) {
-                                        composeState.currentPublisher.value =
-                                            value;
-                                      }
-                                    });
-                                  }
-                                },
-                              ),
-                              const Gap(8),
-                              ComposeAttachments(
-                                state: composeState,
-                                isCompact: true,
-                              ),
-                            ],
-                          ),
+                  child: Row(
+                    spacing: 12,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Publisher profile picture
+                      GestureDetector(
+                        child: ProfilePictureWidget(
+                          file: composeState.currentPublisher.value?.picture,
+                          radius: 20,
+                          borderRadius:
+                              composeState.currentPublisher.value?.type == 0
+                              ? null
+                              : 12,
+                          fallbackIcon:
+                              composeState.currentPublisher.value == null
+                              ? Symbols.question_mark
+                              : null,
                         ),
-                      ],
-                    ),
+                        onTap: () {
+                          if (composeState.currentPublisher.value == null) {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              useRootNavigator: true,
+                              builder: (context) => const NewPublisherScreen(),
+                            ).then((value) {
+                              if (value != null) {
+                                composeState.currentPublisher.value =
+                                    value as SnPublisher;
+                                ref.invalidate(publishersManagedProvider);
+                              }
+                            });
+                          } else {
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              useRootNavigator: true,
+                              context: context,
+                              builder: (context) => const PublisherModal(),
+                            ).then((value) {
+                              if (value != null) {
+                                composeState.currentPublisher.value = value;
+                              }
+                            });
+                          }
+                        },
+                      ).padding(top: 8),
+
+                      // Post content form
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ComposeFormFields(
+                              state: composeState,
+                              showPublisherAvatar: false,
+                              onPublisherTap: () {
+                                if (composeState.currentPublisher.value ==
+                                    null) {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    useRootNavigator: true,
+                                    builder: (context) =>
+                                        const NewPublisherScreen(),
+                                  ).then((value) {
+                                    if (value != null) {
+                                      composeState.currentPublisher.value =
+                                          value as SnPublisher;
+                                      ref.invalidate(publishersManagedProvider);
+                                    }
+                                  });
+                                } else {
+                                  showModalBottomSheet(
+                                    isScrollControlled: true,
+                                    useRootNavigator: true,
+                                    context: context,
+                                    builder: (context) =>
+                                        const PublisherModal(),
+                                  ).then((value) {
+                                    if (value != null) {
+                                      composeState.currentPublisher.value =
+                                          value;
+                                    }
+                                  });
+                                }
+                              },
+                            ),
+                            const Gap(8),
+                            ComposeAttachments(
+                              state: composeState,
+                              isCompact: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
