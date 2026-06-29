@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -322,35 +321,6 @@ class _CreatorSurveyEditorScreenState
               : const AutoLeadingButton(),
           title: Text(_isEditing ? 'pollEdit'.tr() : 'pollCreate'.tr()),
           actions: [
-            if (kDebugMode)
-              IconButton(
-                tooltip: 'pollPreviewJsonDebug'.tr(),
-                onPressed: () {
-                  final encoder = const JsonEncoder.withIndent('  ');
-                  showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('pollDebugPreview'.tr()),
-                      content: SingleChildScrollView(
-                        child: SelectableText(
-                          encoder.convert(
-                            _draft.toRequestBody(
-                              includeClearEndedAt: _isEditing,
-                            ),
-                          ),
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('close'.tr()),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.visibility_outlined),
-              ),
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: FilledButton(
@@ -832,12 +802,8 @@ class _OverviewCard extends StatelessWidget {
             ),
             const Gap(20),
             TextFormField(
-              key: ValueKey('survey-title-${draft.title}'),
               initialValue: draft.title ?? '',
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Title'),
               maxLength: 256,
               textInputAction: TextInputAction.next,
               validator: (value) {
@@ -850,11 +816,9 @@ class _OverviewCard extends StatelessWidget {
             ),
             const Gap(12),
             TextFormField(
-              key: ValueKey('survey-description-${draft.description}'),
               initialValue: draft.description ?? '',
               decoration: const InputDecoration(
                 labelText: 'Description',
-                border: OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
               maxLength: 4096,
@@ -1110,10 +1074,7 @@ class _QuestionCard extends StatelessWidget {
                   width: 260,
                   child: DropdownButtonFormField<SnSurveyQuestionType>(
                     value: question.type,
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Type'),
                     items: [
                       for (final type in SnSurveyQuestionType.values)
                         DropdownMenuItem(
@@ -1149,11 +1110,9 @@ class _QuestionCard extends StatelessWidget {
             ),
             const Gap(12),
             TextFormField(
-              key: ValueKey('question-title-${question.id}-${question.title}'),
               initialValue: question.title,
               decoration: InputDecoration(
                 labelText: 'pollQuestionTitle'.tr(),
-                border: const OutlineInputBorder(),
                 helperText: 'Shown to respondents',
                 prefixIcon: Icon(_iconForType(question.type)),
               ),
@@ -1168,13 +1127,9 @@ class _QuestionCard extends StatelessWidget {
             ),
             const Gap(12),
             TextFormField(
-              key: ValueKey(
-                'question-description-${question.id}-${question.description}',
-              ),
               initialValue: question.description ?? '',
               decoration: InputDecoration(
                 labelText: 'pollQuestionDescriptionOptional'.tr(),
-                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
               maxLength: 4096,
@@ -1466,12 +1421,8 @@ class _OptionEditor extends StatelessWidget {
             ),
             const Gap(8),
             TextFormField(
-              key: ValueKey('option-label-${option.id}-${option.label}'),
               initialValue: option.label,
-              decoration: InputDecoration(
-                labelText: 'pollOptionLabel'.tr(),
-                border: const OutlineInputBorder(),
-              ),
+              decoration: InputDecoration(labelText: 'pollOptionLabel'.tr()),
               inputFormatters: [LengthLimitingTextInputFormatter(1024)],
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -1483,13 +1434,9 @@ class _OptionEditor extends StatelessWidget {
             ),
             const Gap(10),
             TextFormField(
-              key: ValueKey(
-                'option-description-${option.id}-${option.description}',
-              ),
               initialValue: option.description ?? '',
               decoration: const InputDecoration(
                 labelText: 'Option description',
-                border: OutlineInputBorder(),
               ),
               maxLines: 2,
               inputFormatters: [LengthLimitingTextInputFormatter(4096)],
@@ -1523,13 +1470,8 @@ class _NumericField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      key: ValueKey('$label-$value'),
       initialValue: value?.toString() ?? '',
-      decoration: InputDecoration(
-        labelText: label,
-        helperText: helperText,
-        border: const OutlineInputBorder(),
-      ),
+      decoration: InputDecoration(labelText: label, helperText: helperText),
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       onChanged: (value) =>
@@ -1552,12 +1494,8 @@ class _DecimalField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      key: ValueKey('$label-$value'),
       initialValue: value?.toString() ?? '',
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-      ),
+      decoration: InputDecoration(labelText: label),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),

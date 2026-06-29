@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class PollStatsWidget extends StatelessWidget {
-  const PollStatsWidget({
+class SurveyStatsWidget extends StatelessWidget {
+  const SurveyStatsWidget({
     super.key,
     required this.question,
     required this.stats,

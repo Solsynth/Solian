@@ -4,27 +4,27 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
+import 'package:island/polls/polls_widgets/poll/survey_submit.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class PollSubmitPage extends ConsumerWidget {
-  final String pollId;
+class SurveySubmitPage extends ConsumerWidget {
+  final String surveyId;
   final bool isReadonly;
   final bool isInitiallyExpanded;
 
-  const PollSubmitPage({
+  const SurveySubmitPage({
     super.key,
-    @PathParam("id") required this.pollId,
+    @PathParam("id") required this.surveyId,
     this.isReadonly = false,
     this.isInitiallyExpanded = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pollAsync = ref.watch(surveyWithStatsProvider(pollId));
+    final pollAsync = ref.watch(surveyWithStatsProvider(surveyId));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -130,10 +130,10 @@ class PollSubmitPage extends ConsumerWidget {
                       color: colorScheme.surface.withOpacity(0.86),
                       child: Padding(
                         padding: const EdgeInsets.all(24),
-                        child: PollSubmit(
-                          pollId: pollId,
+                        child: SurveySubmit(
+                          surveyId: surveyId,
                           disableCollapse: true,
-                          visualStyle: PollSubmitVisualStyle.fullPage,
+                          visualStyle: SurveySubmitVisualStyle.fullPage,
                           onSubmit: (_) {
                             context.maybePop();
                           },
