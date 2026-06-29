@@ -10,6 +10,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart'
+    show HoverEdgeAction;
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -425,11 +427,16 @@ class _HoverHorizontalScrollArea extends HookWidget {
             top: 0,
             bottom: 0,
             child: Center(
-              child: _AnimatedDashboardScrollArrow(
-                icon: Symbols.chevron_left,
+              child: HoverEdgeAction(
+                axis: Axis.horizontal,
+                leading: true,
                 isVisible: isHovered.value && canScrollLeft.value,
-                hiddenOffset: const Offset(-0.4, 0),
                 onTap: () => scrollBy(-1),
+                child: const Icon(
+                  Symbols.chevron_left,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ),
@@ -438,59 +445,20 @@ class _HoverHorizontalScrollArea extends HookWidget {
             top: 0,
             bottom: 0,
             child: Center(
-              child: _AnimatedDashboardScrollArrow(
-                icon: Symbols.chevron_right,
+              child: HoverEdgeAction(
+                axis: Axis.horizontal,
+                leading: false,
                 isVisible: isHovered.value && canScrollRight.value,
-                hiddenOffset: const Offset(0.4, 0),
                 onTap: () => scrollBy(1),
+                child: const Icon(
+                  Symbols.chevron_right,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AnimatedDashboardScrollArrow extends StatelessWidget {
-  final IconData icon;
-  final bool isVisible;
-  final Offset hiddenOffset;
-  final VoidCallback onTap;
-
-  const _AnimatedDashboardScrollArrow({
-    required this.icon,
-    required this.isVisible,
-    required this.hiddenOffset,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      ignoring: !isVisible,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        offset: isVisible ? Offset.zero : hiddenOffset,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          opacity: isVisible ? 1 : 0,
-          child: Material(
-            color: Colors.black45,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
