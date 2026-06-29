@@ -72,7 +72,6 @@ class PostComposeDialog extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(composeStorageProvider);
-    final restoredInitialState = useState<PostComposeInitialState?>(null);
     final prompted = useState(false);
     final showPreview = useState(false);
 
@@ -137,7 +136,7 @@ class PostComposeDialog extends HookConsumerWidget {
           if (latestDraft == null) return null;
           prompted.value = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _showRestoreDialog(ref, restoredInitialState, latestDraft);
+            _showRestoreDialog(ref, state, latestDraft);
           });
         }
         return null;
@@ -182,14 +181,13 @@ class PostComposeDialog extends HookConsumerWidget {
     }
 
     Future<void> performSubmit() async {
-      await ComposeLogic.performSubmit(
+      await ComposeLogic.submitInBackground(
         ref,
         state,
-        context,
         originalPost: effectiveOriginalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
-        onSuccess: onSubmitted,
+        onSubmitted: onSubmitted,
       );
     }
 
@@ -236,13 +234,13 @@ class PostComposeDialog extends HookConsumerWidget {
               ? _DialogPreviewPane(state: state)
               : PostComposeCard(
                   originalPost: effectiveOriginalPost,
-                  initialState:
-                      restoredInitialState.value ?? initialState,
+                  initialState: initialState,
                   onCancel: onCancel,
                   onSubmit: onSubmitted,
                   isContained: true,
                   showHeader: false,
                   providedState: state,
+                  onSubmitRequest: performSubmit,
                 ),
         ),
       ),
@@ -251,10 +249,10 @@ class PostComposeDialog extends HookConsumerWidget {
 
   Future<void> _showRestoreDialog(
     WidgetRef ref,
-    ValueNotifier<PostComposeInitialState?> restoredInitialState,
+    ComposeState state,
     SnPost latestDraft,
   ) async {
-      final restore = await showDialog<bool>(
+    final restore = await showDialog<bool>(
       context: ref.context,
       useRootNavigator: true,
       builder: (context) => AlertDialog(
@@ -282,19 +280,7 @@ class PostComposeDialog extends HookConsumerWidget {
       ),
     );
     if (restore == true) {
-      await ref
-          .read(composeStorageProvider.notifier)
-          .deleteLocalDraft(latestDraft.id);
-      restoredInitialState.value = PostComposeInitialState(
-        cloudDraftId: latestDraft.draftedAt != null ? latestDraft.id : null,
-        title: latestDraft.title,
-        description: latestDraft.description,
-        content: latestDraft.content,
-        visibility: latestDraft.visibility,
-        attachments: latestDraft.attachments
-            .map((e) => UniversalFile.fromAttachment(e))
-            .toList(),
-      );
+      ComposeLogic.applyDraftToState(state, latestDraft);
     }
   }
 

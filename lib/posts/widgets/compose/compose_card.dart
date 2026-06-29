@@ -32,6 +32,7 @@ class PostComposeCard extends HookConsumerWidget {
   final PostComposeInitialState? initialState;
   final VoidCallback? onCancel;
   final Function()? onSubmit;
+  final Future<void> Function()? onSubmitRequest;
   final Function(ComposeState)? onStateChanged;
   final bool isContained;
   final bool showHeader;
@@ -43,6 +44,7 @@ class PostComposeCard extends HookConsumerWidget {
     this.initialState,
     this.onCancel,
     this.onSubmit,
+    this.onSubmitRequest,
     this.onStateChanged,
     this.isContained = false,
     this.showHeader = true,
@@ -163,6 +165,11 @@ class PostComposeCard extends HookConsumerWidget {
     }
 
     Future<void> performSubmit() async {
+      if (onSubmitRequest != null) {
+        await onSubmitRequest!();
+        return;
+      }
+
       await ComposeLogic.performSubmit(
         ref,
         composeState,

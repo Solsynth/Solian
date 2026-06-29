@@ -46,8 +46,9 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
         color: _isScrolled
             ? Theme.of(context).colorScheme.surfaceContainerHigh
             : Colors.transparent,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: isWideScreen(context)
+            ? const BorderRadius.vertical(top: Radius.circular(28))
+            : BorderRadius.zero,
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 8, 4),
@@ -59,7 +60,8 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
             ],
             if (widget.title != null || widget.titleText != null)
               Expanded(
-                child: widget.title ??
+                child:
+                    widget.title ??
                     Text(
                       widget.titleText!,
                       style: Theme.of(context).textTheme.titleLarge,
@@ -76,9 +78,7 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
                 color: Theme.of(context).colorScheme.onSurface,
               ),
               onPressed: widget.onDismiss,
-              style: IconButton.styleFrom(
-                minimumSize: const Size(36, 36),
-              ),
+              style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
             ),
           ],
         ),
@@ -109,10 +109,12 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
 
     if (!isWideScreen(context) && !widget.forceCard) {
       final isDesktop =
-          !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
+          !kIsWeb &&
+          (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
       final content = ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height *
+          maxHeight:
+              MediaQuery.of(context).size.height *
               (widget.maxHeightFactor ?? 0.85),
         ),
         child: Material(
@@ -137,7 +139,8 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: widget.maxWidth ?? 800,
-              maxHeight: MediaQuery.of(context).size.height *
+              maxHeight:
+                  MediaQuery.of(context).size.height *
                   (widget.maxHeightFactor ?? 0.85),
             ),
             child: Container(

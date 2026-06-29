@@ -126,16 +126,7 @@ class ComposeToolbar extends HookConsumerWidget {
           onDraftSelected: (draftId) {
             final draft = ref.read(composeStorageProvider)[draftId];
             if (draft != null) {
-              state.cloudDraftId.value = draft.draftedAt != null
-                  ? draft.id
-                  : null;
-              state.titleController.text = draft.title ?? '';
-              state.descriptionController.text = draft.description ?? '';
-              state.contentController.text = draft.content ?? '';
-              state.visibility.value = draft.visibility;
-              state.attachments.value = draft.attachments
-                  .map((e) => UniversalFile.fromAttachment(e))
-                  .toList();
+              ComposeLogic.applyDraftToState(state, draft);
             }
           },
         ),

@@ -198,6 +198,7 @@ class _TaskOverlayBar extends ConsumerWidget {
           right: isDesktop ? 0 : horizontalPadding.right,
         ),
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => _showTaskSheet(context, ref),
           child: SizedBox(
             height: height,
@@ -392,11 +393,13 @@ class _TaskOverlayBar extends ConsumerWidget {
     final notifier = ref.read(tasksProvider.notifier);
     final sortedTasks = [...allTasks]
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final navigator = Navigator.of(context, rootNavigator: true);
 
     showModalBottomSheet<void>(
-      context: context,
+      context: navigator.context,
       isScrollControlled: true,
       useSafeArea: true,
+      useRootNavigator: true,
       builder: (sheetContext) {
         return SheetScaffold(
           titleText: 'Tasks',
@@ -776,7 +779,7 @@ class _AppTaskTileState extends State<AppTaskTile>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.task.statusMessage ?? 'Publishing',
+          widget.task.statusMessage ?? 'taskPostPublishPublishing'.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.primary,
@@ -793,7 +796,7 @@ class _AppTaskTileState extends State<AppTaskTile>
               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
-              widget.task.status.name,
+              _taskStatusLabel(widget.task.status),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -824,7 +827,7 @@ class _AppTaskTileState extends State<AppTaskTile>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Progress',
+          'taskProgress'.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.primary,
@@ -841,7 +844,7 @@ class _AppTaskTileState extends State<AppTaskTile>
               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
-              widget.task.status.name,
+              _taskStatusLabel(widget.task.status),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -869,10 +872,22 @@ class _AppTaskTileState extends State<AppTaskTile>
 
   String _getTaskTypeLabel(String type) {
     return switch (type) {
-      AppTaskType.driveUpload => 'File Upload',
-      AppTaskType.driveDownload => 'File Download',
-      AppTaskType.postPublish => 'Post Publishing',
+      AppTaskType.driveUpload => 'taskTypeDriveUpload'.tr(),
+      AppTaskType.driveDownload => 'taskTypeDriveDownload'.tr(),
+      AppTaskType.postPublish => 'taskTypePostPublish'.tr(),
       _ => type,
+    };
+  }
+
+  String _taskStatusLabel(AppTaskStatus status) {
+    return switch (status) {
+      AppTaskStatus.pending => 'taskStatusPending'.tr(),
+      AppTaskStatus.inProgress => 'taskStatusInProgress'.tr(),
+      AppTaskStatus.paused => 'taskStatusPaused'.tr(),
+      AppTaskStatus.completed => 'taskStatusCompleted'.tr(),
+      AppTaskStatus.failed => 'taskStatusFailed'.tr(),
+      AppTaskStatus.cancelled => 'taskStatusCancelled'.tr(),
+      AppTaskStatus.expired => 'taskStatusExpired'.tr(),
     };
   }
 
