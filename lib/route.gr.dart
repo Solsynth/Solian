@@ -27,9 +27,9 @@ import 'package:island/accounts/screens/me/profile_update.dart' as _i6;
 import 'package:island/accounts/screens/meet.dart' as _i41;
 import 'package:island/accounts/screens/physical_passport.dart' as _i43;
 import 'package:island/accounts/screens/profile.dart' as _i3;
-import 'package:island/accounts/screens/progress.dart' as _i51;
-import 'package:island/accounts/screens/punishments.dart' as _i53;
-import 'package:island/accounts/screens/relationship.dart' as _i56;
+import 'package:island/accounts/screens/progress.dart' as _i50;
+import 'package:island/accounts/screens/punishments.dart' as _i52;
+import 'package:island/accounts/screens/relationship.dart' as _i55;
 import 'package:island/auth/authorize_screen.dart' as _i11;
 import 'package:island/auth/captcha.dart' as _i17;
 import 'package:island/auth/create_account.dart' as _i23;
@@ -40,7 +40,7 @@ import 'package:island/chat/widgets/chat_list_screen.dart' as _i20;
 import 'package:island/chat/widgets/chat_room_form.dart' as _i32;
 import 'package:island/chat/widgets/chat_room_screen.dart' as _i21;
 import 'package:island/chat/widgets/chat_room_storage_screen.dart' as _i22;
-import 'package:island/chat/widgets/chat_search_screen.dart' as _i57;
+import 'package:island/chat/widgets/chat_search_screen.dart' as _i56;
 import 'package:island/creators/screens/domains/domain_manage.dart' as _i24;
 import 'package:island/creators/screens/hub.dart' as _i25;
 import 'package:island/creators/screens/posts/post_collections_manage.dart'
@@ -60,27 +60,26 @@ import 'package:island/misc/about.dart' as _i1;
 import 'package:island/misc/cf_ip_speed_test_screen.dart' as _i18;
 import 'package:island/misc/dashboard/dash.dart' as _i31;
 import 'package:island/misc/not_found.dart' as _i42;
-import 'package:island/misc/settings.dart' as _i58;
+import 'package:island/misc/settings.dart' as _i57;
 import 'package:island/misc/tabs_screen.dart' as _i63;
 import 'package:island/plugins/screens/plugin_editor_screen.dart' as _i44;
 import 'package:island/plugins/screens/plugin_manager_screen.dart' as _i45;
-import 'package:island/polls/polls_widgets/poll/survey_feedback.dart' as _i61;
-import 'package:island/polls/polls_widgets/poll/survey_submit_page.dart'
-    as _i62;
-import 'package:island/polls/screens/poll_editor.dart' as _i46;
 import 'package:island/posts/compose.dart' as _i74;
 import 'package:island/posts/screens/bookmarks.dart' as _i14;
 import 'package:island/posts/screens/compose_article.dart' as _i10;
 import 'package:island/posts/screens/compose_blog.dart' as _i13;
-import 'package:island/posts/screens/post_categories_list.dart' as _i47;
-import 'package:island/posts/screens/post_category_detail.dart' as _i48;
-import 'package:island/posts/screens/post_detail.dart' as _i49;
-import 'package:island/posts/screens/publisher_profile.dart' as _i52;
-import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i50;
-import 'package:island/realms/screens/realm_detail.dart' as _i54;
-import 'package:island/realms/screens/realms.dart' as _i55;
-import 'package:island/stickers/screens/pack_detail.dart' as _i59;
-import 'package:island/stickers/screens/sticker_marketplace.dart' as _i60;
+import 'package:island/posts/screens/post_categories_list.dart' as _i46;
+import 'package:island/posts/screens/post_category_detail.dart' as _i47;
+import 'package:island/posts/screens/post_detail.dart' as _i48;
+import 'package:island/posts/screens/publisher_profile.dart' as _i51;
+import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i49;
+import 'package:island/realms/screens/realm_detail.dart' as _i53;
+import 'package:island/realms/screens/realms.dart' as _i54;
+import 'package:island/stickers/screens/pack_detail.dart' as _i58;
+import 'package:island/stickers/screens/sticker_marketplace.dart' as _i59;
+import 'package:island/surveys/screens/survey_editor.dart' as _i60;
+import 'package:island/surveys/widgets/survey_feedback.dart' as _i61;
+import 'package:island/surveys/widgets/survey_submit_page.dart' as _i62;
 import 'package:island/thoughts/screens/think.dart' as _i64;
 import 'package:island/tickets/screens/ticket_detail.dart' as _i65;
 import 'package:island/tickets/screens/ticket_list.dart' as _i66;
@@ -1924,74 +1923,7 @@ class PluginManagerRoute extends _i70.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i46.PollEditorScreen]
-class PollEditorRoute extends _i70.PageRouteInfo<PollEditorRouteArgs> {
-  PollEditorRoute({
-    _i71.Key? key,
-    String? initialPollId,
-    String? initialPublisher,
-    List<_i70.PageRouteInfo>? children,
-  }) : super(
-         PollEditorRoute.name,
-         args: PollEditorRouteArgs(
-           key: key,
-           initialPollId: initialPollId,
-           initialPublisher: initialPublisher,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'PollEditorRoute';
-
-  static _i70.PageInfo page = _i70.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<PollEditorRouteArgs>(
-        orElse: () => const PollEditorRouteArgs(),
-      );
-      return _i46.PollEditorScreen(
-        key: args.key,
-        initialPollId: args.initialPollId,
-        initialPublisher: args.initialPublisher,
-      );
-    },
-  );
-}
-
-class PollEditorRouteArgs {
-  const PollEditorRouteArgs({
-    this.key,
-    this.initialPollId,
-    this.initialPublisher,
-  });
-
-  final _i71.Key? key;
-
-  final String? initialPollId;
-
-  final String? initialPublisher;
-
-  @override
-  String toString() {
-    return 'PollEditorRouteArgs{key: $key, initialPollId: $initialPollId, initialPublisher: $initialPublisher}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! PollEditorRouteArgs) return false;
-    return key == other.key &&
-        initialPollId == other.initialPollId &&
-        initialPublisher == other.initialPublisher;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^ initialPollId.hashCode ^ initialPublisher.hashCode;
-}
-
-/// generated route for
-/// [_i47.PostCategoriesListScreen]
+/// [_i46.PostCategoriesListScreen]
 class PostCategoriesListRoute extends _i70.PageRouteInfo<void> {
   const PostCategoriesListRoute({List<_i70.PageRouteInfo>? children})
     : super(PostCategoriesListRoute.name, initialChildren: children);
@@ -2001,13 +1933,13 @@ class PostCategoriesListRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i47.PostCategoriesListScreen();
+      return const _i46.PostCategoriesListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i48.PostCategoryDetailScreen]
+/// [_i47.PostCategoryDetailScreen]
 class PostCategoryDetailRoute
     extends _i70.PageRouteInfo<PostCategoryDetailRouteArgs> {
   PostCategoryDetailRoute({
@@ -2031,7 +1963,7 @@ class PostCategoryDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<PostCategoryDetailRouteArgs>();
-      return _i48.PostCategoryDetailScreen(
+      return _i47.PostCategoryDetailScreen(
         key: args.key,
         slug: args.slug,
         isCategory: args.isCategory,
@@ -2072,7 +2004,7 @@ class PostCategoryDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i49.PostDetailScreen]
+/// [_i48.PostDetailScreen]
 class PostDetailRoute extends _i70.PageRouteInfo<PostDetailRouteArgs> {
   PostDetailRoute({
     _i71.Key? key,
@@ -2094,7 +2026,7 @@ class PostDetailRoute extends _i70.PageRouteInfo<PostDetailRouteArgs> {
       final args = data.argsAs<PostDetailRouteArgs>(
         orElse: () => PostDetailRouteArgs(id: pathParams.getString('id')),
       );
-      return _i49.PostDetailScreen(key: args.key, id: args.id);
+      return _i48.PostDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2123,7 +2055,7 @@ class PostDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i50.PostShuffleScreen]
+/// [_i49.PostShuffleScreen]
 class PostShuffleRoute extends _i70.PageRouteInfo<void> {
   const PostShuffleRoute({List<_i70.PageRouteInfo>? children})
     : super(PostShuffleRoute.name, initialChildren: children);
@@ -2133,13 +2065,13 @@ class PostShuffleRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i50.PostShuffleScreen();
+      return const _i49.PostShuffleScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i51.ProgressScreen]
+/// [_i50.ProgressScreen]
 class ProgressRoute extends _i70.PageRouteInfo<void> {
   const ProgressRoute({List<_i70.PageRouteInfo>? children})
     : super(ProgressRoute.name, initialChildren: children);
@@ -2149,13 +2081,13 @@ class ProgressRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i51.ProgressScreen();
+      return const _i50.ProgressScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i52.PublisherProfileScreen]
+/// [_i51.PublisherProfileScreen]
 class PublisherProfileRoute
     extends _i70.PageRouteInfo<PublisherProfileRouteArgs> {
   PublisherProfileRoute({
@@ -2179,7 +2111,7 @@ class PublisherProfileRoute
         orElse: () =>
             PublisherProfileRouteArgs(name: pathParams.getString('name')),
       );
-      return _i52.PublisherProfileScreen(key: args.key, name: args.name);
+      return _i51.PublisherProfileScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -2208,7 +2140,7 @@ class PublisherProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i53.PunishmentsScreen]
+/// [_i52.PunishmentsScreen]
 class PunishmentsRoute extends _i70.PageRouteInfo<void> {
   const PunishmentsRoute({List<_i70.PageRouteInfo>? children})
     : super(PunishmentsRoute.name, initialChildren: children);
@@ -2218,13 +2150,13 @@ class PunishmentsRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i53.PunishmentsScreen();
+      return const _i52.PunishmentsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i54.RealmDetailScreen]
+/// [_i53.RealmDetailScreen]
 class RealmDetailRoute extends _i70.PageRouteInfo<RealmDetailRouteArgs> {
   RealmDetailRoute({
     _i72.Key? key,
@@ -2246,7 +2178,7 @@ class RealmDetailRoute extends _i70.PageRouteInfo<RealmDetailRouteArgs> {
       final args = data.argsAs<RealmDetailRouteArgs>(
         orElse: () => RealmDetailRouteArgs(slug: pathParams.getString('slug')),
       );
-      return _i54.RealmDetailScreen(key: args.key, slug: args.slug);
+      return _i53.RealmDetailScreen(key: args.key, slug: args.slug);
     },
   );
 }
@@ -2275,7 +2207,7 @@ class RealmDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i55.RealmListScreen]
+/// [_i54.RealmListScreen]
 class RealmListRoute extends _i70.PageRouteInfo<void> {
   const RealmListRoute({List<_i70.PageRouteInfo>? children})
     : super(RealmListRoute.name, initialChildren: children);
@@ -2285,13 +2217,13 @@ class RealmListRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i55.RealmListScreen();
+      return const _i54.RealmListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i56.RelationshipScreen]
+/// [_i55.RelationshipScreen]
 class RelationshipRoute extends _i70.PageRouteInfo<void> {
   const RelationshipRoute({List<_i70.PageRouteInfo>? children})
     : super(RelationshipRoute.name, initialChildren: children);
@@ -2301,13 +2233,13 @@ class RelationshipRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i56.RelationshipScreen();
+      return const _i55.RelationshipScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i57.SearchMessagesScreen]
+/// [_i56.SearchMessagesScreen]
 class SearchMessagesRoute extends _i70.PageRouteInfo<SearchMessagesRouteArgs> {
   SearchMessagesRoute({
     _i72.Key? key,
@@ -2330,7 +2262,7 @@ class SearchMessagesRoute extends _i70.PageRouteInfo<SearchMessagesRouteArgs> {
         orElse: () =>
             SearchMessagesRouteArgs(roomId: pathParams.getString('id')),
       );
-      return _i57.SearchMessagesScreen(key: args.key, roomId: args.roomId);
+      return _i56.SearchMessagesScreen(key: args.key, roomId: args.roomId);
     },
   );
 }
@@ -2359,7 +2291,7 @@ class SearchMessagesRouteArgs {
 }
 
 /// generated route for
-/// [_i58.SettingsScreen]
+/// [_i57.SettingsScreen]
 class SettingsRoute extends _i70.PageRouteInfo<void> {
   const SettingsRoute({List<_i70.PageRouteInfo>? children})
     : super(SettingsRoute.name, initialChildren: children);
@@ -2369,13 +2301,13 @@ class SettingsRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i58.SettingsScreen();
+      return const _i57.SettingsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i59.StickerMarketplacePackDetailScreen]
+/// [_i58.StickerMarketplacePackDetailScreen]
 class StickerMarketplacePackDetailRoute
     extends _i70.PageRouteInfo<StickerMarketplacePackDetailRouteArgs> {
   StickerMarketplacePackDetailRoute({
@@ -2400,7 +2332,7 @@ class StickerMarketplacePackDetailRoute
           id: pathParams.getString('id'),
         ),
       );
-      return _i59.StickerMarketplacePackDetailScreen(
+      return _i58.StickerMarketplacePackDetailScreen(
         key: args.key,
         id: args.id,
       );
@@ -2432,7 +2364,7 @@ class StickerMarketplacePackDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i60.StickerMarketplaceScreen]
+/// [_i59.StickerMarketplaceScreen]
 class StickerMarketplaceRoute extends _i70.PageRouteInfo<void> {
   const StickerMarketplaceRoute({List<_i70.PageRouteInfo>? children})
     : super(StickerMarketplaceRoute.name, initialChildren: children);
@@ -2442,9 +2374,76 @@ class StickerMarketplaceRoute extends _i70.PageRouteInfo<void> {
   static _i70.PageInfo page = _i70.PageInfo(
     name,
     builder: (data) {
-      return const _i60.StickerMarketplaceScreen();
+      return const _i59.StickerMarketplaceScreen();
     },
   );
+}
+
+/// generated route for
+/// [_i60.SurveyEditorScreen]
+class SurveyEditorRoute extends _i70.PageRouteInfo<SurveyEditorRouteArgs> {
+  SurveyEditorRoute({
+    _i71.Key? key,
+    String? initialSurveyId,
+    String? initialPublisher,
+    List<_i70.PageRouteInfo>? children,
+  }) : super(
+         SurveyEditorRoute.name,
+         args: SurveyEditorRouteArgs(
+           key: key,
+           initialSurveyId: initialSurveyId,
+           initialPublisher: initialPublisher,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'SurveyEditorRoute';
+
+  static _i70.PageInfo page = _i70.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SurveyEditorRouteArgs>(
+        orElse: () => const SurveyEditorRouteArgs(),
+      );
+      return _i60.SurveyEditorScreen(
+        key: args.key,
+        initialSurveyId: args.initialSurveyId,
+        initialPublisher: args.initialPublisher,
+      );
+    },
+  );
+}
+
+class SurveyEditorRouteArgs {
+  const SurveyEditorRouteArgs({
+    this.key,
+    this.initialSurveyId,
+    this.initialPublisher,
+  });
+
+  final _i71.Key? key;
+
+  final String? initialSurveyId;
+
+  final String? initialPublisher;
+
+  @override
+  String toString() {
+    return 'SurveyEditorRouteArgs{key: $key, initialSurveyId: $initialSurveyId, initialPublisher: $initialPublisher}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SurveyEditorRouteArgs) return false;
+    return key == other.key &&
+        initialSurveyId == other.initialSurveyId &&
+        initialPublisher == other.initialPublisher;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ initialSurveyId.hashCode ^ initialPublisher.hashCode;
 }
 
 /// generated route for

@@ -176,7 +176,7 @@ class ComposeStateUtils {
     // Clear embed view
     state.embedView.value = null;
 
-    // Clear all embeds (polls, funds, meets, etc.)
+    // Clear all embeds (surveys, funds, meets, etc.)
     state.embeds.value = [];
 
     // Clear realm

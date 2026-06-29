@@ -128,8 +128,8 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
           ),
         ...otherEmbeds.map(
           (embedData) => switch (embedData['type']) {
-            'poll' => _PollEmbedCard(
-              pollId: embedData['id']?.toString(),
+            'survey' => _SurveyEmbedCard(
+              surveyId: embedData['id']?.toString(),
               margin: EdgeInsets.symmetric(
                 horizontal: widget.renderingPadding.horizontal,
                 vertical: 8,
@@ -735,66 +735,68 @@ class _LocationEmbedContent extends StatelessWidget {
   }
 }
 
-class _PollEmbedCard extends ConsumerWidget {
-  final String? pollId;
+class _SurveyEmbedCard extends ConsumerWidget {
+  final String? surveyId;
   final EdgeInsets margin;
   final bool isInteractive;
 
-  const _PollEmbedCard({
-    required this.pollId,
+  const _SurveyEmbedCard({
+    required this.surveyId,
     required this.margin,
     required this.isInteractive,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (pollId == null) {
+    if (surveyId == null) {
       return Card(
         margin: margin,
         child: const Padding(
           padding: EdgeInsets.all(16),
-          child: Text('Poll was unavailable...'),
+          child: Text('Survey was unavailable...'),
         ),
       );
     }
 
-    final pollAsync = ref.watch(surveyWithStatsProvider(pollId!));
+    final surveyAsync = ref.watch(surveyWithStatsProvider(surveyId!));
 
     return Card(
       margin: margin,
       clipBehavior: Clip.antiAlias,
-      child: pollAsync.when(
+      child: surveyAsync.when(
         loading: () => const Padding(
           padding: EdgeInsets.all(16),
           child: Center(child: CircularProgressIndicator()),
         ),
         error: (error, _) => Padding(
           padding: const EdgeInsets.all(16),
-          child: Text('Failed to load poll: $error'),
+          child: Text('Failed to load survey: $error'),
         ),
-        data: (poll) => InkWell(
+        data: (survey) => InkWell(
           onTap: isInteractive
-              ? () => context.router.push(PollSubmitRoute(pollId: pollId!))
+              ? () =>
+                    context.router.push(SurveySubmitRoute(surveyId: surveyId!))
               : null,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (poll.title != null)
+                if (survey.title != null)
                   Text(
-                    poll.title!,
+                    survey.title!,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                if (poll.description != null && poll.description!.isNotEmpty)
+                if (survey.description != null &&
+                    survey.description!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      poll.description!,
+                      survey.description!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -809,12 +811,12 @@ class _PollEmbedCard extends ConsumerWidget {
                   child: Row(
                     children: [
                       Text(
-                        '${poll.questions.length} question${poll.questions.length == 1 ? '' : 's'}',
+                        '${survey.questions.length} question${survey.questions.length == 1 ? '' : 's'}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const Spacer(),
-                      if (poll.userAnswer != null &&
-                          poll.userAnswer!.answer.isNotEmpty)
+                      if (survey.userAnswer != null &&
+                          survey.userAnswer!.answer.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: Icon(

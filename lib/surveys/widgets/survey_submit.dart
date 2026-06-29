@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
-import 'package:island/polls/polls_widgets/poll/survey_stats_widget.dart';
+import 'package:island/surveys/widgets/survey_stats_widget.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -40,10 +40,10 @@ class SurveySubmit extends ConsumerStatefulWidget {
 
   final bool isReadonly;
 
-  /// Whether the poll should start expanded instead of collapsed.
+  /// Whether the survey should start expanded instead of collapsed.
   final bool isInitiallyExpanded;
 
-  /// When true, the poll cannot be collapsed and always stays expanded.
+  /// When true, the survey cannot be collapsed and always stays expanded.
   final bool disableCollapse;
 
   final SurveySubmitVisualStyle visualStyle;
@@ -101,10 +101,10 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     }
   }
 
-  void _initializeFromPollData(SnSurveyWithStats poll) {
-    // Initialize answers from poll data if available
-    if (poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty) {
-      _answers = Map<String, dynamic>.from(poll.userAnswer!.answer);
+  void _initializeFromSurveyData(SnSurveyWithStats survey) {
+    // Initialize answers from survey data if available
+    if (survey.userAnswer != null && survey.userAnswer!.answer.isNotEmpty) {
+      _answers = Map<String, dynamic>.from(survey.userAnswer!.answer);
       if (!widget.isReadonly && !_isModifying) {
         _isModifying = false; // Show modify button if user has answered
       }
@@ -118,7 +118,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     if (oldWidget.surveyId != widget.surveyId) {
       _index = 0;
       _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
-      // Reset modification state when poll changes
+      // Reset modification state when survey changes
       _isModifying = false;
     }
   }
@@ -135,8 +135,8 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
   bool get _isFullPage =>
       widget.visualStyle == SurveySubmitVisualStyle.fullPage;
 
-  bool _isExpired(SnSurveyWithStats poll) {
-    final endedAt = poll.endedAt;
+  bool _isExpired(SnSurveyWithStats survey) {
+    final endedAt = survey.endedAt;
     if (endedAt == null) return false;
     return endedAt.toUtc().isBefore(DateTime.now().toUtc());
   }
@@ -237,7 +237,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     }
   }
 
-  Future<void> _submitToServer(SnSurveyWithStats poll) async {
+  Future<void> _submitToServer(SnSurveyWithStats survey) async {
     // Persist current question before final submit
     _persistCurrentAnswer();
 
@@ -249,17 +249,17 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
       final dio = ref.read(solarNetworkClientProvider).dio;
 
       await dio.post(
-        '/sphere/surveys/${poll.id}/answer',
+        '/sphere/surveys/${survey.id}/answer',
         data: {'answer': _answers},
       );
 
-      // Refresh poll data to show submitted answer
+      // Refresh survey data to show submitted answer
       ref.invalidate(surveyWithStatsProvider(widget.surveyId));
 
       // Only call onSubmit after server accepts
       widget.onSubmit(Map<String, dynamic>.unmodifiable(_answers));
 
-      showSnackBar('pollAnswerSubmitted'.tr());
+      showSnackBar('surveyAnswerSubmitted'.tr());
       HapticFeedback.heavyImpact();
     } catch (e) {
       showErrorAlert(e);
@@ -272,7 +272,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     }
   }
 
-  void _next(SnSurveyWithStats poll) {
+  void _next(SnSurveyWithStats survey) {
     if (_submitting) return;
     if (!_isCurrentAnswered()) {
       showSnackBar('${'required'.tr()}: ${_current.title}');
@@ -287,7 +287,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
       });
     } else {
       // Final submit to API
-      _submitToServer(poll);
+      _submitToServer(survey);
     }
   }
 
@@ -306,7 +306,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     }
   }
 
-  Widget _buildHeader(BuildContext context, SnSurveyWithStats poll) {
+  Widget _buildHeader(BuildContext context, SnSurveyWithStats survey) {
     final q = _current;
     final theme = Theme.of(context);
     return Column(
@@ -381,9 +381,9 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     return SurveyStatsWidget(question: q, stats: stats);
   }
 
-  Widget _buildBody(BuildContext context, SnSurveyWithStats poll) {
+  Widget _buildBody(BuildContext context, SnSurveyWithStats survey) {
     final hasUserAnswer =
-        poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
+        survey.userAnswer != null && survey.userAnswer!.answer.isNotEmpty;
     if (hasUserAnswer && !widget.isReadonly && !_isModifying) {
       return const SizedBox.shrink(); // Collapse input fields if already submitted and not modifying
     }
@@ -629,14 +629,14 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     );
   }
 
-  Widget _buildNavBar(BuildContext context, SnSurveyWithStats poll) {
+  Widget _buildNavBar(BuildContext context, SnSurveyWithStats survey) {
     final isLast = _index == _questions!.length - 1;
     final canProceed = _isCurrentAnswered() && !_submitting;
     final hasUserAnswer =
-        poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
+        survey.userAnswer != null && survey.userAnswer!.answer.isNotEmpty;
 
     if (hasUserAnswer && !_isModifying && !widget.isReadonly) {
-      // If poll is submitted and not in modification mode, show "Modify" button
+      // If survey is submitted and not in modification mode, show "Modify" button
       return FilledButton.icon(
         icon: const Icon(Icons.edit),
         label: Text('modifyAnswers'.tr()),
@@ -687,7 +687,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                 )
               : Icon(isLast ? Icons.check : Icons.arrow_forward),
           label: Text(isLast ? 'submit'.tr() : 'next'.tr()),
-          onPressed: canProceed ? () => _next(poll) : null,
+          onPressed: canProceed ? () => _next(survey) : null,
         ),
       ],
     );
@@ -695,22 +695,22 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
 
   Widget _buildStatsStepper(
     BuildContext context,
-    SnSurveyWithStats poll, {
+    SnSurveyWithStats survey, {
     required bool canModify,
   }) {
     final isLast = _index == _questions!.length - 1;
-    final expired = _isExpired(poll);
+    final expired = _isExpired(survey);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(context, poll),
+        _buildHeader(context, survey),
         const SizedBox(height: 12),
         _AnimatedStep(
           key: ValueKey('stats_${_current.id}'),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [_buildStats(context, _current, poll.stats)],
+            children: [_buildStats(context, _current, survey.stats)],
           ),
         ),
         const SizedBox(height: 16),
@@ -771,30 +771,30 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
     );
   }
 
-  Widget _buildReadonlyView(BuildContext context, SnSurveyWithStats poll) {
+  Widget _buildReadonlyView(BuildContext context, SnSurveyWithStats survey) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (poll.title != null || poll.description != null)
+        if (survey.title != null || survey.description != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (poll.title != null)
+                if (survey.title != null)
                   Text(
-                    poll.title!,
+                    survey.title!,
                     style: _isFullPage
                         ? Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           )
                         : Theme.of(context).textTheme.titleLarge,
                   ),
-                if (poll.description != null)
+                if (survey.description != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      poll.description!,
+                      survey.description!,
                       style:
                           (_isFullPage
                                   ? Theme.of(context).textTheme.titleMedium
@@ -810,12 +810,12 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
             ),
           ),
         const SizedBox(height: 4),
-        _buildStatsStepper(context, poll, canModify: false),
+        _buildStatsStepper(context, survey, canModify: false),
       ],
     );
   }
 
-  Widget _buildCollapsedView(BuildContext context, SnSurveyWithStats poll) {
+  Widget _buildCollapsedView(BuildContext context, SnSurveyWithStats survey) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -825,20 +825,20 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (poll.title != null)
+                  if (survey.title != null)
                     Text(
-                      poll.title!,
+                      survey.title!,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  if (poll.description != null)
+                  if (survey.description != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        poll.description!,
+                        survey.description!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
@@ -875,7 +875,9 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                   });
                 },
                 visualDensity: VisualDensity.compact,
-                tooltip: _isCollapsed ? 'expandPoll'.tr() : 'collapsePoll'.tr(),
+                tooltip: _isCollapsed
+                    ? 'expandSurvey'.tr()
+                    : 'collapseSurvey'.tr(),
               ),
           ],
         ),
@@ -885,9 +887,9 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
 
   @override
   Widget build(BuildContext context) {
-    final pollAsync = ref.watch(surveyWithStatsProvider(widget.surveyId));
+    final surveyAsync = ref.watch(surveyWithStatsProvider(widget.surveyId));
 
-    return pollAsync.when(
+    return surveyAsync.when(
       loading: () => const Center(
         child: Padding(
           padding: EdgeInsets.all(16.0),
@@ -897,17 +899,17 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
       error: (error, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('Failed to load poll: $error'),
+          child: Text('Failed to load survey: $error'),
         ),
       ),
-      data: (poll) {
-        final expired = _isExpired(poll);
+      data: (survey) {
+        final expired = _isExpired(survey);
         // Initialize questions when data is available
-        _questions = [...poll.questions]
+        _questions = [...survey.questions]
           ..sort((a, b) => a.order.compareTo(b.order));
 
-        // Initialize answers from poll data
-        _initializeFromPollData(poll);
+        // Initialize answers from survey data
+        _initializeFromSurveyData(survey);
 
         if (_questions!.isEmpty) {
           return const SizedBox.shrink();
@@ -915,17 +917,17 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
 
         // If collapsed, show collapsed view for all states
         if (_isCollapsed) {
-          return _buildCollapsedView(context, poll);
+          return _buildCollapsedView(context, survey);
         }
 
-        // If poll is already submitted and not in readonly mode, and not in modification mode, show submitted view
+        // If survey is already submitted and not in readonly mode, and not in modification mode, show submitted view
         final hasUserAnswer =
-            poll.userAnswer != null && poll.userAnswer!.answer.isNotEmpty;
+            survey.userAnswer != null && survey.userAnswer!.answer.isNotEmpty;
         if (hasUserAnswer && !widget.isReadonly && !_isModifying) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildCollapsedView(context, poll),
+              _buildCollapsedView(context, survey),
               const SizedBox(height: 8),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
@@ -950,7 +952,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                   key: const ValueKey('submitted_expanded'),
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildStatsStepper(context, poll, canModify: true),
+                    _buildStatsStepper(context, survey, canModify: true),
                   ],
                 ),
               ),
@@ -958,12 +960,12 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
           );
         }
 
-        // If poll is in readonly mode or expired, show readonly view
+        // If survey is in readonly mode or expired, show readonly view
         if (widget.isReadonly || expired) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildCollapsedView(context, poll),
+              _buildCollapsedView(context, survey),
               const SizedBox(height: 8),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
@@ -984,7 +986,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                     child: SlideTransition(position: offset, child: child),
                   );
                 },
-                child: _buildReadonlyView(context, poll),
+                child: _buildReadonlyView(context, survey),
               ),
             ],
           );
@@ -993,7 +995,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildCollapsedView(context, poll),
+            _buildCollapsedView(context, survey),
             const SizedBox(height: 8),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
@@ -1015,17 +1017,17 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                 key: const ValueKey('normal_expanded'),
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildHeader(context, poll),
+                  _buildHeader(context, survey),
                   const SizedBox(height: 12),
                   _AnimatedStep(
                     key: ValueKey(_current.id),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [_buildBody(context, poll)],
+                      children: [_buildBody(context, survey)],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildNavBar(context, poll),
+                  _buildNavBar(context, survey),
                 ],
               ),
             ),

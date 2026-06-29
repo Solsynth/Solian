@@ -106,7 +106,7 @@ class MlsMessageHandler {
     required MlsMessageType messageType,
     String? repliedMessageId,
     String? forwardedMessageId,
-    String? pollId,
+    String? surveyId,
     String? fundId,
   }) async {
     final engineService = await MlsEngineService.getInstance();
@@ -128,7 +128,7 @@ class MlsMessageHandler {
       'client_message_id': clientMessageId,
       'replied_message_id': repliedMessageId,
       'forwarded_message_id': forwardedMessageId,
-      'poll_id': pollId,
+      'survey_id': surveyId,
       'fund_id': fundId,
     }..removeWhere((_, v) => v == null);
 
@@ -207,12 +207,12 @@ class MlsMessageHandler {
         'attachments_id': attachmentIds,
         'replied_message_id': repliedMessageId,
         'forwarded_message_id': forwardedMessageId,
-        'poll_id': pollId,
+        'survey_id': surveyId,
         'fund_id': fundId,
       },
       'replied_message_id': repliedMessageId,
       'forwarded_message_id': forwardedMessageId,
-      'poll_id': pollId,
+      'survey_id': surveyId,
       'fund_id': fundId,
       'is_encrypted': true,
       'ciphertext': base64Encode(ciphertextBytes),

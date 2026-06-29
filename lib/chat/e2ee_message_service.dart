@@ -120,7 +120,7 @@ class E2eeMessageService {
     required List<String> attachmentIds,
     String? repliedMessageId,
     String? forwardedMessageId,
-    String? pollId,
+    String? surveyId,
     String? fundId,
   }) async {
     final normalizedMessageType =

@@ -102,7 +102,7 @@ class _CreatorSurveyEditorScreenState
       context: context,
       builder: (context) => AlertDialog(
         title: Text('confirm'.tr()),
-        content: Text('pollConfirmDiscard'.tr()),
+        content: Text('surveyConfirmDiscard'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -204,7 +204,7 @@ class _CreatorSurveyEditorScreenState
 
   String? _validateDraft() {
     if ((_draft.title ?? '').trim().isEmpty) {
-      return 'pollTitleRequired'.tr();
+      return 'surveyTitleRequired'.tr();
     }
     if (_draft.questions.isEmpty) {
       return 'Add at least one question.';
@@ -284,7 +284,7 @@ class _CreatorSurveyEditorScreenState
             );
 
       if (!mounted) return;
-      showSnackBar(_isEditing ? 'pollUpdated'.tr() : 'pollCreated'.tr());
+      showSnackBar(_isEditing ? 'surveyUpdated'.tr() : 'surveyCreated'.tr());
       Navigator.of(
         context,
       ).pop(SnSurvey.fromJson(_extractPayloadMap(res.data)));
@@ -319,7 +319,7 @@ class _CreatorSurveyEditorScreenState
                   icon: const Icon(Icons.arrow_back),
                 )
               : const AutoLeadingButton(),
-          title: Text(_isEditing ? 'pollEdit'.tr() : 'pollCreate'.tr()),
+          title: Text(_isEditing ? 'surveyEdit'.tr() : 'surveyCreate'.tr()),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 12),
@@ -808,7 +808,7 @@ class _OverviewCard extends StatelessWidget {
               textInputAction: TextInputAction.next,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'pollTitleRequired'.tr();
+                  return 'surveyTitleRequired'.tr();
                 }
                 return null;
               },
@@ -928,7 +928,10 @@ class _QuestionToolbar extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('pollQuestions'.tr(), style: theme.textTheme.titleLarge),
+                  Text(
+                    'surveyQuestions'.tr(),
+                    style: theme.textTheme.titleLarge,
+                  ),
                   const Gap(4),
                   Text(
                     totalQuestions == 0
@@ -953,7 +956,7 @@ class _QuestionToolbar extends StatelessWidget {
                     }
                   },
                   icon: const Icon(Icons.add),
-                  label: Text('pollAddQuestion'.tr()),
+                  label: Text('surveyAddQuestion'.tr()),
                 );
               },
               menuChildren: [
@@ -989,9 +992,15 @@ class _QuestionEmptyState extends StatelessWidget {
           children: [
             Icon(Icons.quiz_outlined, color: theme.colorScheme.primary),
             const Gap(12),
-            Text('pollNoQuestionsYet'.tr(), style: theme.textTheme.titleMedium),
+            Text(
+              'surveyNoQuestionsYet'.tr(),
+              style: theme.textTheme.titleMedium,
+            ),
             const Gap(6),
-            Text('pollNoQuestionsHint'.tr(), style: theme.textTheme.bodyMedium),
+            Text(
+              'surveyNoQuestionsHint'.tr(),
+              style: theme.textTheme.bodyMedium,
+            ),
             const Gap(16),
             FilledButton.icon(
               onPressed: onAddFirstQuestion,
@@ -1044,7 +1053,7 @@ class _QuestionCard extends StatelessWidget {
                     children: [
                       Text(
                         question.title.trim().isEmpty
-                            ? 'pollUntitledQuestion'.tr()
+                            ? 'surveyUntitledQuestion'.tr()
                             : question.title.trim(),
                         style: theme.textTheme.titleMedium,
                       ),
@@ -1112,14 +1121,14 @@ class _QuestionCard extends StatelessWidget {
             TextFormField(
               initialValue: question.title,
               decoration: InputDecoration(
-                labelText: 'pollQuestionTitle'.tr(),
+                labelText: 'surveyQuestionTitle'.tr(),
                 helperText: 'Shown to respondents',
                 prefixIcon: Icon(_iconForType(question.type)),
               ),
               maxLength: 1024,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'pollQuestionTitleRequired'.tr();
+                  return 'surveyQuestionTitleRequired'.tr();
                 }
                 return null;
               },
@@ -1129,7 +1138,7 @@ class _QuestionCard extends StatelessWidget {
             TextFormField(
               initialValue: question.description ?? '',
               decoration: InputDecoration(
-                labelText: 'pollQuestionDescriptionOptional'.tr(),
+                labelText: 'surveyQuestionDescriptionOptional'.tr(),
               ),
               maxLines: 3,
               maxLength: 4096,
@@ -1313,7 +1322,7 @@ class _OptionsSection extends StatelessWidget {
                 onChanged(question.copyWith(options: _normalizeOptions(next)));
               },
               icon: const Icon(Icons.add),
-              label: Text('pollAddOption'.tr()),
+              label: Text('surveyAddOption'.tr()),
             ),
           ],
         ),
@@ -1422,7 +1431,7 @@ class _OptionEditor extends StatelessWidget {
             const Gap(8),
             TextFormField(
               initialValue: option.label,
-              decoration: InputDecoration(labelText: 'pollOptionLabel'.tr()),
+              decoration: InputDecoration(labelText: 'surveyOptionLabel'.tr()),
               inputFormatters: [LengthLimitingTextInputFormatter(1024)],
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -1542,11 +1551,11 @@ IconData _iconForType(SnSurveyQuestionType type) {
 
 String _labelForType(SnSurveyQuestionType type) {
   return switch (type) {
-    SnSurveyQuestionType.singleChoice => 'pollQuestionTypeSingleChoice'.tr(),
+    SnSurveyQuestionType.singleChoice => 'surveyQuestionTypeSingleChoice'.tr(),
     SnSurveyQuestionType.multipleChoice =>
-      'pollQuestionTypeMultipleChoice'.tr(),
-    SnSurveyQuestionType.yesNo => 'pollQuestionTypeYesNo'.tr(),
-    SnSurveyQuestionType.rating => 'pollQuestionTypeRating'.tr(),
-    SnSurveyQuestionType.freeText => 'pollQuestionTypeFreeText'.tr(),
+      'surveyQuestionTypeMultipleChoice'.tr(),
+    SnSurveyQuestionType.yesNo => 'surveyQuestionTypeYesNo'.tr(),
+    SnSurveyQuestionType.rating => 'surveyQuestionTypeRating'.tr(),
+    SnSurveyQuestionType.freeText => 'surveyQuestionTypeFreeText'.tr(),
   };
 }

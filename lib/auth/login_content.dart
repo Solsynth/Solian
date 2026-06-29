@@ -1320,7 +1320,7 @@ class _QrLoginSheet extends HookConsumerWidget {
           await exchangeApprovedCode(snapshot.authChallengeId);
         }
       } catch (_) {
-        // Best-effort polling. WebSocket remains the primary update path.
+        // Best-effort surveying. WebSocket remains the primary update path.
       }
     }
 

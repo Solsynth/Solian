@@ -655,12 +655,12 @@ class MessageSender {
     List<Map<String, dynamic>>? embeds,
   }) async {
     if (_e2eeService?.isE2eeRoom == true) {
-      // For E2EE, we need to extract poll and fund IDs for the encrypted payload
-      String? pollId;
+      // For E2EE, we need to extract survey and fund IDs for the encrypted payload
+      String? surveyId;
       String? fundId;
       if (embeds != null) {
         for (final embed in embeds) {
-          if (embed['type'] == 'poll') pollId = embed['id'];
+          if (embed['type'] == 'survey') surveyId = embed['id'];
           if (embed['type'] == 'fund') fundId = embed['id'];
         }
       }
@@ -671,7 +671,7 @@ class MessageSender {
         attachmentIds: attachmentIds,
         repliedMessageId: replyingTo?.id,
         forwardedMessageId: forwardingTo?.id,
-        pollId: pollId,
+        surveyId: surveyId,
         fundId: fundId,
       );
       return (
@@ -795,9 +795,7 @@ class MessageSender {
     Future.delayed(const Duration(seconds: 12), () {
       if (completer.isCompleted) return;
       subscription?.cancel();
-      completer.completeError(
-        TimeoutException('Placeholder finalize timeout'),
-      );
+      completer.completeError(TimeoutException('Placeholder finalize timeout'));
     });
 
     finalizePlaceholder(

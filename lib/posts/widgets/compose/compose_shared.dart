@@ -7,7 +7,7 @@ import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_location_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_meet_sheet.dart';
-import 'package:island/posts/widgets/compose/compose_poll.dart';
+import 'package:island/posts/widgets/compose/compose_survey.dart';
 import 'package:island/posts/widgets/compose/compose_recorder.dart';
 import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
 import 'package:logging/logging.dart';
@@ -54,7 +54,7 @@ class ComposeState {
   final ValueNotifier<String?> cloudDraftId;
   int postType;
 
-  // Unified embeds list (polls, funds, meets, calendar events, locations, notable days)
+  // Unified embeds list (surveys, funds, meets, calendar events, locations, notable days)
   final ValueNotifier<List<Map<String, dynamic>>> embeds;
 
   // Thumbnail id for article type post (nullable)
@@ -939,25 +939,26 @@ class ComposeLogic {
     state.thumbnailId.value = thumbnailId;
   }
 
-  static Future<void> pickPoll(
+  static Future<void> pickSurvey(
     WidgetRef ref,
     ComposeState state,
     BuildContext context,
   ) async {
-    if (hasEmbed(state, 'poll')) {
-      removeEmbed(state, 'poll');
+    if (hasEmbed(state, 'survey')) {
+      removeEmbed(state, 'survey');
       return;
     }
 
-    final poll = await showModalBottomSheet(
+    final survey = await showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      builder: (context) => ComposePollSheet(pub: state.currentPublisher.value),
+      builder: (context) =>
+          ComposeSurveySheet(pub: state.currentPublisher.value),
     );
 
-    if (poll == null) return;
-    addEmbed(state, {'type': 'poll', 'id': poll.id});
+    if (survey == null) return;
+    addEmbed(state, {'type': 'survey', 'id': survey.id});
   }
 
   static Future<void> pickFund(

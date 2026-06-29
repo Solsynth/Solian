@@ -4,7 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/polls/polls_widgets/poll/survey_submit.dart';
+import 'package:island/surveys/widgets/survey_submit.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -24,17 +24,17 @@ class SurveySubmitPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pollAsync = ref.watch(surveyWithStatsProvider(surveyId));
+    final surveyAsync = ref.watch(surveyWithStatsProvider(surveyId));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return AppScaffold(
       appBar: AppBar(
-        title: pollAsync.whenOrNull(
-          data: (poll) => poll.title != null ? Text(poll.title!) : null,
+        title: surveyAsync.whenOrNull(
+          data: (survey) => survey.title != null ? Text(survey.title!) : null,
         ),
         actions: [
-          if (pollAsync case AsyncData(
+          if (surveyAsync case AsyncData(
             :final value,
           ) when value.publisher != null)
             Padding(
@@ -43,15 +43,15 @@ class SurveySubmitPage extends ConsumerWidget {
             ),
         ],
       ),
-      body: pollAsync.when(
+      body: surveyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Failed to load poll: $error'),
+            child: Text('Failed to load survey: $error'),
           ),
         ),
-        data: (poll) => DecoratedBox(
+        data: (survey) => DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -77,18 +77,18 @@ class SurveySubmitPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (poll.title != null)
+                            if (survey.title != null)
                               Text(
-                                poll.title!,
+                                survey.title!,
                                 style: theme.textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                            if (poll.description != null &&
-                                poll.description!.isNotEmpty) ...[
+                            if (survey.description != null &&
+                                survey.description!.isNotEmpty) ...[
                               const Gap(12),
                               Text(
-                                poll.description!,
+                                survey.description!,
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                   height: 1.45,
@@ -103,7 +103,7 @@ class SurveySubmitPage extends ConsumerWidget {
                                 _InfoChip(
                                   icon: Icons.quiz_outlined,
                                   label:
-                                      '${poll.questions.length} question${poll.questions.length == 1 ? '' : 's'}',
+                                      '${survey.questions.length} question${survey.questions.length == 1 ? '' : 's'}',
                                 ),
                                 _InfoChip(
                                   icon: Icons.visibility_outlined,
@@ -111,12 +111,12 @@ class SurveySubmitPage extends ConsumerWidget {
                                       ? 'Read-only'
                                       : 'Interactive',
                                 ),
-                                if (poll.endedAt != null)
+                                if (survey.endedAt != null)
                                   _InfoChip(
                                     icon: Icons.schedule_outlined,
                                     label: MaterialLocalizations.of(
                                       context,
-                                    ).formatFullDate(poll.endedAt!),
+                                    ).formatFullDate(survey.endedAt!),
                                   ),
                               ],
                             ),

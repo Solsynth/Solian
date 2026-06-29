@@ -87,8 +87,8 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.saveDraftManually(ref, state, context);
     }
 
-    void pickPoll() {
-      ComposeLogic.pickPoll(ref, state, context);
+    void pickSurvey() {
+      ComposeLogic.pickSurvey(ref, state, context);
     }
 
     void pickFund() {
@@ -217,19 +217,19 @@ class ComposeToolbar extends HookConsumerWidget {
                                 color: colorScheme.primary,
                                 tooltip: 'stickers'.tr(),
                               ),
-                              // Poll
+                              // Survey
                               ListenableBuilder(
                                 listenable: state.embeds,
                                 builder: (context, _) {
                                   return IconButton(
-                                    onPressed: pickPoll,
+                                    onPressed: pickSurvey,
                                     icon: const Icon(Symbols.how_to_vote),
-                                    tooltip: 'poll'.tr(),
+                                    tooltip: 'survey'.tr(),
                                     color: colorScheme.primary,
                                     style: ButtonStyle(
                                       backgroundColor: WidgetStatePropertyAll(
                                         state.embeds.value.any(
-                                              (e) => e['type'] == 'poll',
+                                              (e) => e['type'] == 'survey',
                                             )
                                             ? colorScheme.primary.withOpacity(
                                                 0.15,
