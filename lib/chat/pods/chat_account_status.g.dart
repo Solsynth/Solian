@@ -33,7 +33,7 @@ final class ChatAccountStatusProvider
   ChatAccountStatus create() => ChatAccountStatus();
 }
 
-String _$chatAccountStatusHash() => r'7f0af1a02085353bc5f3d05e5edff44ac7df98cd';
+String _$chatAccountStatusHash() => r'215b006869b9feda3675282a1cf39563beec2f83';
 
 abstract class _$ChatAccountStatus
     extends $AsyncNotifier<SnChatAccountStatus?> {

@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
-import 'package:island/polls/screens/poll_editor.dart';
+import 'package:island/surveys/screens/survey_editor.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
@@ -13,11 +13,11 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// Bottom sheet for selecting or creating a poll. Returns SnSurvey via Navigator.pop.
-class ComposePollSheet extends HookConsumerWidget {
+/// Bottom sheet for selecting or creating a survey. Returns SnSurvey via Navigator.pop.
+class ComposeSurveySheet extends HookConsumerWidget {
   final SnPublisher? pub;
 
-  const ComposePollSheet({super.key, this.pub});
+  const ComposeSurveySheet({super.key, this.pub});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class ComposePollSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       heightFactor: 0.6,
-      titleText: 'poll'.tr(),
+      titleText: 'survey'.tr(),
       child: DefaultTabController(
         length: 2,
         child: Column(
@@ -36,38 +36,38 @@ class ComposePollSheet extends HookConsumerWidget {
           children: [
             TabBar(
               tabs: [
-                Tab(text: 'pollsRecent'.tr()),
-                Tab(text: 'pollCreateNew'.tr()),
+                Tab(text: 'surveysRecent'.tr()),
+                Tab(text: 'surveyCreateNew'.tr()),
               ],
             ),
             Expanded(
               child: TabBarView(
                 children: [
-                  // Link/Select existing poll list
+                  // Link/Select existing survey list
                   PaginationList(
                     provider: surveyListNotifierProvider(pub?.name),
                     notifier: surveyListNotifierProvider(pub?.name).notifier,
-                    itemBuilder: (context, index, poll) {
+                    itemBuilder: (context, index, survey) {
                       return ListTile(
                         leading: const Icon(Symbols.how_to_vote, fill: 1),
-                        title: Text(poll.title ?? 'untitled'.tr()),
-                        subtitle: _buildPollSubtitle(poll),
+                        title: Text(survey.title ?? 'untitled'.tr()),
+                        subtitle: _buildSurveySubtitle(survey),
                         onTap: () {
                           Navigator.of(
                             context,
-                          ).pop(SnSurvey.fromSurveyWithStats(poll));
+                          ).pop(SnSurvey.fromSurveyWithStats(survey));
                         },
                       );
                     },
                   ),
 
-                  // Create new poll and return it
+                  // Create new survey and return it
                   SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'pollCreateNewHint',
+                          'surveyCreateNewHint',
                         ).tr().fontSize(13).opacity(0.85).padding(bottom: 8),
                         Card(
                           child: ListTile(
@@ -149,7 +149,7 @@ class ComposePollSheet extends HookConsumerWidget {
                                     errorText.value = null;
 
                                     isPushing.value = true;
-                                    // Show modal bottom sheet with poll editor and await result
+                                    // Show modal bottom sheet with survey editor and await result
                                     final result =
                                         await showModalBottomSheet<SnSurvey>(
                                           context: context,
@@ -157,7 +157,7 @@ class ComposePollSheet extends HookConsumerWidget {
                                           isDismissible: false,
                                           enableDrag: false,
                                           builder: (context) =>
-                                              PollEditorScreen(
+                                              SurveyEditorScreen(
                                                 initialPublisher: pub?.name,
                                               ),
                                         );
@@ -169,7 +169,7 @@ class ComposePollSheet extends HookConsumerWidget {
 
                                     if (!context.mounted) return;
 
-                                    // Return created poll to caller of this bottom sheet
+                                    // Return created survey to caller of this bottom sheet
                                     Navigator.of(context).pop(result);
                                   },
                           ),
@@ -186,9 +186,9 @@ class ComposePollSheet extends HookConsumerWidget {
     );
   }
 
-  Widget? _buildPollSubtitle(SnSurveyWithStats poll) {
+  Widget? _buildSurveySubtitle(SnSurveyWithStats survey) {
     try {
-      final List<SnSurveyQuestion> options = poll.questions;
+      final List<SnSurveyQuestion> options = survey.questions;
       if (options.isEmpty) return null;
       final preview = options.take(3).map((e) => e.title).join(' · ');
       if (preview.trim().isEmpty) return null;

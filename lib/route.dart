@@ -28,8 +28,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: BlogEditRoute.page, path: '/blogs/:id/edit'),
     // AutoRoute(page: LogsRoute.page, path: '/logs'),
 
-
-
     // Auth routes
     AutoRoute(page: LoginRoute.page, path: '/auth/login'),
     AutoRoute(page: CreateAccountRoute.page, path: '/auth/create-account'),
@@ -68,7 +66,7 @@ class AppRouter extends RootStackRouter {
     ),
 
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
-    AutoRoute(page: PollSubmitRoute.page, path: '/polls/:id'),
+    AutoRoute(page: SurveySubmitRoute.page, path: '/surveys/:id'),
     AutoRoute(
       page: TransactionDetailRoute.page,
       path: '/wallet/transactions/:id',
@@ -163,7 +161,10 @@ class AppRouter extends RootStackRouter {
               page: CreatorPostCollectionsRoute.page,
               path: ':pubName/collections',
             ),
-            AutoRoute(page: CreatorSurveyListRoute.page, path: ':pubName/surveys'),
+            AutoRoute(
+              page: CreatorSurveyListRoute.page,
+              path: ':pubName/surveys',
+            ),
             AutoRoute(
               page: CreatorStickerListRoute.page,
               path: ':pubName/stickers',

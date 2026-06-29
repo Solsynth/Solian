@@ -29,7 +29,7 @@ class ChatRoomState {
   final SnChatMessage? messageEditingTo;
   final SnChatMessage? messageReplyingTo;
   final SnChatMessage? messageForwardingTo;
-  // Unified embeds list (polls, funds, locations, meets, calendar events)
+  // Unified embeds list (surveys, funds, locations, meets, calendar events)
   final List<Map<String, dynamic>> embeds;
 
   // Scroll state (not persisted - fresh on each navigation)

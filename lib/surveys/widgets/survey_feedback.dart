@@ -8,7 +8,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/polls/polls_widgets/poll/survey_stats_widget.dart';
+import 'package:island/surveys/widgets/survey_stats_widget.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -52,7 +52,7 @@ class SurveyFeedbackPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final poll = ref.watch(surveyWithStatsProvider(surveyId));
+    final survey = ref.watch(surveyWithStatsProvider(surveyId));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final provider = surveyFeedbackNotifierProvider(surveyId);
@@ -62,7 +62,7 @@ class SurveyFeedbackPage extends HookConsumerWidget {
       child: AppScaffold(
         appBar: AppBar(
           leading: const AutoLeadingButton(),
-          title: Text(title ?? 'pollFeedback'.tr()),
+          title: Text(title ?? 'surveyFeedback'.tr()),
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Summary'),
@@ -70,7 +70,7 @@ class SurveyFeedbackPage extends HookConsumerWidget {
             ],
           ),
         ),
-        body: poll.when(
+        body: survey.when(
           loading: () => const ResponseLoadingWidget(),
           error: (err, _) => ResponseErrorWidget(
             error: err,
@@ -89,7 +89,7 @@ class SurveyFeedbackPage extends HookConsumerWidget {
             ),
             child: TabBarView(
               children: [
-                _SummaryTab(poll: data),
+                _SummaryTab(survey: data),
                 PaginationList(
                   footerSkeletonMaxWidth: 880,
                   provider: provider,
@@ -99,7 +99,7 @@ class SurveyFeedbackPage extends HookConsumerWidget {
                     return Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 880),
-                        child: _ParticipantCard(answer: answer, poll: data),
+                        child: _ParticipantCard(answer: answer, survey: data),
                       ),
                     );
                   },
@@ -114,9 +114,9 @@ class SurveyFeedbackPage extends HookConsumerWidget {
 }
 
 class _SummaryTab extends StatelessWidget {
-  const _SummaryTab({required this.poll});
+  const _SummaryTab({required this.survey});
 
-  final SnSurveyWithStats poll;
+  final SnSurveyWithStats survey;
 
   @override
   Widget build(BuildContext context) {
@@ -139,17 +139,17 @@ class _SummaryTab extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (poll.title != null)
+                        if (survey.title != null)
                           Text(
-                            poll.title!,
+                            survey.title!,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                        if (poll.description?.isNotEmpty ?? false) ...[
+                        if (survey.description?.isNotEmpty ?? false) ...[
                           const Gap(12),
                           Text(
-                            poll.description!,
+                            survey.description!,
                             style: theme.textTheme.titleMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               height: 1.45,
@@ -164,11 +164,11 @@ class _SummaryTab extends StatelessWidget {
                             _InfoChip(
                               icon: Icons.quiz_outlined,
                               label:
-                                  '${poll.questions.length} question${poll.questions.length == 1 ? '' : 's'}',
+                                  '${survey.questions.length} question${survey.questions.length == 1 ? '' : 's'}',
                             ),
                             _InfoChip(
                               icon: Icons.visibility_outlined,
-                              label: poll.isAnonymous
+                              label: survey.isAnonymous
                                   ? 'Anonymous responses'
                                   : 'Named responses',
                             ),
@@ -180,7 +180,7 @@ class _SummaryTab extends StatelessWidget {
                 ),
                 const Gap(20),
                 ...([
-                  ...poll.questions,
+                  ...survey.questions,
                 ]..sort((a, b) => a.order.compareTo(b.order))).map(
                   (question) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
@@ -244,7 +244,7 @@ class _SummaryTab extends StatelessWidget {
                             const Gap(18),
                             SurveyStatsWidget(
                               question: question,
-                              stats: poll.stats,
+                              stats: survey.stats,
                             ),
                           ],
                         ),
@@ -262,10 +262,10 @@ class _SummaryTab extends StatelessWidget {
 }
 
 class _ParticipantCard extends StatelessWidget {
-  const _ParticipantCard({required this.answer, required this.poll});
+  const _ParticipantCard({required this.answer, required this.survey});
 
   final SnSurveyAnswer answer;
-  final SnSurveyWithStats poll;
+  final SnSurveyWithStats survey;
 
   String _formatPerQuestionAnswer(
     SnSurveyQuestion question,
@@ -321,7 +321,7 @@ class _ParticipantCard extends StatelessWidget {
     final submitText = answer.account == null
         ? answer.createdAt.formatSystem()
         : '${answer.account!.nick} · ${answer.createdAt.formatSystem()}';
-    final questions = [...poll.questions]
+    final questions = [...survey.questions]
       ..sort((a, b) => a.order.compareTo(b.order));
 
     return Card(

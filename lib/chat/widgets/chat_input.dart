@@ -19,7 +19,7 @@ import "package:island/posts/widgets/compose/compose_fund.dart";
 import "package:island/posts/widgets/compose/compose_calendar_event_sheet.dart";
 import "package:island/posts/widgets/compose/compose_location_sheet.dart";
 import "package:island/posts/widgets/compose/compose_meet_sheet.dart";
-import "package:island/posts/widgets/compose/compose_poll.dart";
+import "package:island/posts/widgets/compose/compose_survey.dart";
 import "package:island/stickers/widgets/stickers/sticker_picker.dart";
 import "package:island/stickers/models/sticker.dart";
 import "package:island/core/config.dart";
@@ -587,7 +587,7 @@ class _ExpandedSection extends StatefulWidget {
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
   final String? roomEncryptKey;
-  // Unified embeds list (polls, funds, locations, meets, calendar events)
+  // Unified embeds list (surveys, funds, locations, meets, calendar events)
   final List<Map<String, dynamic>> embeds;
   final Function(List<Map<String, dynamic>>) onEmbedsChanged;
   final bool isE2eeRoom;
@@ -730,15 +730,17 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                             Radius.circular(8),
                           ),
                           onTap: () async {
-                            final poll = await showModalBottomSheet<SnSurvey>(
+                            final survey = await showModalBottomSheet<SnSurvey>(
                               context: context,
                               isScrollControlled: true,
-                              builder: (context) => const ComposePollSheet(),
+                              builder: (context) => const ComposeSurveySheet(),
                             );
-                            if (poll != null) {
+                            if (survey != null) {
                               widget.onEmbedsChanged([
-                                ...widget.embeds.where((e) => e['type'] != 'poll'),
-                                {'type': 'poll', 'id': poll.id},
+                                ...widget.embeds.where(
+                                  (e) => e['type'] != 'survey',
+                                ),
+                                {'type': 'survey', 'id': survey.id},
                               ]);
                             }
                           },
@@ -753,7 +755,7 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                 Icon(Symbols.poll),
                                 const Gap(4),
                                 Text(
-                                  'Poll',
+                                  'Survey',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
@@ -797,7 +799,9 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                 );
                             if (fund != null) {
                               widget.onEmbedsChanged([
-                                ...widget.embeds.where((e) => e['type'] != 'fund'),
+                                ...widget.embeds.where(
+                                  (e) => e['type'] != 'fund',
+                                ),
                                 {'type': 'fund', 'id': fund.id},
                               ]);
                             }
@@ -837,11 +841,17 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                   );
                               if (location != null) {
                                 widget.onEmbedsChanged([
-                                  ...widget.embeds.where((e) => e['type'] != 'location'),
-                                  {'type': 'location',
-                                   if (location['name'] != null) 'name': location['name'],
-                                   if (location['address'] != null) 'address': location['address'],
-                                   if (location['wkt'] != null) 'wkt': location['wkt'],
+                                  ...widget.embeds.where(
+                                    (e) => e['type'] != 'location',
+                                  ),
+                                  {
+                                    'type': 'location',
+                                    if (location['name'] != null)
+                                      'name': location['name'],
+                                    if (location['address'] != null)
+                                      'address': location['address'],
+                                    if (location['wkt'] != null)
+                                      'wkt': location['wkt'],
                                   },
                                 ]);
                               }
@@ -866,60 +876,23 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               ),
                             ),
                           ),
-                          if (!widget.isE2eeRoom)
-                            InkWell(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(8),
-                              ),
-                              onTap: () async {
-                                final meetId = await showModalBottomSheet<String>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (context) => const ComposeMeetSheet(),
-                                );
-                                if (meetId != null) {
-                                  widget.onEmbedsChanged([
-                                    ...widget.embeds.where((e) => e['type'] != 'meet'),
-                                    {'type': 'meet', 'id': meetId},
-                                  ]);
-                                }
-                              },
-                              child: Card(
-                                margin: EdgeInsets.zero,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainer,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Symbols.groups),
-                                    const Gap(4),
-                                    Text(
-                                      'meet'.tr(),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        if (!widget.isE2eeRoom)
                           InkWell(
                             borderRadius: const BorderRadius.all(
                               Radius.circular(8),
                             ),
                             onTap: () async {
-                              final event =
-                                  await showModalBottomSheet<SnUserCalendarEvent>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) =>
-                                        const ComposeCalendarEventSheet(),
-                                  );
-                              if (event != null) {
+                              final meetId = await showModalBottomSheet<String>(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) => const ComposeMeetSheet(),
+                              );
+                              if (meetId != null) {
                                 widget.onEmbedsChanged([
-                                  ...widget.embeds.where((e) => e['type'] != 'calendar_event'),
-                                  {'type': 'calendar_event', 'id': event.id},
+                                  ...widget.embeds.where(
+                                    (e) => e['type'] != 'meet',
+                                  ),
+                                  {'type': 'meet', 'id': meetId},
                                 ]);
                               }
                             },
@@ -931,10 +904,10 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Symbols.calendar_month),
+                                  Icon(Symbols.groups),
                                   const Gap(4),
                                   Text(
-                                    'calendarEvent'.tr(),
+                                    'meet'.tr(),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodySmall,
@@ -943,6 +916,45 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               ),
                             ),
                           ),
+                        InkWell(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          onTap: () async {
+                            final event =
+                                await showModalBottomSheet<SnUserCalendarEvent>(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) =>
+                                      const ComposeCalendarEventSheet(),
+                                );
+                            if (event != null) {
+                              widget.onEmbedsChanged([
+                                ...widget.embeds.where(
+                                  (e) => e['type'] != 'calendar_event',
+                                ),
+                                {'type': 'calendar_event', 'id': event.id},
+                              ]);
+                            }
+                          },
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.calendar_month),
+                                const Gap(4),
+                                Text(
+                                  'calendarEvent'.tr(),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1251,7 +1263,7 @@ class ChatInput extends HookConsumerWidget {
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
-  // Unified embeds list (polls, funds, locations, meets, calendar events)
+  // Unified embeds list (surveys, funds, locations, meets, calendar events)
   final List<Map<String, dynamic>> embeds;
   final Function(List<Map<String, dynamic>>) onEmbedsChanged;
   final bool isMessageListScrolling;
@@ -1739,9 +1751,9 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: embeds.any((e) => e['type'] == 'poll')
+                      child: embeds.any((e) => e['type'] == 'survey')
                           ? Container(
-                              key: const ValueKey('selected-poll'),
+                              key: const ValueKey('selected-survey'),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
@@ -1794,7 +1806,9 @@ class ChatInput extends HookConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
                                       onPressed: () => onEmbedsChanged(
-                                        embeds.where((e) => e['type'] != 'poll').toList(),
+                                        embeds
+                                            .where((e) => e['type'] != 'survey')
+                                            .toList(),
                                       ),
                                       tooltip: 'clear'.tr(),
                                     ),
@@ -1803,7 +1817,7 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             )
                           : const SizedBox.shrink(
-                              key: ValueKey('no-selected-poll'),
+                              key: ValueKey('no-selected-survey'),
                             ),
                     ),
                     AnimatedSwitcher(
@@ -1882,7 +1896,9 @@ class ChatInput extends HookConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
                                       onPressed: () => onEmbedsChanged(
-                                        embeds.where((e) => e['type'] != 'fund').toList(),
+                                        embeds
+                                            .where((e) => e['type'] != 'fund')
+                                            .toList(),
                                       ),
                                       tooltip: 'clear'.tr(),
                                     ),
@@ -1915,8 +1931,7 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child:
-                          embeds.any((e) => e['type'] == 'location')
+                      child: embeds.any((e) => e['type'] == 'location')
                           ? Container(
                               key: const ValueKey('selected-location'),
                               padding: const EdgeInsets.symmetric(
@@ -1957,9 +1972,16 @@ class ChatInput extends HookConsumerWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        if (embeds.firstWhere((e) => e['type'] == 'location')['name'] != null)
+                                        if (embeds.firstWhere(
+                                              (e) => e['type'] == 'location',
+                                            )['name'] !=
+                                            null)
                                           Text(
-                                            embeds.firstWhere((e) => e['type'] == 'location')['name'] as String,
+                                            embeds.firstWhere(
+                                                  (e) =>
+                                                      e['type'] == 'location',
+                                                )['name']
+                                                as String,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall!
@@ -1969,9 +1991,16 @@ class ChatInput extends HookConsumerWidget {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                        if (embeds.firstWhere((e) => e['type'] == 'location')['address'] != null)
+                                        if (embeds.firstWhere(
+                                              (e) => e['type'] == 'location',
+                                            )['address'] !=
+                                            null)
                                           Text(
-                                            embeds.firstWhere((e) => e['type'] == 'location')['address'] as String,
+                                            embeds.firstWhere(
+                                                  (e) =>
+                                                      e['type'] == 'location',
+                                                )['address']
+                                                as String,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall!
@@ -1994,7 +2023,11 @@ class ChatInput extends HookConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
                                       onPressed: () => onEmbedsChanged(
-                                        embeds.where((e) => e['type'] != 'location').toList(),
+                                        embeds
+                                            .where(
+                                              (e) => e['type'] != 'location',
+                                            )
+                                            .toList(),
                                       ),
                                       tooltip: 'clear'.tr(),
                                     ),
@@ -2082,7 +2115,9 @@ class ChatInput extends HookConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
                                       onPressed: () => onEmbedsChanged(
-                                        embeds.where((e) => e['type'] != 'meet').toList(),
+                                        embeds
+                                            .where((e) => e['type'] != 'meet')
+                                            .toList(),
                                       ),
                                       tooltip: 'clear'.tr(),
                                     ),
@@ -2170,7 +2205,12 @@ class ChatInput extends HookConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
                                       onPressed: () => onEmbedsChanged(
-                                        embeds.where((e) => e['type'] != 'calendar_event').toList(),
+                                        embeds
+                                            .where(
+                                              (e) =>
+                                                  e['type'] != 'calendar_event',
+                                            )
+                                            .toList(),
                                       ),
                                       tooltip: 'clear'.tr(),
                                     ),

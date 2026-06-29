@@ -107,14 +107,14 @@ class SnChatAccountStatus {
 
 @riverpod
 class ChatAccountStatus extends _$ChatAccountStatus {
-  static const Duration _pollingInterval = Duration(seconds: 75); // 1m 15s
-  Timer? _pollingTimer;
+  static const Duration _surveyingInterval = Duration(seconds: 75); // 1m 15s
+  Timer? _surveyingTimer;
 
   @override
   Future<SnChatAccountStatus?> build() async {
-    // Set up polling timer
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(_pollingInterval, (_) {
+    // Set up surveying timer
+    _surveyingTimer?.cancel();
+    _surveyingTimer = Timer.periodic(_surveyingInterval, (_) {
       if (state.hasValue) {
         Logger.root.fine('[ChatAccountStatus] Polling for updates');
         _fetchStatus();
@@ -122,7 +122,7 @@ class ChatAccountStatus extends _$ChatAccountStatus {
     });
 
     ref.onDispose(() {
-      _pollingTimer?.cancel();
+      _surveyingTimer?.cancel();
     });
 
     return _fetchStatus();

@@ -5235,7 +5235,7 @@
         "en-US": "c152a4ee040cf5d5"
       }
     },
-    "collapsePoll": {
+    "collapseSurvey": {
       "sourceHash": "332474c8ce6c9498",
       "translations": {
         "zh-OG": "b5d3d0c68412e5b3",
@@ -8307,7 +8307,7 @@
         "en-US": "ad1177868a302cbb"
       }
     },
-    "expandPoll": {
+    "expandSurvey": {
       "sourceHash": "5f0d15cdc98159ce",
       "translations": {
         "zh-OG": "34e802b4e2f66280",
@@ -13299,7 +13299,7 @@
         "en-US": "694d7fe5b2fd2ad1"
       }
     },
-    "poll": {
+    "survey": {
       "sourceHash": "211bb3de5686f88e",
       "translations": {
         "zh-OG": "1a04fca5cf32d230",
@@ -13311,7 +13311,7 @@
         "en-US": "1a04fca5cf32d230"
       }
     },
-    "pollAddOption": {
+    "surveyAddOption": {
       "sourceHash": "ffbcabd155ad0e68",
       "translations": {
         "zh-OG": "1b8a1250d82dc890",
@@ -13323,7 +13323,7 @@
         "en-US": "1b8a1250d82dc890"
       }
     },
-    "pollAddQuestion": {
+    "surveyAddQuestion": {
       "sourceHash": "f9496b764efa5ff2",
       "translations": {
         "zh-OG": "a3dbd2671984b0b3",
@@ -13335,7 +13335,7 @@
         "en-US": "a3dbd2671984b0b3"
       }
     },
-    "pollAnswerSubmitted": {
+    "surveyAnswerSubmitted": {
       "sourceHash": "951bb18b03ccb24b",
       "translations": {
         "zh-OG": "8498ed594678605b",
@@ -13347,7 +13347,7 @@
         "en-US": "8498ed594678605b"
       }
     },
-    "pollConfirmDiscard": {
+    "surveyConfirmDiscard": {
       "sourceHash": "7cb622e302f2d007",
       "translations": {
         "zh-OG": "a3faa1e467c48d8a",
@@ -13359,7 +13359,7 @@
         "en-US": "a3faa1e467c48d8a"
       }
     },
-    "pollCreate": {
+    "surveyCreate": {
       "sourceHash": "bd7e7ce2ed4a5713",
       "translations": {
         "zh-OG": "b2f1852f508be698",
@@ -13371,7 +13371,7 @@
         "en-US": "b2f1852f508be698"
       }
     },
-    "pollCreateNew": {
+    "surveyCreateNew": {
       "sourceHash": "e7b9e9c24d91045f",
       "translations": {
         "zh-OG": "b52e0e608b90b83f",
@@ -13383,7 +13383,7 @@
         "en-US": "b52e0e608b90b83f"
       }
     },
-    "pollCreateNewHint": {
+    "surveyCreateNewHint": {
       "sourceHash": "4fde419e77a78e1a",
       "translations": {
         "zh-OG": "c41360d53545e926",
@@ -13395,7 +13395,7 @@
         "en-US": "c41360d53545e926"
       }
     },
-    "pollCreated": {
+    "surveyCreated": {
       "sourceHash": "8b2ee952bc489daa",
       "translations": {
         "zh-OG": "4992adeebea3a966",
@@ -13407,7 +13407,7 @@
         "en-US": "4992adeebea3a966"
       }
     },
-    "pollDebugPreview": {
+    "surveyDebugPreview": {
       "sourceHash": "f3c3bd06bb9b49f4",
       "translations": {
         "zh-OG": "6f05517da78d7a98",
@@ -13419,7 +13419,7 @@
         "en-US": "6f05517da78d7a98"
       }
     },
-    "pollEdit": {
+    "surveyEdit": {
       "sourceHash": "189892640b964e57",
       "translations": {
         "zh-OG": "2c33a566ed681a57",
@@ -13431,7 +13431,7 @@
         "en-US": "2c33a566ed681a57"
       }
     },
-    "pollEndDateOptional": {
+    "surveyEndDateOptional": {
       "sourceHash": "d86d3ab407ae29a0",
       "translations": {
         "zh-OG": "063c1d9c67a0f30c",
@@ -13443,7 +13443,7 @@
         "en-US": "063c1d9c67a0f30c"
       }
     },
-    "pollLongTextAnswerPreview": {
+    "surveyLongTextAnswerPreview": {
       "sourceHash": "c2a495c73192857a",
       "translations": {
         "zh-OG": "5a9c6dc62425cfab",
@@ -13455,7 +13455,7 @@
         "en-US": "5a9c6dc62425cfab"
       }
     },
-    "pollNoQuestionsHint": {
+    "surveyNoQuestionsHint": {
       "sourceHash": "d0b0b4ab8bd0af21",
       "translations": {
         "zh-OG": "a0a10f357a0e7bbf",
@@ -13467,7 +13467,7 @@
         "en-US": "a0a10f357a0e7bbf"
       }
     },
-    "pollNoQuestionsYet": {
+    "surveyNoQuestionsYet": {
       "sourceHash": "43ba4c6744b168bf",
       "translations": {
         "zh-OG": "75a8f0dee49f8ca9",
@@ -13479,7 +13479,7 @@
         "en-US": "75a8f0dee49f8ca9"
       }
     },
-    "pollOptionDefaultLabel": {
+    "surveyOptionDefaultLabel": {
       "sourceHash": "fae2db093e1dd310",
       "translations": {
         "zh-OG": "5d710a1ddbc321a8",
@@ -13491,7 +13491,7 @@
         "en-US": "5d710a1ddbc321a8"
       }
     },
-    "pollOptionLabel": {
+    "surveyOptionLabel": {
       "sourceHash": "958e6cec9a677d03",
       "translations": {
         "zh-OG": "6adae3af95f50b08",
@@ -13503,7 +13503,7 @@
         "en-US": "6adae3af95f50b08"
       }
     },
-    "pollPreviewJsonDebug": {
+    "surveyPreviewJsonDebug": {
       "sourceHash": "f3c3bd06bb9b49f4",
       "translations": {
         "zh-OG": "6f05517da78d7a98",
@@ -13515,7 +13515,7 @@
         "en-US": "6f05517da78d7a98"
       }
     },
-    "pollQuestionDescriptionOptional": {
+    "surveyQuestionDescriptionOptional": {
       "sourceHash": "cf7ebeede6af3bad",
       "translations": {
         "zh-OG": "96f2f6865fd9ff73",
@@ -13527,7 +13527,7 @@
         "en-US": "96f2f6865fd9ff73"
       }
     },
-    "pollQuestionTitle": {
+    "surveyQuestionTitle": {
       "sourceHash": "f120abfc43639178",
       "translations": {
         "zh-OG": "498fc9621097ac4d",
@@ -13539,7 +13539,7 @@
         "en-US": "498fc9621097ac4d"
       }
     },
-    "pollQuestionTitleRequired": {
+    "surveyQuestionTitleRequired": {
       "sourceHash": "5b2593b5384c83a9",
       "translations": {
         "zh-OG": "17f82d1a9bf67416",
@@ -13551,7 +13551,7 @@
         "en-US": "17f82d1a9bf67416"
       }
     },
-    "pollQuestionTypeFreeText": {
+    "surveyQuestionTypeFreeText": {
       "sourceHash": "7851561400c3f32c",
       "translations": {
         "zh-OG": "8b2c894cb2b78f9e",
@@ -13563,7 +13563,7 @@
         "en-US": "8b2c894cb2b78f9e"
       }
     },
-    "pollQuestionTypeMultipleChoice": {
+    "surveyQuestionTypeMultipleChoice": {
       "sourceHash": "79fefc32357d38fa",
       "translations": {
         "zh-OG": "a6fb0cd027e15d33",
@@ -13575,7 +13575,7 @@
         "en-US": "a6fb0cd027e15d33"
       }
     },
-    "pollQuestionTypeRating": {
+    "surveyQuestionTypeRating": {
       "sourceHash": "9f29530464f730bd",
       "translations": {
         "zh-OG": "c8006084fb4a4e25",
@@ -13587,7 +13587,7 @@
         "en-US": "c8006084fb4a4e25"
       }
     },
-    "pollQuestionTypeSingleChoice": {
+    "surveyQuestionTypeSingleChoice": {
       "sourceHash": "45a76a9d2e7af252",
       "translations": {
         "zh-OG": "1d8ec4b85be8c231",
@@ -13599,7 +13599,7 @@
         "en-US": "1d8ec4b85be8c231"
       }
     },
-    "pollQuestionTypeYesNo": {
+    "surveyQuestionTypeYesNo": {
       "sourceHash": "c00e6554e94dc663",
       "translations": {
         "zh-OG": "8e4efbb497732bfa",
@@ -13611,7 +13611,7 @@
         "en-US": "8e4efbb497732bfa"
       }
     },
-    "pollQuestions": {
+    "surveyQuestions": {
       "sourceHash": "9a72221a27476f3e",
       "translations": {
         "zh-OG": "d9feb7033585ebf0",
@@ -13623,7 +13623,7 @@
         "en-US": "d9feb7033585ebf0"
       }
     },
-    "pollShortTextAnswerPreview": {
+    "surveyShortTextAnswerPreview": {
       "sourceHash": "da83a9445d1dd3c1",
       "translations": {
         "zh-OG": "fb07b1fdad40ce60",
@@ -13635,7 +13635,7 @@
         "en-US": "fb07b1fdad40ce60"
       }
     },
-    "pollTitleRequired": {
+    "surveyTitleRequired": {
       "sourceHash": "d5b06872b556d275",
       "translations": {
         "zh-OG": "1fd2daa2d73f770f",
@@ -13647,7 +13647,7 @@
         "en-US": "1fd2daa2d73f770f"
       }
     },
-    "pollUntitledQuestion": {
+    "surveyUntitledQuestion": {
       "sourceHash": "e28dc32335bd8a52",
       "translations": {
         "zh-OG": "e5129763b800354d",
@@ -13659,7 +13659,7 @@
         "en-US": "e5129763b800354d"
       }
     },
-    "pollUpdated": {
+    "surveyUpdated": {
       "sourceHash": "401d7a4c401cdac2",
       "translations": {
         "zh-OG": "f5f9a3733fdb3de9",
@@ -13671,7 +13671,7 @@
         "en-US": "f5f9a3733fdb3de9"
       }
     },
-    "polls": {
+    "surveys": {
       "sourceHash": "7c763b8fc78b7996",
       "translations": {
         "zh-OG": "1a04fca5cf32d230",
@@ -13683,7 +13683,7 @@
         "en-US": "1a04fca5cf32d230"
       }
     },
-    "pollsRecent": {
+    "surveysRecent": {
       "sourceHash": "ff8f0618dd4beb3d",
       "translations": {
         "zh-OG": "1c7fc54772c030ee",
@@ -26566,7 +26566,7 @@
       "sourceHash": "6c7dd3dc92dc384c",
       "translations": {}
     },
-    "pollFeedback": {
+    "surveyFeedback": {
       "sourceHash": "959b90adebc1e8d1",
       "translations": {}
     },

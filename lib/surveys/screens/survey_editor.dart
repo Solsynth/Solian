@@ -16,7 +16,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const _emptyGuid = '00000000-0000-0000-0000-000000000000';
 
-class PollEditorState {
+class SurveyEditorState {
   String? id;
   String? title;
   String? description;
@@ -25,7 +25,7 @@ class PollEditorState {
   bool notifySubscribers;
   bool isAnonymous;
 
-  PollEditorState({
+  SurveyEditorState({
     this.id,
     this.title,
     this.description,
@@ -37,18 +37,18 @@ class PollEditorState {
 }
 
 /// Riverpod Notifier state
-class PollEditor extends Notifier<PollEditorState> {
-  late PollEditorState _initialState;
+class SurveyEditor extends Notifier<SurveyEditorState> {
+  late SurveyEditorState _initialState;
 
   @override
-  PollEditorState build() {
-    final initial = PollEditorState();
+  SurveyEditorState build() {
+    final initial = SurveyEditorState();
     _initialState = _cloneState(initial);
     return initial;
   }
 
-  PollEditorState _cloneState(PollEditorState source) {
-    return PollEditorState(
+  SurveyEditorState _cloneState(SurveyEditorState source) {
+    return SurveyEditorState(
       id: source.id,
       title: source.title,
       description: source.description,
@@ -67,7 +67,7 @@ class PollEditor extends Notifier<PollEditorState> {
     );
   }
 
-  void _commitState(PollEditorState next, {bool markAsInitial = false}) {
+  void _commitState(SurveyEditorState next, {bool markAsInitial = false}) {
     state = next;
     if (markAsInitial) {
       _initialState = _cloneState(next);
@@ -75,21 +75,21 @@ class PollEditor extends Notifier<PollEditorState> {
   }
 
   void reset() {
-    _commitState(PollEditorState(), markAsInitial: true);
+    _commitState(SurveyEditorState(), markAsInitial: true);
   }
 
   void restoreInitial() {
     state = _cloneState(_initialState);
   }
 
-  Future<void> initialize(BuildContext context, {String? pollId}) async {
+  Future<void> initialize(BuildContext context, {String? surveyId}) async {
     reset();
-    if (pollId == null || pollId.isEmpty) return;
-    await setEditingId(context, pollId);
+    if (surveyId == null || surveyId.isEmpty) return;
+    await setEditingId(context, surveyId);
   }
 
   void setTitle(String? value) {
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: value,
       description: state.description,
@@ -99,7 +99,7 @@ class PollEditor extends Notifier<PollEditorState> {
   }
 
   void setDescription(String? value) {
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: value,
@@ -109,7 +109,7 @@ class PollEditor extends Notifier<PollEditorState> {
   }
 
   void setEndedAt(DateTime? value) {
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -121,7 +121,7 @@ class PollEditor extends Notifier<PollEditorState> {
   }
 
   void setNotifySubscribers(bool value) {
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -133,7 +133,7 @@ class PollEditor extends Notifier<PollEditorState> {
   }
 
   void setIsAnonymous(bool value) {
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -159,23 +159,23 @@ class PollEditor extends Notifier<PollEditorState> {
           ? Map<String, dynamic>.from(payload['data'] as Map)
           : Map<String, dynamic>.from(payload as Map);
 
-      final poll = SnSurvey.fromJson(json);
+      final survey = SnSurvey.fromJson(json);
 
       _commitState(
-        PollEditorState(
-          id: poll.id,
-          title: poll.title,
-          description: poll.description,
-          endedAt: poll.endedAt,
-          questions: poll.questions,
+        SurveyEditorState(
+          id: survey.id,
+          title: survey.title,
+          description: survey.description,
+          endedAt: survey.endedAt,
+          questions: survey.questions,
         ),
         markAsInitial: true,
       );
     } on DioException catch (e) {
-      Logger.root.severe('Failed to load poll $id: ${e.message}');
+      Logger.root.severe('Failed to load survey $id: ${e.message}');
       // Keep state with id set; UI may handle error display.
     } catch (e) {
-      Logger.root.severe('Unexpected error loading poll $id: $e');
+      Logger.root.severe('Unexpected error loading survey $id: $e');
     } finally {
       if (context.mounted) hideLoadingModal(context);
     }
@@ -191,7 +191,7 @@ class PollEditor extends Notifier<PollEditorState> {
           ? [
               SnSurveyOption(
                 id: _emptyGuid,
-                label: 'pollOptionDefaultLabel'.tr(),
+                label: 'surveyOptionDefaultLabel'.tr(),
                 order: 0,
               ),
             ]
@@ -201,7 +201,7 @@ class PollEditor extends Notifier<PollEditorState> {
       order: nextOrder,
       isRequired: false,
     );
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -216,7 +216,7 @@ class PollEditor extends Notifier<PollEditorState> {
     for (var i = 0; i < updated.length; i++) {
       updated[i] = updated[i].copyWith(order: i);
     }
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -234,7 +234,7 @@ class PollEditor extends Notifier<PollEditorState> {
     for (var i = 0; i < updated.length; i++) {
       updated[i] = updated[i].copyWith(order: i);
     }
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -252,7 +252,7 @@ class PollEditor extends Notifier<PollEditorState> {
     for (var i = 0; i < updated.length; i++) {
       updated[i] = updated[i].copyWith(order: i);
     }
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -271,7 +271,7 @@ class PollEditor extends Notifier<PollEditorState> {
               : [
                   SnSurveyOption(
                     id: _emptyGuid,
-                    label: 'pollOptionDefaultLabel'.tr(),
+                    label: 'surveyOptionDefaultLabel'.tr(),
                     order: 0,
                   ),
                 ])
@@ -394,7 +394,7 @@ class PollEditor extends Notifier<PollEditorState> {
   void _updateQuestion(int index, SnSurveyQuestion newQ) {
     final list = <SnSurveyQuestion>[...state.questions];
     list[index] = newQ;
-    state = PollEditorState(
+    state = SurveyEditorState(
       id: state.id,
       title: state.title,
       description: state.description,
@@ -404,47 +404,47 @@ class PollEditor extends Notifier<PollEditorState> {
   }
 }
 
-/// The poll editor screen.
+/// The survey editor screen.
 /// Note: This is UI only; wire API later. Requires riverpod_generator and build_runner to generate .g.dart.
-final pollEditorProvider = NotifierProvider<PollEditor, PollEditorState>(
-  PollEditor.new,
+final surveyEditorProvider = NotifierProvider<SurveyEditor, SurveyEditorState>(
+  SurveyEditor.new,
 );
 
 @RoutePage()
-class PollEditorScreen extends ConsumerStatefulWidget {
-  const PollEditorScreen({
+class SurveyEditorScreen extends ConsumerStatefulWidget {
+  const SurveyEditorScreen({
     super.key,
-    this.initialPollId,
+    this.initialSurveyId,
     this.initialPublisher,
   });
 
-  final String? initialPollId;
+  final String? initialSurveyId;
   final String? initialPublisher;
 
   @override
-  ConsumerState<PollEditorScreen> createState() => _PollEditorScreenState();
+  ConsumerState<SurveyEditorScreen> createState() => _SurveyEditorScreenState();
 }
 
-class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
+class _SurveyEditorScreenState extends ConsumerState<SurveyEditorScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref
-          .read(pollEditorProvider.notifier)
-          .initialize(context, pollId: widget.initialPollId);
+          .read(surveyEditorProvider.notifier)
+          .initialize(context, surveyId: widget.initialSurveyId);
     });
   }
 
   @override
   void dispose() {
-    ref.read(pollEditorProvider.notifier).reset();
+    ref.read(surveyEditorProvider.notifier).reset();
     super.dispose();
   }
 
-  Future<void> _submitPoll(BuildContext context) async {
-    final model = ref.read(pollEditorProvider);
+  Future<void> _submitSurvey(BuildContext context) async {
+    final model = ref.read(surveyEditorProvider);
     final dio = ref.read(solarNetworkClientProvider).dio;
 
     // Build payload
@@ -495,7 +495,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
               data: body,
             ));
 
-      showSnackBar(isUpdate ? 'pollUpdated'.tr() : 'pollCreated'.tr());
+      showSnackBar(isUpdate ? 'surveyUpdated'.tr() : 'surveyCreated'.tr());
 
       if (!context.mounted) return;
       Navigator.of(context).maybePop(SnSurvey.fromJson(res.data));
@@ -506,15 +506,15 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final model = ref.watch(pollEditorProvider);
-    final notifier = ref.watch(pollEditorProvider.notifier);
+    final model = ref.watch(surveyEditorProvider);
+    final notifier = ref.watch(surveyEditorProvider.notifier);
 
     return SheetScaffold(
-      titleText: model.id == null ? 'pollCreate'.tr() : 'pollEdit'.tr(),
+      titleText: model.id == null ? 'surveyCreate'.tr() : 'surveyEdit'.tr(),
       actions: [
         if (kDebugMode)
           IconButton(
-            tooltip: 'pollPreviewJsonDebug'.tr(),
+            tooltip: 'surveyPreviewJsonDebug'.tr(),
             onPressed: () {
               _showDebugPreview(context, model);
             },
@@ -527,7 +527,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text('confirm'.tr()),
-            content: Text('pollConfirmDiscard'.tr()),
+            content: Text('surveyConfirmDiscard'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
@@ -573,7 +573,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
                           FocusManager.instance.primaryFocus?.unfocus(),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
-                          return 'pollTitleRequired'.tr();
+                          return 'surveyTitleRequired'.tr();
                         }
                         return null;
                       },
@@ -629,7 +629,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
                                     : controller.open();
                               },
                               icon: const Icon(Icons.add),
-                              label: Text('pollAddQuestion'.tr()),
+                              label: Text('surveyAddQuestion'.tr()),
                             );
                           },
                           menuChildren: SnSurveyQuestionType.values
@@ -647,8 +647,8 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
                     const Gap(8),
                     if (model.questions.isEmpty)
                       _EmptyState(
-                        title: 'pollNoQuestionsYet'.tr(),
-                        subtitle: 'pollNoQuestionsHint'.tr(),
+                        title: 'surveyNoQuestionsYet'.tr(),
+                        subtitle: 'surveyNoQuestionsHint'.tr(),
                       )
                     else
                       ReorderableListView.builder(
@@ -729,7 +729,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
                       const Spacer(),
                       FilledButton.icon(
                         onPressed: () {
-                          _submitPoll(context);
+                          _submitSurvey(context);
                         },
                         icon: const Icon(Icons.cloud_upload_outlined),
                         label: Text(
@@ -749,7 +749,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
     );
   }
 
-  void _showDebugPreview(BuildContext context, PollEditorState model) {
+  void _showDebugPreview(BuildContext context, SurveyEditorState model) {
     final buf = StringBuffer();
     buf.writeln('{');
     buf.writeln('  "title": ${_jsonStr(model.title)},');
@@ -784,7 +784,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('pollDebugPreview'.tr()),
+        title: Text('surveyDebugPreview'.tr()),
         content: SingleChildScrollView(child: SelectableText(buf.toString())),
         actions: [
           TextButton(
@@ -818,15 +818,15 @@ IconData _iconForType(SnSurveyQuestionType t) {
 String _labelForType(SnSurveyQuestionType t) {
   switch (t) {
     case SnSurveyQuestionType.singleChoice:
-      return 'pollQuestionTypeSingleChoice'.tr();
+      return 'surveyQuestionTypeSingleChoice'.tr();
     case SnSurveyQuestionType.multipleChoice:
-      return 'pollQuestionTypeMultipleChoice'.tr();
+      return 'surveyQuestionTypeMultipleChoice'.tr();
     case SnSurveyQuestionType.freeText:
-      return 'pollQuestionTypeFreeText'.tr();
+      return 'surveyQuestionTypeFreeText'.tr();
     case SnSurveyQuestionType.yesNo:
-      return 'pollQuestionTypeYesNo'.tr();
+      return 'surveyQuestionTypeYesNo'.tr();
     case SnSurveyQuestionType.rating:
-      return 'pollQuestionTypeRating'.tr();
+      return 'surveyQuestionTypeRating'.tr();
   }
 }
 
@@ -844,7 +844,7 @@ class _EndDatePicker extends StatelessWidget {
         Expanded(
           child: InputDecorator(
             decoration: InputDecoration(
-              labelText: 'pollEndDateOptional'.tr(),
+              labelText: 'surveyEndDateOptional'.tr(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
@@ -944,7 +944,7 @@ class _QuestionHeader extends StatelessWidget {
         child: const Icon(Icons.drag_handle),
       ),
       title: Text(
-        question.title.isEmpty ? 'pollUntitledQuestion'.tr() : question.title,
+        question.title.isEmpty ? 'surveyUntitledQuestion'.tr() : question.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -983,7 +983,7 @@ class _QuestionEditor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.watch(pollEditorProvider.notifier);
+    final notifier = ref.watch(surveyEditorProvider.notifier);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1013,7 +1013,7 @@ class _QuestionEditor extends ConsumerWidget {
         TextFormField(
           initialValue: question.title,
           decoration: InputDecoration(
-            labelText: 'pollQuestionTitle'.tr(),
+            labelText: 'surveyQuestionTitle'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
@@ -1024,7 +1024,7 @@ class _QuestionEditor extends ConsumerWidget {
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           validator: (v) {
             if (v == null || v.trim().isEmpty) {
-              return 'pollQuestionTitleRequired'.tr();
+              return 'surveyQuestionTitleRequired'.tr();
             }
             return null;
           },
@@ -1033,7 +1033,7 @@ class _QuestionEditor extends ConsumerWidget {
         TextFormField(
           initialValue: question.description ?? '',
           decoration: InputDecoration(
-            labelText: 'pollQuestionDescriptionOptional'.tr(),
+            labelText: 'surveyQuestionDescriptionOptional'.tr(),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
@@ -1055,7 +1055,7 @@ class _QuestionEditor extends ConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () => notifier.addOption(index),
               icon: const Icon(Icons.add),
-              label: Text('pollAddOption'.tr()),
+              label: Text('surveyAddOption'.tr()),
             ),
           ),
         ],
@@ -1116,7 +1116,7 @@ class _OptionsEditor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.watch(pollEditorProvider.notifier);
+    final notifier = ref.watch(surveyEditorProvider.notifier);
 
     return Column(
       children: [
@@ -1131,7 +1131,7 @@ class _OptionsEditor extends ConsumerWidget {
                     key: ValueKey(options[i].id),
                     initialValue: options[i].label,
                     decoration: InputDecoration(
-                      labelText: 'pollOptionLabel'.tr(),
+                      labelText: 'surveyOptionLabel'.tr(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(16)),
                       ),
@@ -1191,8 +1191,8 @@ class _TextAnswerPreview extends StatelessWidget {
       maxLines: long ? 4 : 1,
       decoration: InputDecoration(
         labelText: long
-            ? 'pollLongTextAnswerPreview'.tr()
-            : 'pollShortTextAnswerPreview'.tr(),
+            ? 'surveyLongTextAnswerPreview'.tr()
+            : 'surveyShortTextAnswerPreview'.tr(),
       ),
     );
   }
@@ -1224,12 +1224,12 @@ class _EmptyState extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'pollNoQuestionsYet'.tr(),
+                  'surveyNoQuestionsYet'.tr(),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Gap(4),
                 Text(
-                  'pollNoQuestionsHint'.tr(),
+                  'surveyNoQuestionsHint'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
