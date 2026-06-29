@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
@@ -60,7 +61,7 @@ class PostItemCreator extends HookConsumerWidget {
                     }
                   });
                 } else if (item.type == 2) {
-                  context.router.push(BlogEditRoute(id: item.id)).then((
+                  BlogComposeDialog.show(context, originalPost: item).then((
                     value,
                   ) {
                     if (value != null) {

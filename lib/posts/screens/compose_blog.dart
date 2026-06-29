@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/database.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/compose.dart';
@@ -15,8 +16,10 @@ import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/posts/widgets/compose/compose_state_utils.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -50,12 +53,75 @@ class BlogComposeScreen extends HookConsumerWidget {
 
   const BlogComposeScreen({super.key, this.originalPost, this.initialState});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    useEffect(() {
+      var active = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!active || !context.mounted) return;
+        final result = await BlogComposeDialog.show(
+          context,
+          originalPost: originalPost,
+          initialState: initialState,
+        );
+        if (context.mounted) {
+          context.router.maybePop(result);
+        }
+      });
+      return () => active = false;
+    }, [originalPost, initialState]);
+
+    return const AppScaffold(isNoBackground: true, body: SizedBox.shrink());
+  }
+}
+
+class BlogComposeDialog extends HookConsumerWidget {
+  final SnPost? originalPost;
+  final PostComposeInitialState? initialState;
+  final VoidCallback onCancel;
+  final VoidCallback onSubmitted;
+
+  const BlogComposeDialog({
+    super.key,
+    required this.onCancel,
+    required this.onSubmitted,
+    this.originalPost,
+    this.initialState,
+  });
+
   static const int _blogPostType = 2;
+
+  static Future<bool?> show(
+    BuildContext context, {
+    SnPost? originalPost,
+    PostComposeInitialState? initialState,
+  }) {
+    final completer = Completer<bool?>();
+    showAttentionModal(
+      id: 'blog-compose',
+      replaceIfExists: true,
+      barrierDismissible: true,
+      builder: (overlayContext, dismiss) => BlogComposeDialog(
+        originalPost: originalPost,
+        initialState: initialState,
+        onCancel: () {
+          if (!completer.isCompleted) completer.complete(null);
+          dismiss();
+        },
+        onSubmitted: () {
+          if (!completer.isCompleted) completer.complete(true);
+          dismiss();
+        },
+      ),
+    );
+    return completer.future;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final publishers = ref.watch(publishersManagedProvider);
+    final database = ref.read(databaseProvider);
+    final showWidePanel = isWideScreen(context);
 
     final state = useMemoized(
       () => ComposeLogic.createState(
@@ -69,12 +135,17 @@ class BlogComposeScreen extends HookConsumerWidget {
     // Auto-save
     useEffect(() {
       if (originalPost == null) {
-        state.startAutoSave(ref);
+        state.startAutoSave(
+          (composeState) => ComposeLogic.saveDraftWithoutUploadWithDatabase(
+            database,
+            composeState,
+          ),
+        );
       }
       return () {
         state.stopAutoSave();
         if (originalPost == null) {
-          ComposeLogic.saveDraftWithoutUpload(ref, state);
+          ComposeLogic.saveDraftWithoutUploadWithDatabase(database, state);
         }
         ComposeLogic.dispose(state);
       };
@@ -104,14 +175,17 @@ class BlogComposeScreen extends HookConsumerWidget {
     // Restore draft prompt
     final restorePrompted = useState(false);
     useEffect(() {
-      if (restorePrompted.value || originalPost != null || initialState != null) {
+      if (restorePrompted.value ||
+          originalPost != null ||
+          initialState != null) {
         return null;
       }
       final latestDraft = ref
           .read(composeStorageProvider.notifier)
           .getLatestDraftByType(_blogPostType);
       if (latestDraft == null) return null;
-      final hasContent = latestDraft.content?.trim().isNotEmpty == true ||
+      final hasContent =
+          latestDraft.content?.trim().isNotEmpty == true ||
           latestDraft.title?.trim().isNotEmpty == true;
       if (!hasContent) return null;
       restorePrompted.value = true;
@@ -126,8 +200,10 @@ class BlogComposeScreen extends HookConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('restoreDraftTitle'.tr(),
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'restoreDraftTitle'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const Gap(12),
                   Text('restoreDraftMessage'.tr()),
                 ],
@@ -176,18 +252,29 @@ class BlogComposeScreen extends HookConsumerWidget {
 
     ComposeStateUtils.usePublisherInitialization(ref, state);
 
-    final showSidebar = useState(false);
+    void showSettingsSheet() {
+      showAttentionModal(
+        id: 'blog-compose-settings',
+        replaceIfExists: true,
+        barrierDismissible: true,
+        builder: (context, dismiss) => AttentionModalScaffold(
+          titleText: 'postSettings'.tr(),
+          onDismiss: dismiss,
+          forceCard: true,
+          child: ComposeSettingsSheet(state: state),
+        ),
+      );
+    }
 
     Future<void> performSubmit() async {
-      // Validate URL
       final url = state.contentController.text.trim();
       if (url.isEmpty) {
-        showErrorAlert('Blog URL is required');
+        showErrorAlert('blogComposeUrlRequired'.tr());
         return;
       }
       final uri = Uri.tryParse(url);
       if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
-        showErrorAlert('Please enter a valid absolute URL');
+        showErrorAlert('blogComposeUrlInvalid'.tr());
         return;
       }
 
@@ -205,7 +292,7 @@ class BlogComposeScreen extends HookConsumerWidget {
           for (final id in toDelete) {
             await storage.deleteLocalDraft(id);
           }
-          if (context.mounted) Navigator.of(context).maybePop(true);
+          if (context.mounted) onSubmitted();
         },
       );
     }
@@ -213,201 +300,311 @@ class BlogComposeScreen extends HookConsumerWidget {
     return PopScope(
       onPopInvoked: (_) {
         if (originalPost == null) {
-          ComposeLogic.saveDraftWithoutUpload(ref, state);
+          ComposeLogic.saveDraftWithoutUploadWithDatabase(database, state);
         }
       },
-      child: AppScaffold(
-        isNoBackground: false,
-        appBar: AppBar(
-          leading: const AutoLeadingButton(),
-          title: Text(originalPost != null ? 'editBlog'.tr() : 'newBlog'.tr()),
-          actions: [
-            ValueListenableBuilder<SnPublisher?>(
-              valueListenable: state.currentPublisher,
-              builder: (context, publisher, _) {
-                return IconButton(
-                  icon: ProfilePictureWidget(
-                    file: publisher?.picture,
-                    radius: 12,
-                    fallbackIcon:
-                        publisher == null ? Symbols.question_mark : null,
+      child: AttentionModalScaffold(
+        titleText: originalPost != null ? 'editBlog'.tr() : 'newBlog'.tr(),
+        onDismiss: onCancel,
+        actions: [
+          ValueListenableBuilder<SnPublisher?>(
+            valueListenable: state.currentPublisher,
+            builder: (context, publisher, _) {
+              return IconButton(
+                icon: ProfilePictureWidget(
+                  file: publisher?.picture,
+                  radius: 12,
+                  fallbackIcon: publisher == null
+                      ? Symbols.question_mark
+                      : null,
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    isScrollControlled: true,
+                    context: context,
+                    builder: (context) => const PublisherModal(),
+                  ).then((value) {
+                    if (value != null) state.currentPublisher.value = value;
+                  });
+                },
+                tooltip: 'changePublisher'.tr(),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Symbols.tune),
+            onPressed: showSettingsSheet,
+            tooltip: 'settings'.tr(),
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: state.submitting,
+            builder: (context, submitting, _) {
+              return submitting
+                  ? const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: Padding(
+                        padding: EdgeInsets.all(4),
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    )
+                  : IconButton(
+                      onPressed: performSubmit,
+                      icon: Icon(
+                        originalPost != null ? Symbols.edit : Symbols.upload,
+                      ),
+                    );
+            },
+          ),
+        ],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showWidePanel)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 620),
+                            child: _BlogComposeForm(state: state),
+                          ),
+                        ),
+                      ),
+                      const Gap(24),
+                      SizedBox(width: 300, child: _BlogComposeInfoPanel()),
+                    ],
+                  )
+                else ...[
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 620),
+                      child: _BlogComposeForm(state: state),
+                    ),
                   ),
+                  const Gap(16),
+                  const _BlogComposeInfoPanel(),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BlogComposeForm extends StatelessWidget {
+  final ComposeState state;
+
+  const _BlogComposeForm({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (state.currentPublisher.value != null)
+            Row(
+              children: [
+                ProfilePictureWidget(
+                  file: state.currentPublisher.value?.picture,
+                  radius: 16,
+                ),
+                const Gap(8),
+                Expanded(
+                  child: Text(
+                    '@${state.currentPublisher.value?.name ?? ''}',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                TextButton(
                   onPressed: () {
                     showModalBottomSheet(
                       isScrollControlled: true,
                       context: context,
                       builder: (context) => const PublisherModal(),
                     ).then((value) {
-                      if (value != null) state.currentPublisher.value = value;
+                      if (value != null) {
+                        state.currentPublisher.value = value;
+                      }
                     });
                   },
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Symbols.tune),
-              onPressed: () => showSidebar.value = !showSidebar.value,
-              tooltip: 'settings'.tr(),
-            ),
-            ValueListenableBuilder<bool>(
-              valueListenable: state.submitting,
-              builder: (context, submitting, _) {
-                return submitting
-                    ? const SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: Padding(
-                          padding: EdgeInsets.all(4),
-                          child: CircularProgressIndicator(strokeWidth: 2.5),
-                        ),
-                      )
-                    : IconButton(
-                        onPressed: performSubmit,
-                        icon: Icon(
-                          originalPost != null ? Symbols.edit : Symbols.upload,
-                        ),
-                      );
-              },
-            ),
-            const Gap(8),
-          ],
-        ),
-        body: Row(
-          children: [
-            // Main editor
-            Expanded(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Publisher selector row
-                        if (state.currentPublisher.value != null)
-                          Row(
-                            children: [
-                              ProfilePictureWidget(
-                                file:
-                                    state.currentPublisher.value?.picture,
-                                radius: 16,
-                              ),
-                              const Gap(8),
-                              Text(
-                                '@${state.currentPublisher.value?.name ?? ''}',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              const Spacer(),
-                              TextButton(
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    isScrollControlled: true,
-                                    context: context,
-                                    builder: (context) =>
-                                        const PublisherModal(),
-                                  ).then((value) {
-                                    if (value != null) {
-                                      state.currentPublisher.value = value;
-                                    }
-                                  });
-                                },
-                                child: Text('change'.tr()),
-                              ),
-                            ],
-                          ),
-                        if (state.currentPublisher.value == null)
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info,
-                                    size: 16,
-                                    color: theme.colorScheme.primary),
-                                const Gap(8),
-                                Expanded(
-                                  child: Text(
-                                    'Tap the avatar to select a publisher.',
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        const Gap(16),
-
-                        // URL field (required)
-                        Text('blogUrl'.tr(),
-                            style: theme.textTheme.labelLarge),
-                        const Gap(4),
-                        TextField(
-                          controller: state.contentController,
-                          decoration: InputDecoration(
-                            hintText: 'https://blog.example.com/my-article',
-                            prefixIcon: const Icon(Symbols.link),
-                            border: const OutlineInputBorder(),
-                            filled: true,
-                          ),
-                          keyboardType: TextInputType.url,
-                          maxLines: 1,
-                        ),
-                        const Gap(16),
-
-                        // Title field
-                        Text('postTitle'.tr(),
-                            style: theme.textTheme.labelLarge),
-                        const Gap(4),
-                        TextField(
-                          controller: state.titleController,
-                          decoration: InputDecoration(
-                            hintText: 'postTitleHint'.tr(),
-                            border: const OutlineInputBorder(),
-                            filled: true,
-                          ),
-                          maxLength: 1024,
-                        ),
-                        const Gap(8),
-
-                        // Description field
-                        Text('postDescription'.tr(),
-                            style: theme.textTheme.labelLarge),
-                        const Gap(4),
-                        TextField(
-                          controller: state.descriptionController,
-                          decoration: InputDecoration(
-                            hintText: 'postDescriptionHint'.tr(),
-                            border: const OutlineInputBorder(),
-                            filled: true,
-                          ),
-                          maxLines: 3,
-                          maxLength: 4096,
-                        ),
-                      ],
+                  child: Text('changePublisher'.tr()),
+                ),
+              ],
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Symbols.info,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const Gap(8),
+                  Expanded(
+                    child: Text(
+                      'blogComposePublisherHint'.tr(),
+                      style: theme.textTheme.bodySmall,
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-
-            // Sidebar (settings)
-            if (showSidebar.value && isWideScreen(context))
-              SizedBox(
-                width: 320,
-                child: Material(
-                  color: theme.colorScheme.surfaceContainerLow,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: ComposeSettingsSheet(state: state),
-                  ),
-                ),
-              ),
-          ],
-        ),
+          const Gap(20),
+          Text('blogUrl'.tr(), style: theme.textTheme.labelLarge),
+          const Gap(6),
+          Text(
+            'blogComposeVerifiedDomainHint'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
+            ),
+          ),
+          const Gap(8),
+          TextField(
+            controller: state.contentController,
+            keyboardType: TextInputType.url,
+            maxLines: 1,
+          ),
+          const Gap(16),
+          Text('postTitle'.tr(), style: theme.textTheme.labelLarge),
+          const Gap(6),
+          TextField(controller: state.titleController, maxLength: 1024),
+          const Gap(8),
+          Text('postDescription'.tr(), style: theme.textTheme.labelLarge),
+          const Gap(6),
+          TextField(
+            controller: state.descriptionController,
+            maxLines: 3,
+            maxLength: 4096,
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _BlogComposeInfoPanel extends StatelessWidget {
+  const _BlogComposeInfoPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Symbols.public, color: theme.colorScheme.primary, size: 22),
+          const Gap(12),
+          Text(
+            'blogComposePanelTitle'.tr(),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Gap(10),
+          Text(
+            'blogComposePanelBody'.tr(),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.45,
+            ),
+          ),
+          const Gap(14),
+          Text(
+            'blogComposeAboutTitle'.tr(),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Gap(8),
+          Text(
+            'blogComposeAboutBody'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+          const Gap(18),
+          _BlogComposeBenefit(
+            icon: Symbols.language,
+            label: 'blogComposeBenefitOwnership'.tr(),
+          ),
+          const Gap(12),
+          _BlogComposeBenefit(
+            icon: Symbols.campaign,
+            label: 'blogComposeBenefitReach'.tr(),
+          ),
+          const Gap(12),
+          _BlogComposeBenefit(
+            icon: Symbols.chat_bubble,
+            label: 'blogComposeBenefitEngagement'.tr(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlogComposeBenefit extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _BlogComposeBenefit({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 16, color: theme.colorScheme.primary),
+        ),
+        const Gap(10),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

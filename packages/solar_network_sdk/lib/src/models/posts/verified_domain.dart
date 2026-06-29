@@ -22,9 +22,7 @@ sealed class SnPublisherVerifiedDomain with _$SnPublisherVerifiedDomain {
     required String domain,
     @Default(DomainVerificationStatus.pending) DomainVerificationStatus status,
     @JsonKey(name: 'verified_at') @Default(null) DateTime? verifiedAt,
-    @JsonKey(name: 'last_checked_at')
-    @Default(null)
-    DateTime? lastCheckedAt,
+    @JsonKey(name: 'last_checked_at') DateTime? lastCheckedAt,
     @JsonKey(name: 'failed_attempts') @Default(0) int failedAttempts,
     @JsonKey(name: 'last_error') @Default(null) String? lastError,
     @JsonKey(name: 'created_at') @Default(null) DateTime? createdAt,

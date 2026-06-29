@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/database.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
+import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
@@ -45,8 +46,7 @@ class PostComposeDialog extends HookConsumerWidget {
       return Future.value(true);
     }
     if (originalPost != null && originalPost.type == 2) {
-      context.router.push(BlogEditRoute(id: originalPost.id));
-      return Future.value(true);
+      return BlogComposeDialog.show(context, originalPost: originalPost);
     }
 
     final completer = Completer<bool?>();
