@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:uuid/uuid.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -535,7 +536,7 @@ class SurveyQuestionDraft {
     required int order,
   }) {
     return SurveyQuestionDraft(
-      id: _emptyGuid,
+      id: const Uuid().v4(),
       type: type,
       title: '',
       order: order,
