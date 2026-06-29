@@ -2,6 +2,7 @@ export 'src/foundation.dart';
 export 'src/responsive.dart';
 export 'src/attention_modal.dart';
 export 'src/attention_modal_scaffold.dart';
+export 'src/hover_edge_action.dart';
 export 'src/snackbar_overlay.dart';
 export 'src/notification_overlay.dart';
 export 'src/sheet_scaffold.dart';

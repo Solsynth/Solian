@@ -717,6 +717,8 @@ class ExploreScreen extends HookConsumerWidget {
     ExploreSettings exploreSettings,
     AppSettingsNotifier appSettingsNotifier,
   ) {
+    final sliverRefreshInset =
+        MediaQuery.paddingOf(context).top + kToolbarHeight + 48;
     final usePostList =
         selectedPublishers.value.isNotEmpty ||
         selectedCategoryIds.value.isNotEmpty ||
@@ -729,6 +731,8 @@ class ExploreScreen extends HookConsumerWidget {
     final notifier = ref.watch(activityListProvider.notifier);
 
     return ExtendedRefreshIndicator(
+      leadingEdgeInset: sliverRefreshInset,
+      hoverRefreshLabel: 'refresh'.tr(),
       onRefresh: usePostList ? () async {} : notifier.refresh,
       child: CustomScrollView(
         slivers: [
@@ -797,6 +801,8 @@ class ExploreScreen extends HookConsumerWidget {
     ValueNotifier<String?> selectedPostId,
     ValueNotifier<bool> isDetailExpanded,
   ) {
+    final sliverRefreshInset =
+        MediaQuery.paddingOf(context).top + kToolbarHeight + 48;
     final usePostList =
         selectedPublishers.value.isNotEmpty ||
         selectedCategories.value.isNotEmpty ||
@@ -833,6 +839,8 @@ class ExploreScreen extends HookConsumerWidget {
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
       child: ExtendedRefreshIndicator(
+        leadingEdgeInset: sliverRefreshInset,
+        hoverRefreshLabel: 'refresh'.tr(),
         onRefresh: () async {
           if (notifier != null) {
             await notifier.refresh();
@@ -2191,5 +2199,3 @@ class _ActivityListView extends HookConsumerWidget {
     );
   }
 }
-
-
