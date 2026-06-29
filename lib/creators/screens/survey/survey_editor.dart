@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -34,20 +32,16 @@ class _CreatorSurveyEditorScreenState
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
   late SurveyEditorDraft _draft;
-  late String _initialSnapshot;
   bool _loading = true;
   bool _saving = false;
 
   bool get _isEditing =>
       widget.surveyId != null && widget.surveyId!.trim().isNotEmpty;
 
-  bool get _hasChanges => _snapshotDraft(_draft) != _initialSnapshot;
-
   @override
   void initState() {
     super.initState();
     _draft = SurveyEditorDraft.empty(publisherName: widget.publisherName);
-    _initialSnapshot = _snapshotDraft(_draft);
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
   }
 
@@ -77,7 +71,6 @@ class _CreatorSurveyEditorScreenState
       );
       setState(() {
         _draft = draft;
-        _initialSnapshot = _snapshotDraft(draft);
         _loading = false;
       });
     } catch (e) {
@@ -94,35 +87,6 @@ class _CreatorSurveyEditorScreenState
       return Map<String, dynamic>.from(payload['data'] as Map<String, dynamic>);
     }
     return Map<String, dynamic>.from(payload as Map);
-  }
-
-  Future<bool> _confirmDiscardIfNeeded() async {
-    if (!_hasChanges) return true;
-    final shouldLeave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('confirm'.tr()),
-        content: Text('surveyConfirmDiscard'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('discard'.tr()),
-          ),
-        ],
-      ),
-    );
-    return shouldLeave ?? false;
-  }
-
-  Future<void> _handleBack() async {
-    final allowPop = await _confirmDiscardIfNeeded();
-    if (allowPop && mounted) {
-      Navigator.of(context).maybePop();
-    }
   }
 
   Future<void> _pickEndAt() async {
@@ -304,168 +268,139 @@ class _CreatorSurveyEditorScreenState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canPop = context.router.canPop();
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        await _handleBack();
-      },
-      child: AppScaffold(
-        appBar: AppBar(
-          leading: canPop
-              ? IconButton(
-                  onPressed: _handleBack,
-                  icon: const Icon(Icons.arrow_back),
-                )
-              : const AutoLeadingButton(),
-          title: Text(_isEditing ? 'surveyEdit'.tr() : 'surveyCreate'.tr()),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: FilledButton(
-                onPressed: _loading || _saving ? null : _submit,
-                child: _saving
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_isEditing ? 'update'.tr() : 'create'.tr()),
-              ),
-            ),
-          ],
-        ),
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: ListView(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                        children: [
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 920),
-                            child: Column(
-                              children: [
-                                _OverviewCard(
-                                  draft: _draft,
-                                  onTitleChanged: (value) => _setDraft(
-                                    _draft.copyWith(
-                                      title: value.trim().isEmpty
-                                          ? null
-                                          : value,
-                                    ),
-                                  ),
-                                  onDescriptionChanged: (value) => _setDraft(
-                                    _draft.copyWith(
-                                      description: value.trim().isEmpty
-                                          ? null
-                                          : value,
-                                    ),
-                                  ),
-                                  onPickEndedAt: _pickEndAt,
-                                  onClearEndedAt: () =>
-                                      _setDraft(_draft.copyWith(endedAt: null)),
-                                  onNotifySubscribersChanged: (value) =>
-                                      _setDraft(
-                                        _draft.copyWith(
-                                          notifySubscribers: value,
-                                        ),
-                                      ),
-                                  onAnonymousChanged: (value) => _setDraft(
-                                    _draft.copyWith(isAnonymous: value),
-                                  ),
-                                  onHideResultsChanged: (value) => _setDraft(
-                                    _draft.copyWith(hideResults: value),
-                                  ),
-                                ),
-                                const Gap(20),
-                                _QuestionToolbar(
-                                  totalQuestions: _draft.questions.length,
-                                  onAddQuestion: _addQuestion,
-                                ),
-                                const Gap(12),
-                                if (_draft.questions.isEmpty)
-                                  _QuestionEmptyState(
-                                    onAddFirstQuestion: () => _addQuestion(
-                                      SnSurveyQuestionType.singleChoice,
-                                    ),
-                                  )
-                                else
-                                  ReorderableListView.builder(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    buildDefaultDragHandles: false,
-                                    itemCount: _draft.questions.length,
-                                    onReorder: _moveQuestion,
-                                    itemBuilder: (context, index) {
-                                      final question = _draft.questions[index];
-                                      return Padding(
-                                        key: ValueKey(question.id),
-                                        padding: const EdgeInsets.only(
-                                          bottom: 12,
-                                        ),
-                                        child: _QuestionCard(
-                                          index: index,
-                                          question: question,
-                                          onChanged: (next) =>
-                                              _updateQuestion(index, next),
-                                          onDelete: () =>
-                                              _removeQuestion(index),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Material(
-                    color: theme.colorScheme.surfaceContainerHigh,
-                    elevation: 4,
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                        child: ConstrainedBox(
+    return AppScaffold(
+      appBar: AppBar(
+        leading: const AutoLeadingButton(),
+        title: Text(_isEditing ? 'surveyEdit'.tr() : 'surveyCreate'.tr()),
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: ListView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                      children: [
+                        ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 920),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                _draft.questions.isEmpty
-                                    ? 'No questions yet'
-                                    : '${_draft.questions.length} questions ready',
-                                style: theme.textTheme.bodyMedium,
+                              _OverviewCard(
+                                draft: _draft,
+                                onTitleChanged: (value) => _setDraft(
+                                  _draft.copyWith(
+                                    title: value.trim().isEmpty ? null : value,
+                                  ),
+                                ),
+                                onDescriptionChanged: (value) => _setDraft(
+                                  _draft.copyWith(
+                                    description: value.trim().isEmpty
+                                        ? null
+                                        : value,
+                                  ),
+                                ),
+                                onPickEndedAt: _pickEndAt,
+                                onClearEndedAt: () =>
+                                    _setDraft(_draft.copyWith(endedAt: null)),
+                                onNotifySubscribersChanged: (value) =>
+                                    _setDraft(
+                                      _draft.copyWith(notifySubscribers: value),
+                                    ),
+                                onAnonymousChanged: (value) => _setDraft(
+                                  _draft.copyWith(isAnonymous: value),
+                                ),
+                                onHideResultsChanged: (value) => _setDraft(
+                                  _draft.copyWith(hideResults: value),
+                                ),
                               ),
-                              const Spacer(),
-                              OutlinedButton(
-                                onPressed: _saving ? null : _handleBack,
-                                child: Text('cancel'.tr()),
+                              const Gap(20),
+                              _QuestionToolbar(
+                                totalQuestions: _draft.questions.length,
+                                onAddQuestion: _addQuestion,
                               ),
                               const Gap(12),
-                              FilledButton.icon(
-                                onPressed: _saving ? null : _submit,
-                                icon: const Icon(Icons.cloud_upload_outlined),
-                                label: Text(
-                                  _isEditing ? 'update'.tr() : 'create'.tr(),
+                              if (_draft.questions.isEmpty)
+                                _QuestionEmptyState(
+                                  onAddFirstQuestion: () => _addQuestion(
+                                    SnSurveyQuestionType.singleChoice,
+                                  ),
+                                )
+                              else
+                                ReorderableListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  buildDefaultDragHandles: false,
+                                  itemCount: _draft.questions.length,
+                                  onReorder: _moveQuestion,
+                                  itemBuilder: (context, index) {
+                                    final question = _draft.questions[index];
+                                    return Padding(
+                                      key: ValueKey(question.id),
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      child: _QuestionCard(
+                                        index: index,
+                                        question: question,
+                                        onChanged: (next) =>
+                                            _updateQuestion(index, next),
+                                        onDelete: () => _removeQuestion(index),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
                             ],
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Material(
+                  color: theme.colorScheme.surfaceContainerHigh,
+                  elevation: 4,
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 920),
+                        child: Row(
+                          children: [
+                            Text(
+                              _draft.questions.isEmpty
+                                  ? 'No questions yet'
+                                  : '${_draft.questions.length} questions ready',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const Spacer(),
+                            OutlinedButton(
+                              onPressed: _saving
+                                  ? null
+                                  : () => Navigator.of(context).maybePop(),
+                              child: Text('cancel'.tr()),
+                            ),
+                            const Gap(12),
+                            FilledButton.icon(
+                              onPressed: _saving ? null : _submit,
+                              icon: const Icon(Icons.cloud_upload_outlined),
+                              label: Text(
+                                _isEditing ? 'update'.tr() : 'create'.tr(),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-      ),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -748,9 +683,6 @@ class SurveyOptionDraft {
   }
 }
 
-String _snapshotDraft(SurveyEditorDraft draft) =>
-    jsonEncode(draft.toRequestBody(includeClearEndedAt: true));
-
 class _OverviewCard extends StatelessWidget {
   const _OverviewCard({
     required this.draft,
@@ -930,7 +862,7 @@ class _QuestionToolbar extends StatelessWidget {
                 children: [
                   Text(
                     'surveyQuestions'.tr(),
-                    style: theme.textTheme.titleLarge,
+                    style: theme.textTheme.titleMedium,
                   ),
                   const Gap(4),
                   Text(
@@ -994,7 +926,7 @@ class _QuestionEmptyState extends StatelessWidget {
             const Gap(12),
             Text(
               'surveyNoQuestionsYet'.tr(),
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleSmall,
             ),
             const Gap(6),
             Text(
@@ -1055,7 +987,7 @@ class _QuestionCard extends StatelessWidget {
                         question.title.trim().isEmpty
                             ? 'surveyUntitledQuestion'.tr()
                             : question.title.trim(),
-                        style: theme.textTheme.titleMedium,
+                        style: theme.textTheme.titleSmall,
                       ),
                       const Gap(4),
                       Text(
@@ -1075,47 +1007,29 @@ class _QuestionCard extends StatelessWidget {
               ],
             ),
             const Gap(16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                SizedBox(
-                  width: 260,
-                  child: DropdownButtonFormField<SnSurveyQuestionType>(
-                    value: question.type,
-                    decoration: const InputDecoration(labelText: 'Type'),
-                    items: [
-                      for (final type in SnSurveyQuestionType.values)
-                        DropdownMenuItem(
-                          value: type,
-                          child: Row(
-                            children: [
-                              Icon(_iconForType(type), size: 18),
-                              const Gap(8),
-                              Text(_labelForType(type)),
-                            ],
-                          ),
-                        ),
-                    ],
-                    onChanged: (type) {
-                      if (type == null) return;
-                      onChanged(_switchQuestionType(question, type));
-                    },
-                  ),
-                ),
-                FilterChip(
-                  selected: question.isRequired,
-                  onSelected: (value) =>
-                      onChanged(question.copyWith(isRequired: value)),
-                  label: Text('required'.tr()),
-                  avatar: Icon(
-                    question.isRequired
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
-                    size: 18,
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: 260,
+              child: DropdownButtonFormField<SnSurveyQuestionType>(
+                value: question.type,
+                decoration: const InputDecoration(labelText: 'Type'),
+                items: [
+                  for (final type in SnSurveyQuestionType.values)
+                    DropdownMenuItem(
+                      value: type,
+                      child: Row(
+                        children: [
+                          Icon(_iconForType(type), size: 18),
+                          const Gap(8),
+                          Text(_labelForType(type)),
+                        ],
+                      ),
+                    ),
+                ],
+                onChanged: (type) {
+                  if (type == null) return;
+                  onChanged(_switchQuestionType(question, type));
+                },
+              ),
             ),
             const Gap(12),
             TextFormField(
@@ -1123,7 +1037,6 @@ class _QuestionCard extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'surveyQuestionTitle'.tr(),
                 helperText: 'Shown to respondents',
-                prefixIcon: Icon(_iconForType(question.type)),
               ),
               maxLength: 1024,
               validator: (value) {
@@ -1138,6 +1051,7 @@ class _QuestionCard extends StatelessWidget {
             TextFormField(
               initialValue: question.description ?? '',
               decoration: InputDecoration(
+                alignLabelWithHint: true,
                 labelText: 'surveyQuestionDescriptionOptional'.tr(),
               ),
               maxLines: 3,
@@ -1153,6 +1067,14 @@ class _QuestionCard extends StatelessWidget {
             _QuestionCapabilitySection(
               question: question,
               onChanged: onChanged,
+            ),
+            const Gap(16),
+            _SettingTile(
+              icon: Icons.check_circle_outlined,
+              title: 'required'.tr(),
+              subtitle: 'Respondents must answer this question.',
+              value: question.isRequired,
+              onChanged: (value) => onChanged(question.copyWith(isRequired: value)),
             ),
           ],
         ),
@@ -1327,34 +1249,34 @@ class _OptionsSection extends StatelessWidget {
           ],
         ),
         const Gap(8),
-        for (var i = 0; i < options.length; i++)
+        for (final entry in options.asMap().entries)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _OptionEditor(
-              option: options[i],
-              index: i,
+              option: entry.value,
+              index: entry.key,
               total: options.length,
               onChanged: (option) {
                 final next = [...options];
-                next[i] = option.copyWith(order: i);
+                next[entry.key] = option.copyWith(order: entry.key);
                 onChanged(question.copyWith(options: next));
               },
-              onMoveUp: i == 0
+              onMoveUp: entry.key == 0
                   ? null
                   : () {
                       final next = [...options];
-                      final item = next.removeAt(i);
-                      next.insert(i - 1, item);
+                      final item = next.removeAt(entry.key);
+                      next.insert(entry.key - 1, item);
                       onChanged(
                         question.copyWith(options: _normalizeOptions(next)),
                       );
                     },
-              onMoveDown: i == options.length - 1
+              onMoveDown: entry.key == options.length - 1
                   ? null
                   : () {
                       final next = [...options];
-                      final item = next.removeAt(i);
-                      next.insert(i + 1, item);
+                      final item = next.removeAt(entry.key);
+                      next.insert(entry.key + 1, item);
                       onChanged(
                         question.copyWith(options: _normalizeOptions(next)),
                       );
@@ -1362,7 +1284,7 @@ class _OptionsSection extends StatelessWidget {
               onDelete: options.length <= 2
                   ? null
                   : () {
-                      final next = [...options]..removeAt(i);
+                      final next = [...options]..removeAt(entry.key);
                       onChanged(
                         question.copyWith(options: _normalizeOptions(next)),
                       );

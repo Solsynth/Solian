@@ -53,8 +53,6 @@ class SurveyFeedbackPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final survey = ref.watch(surveyWithStatsProvider(surveyId));
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final provider = surveyFeedbackNotifierProvider(surveyId);
 
     return DefaultTabController(
@@ -63,7 +61,10 @@ class SurveyFeedbackPage extends HookConsumerWidget {
         appBar: AppBar(
           leading: const AutoLeadingButton(),
           title: Text(title ?? 'surveyFeedback'.tr()),
-          bottom: const TabBar(
+          bottom: TabBar(
+            labelColor: Theme.of(context).appBarTheme.foregroundColor,
+            unselectedLabelColor: Theme.of(context).appBarTheme.foregroundColor,
+            indicatorColor: Theme.of(context).appBarTheme.foregroundColor,
             tabs: [
               Tab(text: 'Summary'),
               Tab(text: 'Participants'),
@@ -76,36 +77,24 @@ class SurveyFeedbackPage extends HookConsumerWidget {
             error: err,
             onRetry: () => ref.invalidate(surveyWithStatsProvider(surveyId)),
           ),
-          data: (data) => DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  colorScheme.primaryContainer.withOpacity(0.2),
-                  colorScheme.surface,
-                ],
+          data: (data) => TabBarView(
+            children: [
+              _SummaryTab(survey: data),
+              PaginationList(
+                footerSkeletonMaxWidth: 880,
+                provider: provider,
+                notifier: provider.notifier,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                itemBuilder: (context, index, answer) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 880),
+                      child: _ParticipantCard(answer: answer, survey: data),
+                    ),
+                  );
+                },
               ),
-            ),
-            child: TabBarView(
-              children: [
-                _SummaryTab(survey: data),
-                PaginationList(
-                  footerSkeletonMaxWidth: 880,
-                  provider: provider,
-                  notifier: provider.notifier,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  itemBuilder: (context, index, answer) {
-                    return Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 880),
-                        child: _ParticipantCard(answer: answer, survey: data),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
@@ -142,7 +131,7 @@ class _SummaryTab extends StatelessWidget {
                         if (survey.title != null)
                           Text(
                             survey.title!,
-                            style: theme.textTheme.headlineMedium?.copyWith(
+                            style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -200,7 +189,7 @@ class _SummaryTab extends StatelessWidget {
                                     children: [
                                       Text(
                                         question.title,
-                                        style: theme.textTheme.titleLarge
+                                        style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.w700,
                                             ),
