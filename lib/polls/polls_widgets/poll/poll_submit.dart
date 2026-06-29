@@ -8,6 +8,8 @@ import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+enum PollSubmitVisualStyle { compact, fullPage }
+
 class PollSubmit extends ConsumerStatefulWidget {
   const PollSubmit({
     super.key,
@@ -19,6 +21,7 @@ class PollSubmit extends ConsumerStatefulWidget {
     this.isReadonly = false,
     this.isInitiallyExpanded = false,
     this.disableCollapse = false,
+    this.visualStyle = PollSubmitVisualStyle.compact,
   });
 
   final String pollId;
@@ -42,6 +45,8 @@ class PollSubmit extends ConsumerStatefulWidget {
 
   /// When true, the poll cannot be collapsed and always stays expanded.
   final bool disableCollapse;
+
+  final PollSubmitVisualStyle visualStyle;
 
   @override
   ConsumerState<PollSubmit> createState() => _PollSubmitState();
@@ -126,6 +131,8 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   }
 
   SnSurveyQuestion get _current => _questions![_index];
+
+  bool get _isFullPage => widget.visualStyle == PollSubmitVisualStyle.fullPage;
 
   bool _isExpired(SnSurveyWithStats poll) {
     final endedAt = poll.endedAt;
@@ -300,21 +307,38 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   Widget _buildHeader(BuildContext context, SnSurveyWithStats poll) {
     final q = _current;
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.showProgress &&
-            _isModifying) // Only show progress when modifying
-          Text(
-            '${_index + 1} / ${_questions!.length}',
-            style: Theme.of(context).textTheme.labelMedium,
+        if (widget.showProgress && _isModifying)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '${_index + 1} / ${_questions!.length}',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
+        if (widget.showProgress && _isModifying)
+          SizedBox(height: _isFullPage ? 16 : 8),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Text(
                 q.title,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: _isFullPage
+                    ? theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      )
+                    : theme.textTheme.titleMedium,
               ),
             ),
             if (q.isRequired)
@@ -331,14 +355,17 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         ),
         if (q.description != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: EdgeInsets.only(top: _isFullPage ? 10 : 4),
             child: Text(
               q.description!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.color?.withOpacity(0.7),
-              ),
+              style:
+                  (_isFullPage
+                          ? theme.textTheme.titleSmall
+                          : theme.textTheme.bodySmall)
+                      ?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.45,
+                      ),
             ),
           ),
       ],
@@ -376,18 +403,43 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   Widget _buildSingleChoice(BuildContext context, SnSurveyQuestion q) {
     final options = [...?q.options]..sort((a, b) => a.order.compareTo(b.order));
+    if (!_isFullPage) {
+      return Column(
+        children: [
+          for (final opt in options)
+            RadioListTile<String>(
+              value: opt.id,
+              groupValue: _singleChoiceSelected,
+              onChanged: (val) => setState(() {
+                _singleChoiceSelected = val;
+                _userHasEdited = true;
+              }),
+              title: Text(opt.label),
+              subtitle: opt.description != null ? Text(opt.description!) : null,
+            ),
+        ],
+      );
+    }
+
     return Column(
       children: [
         for (final opt in options)
-          RadioListTile<String>(
-            value: opt.id,
-            groupValue: _singleChoiceSelected,
-            onChanged: (val) => setState(() {
-              _singleChoiceSelected = val;
-              _userHasEdited = true;
-            }),
-            title: Text(opt.label),
-            subtitle: opt.description != null ? Text(opt.description!) : null,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _AnswerCard(
+              selected: _singleChoiceSelected == opt.id,
+              onTap: () => setState(() {
+                _singleChoiceSelected = opt.id;
+                _userHasEdited = true;
+              }),
+              leading: Icon(
+                _singleChoiceSelected == opt.id
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+              ),
+              title: opt.label,
+              subtitle: opt.description,
+            ),
           ),
       ],
     );
@@ -395,46 +447,123 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
 
   Widget _buildMultipleChoice(BuildContext context, SnSurveyQuestion q) {
     final options = [...?q.options]..sort((a, b) => a.order.compareTo(b.order));
+    if (!_isFullPage) {
+      return Column(
+        children: [
+          for (final opt in options)
+            CheckboxListTile(
+              value: _multiChoiceSelected.contains(opt.id),
+              onChanged: (val) {
+                setState(() {
+                  if (val == true) {
+                    _multiChoiceSelected.add(opt.id);
+                  } else {
+                    _multiChoiceSelected.remove(opt.id);
+                  }
+                  _userHasEdited = true;
+                });
+              },
+              title: Text(opt.label),
+              subtitle: opt.description != null ? Text(opt.description!) : null,
+            ),
+        ],
+      );
+    }
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (q.maxSelections != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Choose up to ${q.maxSelections} option${q.maxSelections == 1 ? '' : 's'}.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         for (final opt in options)
-          CheckboxListTile(
-            value: _multiChoiceSelected.contains(opt.id),
-            onChanged: (val) {
-              setState(() {
-                if (val == true) {
-                  _multiChoiceSelected.add(opt.id);
-                } else {
-                  _multiChoiceSelected.remove(opt.id);
-                }
-                _userHasEdited = true;
-              });
-            },
-            title: Text(opt.label),
-            subtitle: opt.description != null ? Text(opt.description!) : null,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _AnswerCard(
+              selected: _multiChoiceSelected.contains(opt.id),
+              onTap: () {
+                setState(() {
+                  final selected = _multiChoiceSelected.contains(opt.id);
+                  if (selected) {
+                    _multiChoiceSelected.remove(opt.id);
+                  } else {
+                    final maxSelections = q.maxSelections;
+                    if (maxSelections == null ||
+                        _multiChoiceSelected.length < maxSelections) {
+                      _multiChoiceSelected.add(opt.id);
+                    }
+                  }
+                  _userHasEdited = true;
+                });
+              },
+              leading: Icon(
+                _multiChoiceSelected.contains(opt.id)
+                    ? Icons.check_box
+                    : Icons.check_box_outline_blank,
+              ),
+              title: opt.label,
+              subtitle: opt.description,
+            ),
           ),
       ],
     );
   }
 
   Widget _buildYesNo(BuildContext context, SnSurveyQuestion q) {
+    if (!_isFullPage) {
+      return Row(
+        children: [
+          Expanded(
+            child: SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(value: true, label: Text('yes'.tr())),
+                ButtonSegment(value: false, label: Text('no'.tr())),
+              ],
+              selected: _yesNoSelected == null ? {} : {_yesNoSelected!},
+              onSelectionChanged: (sel) {
+                setState(() {
+                  _yesNoSelected = sel.isEmpty ? null : sel.first;
+                  _userHasEdited = true;
+                });
+              },
+              multiSelectionEnabled: false,
+              emptySelectionAllowed: true,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(
-          child: SegmentedButton<bool>(
-            segments: [
-              ButtonSegment(value: true, label: Text('yes'.tr())),
-              ButtonSegment(value: false, label: Text('no'.tr())),
-            ],
-            selected: _yesNoSelected == null ? {} : {_yesNoSelected!},
-            onSelectionChanged: (sel) {
-              setState(() {
-                _yesNoSelected = sel.isEmpty ? null : sel.first;
-                _userHasEdited = true;
-              });
-            },
-            multiSelectionEnabled: false,
-            emptySelectionAllowed: true,
+          child: _AnswerCard(
+            selected: _yesNoSelected == true,
+            onTap: () => setState(() {
+              _yesNoSelected = true;
+              _userHasEdited = true;
+            }),
+            leading: const Icon(Icons.thumb_up_alt_outlined),
+            title: 'yes'.tr(),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _AnswerCard(
+            selected: _yesNoSelected == false,
+            onTap: () => setState(() {
+              _yesNoSelected = false;
+              _userHasEdited = true;
+            }),
+            leading: const Icon(Icons.thumb_down_alt_outlined),
+            title: 'no'.tr(),
           ),
         ),
       ],
@@ -442,37 +571,60 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
   }
 
   Widget _buildRating(BuildContext context, SnSurveyQuestion q) {
-    const max = 5;
+    final min = (q.minValue ?? 1).round();
+    final max = (q.maxValue ?? 5).round();
+    if (!_isFullPage) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(max, (i) {
+          final value = i + 1;
+          final selected = (_ratingSelected ?? 0) >= value;
+          return IconButton(
+            icon: Icon(
+              selected ? Icons.star : Icons.star_border,
+              color: selected ? Colors.amber : null,
+            ),
+            onPressed: () {
+              setState(() {
+                _ratingSelected = value;
+                _userHasEdited = true;
+              });
+            },
+          );
+        }),
+      );
+    }
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(max, (i) {
-        final value = i + 1;
-        final selected = (_ratingSelected ?? 0) >= value;
-        return IconButton(
-          icon: Icon(
-            selected ? Icons.star : Icons.star_border,
-            color: selected ? Colors.amber : null,
+      children: [
+        for (var value = min; value <= max; value++) ...[
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: _AnswerCard(
+                selected: _ratingSelected == value,
+                onTap: () => setState(() {
+                  _ratingSelected = value;
+                  _userHasEdited = true;
+                }),
+                leading: Icon(
+                  _ratingSelected == value ? Icons.star : Icons.star_outline,
+                ),
+                title: '$value',
+              ),
+            ),
           ),
-          onPressed: () {
-            setState(() {
-              _ratingSelected = value;
-              _userHasEdited = true;
-            });
-          },
-        );
-      }),
+        ],
+      ],
     );
   }
 
   Widget _buildFreeText(BuildContext context, SnSurveyQuestion q) {
     return TextField(
       controller: _textController,
-      maxLines: 6,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-      ),
+      maxLines: _isFullPage ? 10 : 6,
+      maxLength: q.maxLength,
+      style: _isFullPage ? Theme.of(context).textTheme.titleMedium : null,
     );
   }
 
@@ -518,6 +670,14 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
         ),
         const Spacer(),
         FilledButton.icon(
+          style: _isFullPage
+              ? FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
+                )
+              : null,
           icon: _submitting
               ? const SizedBox(
                   width: 16,
@@ -623,18 +783,26 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                 if (poll.title != null)
                   Text(
                     poll.title!,
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: _isFullPage
+                        ? Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          )
+                        : Theme.of(context).textTheme.titleLarge,
                   ),
                 if (poll.description != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       poll.description!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                      ),
+                      style:
+                          (_isFullPage
+                                  ? Theme.of(context).textTheme.titleMedium
+                                  : Theme.of(context).textTheme.bodyMedium)
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                     ),
                   ),
               ],
@@ -852,9 +1020,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                     key: ValueKey(_current.id),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildBody(context, poll),
-                      ],
+                      children: [_buildBody(context, poll)],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -865,6 +1031,97 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
           ],
         );
       },
+    );
+  }
+}
+
+class _AnswerCard extends StatelessWidget {
+  const _AnswerCard({
+    required this.selected,
+    required this.onTap,
+    required this.leading,
+    required this.title,
+    this.subtitle,
+  });
+
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget leading;
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Material(
+      color: selected
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: selected
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant,
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: IconTheme(
+                  data: IconThemeData(
+                    color: selected
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
+                    size: 24,
+                  ),
+                  child: leading,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: selected
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurface,
+                      ),
+                    ),
+                    if (subtitle != null && subtitle!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: selected
+                              ? colorScheme.onPrimaryContainer.withOpacity(0.82)
+                              : colorScheme.onSurfaceVariant,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

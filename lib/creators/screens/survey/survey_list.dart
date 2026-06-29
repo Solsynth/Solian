@@ -3,7 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/polls/screens/poll_editor.dart';
+import 'package:island/creators/screens/survey/survey_editor.dart';
 import 'package:island/polls/polls_widgets/poll/poll_feedback.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -21,7 +21,8 @@ final surveyListNotifierProvider = AsyncNotifierProvider.family.autoDispose(
   SurveyListNotifier.new,
 );
 
-class SurveyListNotifier extends AsyncNotifier<PaginationState<SnSurveyWithStats>>
+class SurveyListNotifier
+    extends AsyncNotifier<PaginationState<SnSurveyWithStats>>
     with AsyncPaginationController<SnSurveyWithStats> {
   static const int pageSize = 20;
 
@@ -68,16 +69,14 @@ class CreatorSurveyListScreen extends HookConsumerWidget {
 
   final String pubName;
 
-  Future<void> _createSurvey(BuildContext context) async {
-    final result = await showModalBottomSheet<SnSurveyWithStats>(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (context) => PollEditorScreen(initialPublisher: pubName),
+  Future<void> _createSurvey(BuildContext context, WidgetRef ref) async {
+    final result = await Navigator.of(context).push<SnSurvey>(
+      MaterialPageRoute(
+        builder: (context) => CreatorSurveyEditorScreen(publisherName: pubName),
+      ),
     );
     if (result != null && context.mounted) {
-      Navigator.of(context).maybePop(result);
+      ref.invalidate(surveyListNotifierProvider(pubName));
     }
   }
 
@@ -89,11 +88,12 @@ class CreatorSurveyListScreen extends HookConsumerWidget {
         title: const Text('Surveys'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _createSurvey(context),
+        onPressed: () => _createSurvey(context, ref),
         child: const Icon(Icons.add),
       ),
       body: ExtendedRefreshIndicator(
-        onRefresh: () => ref.refresh(surveyListNotifierProvider(pubName).future),
+        onRefresh: () =>
+            ref.refresh(surveyListNotifierProvider(pubName).future),
         child: PaginationList(
           footerSkeletonMaxWidth: 640,
           provider: surveyListNotifierProvider(pubName),
@@ -116,7 +116,10 @@ class CreatorSurveyListScreen extends HookConsumerWidget {
 
 class _CreatorSurveyItem extends HookConsumerWidget {
   final String pubName;
-  const _CreatorSurveyItem({required this.surveyWithStats, required this.pubName});
+  const _CreatorSurveyItem({
+    required this.surveyWithStats,
+    required this.pubName,
+  });
 
   final SnSurveyWithStats surveyWithStats;
 
@@ -169,6 +172,20 @@ class _CreatorSurveyItem extends HookConsumerWidget {
     }
   }
 
+  Future<void> _editSurvey(BuildContext context, WidgetRef ref) async {
+    final result = await Navigator.of(context).push<SnSurvey>(
+      MaterialPageRoute(
+        builder: (context) => CreatorSurveyEditorScreen(
+          publisherName: pubName,
+          surveyId: surveyWithStats.id,
+        ),
+      ),
+    );
+    if (result != null && context.mounted) {
+      ref.invalidate(surveyListNotifierProvider(pubName));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -201,7 +218,10 @@ class _CreatorSurveyItem extends HookConsumerWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
                       color: _statusColor(status, theme).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(4),
@@ -239,26 +259,13 @@ class _CreatorSurveyItem extends HookConsumerWidget {
                     Text('edit').tr(),
                   ],
                 ),
-                onTap: () async {
-                  final result = await showModalBottomSheet<SnSurvey>(
-                    context: context,
-                    isScrollControlled: true,
-                    isDismissible: false,
-                    builder: (context) => PollEditorScreen(
-                      initialPublisher: pubName,
-                      initialPollId: surveyWithStats.id,
-                    ),
-                  );
-                  if (result != null && context.mounted) {
-                    ref.invalidate(surveyListNotifierProvider(pubName));
-                  }
-                },
+                onTap: () => _editSurvey(context, ref),
               ),
             if (status == SnSurveyStatus.draft)
               PopupMenuItem(
                 child: Row(
                   children: [
-                    const Icon(Symbols.publish, color: Colors.green),
+                    const Icon(Symbols.publish),
                     const Gap(16),
                     Text('surveyPublish'.tr()).textColor(Colors.green),
                   ],
@@ -274,7 +281,7 @@ class _CreatorSurveyItem extends HookConsumerWidget {
                           onPressed: () => Navigator.of(context).pop(false),
                           child: Text('cancel'.tr()),
                         ),
-                        TextButton(
+                        FilledButton(
                           onPressed: () => Navigator.of(context).pop(true),
                           child: Text('surveyPublish'.tr()),
                         ),
@@ -282,7 +289,7 @@ class _CreatorSurveyItem extends HookConsumerWidget {
                     ),
                   );
                   if (confirmed == true && context.mounted) {
-                    _publish(context, ref);
+                    await _publish(context, ref);
                   }
                 },
               ),
@@ -290,7 +297,7 @@ class _CreatorSurveyItem extends HookConsumerWidget {
               PopupMenuItem(
                 child: Row(
                   children: [
-                    const Icon(Symbols.archive, color: Colors.orange),
+                    const Icon(Symbols.archive),
                     const Gap(16),
                     Text('surveyArchive'.tr()).textColor(Colors.orange),
                   ],
@@ -306,7 +313,7 @@ class _CreatorSurveyItem extends HookConsumerWidget {
                           onPressed: () => Navigator.of(context).pop(false),
                           child: Text('cancel'.tr()),
                         ),
-                        TextButton(
+                        FilledButton(
                           onPressed: () => Navigator.of(context).pop(true),
                           child: Text('surveyArchive'.tr()),
                         ),
@@ -314,7 +321,7 @@ class _CreatorSurveyItem extends HookConsumerWidget {
                     ),
                   );
                   if (confirmed == true && context.mounted) {
-                    _archive(context, ref);
+                    await _archive(context, ref);
                   }
                 },
               ),
@@ -332,51 +339,49 @@ class _CreatorSurveyItem extends HookConsumerWidget {
             PopupMenuItem(
               child: Row(
                 children: [
-                  const Icon(Symbols.delete, color: Colors.red),
+                  const Icon(Symbols.delete),
                   const Gap(16),
-                  Text('delete').tr().textColor(Colors.red),
+                  const Text('Delete Survey'),
                 ],
               ),
               onTap: () async {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: Text('Delete Survey'),
-                    content: Text('Are you sure you want to delete this survey?'),
+                    title: const Text('Delete Survey'),
+                    content: const Text(
+                      'Are you sure you want to delete this survey?',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: Text('Cancel'),
+                        child: Text('cancel'.tr()),
                       ),
-                      TextButton(
+                      FilledButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: Text('Delete'),
+                        child: Text('delete'.tr()),
                       ),
                     ],
                   ),
                 );
-                if (confirmed == true) {
-                  try {
-                    final client = ref.read(solarNetworkClientProvider).dio;
-                    await client.delete('/sphere/surveys/${surveyWithStats.id}');
-                    ref.invalidate(surveyListNotifierProvider(pubName));
-                    showSnackBar('Survey deleted successfully');
-                  } catch (e) {
-                    showErrorAlert(e);
-                  }
+                if (confirmed != true) return;
+                try {
+                  final client = ref.read(solarNetworkClientProvider).dio;
+                  await client.delete('/sphere/surveys/${surveyWithStats.id}');
+                  ref.invalidate(surveyListNotifierProvider(pubName));
+                  showSnackBar('Survey deleted successfully');
+                } catch (e) {
+                  showErrorAlert(e);
                 }
               },
             ),
           ],
         ),
-        onTap: () {
-          showModalBottomSheet(
-            context: context,
-            useRootNavigator: true,
-            isScrollControlled: true,
-            builder: (context) => PollFeedbackSheet(pollId: surveyWithStats.id),
-          );
-        },
+        onTap: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => PollFeedbackSheet(pollId: surveyWithStats.id),
+        ),
       ),
     );
   }
