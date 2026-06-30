@@ -286,49 +286,58 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
         left: 0,
         right: 0,
         bottom: bottomOffset,
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _isPaused = true),
-          onExit: (_) => setState(() => _isPaused = false),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Material(
-              color: Colors.transparent,
-              child: SizedBox(
-                height: calculatedHeight + (heldCount > 0 ? 28 : 0),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  clipBehavior: Clip.none,
-                  children: [
-                    ...visibleItems.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      return AnimatedPositioned(
-                        key: ValueKey(item.id),
-                        duration: _kSnackBarAnimationDuration,
-                        curve: Curves.easeOutCubic,
-                        left: 0,
-                        right: 0,
-                        bottom: index * overlap,
-                        child: _AnimatedSnackBarItem(
-                          item: item,
-                          stackIndex: index,
-                          showStackSeparation: index < visibleItems.length - 1,
-                          pauseAutoDismiss: _isPaused,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: MouseRegion(
+            opaque: false,
+            hitTestBehavior: HitTestBehavior.deferToChild,
+            onEnter: (_) => setState(() => _isPaused = true),
+            onExit: (_) => setState(() => _isPaused = false),
+            child: SizedBox(
+              width: kFloatingSnackBarWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Material(
+                  color: Colors.transparent,
+                  child: SizedBox(
+                    height: calculatedHeight + (heldCount > 0 ? 28 : 0),
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      clipBehavior: Clip.none,
+                      children: [
+                        ...visibleItems.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final item = entry.value;
+                          return AnimatedPositioned(
+                            key: ValueKey(item.id),
+                            duration: _kSnackBarAnimationDuration,
+                            curve: Curves.easeOutCubic,
+                            left: 0,
+                            right: 0,
+                            bottom: index * overlap,
+                            child: _AnimatedSnackBarItem(
+                              item: item,
+                              stackIndex: index,
+                              showStackSeparation:
+                                  index < visibleItems.length - 1,
+                              pauseAutoDismiss: _isPaused,
+                            ),
+                          );
+                        }),
+                        Positioned(
+                          bottom: 0,
+                          child: _AnimatedHeldSnackBarBadge(
+                            count: heldCount,
+                            onTap: _dismissAllSnackBars,
+                          ),
                         ),
-                      );
-                    }),
-                    Positioned(
-                      bottom: 0,
-                      child: _AnimatedHeldSnackBarBadge(
-                        count: heldCount,
-                        onTap: _dismissAllSnackBars,
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ).width(kFloatingSnackBarWidth).alignment(Alignment.bottomCenter),
+          ),
         ),
       );
     }
@@ -346,6 +355,8 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
       right: 0,
       bottom: bottomOffset,
       child: MouseRegion(
+        opaque: false,
+        hitTestBehavior: HitTestBehavior.deferToChild,
         onEnter: (_) => setState(() => _isPaused = true),
         onExit: (_) => setState(() => _isPaused = false),
         child: Material(
