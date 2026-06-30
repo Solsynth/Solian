@@ -359,7 +359,6 @@ class PostFilterWidget extends HookConsumerWidget {
                                 child: DropdownButtonFormField<String?>(
                                   decoration: InputDecoration(
                                     labelText: 'sortBy'.tr(),
-                                    prefixIcon: const Icon(Symbols.swap_vert),
                                     isDense: true,
                                   ),
                                   initialValue: order.value,
@@ -384,7 +383,6 @@ class PostFilterWidget extends HookConsumerWidget {
                                 child: DropdownButtonFormField<bool>(
                                   decoration: InputDecoration(
                                     labelText: 'order'.tr(),
-                                    prefixIcon: const Icon(Symbols.sort),
                                     isDense: true,
                                   ),
                                   initialValue: orderDesc.value,
