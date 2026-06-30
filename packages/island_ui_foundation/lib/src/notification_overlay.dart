@@ -14,9 +14,14 @@ abstract interface class OverlayNotificationItem {
   bool get dismissed;
 }
 
-typedef NotificationItemBuilder<T extends OverlayNotificationItem> = Widget
-Function(BuildContext context, T item, VoidCallback onDismiss,
-    bool isDesktop, Animation<double> progress);
+typedef NotificationItemBuilder<T extends OverlayNotificationItem> =
+    Widget Function(
+      BuildContext context,
+      T item,
+      VoidCallback onDismiss,
+      bool isDesktop,
+      Animation<double> progress,
+    );
 
 typedef NotificationDismissCallback<T extends OverlayNotificationItem> =
     void Function(T item);
@@ -44,7 +49,8 @@ class NotificationOverlay<T extends OverlayNotificationItem>
     final isPaused = useState(false);
     final isDesktop = isWideScreen(context);
     final devicePadding = MediaQuery.paddingOf(context);
-    final topOffset = devicePadding.top +
+    final topOffset =
+        devicePadding.top +
         ((!kIsWeb &&
                 (Platform.isMacOS || Platform.isLinux || Platform.isWindows))
             ? 40
@@ -61,45 +67,54 @@ class NotificationOverlay<T extends OverlayNotificationItem>
         top: topOffset,
         left: 0,
         right: 0,
-        child: MouseRegion(
-          onEnter: (_) => isPaused.value = true,
-          onExit: (_) => isPaused.value = false,
-          child: Material(
-            color: Colors.transparent,
-            child: Column(
-              spacing: 8,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: items.asMap().entries.map((entry) {
-                final item = entry.value;
-                return AnimatedNotificationItem<T>(
-                  key: Key(item.id),
-                  item: item,
-                  itemBuilder: itemBuilder,
-                  isDesktop: true,
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  pauseAutoDismiss: isPaused.value,
-                  onDismiss: () => onDismiss(item),
-                  onRemove: () => onRemove(item),
-                );
-              }).toList(),
+        child: Align(
+          alignment: Alignment.topRight,
+          child: MouseRegion(
+            opaque: false,
+            hitTestBehavior: HitTestBehavior.deferToChild,
+            onEnter: (_) => isPaused.value = true,
+            onExit: (_) => isPaused.value = false,
+            child: SizedBox(
+              width: itemWidth,
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  spacing: 8,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: items.asMap().entries.map((entry) {
+                    final item = entry.value;
+                    return AnimatedNotificationItem<T>(
+                      key: Key(item.id),
+                      item: item,
+                      itemBuilder: itemBuilder,
+                      isDesktop: true,
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      pauseAutoDismiss: isPaused.value,
+                      onDismiss: () => onDismiss(item),
+                      onRemove: () => onRemove(item),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
-          ).width(itemWidth).alignment(Alignment.topRight),
+          ),
         ),
       );
     } else {
       final visibleItems = items.take(kNarrowNotificationVisibleLimit).toList();
       final heldCount = items.length - visibleItems.length;
       const double overlap = 20.0;
-      final calculatedHeight =
-          overlap * (visibleItems.length - 1) + 120.0;
+      final calculatedHeight = overlap * (visibleItems.length - 1) + 120.0;
 
       return Positioned(
         top: topOffset,
         left: 0,
         right: 0,
         child: MouseRegion(
+          opaque: false,
+          hitTestBehavior: HitTestBehavior.deferToChild,
           onEnter: (_) => isPaused.value = true,
           onExit: (_) => isPaused.value = false,
           child: Material(
@@ -166,9 +181,7 @@ class NotificationOverlay<T extends OverlayNotificationItem>
                                 }
                               },
                             )
-                          : const SizedBox.shrink(
-                              key: ValueKey('empty-badge'),
-                            ),
+                          : const SizedBox.shrink(key: ValueKey('empty-badge')),
                     ),
                   ),
                 ],
@@ -279,10 +292,9 @@ class AnimatedNotificationItem<T extends OverlayNotificationItem>
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .shadow
-                                .withOpacity(0.14),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.shadow.withOpacity(0.14),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           ),
@@ -294,16 +306,16 @@ class AnimatedNotificationItem<T extends OverlayNotificationItem>
               Material(
                 color: Theme.of(context).colorScheme.surfaceContainerHigh,
                 elevation: 3,
-                shadowColor:
-                    Theme.of(context).colorScheme.shadow.withOpacity(0.18),
+                shadowColor: Theme.of(
+                  context,
+                ).colorScheme.shadow.withOpacity(0.18),
                 surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                   side: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outlineVariant
-                        .withOpacity(0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withOpacity(0.5),
                   ),
                 ),
                 clipBehavior: Clip.antiAlias,
