@@ -408,11 +408,17 @@ class AccountsApi extends BaseApi {
   ///
   /// [startTime] - Filter events starting after this time.
   /// [endTime] - Filter events ending before this time.
+  /// [accountId] - Restrict to one accessible account.
+  /// [query] - Matches title, description, location, or exact normalized tag.
+  /// [tags] - Filter by one or more tags.
   /// [offset] - Pagination offset.
   /// [take] - Number of results to return.
   Future<PaginatedResult<SnUserCalendarEvent>> listCalendarEvents({
     DateTime? startTime,
     DateTime? endTime,
+    String? accountId,
+    String? query,
+    List<String>? tags,
     int offset = 0,
     int take = 50,
   }) async {
@@ -423,6 +429,15 @@ class AccountsApi extends BaseApi {
     }
     if (endTime != null) {
       queryParameters['endTime'] = endTime.toUtc().toIso8601String();
+    }
+    if (accountId != null) {
+      queryParameters['accountId'] = accountId;
+    }
+    if (query != null && query.isNotEmpty) {
+      queryParameters['query'] = query;
+    }
+    if (tags != null && tags.isNotEmpty) {
+      queryParameters['tags'] = tags;
     }
 
     final response = await get<List<dynamic>>(
@@ -447,6 +462,7 @@ class AccountsApi extends BaseApi {
   /// [isAllDay] - Whether this is an all-day event.
   /// [visibility] - Visibility level (0=Private, 100=Friends, 200=Public).
   /// [recurrence] - Recurrence pattern.
+  /// [tags] - Free-form tags (will be normalized server-side: trimmed, lowercased, deduplicated).
   /// [meta] - Custom metadata.
   /// [iconId] - File ID for event icon.
   /// [backgroundId] - File ID for event background image.
@@ -459,6 +475,7 @@ class AccountsApi extends BaseApi {
     bool isAllDay = false,
     int visibility = SnEventVisibility.private,
     SnRecurrencePattern? recurrence,
+    List<String>? tags,
     Map<String, dynamic>? meta,
     String? iconId,
     String? backgroundId,
@@ -488,6 +505,7 @@ class AccountsApi extends BaseApi {
             if (recurrence.monthOfYear != null)
               'month_of_year': recurrence.monthOfYear,
           },
+        'tags': tags,
         'meta': ?meta,
         'icon_id': ?iconId,
         'background_id': ?backgroundId,
@@ -525,6 +543,7 @@ class AccountsApi extends BaseApi {
   ///
   /// [id] - Event ID.
   /// All other fields are optional - only provided fields will be updated.
+  /// When [tags] is provided, it replaces the stored tag set.
   Future<SnUserCalendarEvent> updateCalendarEvent({
     required String id,
     String? title,
@@ -535,6 +554,7 @@ class AccountsApi extends BaseApi {
     bool? isAllDay,
     int? visibility,
     SnRecurrencePattern? recurrence,
+    List<String>? tags,
     Map<String, dynamic>? meta,
     String? iconId,
     String? backgroundId,
@@ -564,6 +584,7 @@ class AccountsApi extends BaseApi {
                 if (recurrence.monthOfYear != null)
                   'month_of_year': recurrence.monthOfYear,
               },
+      'tags': tags,
       'meta': ?meta,
       'icon_id': ?iconId,
       'background_id': ?backgroundId,
@@ -616,6 +637,93 @@ class AccountsApi extends BaseApi {
       '$_basePath/accounts/me/calendar/subscriptions/subscribers',
     );
     return (response.data ?? []).cast<String>();
+  }
+
+  // ==========================================
+  // Calendar Event Tags endpoints
+  // ==========================================
+
+  /// Gets the current user's distinct calendar event tags.
+  Future<List<String>> getUsedCalendarTags() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/calendar/tags',
+    );
+    return (response.data ?? []).cast<String>();
+  }
+
+  // ==========================================
+  // Calendar Search endpoints
+  // ==========================================
+
+  /// Searches accessible calendar events and notable days.
+  ///
+  /// [query] - Search text matching title, description, location, or exact normalized tag.
+  /// [accountId] - Filter event-side results to one accessible account.
+  /// [tags] - Filter by one or more event tags.
+  /// [startTime] - Filter events starting after this time.
+  /// [endTime] - Filter events ending before this time.
+  /// [notableDayTag] - Filter notable days by tag (int: 0=Holiday, 1=Event, 2=Anniversary, 3=Memorial, 4=Festival).
+  /// [offset] - Pagination offset.
+  /// [take] - Number of results to return.
+  Future<List<Map<String, dynamic>>> searchCalendarEvents({
+    String? query,
+    String? accountId,
+    List<String>? tags,
+    DateTime? startTime,
+    DateTime? endTime,
+    int? notableDayTag,
+    int offset = 0,
+    int take = 50,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      'offset': offset,
+      'take': take,
+    };
+
+    if (query != null && query.isNotEmpty) {
+      queryParameters['query'] = query;
+    }
+    if (accountId != null) {
+      queryParameters['accountId'] = accountId;
+    }
+    if (tags != null && tags.isNotEmpty) {
+      queryParameters['tags'] = tags;
+    }
+    if (startTime != null) {
+      queryParameters['startTime'] = startTime.toUtc().toIso8601String();
+    }
+    if (endTime != null) {
+      queryParameters['endTime'] = endTime.toUtc().toIso8601String();
+    }
+    if (notableDayTag != null) {
+      queryParameters['notableDayTag'] = notableDayTag;
+    }
+
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/calendar/search',
+      queryParameters: queryParameters,
+    );
+
+    return (response.data ?? [])
+        .map((e) => e as Map<String, dynamic>)
+        .toList();
+  }
+
+  // ==========================================
+  // Notable Day Detail endpoints
+  // ==========================================
+
+  /// Gets generated notable day detail by synthetic occurrence key.
+  ///
+  /// [occurrenceKey] - Synthetic key in format: region|yyyy-MM-dd|source-identity
+  /// Example: us|2026-12-25|christmas
+  Future<Map<String, dynamic>> getNotableDayDetail(
+    String occurrenceKey,
+  ) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/accounts/me/calendar/notable-days/$occurrenceKey',
+    );
+    return response.data!;
   }
 
   // ==========================================

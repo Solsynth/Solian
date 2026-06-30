@@ -73,15 +73,28 @@ class FriendsOverviewWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final friendsOverviewAsync = ref.watch(friendsOverviewProvider);
+    final friendsOverviewAsync = ref.watch(friendsOverviewExpandedProvider);
 
     return friendsOverviewAsync.when(
       data: (friends) {
         final onlineFriends = friends
             .where((friend) => showsOnlinePresence(friend.status))
             .toList();
+        final offlineFriends = friends
+            .where((friend) => !showsOnlinePresence(friend.status))
+            .toList()
+          ..sort((a, b) {
+            final aLastOnline =
+                a.account.profile.lastSeenAt ?? a.status.updatedAt;
+            final bLastOnline =
+                b.account.profile.lastSeenAt ?? b.status.updatedAt;
+            return bLastOnline.compareTo(aLastOnline);
+          });
+        final displayFriends = onlineFriends.isNotEmpty
+            ? onlineFriends
+            : offlineFriends;
 
-        if (onlineFriends.isEmpty && hideWhenEmpty) {
+        if (displayFriends.isEmpty && hideWhenEmpty) {
           return const SizedBox.shrink();
         }
 
@@ -122,7 +135,7 @@ class FriendsOverviewWidget extends HookConsumerWidget {
                     ),
                   ],
                 ).padding(horizontal: 16, vertical: 12),
-                if (onlineFriends.isEmpty)
+                if (displayFriends.isEmpty)
                   Container(
                     height: 80,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -139,9 +152,9 @@ class FriendsOverviewWidget extends HookConsumerWidget {
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
                       scrollDirection: Axis.horizontal,
-                      itemCount: onlineFriends.length,
+                      itemCount: displayFriends.length,
                       itemBuilder: (context, index) {
-                        final friend = onlineFriends[index];
+                        final friend = displayFriends[index];
                         return AccountPfcRegion(
                           uname: friend.account.name,
                           child: _FriendTile(friend: friend),

@@ -28,6 +28,36 @@ Map<String, dynamic> _$SnNotableDayToJson(_SnNotableDay instance) =>
       'holidays': instance.holidays,
     };
 
+_SnNotableDayDetail _$SnNotableDayDetailFromJson(Map<String, dynamic> json) =>
+    _SnNotableDayDetail(
+      date: DateTime.parse(json['date'] as String),
+      localName: json['local_name'] as String,
+      globalName: json['global_name'] as String,
+      localizableKey: json['localizable_key'] as String?,
+      countryCode: json['country_code'] as String?,
+      description: json['description'] as String?,
+      meta: json['meta'] as Map<String, dynamic>?,
+      occurrenceKey: json['occurrence_key'] as String?,
+      holidays: (json['holidays'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+
+Map<String, dynamic> _$SnNotableDayDetailToJson(_SnNotableDayDetail instance) =>
+    <String, dynamic>{
+      'date': instance.date.toIso8601String(),
+      'local_name': instance.localName,
+      'global_name': instance.globalName,
+      'localizable_key': instance.localizableKey,
+      'country_code': instance.countryCode,
+      'description': instance.description,
+      'meta': instance.meta,
+      'occurrence_key': instance.occurrenceKey,
+      'holidays': instance.holidays,
+      'tags': instance.tags,
+    };
+
 _SnTimelineEvent _$SnTimelineEventFromJson(Map<String, dynamic> json) =>
     _SnTimelineEvent(
       id: json['id'] as String,
@@ -189,6 +219,9 @@ _SnUserCalendarEvent _$SnUserCalendarEventFromJson(Map<String, dynamic> json) =>
           : SnRecurrencePattern.fromJson(
               json['recurrence'] as Map<String, dynamic>,
             ),
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+          const [],
       meta: json['meta'] as Map<String, dynamic>?,
       icon: json['icon'] == null
           ? null
@@ -221,6 +254,7 @@ Map<String, dynamic> _$SnUserCalendarEventToJson(
   'is_all_day': instance.isAllDay,
   'visibility': instance.visibility,
   'recurrence': instance.recurrence?.toJson(),
+  'tags': instance.tags,
   'meta': instance.meta,
   'icon': instance.icon?.toJson(),
   'background': instance.background?.toJson(),

@@ -503,3 +503,137 @@ final class IsCalendarSubscribedFamily extends $Family
   @override
   String toString() => r'isCalendarSubscribedProvider';
 }
+
+/// Provider for fetching the current user's used calendar tags
+
+@ProviderFor(usedCalendarTags)
+final usedCalendarTagsProvider = UsedCalendarTagsProvider._();
+
+/// Provider for fetching the current user's used calendar tags
+
+final class UsedCalendarTagsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<String>>,
+          List<String>,
+          FutureOr<List<String>>
+        >
+    with $FutureModifier<List<String>>, $FutureProvider<List<String>> {
+  /// Provider for fetching the current user's used calendar tags
+  UsedCalendarTagsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'usedCalendarTagsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$usedCalendarTagsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<String>> create(Ref ref) {
+    return usedCalendarTags(ref);
+  }
+}
+
+String _$usedCalendarTagsHash() => r'8e1795f4fe61ebc073589277e7a2a635c386b223';
+
+/// Provider for searching calendar events + notable days
+
+@ProviderFor(calendarSearch)
+final calendarSearchProvider = CalendarSearchFamily._();
+
+/// Provider for searching calendar events + notable days
+
+final class CalendarSearchProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CalendarSearchResult>>,
+          List<CalendarSearchResult>,
+          FutureOr<List<CalendarSearchResult>>
+        >
+    with
+        $FutureModifier<List<CalendarSearchResult>>,
+        $FutureProvider<List<CalendarSearchResult>> {
+  /// Provider for searching calendar events + notable days
+  CalendarSearchProvider._({
+    required CalendarSearchFamily super.from,
+    required CalendarSearchQuery super.argument,
+  }) : super(
+         retry: null,
+         name: r'calendarSearchProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$calendarSearchHash();
+
+  @override
+  String toString() {
+    return r'calendarSearchProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<CalendarSearchResult>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<CalendarSearchResult>> create(Ref ref) {
+    final argument = this.argument as CalendarSearchQuery;
+    return calendarSearch(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CalendarSearchProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$calendarSearchHash() => r'58ff0dca31f21f95db5784564e2d3fa24a3f01b2';
+
+/// Provider for searching calendar events + notable days
+
+final class CalendarSearchFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<CalendarSearchResult>>,
+          CalendarSearchQuery
+        > {
+  CalendarSearchFamily._()
+    : super(
+        retry: null,
+        name: r'calendarSearchProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for searching calendar events + notable days
+
+  CalendarSearchProvider call(CalendarSearchQuery query) =>
+      CalendarSearchProvider._(argument: query, from: this);
+
+  @override
+  String toString() => r'calendarSearchProvider';
+}

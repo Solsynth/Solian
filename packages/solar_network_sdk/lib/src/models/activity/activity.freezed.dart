@@ -291,6 +291,314 @@ as List<int>,
 
 
 /// @nodoc
+mixin _$SnNotableDayDetail {
+
+ DateTime get date; String get localName; String get globalName; String? get localizableKey; String? get countryCode; String? get description; Map<String, dynamic>? get meta; String? get occurrenceKey; List<String>? get holidays; List<String>? get tags;
+/// Create a copy of SnNotableDayDetail
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnNotableDayDetailCopyWith<SnNotableDayDetail> get copyWith => _$SnNotableDayDetailCopyWithImpl<SnNotableDayDetail>(this as SnNotableDayDetail, _$identity);
+
+  /// Serializes this SnNotableDayDetail to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotableDayDetail&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.localizableKey, localizableKey) || other.localizableKey == localizableKey)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.occurrenceKey, occurrenceKey) || other.occurrenceKey == occurrenceKey)&&const DeepCollectionEquality().equals(other.holidays, holidays)&&const DeepCollectionEquality().equals(other.tags, tags));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,localName,globalName,localizableKey,countryCode,description,const DeepCollectionEquality().hash(meta),occurrenceKey,const DeepCollectionEquality().hash(holidays),const DeepCollectionEquality().hash(tags));
+
+@override
+String toString() {
+  return 'SnNotableDayDetail(date: $date, localName: $localName, globalName: $globalName, localizableKey: $localizableKey, countryCode: $countryCode, description: $description, meta: $meta, occurrenceKey: $occurrenceKey, holidays: $holidays, tags: $tags)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnNotableDayDetailCopyWith<$Res>  {
+  factory $SnNotableDayDetailCopyWith(SnNotableDayDetail value, $Res Function(SnNotableDayDetail) _then) = _$SnNotableDayDetailCopyWithImpl;
+@useResult
+$Res call({
+ DateTime date, String localName, String globalName, String? localizableKey, String? countryCode, String? description, Map<String, dynamic>? meta, String? occurrenceKey, List<String>? holidays, List<String>? tags
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnNotableDayDetailCopyWithImpl<$Res>
+    implements $SnNotableDayDetailCopyWith<$Res> {
+  _$SnNotableDayDetailCopyWithImpl(this._self, this._then);
+
+  final SnNotableDayDetail _self;
+  final $Res Function(SnNotableDayDetail) _then;
+
+/// Create a copy of SnNotableDayDetail
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? localizableKey = freezed,Object? countryCode = freezed,Object? description = freezed,Object? meta = freezed,Object? occurrenceKey = freezed,Object? holidays = freezed,Object? tags = freezed,}) {
+  return _then(_self.copyWith(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
+as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
+as String,localizableKey: freezed == localizableKey ? _self.localizableKey : localizableKey // ignore: cast_nullable_to_non_nullable
+as String?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,occurrenceKey: freezed == occurrenceKey ? _self.occurrenceKey : occurrenceKey // ignore: cast_nullable_to_non_nullable
+as String?,holidays: freezed == holidays ? _self.holidays : holidays // ignore: cast_nullable_to_non_nullable
+as List<String>?,tags: freezed == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as List<String>?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnNotableDayDetail].
+extension SnNotableDayDetailPatterns on SnNotableDayDetail {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnNotableDayDetail value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnNotableDayDetail() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnNotableDayDetail value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotableDayDetail():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnNotableDayDetail value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotableDayDetail() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String? localizableKey,  String? countryCode,  String? description,  Map<String, dynamic>? meta,  String? occurrenceKey,  List<String>? holidays,  List<String>? tags)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnNotableDayDetail() when $default != null:
+return $default(_that.date,_that.localName,_that.globalName,_that.localizableKey,_that.countryCode,_that.description,_that.meta,_that.occurrenceKey,_that.holidays,_that.tags);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  String localName,  String globalName,  String? localizableKey,  String? countryCode,  String? description,  Map<String, dynamic>? meta,  String? occurrenceKey,  List<String>? holidays,  List<String>? tags)  $default,) {final _that = this;
+switch (_that) {
+case _SnNotableDayDetail():
+return $default(_that.date,_that.localName,_that.globalName,_that.localizableKey,_that.countryCode,_that.description,_that.meta,_that.occurrenceKey,_that.holidays,_that.tags);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  String localName,  String globalName,  String? localizableKey,  String? countryCode,  String? description,  Map<String, dynamic>? meta,  String? occurrenceKey,  List<String>? holidays,  List<String>? tags)?  $default,) {final _that = this;
+switch (_that) {
+case _SnNotableDayDetail() when $default != null:
+return $default(_that.date,_that.localName,_that.globalName,_that.localizableKey,_that.countryCode,_that.description,_that.meta,_that.occurrenceKey,_that.holidays,_that.tags);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnNotableDayDetail implements SnNotableDayDetail {
+  const _SnNotableDayDetail({required this.date, required this.localName, required this.globalName, this.localizableKey, this.countryCode, this.description, final  Map<String, dynamic>? meta, this.occurrenceKey, final  List<String>? holidays, final  List<String>? tags}): _meta = meta,_holidays = holidays,_tags = tags;
+  factory _SnNotableDayDetail.fromJson(Map<String, dynamic> json) => _$SnNotableDayDetailFromJson(json);
+
+@override final  DateTime date;
+@override final  String localName;
+@override final  String globalName;
+@override final  String? localizableKey;
+@override final  String? countryCode;
+@override final  String? description;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  String? occurrenceKey;
+ final  List<String>? _holidays;
+@override List<String>? get holidays {
+  final value = _holidays;
+  if (value == null) return null;
+  if (_holidays is EqualUnmodifiableListView) return _holidays;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+ final  List<String>? _tags;
+@override List<String>? get tags {
+  final value = _tags;
+  if (value == null) return null;
+  if (_tags is EqualUnmodifiableListView) return _tags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+
+/// Create a copy of SnNotableDayDetail
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnNotableDayDetailCopyWith<_SnNotableDayDetail> get copyWith => __$SnNotableDayDetailCopyWithImpl<_SnNotableDayDetail>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnNotableDayDetailToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotableDayDetail&&(identical(other.date, date) || other.date == date)&&(identical(other.localName, localName) || other.localName == localName)&&(identical(other.globalName, globalName) || other.globalName == globalName)&&(identical(other.localizableKey, localizableKey) || other.localizableKey == localizableKey)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.occurrenceKey, occurrenceKey) || other.occurrenceKey == occurrenceKey)&&const DeepCollectionEquality().equals(other._holidays, _holidays)&&const DeepCollectionEquality().equals(other._tags, _tags));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,date,localName,globalName,localizableKey,countryCode,description,const DeepCollectionEquality().hash(_meta),occurrenceKey,const DeepCollectionEquality().hash(_holidays),const DeepCollectionEquality().hash(_tags));
+
+@override
+String toString() {
+  return 'SnNotableDayDetail(date: $date, localName: $localName, globalName: $globalName, localizableKey: $localizableKey, countryCode: $countryCode, description: $description, meta: $meta, occurrenceKey: $occurrenceKey, holidays: $holidays, tags: $tags)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnNotableDayDetailCopyWith<$Res> implements $SnNotableDayDetailCopyWith<$Res> {
+  factory _$SnNotableDayDetailCopyWith(_SnNotableDayDetail value, $Res Function(_SnNotableDayDetail) _then) = __$SnNotableDayDetailCopyWithImpl;
+@override @useResult
+$Res call({
+ DateTime date, String localName, String globalName, String? localizableKey, String? countryCode, String? description, Map<String, dynamic>? meta, String? occurrenceKey, List<String>? holidays, List<String>? tags
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnNotableDayDetailCopyWithImpl<$Res>
+    implements _$SnNotableDayDetailCopyWith<$Res> {
+  __$SnNotableDayDetailCopyWithImpl(this._self, this._then);
+
+  final _SnNotableDayDetail _self;
+  final $Res Function(_SnNotableDayDetail) _then;
+
+/// Create a copy of SnNotableDayDetail
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? localizableKey = freezed,Object? countryCode = freezed,Object? description = freezed,Object? meta = freezed,Object? occurrenceKey = freezed,Object? holidays = freezed,Object? tags = freezed,}) {
+  return _then(_SnNotableDayDetail(
+date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
+as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
+as String,localizableKey: freezed == localizableKey ? _self.localizableKey : localizableKey // ignore: cast_nullable_to_non_nullable
+as String?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,occurrenceKey: freezed == occurrenceKey ? _self.occurrenceKey : occurrenceKey // ignore: cast_nullable_to_non_nullable
+as String?,holidays: freezed == holidays ? _self._holidays : holidays // ignore: cast_nullable_to_non_nullable
+as List<String>?,tags: freezed == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
+as List<String>?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnTimelineEvent {
 
  String get id; String get type; String get resourceIdentifier; dynamic get data; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
@@ -1754,7 +2062,7 @@ as int?,
 /// @nodoc
 mixin _$SnUserCalendarEvent {
 
- String get id; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; int get visibility; SnRecurrencePattern? get recurrence; Map<String, dynamic>? get meta; SnCloudFileReference? get icon; SnCloudFileReference? get background; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; int get visibility; SnRecurrencePattern? get recurrence; List<String> get tags; Map<String, dynamic>? get meta; SnCloudFileReference? get icon; SnCloudFileReference? get background; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnUserCalendarEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1767,16 +2075,16 @@ $SnUserCalendarEventCopyWith<SnUserCalendarEvent> get copyWith => _$SnUserCalend
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnUserCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.recurrence, recurrence) || other.recurrence == recurrence)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnUserCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.recurrence, recurrence) || other.recurrence == recurrence)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,location,startTime,endTime,isAllDay,visibility,recurrence,const DeepCollectionEquality().hash(meta),icon,background,accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,title,description,location,startTime,endTime,isAllDay,visibility,recurrence,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(meta),icon,background,accountId,account,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnUserCalendarEvent(id: $id, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, visibility: $visibility, recurrence: $recurrence, meta: $meta, icon: $icon, background: $background, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnUserCalendarEvent(id: $id, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, visibility: $visibility, recurrence: $recurrence, tags: $tags, meta: $meta, icon: $icon, background: $background, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1787,7 +2095,7 @@ abstract mixin class $SnUserCalendarEventCopyWith<$Res>  {
   factory $SnUserCalendarEventCopyWith(SnUserCalendarEvent value, $Res Function(SnUserCalendarEvent) _then) = _$SnUserCalendarEventCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int visibility, SnRecurrencePattern? recurrence, Map<String, dynamic>? meta, SnCloudFileReference? icon, SnCloudFileReference? background, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int visibility, SnRecurrencePattern? recurrence, List<String> tags, Map<String, dynamic>? meta, SnCloudFileReference? icon, SnCloudFileReference? background, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1804,7 +2112,7 @@ class _$SnUserCalendarEventCopyWithImpl<$Res>
 
 /// Create a copy of SnUserCalendarEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? meta = freezed,Object? icon = freezed,Object? background = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? tags = null,Object? meta = freezed,Object? icon = freezed,Object? background = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -1815,7 +2123,8 @@ as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_n
 as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
 as bool,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as int,recurrence: freezed == recurrence ? _self.recurrence : recurrence // ignore: cast_nullable_to_non_nullable
-as SnRecurrencePattern?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as SnRecurrencePattern?,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as List<String>,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -1953,10 +2262,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  Map<String, dynamic>? meta,  SnCloudFileReference? icon,  SnCloudFileReference? background,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  List<String> tags,  Map<String, dynamic>? meta,  SnCloudFileReference? icon,  SnCloudFileReference? background,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnUserCalendarEvent() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.meta,_that.icon,_that.background,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.tags,_that.meta,_that.icon,_that.background,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1974,10 +2283,10 @@ return $default(_that.id,_that.title,_that.description,_that.location,_that.star
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  Map<String, dynamic>? meta,  SnCloudFileReference? icon,  SnCloudFileReference? background,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  List<String> tags,  Map<String, dynamic>? meta,  SnCloudFileReference? icon,  SnCloudFileReference? background,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnUserCalendarEvent():
-return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.meta,_that.icon,_that.background,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.tags,_that.meta,_that.icon,_that.background,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1991,10 +2300,10 @@ return $default(_that.id,_that.title,_that.description,_that.location,_that.star
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  Map<String, dynamic>? meta,  SnCloudFileReference? icon,  SnCloudFileReference? background,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  List<String> tags,  Map<String, dynamic>? meta,  SnCloudFileReference? icon,  SnCloudFileReference? background,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnUserCalendarEvent() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.meta,_that.icon,_that.background,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.tags,_that.meta,_that.icon,_that.background,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -2006,7 +2315,7 @@ return $default(_that.id,_that.title,_that.description,_that.location,_that.star
 @JsonSerializable()
 
 class _SnUserCalendarEvent implements SnUserCalendarEvent {
-  const _SnUserCalendarEvent({required this.id, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, this.visibility = SnEventVisibility.private, this.recurrence, final  Map<String, dynamic>? meta, this.icon, this.background, required this.accountId, this.account, required this.createdAt, required this.updatedAt, this.deletedAt}): _meta = meta;
+  const _SnUserCalendarEvent({required this.id, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, this.visibility = SnEventVisibility.private, this.recurrence, final  List<String> tags = const [], final  Map<String, dynamic>? meta, this.icon, this.background, required this.accountId, this.account, required this.createdAt, required this.updatedAt, this.deletedAt}): _tags = tags,_meta = meta;
   factory _SnUserCalendarEvent.fromJson(Map<String, dynamic> json) => _$SnUserCalendarEventFromJson(json);
 
 @override final  String id;
@@ -2018,6 +2327,13 @@ class _SnUserCalendarEvent implements SnUserCalendarEvent {
 @override@JsonKey() final  bool isAllDay;
 @override@JsonKey() final  int visibility;
 @override final  SnRecurrencePattern? recurrence;
+ final  List<String> _tags;
+@override@JsonKey() List<String> get tags {
+  if (_tags is EqualUnmodifiableListView) return _tags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tags);
+}
+
  final  Map<String, dynamic>? _meta;
 @override Map<String, dynamic>? get meta {
   final value = _meta;
@@ -2048,16 +2364,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnUserCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.recurrence, recurrence) || other.recurrence == recurrence)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnUserCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.recurrence, recurrence) || other.recurrence == recurrence)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,location,startTime,endTime,isAllDay,visibility,recurrence,const DeepCollectionEquality().hash(_meta),icon,background,accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,title,description,location,startTime,endTime,isAllDay,visibility,recurrence,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_meta),icon,background,accountId,account,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnUserCalendarEvent(id: $id, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, visibility: $visibility, recurrence: $recurrence, meta: $meta, icon: $icon, background: $background, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnUserCalendarEvent(id: $id, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, visibility: $visibility, recurrence: $recurrence, tags: $tags, meta: $meta, icon: $icon, background: $background, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -2068,7 +2384,7 @@ abstract mixin class _$SnUserCalendarEventCopyWith<$Res> implements $SnUserCalen
   factory _$SnUserCalendarEventCopyWith(_SnUserCalendarEvent value, $Res Function(_SnUserCalendarEvent) _then) = __$SnUserCalendarEventCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int visibility, SnRecurrencePattern? recurrence, Map<String, dynamic>? meta, SnCloudFileReference? icon, SnCloudFileReference? background, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int visibility, SnRecurrencePattern? recurrence, List<String> tags, Map<String, dynamic>? meta, SnCloudFileReference? icon, SnCloudFileReference? background, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -2085,7 +2401,7 @@ class __$SnUserCalendarEventCopyWithImpl<$Res>
 
 /// Create a copy of SnUserCalendarEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? meta = freezed,Object? icon = freezed,Object? background = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? tags = null,Object? meta = freezed,Object? icon = freezed,Object? background = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnUserCalendarEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -2096,7 +2412,8 @@ as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_n
 as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
 as bool,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as int,recurrence: freezed == recurrence ? _self.recurrence : recurrence // ignore: cast_nullable_to_non_nullable
-as SnRecurrencePattern?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as SnRecurrencePattern?,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
+as List<String>,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable

@@ -20,6 +20,26 @@ sealed class SnNotableDay with _$SnNotableDay {
       _$SnNotableDayFromJson(json);
 }
 
+/// Notable day detail (from generated notable days API)
+@freezed
+sealed class SnNotableDayDetail with _$SnNotableDayDetail {
+  const factory SnNotableDayDetail({
+    required DateTime date,
+    required String localName,
+    required String globalName,
+    String? localizableKey,
+    String? countryCode,
+    String? description,
+    Map<String, dynamic>? meta,
+    String? occurrenceKey,
+    List<String>? holidays,
+    List<String>? tags,
+  }) = _SnNotableDayDetail;
+
+  factory SnNotableDayDetail.fromJson(Map<String, dynamic> json) =>
+      _$SnNotableDayDetailFromJson(json);
+}
+
 @freezed
 sealed class SnTimelineEvent with _$SnTimelineEvent {
   const factory SnTimelineEvent({
@@ -146,6 +166,7 @@ sealed class SnUserCalendarEvent with _$SnUserCalendarEvent {
     @Default(false) bool isAllDay,
     @Default(SnEventVisibility.private) int visibility,
     SnRecurrencePattern? recurrence,
+    @Default([]) List<String> tags,
     Map<String, dynamic>? meta,
     SnCloudFileReference? icon,
     SnCloudFileReference? background,

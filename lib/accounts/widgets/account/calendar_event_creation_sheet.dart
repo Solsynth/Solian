@@ -96,6 +96,14 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
       initialEvent?.recurrence?.daysOfWeek?.toSet() ?? {},
     );
 
+    // Tags state
+    final tagsController = useTextEditingController(
+      text: initialEvent?.tags.join(', ') ?? '',
+    );
+    final tags = useState<List<String>>(
+      initialEvent?.tags ?? [],
+    );
+
     final submitting = useState(false);
 
     Future<void> pickImage(String type) async {
@@ -151,6 +159,18 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
       }
     }
 
+    /// Parse comma-separated tags, normalize them (trim + lowercase + dedupe)
+    List<String> parseTags(String input) {
+      final parsed = input
+          .split(',')
+          .map((t) => t.trim().toLowerCase())
+          .where((t) => t.isNotEmpty)
+          .toSet()
+          .toList();
+      parsed.sort();
+      return parsed;
+    }
+
     Future<void> submitEvent() async {
       if (titleController.text.trim().isEmpty) {
         showErrorAlert('calendarEventTitleRequired'.tr());
@@ -199,6 +219,7 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
             isAllDay: isAllDay.value,
             visibility: visibility.value,
             recurrence: recurrence,
+            tags: parseTags(tagsController.text),
             iconId: icon.value?.id,
             backgroundId: background.value?.id,
           );
@@ -216,6 +237,7 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
             isAllDay: isAllDay.value,
             visibility: visibility.value,
             recurrence: recurrence,
+            tags: parseTags(tagsController.text),
             iconId: icon.value?.id,
             backgroundId: background.value?.id,
           );
@@ -660,6 +682,48 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
+            const Gap(24),
+
+            // Tags
+            buildSectionTitle('eventTags'.tr(), Symbols.label),
+            const Gap(12),
+            TextField(
+              controller: tagsController,
+              decoration: InputDecoration(
+                labelText: 'eventTagsLabel'.tr(),
+                hintText: 'eventTagsHint'.tr(),
+                prefixIcon: const Icon(Symbols.label),
+                helperText: 'eventTagsHelper'.tr(),
+              ),
+              onChanged: (value) {
+                tags.value = parseTags(value);
+              },
+            ),
+            // Tag chips preview
+            if (tags.value.isNotEmpty) ...[
+              const Gap(8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: tags.value.map((tag) {
+                  return Chip(
+                    label: Text(
+                      tag,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                    backgroundColor: colorScheme.secondaryContainer,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    side: BorderSide.none,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
             const Gap(24),
 
             // Recurrence

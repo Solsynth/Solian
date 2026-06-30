@@ -7,6 +7,55 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'event_calendar.g.dart';
 
+/// Search result item that can be either a user event or a notable day
+class CalendarSearchResult {
+  final String type; // 'UserEvent' or 'NotableDay'
+  final DateTime startTime;
+  final DateTime endTime;
+  final SnUserCalendarEvent? userEvent;
+  final SnNotableDayDetail? notableDay;
+
+  const CalendarSearchResult({
+    required this.type,
+    required this.startTime,
+    required this.endTime,
+    this.userEvent,
+    this.notableDay,
+  });
+
+  factory CalendarSearchResult.fromJson(Map<String, dynamic> json) {
+    // API returns type as int: 0=UserEvent, 1=NotableDay
+    final typeValue = json['type'];
+    final isUserEvent = typeValue is int
+        ? typeValue == 0
+        : (typeValue as String) == 'UserEvent';
+
+    if (isUserEvent) {
+      return CalendarSearchResult(
+        type: 'UserEvent',
+        startTime: DateTime.parse(json['start_time'] as String),
+        endTime: DateTime.parse(json['end_time'] as String),
+        userEvent: json['user_event'] != null
+            ? SnUserCalendarEvent.fromJson(
+                json['user_event'] as Map<String, dynamic>,
+              )
+            : null,
+      );
+    } else {
+      return CalendarSearchResult(
+        type: 'NotableDay',
+        startTime: DateTime.parse(json['start_time'] as String),
+        endTime: DateTime.parse(json['end_time'] as String),
+        notableDay: json['notable_day'] != null
+            ? SnNotableDayDetail.fromJson(
+                json['notable_day'] as Map<String, dynamic>,
+              )
+            : null,
+      );
+    }
+  }
+}
+
 /// Query parameters for fetching event calendar data
 class EventCalendarQuery {
   /// Username to fetch calendar for, null means current user ('me')
@@ -244,4 +293,102 @@ Future<List<String>> calendarSubscriptions(Ref ref) async {
 Future<bool> isCalendarSubscribed(Ref ref, String accountId) async {
   final subscriptions = await ref.watch(calendarSubscriptionsProvider.future);
   return subscriptions.contains(accountId);
+}
+
+/// Provider for fetching the current user's used calendar tags
+@riverpod
+Future<List<String>> usedCalendarTags(Ref ref) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getUsedCalendarTags();
+}
+
+/// Query parameters for calendar search
+class CalendarSearchQuery {
+  final String? query;
+  final String? accountId;
+  final List<String> tags;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final int? notableDayTag;
+  final int offset;
+  final int take;
+  final bool isSearchActive;
+  final int debounceKey;
+
+  const CalendarSearchQuery({
+    this.query,
+    this.accountId,
+    this.tags = const [],
+    this.startTime,
+    this.endTime,
+    this.notableDayTag,
+    this.offset = 0,
+    this.take = 50,
+    this.isSearchActive = false,
+    this.debounceKey = 0,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CalendarSearchQuery &&
+          runtimeType == other.runtimeType &&
+          query == other.query &&
+          accountId == other.accountId &&
+          _listEquals(tags, other.tags) &&
+          startTime == other.startTime &&
+          endTime == other.endTime &&
+          notableDayTag == other.notableDayTag &&
+          offset == other.offset &&
+          take == other.take &&
+          isSearchActive == other.isSearchActive &&
+          debounceKey == other.debounceKey;
+
+  @override
+  int get hashCode =>
+      query.hashCode ^
+      accountId.hashCode ^
+      tags.hashCode ^
+      startTime.hashCode ^
+      endTime.hashCode ^
+      notableDayTag.hashCode ^
+      offset.hashCode ^
+      take.hashCode ^
+      isSearchActive.hashCode ^
+      debounceKey.hashCode;
+
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+}
+
+/// Provider for searching calendar events + notable days
+@riverpod
+Future<List<CalendarSearchResult>> calendarSearch(
+  Ref ref,
+  CalendarSearchQuery query,
+) async {
+  // Return empty if search is not active (avoids unnecessary API calls)
+  if (!query.isSearchActive) {
+    return const [];
+  }
+
+  final client = ref.watch(solarNetworkClientProvider);
+  final results = await client.accounts.searchCalendarEvents(
+    query: query.query,
+    accountId: query.accountId,
+    tags: query.tags.isEmpty ? null : query.tags,
+    startTime: query.startTime,
+    endTime: query.endTime,
+    notableDayTag: query.notableDayTag,
+    offset: query.offset,
+    take: query.take,
+  );
+  return results
+      .map((json) => CalendarSearchResult.fromJson(json))
+      .toList();
 }

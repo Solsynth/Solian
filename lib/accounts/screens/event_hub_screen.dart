@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:animations/animations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +11,25 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/screens/event_hub_schedule.dart';
 import 'package:island/accounts/widgets/account/calendar_event_creation_sheet.dart';
-import 'package:island/shared/widgets/responsive_sidebar.dart';
-import 'package:island/core/services/responsive.dart';
+import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
+
+/// Notable day tag filter options (int-based enum matching backend)
+enum NotableDayTagFilter {
+  holiday(0),
+  event(1),
+  anniversary(2),
+  memorial(3),
+  festival(4);
+
+  final int value;
+  const NotableDayTagFilter(this.value);
+}
 
 @RoutePage()
 class EventHubScreen extends HookConsumerWidget {
@@ -31,6 +46,48 @@ class EventHubScreen extends HookConsumerWidget {
     final includeNotableDays = useState(true);
     final isWide = isWideScreen(context);
 
+    // --- Search & filter states (debounced like discovery search) ---
+    final searchQuery = useState<String>('');
+    final debouncedSearchQuery = useState<String>('');
+    final selectedTags = useState<Set<String>>({});
+    final selectedNotableDayTag = useState<NotableDayTagFilter?>(null);
+    final isSearchActive = useState(false);
+    final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
+    final debounceTimer = useRef<Timer?>(null);
+    const debounceDelay = Duration(milliseconds: 450);
+
+    // Debounce search query using useEffect (like discovery/search.dart)
+    useEffect(() {
+      if (searchQuery.value.isEmpty) {
+        debounceTimer.value?.cancel();
+        debouncedSearchQuery.value = '';
+        return null;
+      }
+      debounceTimer.value?.cancel();
+      debounceTimer.value = Timer(debounceDelay, () {
+        debouncedSearchQuery.value = searchQuery.value;
+      });
+      return () => debounceTimer.value?.cancel();
+    }, [searchQuery.value]);
+
+    // Also debounce tag/notableDayTag changes
+    final lastTagFilterKey = useRef<String>('');
+    final debouncedTagTrigger = useRef<Timer?>(null);
+    final tagDebounceKey = useState<int>(0);
+    final currentTagFilterKey =
+        '${selectedTags.value.join(",")}|${selectedNotableDayTag.value ?? ""}';
+
+    useEffect(() {
+      if (lastTagFilterKey.value == currentTagFilterKey) return null;
+      debouncedTagTrigger.value?.cancel();
+      debouncedTagTrigger.value = Timer(debounceDelay, () {
+        lastTagFilterKey.value = currentTagFilterKey;
+        tagDebounceKey.value++;
+      });
+      return () => debouncedTagTrigger.value?.cancel();
+    }, [currentTagFilterKey]);
+
     final query = EventCalendarQuery(
       uname: name,
       year: focusedMonth.value.year,
@@ -38,6 +95,52 @@ class EventHubScreen extends HookConsumerWidget {
       includeNotableDays: includeNotableDays.value,
     );
     final events = ref.watch(eventCalendarProvider(query));
+
+    // Keep previous data while loading a new month/query
+    final previousEntries = useRef<List<SnEventCalendarEntry>?>(null);
+    useEffect(() {
+      if (events.hasValue) {
+        previousEntries.value = events.asData?.value;
+      }
+      return null;
+    }, [events.hasValue, events.asData?.value]);
+
+    // Use previous data while loading new month
+    final hasAnyData = events.hasValue || previousEntries.value != null;
+
+    // Fetch user's used tags for tag filter suggestions
+    final usedTagsAsync = ref.watch(usedCalendarTagsProvider);
+
+    // Determine if we should show search results
+    final hasActiveFilters =
+        debouncedSearchQuery.value.isNotEmpty ||
+        selectedTags.value.isNotEmpty ||
+        selectedNotableDayTag.value != null;
+
+    // Always watch the search provider (hooks must be called unconditionally)
+    final searchResultsAsync = ref.watch(
+      calendarSearchProvider(
+        CalendarSearchQuery(
+          query: debouncedSearchQuery.value.isNotEmpty
+              ? debouncedSearchQuery.value
+              : null,
+          tags: selectedTags.value.toList(),
+          startTime: DateTime(
+            focusedMonth.value.year,
+            focusedMonth.value.month,
+            1,
+          ).toUtc(),
+          endTime: DateTime(
+            focusedMonth.value.year,
+            focusedMonth.value.month + 1,
+            0,
+          ).toUtc(),
+          notableDayTag: selectedNotableDayTag.value?.value,
+          isSearchActive: isSearchActive.value && hasActiveFilters,
+          debounceKey: tagDebounceKey.value,
+        ),
+      ),
+    );
 
     Future<void> openEditor({
       SnUserCalendarEvent? event,
@@ -50,7 +153,17 @@ class EventHubScreen extends HookConsumerWidget {
       );
       if (changed == true) {
         ref.invalidate(eventCalendarProvider(query));
+        ref.invalidate(usedCalendarTagsProvider);
       }
+    }
+
+    void openNotableDayDetail(String occurrenceKey) {
+      // Navigate to notable day detail screen or show dialog
+      showDialog<void>(
+        context: context,
+        builder: (context) =>
+            _NotableDayDetailDialog(occurrenceKey: occurrenceKey),
+      );
     }
 
     void jumpToToday() {
@@ -84,6 +197,14 @@ class EventHubScreen extends HookConsumerWidget {
       }
     }
 
+    // Cleanup debounce timers on dispose
+    useEffect(() {
+      return () {
+        debounceTimer.value?.cancel();
+        debouncedTagTrigger.value?.cancel();
+      };
+    }, []);
+
     final showFiltersSidebar = useState(false);
     final sidebarNotifier = useMemoized(() => ValueNotifier(false));
     final showInspectorSidebar = useState(true);
@@ -114,6 +235,30 @@ class EventHubScreen extends HookConsumerWidget {
               focusedMonth: focusedMonth.value,
               includeNotableDays: includeNotableDays.value,
               fullDateFormat: _formatFullDate(selectedDate.value),
+              // New: tag filter params
+              selectedTags: selectedTags.value,
+              selectedNotableDayTag: selectedNotableDayTag.value,
+              usedTags: usedTagsAsync.value ?? [],
+              onToggleTag: (tag) {
+                final newTags = Set<String>.from(selectedTags.value);
+                if (newTags.contains(tag)) {
+                  newTags.remove(tag);
+                } else {
+                  newTags.add(tag);
+                }
+                selectedTags.value = newTags;
+              },
+              onNotableDayTagChanged: (tag) {
+                selectedNotableDayTag.value = tag;
+              },
+              onClearFilters: () {
+                selectedTags.value = {};
+                selectedNotableDayTag.value = null;
+                debounceTimer.value?.cancel();
+                searchQuery.value = '';
+                debouncedSearchQuery.value = '';
+                lastTagFilterKey.value = currentTagFilterKey;
+              },
               onSelectDate: (value) {
                 selectedDate.value = value;
                 focusedMonth.value = DateTime(value.year, value.month);
@@ -134,87 +279,121 @@ class EventHubScreen extends HookConsumerWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    final calendarBody = events.when(
-      data: (entries) {
-        final dayEvents = eventHubEventsForDay(entries, selectedDate.value);
-        final weekDays = _buildWeekDays(selectedDate.value);
-        final weekSections = weekDays
-            .map(
-              (day) => EventHubDaySection(
-                date: day,
-                events: eventHubEventsForDay(entries, day),
-              ),
-            )
-            .where((section) => section.events.isNotEmpty)
-            .toList();
+    // Resolve entries: use current data or fallback to previous entries
+    final currentEntries =
+        events.value ?? previousEntries.value ?? const <SnEventCalendarEntry>[];
+    final isRefreshing = events.isLoading;
 
-        final viewContent = switch (mode.value) {
-          EventHubViewMode.month => _MonthCalendarView(
-            username: name,
-            entries: entries,
-            focusedMonth: focusedMonth.value,
-            selectedDate: selectedDate.value,
-            isWide: isWide,
-            onSelectDate: (value) {
-              selectedDate.value = value;
-              focusedMonth.value = DateTime(value.year, value.month);
-            },
-            onEditEvent: name == 'me'
-                ? (event) => openEditor(event: event)
-                : null,
-            onAddEvent: name == 'me'
-                ? () => openEditor(date: selectedDate.value)
-                : null,
-            onSwipeUp: () => shiftPeriod(1),
-            onSwipeDown: () => shiftPeriod(-1),
-          ),
-          EventHubViewMode.week => _WeekView(
-            username: name,
-            sections: weekSections,
-            selectedDate: selectedDate.value,
-            weekDays: weekDays,
-            onSelectDate: (value) {
-              selectedDate.value = value;
-              focusedMonth.value = DateTime(value.year, value.month);
-            },
-            onEditEvent: name == 'me'
-                ? (event) => openEditor(event: event)
-                : null,
-            onSwipeLeft: () => shiftPeriod(1),
-            onSwipeRight: () => shiftPeriod(-1),
-          ),
-          EventHubViewMode.day => _DayView(
-            username: name,
-            date: selectedDate.value,
-            events: dayEvents,
-            onEditEvent: name == 'me'
-                ? (event) => openEditor(event: event)
-                : null,
-          ),
-        };
+    final calendarBody = isSearchActive.value && hasActiveFilters
+        ? const SizedBox.shrink() // replaced by search results
+        : Builder(
+            builder: (context) {
+              final dayEvents = eventHubEventsForDay(
+                currentEntries,
+                selectedDate.value,
+              );
+              final weekDays = _buildWeekDays(selectedDate.value);
+              final weekSections = weekDays
+                  .map(
+                    (day) => EventHubDaySection(
+                      date: day,
+                      events: eventHubEventsForDay(currentEntries, day),
+                    ),
+                  )
+                  .where((section) => section.events.isNotEmpty)
+                  .toList();
 
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 350),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          transitionBuilder: (child, animation) {
-            final offset = Tween<Offset>(
-              begin: Offset(0, 0),
-              end: Offset(0, 0),
-            );
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: offset.animate(animation),
-                child: child,
-              ),
-            );
-          },
-          child: Padding(padding: const EdgeInsets.all(8), child: viewContent),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text(error.toString())),
+              final viewContent = switch (mode.value) {
+                EventHubViewMode.month => _MonthCalendarView(
+                  username: name,
+                  entries: currentEntries,
+                  focusedMonth: focusedMonth.value,
+                  selectedDate: selectedDate.value,
+                  isWide: isWide,
+                  onSelectDate: (value) {
+                    selectedDate.value = value;
+                    focusedMonth.value = DateTime(value.year, value.month);
+                  },
+                  onEditEvent: name == 'me'
+                      ? (event) => openEditor(event: event)
+                      : null,
+                  onAddEvent: name == 'me'
+                      ? () => openEditor(date: selectedDate.value)
+                      : null,
+                  onSwipeUp: () => shiftPeriod(1),
+                  onSwipeDown: () => shiftPeriod(-1),
+                ),
+                EventHubViewMode.week => _WeekView(
+                  username: name,
+                  sections: weekSections,
+                  selectedDate: selectedDate.value,
+                  weekDays: weekDays,
+                  onSelectDate: (value) {
+                    selectedDate.value = value;
+                    focusedMonth.value = DateTime(value.year, value.month);
+                  },
+                  onEditEvent: name == 'me'
+                      ? (event) => openEditor(event: event)
+                      : null,
+                  onSwipeLeft: () => shiftPeriod(1),
+                  onSwipeRight: () => shiftPeriod(-1),
+                ),
+                EventHubViewMode.day => _DayView(
+                  username: name,
+                  date: selectedDate.value,
+                  events: dayEvents,
+                  onEditEvent: name == 'me'
+                      ? (event) => openEditor(event: event)
+                      : null,
+                ),
+              };
+
+              // Build the calendar view content (always, so it can be cached while loading)
+              final calendarContent = Container(
+                key: ValueKey(
+                  '${mode.value}_${focusedMonth.value.year}_${focusedMonth.value.month}',
+                ),
+                padding: switch (mode.value) {
+                  EventHubViewMode.month => EdgeInsets.zero,
+                  _ => const EdgeInsets.symmetric(horizontal: 12),
+                },
+                child: viewContent,
+              );
+
+              return AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: isRefreshing ? 0.5 : 1.0,
+                child: PageTransitionSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  reverse: false,
+                  transitionBuilder:
+                      (
+                        Widget child,
+                        Animation<double> primaryAnimation,
+                        Animation<double> secondaryAnimation,
+                      ) {
+                        return SharedAxisTransition(
+                          animation: primaryAnimation,
+                          secondaryAnimation: secondaryAnimation,
+                          transitionType: SharedAxisTransitionType.horizontal,
+                          child: child,
+                        );
+                      },
+                  child: calendarContent,
+                ),
+              );
+            },
+          );
+
+    // Sync indicator overlay (animated slide-in/out like sync_indicator.dart)
+    // Always rendered in Stack — internal animation handles show/hide
+    final syncIndicator = Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: hasAnyData
+          ? _CalendarSyncIndicator(isLoading: isRefreshing)
+          : const SizedBox.shrink(),
     );
 
     final filterSidebarContent = _CalendarFiltersSidebar(
@@ -223,6 +402,26 @@ class EventHubScreen extends HookConsumerWidget {
       includeNotableDays: includeNotableDays.value,
       fullDateFormat: _formatFullDate(selectedDate.value),
       currentMode: mode.value,
+      // New: tag filter params
+      selectedTags: selectedTags.value,
+      selectedNotableDayTag: selectedNotableDayTag.value,
+      usedTags: usedTagsAsync.value ?? [],
+      onToggleTag: (tag) {
+        final newTags = Set<String>.from(selectedTags.value);
+        if (newTags.contains(tag)) {
+          newTags.remove(tag);
+        } else {
+          newTags.add(tag);
+        }
+        selectedTags.value = newTags;
+      },
+      onNotableDayTagChanged: (tag) {
+        selectedNotableDayTag.value = tag;
+      },
+      onClearFilters: () {
+        selectedTags.value = {};
+        selectedNotableDayTag.value = null;
+      },
       onModeChanged: (value) => mode.value = value,
       onSelectDate: (value) {
         selectedDate.value = value;
@@ -262,6 +461,82 @@ class EventHubScreen extends HookConsumerWidget {
       error: (error, _) => Center(child: Text(error.toString())),
     );
 
+    // Build search results widget
+    final searchResultsWidget = searchResultsAsync.when(
+      data: (results) {
+        if (results.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Symbols.search_off,
+                    size: 48,
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  ),
+                  const Gap(16),
+                  Text(
+                    'No search results',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const Gap(8),
+                  Text(
+                    'Try different tags or keywords',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return _SearchResultsList(
+          results: results,
+          username: name,
+          onEditEvent: name == 'me'
+              ? (event) => openEditor(event: event)
+              : null,
+          onOpenNotableDay: openNotableDayDetail,
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Symbols.error, size: 48, color: colorScheme.error),
+              const Gap(16),
+              Text(
+                'Search failed',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Text(
+                error.toString(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Wrap content body with sync indicator overlay
+    final mainContent = (isSearchActive.value && hasActiveFilters)
+        ? searchResultsWidget
+        : calendarBody;
+    final contentBody = hasAnyData
+        ? Stack(children: [mainContent, syncIndicator])
+        : mainContent;
+
     final wrappedBody = isWide
         ? ResponsiveSidebar(
             showSidebar: sidebarNotifier,
@@ -273,10 +548,10 @@ class EventHubScreen extends HookConsumerWidget {
               sidebarContent: inspectorSidebarContent,
               sidebarWidth: 320,
               isLeft: false,
-              mainContent: calendarBody,
+              mainContent: contentBody,
             ),
           )
-        : calendarBody;
+        : contentBody;
 
     return AppScaffold(
       isNoBackground: false,
@@ -286,8 +561,75 @@ class EventHubScreen extends HookConsumerWidget {
         centerTitle: true,
         leading: const AutoLeadingButton(),
         automaticallyImplyLeading: false,
-        title: Text('eventCalendar'.tr()),
+        title: isSearchActive.value
+            ? SearchBar(
+                controller: searchController,
+                focusNode: searchFocusNode,
+                constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
+                hintText: 'searchEvents'.tr(),
+                hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+                textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+                onTapOutside: (_) => searchFocusNode.unfocus(),
+                trailing: [
+                  if (searchController.text.isNotEmpty)
+                    IconButton(
+                      onPressed: () {
+                        debounceTimer.value?.cancel();
+                        searchController.clear();
+                        searchQuery.value = '';
+                        debouncedSearchQuery.value = '';
+                        selectedTags.value = {};
+                        selectedNotableDayTag.value = null;
+                      },
+                      icon: Icon(
+                        Symbols.close,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                ],
+                onChanged: (value) {
+                  searchQuery.value = value;
+                },
+                onSubmitted: (value) {
+                  debounceTimer.value?.cancel();
+                  searchQuery.value = value;
+                  debouncedSearchQuery.value = value;
+                  searchFocusNode.unfocus();
+                },
+                leading: Icon(
+                  Symbols.search,
+                  size: 20,
+                  color: colorScheme.onSurface,
+                ),
+              )
+            : Text('eventCalendar'.tr()),
         actions: [
+          // Search toggle
+          IconButton(
+            onPressed: () {
+              if (isSearchActive.value) {
+                debounceTimer.value?.cancel();
+                searchController.clear();
+                searchQuery.value = '';
+                debouncedSearchQuery.value = '';
+                selectedTags.value = {};
+                selectedNotableDayTag.value = null;
+                isSearchActive.value = false;
+              } else {
+                isSearchActive.value = true;
+                Future.microtask(() => searchFocusNode.requestFocus());
+              }
+            },
+            icon: Icon(
+              isSearchActive.value ? Symbols.search_off : Symbols.search,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ),
+            tooltip: isSearchActive.value ? 'Close search' : 'Search events',
+          ),
+          // Filters
           IconButton(
             onPressed: openFilters,
             icon: Icon(
@@ -310,7 +652,39 @@ class EventHubScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      body: wrappedBody,
+      body: Column(
+        children: [
+          // Horizontal scrollable filter chips
+          if (isSearchActive.value)
+            _SearchFilterChips(
+              selectedTags: selectedTags.value,
+              selectedNotableDayTag: selectedNotableDayTag.value,
+              usedTags: usedTagsAsync.value ?? [],
+              onToggleTag: (tag) {
+                final newTags = Set<String>.from(selectedTags.value);
+                if (newTags.contains(tag)) {
+                  newTags.remove(tag);
+                } else {
+                  newTags.add(tag);
+                }
+                selectedTags.value = newTags;
+              },
+              onNotableDayTagChanged: (tag) {
+                selectedNotableDayTag.value = tag;
+              },
+              onClearFilters: () {
+                selectedTags.value = {};
+                selectedNotableDayTag.value = null;
+              },
+            ),
+          // Main content
+          Expanded(
+            child: (isSearchActive.value && hasActiveFilters)
+                ? searchResultsWidget
+                : wrappedBody,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -374,18 +748,18 @@ class _MonthCalendarView extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         names[index],
-                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w500,
                             ),
-                      ),
+                      ).padding(horizontal: 16),
                     ),
                   );
                 }),
               ),
             ),
+            const Divider(height: 1),
             Expanded(
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
@@ -394,8 +768,8 @@ class _MonthCalendarView extends StatelessWidget {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   childAspectRatio: aspectRatio,
-                  mainAxisSpacing: 2,
-                  crossAxisSpacing: 2,
+                  mainAxisSpacing: 0,
+                  crossAxisSpacing: 0,
                 ),
                 itemBuilder: (context, index) {
                   final day = monthDays[index];
@@ -405,6 +779,7 @@ class _MonthCalendarView extends StatelessWidget {
                     focusedMonth: focusedMonth,
                     selectedDate: selectedDate,
                     entry: entry,
+                    gridIndex: index,
                     onTap: () => onSelectDate(day),
                   );
                 },
@@ -423,63 +798,43 @@ class _MonthCalendarView extends StatelessWidget {
       final hasContent = selectedEvents.isNotEmpty || agendaEntry != null;
 
       if (!hasContent) {
-        content = monthGrid;
+        content = _buildMonthWithHeader(context, monthGrid);
       } else {
-        content = Stack(
-          children: [
-            Positioned.fill(child: monthGrid),
-            Positioned.fill(
-              child: DraggableScrollableSheet(
-                initialChildSize: 0.25,
-                minChildSize: 0.12,
-                maxChildSize: 0.85,
-                snap: true,
-                snapSizes: const [0.12, 0.25, 0.5, 0.85],
-                builder: (context, scrollController) {
-                  return Material(
-                    color: colorScheme.surfaceContainer,
-                    elevation: 8,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        // Drag handle
-                        Container(
-                          margin: const EdgeInsets.only(top: 8, bottom: 4),
-                          width: 32,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        Expanded(
-                          child: _DayAgenda(
-                            username: username,
-                            selectedDate: selectedDate,
-                            events: selectedEvents,
-                            onEditEvent: onEditEvent,
-                            onAddEvent: onAddEvent,
-                            compact: true,
-                            entry: agendaEntry,
-                            scrollController: scrollController,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+        content = LayoutBuilder(
+          builder: (context, constraints) {
+            final sheetMaxHeight = constraints.maxHeight * 0.85;
+            return DraggableOverlaySheet(
+              body: _buildMonthWithHeader(context, monthGrid),
+              minHeight: 120,
+              initialHeight: constraints.maxHeight * 0.25,
+              maxHeight: sheetMaxHeight,
+              snapHeights: [
+                120,
+                constraints.maxHeight * 0.25,
+                constraints.maxHeight * 0.5,
+                sheetMaxHeight,
+              ],
+              useBottomSafeAreaWhenExpanded: true,
+              useBottomSafeAreaWhenCollapsed: false,
+              backgroundColor: colorScheme.surfaceContainer,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-            ),
-          ],
+              child: _DayAgenda(
+                username: username,
+                selectedDate: selectedDate,
+                events: selectedEvents,
+                onEditEvent: onEditEvent,
+                onAddEvent: onAddEvent,
+                compact: true,
+                entry: agendaEntry,
+              ),
+            );
+          },
         );
       }
     } else {
-      content = monthGrid;
+      content = _buildMonthWithHeader(context, monthGrid);
     }
 
     return GestureDetector(
@@ -494,6 +849,35 @@ class _MonthCalendarView extends StatelessWidget {
       child: content,
     );
   }
+
+  /// Wraps the month grid with a title header and divider below weekday labels
+  Widget _buildMonthWithHeader(BuildContext context, Widget monthGrid) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        // Month title
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _formatMonthYear(focusedMonth),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Month grid (includes title + weekday headers + divider)
+        Expanded(child: monthGrid),
+        const Gap(8),
+      ],
+    );
+  }
 }
 
 class _CalendarDayCell extends StatelessWidget {
@@ -501,6 +885,7 @@ class _CalendarDayCell extends StatelessWidget {
   final DateTime focusedMonth;
   final DateTime selectedDate;
   final SnEventCalendarEntry? entry;
+  final int gridIndex;
   final VoidCallback onTap;
 
   const _CalendarDayCell({
@@ -508,12 +893,14 @@ class _CalendarDayCell extends StatelessWidget {
     required this.focusedMonth,
     required this.selectedDate,
     required this.entry,
+    required this.gridIndex,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isSelected = DateUtils.isSameDay(day, selectedDate);
     final isToday = DateUtils.isSameDay(day, DateTime.now());
     final isOutside = !_sameMonth(day, focusedMonth);
@@ -522,8 +909,24 @@ class _CalendarDayCell extends StatelessWidget {
     final checkIn = entry?.checkInResult;
     final statuses = entry?.statuses ?? const <SnAccountStatus>[];
 
+    // Shared grid lines: each cell draws right and bottom edges
+    // so adjacent cells share a single line, no doubling
+    final column = gridIndex % 7;
+    final row = gridIndex ~/ 7;
+    const totalRows = 6;
+    final isLastColumn = column == 6;
+    final isLastRow = row == totalRows - 1;
+    final gridLine = Border(
+      right: isLastColumn
+          ? BorderSide.none
+          : BorderSide(color: colorScheme.outlineVariant, width: 1),
+      bottom: isLastRow
+          ? BorderSide.none
+          : BorderSide(color: colorScheme.outlineVariant, width: 1),
+    );
+
     final textColor = isSelected
-        ? colorScheme.onPrimary
+        ? colorScheme.onPrimaryContainer
         : isOutside
         ? colorScheme.onSurfaceVariant.withOpacity(0.4)
         : isToday
@@ -531,99 +934,89 @@ class _CalendarDayCell extends StatelessWidget {
         : colorScheme.onSurface;
 
     final tertiaryColor = isSelected
-        ? colorScheme.onPrimary
+        ? colorScheme.onPrimaryContainer
         : colorScheme.tertiary;
 
-    return Padding(
-      padding: const EdgeInsets.all(1.5),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isToday
-                  ? colorScheme.primary
-                  : isSelected
-                  ? colorScheme.primary.withOpacity(0.5)
-                  : colorScheme.outlineVariant,
-              width: isToday ? 2 : 1,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primaryContainer.withOpacity(0.35)
+              : isToday
+              ? colorScheme.primaryContainer.withOpacity(0.15)
+              : Colors.transparent,
+          border: isToday && !isSelected
+              ? Border.all(color: colorScheme.primary, width: 2)
+              : gridLine,
+        ),
+        padding: const EdgeInsets.fromLTRB(5, 4, 5, 3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Day number
+            Text(
+              '${day.day}',
+              style: TextStyle(
+                fontSize: 14,
+                color: textColor,
+                fontWeight: isToday || isSelected
+                    ? FontWeight.w700
+                    : FontWeight.w500,
+              ),
             ),
-            color: isSelected
-                ? colorScheme.primaryContainer.withOpacity(0.35)
-                : isToday
-                ? colorScheme.primaryContainer.withOpacity(0.15)
-                : Colors.transparent,
-          ),
-          padding: const EdgeInsets.fromLTRB(5, 4, 5, 3),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Day number
+            // Check-in result level
+            if (checkIn != null)
               Text(
-                '${day.day}',
+                'checkInResultT${checkIn.level}'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.clip,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 10,
                   color: textColor,
-                  fontWeight: isToday || isSelected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              // Check-in result level
-              if (checkIn != null)
-                Text(
-                  'checkInResultT${checkIn.level}'.tr(),
+            // Status sentiment icon
+            if (statuses.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Icon(
+                  switch (statuses.first.attitude) {
+                    0 => Symbols.sentiment_satisfied,
+                    2 => Symbols.sentiment_dissatisfied,
+                    _ => Symbols.sentiment_neutral,
+                  },
+                  size: 16,
+                  color: textColor,
+                ),
+              ),
+            // Event icon + title
+            if (userEvents.isNotEmpty)
+              Expanded(
+                child: _CalendarEventRow(
+                  event: userEvents.first,
+                  colorScheme: colorScheme,
+                ),
+              ),
+            // Notable day
+            if (notableDays.isNotEmpty && userEvents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Text(
+                  notableDays.first.localName.isNotEmpty
+                      ? notableDays.first.localName
+                      : notableDays.first.globalName,
                   maxLines: 1,
                   overflow: TextOverflow.clip,
                   style: TextStyle(
-                    fontSize: 10,
-                    color: textColor,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                    color: tertiaryColor,
                   ),
                 ),
-              // Status sentiment icon
-              if (statuses.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Icon(
-                    switch (statuses.first.attitude) {
-                      0 => Symbols.sentiment_satisfied,
-                      2 => Symbols.sentiment_dissatisfied,
-                      _ => Symbols.sentiment_neutral,
-                    },
-                    size: 16,
-                    color: textColor,
-                  ),
-                ),
-              // Event icon + title
-              if (userEvents.isNotEmpty)
-                Expanded(
-                  child: _CalendarEventRow(
-                    event: userEvents.first,
-                    colorScheme: colorScheme,
-                  ),
-                ),
-              // Notable day
-              if (notableDays.isNotEmpty && userEvents.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Text(
-                    notableDays.first.localName.isNotEmpty
-                        ? notableDays.first.localName
-                        : notableDays.first.globalName,
-                    maxLines: 1,
-                    overflow: TextOverflow.clip,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                      color: tertiaryColor,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -680,7 +1073,6 @@ class _DayAgenda extends StatelessWidget {
   final VoidCallback? onAddEvent;
   final bool compact;
   final SnEventCalendarEntry? entry;
-  final ScrollController? scrollController;
 
   const _DayAgenda({
     required this.username,
@@ -690,7 +1082,6 @@ class _DayAgenda extends StatelessWidget {
     this.onAddEvent,
     this.compact = false,
     this.entry,
-    this.scrollController,
   });
 
   @override
@@ -707,7 +1098,6 @@ class _DayAgenda extends StatelessWidget {
         !hasCheckIn && !hasStatuses && !hasNotableDays && !hasEvents;
 
     final content = ListView(
-      controller: scrollController,
       padding: EdgeInsets.fromLTRB(
         compact ? 16 : 20,
         16,
@@ -1299,9 +1689,16 @@ class _EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final hasBackground = event.background != null;
     final hasIcon = event.icon != null;
+    final textColor = hasBackground
+        ? colorScheme.onSurface
+        : colorScheme.onSurface;
+    final subTextColor = hasBackground
+        ? colorScheme.onSurface.withOpacity(0.7)
+        : colorScheme.onSurfaceVariant;
 
     return Card(
       elevation: 0,
@@ -1366,13 +1763,10 @@ class _EventTile extends StatelessWidget {
                       children: [
                         Text(
                           event.title,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: hasBackground
-                                    ? colorScheme.onSurface
-                                    : colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const Gap(4),
                         Row(
@@ -1380,19 +1774,14 @@ class _EventTile extends StatelessWidget {
                             Icon(
                               Symbols.schedule,
                               size: 13,
-                              color: hasBackground
-                                  ? colorScheme.onSurface.withOpacity(0.7)
-                                  : colorScheme.onSurfaceVariant,
+                              color: subTextColor,
                             ),
                             const Gap(4),
                             Text(
                               _formatEventTime(event),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: hasBackground
-                                        ? colorScheme.onSurface.withOpacity(0.7)
-                                        : colorScheme.onSurfaceVariant,
-                                  ),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: subTextColor,
+                              ),
                             ),
                           ],
                         ),
@@ -1403,22 +1792,15 @@ class _EventTile extends StatelessWidget {
                               Icon(
                                 Symbols.location_on,
                                 size: 13,
-                                color: hasBackground
-                                    ? colorScheme.onSurface.withOpacity(0.7)
-                                    : colorScheme.onSurfaceVariant,
+                                color: subTextColor,
                               ),
                               const Gap(4),
                               Expanded(
                                 child: Text(
                                   event.location!,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: hasBackground
-                                            ? colorScheme.onSurface.withOpacity(
-                                                0.7,
-                                              )
-                                            : colorScheme.onSurfaceVariant,
-                                      ),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: subTextColor,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -1426,15 +1808,63 @@ class _EventTile extends StatelessWidget {
                             ],
                           ),
                         ],
+                        // Owner account info (for friend/subscription events)
+                        if (event.account != null &&
+                            event.accountId != 'me' &&
+                            username != event.account?.name) ...[
+                          const Gap(4),
+                          Row(
+                            children: [
+                              Icon(
+                                Symbols.person,
+                                size: 13,
+                                color: subTextColor,
+                              ),
+                              const Gap(4),
+                              Expanded(
+                                child: Text(
+                                  event.account?.nick ??
+                                      event.account?.name ??
+                                      '',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: subTextColor,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        // Tags
+                        if (event.tags.isNotEmpty) ...[
+                          const Gap(6),
+                          Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            children: event.tags.map((tag) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.secondaryContainer,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  if (onEditEvent != null)
-                    IconButton(
-                      onPressed: () => onEditEvent!(event),
-                      icon: Icon(Symbols.edit, size: 18),
-                      visualDensity: VisualDensity.compact,
-                    ),
                 ],
               ),
             ),
@@ -1571,6 +2001,12 @@ class _CalendarFiltersSheet extends StatelessWidget {
   final DateTime focusedMonth;
   final bool includeNotableDays;
   final String fullDateFormat;
+  final Set<String> selectedTags;
+  final NotableDayTagFilter? selectedNotableDayTag;
+  final List<String> usedTags;
+  final ValueChanged<String> onToggleTag;
+  final ValueChanged<NotableDayTagFilter?> onNotableDayTagChanged;
+  final VoidCallback onClearFilters;
   final ValueChanged<DateTime> onSelectDate;
   final ValueChanged<DateTime> onMonthChanged;
   final ValueChanged<bool> onToggleNotableDays;
@@ -1581,6 +2017,12 @@ class _CalendarFiltersSheet extends StatelessWidget {
     required this.focusedMonth,
     required this.includeNotableDays,
     required this.fullDateFormat,
+    required this.selectedTags,
+    required this.selectedNotableDayTag,
+    required this.usedTags,
+    required this.onToggleTag,
+    required this.onNotableDayTagChanged,
+    required this.onClearFilters,
     required this.onSelectDate,
     required this.onMonthChanged,
     required this.onToggleNotableDays,
@@ -1608,6 +2050,62 @@ class _CalendarFiltersSheet extends StatelessWidget {
           onChanged: onToggleNotableDays,
         ),
         const Divider(height: 32),
+        // Tag filters section
+        if (usedTags.isNotEmpty || selectedTags.isNotEmpty) ...[
+          _CalendarFilterGroup(
+            title: 'Filter by tags',
+            children: [
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: usedTags.map((tag) {
+                  final isSelected = selectedTags.contains(tag);
+                  return FilterChip(
+                    label: Text(tag),
+                    selected: isSelected,
+                    onSelected: (_) => onToggleTag(tag),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          const Gap(16),
+        ],
+        // Notable day tag filter
+        _CalendarFilterGroup(
+          title: 'Notable day type',
+          children: [
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: NotableDayTagFilter.values.map((tag) {
+                final isSelected = selectedNotableDayTag == tag;
+                return FilterChip(
+                  label: Text(_notableDayTagLabel(tag)),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    onNotableDayTagChanged(selected ? tag : null);
+                  },
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        // Clear filters button
+        if (selectedTags.isNotEmpty || selectedNotableDayTag != null) ...[
+          const Gap(12),
+          TextButton.icon(
+            onPressed: onClearFilters,
+            icon: const Icon(Symbols.clear_all, size: 16),
+            label: const Text('Clear filters'),
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+          ),
+        ],
+        const Divider(height: 32),
         _CalendarFilterGroup(
           title: 'Selected date',
           children: [
@@ -1627,6 +2125,16 @@ class _CalendarFiltersSheet extends StatelessWidget {
       ],
     );
   }
+
+  static String _notableDayTagLabel(NotableDayTagFilter tag) {
+    return switch (tag) {
+      NotableDayTagFilter.holiday => 'Holiday',
+      NotableDayTagFilter.event => 'Event',
+      NotableDayTagFilter.anniversary => 'Anniversary',
+      NotableDayTagFilter.memorial => 'Memorial',
+      NotableDayTagFilter.festival => 'Festival',
+    };
+  }
 }
 
 class _CalendarFiltersSidebar extends StatelessWidget {
@@ -1635,6 +2143,12 @@ class _CalendarFiltersSidebar extends StatelessWidget {
   final bool includeNotableDays;
   final String fullDateFormat;
   final EventHubViewMode currentMode;
+  final Set<String> selectedTags;
+  final NotableDayTagFilter? selectedNotableDayTag;
+  final List<String> usedTags;
+  final ValueChanged<String> onToggleTag;
+  final ValueChanged<NotableDayTagFilter?> onNotableDayTagChanged;
+  final VoidCallback onClearFilters;
   final ValueChanged<EventHubViewMode> onModeChanged;
   final ValueChanged<DateTime> onSelectDate;
   final ValueChanged<DateTime> onMonthChanged;
@@ -1647,6 +2161,12 @@ class _CalendarFiltersSidebar extends StatelessWidget {
     required this.includeNotableDays,
     required this.fullDateFormat,
     required this.currentMode,
+    required this.selectedTags,
+    required this.selectedNotableDayTag,
+    required this.usedTags,
+    required this.onToggleTag,
+    required this.onNotableDayTagChanged,
+    required this.onClearFilters,
     required this.onModeChanged,
     required this.onSelectDate,
     required this.onMonthChanged,
@@ -1689,6 +2209,62 @@ class _CalendarFiltersSidebar extends StatelessWidget {
           onChanged: onToggleNotableDays,
         ),
         const Divider(height: 32),
+        // Tag filters section
+        if (usedTags.isNotEmpty || selectedTags.isNotEmpty) ...[
+          _CalendarFilterGroup(
+            title: 'Filter by tags',
+            children: [
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: usedTags.map((tag) {
+                  final isSelected = selectedTags.contains(tag);
+                  return FilterChip(
+                    label: Text(tag),
+                    selected: isSelected,
+                    onSelected: (_) => onToggleTag(tag),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          const Gap(16),
+        ],
+        // Notable day tag filter
+        _CalendarFilterGroup(
+          title: 'Notable day type',
+          children: [
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: NotableDayTagFilter.values.map((tag) {
+                final isSelected = selectedNotableDayTag == tag;
+                return FilterChip(
+                  label: Text(_notableDayTagLabel(tag)),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    onNotableDayTagChanged(selected ? tag : null);
+                  },
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        // Clear filters button
+        if (selectedTags.isNotEmpty || selectedNotableDayTag != null) ...[
+          const Gap(12),
+          TextButton.icon(
+            onPressed: onClearFilters,
+            icon: const Icon(Symbols.clear_all, size: 16),
+            label: const Text('Clear filters'),
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+          ),
+        ],
+        const Divider(height: 32),
         _CalendarFilterGroup(
           title: 'Selected date',
           children: [
@@ -1706,6 +2282,602 @@ class _CalendarFiltersSidebar extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+
+  static String _notableDayTagLabel(NotableDayTagFilter tag) {
+    return switch (tag) {
+      NotableDayTagFilter.holiday => 'Holiday',
+      NotableDayTagFilter.event => 'Event',
+      NotableDayTagFilter.anniversary => 'Anniversary',
+      NotableDayTagFilter.memorial => 'Memorial',
+      NotableDayTagFilter.festival => 'Festival',
+    };
+  }
+}
+
+/// Search & filter bar widget shown below the AppBar when search is active
+/// Horizontal scrollable filter chips (shown below AppBar when searching)
+class _SearchFilterChips extends StatelessWidget {
+  final Set<String> selectedTags;
+  final NotableDayTagFilter? selectedNotableDayTag;
+  final List<String> usedTags;
+  final ValueChanged<String> onToggleTag;
+  final ValueChanged<NotableDayTagFilter?> onNotableDayTagChanged;
+  final VoidCallback onClearFilters;
+
+  const _SearchFilterChips({
+    required this.selectedTags,
+    required this.selectedNotableDayTag,
+    required this.usedTags,
+    required this.onToggleTag,
+    required this.onNotableDayTagChanged,
+    required this.onClearFilters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final hasFilters = selectedTags.isNotEmpty || selectedNotableDayTag != null;
+
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          const Gap(12),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // Notable day type filters
+                  ...NotableDayTagFilter.values.map((tag) {
+                    final isSelected = selectedNotableDayTag == tag;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: FilterChip(
+                        label: Text(_notableDayTagLabel(tag)),
+                        selected: isSelected,
+                        onSelected: (_) =>
+                            onNotableDayTagChanged(isSelected ? null : tag),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        selectedColor: colorScheme.tertiaryContainer,
+                        checkmarkColor: colorScheme.onTertiaryContainer,
+                        labelStyle: theme.textTheme.labelSmall?.copyWith(
+                          color: isSelected
+                              ? colorScheme.onTertiaryContainer
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        side: BorderSide(
+                          color: isSelected
+                              ? colorScheme.tertiary
+                              : colorScheme.outlineVariant,
+                        ),
+                      ),
+                    );
+                  }),
+                  // Separator
+                  if (usedTags.isNotEmpty)
+                    Container(
+                      width: 1,
+                      height: 24,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      color: colorScheme.outlineVariant,
+                    ),
+                  // User's used tags
+                  ...usedTags.map((tag) {
+                    final isSelected = selectedTags.contains(tag);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: FilterChip(
+                        label: Text(tag),
+                        selected: isSelected,
+                        onSelected: (_) => onToggleTag(tag),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          // Clear all button
+          if (hasFilters) ...[
+            const Gap(4),
+            IconButton(
+              onPressed: onClearFilters,
+              icon: const Icon(Symbols.clear_all, size: 18),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Clear filters',
+            ),
+          ],
+          const Gap(8),
+        ],
+      ),
+    );
+  }
+
+  static String _notableDayTagLabel(NotableDayTagFilter tag) {
+    return switch (tag) {
+      NotableDayTagFilter.holiday => 'Holiday',
+      NotableDayTagFilter.event => 'Event',
+      NotableDayTagFilter.anniversary => 'Anniversary',
+      NotableDayTagFilter.memorial => 'Memorial',
+      NotableDayTagFilter.festival => 'Festival',
+    };
+  }
+}
+
+/// Search results list widget - styled like week view with date sections
+class _SearchResultsList extends StatelessWidget {
+  final List<CalendarSearchResult> results;
+  final String username;
+  final ValueChanged<SnUserCalendarEvent>? onEditEvent;
+  final ValueChanged<String>? onOpenNotableDay;
+
+  const _SearchResultsList({
+    required this.results,
+    required this.username,
+    this.onEditEvent,
+    this.onOpenNotableDay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Group results by date
+    final sections = _buildSections();
+
+    if (sections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: sections.length + 1, // +1 for header
+      itemBuilder: (context, index) {
+        // Header item
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Text(
+              'Search Results (${results.length})',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          );
+        }
+        final section = sections[index - 1];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Date header (like week view)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                child: Text(
+                  _formatFullDate(section.date),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              // Items for this date
+              ...section.items.map((item) {
+                if (item.userEvent != null) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    elevation: 0,
+                    color: colorScheme.surfaceContainerLow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _EventTile(
+                      username: username,
+                      event: item.userEvent!,
+                      onEditEvent: onEditEvent,
+                    ),
+                  );
+                } else if (item.notableDay != null) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    child: _NotableDayResultCard(
+                      notableDay: item.notableDay!,
+                      onTap: onOpenNotableDay,
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<_SearchSection> _buildSections() {
+    final Map<DateTime, List<CalendarSearchResult>> grouped = {};
+
+    for (final result in results) {
+      final date = DateUtils.dateOnly(result.startTime);
+      grouped.putIfAbsent(date, () => []).add(result);
+    }
+
+    final sortedDates = grouped.keys.toList()..sort();
+
+    return sortedDates.map((date) {
+      final items = grouped[date]!;
+      // Sort items within a day: all-day first, then by start time
+      items.sort((a, b) {
+        if (a.userEvent != null && b.userEvent != null) {
+          if (a.userEvent!.isAllDay != b.userEvent!.isAllDay) {
+            return a.userEvent!.isAllDay ? -1 : 1;
+          }
+          return a.startTime.compareTo(b.startTime);
+        }
+        return a.startTime.compareTo(b.startTime);
+      });
+      return _SearchSection(date: date, items: items);
+    }).toList();
+  }
+}
+
+class _SearchSection {
+  final DateTime date;
+  final List<CalendarSearchResult> items;
+
+  const _SearchSection({required this.date, required this.items});
+}
+
+/// Notable day result card in search results
+class _NotableDayResultCard extends StatelessWidget {
+  final SnNotableDayDetail notableDay;
+  final ValueChanged<String>? onTap;
+
+  const _NotableDayResultCard({required this.notableDay, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final displayName = notableDay.localName.isNotEmpty
+        ? notableDay.localName
+        : notableDay.globalName;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      color: colorScheme.tertiaryContainer,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: notableDay.occurrenceKey != null
+            ? () => onTap?.call(notableDay.occurrenceKey!)
+            : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(
+                Symbols.celebration,
+                size: 20,
+                color: colorScheme.onTertiaryContainer,
+                fill: 1,
+              ),
+              const Gap(10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: colorScheme.onTertiaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      DateFormat.yMMMd().format(notableDay.date),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onTertiaryContainer.withOpacity(0.7),
+                      ),
+                    ),
+                    if (notableDay.tags != null &&
+                        notableDay.tags!.isNotEmpty) ...[
+                      const Gap(4),
+                      Wrap(
+                        spacing: 4,
+                        children: notableDay.tags!.map((tag) {
+                          return Chip(
+                            label: Text(
+                              tag,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onTertiaryContainer,
+                              ),
+                            ),
+                            backgroundColor: colorScheme.tertiary.withOpacity(
+                              0.3,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            side: BorderSide.none,
+                            padding: EdgeInsets.zero,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                Symbols.chevron_right,
+                size: 18,
+                color: colorScheme.onTertiaryContainer.withOpacity(0.5),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Notable day detail dialog
+class _NotableDayDetailDialog extends HookConsumerWidget {
+  final String occurrenceKey;
+
+  const _NotableDayDetailDialog({required this.occurrenceKey});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Fetch notable day detail
+    final detailAsync = useMemoized(
+      () => _fetchNotableDayDetail(ref, occurrenceKey),
+      [occurrenceKey],
+    );
+    final detailFuture = useFuture(detailAsync);
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (detailFuture.hasData) ...[
+                _buildDetailContent(context, detailFuture.data!),
+              ] else if (detailFuture.hasError)
+                _buildErrorContent(context, detailFuture.error!)
+              else
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              const Gap(16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('close'.tr()),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailContent(BuildContext context, Map<String, dynamic> data) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final localName = data['local_name'] as String? ?? '';
+    final globalName = data['global_name'] as String? ?? '';
+    final description = data['description'] as String?;
+    final dateStr = data['date'] as String?;
+    final holidays =
+        (data['holidays'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+    final tags =
+        (data['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+        [];
+
+    DateTime? date;
+    if (dateStr != null) {
+      date = DateTime.tryParse(dateStr);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Symbols.celebration,
+              size: 24,
+              color: colorScheme.tertiary,
+              fill: 1,
+            ),
+            const Gap(12),
+            Expanded(
+              child: Text(
+                localName.isNotEmpty ? localName : globalName,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (date != null) ...[
+          const Gap(8),
+          Text(
+            DateFormat.yMMMMEEEEd().format(date),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        if (description != null && description.isNotEmpty) ...[
+          const Gap(12),
+          Text(description, style: theme.textTheme.bodyMedium),
+        ],
+        if (tags.isNotEmpty) ...[
+          const Gap(12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: tags.map((tag) {
+              return Chip(
+                label: Text(tag),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              );
+            }).toList(),
+          ),
+        ],
+        if (holidays.isNotEmpty) ...[
+          const Gap(8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: holidays.map((h) {
+              return Chip(
+                label: Text(h),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                backgroundColor: colorScheme.primaryContainer,
+              );
+            }).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildErrorContent(BuildContext context, Object error) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Symbols.error, size: 48, color: colorScheme.error),
+        const Gap(16),
+        Text(
+          'Failed to load notable day',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        Text(
+          error.toString(),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+
+  Future<Map<String, dynamic>> _fetchNotableDayDetail(
+    WidgetRef ref,
+    String key,
+  ) async {
+    final client = ref.read(solarNetworkClientProvider);
+    return await client.accounts.getNotableDayDetail(key);
+  }
+}
+
+/// Animated linear progress bar that slides in/out under the AppBar.
+class _CalendarSyncIndicator extends HookConsumerWidget {
+  final bool isLoading;
+
+  const _CalendarSyncIndicator({required this.isLoading});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFirstBuild = useRef(true);
+    final wasLoading = useRef(false);
+
+    final controller = useAnimationController(
+      duration: const Duration(milliseconds: 300),
+    );
+
+    // Track previous loading state to detect transitions
+    useEffect(() {
+      if (isFirstBuild.value) {
+        isFirstBuild.value = false;
+        wasLoading.value = isLoading;
+        return null;
+      }
+      if (isLoading != wasLoading.value) {
+        wasLoading.value = isLoading;
+        if (isLoading) {
+          controller.forward(from: 0);
+        } else {
+          controller.reverse(from: 1);
+        }
+      }
+      return null;
+    }, [isLoading]);
+
+    // Initial animation on first load
+    useEffect(() {
+      if (isLoading && isFirstBuild.value) {
+        controller.forward(from: 0);
+      }
+      return null;
+    }, []);
+
+    const barHeight = 4.0;
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final t = Curves.easeInOutCubic.transform(controller.value);
+        if (t <= 0) return const SizedBox.shrink();
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: t,
+            child: Transform.translate(
+              offset: Offset(0, (t - 1) * barHeight),
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: LinearProgressIndicator(
+        minHeight: barHeight,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      ),
     );
   }
 }
