@@ -5,8 +5,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/time.dart';
+import 'package:island/core/utils/activity_utils.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/extended_refresh_indicator.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -32,6 +36,31 @@ Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
   return friends;
 }
 
+final friendsOverviewExpandedProvider =
+    FutureProvider<List<SnFriendOverviewItem>>((ref) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final websocket = ref.watch(websocketProvider);
+      final subscription = websocket.dataStream.listen((packet) {
+        if (packet.type == 'account.status.updated' ||
+            packet.type == 'account.presence.activities.updated') {
+          ref.invalidateSelf();
+        }
+      });
+      ref.onDispose(subscription.cancel);
+
+      final response = await apiClient.get(
+        '/passport/friends/overview',
+        queryParameters: {'includeOffline': true},
+      );
+
+      return (response.data as List<dynamic>)
+          .map(
+            (json) =>
+                SnFriendOverviewItem.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
+    });
+
 class FriendsOverviewWidget extends HookConsumerWidget {
   final bool hideWhenEmpty;
   final EdgeInsetsGeometry? padding;
@@ -48,7 +77,6 @@ class FriendsOverviewWidget extends HookConsumerWidget {
 
     return friendsOverviewAsync.when(
       data: (friends) {
-        // Filter for online friends
         final onlineFriends = friends
             .where((friend) => showsOnlinePresence(friend.status))
             .toList();
@@ -59,54 +87,70 @@ class FriendsOverviewWidget extends HookConsumerWidget {
 
         final card = Card(
           margin: EdgeInsets.zero,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Symbols.group,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'friendsOnline'.tr(),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _showFriendsOverviewSheet(context),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Symbols.group,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'friendsOnline'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
-                  ),
-                ],
-              ).padding(horizontal: 16, vertical: 12),
-              if (onlineFriends.isEmpty)
-                Container(
-                  height: 80,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Center(
-                    child: Text(
-                      'No friends online',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    Text(
+                      '${friends.length}',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Symbols.chevron_right,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ).padding(horizontal: 16, vertical: 12),
+                if (onlineFriends.isEmpty)
+                  Container(
+                    height: 80,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Center(
+                      child: Text(
+                        'friendsNoOnline',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ).tr(),
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 80,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: onlineFriends.length,
+                      itemBuilder: (context, index) {
+                        final friend = onlineFriends[index];
+                        return AccountPfcRegion(
+                          uname: friend.account.name,
+                          child: _FriendTile(friend: friend),
+                        );
+                      },
                     ),
                   ),
-                )
-              else
-                SizedBox(
-                  height: 80,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: onlineFriends.length,
-                    itemBuilder: (context, index) {
-                      final friend = onlineFriends[index];
-                      return AccountPfcRegion(
-                        uname: friend.account.name,
-                        child: _FriendTile(friend: friend),
-                      );
-                    },
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
 
@@ -163,6 +207,15 @@ class FriendsOverviewWidget extends HookConsumerWidget {
       error: (error, stack) => const SizedBox.shrink(), // Hide on error
     );
   }
+}
+
+void _showFriendsOverviewSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    builder: (context) => const _FriendsOverviewSheet(),
+  );
 }
 
 class SkeletonFriendTile extends StatelessWidget {
@@ -225,6 +278,200 @@ class SkeletonFriendTile extends StatelessWidget {
   }
 }
 
+class _FriendsOverviewSheet extends HookConsumerWidget {
+  const _FriendsOverviewSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final friendsAsync = ref.watch(friendsOverviewExpandedProvider);
+
+    Future<void> refresh() async {
+      ref.invalidate(friendsOverviewExpandedProvider);
+      await ref.read(friendsOverviewExpandedProvider.future);
+    }
+
+    return SheetScaffold(
+      titleText: 'friends'.tr(),
+      heightFactor: 0.85,
+      child: friendsAsync.when(
+        data: (friends) {
+          final onlineCount = friends
+              .where((friend) => showsOnlinePresence(friend.status))
+              .length;
+          final activeCount = friends
+              .where((friend) => friend.activities.isNotEmpty)
+              .length;
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Row(
+                  children: [
+                    Text(
+                      'friendsOnlineCount'.tr(args: [onlineCount.toString()]),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'friendsActiveCount'.tr(args: [activeCount.toString()]),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'friendsTotalCount'.tr(args: [friends.length.toString()]),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ExtendedRefreshIndicator(
+                  onRefresh: refresh,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),
+                    itemCount: friends.length,
+                    itemBuilder: (context, index) {
+                      final friend = friends[index];
+                      return _FriendOverviewListTile(friend: friend);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text('Error: $error', textAlign: TextAlign.center),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FriendOverviewListTile extends StatelessWidget {
+  final SnFriendOverviewItem friend;
+
+  const _FriendOverviewListTile({required this.friend});
+
+  @override
+  Widget build(BuildContext context) {
+    final activity = friend.activities.isNotEmpty
+        ? friend.activities.first
+        : null;
+    final activityTitle = activity == null
+        ? null
+        : getActivityTitle(activity.title, activity.meta) ?? activity.title;
+    final activitySubtitle = activity == null
+        ? null
+        : getActivitySubtitle(activity.meta);
+    final statusLabel = getStatusDisplayLabel(context, friend.status);
+    final displayName = friend.account.nick.isNotEmpty
+        ? friend.account.nick
+        : friend.account.name;
+    final isOffline = !showsOnlinePresence(friend.status);
+    final lastOnlineAt =
+        friend.account.profile.lastSeenAt ?? friend.status.updatedAt;
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      leading: AccountPfcRegion(
+        uname: friend.account.name,
+        child: Stack(
+          children: [
+            ProfilePictureWidget(file: friend.account.profile.picture),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: _FriendStatusBadge(friend: friend),
+            ),
+          ],
+        ),
+      ),
+      title: Text(displayName, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '@${friend.account.name} · $statusLabel',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (activityTitle != null && activityTitle.isNotEmpty)
+            Text(
+              activitySubtitle?.isNotEmpty == true
+                  ? '$activityTitle · $activitySubtitle'
+                  : activityTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          if (isOffline)
+            Text(
+              'friendsLastOnlineAt'.tr(
+                args: [lastOnlineAt.formatRelative(context)],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FriendStatusBadge extends StatelessWidget {
+  final SnFriendOverviewItem friend;
+
+  const _FriendStatusBadge({required this.friend});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasActivities = friend.activities.isNotEmpty;
+    final statusIcon = hasActivities
+        ? Symbols.play_arrow
+        : getStatusIndicatorIcon(friend.status);
+    final statusColor = hasActivities
+        ? Colors.blue.withOpacity(0.8)
+        : getStatusIndicatorColor(friend.status);
+
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: statusColor,
+        shape: hasActivities || statusIcon != Symbols.circle
+            ? BoxShape.rectangle
+            : BoxShape.circle,
+        borderRadius: hasActivities || statusIcon != Symbols.circle
+            ? BorderRadius.circular(4)
+            : null,
+        border: Border.all(color: theme.colorScheme.surface, width: 2),
+      ),
+      child: Icon(
+        statusIcon,
+        size: 10,
+        color: hasActivities ? Colors.white : statusColor,
+        fill: hasActivities ? 1 : getStatusIndicatorFill(friend.status),
+      ),
+    );
+  }
+}
+
 class _FriendTile extends ConsumerWidget {
   final SnFriendOverviewItem friend;
 
@@ -280,7 +527,9 @@ class _FriendTile extends ConsumerWidget {
                         ? Symbols.play_arrow
                         : getStatusIndicatorIcon(friend.status),
                     size: 10,
-                    color: getStatusIndicatorColor(friend.status),
+                    color: friend.activities.isNotEmpty
+                        ? Colors.white
+                        : getStatusIndicatorColor(friend.status),
                     fill: friend.activities.isNotEmpty
                         ? 1
                         : getStatusIndicatorFill(friend.status),

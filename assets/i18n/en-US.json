@@ -1426,7 +1426,12 @@
     "other": "{} friend requests"
   },
   "friends": "Friends",
+  "friendsActiveCount": "{} active",
+  "friendsLastOnlineAt": "Last online {}",
+  "friendsNoOnline": "No friends online",
   "friendsOnline": "Friends Online",
+  "friendsOnlineCount": "{} online",
+  "friendsTotalCount": "{} total",
   "fromDate": "From Date",
   "fromLabel": "From: ",
   "fullThread": "Full Thread",

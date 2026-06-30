@@ -1367,7 +1367,13 @@
     "other": "已发送 {} 个好友请求"
   },
   "friends": "朋友",
+  "friends": "好友",
+  "friendsActiveCount": "{} 位活跃",
+  "friendsLastOnlineAt": "最后在线于 {}",
+  "friendsNoOnline": "暂无在线好友",
   "friendsOnline": "在线好友",
+  "friendsOnlineCount": "{} 位在线",
+  "friendsTotalCount": "共 {} 位",
   "fromDate": "起始日期",
   "fromLabel": "来自： ",
   "fullThread": "完整讨论串",
