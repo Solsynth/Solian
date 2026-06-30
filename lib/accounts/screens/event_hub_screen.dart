@@ -210,7 +210,7 @@ class EventHubScreen extends HookConsumerWidget {
               ),
             );
           },
-          child: viewContent,
+          child: Padding(padding: const EdgeInsets.all(8), child: viewContent),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -278,31 +278,20 @@ class EventHubScreen extends HookConsumerWidget {
           )
         : calendarBody;
 
-    final canPop = Navigator.of(context).canPop();
-
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
         surfaceTintColor: colorScheme.surfaceTint,
         scrolledUnderElevation: 3,
         centerTitle: true,
-        leading: canPop
-            ? IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
-                tooltip: 'Back',
-              )
-            : null,
+        leading: const AutoLeadingButton(),
         automaticallyImplyLeading: false,
         title: Text('eventCalendar'.tr()),
         actions: [
           IconButton(
             onPressed: openFilters,
             icon: Icon(
-              Icons.tune,
+              Symbols.tune,
               color: Theme.of(context).appBarTheme.foregroundColor,
             ),
             tooltip: 'Filters',
@@ -312,12 +301,13 @@ class EventHubScreen extends HookConsumerWidget {
               onPressed: () =>
                   showInspectorSidebar.value = !showInspectorSidebar.value,
               icon: Icon(
-                Icons.view_sidebar_outlined,
+                Symbols.calendar_today,
                 color: Theme.of(context).appBarTheme.foregroundColor,
               ),
               tooltip: 'Events',
             ),
           ],
+          const Gap(8),
         ],
       ),
       body: wrappedBody,
@@ -1481,7 +1471,7 @@ class _MonthPicker extends StatelessWidget {
               onPressed: () => onMonthChanged(
                 DateTime(focusedMonth.year, focusedMonth.month - 1),
               ),
-              icon: const Icon(Icons.chevron_left),
+              icon: const Icon(Symbols.chevron_left),
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
@@ -1499,7 +1489,7 @@ class _MonthPicker extends StatelessWidget {
               onPressed: () => onMonthChanged(
                 DateTime(focusedMonth.year, focusedMonth.month + 1),
               ),
-              icon: const Icon(Icons.chevron_right),
+              icon: const Icon(Symbols.chevron_right),
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
