@@ -830,6 +830,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           body: Column(
             children: [
+              const ChatSyncIndicator(),
               if (pinnedPins.value.isNotEmpty)
                 _PinnedMessagesBar(
                   pins: pinnedPins.value,
@@ -1157,7 +1158,6 @@ class ChatRoomScreen extends HookConsumerWidget {
             ],
           ),
         ),
-        const ChatSyncIndicator(height: 56),
       ],
     );
   }
