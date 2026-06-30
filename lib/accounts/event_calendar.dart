@@ -346,16 +346,18 @@ class CalendarSearchQuery {
 
   @override
   int get hashCode =>
-      query.hashCode ^
-      accountId.hashCode ^
-      tags.hashCode ^
-      startTime.hashCode ^
-      endTime.hashCode ^
-      notableDayTag.hashCode ^
-      offset.hashCode ^
-      take.hashCode ^
-      isSearchActive.hashCode ^
-      debounceKey.hashCode;
+      Object.hash(
+        query,
+        accountId,
+        Object.hashAll(tags),
+        startTime,
+        endTime,
+        notableDayTag,
+        offset,
+        take,
+        isSearchActive,
+        debounceKey,
+      );
 
   bool _listEquals(List<String> a, List<String> b) {
     if (a.length != b.length) return false;

@@ -193,16 +193,9 @@ class _PostDetailMediaCarousel extends HookConsumerWidget {
     final pageController = usePageController();
     final currentFile = post.attachments[currentIndex.value];
     final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
     final currentIsAudio = currentFile.mimeType.startsWith('audio');
     final currentIsVideo = currentFile.mimeType.startsWith('video');
     final ratio = (currentFile.ratio?.toDouble() ?? 1.0).clamp(0.5, 2.5);
-    final effectiveMaxHeight = currentIsVideo
-        ? (mediaQuery.size.height * 0.58).clamp(320.0, maxHeight)
-        : maxHeight;
-    final height = currentIsAudio
-        ? 160.0
-        : (screenWidth / ratio).clamp(280.0, effectiveMaxHeight);
     final imageFiles = useMemoized(
       () => post.attachments.where((file) => file.mimeType.startsWith('image')),
       [post.attachments],
@@ -231,80 +224,97 @@ class _PostDetailMediaCarousel extends HookConsumerWidget {
       context.router.push(FileDetailRoute(id: file.id, sourcePost: post));
     }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      height: height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(child: _PostDetailMediaBackdrop(file: currentFile)),
-          PageView.builder(
-            controller: pageController,
-            itemCount: post.attachments.length,
-            onPageChanged: (index) => currentIndex.value = index,
-            itemBuilder: (context, index) {
-              final file = post.attachments[index];
-              final itemRatio = (file.ratio?.toDouble() ?? 1.0).clamp(0.5, 2.5);
-              final isAudio = file.mimeType.startsWith('audio');
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : mediaQuery.size.width;
+        final effectiveMaxHeight = currentIsVideo
+            ? (mediaQuery.size.height * 0.58).clamp(320.0, maxHeight)
+            : maxHeight;
+        final height = currentIsAudio
+            ? 160.0
+            : (availableWidth / ratio).clamp(280.0, effectiveMaxHeight);
 
-              Widget content = CloudFileWidget(
-                item: file,
-                heroTag: _heroTag(file.id),
-                fit: BoxFit.contain,
-                noBlurhash: true,
-                useInternalGate: false,
-                sourcePost: post,
-              );
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          height: height,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(child: _PostDetailMediaBackdrop(file: currentFile)),
+              PageView.builder(
+                controller: pageController,
+                itemCount: post.attachments.length,
+                onPageChanged: (index) => currentIndex.value = index,
+                itemBuilder: (context, index) {
+                  final file = post.attachments[index];
+                  final itemRatio = (file.ratio?.toDouble() ?? 1.0).clamp(
+                    0.5,
+                    2.5,
+                  );
+                  final isAudio = file.mimeType.startsWith('audio');
 
-              if (isAudio) {
-                content = SizedBox(height: 160, child: content);
-              } else {
-                content = AspectRatio(aspectRatio: itemRatio, child: content);
-              }
+                  Widget content = CloudFileWidget(
+                    item: file,
+                    heroTag: _heroTag(file.id),
+                    fit: BoxFit.contain,
+                    noBlurhash: true,
+                    useInternalGate: false,
+                    sourcePost: post,
+                  );
 
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => openMediaAt(index),
-                  child: Center(child: content),
-                ),
-              );
-            },
-          ),
-          if (post.attachments.length > 1)
-            Positioned(
-              left: 16,
-              top: 16,
-              child: _PostDetailMediaBadge(
-                current: currentIndex.value + 1,
-                total: post.attachments.length,
+                  if (isAudio) {
+                    content = SizedBox(height: 160, child: content);
+                  } else {
+                    content = AspectRatio(aspectRatio: itemRatio, child: content);
+                  }
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => openMediaAt(index),
+                      child: Center(child: content),
+                    ),
+                  );
+                },
               ),
-            ),
-          if (post.attachments.length > 1)
-            _PostDetailMediaArrowButton(
-              icon: Icons.chevron_left,
-              alignment: Alignment.centerLeft,
-              onTap: currentIndex.value > 0
-                  ? () => pageController.previousPage(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
-                    )
-                  : null,
-            ),
-          if (post.attachments.length > 1)
-            _PostDetailMediaArrowButton(
-              icon: Icons.chevron_right,
-              alignment: Alignment.centerRight,
-              onTap: currentIndex.value < post.attachments.length - 1
-                  ? () => pageController.nextPage(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
-                    )
-                  : null,
-            ),
-        ],
-      ),
+              if (post.attachments.length > 1)
+                Positioned(
+                  left: 16,
+                  top: 16,
+                  child: _PostDetailMediaBadge(
+                    current: currentIndex.value + 1,
+                    total: post.attachments.length,
+                  ),
+                ),
+              if (post.attachments.length > 1)
+                _PostDetailMediaArrowButton(
+                  icon: Icons.chevron_left,
+                  alignment: Alignment.centerLeft,
+                  onTap: currentIndex.value > 0
+                      ? () => pageController.previousPage(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                        )
+                      : null,
+                ),
+              if (post.attachments.length > 1)
+                _PostDetailMediaArrowButton(
+                  icon: Icons.chevron_right,
+                  alignment: Alignment.centerRight,
+                  onTap: currentIndex.value < post.attachments.length - 1
+                      ? () => pageController.nextPage(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                        )
+                      : null,
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -389,10 +399,12 @@ class PostDetailContent extends HookConsumerWidget {
             slivers: [
               if (isMediaPost)
                 SliverToBoxAdapter(
-                  child: ClipRect(
-                    child: _PostDetailMediaCarousel(
-                      post: post,
-                      maxHeight: _postDetailAttachmentMaxHeight,
+                  child: wrapContent(
+                    ClipRect(
+                      child: _PostDetailMediaCarousel(
+                        post: post,
+                        maxHeight: _postDetailAttachmentMaxHeight,
+                      ),
                     ),
                   ),
                 ),

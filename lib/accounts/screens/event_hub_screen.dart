@@ -116,6 +116,7 @@ class EventHubScreen extends HookConsumerWidget {
         debouncedSearchQuery.value.isNotEmpty ||
         selectedTags.value.isNotEmpty ||
         selectedNotableDayTag.value != null;
+    final searchTags = selectedTags.value.toList()..sort();
 
     // Always watch the search provider (hooks must be called unconditionally)
     final searchResultsAsync = ref.watch(
@@ -124,7 +125,7 @@ class EventHubScreen extends HookConsumerWidget {
           query: debouncedSearchQuery.value.isNotEmpty
               ? debouncedSearchQuery.value
               : null,
-          tags: selectedTags.value.toList(),
+          tags: searchTags,
           startTime: DateTime(
             focusedMonth.value.year,
             focusedMonth.value.month,
