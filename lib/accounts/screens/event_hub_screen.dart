@@ -33,7 +33,10 @@ class EventHubScreen extends HookConsumerWidget {
     );
     final events = ref.watch(eventCalendarProvider(query));
 
-    Future<void> openEditor({SnUserCalendarEvent? event, DateTime? date}) async {
+    Future<void> openEditor({
+      SnUserCalendarEvent? event,
+      DateTime? date,
+    }) async {
       final changed = await showCalendarEventSheet(
         context,
         initialEvent: event,
@@ -188,10 +191,7 @@ class EventHubScreen extends HookConsumerWidget {
               children: [
                 const Icon(Icons.event_busy_outlined, size: 32),
                 const Gap(12),
-                Text(
-                  error.toString(),
-                  textAlign: TextAlign.center,
-                ),
+                Text(error.toString(), textAlign: TextAlign.center),
               ],
             ),
           ),
@@ -241,7 +241,8 @@ class _MonthView extends StatelessWidget {
             onSelectDate(DateUtils.dateOnly(selected));
             onMonthChanged(DateUtils.dateOnly(focused));
           },
-          onPageChanged: (focused) => onMonthChanged(DateUtils.dateOnly(focused)),
+          onPageChanged: (focused) =>
+              onMonthChanged(DateUtils.dateOnly(focused)),
           eventLoader: (day) {
             for (final entry in entries) {
               if (isSameDay(entry.date, day)) return [entry];
@@ -249,12 +250,21 @@ class _MonthView extends StatelessWidget {
             return const [];
           },
           calendarBuilders: CalendarBuilders(
-            defaultBuilder: (context, day, focusedDay) =>
-                _MonthCell(day: day, selectedDate: selectedDate, entries: entries),
-            todayBuilder: (context, day, focusedDay) =>
-                _MonthCell(day: day, selectedDate: selectedDate, entries: entries),
-            selectedBuilder: (context, day, focusedDay) =>
-                _MonthCell(day: day, selectedDate: selectedDate, entries: entries),
+            defaultBuilder: (context, day, focusedDay) => _MonthCell(
+              day: day,
+              selectedDate: selectedDate,
+              entries: entries,
+            ),
+            todayBuilder: (context, day, focusedDay) => _MonthCell(
+              day: day,
+              selectedDate: selectedDate,
+              entries: entries,
+            ),
+            selectedBuilder: (context, day, focusedDay) => _MonthCell(
+              day: day,
+              selectedDate: selectedDate,
+              entries: entries,
+            ),
             outsideBuilder: (context, day, focusedDay) => Opacity(
               opacity: 0.45,
               child: _MonthCell(
@@ -292,9 +302,7 @@ class _MonthView extends StatelessWidget {
       );
     }
 
-    return ListView(
-      children: [calendar, const Gap(12), agenda],
-    );
+    return ListView(children: [calendar, const Gap(12), agenda]);
   }
 }
 
@@ -341,7 +349,9 @@ class _MonthCell extends StatelessWidget {
             '${day.day}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: foreground,
-              fontWeight: isSelected || isToday ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: isSelected || isToday
+                  ? FontWeight.w700
+                  : FontWeight.w500,
             ),
           ),
           const Spacer(),
@@ -405,10 +415,7 @@ class _SelectedDayAgenda extends StatelessWidget {
             ),
             const Gap(12),
             if (events.isEmpty)
-              Text(
-                'No events',
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
+              Text('No events', style: Theme.of(context).textTheme.bodyMedium)
             else
               ...events.map(
                 (event) => Padding(
@@ -632,14 +639,18 @@ class _EventTile extends StatelessWidget {
   }
 }
 
-SnEventCalendarEntry? _entryForDay(List<SnEventCalendarEntry> entries, DateTime day) {
+SnEventCalendarEntry? _entryForDay(
+  List<SnEventCalendarEntry> entries,
+  DateTime day,
+) {
   for (final entry in entries) {
     if (isSameDay(entry.date, day)) return entry;
   }
   return null;
 }
 
-bool _sameMonth(DateTime a, DateTime b) => a.year == b.year && a.month == b.month;
+bool _sameMonth(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month;
 
 String _formatEventTime(SnUserCalendarEvent event) {
   if (event.isAllDay) return 'All day';
