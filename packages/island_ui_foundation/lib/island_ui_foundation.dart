@@ -6,4 +6,5 @@ export 'src/hover_edge_action.dart';
 export 'src/snackbar_overlay.dart';
 export 'src/notification_overlay.dart';
 export 'src/sheet_scaffold.dart';
+export 'src/responsive_sidebar.dart';
 export 'src/window_frame.dart';
