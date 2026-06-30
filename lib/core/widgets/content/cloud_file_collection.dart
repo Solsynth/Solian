@@ -29,6 +29,7 @@ class CloudFileList extends HookConsumerWidget {
   final bool isColumn;
   final bool initiallyCollapsed;
   final String heroTagPrefix;
+  final double borderRadius;
   const CloudFileList({
     super.key,
     required this.files,
@@ -42,6 +43,7 @@ class CloudFileList extends HookConsumerWidget {
     this.isColumn = false,
     this.initiallyCollapsed = true,
     this.heroTagPrefix = 'cloud-file',
+    this.borderRadius = 8,
   });
 
   String _heroTag(String fileId) => '$heroTagPrefix-$fileId';
@@ -182,7 +184,7 @@ class CloudFileList extends HookConsumerWidget {
         final isImage = file.mimeType.startsWith('image');
         final isAudio = file.mimeType.startsWith('audio');
         final widgetItem = ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
           child: _CloudFileListEntry(
             file: file,
             heroTag: _heroTag(files[i].id),
@@ -278,7 +280,7 @@ class CloudFileList extends HookConsumerWidget {
                                 },
                               ),
                             ),
-                    ).clipRRect(all: 8),
+                    ).clipRRect(all: borderRadius),
                 ],
               ),
             ),
@@ -335,7 +337,7 @@ class CloudFileList extends HookConsumerWidget {
       final opensInDetail = !isImage && !files.first.isFolder;
       final ratio = files.first.ratio as num?;
       final widgetItem = ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         child: _CloudFileListEntry(
           file: files.first,
           heroTag: _heroTag(files.first.id),
@@ -404,6 +406,7 @@ class CloudFileList extends HookConsumerWidget {
                 return _HoverCarouselGallery(
                   itemExtent: itemExtent,
                   itemCount: files.length,
+                  borderRadius: borderRadius,
                   children: [
                     for (var i = 0; i < files.length; i++)
                       Stack(
@@ -469,7 +472,9 @@ class CloudFileList extends HookConsumerWidget {
                 child: Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(16)),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(borderRadius),
+                      ),
                       child: _CloudFileListEntry(
                         file: files[index],
                         heroTag: _heroTag(files[index].id),
@@ -614,12 +619,14 @@ class _HoverCarouselGallery extends HookWidget {
   final double itemExtent;
   final int itemCount;
   final ValueChanged<int>? onTap;
+  final double borderRadius;
 
   const _HoverCarouselGallery({
     required this.children,
     required this.itemExtent,
     required this.itemCount,
     this.onTap,
+    this.borderRadius = 16,
   });
 
   @override
@@ -680,7 +687,7 @@ class _HoverCarouselGallery extends HookWidget {
                 itemSnapping: true,
                 itemExtent: itemExtent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
                 ),
                 onTap: onTap,
                 children: children,

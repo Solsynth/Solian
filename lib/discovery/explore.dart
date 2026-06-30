@@ -9,11 +9,10 @@ import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
-import 'package:island/core/translate.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
-import 'package:island/posts/widgets/compose/post_quick_reply.dart';
+import 'package:island/posts/widgets/post_detail_content.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
 
@@ -23,7 +22,6 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
@@ -1836,31 +1834,6 @@ class _TimelineDetailPane extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final postState = ref.watch(postStateProvider(postId));
-    final user = ref.watch(userInfoProvider);
-    final translating = useState(false);
-    final translatedText = useState<String?>(null);
-    final currentLanguage = context.locale.toString();
-
-    Future<void> translatePost(String text) async {
-      if (translatedText.value != null) {
-        translatedText.value = null;
-        return;
-      }
-      if (translating.value) return;
-      translating.value = true;
-      try {
-        final result = await ref.read(
-          translateStringProvider(
-            TranslateQuery(text: text, lang: currentLanguage.substring(0, 2)),
-          ).future,
-        );
-        translatedText.value = result;
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        translating.value = false;
-      }
-    }
 
     return Container(
       decoration: BoxDecoration(
@@ -1955,129 +1928,65 @@ class _TimelineDetailPane extends HookConsumerWidget {
                   return Stack(
                     key: ValueKey(postId),
                     children: [
-                      ExtendedRefreshIndicator(
+                      PostDetailContent(
+                        postId: postId,
+                        post: post,
+                        maxWidth: 720,
+                        onPostTap: onPostTap,
                         onRefresh: () async {
                           ref.invalidate(postProvider(postId));
                           ref
                               .read(postRepliesProvider(postId).notifier)
                               .refresh();
                         },
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: PostItem(
-                                item: post,
-                                isFullPost: true,
-                                isEmbedReply: false,
-                                isTranslatable: false,
-                                textScale: post.type == 1 ? 1.1 : 1.0,
-                                padding: const EdgeInsets.fromLTRB(
-                                  12,
-                                  12,
-                                  12,
-                                  0,
-                                ),
-                                onUpdate: (newPost) {
-                                  ref
-                                      .read(postStateProvider(postId).notifier)
-                                      .updatePost(newPost);
-                                },
-                                onPostTap: onPostTap,
+                        onUpdate: (newPost) {
+                          ref
+                              .read(postStateProvider(postId).notifier)
+                              .updatePost(newPost);
+                        },
+                        onReplyPosted: () {
+                          ref
+                              .read(postRepliesProvider(postId).notifier)
+                              .refresh();
+                        },
+                        threadSection:
+                            post.repliedPostId != null ||
+                                post.forwardedPostId != null
+                            ? PostThreadCard(post: post)
+                            : null,
+                        collectionSection: post.publisherCollections.isNotEmpty
+                            ? PostCollectionNavigation(post: post)
+                            : null,
+                        realmSection: post.realm != null
+                            ? PostRealmBadge(realm: post.realm!)
+                            : null,
+                        actionBuilder: (context, onTranslate) =>
+                            PostActionButtons(
+                              post: post,
+                              renderingPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
-                            ),
-                            SliverToBoxAdapter(
-                              child: PostActionButtons(
-                                post: post,
-                                renderingPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                onRefresh: () {
-                                  ref.invalidate(postProvider(postId));
-                                  ref
-                                      .read(
-                                        postRepliesProvider(postId).notifier,
-                                      )
-                                      .refresh();
-                                },
-                                onUpdate: (newPost) {
-                                  ref
-                                      .read(postStateProvider(postId).notifier)
-                                      .updatePost(newPost);
-                                },
-                                onTranslate: translatePost,
-                              ).padding(horizontal: 12, vertical: 8),
-                            ),
-                            if (translatedText.value != null ||
-                                translating.value)
-                              SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12 + 16,
-                                  ),
-                                  child: buildPostTranslationSection(
-                                    context: context,
-                                    item: post,
-                                    isTextSelectable: true,
-                                    textScale: post.type == 1 ? 1.1 : 1.0,
-                                    translatedText: translatedText.value,
-                                    isTranslating: translating.value,
-                                    onTranslate: () =>
-                                        translatePost(post.content ?? ''),
-                                    showTranslateButton: false,
-                                  ),
-                                ),
-                              ),
-                            if (post.realm != null)
-                              SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    24,
-                                    0,
-                                    24,
-                                    8,
-                                  ),
-                                  child: PostRealmBadge(realm: post.realm!),
-                                ),
-                              ),
-                            if (post.publisherCollections.isNotEmpty)
-                              SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: EdgeInsets.fromLTRB(
-                                    24,
-                                    post.realm != null ? 0 : 8,
-                                    24,
-                                    8,
-                                  ),
-                                  child: PostCollectionNavigation(post: post),
-                                ),
-                              ),
-                            DefaultTabController(
-                              length: 4,
-                              child: PostInteractionsSlivers(
-                                postId: postId,
-                                maxWidth: 720,
-                              ),
-                            ),
-                            SliverGap(
-                              MediaQuery.of(context).padding.bottom + 80,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (user.value != null)
-                        Positioned(
-                          bottom: 16 + MediaQuery.of(context).padding.bottom,
-                          left: 16,
-                          right: 16,
-                          child: PostQuickReply(
-                            parent: post,
-                            onPosted: () {
-                              ref
-                                  .read(postRepliesProvider(postId).notifier)
-                                  .refresh();
-                            },
+                              onRefresh: () {
+                                ref.invalidate(postProvider(postId));
+                                ref
+                                    .read(postRepliesProvider(postId).notifier)
+                                    .refresh();
+                              },
+                              onUpdate: (newPost) {
+                                ref
+                                    .read(postStateProvider(postId).notifier)
+                                    .updatePost(newPost);
+                              },
+                              onTranslate: onTranslate,
+                            ).alignment(Alignment.centerLeft),
+                        interactionsSection: DefaultTabController(
+                          length: 4,
+                          child: PostInteractionsSlivers(
+                            postId: postId,
+                            maxWidth: 720,
                           ),
                         ),
+                      ),
                     ],
                   );
                 },
