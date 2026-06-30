@@ -360,6 +360,7 @@ class PostFilterWidget extends HookConsumerWidget {
                                   decoration: InputDecoration(
                                     labelText: 'sortBy'.tr(),
                                     prefixIcon: const Icon(Symbols.swap_vert),
+                                    isDense: true,
                                   ),
                                   initialValue: order.value,
                                   items: [
@@ -384,6 +385,7 @@ class PostFilterWidget extends HookConsumerWidget {
                                   decoration: InputDecoration(
                                     labelText: 'order'.tr(),
                                     prefixIcon: const Icon(Symbols.sort),
+                                    isDense: true,
                                   ),
                                   initialValue: orderDesc.value,
                                   items: [

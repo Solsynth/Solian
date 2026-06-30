@@ -101,24 +101,24 @@ class _PostHeaderSkeleton extends StatelessWidget {
                   children: [
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 4,
                       children: [
-                        // Name skeleton
-                        Container(
-                          height: 16,
-                          width: 120,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainer,
-                            borderRadius: BorderRadius.circular(4),
+                        Expanded(
+                          child: Container(
+                            height: 16,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
                         ),
                         if (!isCompact)
                           Container(
                             height: 12,
                             width: 80,
-                            margin: const EdgeInsets.only(left: 4),
+                            margin: const EdgeInsets.only(left: 8),
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
