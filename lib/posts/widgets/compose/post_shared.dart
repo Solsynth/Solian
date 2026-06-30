@@ -20,6 +20,7 @@ import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/embeds/embed_list.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -49,6 +50,59 @@ IDisplayableCloudFile? _getThumbnailAttachment(SnPost post) {
   } catch (_) {
     return null;
   }
+}
+
+List<dynamic> _getPostEmbeds(SnPost post) {
+  final embeds = post.meta?['embeds'];
+  return embeds is List ? embeds : const <dynamic>[];
+}
+
+bool _urlsMatch(String? left, String? right) {
+  if (left == null || right == null) return false;
+  final leftUri = Uri.tryParse(left.trim());
+  final rightUri = Uri.tryParse(right.trim());
+  if (leftUri == null || rightUri == null) return left.trim() == right.trim();
+
+  String normalizePath(Uri uri) {
+    final path = uri.path.endsWith('/') && uri.path.length > 1
+        ? uri.path.substring(0, uri.path.length - 1)
+        : uri.path;
+    return path.isEmpty ? '/' : path;
+  }
+
+  return leftUri.scheme == rightUri.scheme &&
+      leftUri.host == rightUri.host &&
+      leftUri.port == rightUri.port &&
+      normalizePath(leftUri) == normalizePath(rightUri) &&
+      leftUri.query == rightUri.query;
+}
+
+SnScrappedLink? _getBlogLinkPreview(SnPost post) {
+  if (post.type != 2) return null;
+
+  for (final embed in _getPostEmbeds(post)) {
+    if (embed is! Map || embed['type'] != 'link') continue;
+    final url = embed['url']?.toString();
+    if (_urlsMatch(url, post.content)) {
+      try {
+        return SnScrappedLink.fromJson(Map<String, dynamic>.from(embed));
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  return null;
+}
+
+List<dynamic> _getVisibleEmbeds(SnPost post) {
+  final embeds = _getPostEmbeds(post);
+  if (post.type != 2 || (post.content?.isEmpty ?? true)) return embeds;
+
+  return embeds.where((embed) {
+    if (embed is! Map || embed['type'] != 'link') return true;
+    return !_urlsMatch(embed['url']?.toString(), post.content);
+  }).toList();
 }
 
 bool _shouldClampRegularPostBody(String content) {
@@ -147,8 +201,19 @@ Widget _buildBlogPreviewCard(
   SnPost post, {
   EdgeInsetsGeometry padding = const EdgeInsets.only(top: 4),
 }) {
-  final uri = Uri.tryParse(post.content ?? '');
+  final preview = _getBlogLinkPreview(post);
+  final uri = Uri.tryParse(preview?.url ?? post.content ?? '');
   final host = uri?.host ?? '';
+  final imageUrl = preview?.imageUrl;
+  final hasPreviewImage =
+      imageUrl != null &&
+      imageUrl.isNotEmpty &&
+      imageUrl != preview?.faviconUrl;
+  final title = post.title?.isNotEmpty ?? false ? post.title! : preview?.title;
+  final description = post.description?.isNotEmpty ?? false
+      ? post.description!
+      : preview?.description;
+  final faviconUrl = preview?.faviconUrl;
 
   return Container(
     padding: padding,
@@ -163,6 +228,18 @@ Widget _buildBlogPreviewCard(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (hasPreviewImage)
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            child: SizedBox(
+              height: 180,
+              child: UniversalImage(
+                uri: imageUrl,
+                fit: BoxFit.cover,
+                useFallbackImage: false,
+              ),
+            ),
+          ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -182,25 +259,48 @@ Widget _buildBlogPreviewCard(
               ],
             ),
             const Gap(4),
-            if (post.title?.isNotEmpty ?? false)
+            if (title?.isNotEmpty ?? false)
               Text(
-                post.title!,
+                title!,
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium!
                     .copyWith(fontWeight: FontWeight.bold),
               ),
-            if (post.description?.isNotEmpty ?? false)
+            if (description?.isNotEmpty ?? false)
               Text(
-                post.description!,
+                description!,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             if (host.isNotEmpty)
-              Text(
-                host,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+              Row(
+                children: [
+                  if (faviconUrl?.isNotEmpty ?? false) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: UniversalImage(
+                        uri: faviconUrl!,
+                        width: 14,
+                        height: 14,
+                        fit: BoxFit.cover,
+                        useFallbackImage: false,
+                      ),
                     ),
+                    const Gap(6),
+                  ],
+                  Expanded(
+                    child: Text(
+                      host,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
           ],
         ).padding(horizontal: 16, vertical: 12),
@@ -1637,6 +1737,7 @@ class PostBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metadataChildren = <Widget>[];
+    final visibleEmbeds = _getVisibleEmbeds(item);
     final useCompactArticlePreview =
         item.type == 1 && (!isFullPost || item.forwardedPostId != null);
     final useCompactBlogPreview =
@@ -1910,9 +2011,9 @@ class PostBody extends ConsumerWidget {
             spacing: 2,
             children: metadataChildren,
           ).padding(horizontal: renderingPadding.horizontal + 4, top: 4),
-        if (item.meta?['embeds'] != null)
+        if (visibleEmbeds.isNotEmpty)
           EmbedListWidget(
-            embeds: item.meta!['embeds'] as List<dynamic>,
+            embeds: visibleEmbeds,
             isInteractive: isInteractive,
             isFullPost: isFullPost,
             renderingPadding: renderingPadding,

@@ -228,7 +228,13 @@ class AppScaffold extends HookConsumerWidget {
         backgroundColor: Colors.transparent,
         body: Column(
           children: [
-            IgnorePointer(child: SizedBox(height: topReservedHeight)),
+            IgnorePointer(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                height: topReservedHeight,
+              ),
+            ),
             if (body != null) Expanded(child: body!),
           ],
         ),

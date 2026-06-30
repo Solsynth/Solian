@@ -5,8 +5,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart'
+    show DraggableOverlaySheet;
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -142,6 +145,17 @@ final postCollectionPostsProvider = FutureProvider.autoDispose
     });
 
 const _postDetailMaxWidth = 640.0;
+
+String? _getBlogUrl(SnPost post) {
+  final candidates = [post.content, post.embedView?.uri];
+  for (final candidate in candidates) {
+    final uri = Uri.tryParse(candidate ?? '');
+    if (uri != null && uri.hasScheme && uri.host.isNotEmpty) {
+      return uri.toString();
+    }
+  }
+  return null;
+}
 
 IDisplayableCloudFile? _getPostThumbnail(SnPost post) {
   final thumbnailId = post.meta?['thumbnail'] as String?;
@@ -1855,6 +1869,362 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   }
 }
 
+class _BlogPostDetailLayout extends HookConsumerWidget {
+  final SnPost post;
+  final String postId;
+  final Widget trailing;
+  final String? translatedText;
+  final bool isTranslating;
+  final Future<void> Function(String) onTranslate;
+  final VoidCallback onRefresh;
+  final ValueChanged<SnPost> onUpdate;
+  final ValueChanged<bool> onAppBarVisibilityChanged;
+
+  const _BlogPostDetailLayout({
+    required this.post,
+    required this.postId,
+    required this.trailing,
+    required this.translatedText,
+    required this.isTranslating,
+    required this.onTranslate,
+    required this.onRefresh,
+    required this.onUpdate,
+    required this.onAppBarVisibilityChanged,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider).value;
+    final mediaQuery = MediaQuery.of(context);
+    final lastScrollOffset = useRef(0.0);
+    final availableHeight =
+        mediaQuery.size.height -
+        mediaQuery.padding.top -
+        mediaQuery.padding.bottom -
+        kToolbarHeight;
+    final minPanelHeight = 26.0;
+    final initialPanelHeight = (availableHeight * 0.34).clamp(220.0, 360.0);
+    final maxPanelHeight = (availableHeight * 0.86).clamp(420.0, 760.0);
+    final panelHeight = useState(initialPanelHeight);
+    final theme = Theme.of(context);
+    const quickReplyRevealHeight = 320.0;
+    final showQuickReply =
+        user != null && panelHeight.value >= quickReplyRevealHeight;
+
+    void handleWebViewScroll(double offsetY) {
+      final previous = lastScrollOffset.value;
+      lastScrollOffset.value = offsetY;
+      if (offsetY <= 8) {
+        onAppBarVisibilityChanged(true);
+        return;
+      }
+      if (offsetY - previous > 12) {
+        onAppBarVisibilityChanged(false);
+      } else if (previous - offsetY > 12) {
+        onAppBarVisibilityChanged(true);
+      }
+    }
+
+    return Stack(
+      children: [
+        DraggableOverlaySheet(
+          minHeight: minPanelHeight,
+          initialHeight: initialPanelHeight,
+          maxHeight: maxPanelHeight,
+          onHeightChanged: (value) {
+            panelHeight.value = value;
+          },
+          snapHeights: [
+            minPanelHeight,
+            (availableHeight * 0.24).clamp(160.0, 240.0),
+            initialPanelHeight,
+            (availableHeight * 0.52).clamp(320.0, 520.0),
+            maxPanelHeight,
+          ],
+          backgroundColor: theme.colorScheme.surface.withOpacity(0.97),
+          body: _BlogPostWebView(
+            url: _getBlogUrl(post),
+            onScrollChanged: handleWebViewScroll,
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: DefaultTabController(
+                  length: 4,
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: _postDetailMaxWidth,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  PostHeader(
+                                    item: post,
+                                    isFullPost: true,
+                                    isCompact: false,
+                                    renderingPadding: EdgeInsets.zero,
+                                    trailing: trailing,
+                                  ),
+                                  const Gap(8),
+                                  _BlogPostSummaryCard(post: post),
+                                  if (post.repliedPostId != null ||
+                                      post.forwardedPostId != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 8,
+                                      ),
+                                      child: _PostThreadCard(post: post),
+                                    ),
+                                  if (post.publisherCollections.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 8,
+                                      ),
+                                      child: PostCollectionNavigation(post: post),
+                                    ),
+                                  if (post.realm != null)
+                                    PostRealmBadge(
+                                      realm: post.realm!,
+                                    ).padding(top: 8, bottom: 8),
+                                  PostReactionList(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    item: post,
+                                    reactions: post.reactionsCount,
+                                    reactionsMade: post.reactionsMade,
+                                    onReact: (symbol, attitude, delta) {
+                                      final reactionsCount =
+                                          Map<String, int>.from(
+                                            post.reactionsCount,
+                                          );
+                                      reactionsCount[symbol] =
+                                          (reactionsCount[symbol] ?? 0) + delta;
+                                      final reactionsMade =
+                                          Map<String, bool>.from(
+                                            post.reactionsMade,
+                                          );
+                                      reactionsMade[symbol] = delta == 1;
+                                      onUpdate(
+                                        post.copyWith(
+                                          reactionsCount: reactionsCount,
+                                          reactionsMade: reactionsMade,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  PostActionButtons(
+                                    post: post,
+                                    renderingPadding: const EdgeInsets.only(
+                                      top: 8,
+                                    ),
+                                    noBottomPadding: true,
+                                    onRefresh: onRefresh,
+                                    onUpdate: onUpdate,
+                                    onTranslate: null,
+                                  ).alignment(Alignment.centerLeft),
+                                  const Gap(8),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      PostInteractionsSlivers(
+                        postId: postId,
+                        maxWidth: _postDetailMaxWidth,
+                      ),
+                      SliverGap(showQuickReply ? 16.0 : 24.0),
+                    ],
+                  ),
+                ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 160),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeOutCubic,
+                child: showQuickReply
+                    ? Container(
+                        key: const ValueKey('quick-reply'),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withOpacity(0.96),
+                          border: Border(
+                            top: BorderSide(
+                              color: theme.colorScheme.outline.withOpacity(
+                                0.12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: _postDetailMaxWidth,
+                            ),
+                            child: PostQuickReply(
+                              parent: post,
+                              onPosted: () {
+                                ref
+                                    .read(postRepliesProvider(postId).notifier)
+                                    .refresh();
+                              },
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(
+                        key: ValueKey('quick-reply-hidden'),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BlogPostWebView extends HookWidget {
+  final String? url;
+  final ValueChanged<double>? onScrollChanged;
+
+  const _BlogPostWebView({required this.url, this.onScrollChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLoading = useState(url != null);
+
+    if (url == null) {
+      return ColoredBox(
+        color: theme.colorScheme.surfaceContainerLowest,
+        child: Center(
+          child: Text(
+            'Unable to open blog URL',
+            style: theme.textTheme.bodyLarge,
+          ),
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        InAppWebView(
+          initialUrlRequest: URLRequest(url: WebUri(url!)),
+          initialSettings: InAppWebViewSettings(
+            javaScriptEnabled: true,
+            mediaPlaybackRequiresUserGesture: false,
+            allowsInlineMediaPlayback: true,
+            supportZoom: true,
+            useShouldOverrideUrlLoading: true,
+            preferredContentMode: UserPreferredContentMode.RECOMMENDED,
+          ),
+          onLoadStart: (_, _) {
+            isLoading.value = true;
+          },
+          onLoadStop: (_, _) {
+            isLoading.value = false;
+          },
+          onLoadError: (_, _, _, _) {
+            isLoading.value = false;
+          },
+          onLoadHttpError: (_, _, _, _) {
+            isLoading.value = false;
+          },
+          onScrollChanged: (_, _, y) {
+            onScrollChanged?.call(y.toDouble());
+          },
+          shouldOverrideUrlLoading: (_, navigationAction) async {
+            final target = navigationAction.request.url?.toString();
+            if (target != null && target != url) {
+              final uri = Uri.tryParse(target);
+              if (uri != null) {
+                launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+              return NavigationActionPolicy.CANCEL;
+            }
+            return NavigationActionPolicy.ALLOW;
+          },
+        ),
+        if (isLoading.value)
+          ColoredBox(
+            color: theme.colorScheme.surfaceContainerLowest,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      ],
+    );
+  }
+}
+
+class _BlogPostSummaryCard extends StatelessWidget {
+  final SnPost post;
+
+  const _BlogPostSummaryCard({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final url = _getBlogUrl(post);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Badge(
+                label: const Text('postBlog').tr(),
+                backgroundColor: theme.colorScheme.tertiary,
+                textColor: theme.colorScheme.onTertiary,
+              ),
+              const Spacer(),
+              if (url != null)
+                Tooltip(
+                  message: 'openBlog'.tr(),
+                  child: InkWell(
+                    onTap: () {
+                      launchUrl(
+                        Uri.parse(url),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    child: const Icon(Symbols.open_in_new, size: 16),
+                  ),
+                ),
+            ],
+          ),
+          const Gap(4),
+          if (post.title?.isNotEmpty ?? false)
+            Text(
+              post.title!,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          if (post.description?.isNotEmpty ?? false) ...[
+            Text(post.description!, style: theme.textTheme.bodyMedium),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 @RoutePage()
 class PostDetailScreen extends HookConsumerWidget {
   final String id;
@@ -1866,7 +2236,10 @@ class PostDetailScreen extends HookConsumerWidget {
     final postState = ref.watch(postStateProvider(id));
     final translating = useState(false);
     final translatedText = useState<String?>(null);
+    final isBlogAppBarVisible = useState(true);
     final currentLanguage = context.locale.toString();
+    final currentPost = postState.asData?.value;
+    final isBlogPost = currentPost?.type == 2;
 
     Future<void> translatePost(String text) async {
       if (translatedText.value != null) {
@@ -1891,10 +2264,27 @@ class PostDetailScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        leading: const AutoLeadingButton(),
-        title: Text('postDetail').tr(),
-      ),
+      appBar: isBlogPost
+          ? PreferredSize(
+              preferredSize: Size.fromHeight(
+                isBlogAppBarVisible.value ? kToolbarHeight : 0,
+              ),
+              child: ClipRect(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  height: isBlogAppBarVisible.value ? kToolbarHeight : 0,
+                  child: AppBar(
+                    leading: const AutoLeadingButton(),
+                    title: Text('postDetail').tr(),
+                  ),
+                ),
+              ),
+            )
+          : AppBar(
+              leading: const AutoLeadingButton(),
+              title: Text('postDetail').tr(),
+            ),
       body: postState.when(
         data: (post) {
           final postItem = post!;
@@ -2203,7 +2593,28 @@ class PostDetailScreen extends HookConsumerWidget {
                   ref.invalidate(postProvider(id));
                   ref.read(postRepliesProvider(id).notifier).refresh();
                 },
-                child: isMediaPostLayout
+                child: postItem.type == 2
+                    ? _BlogPostDetailLayout(
+                        post: postItem,
+                        postId: id,
+                        trailing: trailing,
+                        translatedText: translatedText.value,
+                        isTranslating: translating.value,
+                        onTranslate: translatePost,
+                        onAppBarVisibilityChanged: (visible) {
+                          isBlogAppBarVisible.value = visible;
+                        },
+                        onRefresh: () {
+                          ref.invalidate(postProvider(id));
+                          ref.read(postRepliesProvider(id).notifier).refresh();
+                        },
+                        onUpdate: (newItem) {
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(newItem);
+                        },
+                      )
+                    : isMediaPostLayout
                     ? _PostDetailLargeScreenLayout(
                         post: postItem,
                         postId: id,
@@ -2389,7 +2800,9 @@ class PostDetailScreen extends HookConsumerWidget {
                         ],
                       ),
               ),
-              if (user.value != null && !isMediaPostLayout)
+              if (user.value != null &&
+                  !isMediaPostLayout &&
+                  postItem.type != 2)
                 Positioned(
                   bottom: 16 + MediaQuery.of(context).padding.bottom,
                   left: 16,
