@@ -52,6 +52,103 @@ void main() {
 
     expect(find.byIcon(Icons.add), findsNothing);
   });
+
+  testWidgets('selecting a day updates the visible day agenda', (tester) async {
+    final day = DateTime(2026, 6, 15);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          eventCalendarProvider.overrideWith(
+            (ref, query) async => [
+              SnEventCalendarEntry(
+                date: day,
+                userEvents: [
+                  _event(
+                    id: 'event-1',
+                    title: 'Independence Day Dinner',
+                    startTime: day.add(const Duration(hours: 19)),
+                    endTime: day.add(const Duration(hours: 21)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          accountProvider.overrideWith((ref, name) async => _account(name)),
+        ],
+        child: const MaterialApp(home: EventHubScreen(name: 'me')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('15').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Independence Day Dinner'), findsOneWidget);
+  });
+
+  testWidgets(
+    'agenda and day switches show schedule content for the selected date',
+    (tester) async {
+      final day = DateTime(2026, 6, 15);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            eventCalendarProvider.overrideWith(
+              (ref, query) async => [
+                SnEventCalendarEntry(
+                  date: day,
+                  userEvents: [
+                    _event(
+                      id: 'event-1',
+                      title: 'Morning Run',
+                      startTime: day.add(const Duration(hours: 8)),
+                      endTime: day.add(const Duration(hours: 9)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            accountProvider.overrideWith((ref, name) async => _account(name)),
+          ],
+          child: const MaterialApp(home: EventHubScreen(name: 'me')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('15').first);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Agenda'));
+      await tester.pumpAndSettle();
+      expect(find.text('Morning Run'), findsOneWidget);
+
+      await tester.tap(find.text('Day'));
+      await tester.pumpAndSettle();
+      expect(find.text('08:00'), findsOneWidget);
+    },
+  );
+}
+
+SnUserCalendarEvent _event({
+  required String id,
+  required String title,
+  required DateTime startTime,
+  required DateTime endTime,
+  bool isAllDay = false,
+}) {
+  final now = DateTime(2026, 6, 30, 12);
+  return SnUserCalendarEvent(
+    id: id,
+    title: title,
+    startTime: startTime,
+    endTime: endTime,
+    isAllDay: isAllDay,
+    accountId: 'account-1',
+    createdAt: now,
+    updatedAt: now,
+  );
 }
 
 SnAccount _account(String name) {
