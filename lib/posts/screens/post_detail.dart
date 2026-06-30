@@ -1,15 +1,20 @@
+import 'dart:ui';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart'
     show DraggableOverlaySheet;
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -28,19 +33,21 @@ import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
+import 'package:island/posts/widgets/post_detail_content.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
-import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
+import 'package:island/shared/widgets/content/image.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -155,16 +162,6 @@ String? _getBlogUrl(SnPost post) {
     }
   }
   return null;
-}
-
-IDisplayableCloudFile? _getPostThumbnail(SnPost post) {
-  final thumbnailId = post.meta?['thumbnail'] as String?;
-  if (thumbnailId == null) return null;
-  try {
-    return post.attachments.firstWhere((a) => a.id == thumbnailId);
-  } catch (_) {
-    return null;
-  }
 }
 
 class PostRealmBadge extends StatelessWidget {
@@ -1059,10 +1056,10 @@ class _PostNeighborCard extends StatelessWidget {
   }
 }
 
-class _PostThreadCard extends StatelessWidget {
+class PostThreadCard extends StatelessWidget {
   final SnPost post;
 
-  const _PostThreadCard({required this.post});
+  const PostThreadCard({super.key, required this.post});
 
   @override
   Widget build(BuildContext context) {
@@ -1385,6 +1382,35 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
+    final pageController = usePageController();
+    final focusedIndex = useState(0);
+    final imageFiles = useMemoized(
+      () => post.attachments.where((file) => file.mimeType.startsWith('image')),
+      [post.attachments],
+    );
+
+    void openMediaAt(int index) {
+      final file = post.attachments[index];
+      if (file.mimeType.startsWith('image')) {
+        final viewableFiles = imageFiles.toList();
+        final viewableIndex = viewableFiles.indexWhere(
+          (item) => item.id == file.id,
+        );
+        if (viewableIndex != -1) {
+          context.pushTransparentRoute(
+            CloudFileLightbox(
+              items: viewableFiles,
+              initialIndex: viewableIndex,
+              heroTag: 'post-detail-media-${post.id}-${file.id}',
+              sourcePost: post,
+            ),
+            rootNavigator: true,
+          );
+          return;
+        }
+      }
+      context.router.push(FileDetailRoute(id: file.id, sourcePost: post));
+    }
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
@@ -1648,16 +1674,81 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       children: [
         Expanded(
           flex: 3,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: CloudFileList(
-                files: post.attachments,
-                sourcePost: post,
-                disableConstraint: true,
-                padding: EdgeInsets.zero,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _DesktopMediaBackground(
+                file: post.attachments[focusedIndex.value],
               ),
-            ),
+              PageView.builder(
+                controller: pageController,
+                itemCount: post.attachments.length,
+                onPageChanged: (index) => focusedIndex.value = index,
+                itemBuilder: (context, index) {
+                  final file = post.attachments[index];
+                  return _DesktopMediaPage(
+                    file: file,
+                    heroTag: 'post-detail-media-${post.id}-${file.id}',
+                    sourcePost: post,
+                    onTap: () => openMediaAt(index),
+                  );
+                },
+              ),
+              if (post.attachments.length > 1) ...[
+                Positioned(
+                  left: 20,
+                  top: 20,
+                  child: _DesktopMediaCountBadge(
+                    current: focusedIndex.value + 1,
+                    total: post.attachments.length,
+                  ),
+                ),
+                Positioned(
+                  left: 20,
+                  top: 0,
+                  bottom: 0,
+                  child: _DesktopMediaArrowButton(
+                    icon: Symbols.chevron_left,
+                    onTap: focusedIndex.value > 0
+                        ? () => pageController.previousPage(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                          )
+                        : null,
+                  ),
+                ),
+                Positioned(
+                  right: 20,
+                  top: 0,
+                  bottom: 0,
+                  child: _DesktopMediaArrowButton(
+                    icon: Symbols.chevron_right,
+                    onTap: focusedIndex.value < post.attachments.length - 1
+                        ? () => pageController.nextPage(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                          )
+                        : null,
+                  ),
+                ),
+                Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 20,
+                  child: _DesktopMediaStrip(
+                    files: post.attachments,
+                    currentIndex: focusedIndex.value,
+                    onSelect: (index) {
+                      pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         Expanded(
@@ -1818,7 +1909,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                               top: 8,
                                               bottom: 8,
                                             ),
-                                            child: _PostThreadCard(post: post),
+                                            child: PostThreadCard(post: post),
                                           ),
                                         if (post.realm != null)
                                           PostRealmBadge(
@@ -1865,6 +1956,291 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DesktopMediaBackground extends ConsumerWidget {
+  final IDisplayableCloudFile file;
+
+  const _DesktopMediaBackground({required this.file});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serverUrl = ref.watch(serverUrlProvider);
+    final isImage = file.mimeType.startsWith('image');
+    final isVideo = file.mimeType.startsWith('video');
+    final thumbnailUri =
+        file.storageUrl ?? '$serverUrl/drive/files/${file.id}?thumbnail=true';
+
+    Widget child;
+    if (isImage && file.blurhash?.isNotEmpty == true) {
+      child = BlurHash(hash: file.blurhash!);
+    } else if (isImage) {
+      child = Stack(
+        fit: StackFit.expand,
+        children: [
+          CloudFileWidget(
+            item: file,
+            fit: BoxFit.cover,
+            noBlurhash: true,
+            useInternalGate: false,
+          ),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+            child: Container(color: Colors.black38),
+          ),
+        ],
+      );
+    } else if (isVideo) {
+      child = Stack(
+        fit: StackFit.expand,
+        children: [
+          UniversalImage(uri: thumbnailUri, fit: BoxFit.cover),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+            child: Container(color: Colors.black38),
+          ),
+        ],
+      );
+    } else {
+      child = const ColoredBox(color: Colors.black);
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 320),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: ColoredBox(
+        key: ValueKey(file.id),
+        color: Colors.black,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Positioned.fill(child: child),
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x22000000), Color(0x66000000)],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopMediaPage extends StatelessWidget {
+  final IDisplayableCloudFile file;
+  final String heroTag;
+  final SnPost sourcePost;
+  final VoidCallback onTap;
+
+  const _DesktopMediaPage({
+    required this.file,
+    required this.heroTag,
+    required this.sourcePost,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = file.ratio?.toDouble() ?? 1.0;
+    final isAudio = file.mimeType.startsWith('audio');
+
+    Widget content = CloudFileWidget(
+      item: file,
+      heroTag: heroTag,
+      fit: BoxFit.contain,
+      noBlurhash: true,
+      useInternalGate: false,
+      sourcePost: sourcePost,
+    );
+
+    if (isAudio) {
+      content = SizedBox(height: 160, child: content);
+    } else {
+      content = AspectRatio(
+        aspectRatio: ratio <= 0 ? 1.0 : ratio,
+        child: content,
+      );
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Center(child: content),
+      ),
+    );
+  }
+}
+
+class _DesktopMediaArrowButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _DesktopMediaArrowButton({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 180),
+        opacity: onTap == null ? 0.35 : 1,
+        child: Material(
+          color: Colors.black45,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopMediaCountBadge extends StatelessWidget {
+  final int current;
+  final int total;
+
+  const _DesktopMediaCountBadge({required this.current, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black45,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Text(
+          '$current/$total',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopMediaStrip extends ConsumerWidget {
+  final List<IDisplayableCloudFile> files;
+  final int currentIndex;
+  final ValueChanged<int> onSelect;
+
+  const _DesktopMediaStrip({
+    required this.files,
+    required this.currentIndex,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      height: 76,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.black38,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.all(10),
+          itemCount: files.length,
+          separatorBuilder: (_, _) => const Gap(10),
+          itemBuilder: (context, index) {
+            final file = files[index];
+            final isActive = index == currentIndex;
+            return GestureDetector(
+              onTap: () => onSelect(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 96,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.white24,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: isActive
+                      ? const [
+                          BoxShadow(
+                            color: Colors.black45,
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: ColoredBox(
+                    color: Colors.black,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Positioned.fill(
+                          child: file.mimeType.startsWith('video')
+                              ? Consumer(
+                                  builder: (context, ref, _) {
+                                    final serverUrl = ref.watch(
+                                      serverUrlProvider,
+                                    );
+                                    final uri =
+                                        file.storageUrl ??
+                                        '$serverUrl/drive/files/${file.id}';
+                                    return UniversalImage(
+                                      uri: '$uri?thumbnail=true',
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+                                )
+                              : CloudFileWidget(
+                                  item: file,
+                                  fit: BoxFit.cover,
+                                  noBlurhash: true,
+                                  useInternalGate: false,
+                                ),
+                        ),
+                        if (file.mimeType.startsWith('video'))
+                          const Center(
+                            child: Icon(
+                              Symbols.play_arrow,
+                              color: Colors.white,
+                              size: 24,
+                              shadows: [
+                                BoxShadow(
+                                  color: Colors.black54,
+                                  offset: Offset(1, 1),
+                                  spreadRadius: 8,
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -1980,7 +2356,7 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
                                         top: 8,
                                         bottom: 8,
                                       ),
-                                      child: _PostThreadCard(post: post),
+                                      child: PostThreadCard(post: post),
                                     ),
                                   if (post.publisherCollections.isNotEmpty)
                                     Padding(
@@ -1988,7 +2364,9 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
                                         top: 8,
                                         bottom: 8,
                                       ),
-                                      child: PostCollectionNavigation(post: post),
+                                      child: PostCollectionNavigation(
+                                        post: post,
+                                      ),
                                     ),
                                   if (post.realm != null)
                                     PostRealmBadge(
@@ -2288,7 +2666,6 @@ class PostDetailScreen extends HookConsumerWidget {
       body: postState.when(
         data: (post) {
           final postItem = post!;
-          final thumbnail = _getPostThumbnail(postItem);
           final isMediaPostLayout =
               isWideScreen(context) && _isMediaPost(postItem);
 
@@ -2588,240 +2965,105 @@ class PostDetailScreen extends HookConsumerWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              ExtendedRefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(postProvider(id));
-                  ref.read(postRepliesProvider(id).notifier).refresh();
-                },
-                child: postItem.type == 2
-                    ? _BlogPostDetailLayout(
-                        post: postItem,
-                        postId: id,
-                        trailing: trailing,
-                        translatedText: translatedText.value,
-                        isTranslating: translating.value,
-                        onTranslate: translatePost,
-                        onAppBarVisibilityChanged: (visible) {
-                          isBlogAppBarVisible.value = visible;
-                        },
-                        onRefresh: () {
-                          ref.invalidate(postProvider(id));
-                          ref.read(postRepliesProvider(id).notifier).refresh();
-                        },
-                        onUpdate: (newItem) {
-                          ref
-                              .read(postStateProvider(id).notifier)
-                              .updatePost(newItem);
-                        },
-                      )
-                    : isMediaPostLayout
-                    ? _PostDetailLargeScreenLayout(
-                        post: postItem,
-                        postId: id,
-                        onUpdate: (newItem) {
-                          ref
-                              .read(postStateProvider(id).notifier)
-                              .updatePost(newItem);
-                        },
-                        onRefresh: () {
-                          ref.invalidate(postProvider(id));
-                          ref.read(postRepliesProvider(id).notifier).refresh();
-                        },
-                        onTranslate: translatePost,
-                        translatedText: translatedText.value,
-                        isTranslating: translating.value,
-                      )
-                    : CustomScrollView(
-                        slivers: [
-                          if (postItem.type == 1 && thumbnail != null)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(12),
-                                    ),
-                                    child: CloudFileList(
-                                      files: [thumbnail],
-                                      sourcePost: postItem,
-                                      padding: EdgeInsets.zero,
-                                      disableConstraint: true,
-                                    ),
-                                  ).padding(left: 8, right: 8, top: 16),
-                                ),
-                              ),
-                            ),
-                          SliverToBoxAdapter(
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: _postDetailMaxWidth,
-                                ),
-                                child: PostItem(
-                                  item: postItem,
-                                  isFullPost: true,
-                                  isEmbedReply: false,
-                                  isTranslatable: false,
-                                  textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                  padding: const EdgeInsets.fromLTRB(
-                                    8,
-                                    8,
-                                    8,
-                                    0,
-                                  ),
-                                  onUpdate: (newItem) {
-                                    ref
-                                        .read(postStateProvider(id).notifier)
-                                        .updatePost(newItem);
-                                  },
-                                  trailing: trailing,
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (postItem.repliedPostId != null ||
-                              postItem.forwardedPostId != null)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      12,
-                                      8,
-                                      12,
-                                      8,
-                                    ),
-                                    child: _PostThreadCard(post: postItem),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (postItem.publisherCollections.isNotEmpty)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      8,
-                                      16,
-                                      8,
-                                    ),
-                                    child: PostCollectionNavigation(
-                                      post: postItem,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (postItem.realm != null)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: PostRealmBadge(
-                                    realm: postItem.realm!,
-                                  ).padding(horizontal: 16, vertical: 8),
-                                ),
-                              ),
-                            ),
-                          if (translatedText.value != null || translating.value)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: buildPostTranslationSection(
-                                      context: context,
-                                      item: postItem,
-                                      isTextSelectable: true,
-                                      textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                      translatedText: translatedText.value,
-                                      isTranslating: translating.value,
-                                      onTranslate: () =>
-                                          translatePost(postItem.content ?? ''),
-                                      showTranslateButton: false,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          SliverToBoxAdapter(
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: _postDetailMaxWidth,
-                                ),
-                                child: PostActionButtons(
-                                  post: postItem,
-                                  renderingPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  onRefresh: () {
-                                    ref.invalidate(postProvider(id));
-                                    ref
-                                        .read(postRepliesProvider(id).notifier)
-                                        .refresh();
-                                  },
-                                  onUpdate: (newItem) {
-                                    ref
-                                        .read(postStateProvider(id).notifier)
-                                        .updatePost(newItem);
-                                  },
-                                  onTranslate: translatePost,
-                                ).alignment(Alignment.centerLeft),
-                              ),
-                            ),
-                          ),
-                          DefaultTabController(
-                            length: 4,
-                            child: PostInteractionsSlivers(
-                              postId: id,
-                              maxWidth: _postDetailMaxWidth,
-                            ),
-                          ),
-                          SliverGap(MediaQuery.of(context).padding.bottom + 80),
-                        ],
-                      ),
-              ),
-              if (user.value != null &&
-                  !isMediaPostLayout &&
-                  postItem.type != 2)
-                Positioned(
-                  bottom: 16 + MediaQuery.of(context).padding.bottom,
-                  left: 16,
-                  right: 16,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
+              if (postItem.type == 2 || isMediaPostLayout)
+                ExtendedRefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  },
+                  child: postItem.type == 2
+                      ? _BlogPostDetailLayout(
+                          post: postItem,
+                          postId: id,
+                          trailing: trailing,
+                          translatedText: translatedText.value,
+                          isTranslating: translating.value,
+                          onTranslate: translatePost,
+                          onAppBarVisibilityChanged: (visible) {
+                            isBlogAppBarVisible.value = visible;
+                          },
+                          onRefresh: () {
+                            ref.invalidate(postProvider(id));
+                            ref
+                                .read(postRepliesProvider(id).notifier)
+                                .refresh();
+                          },
+                          onUpdate: (newItem) {
+                            ref
+                                .read(postStateProvider(id).notifier)
+                                .updatePost(newItem);
+                          },
+                        )
+                      : _PostDetailLargeScreenLayout(
+                          post: postItem,
+                          postId: id,
+                          onUpdate: (newItem) {
+                            ref
+                                .read(postStateProvider(id).notifier)
+                                .updatePost(newItem);
+                          },
+                          onRefresh: () {
+                            ref.invalidate(postProvider(id));
+                            ref
+                                .read(postRepliesProvider(id).notifier)
+                                .refresh();
+                          },
+                          onTranslate: translatePost,
+                          translatedText: translatedText.value,
+                          isTranslating: translating.value,
+                        ),
+                )
+              else
+                PostDetailContent(
+                  postId: id,
+                  post: postItem,
+                  trailing: trailing,
+                  onRefresh: () async {
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  },
+                  onUpdate: (newItem) {
+                    ref
+                        .read(postStateProvider(id).notifier)
+                        .updatePost(newItem);
+                  },
+                  onReplyPosted: () {
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  },
+                  threadSection:
+                      postItem.repliedPostId != null ||
+                          postItem.forwardedPostId != null
+                      ? PostThreadCard(post: postItem)
+                      : null,
+                  collectionSection: postItem.publisherCollections.isNotEmpty
+                      ? PostCollectionNavigation(post: postItem)
+                      : null,
+                  realmSection: postItem.realm != null
+                      ? PostRealmBadge(realm: postItem.realm!)
+                      : null,
+                  actionBuilder: (context, onTranslate) => PostActionButtons(
+                    post: postItem,
+                    renderingPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
+                    onRefresh: () {
+                      ref.invalidate(postProvider(id));
+                      ref.read(postRepliesProvider(id).notifier).refresh();
+                    },
+                    onUpdate: (newItem) {
+                      ref
+                          .read(postStateProvider(id).notifier)
+                          .updatePost(newItem);
+                    },
+                    onTranslate: onTranslate,
+                  ).alignment(Alignment.centerLeft),
+                  interactionsSection: DefaultTabController(
+                    length: 4,
+                    child: PostInteractionsSlivers(
+                      postId: id,
                       maxWidth: _postDetailMaxWidth,
                     ),
-                    child: postState.when(
-                      data: (post) => PostQuickReply(
-                        parent: post!,
-                        onPosted: () {
-                          ref.read(postRepliesProvider(id).notifier).refresh();
-                        },
-                      ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                    ),
-                  ).center(),
+                  ),
                 ),
             ],
           );
