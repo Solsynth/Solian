@@ -7,6 +7,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart'
+    show DraggableOverlaySheet;
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/config.dart';
@@ -326,104 +328,38 @@ class FileDetailScreen extends HookConsumerWidget {
     required ValueChanged<double> onPanelHeightChanged,
   }) {
     final hasContextPanel = sourcePost != null || showOwnerBar;
-    final isCollapsed = panelHeight <= collapsedPanelHeight + 4;
+    final content = _buildContent(context, ref, serverUrl, item);
+    if (!hasContextPanel) return content;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: _buildContent(context, ref, serverUrl, item)),
-        if (hasContextPanel)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutCubic,
-            height: panelHeight,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.96),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+    return DraggableOverlaySheet(
+      body: content,
+      minHeight: minPanelHeight,
+      initialHeight: panelHeight,
+      maxHeight: maxPanelHeight,
+      snapHeights: snapPoints,
+      backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.96),
+      onHeightChanged: onPanelHeightChanged,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (sourcePost != null)
+              PostItem(
+                item: sourcePost!,
+                padding: EdgeInsets.zero,
+                isCompact: true,
+                hideAttachments: true,
+                isEmbedReply: false,
+                isShowReference: false,
+                isTextSelectable: false,
+                isTranslatable: false,
               ),
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                ),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onVerticalDragUpdate: (details) {
-                    onPanelHeightChanged(
-                      (panelHeight - details.delta.dy).clamp(
-                        minPanelHeight,
-                        maxPanelHeight,
-                      ),
-                    );
-                  },
-                  onVerticalDragEnd: (_) {
-                    if (snapPoints.isEmpty) return;
-                    final nearest = snapPoints.reduce(
-                      (best, point) =>
-                          (point - panelHeight).abs() <
-                              (best - panelHeight).abs()
-                          ? point
-                          : best,
-                    );
-                    onPanelHeightChanged(nearest);
-                  },
-                  onTap: () {
-                    if (isCollapsed && snapPoints.length > 1) {
-                      onPanelHeightChanged(snapPoints[1]);
-                    } else if (!isCollapsed) {
-                      onPanelHeightChanged(collapsedPanelHeight);
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 8),
-                    child: Center(
-                      child: Container(
-                        width: 44,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withOpacity(0.35),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                if (!isCollapsed)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (sourcePost != null)
-                            PostItem(
-                              item: sourcePost!,
-                              padding: EdgeInsets.zero,
-                              isCompact: true,
-                              hideAttachments: true,
-                              isEmbedReply: false,
-                              isShowReference: false,
-                              isTextSelectable: false,
-                              isTranslatable: false,
-                            ),
-                          if (sourcePost != null && showOwnerBar) const Gap(12),
-                          if (showOwnerBar)
-                            _buildOwnerBar(context, ref, item.accountId),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-      ],
+            if (sourcePost != null && showOwnerBar) const Gap(12),
+            if (showOwnerBar) _buildOwnerBar(context, ref, item.accountId),
+          ],
+        ),
+      ),
     );
   }
 
