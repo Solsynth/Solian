@@ -1,6 +1,6 @@
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-enum EventHubViewMode { month, agenda, day }
+enum EventHubViewMode { day, week, month }
 
 class EventHubDaySection {
   final DateTime date;
