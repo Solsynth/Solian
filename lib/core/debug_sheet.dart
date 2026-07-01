@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/progression_ws.dart';
@@ -1237,7 +1238,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             title: '[CallKit] Copy VoIP Token',
             onTap: () async {
               try {
-                final token = await loadPersistedNativeCallPushToken();
+                final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                 if (token != null) {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (!context.mounted) return;
@@ -2096,7 +2097,7 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Copy VoIP Token'),
                 onTap: () async {
                   try {
-                    final token = await loadPersistedNativeCallPushToken();
+                    final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                     if (token != null) {
                       await Clipboard.setData(ClipboardData(text: token));
                       if (!context.mounted) return;

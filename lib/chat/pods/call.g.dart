@@ -47,7 +47,7 @@ final class CallNotifierProvider
   }
 }
 
-String _$callNotifierHash() => r'7b6254c56209cb899e3e636f78536a1deb235974';
+String _$callNotifierHash() => r'75e9581d88a65a525e65b01fa775d14ad6ab738f';
 
 /// Riverpod wrapper that delegates all call logic to [CallController].
 /// The controller is created lazily on first [joinRoom] call.

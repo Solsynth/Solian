@@ -5,10 +5,9 @@ PODS:
   - bluetooth_low_energy_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
-  - callkeep (0.0.1):
-    - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
+  - CryptoSwift (1.10.0)
   - device_info_plus (0.0.1):
     - Flutter
   - disk_space_2 (0.0.1):
@@ -109,6 +108,9 @@ PODS:
   - flutter_blue_plus_darwin (0.0.2):
     - Flutter
     - FlutterMacOS
+  - flutter_callkit_incoming (0.0.1):
+    - CryptoSwift
+    - Flutter
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
     - flutter_inappwebview_ios/Core (= 0.0.1)
@@ -310,7 +312,6 @@ DEPENDENCIES:
   - Alamofire
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - bluetooth_low_energy_darwin (from `.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
-  - callkeep (from `.symlinks/plugins/callkeep/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - disk_space_2 (from `.symlinks/plugins/disk_space_2/ios`)
@@ -322,6 +323,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_app_update (from `.symlinks/plugins/flutter_app_update/ios`)
   - flutter_blue_plus_darwin (from `.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
+  - flutter_callkit_incoming (from `.symlinks/plugins/flutter_callkit_incoming/ios`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_js (from `.symlinks/plugins/flutter_js/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -371,6 +373,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - Alamofire
+    - CryptoSwift
     - DKImagePickerController
     - DKPhotoGallery
     - Firebase
@@ -400,8 +403,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/audio_session/ios"
   bluetooth_low_energy_darwin:
     :path: ".symlinks/plugins/bluetooth_low_energy_darwin/darwin"
-  callkeep:
-    :path: ".symlinks/plugins/callkeep/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   device_info_plus:
@@ -424,6 +425,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_app_update/ios"
   flutter_blue_plus_darwin:
     :path: ".symlinks/plugins/flutter_blue_plus_darwin/darwin"
+  flutter_callkit_incoming:
+    :path: ".symlinks/plugins/flutter_callkit_incoming/ios"
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
   flutter_js:
@@ -515,8 +518,8 @@ SPEC CHECKSUMS:
   Alamofire: 400275dd1c6d87d95a041861d2a59da4b520a203
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
   bluetooth_low_energy_darwin: 8027d98a11f64f880e4c738157dfe5ca88d28dbc
-  callkeep: 5844c80182e1d8b3679bfd474a47009978abcfb8
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
+  CryptoSwift: e2e7776512f250e66205955da748e7a4e4abffe0
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   disk_space_2: 6679de97ec91ca990d1f22d75ad6bf7f463b8128
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
@@ -535,6 +538,7 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
   flutter_blue_plus_darwin: ee2377ea51a6c9e481f2ed76ec597717ef5d287d
+  flutter_callkit_incoming: a143995975818a3717524decd3566d5ca7a8c608
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_js: 867813c1830e1d9b2c5d547cdb6f61801e2f2145
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214

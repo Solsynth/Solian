@@ -41,7 +41,7 @@ final class NativeCallBridgeProvider
   }
 }
 
-String _$nativeCallBridgeHash() => r'1b73160f06c7f27471b42ef2c73a0340bc123092';
+String _$nativeCallBridgeHash() => r'c0086ea591ab1824eb6f918e6bc97f8f3a5fce02';
 
 abstract class _$NativeCallBridge extends $Notifier<NativeCallState> {
   NativeCallState build();

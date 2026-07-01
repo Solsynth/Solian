@@ -28,9 +28,10 @@ analyzer:
   errors:
     invalid_annotation_target: ignore
     deprecated_member_use: ignore
-  exclude: 
+  exclude:
     - lib/*.g.dart
     - lib/*.freezed.dart
     - build/**/*.dart
+    - packages/**
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

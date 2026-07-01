@@ -285,6 +285,16 @@ class AppWrapper extends HookConsumerWidget {
           return;
         }
 
+        if (!kIsWeb &&
+            Platform.isIOS &&
+            current.isAcceptedPending &&
+            !current.isAudioSessionActive) {
+          Logger.root.info(
+            '[AppWrapper] Waiting for CallKit audio session before joining room=$currRoomId',
+          );
+          return;
+        }
+
         if (currRoomId != lastHandledAcceptedRoomId.value &&
             (current.isAcceptedPending || current.isConnected)) {
           lastHandledAcceptedRoomId.value = currRoomId;

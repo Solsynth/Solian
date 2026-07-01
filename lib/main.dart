@@ -50,10 +50,13 @@ const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NativeCallBackgroundBridge.ensureInitialized();
-  final handled = await NativeCallBackgroundBridge.showIncomingCallFromPayload(
-    message.data,
-  );
+  var handled = false;
+  if (!kIsWeb && Platform.isAndroid) {
+    await NativeCallBackgroundBridge.ensureInitialized();
+    handled = await NativeCallBackgroundBridge.showIncomingCallFromPayload(
+      message.data,
+    );
+  }
   Logger.root.info('Handling a background message: ${message.messageId}');
   if (handled) {
     Logger.root.info('[NativeCall] Displayed background incoming call');
@@ -154,6 +157,10 @@ void main(List<String> args) async {
         FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler,
         );
+      }
+
+      if (!kIsWeb && Platform.isAndroid) {
+        await NativeCallBackgroundBridge.ensureInitialized();
       }
 
       Logger.root.info("[SplashScreen] Firebase is ready!");

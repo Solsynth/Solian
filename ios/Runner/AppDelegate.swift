@@ -5,17 +5,22 @@ import WatchConnectivity
 import AppIntents
 import Intents
 import PushKit
+import AVFAudio
+import CallKit
 import flutter_sharing_intent
 import Kingfisher
+import flutter_webrtc
+import flutter_callkit_incoming
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, CallKeepPushDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, PKPushRegistryDelegate, CallkitIncomingAppDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
-    private let callKeepPushRegistry = PKPushRegistry(queue: .main)
     private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private var implicitDeepLinkChannel: FlutterMethodChannel?
+    
+    static var shared: AppDelegate? = UIApplication.shared.delegate as? AppDelegate
     
     private func refreshAppIntents() {
         guard #available(iOS 16.0, *) else {
@@ -24,7 +29,7 @@ import Kingfisher
         
         AppShortcuts.updateAppShortcutParameters()
     }
-
+    
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -32,13 +37,13 @@ import Kingfisher
         sendCfgToAppGroup()
         refreshAppIntents()
         WidgetCenter.shared.reloadAllTimelines()
-
+        
         if let launchUrl = launchOptions?[.url] as? URL {
             _ = handleIncomingDeepLink(launchUrl)
         }
-
+        
         UNUserNotificationCenter.current().delegate = notifyDelegate
-
+        
         let replyableMessageCategory = UNNotificationCategory(
             identifier: "CHAT_MESSAGE",
             actions: [
@@ -52,57 +57,140 @@ import Kingfisher
             options: []
         )
         UNUserNotificationCenter.current().setNotificationCategories([replyableMessageCategory])
-
+        
         if WCSession.isSupported() {
             AppDelegate.sharedWatchConnectivityService = WatchConnectivityService.shared
         } else {
             print("[iOS] WCSession not supported on this device.")
         }
-        print("[CallKeep] Registering PushKit payload delegate")
-        CallKeep.setDelegate(self)
-        callKeepPushRegistry.delegate = CallKeep()
-        callKeepPushRegistry.desiredPushTypes = [.voIP]
-        print("[CallKeep] Retained PushKit registry active")
+        
+        // Setup VoIP
+        let mainQueue = DispatchQueue.main
+        let voipRegistry = PKPushRegistry(queue: mainQueue)
+        voipRegistry.delegate = self
+        voipRegistry.desiredPushTypes = [PKPushType.voIP]
+        print("[CallKit] AppDelegate PushKit registry active desired=\(String(describing: voipRegistry.desiredPushTypes))")
+        // VoIP + WebRTC
+        RTCAudioSession.sharedInstance().useManualAudio = true
+        RTCAudioSession.sharedInstance().isAudioEnabled = false
+        // Missed call notification
+//        if #available(iOS 10.0, *) {
+//            UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+//        }
+        
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-
-    func mapPushPayload(_ payload: [AnyHashable : Any]) -> [AnyHashable : Any]? {
-        print("[CallKeep] mapPushPayload incoming keys=\(Array(payload.keys))")
-
-        guard payload["aps"] != nil else {
-            print("[CallKeep] mapPushPayload passthrough: no aps block")
-            return payload
-        }
-
-        guard let meta = payload["meta"] as? [String: Any] else {
-            print("[CallKeep] mapPushPayload passthrough: aps present but meta missing")
-            return payload
-        }
-
-        var mapped = meta
-        mapped["meta"] = meta
-        mapped["caller_id"] = stringValue(meta["caller_id"]) ?? stringValue(meta["callerId"])
-        mapped["caller_name"] = stringValue(meta["caller_name"]) ?? stringValue(meta["callerName"]) ?? callerName(from: payload)
-        mapped["room_id"] = stringValue(meta["room_id"]) ?? stringValue(meta["roomId"])
-        mapped["uuid"] = stringValue(meta["uuid"]) ?? stringValue(meta["call_uuid"]) ?? stringValue(meta["callUuid"])
-        mapped["has_video"] = boolValue(meta["has_video"] ?? meta["hasVideo"])
-        mapped["caller_id_type"] = callerIdType(from: mapped["caller_id"])
-
-        let caller = stringValue(mapped["caller_name"]) ?? "nil"
-        let room = stringValue(mapped["room_id"]) ?? "nil"
-        let uuid = stringValue(mapped["uuid"]) ?? "nil"
-        let handle = stringValue(mapped["caller_id"]) ?? "nil"
-        print("[CallKeep] mapped push caller=\(caller) room=\(room) uuid=\(uuid) handle=\(handle)")
-        return mapped
+    
+    // MARK: - PushKit
+    
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
+        let token = credentials.token.map { String(format: "%02x", $0) }.joined()
+        print("[CallKit] didUpdatePushCredentials type=\(type.rawValue) tokenPrefix=\(String(token.prefix(8)))… appState=\(UIApplication.shared.applicationState.rawValue) isProtectedDataAvailable=\(UIApplication.shared.isProtectedDataAvailable)")
+        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP(token)
     }
-
-    func onCallEvent(_ event: String, withCallData callData: [AnyHashable : Any]) {
-        print("[CallKeep] event=\(event) data=\(callData)")
+    
+    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        print("[CallKit] didInvalidatePushTokenFor type=\(type.rawValue) appState=\(UIApplication.shared.applicationState.rawValue)")
+        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.setDevicePushTokenVoIP("")
+    }
+    
+    func pushRegistry(
+        _ registry: PKPushRegistry,
+        didReceiveIncomingPushWith payload: PKPushPayload,
+        for type: PKPushType,
+        completion: @escaping () -> Void
+    ) {
+        print("[CallKit] didReceiveIncomingPushWith type=\(type.rawValue) appState=\(UIApplication.shared.applicationState.rawValue) isProtectedDataAvailable=\(UIApplication.shared.isProtectedDataAvailable) registryDelegateSet=\(registry.delegate != nil) registryDesiredTypes=\(registry.desiredPushTypes?.description ?? "nil") pluginInstance=\(SwiftFlutterCallkitIncomingPlugin.sharedInstance != nil ? "alive" : "nil")")
+        print("[CallKit] payload.allKeys=\(Array(payload.dictionaryPayload.keys).map { String(describing: $0) }.sorted()) payload=\(payload.dictionaryPayload)")
+        
+        guard type == .voIP else {
+            print("[CallKit] not a VoIP push — calling completion() without reporting")
+            completion()
+            return
+        }
+        let voipDict = payload.dictionaryPayload.reduce(into: [String: Any]()) { r, e in
+            r[String(describing: e.key)] = e.value
+        }
+        reportIncomingPush(dict: voipDict, completion: completion)
+    }
+    
+    private func reportIncomingPush(dict: [String: Any], completion: @escaping () -> Void) {
+        let id = (dict["uuid"] as? String) ?? UUID().uuidString.lowercased()
+        let nameCaller = (dict["caller_name"] as? String) ?? ""
+        let handle = (dict["caller_id"] as? String) ?? ""
+        let isVideo = (dict["has_video"] as? Bool) ?? false
+        
+        var extra: [String: Any] = [:]
+        if let roomId = dict["room_id"] as? String { extra["room_id"] = roomId }
+        if let callerId = dict["caller_id"] as? String { extra["caller_id"] = callerId }
+        if let pfp = dict["pfp"] as? String { extra["pfp"] = pfp }
+        
+        let reportData = Data(
+            id: id,
+            nameCaller: nameCaller,
+            handle: handle,
+            type: isVideo ? 1 : 0
+        )
+        reportData.ringtonePath = "SfxCall.wav"
+        // explicit asset name; prevents plugin from falling back to "CallKitLogo" and logging Unable to load icon
+        reportData.iconName = "CallKitLogo"
+        reportData.extra = extra as NSDictionary
+        // Critical: don't let this plugin configure AVAudioSession — LiveKit owns it.
+        // Setting false prevents flutter_callkit_incoming from calling setCategory/setMode/setActive,
+        // which would otherwise fight with audio_session → RTCAudioSession.
+        // reportData.configureAudioSession = false
+        
+        print("[CallKit] reporting to showCallkitIncoming id=\(id) caller=\(nameCaller) handle=\(handle) isVideo=\(isVideo) fromPushKit=true")
+        guard let plugin = SwiftFlutterCallkitIncomingPlugin.sharedInstance else {
+            print("[CallKit] WARNING: plugin instance nil — cannot report")
+            completion()
+            return
+        }
+        plugin.showCallkitIncoming(reportData, fromPushKit: true) {
+            print("[CallKit] showCallkitIncoming completion fired")
+            completion()
+        }
+    }
+    
+    
+    // MARK: - CallkitIncomingAppDelegate
+    
+    func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
+        print("[CallKit] onAccept: \(call.uuid)")
+        // WebRTC: activate audio session here if using RTCAudioSession
+        // RTCAudioSession.sharedInstance().isAudioEnabled = true
+        action.fulfill()
+    }
+    
+    func onDecline(_ call: Call, _ action: CXEndCallAction) {
+        print("[CallKit] onDecline: \(call.uuid)")
+        action.fulfill()
+    }
+    
+    func onEnd(_ call: Call, _ action: CXEndCallAction) {
+        print("[CallKit] onEnd: \(call.uuid)")
+        action.fulfill()
+    }
+    
+    func onTimeOut(_ call: Call) {
+        print("[CallKit] onTimeOut: \(call.uuid)")
+        // no-op: plugin already emits timeout event to Dart
+    }
+    
+    // AVAudioSession handoff is intentionally empty here.
+    // flutter_callkit_incoming already emits the standard AVAudioSession.interruptionNotification
+    // (.ended + .shouldResume) immediately after calling this delegate, which LiveKit's
+    // RTCAudioSession / audio_session listens for and reacts to.
+    func didActivateAudioSession(_ audioSession: AVAudioSession) {}
+    
+    func didDeactivateAudioSession(_ audioSession: AVAudioSession) {}
+    
+    func providerDidReset() {
+        // no-op: plugin manages its own provider
     }
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-        
         setupWidgetSyncChannel(engineBridge: engineBridge)
         implicitDeepLinkChannel = makeDeepLinkChannel(
             binaryMessenger: engineBridge.applicationRegistrar.messenger()
@@ -110,62 +198,23 @@ import Kingfisher
         emitPendingDeepLinkIfNeeded()
     }
     
+    // MARK: Deep linking & Sharing
+    
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-         let sharingIntent = SwiftFlutterSharingIntentPlugin.instance
-         /// if the url is made from SwiftFlutterSharingIntentPlugin then handle it with plugin [SwiftFlutterSharingIntentPlugin]
-         if sharingIntent.hasSameSchemePrefix(url: url) {
-             return sharingIntent.application(app, open: url, options: options)
-         }
-
-         if handleIncomingDeepLink(url) {
-             return true
-         }
-
-         // Proceed url handling for other Flutter libraries like uni_links
-         return super.application(app, open: url, options:options)
-       }
-
-    private func stringValue(_ value: Any?) -> String? {
-        guard let value else { return nil }
-        let text = String(describing: value).trimmingCharacters(in: .whitespacesAndNewlines)
-        return text.isEmpty ? nil : text
-    }
-
-    private func boolValue(_ value: Any?) -> Bool {
-        switch value {
-        case let value as Bool:
-            return value
-        case let value as NSNumber:
-            return value.boolValue
-        case let value as String:
-            switch value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-            case "true", "1", "yes":
-                return true
-            default:
-                return false
-            }
-        default:
-            return false
+        let sharingIntent = SwiftFlutterSharingIntentPlugin.instance
+        /// if the url is made from SwiftFlutterSharingIntentPlugin then handle it with plugin [SwiftFlutterSharingIntentPlugin]
+        if sharingIntent.hasSameSchemePrefix(url: url) {
+            return sharingIntent.application(app, open: url, options: options)
         }
-    }
-
-    private func callerName(from payload: [AnyHashable : Any]) -> String? {
-        guard let aps = payload["aps"] as? [String: Any],
-              let alert = aps["alert"] as? [String: Any] else {
-            return nil
+        
+        if handleIncomingDeepLink(url) {
+            return true
         }
-        return stringValue(alert["title"]) ?? stringValue(alert["body"])
+        
+        // Proceed url handling for other Flutter libraries like uni_links
+        return super.application(app, open: url, options:options)
     }
-
-    private func callerIdType(from callerId: Any?) -> String {
-        guard let callerId = stringValue(callerId) else {
-            return "generic"
-        }
-        let digits = CharacterSet.decimalDigits
-        let phoneChars = digits.union(CharacterSet(charactersIn: "+-() "))
-        return callerId.unicodeScalars.allSatisfy(phoneChars.contains) ? "number" : "generic"
-    }
-
+    
     private func makeDeepLinkChannel(binaryMessenger: FlutterBinaryMessenger) -> FlutterMethodChannel {
         let channel = FlutterMethodChannel(
             name: deepLinkChannelName,
@@ -181,45 +230,47 @@ import Kingfisher
         }
         return channel
     }
-
+    
     private func handleIncomingDeepLink(_ url: URL) -> Bool {
         guard url.scheme == SharedConstants.urlScheme else {
             return false
         }
-
+        
         let urlString = url.absoluteString
         UserDefaults.shared.set(urlString, forKey: SharedConstants.pendingDeepLinkUrlKey)
         UserDefaults.shared.synchronize()
         emitPendingDeepLinkIfNeeded()
         return true
     }
-
+    
     private func emitPendingDeepLinkIfNeeded() {
         guard let urlString = UserDefaults.shared.string(forKey: SharedConstants.pendingDeepLinkUrlKey),
               !urlString.isEmpty,
               let channel = implicitDeepLinkChannel else {
             return
         }
-
+        
         channel.invokeMethod("onDeepLink", arguments: urlString)
     }
-
+    
     private func consumePendingDeepLink() -> String? {
         let defaults = UserDefaults.shared
         defer {
             defaults.removeObject(forKey: SharedConstants.pendingDeepLinkUrlKey)
             defaults.synchronize()
         }
-
+        
         return defaults.string(forKey: SharedConstants.pendingDeepLinkUrlKey)
     }
-
+    
+    // MARK: Widgets
+    
     private func setupWidgetSyncChannel(engineBridge: FlutterImplicitEngineBridge) {
         let channel = FlutterMethodChannel(
             name: "dev.solsynth.solian/widget",
             binaryMessenger: engineBridge.applicationRegistrar.messenger()
         )
-
+        
         channel.setMethodCallHandler { (call, result) in
             if call.method == "sendCfgToAppGroup" {
                 sendCfgToAppGroup()
@@ -247,18 +298,18 @@ import Kingfisher
                 result(FlutterMethodNotImplemented)
             }
         }
-
+        
         let shareSuggestionsChannel = FlutterMethodChannel(
             name: shareSuggestionsChannelName,
             binaryMessenger: engineBridge.applicationRegistrar.messenger()
         )
-
+        
         shareSuggestionsChannel.setMethodCallHandler { [weak self] call, result in
             guard let self = self else {
                 result(FlutterError(code: "APP_DELEGATE_DEALLOCATED", message: nil, details: nil))
                 return
             }
-
+            
             switch call.method {
             case "donateChatConversation":
                 guard let arguments = call.arguments as? [String: Any] else {
@@ -274,7 +325,9 @@ import Kingfisher
             }
         }
     }
-
+    
+    // MARK: Share extension related code
+    
     private func donateChatConversation(arguments: [String: Any]) {
         guard let roomId = arguments["roomId"] as? String,
               !roomId.isEmpty,
@@ -282,11 +335,11 @@ import Kingfisher
               !displayName.isEmpty else {
             return
         }
-
+        
         let isDirect = arguments["isDirect"] as? Bool ?? false
         let recipientAccountName = arguments["recipientAccountName"] as? String
         let recipientNick = arguments["recipientNick"] as? String
-
+        
         let recipients: [INPerson]?
         if isDirect, let recipientIdentifier = (recipientAccountName?.isEmpty == false ? recipientAccountName : recipientNick), !recipientIdentifier.isEmpty {
             let handle = INPersonHandle(value: recipientIdentifier, type: .unknown)
@@ -305,7 +358,7 @@ import Kingfisher
         } else {
             recipients = nil
         }
-
+        
         let intent = INSendMessageIntent(
             recipients: recipients,
             outgoingMessageType: .outgoingMessageText,
@@ -316,26 +369,28 @@ import Kingfisher
             sender: nil,
             attachments: nil
         )
-
+        
         let interaction = INInteraction(intent: intent, response: nil)
         interaction.direction = .outgoing
         interaction.donate(completion: nil)
     }
-
+    
     private func consumePendingShareTarget() -> [String: String]? {
         let defaults = UserDefaults.shared
         defer {
             defaults.removeObject(forKey: SharedConstants.pendingShareTargetRoomIdKey)
             defaults.synchronize()
         }
-
+        
         guard let roomId = defaults.string(forKey: SharedConstants.pendingShareTargetRoomIdKey),
               !roomId.isEmpty else {
             return nil
         }
-
+        
         return ["roomId": roomId]
     }
+    
+    // MARK: Kingfisher the image library config
     
     private func clearImageCache(result: @escaping FlutterResult) {
         configureKingfisherCache()
@@ -375,34 +430,36 @@ import Kingfisher
         cache.diskStorage.config.sizeLimit = 50 * 1024 * 1024 // 50MB limit
         cache.diskStorage.config.expiration = .days(7)
     }
-
+    
     override func applicationDidEnterBackground(_ application: UIApplication) {
         sendCfgToAppGroup()
         refreshAppIntents()
         WidgetCenter.shared.reloadAllTimelines()
     }
-
+    
     override func applicationDidBecomeActive(_ application: UIApplication) {
         emitPendingDeepLinkIfNeeded()
     }
-
+    
     override func applicationWillTerminate(_ application: UIApplication) {
         sendCfgToAppGroup()
         refreshAppIntents()
     }
 }
 
+// MARK: WatchOS app related logic
+
 final class WatchConnectivityService: NSObject, WCSessionDelegate {
     static let shared = WatchConnectivityService()
     private let session: WCSession = .default
-
+    
     private override init() {
         super.init()
         print("[iOS] Activating WCSession...")
         session.delegate = self
         session.activate()
     }
-
+    
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
             print("[iOS] WCSession activation failed: \(error.localizedDescription)")
@@ -413,45 +470,45 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
             }
         }
     }
-
+    
     func sessionDidBecomeInactive(_ session: WCSession) {}
-
+    
     func sessionDidDeactivate(_ session: WCSession) {
         session.activate()
     }
-
+    
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         print("[iOS] Received message: \(message)")
         if let request = message["request"] as? String, request == "data" {
             Task {
                 let token = await UserDefaults.standard.getValidFlutterToken()
                 let serverUrl = UserDefaults.standard.getServerUrl()
-
+                
                 var data: [String: Any] = ["serverUrl": serverUrl]
                 if let token = token {
                     data["token"] = token
                 }
-
+                
                 print("[iOS] Replying with data: \(data)")
                 replyHandler(data)
             }
         }
     }
-
+    
     func sendDataToWatch() {
         guard session.activationState == .activated else {
             return
         }
-
+        
         Task {
             let token = await UserDefaults.standard.getValidFlutterToken()
             let serverUrl = UserDefaults.standard.getServerUrl()
-
+            
             var data: [String: Any] = ["serverUrl": serverUrl]
             if let token = token {
                 data["token"] = token
             }
-
+            
             do {
                 try session.updateApplicationContext(data)
                 print("[iOS] Sent application context: \(data)")

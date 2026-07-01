@@ -8,11 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
-import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/core/services/push_provider.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
 import 'package:logging/logging.dart';
@@ -258,7 +259,7 @@ Future<void> subscribePushNotification(
   if (!kIsWeb && Platform.isLinux) {
     return;
   }
-  if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+  if (!kIsWeb && Platform.isAndroid) {
     await NativeCallBackgroundBridge.ensureInitialized();
   }
   await FirebaseMessaging.instance.requestPermission(
@@ -330,10 +331,18 @@ Future<void> subscribePushNotification(
 Future<bool> _registerVoipTokenIfAvailable(Dio apiClient) async {
   if (kIsWeb || !Platform.isIOS) return false;
   try {
-    final voipToken = await loadPersistedNativeCallPushToken();
+    String? voipToken;
+    for (var i = 0; i < 10; i++) {
+      voipToken = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+      if (voipToken != null && voipToken.isNotEmpty) break;
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    }
     if (voipToken == null || voipToken.isEmpty) {
       return false;
     }
+    Logger.root.info(
+      '[Notification] Registering VoIP token ${voipToken.substring(0, 8)}…',
+    );
     await _putTokenToRemote(
       apiClient,
       voipToken,
