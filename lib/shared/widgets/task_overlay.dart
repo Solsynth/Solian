@@ -203,7 +203,7 @@ class _TaskOverlayBar extends ConsumerWidget {
           child: SizedBox(
             height: height,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(isDesktop ? 0 : 18),
+              borderRadius: BorderRadius.zero,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final fillWidth =
@@ -243,14 +243,7 @@ class _TaskOverlayBar extends ConsumerWidget {
                           width: fillWidth,
                           decoration: BoxDecoration(
                             color: fillColor,
-                            borderRadius: BorderRadius.horizontal(
-                              left: Radius.circular(isDesktop ? 0 : 18),
-                              right: Radius.circular(
-                                fillWidth >= constraints.maxWidth - 0.5
-                                    ? (isDesktop ? 0 : 18)
-                                    : 0,
-                              ),
-                            ),
+                            borderRadius: BorderRadius.zero,
                           ),
                         ),
                       ),
@@ -267,7 +260,7 @@ class _TaskOverlayBar extends ConsumerWidget {
                             width: constraints.maxWidth,
                             child: _buildForeground(
                               theme,
-                              color: colorScheme.onPrimary,
+                              color: Colors.white,
                               text: '$title · $subtitle',
                             ),
                           ),

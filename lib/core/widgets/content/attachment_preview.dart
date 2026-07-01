@@ -702,7 +702,9 @@ class AttachmentPreview extends HookConsumerWidget {
                   replacePath: true,
                 );
                 if (result == null) return;
-                onUpdate?.call(item.copyWith(data: result));
+                onUpdate?.call(
+                  item.copyWith(data: result, displayName: result.name),
+                );
               },
             ),
           if (item.isOnDevice)
