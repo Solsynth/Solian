@@ -4,13 +4,15 @@ import UIKit
 import WatchConnectivity
 import AppIntents
 import Intents
+import PushKit
 import flutter_sharing_intent
 import Kingfisher
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, CallKeepPushDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
+    private let callKeepPushRegistry = PKPushRegistry(queue: .main)
     private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private var implicitDeepLinkChannel: FlutterMethodChannel?
@@ -56,7 +58,46 @@ import Kingfisher
         } else {
             print("[iOS] WCSession not supported on this device.")
         }
+        print("[CallKeep] Registering PushKit payload delegate")
+        CallKeep.setDelegate(self)
+        callKeepPushRegistry.delegate = CallKeep()
+        callKeepPushRegistry.desiredPushTypes = [.voIP]
+        print("[CallKeep] Retained PushKit registry active")
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+
+    func mapPushPayload(_ payload: [AnyHashable : Any]) -> [AnyHashable : Any]? {
+        print("[CallKeep] mapPushPayload incoming keys=\(Array(payload.keys))")
+
+        guard payload["aps"] != nil else {
+            print("[CallKeep] mapPushPayload passthrough: no aps block")
+            return payload
+        }
+
+        guard let meta = payload["meta"] as? [String: Any] else {
+            print("[CallKeep] mapPushPayload passthrough: aps present but meta missing")
+            return payload
+        }
+
+        var mapped = meta
+        mapped["meta"] = meta
+        mapped["caller_id"] = stringValue(meta["caller_id"]) ?? stringValue(meta["callerId"])
+        mapped["caller_name"] = stringValue(meta["caller_name"]) ?? stringValue(meta["callerName"]) ?? callerName(from: payload)
+        mapped["room_id"] = stringValue(meta["room_id"]) ?? stringValue(meta["roomId"])
+        mapped["uuid"] = stringValue(meta["uuid"]) ?? stringValue(meta["call_uuid"]) ?? stringValue(meta["callUuid"])
+        mapped["has_video"] = boolValue(meta["has_video"] ?? meta["hasVideo"])
+        mapped["caller_id_type"] = callerIdType(from: mapped["caller_id"])
+
+        let caller = stringValue(mapped["caller_name"]) ?? "nil"
+        let room = stringValue(mapped["room_id"]) ?? "nil"
+        let uuid = stringValue(mapped["uuid"]) ?? "nil"
+        let handle = stringValue(mapped["caller_id"]) ?? "nil"
+        print("[CallKeep] mapped push caller=\(caller) room=\(room) uuid=\(uuid) handle=\(handle)")
+        return mapped
+    }
+
+    func onCallEvent(_ event: String, withCallData callData: [AnyHashable : Any]) {
+        print("[CallKeep] event=\(event) data=\(callData)")
     }
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
@@ -83,6 +124,47 @@ import Kingfisher
          // Proceed url handling for other Flutter libraries like uni_links
          return super.application(app, open: url, options:options)
        }
+
+    private func stringValue(_ value: Any?) -> String? {
+        guard let value else { return nil }
+        let text = String(describing: value).trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? nil : text
+    }
+
+    private func boolValue(_ value: Any?) -> Bool {
+        switch value {
+        case let value as Bool:
+            return value
+        case let value as NSNumber:
+            return value.boolValue
+        case let value as String:
+            switch value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "true", "1", "yes":
+                return true
+            default:
+                return false
+            }
+        default:
+            return false
+        }
+    }
+
+    private func callerName(from payload: [AnyHashable : Any]) -> String? {
+        guard let aps = payload["aps"] as? [String: Any],
+              let alert = aps["alert"] as? [String: Any] else {
+            return nil
+        }
+        return stringValue(alert["title"]) ?? stringValue(alert["body"])
+    }
+
+    private func callerIdType(from callerId: Any?) -> String {
+        guard let callerId = stringValue(callerId) else {
+            return "generic"
+        }
+        let digits = CharacterSet.decimalDigits
+        let phoneChars = digits.union(CharacterSet(charactersIn: "+-() "))
+        return callerId.unicodeScalars.allSatisfy(phoneChars.contains) ? "number" : "generic"
+    }
 
     private func makeDeepLinkChannel(binaryMessenger: FlutterBinaryMessenger) -> FlutterMethodChannel {
         let channel = FlutterMethodChannel(

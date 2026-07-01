@@ -245,13 +245,40 @@ class NativeCallBridge extends _$NativeCallBridge {
     _listenersRegistered = true;
 
     _callKeep.on<CallKeepDidDisplayIncomingCall>((event) async {
+      Logger.root.info(
+        '[NativeCallBridge] DidDisplayIncomingCall uuid=${event.callData.callUUID} '
+        'fromPushKit=${event.callData.fromPushKit} payload=${event.callData.additionalData}',
+      );
       SystemCallDescriptor? descriptor;
       final payload = event.callData.additionalData;
+      final eventCallUuid = event.callData.callUUID;
       if (payload != null) {
         descriptor = systemCallDescriptorFromPushPayload(payload);
+        if (descriptor != null &&
+            eventCallUuid != null &&
+            eventCallUuid.isNotEmpty &&
+            descriptor.callUuid != eventCallUuid) {
+          descriptor = createSystemCallDescriptor(
+            roomId: descriptor.roomId,
+            callerName: descriptor.callerName,
+            handle: descriptor.handle,
+            hasVideo: descriptor.hasVideo,
+            source: NativeCallSource.incomingPush,
+            callUuid: eventCallUuid,
+            metadata: descriptor.metadata,
+          );
+        }
       }
-      descriptor ??= await _lookupDescriptor(event.callData.callUUID);
-      if (descriptor == null) return;
+      descriptor ??= await _lookupDescriptor(eventCallUuid);
+      if (descriptor == null) {
+        Logger.root.warning(
+          '[NativeCallBridge] DidDisplayIncomingCall missing descriptor for uuid=${event.callData.callUUID}',
+        );
+        return;
+      }
+      Logger.root.info(
+        '[NativeCallBridge] DidDisplayIncomingCall resolved room=${descriptor.roomId} uuid=${descriptor.callUuid}',
+      );
       await _storeDescriptor(descriptor);
 
       state = state.copyWith(
@@ -271,8 +298,13 @@ class NativeCallBridge extends _$NativeCallBridge {
       final roomId = descriptor?.roomId;
       final callerName = descriptor?.callerName;
       Logger.root.info(
-        '[NativeCallBridge] Native answer received: room=$roomId uuid=$callUuid',
+        '[NativeCallBridge] Native answer received: room=$roomId uuid=$callUuid descriptor=$descriptor',
       );
+      if (descriptor == null) {
+        Logger.root.warning(
+          '[NativeCallBridge] Native answer missing descriptor for uuid=$callUuid',
+        );
+      }
       state = state.copyWith(
         callUuid: callUuid,
         roomId: roomId,
@@ -281,6 +313,9 @@ class NativeCallBridge extends _$NativeCallBridge {
         isAcceptedPending: true,
         isConnected: false,
         isIncomingDisplayed: false,
+      );
+      Logger.root.info(
+        '[NativeCallBridge] Native answer state updated acceptedRoom=${state.callKitAcceptedRoomId} pending=${state.isAcceptedPending}',
       );
       if (Platform.isAndroid) {
         unawaited(_callKeep.backToForeground());
@@ -301,6 +336,16 @@ class NativeCallBridge extends _$NativeCallBridge {
         isOutgoing: true,
         source: NativeCallSource.outgoingLocal,
       );
+    });
+
+    _callKeep.on<CallKeepDidActivateAudioSession>((_) {
+      Logger.root.info('[NativeCallBridge] CallKeepDidActivateAudioSession');
+      state = state.copyWith(isAudioSessionActive: true);
+    });
+
+    _callKeep.on<CallKeepDidDeactivateAudioSession>((_) {
+      Logger.root.info('[NativeCallBridge] CallKeepDidDeactivateAudioSession');
+      state = state.copyWith(isAudioSessionActive: false);
     });
 
     _callKeep.on<CallKeepDidPerformSetMutedCallAction>((event) {
@@ -453,6 +498,7 @@ class NativeCallBridge extends _$NativeCallBridge {
       isIncomingDisplayed: false,
       isOnHold: false,
       isOutgoing: false,
+      isAudioSessionActive: false,
       source: null,
     );
   }
@@ -473,6 +519,7 @@ class NativeCallState {
   final bool isIncomingDisplayed;
   final bool isOnHold;
   final bool isOutgoing;
+  final bool isAudioSessionActive;
   final NativeCallSource? source;
   final String? pushToken;
 
@@ -491,6 +538,7 @@ class NativeCallState {
     this.isIncomingDisplayed = false,
     this.isOnHold = false,
     this.isOutgoing = false,
+    this.isAudioSessionActive = false,
     this.source,
     this.pushToken,
   });
@@ -510,6 +558,7 @@ class NativeCallState {
     bool? isIncomingDisplayed,
     bool? isOnHold,
     bool? isOutgoing,
+    bool? isAudioSessionActive,
     Object? source = _unset,
     Object? pushToken = _unset,
   }) {
@@ -534,6 +583,7 @@ class NativeCallState {
       isIncomingDisplayed: isIncomingDisplayed ?? this.isIncomingDisplayed,
       isOnHold: isOnHold ?? this.isOnHold,
       isOutgoing: isOutgoing ?? this.isOutgoing,
+      isAudioSessionActive: isAudioSessionActive ?? this.isAudioSessionActive,
       source: identical(source, _unset)
           ? this.source
           : source as NativeCallSource?,

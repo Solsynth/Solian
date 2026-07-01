@@ -128,6 +128,7 @@ class CallNotifier extends _$CallNotifier {
     await ctrl.joinRoom(room, cameraEnabled: cameraEnabled);
   }
 
+  Future<void> ensureMicrophoneEnabled() => _ctrl.ensureMicrophoneEnabled();
   Future<void> toggleMicrophone() => _ctrl.toggleMicrophone();
   Future<void> toggleCamera() => _ctrl.toggleCamera();
   Future<void> toggleScreenShare(BuildContext context) =>

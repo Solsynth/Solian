@@ -105,6 +105,24 @@ class AppWrapper extends HookConsumerWidget {
     final recentlyHandledInvites = useRef(<String, DateTime>{});
     final lastHandledAcceptedRoomId = useRef<String?>(null);
 
+    void kickCallKitMicrophone(String reason) {
+      if (kIsWeb || !Platform.isIOS) return;
+      final callState = ref.read(callProvider);
+      final nativeState = ref.read(nativeCallBridgeProvider);
+      if (!callState.isConnected ||
+          !nativeState.isAudioSessionActive ||
+          nativeState.callKitAcceptedRoomId == null) {
+        return;
+      }
+      Logger.root.info('[AppWrapper] Restarting iOS CallKit microphone: $reason');
+      unawaited(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        await ref.read(callProvider.notifier).ensureMicrophoneEnabled();
+        await Future<void>.delayed(const Duration(milliseconds: 800));
+        await ref.read(callProvider.notifier).ensureMicrophoneEnabled();
+      }());
+    }
+
     useEffect(() {
       ref.read(progressionWebSocketProvider);
       return null;
@@ -254,6 +272,13 @@ class AppWrapper extends HookConsumerWidget {
         previous,
         current,
       ) {
+        Logger.root.info(
+          '[AppWrapper] Native call state changed '
+          'prevRoom=${previous?.callKitAcceptedRoomId} '
+          'currRoom=${current.callKitAcceptedRoomId} '
+          'pending=${current.isAcceptedPending} '
+          'connected=${current.isConnected}',
+        );
         final currRoomId = current.callKitAcceptedRoomId;
         if (currRoomId == null) {
           lastHandledAcceptedRoomId.value = null;
@@ -268,6 +293,9 @@ class AppWrapper extends HookConsumerWidget {
           );
           unawaited(() async {
             final didNavigate = await _navigateToCallScreen(ref, currRoomId);
+            Logger.root.info(
+              '[AppWrapper] CallKit navigation result room=$currRoomId didNavigate=$didNavigate',
+            );
             if (didNavigate) {
               await ref
                   .read(nativeCallBridgeProvider.notifier)
@@ -297,12 +325,32 @@ class AppWrapper extends HookConsumerWidget {
           ref
               .read(nativeCallBridgeProvider.notifier)
               .markFlutterCallConnected();
+          if (!kIsWeb && Platform.isIOS) {
+            final nativeState = ref.read(nativeCallBridgeProvider);
+            if (nativeState.isAudioSessionActive &&
+                nativeState.callKitAcceptedRoomId != null) {
+              kickCallKitMicrophone('call connected');
+            }
+          }
         }
 
         // Flutter call just disconnected
         if (prevConnected && !currConnected) {
           Logger.root.info('[AppWrapper] Flutter call disconnected');
           ref.read(nativeCallBridgeProvider.notifier).endAllCalls();
+        }
+      });
+      return sub.close;
+    }, []);
+
+    // CallKit may activate audio after LiveKit already published the mic.
+    // Restart capture when that happens; this mirrors the manual mute/unmute fix.
+    useEffect(() {
+      if (!isNativeCallAvailable) return null;
+      final sub = ref.listenManual(nativeCallBridgeProvider, (previous, current) {
+        if (!(previous?.isAudioSessionActive ?? false) &&
+            current.isAudioSessionActive) {
+          kickCallKitMicrophone('audio session activated');
         }
       });
       return sub.close;
@@ -994,14 +1042,21 @@ class AppWrapper extends HookConsumerWidget {
     bool showPendingJoin = false,
   }) async {
     try {
+      Logger.root.info('[AppWrapper] Navigating to CallScreen for room=$roomId');
       final router = ref.read(routerProvider);
       final ctx = router.navigatorKey.currentContext;
-      if (ctx == null || !ctx.mounted) return false;
+      if (ctx == null || !ctx.mounted) {
+        Logger.root.warning(
+          '[AppWrapper] Navigation aborted: navigator context unavailable for room=$roomId',
+        );
+        return false;
+      }
 
       // Fetch the chat room
       final apiClient = ref.read(apiClientProvider);
       final resp = await apiClient.get('/messager/chat/$roomId');
       final room = SnChatRoom.fromJson(resp.data);
+      Logger.root.info('[AppWrapper] Loaded room for call navigation room=$roomId');
       var cameraEnabled = false;
 
       if (!ctx.mounted) return false;

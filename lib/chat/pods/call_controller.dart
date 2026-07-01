@@ -602,6 +602,23 @@ class CallController {
     WakelockPlus.enable();
   }
 
+  Future<void> ensureMicrophoneEnabled() async {
+    final participant = _localParticipant;
+    if (participant == null) return;
+
+    final publication = participant.audioTrackPublications.firstOrNull;
+    if (publication != null && participant.isMicrophoneEnabled()) {
+      Logger.root.info('[Call] Restarting microphone capture');
+      await publication.mute(stopOnMute: true);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      if (_localParticipant != participant) return;
+      await publication.unmute(stopOnMute: true);
+    } else {
+      await participant.setMicrophoneEnabled(true);
+    }
+    _state = state.copyWith(isMicrophoneEnabled: true);
+  }
+
   Future<void> toggleMicrophone() async {
     if (_localParticipant != null) {
       const autostop = true;
