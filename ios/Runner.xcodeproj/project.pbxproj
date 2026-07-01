@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -28,6 +28,8 @@
 		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
 		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		73C567652FF4BFAF0001DDFF /* SfxCall.wav in Resources */ = {isa = PBXBuildFile; fileRef = 73C567642FF4BFAF0001DDFF /* SfxCall.wav */; };
+		73C567662FF4BFAF0001DDFF /* SfxCall.wav in Resources */ = {isa = PBXBuildFile; fileRef = 73C567642FF4BFAF0001DDFF /* SfxCall.wav */; };
 		73CA95E42F8019B000AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E32F8019B000AECCC0 /* KingfisherWebP */; };
 		73CA95E62F8019C400AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E52F8019C400AECCC0 /* KingfisherWebP */; };
 		73CDD6812DEC00480059D95D /* SolianNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -38,10 +40,10 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		AABB00010000000000000011 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000010 /* Localizable.strings */; };
 		B87C0E607033790E71B54D73 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6D834CA86410B09796B312B /* Pods_Runner.framework */; };
 		E1A4D40653FC380B9F235391 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6338FB3E26391446D4BE2241 /* Pods_RunnerTests.framework */; };
 		E7A0B456EF7AAA71D1397081 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9AE244813FCDFAA941430393 /* GoogleService-Info.plist */; };
-		AABB00010000000000000011 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000010 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -153,6 +155,7 @@
 		73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
 		73ACDFB82E3D0E6100B63535 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		73C567642FF4BFAF0001DDFF /* SfxCall.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = SfxCall.wav; sourceTree = "<group>"; };
 		73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyDelegate.swift; sourceTree = "<group>"; };
 		73D801DD2F65CF6900AC3735 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -174,18 +177,18 @@
 		A2EB1DAFDE9B8E6D88BBF7A3 /* Pods-WatchRunner Watch App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.release.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.release.xcconfig"; sourceTree = "<group>"; };
 		A499FDB2082EB000933AA8C5 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		AA0CA8A3E15DEE023BB27438 /* Pods_NotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AABB00010000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		AABB00010000000000000002 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		AABB00010000000000000003 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		AABB00010000000000000004 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		AABB00010000000000000005 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		AABB00010000000000000006 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		BA5DD3FCD5DDD3B2C6412804 /* Pods-Solian Watch App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solian Watch App.release.xcconfig"; path = "Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App.release.xcconfig"; sourceTree = "<group>"; };
 		CF045ED276BFB99D9DE3FCAB /* Pods-SolianNotificationService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianNotificationService.release.xcconfig"; path = "Target Support Files/Pods-SolianNotificationService/Pods-SolianNotificationService.release.xcconfig"; sourceTree = "<group>"; };
 		D0ACC926ABE4CB9E70F0812E /* Pods-Solian Watch App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solian Watch App.debug.xcconfig"; path = "Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App.debug.xcconfig"; sourceTree = "<group>"; };
 		DD21906BA8E1F3018AB602EA /* Pods_SolianNotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SolianNotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6D834CA86410B09796B312B /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB2B125BA850D301B064BEA1 /* Pods_Solian_Watch_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Solian_Watch_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		AABB00010000000000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		AABB00010000000000000002 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh-Hans; path = zh-Hans.lproj/Localizable.strings; sourceTree = "<group>"; };
-		AABB00010000000000000003 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh-Hant; path = zh-Hant.lproj/Localizable.strings; sourceTree = "<group>"; };
-		AABB00010000000000000004 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
-		AABB00010000000000000005 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
-		AABB00010000000000000006 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -416,6 +419,7 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				73C567642FF4BFAF0001DDFF /* SfxCall.wav */,
 				7301DB162F08D9A5008390F3 /* SolianWidgetExtensionExtension.entitlements */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
@@ -742,6 +746,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73C567662FF4BFAF0001DDFF /* SfxCall.wav in Resources */,
 				73595B1B2F17FF8000AAD53C /* SfxMessage.caf in Resources */,
 				73595B1C2F17FF8000AAD53C /* SfxNotification.caf in Resources */,
 			);
@@ -754,6 +759,7 @@
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				AABB00010000000000000011 /* Localizable.strings in Resources */,
 				73595B832F1803D300AAD53C /* SfxNotification.caf in Resources */,
+				73C567652FF4BFAF0001DDFF /* SfxCall.wav in Resources */,
 				73595B842F1803D300AAD53C /* SfxMessage.caf in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
@@ -2186,11 +2192,6 @@
 			package = 7359B44B2F7ED3E2002F2C19 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
 		};
-		7359B4502F7ED45E002F2C19 /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 7359B44B2F7ED3E2002F2C19 /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
-		};
 		7359B4D22F7ED7C3002F2C19 /* FlutterGeneratedPluginSwiftPackage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FlutterGeneratedPluginSwiftPackage;
@@ -2201,11 +2202,6 @@
 			productName = KingfisherWebP;
 		};
 		73CA95E52F8019C400AECCC0 /* KingfisherWebP */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */;
-			productName = KingfisherWebP;
-		};
-		73CA95E72F8019CB00AECCC0 /* KingfisherWebP */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */;
 			productName = KingfisherWebP;

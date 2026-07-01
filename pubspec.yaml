@@ -190,7 +190,9 @@ dependencies:
   connectivity_plus: ^7.2.0
   sentry_flutter: ^9.22.0
   flutter_js: ^0.8.7
-  callkeep: ^0.3.3
+  callkeep:
+    git:
+      url: https://github.com/flutter-webrtc/callkeep.git
 
 dev_dependencies:
   flutter_test:
@@ -307,6 +309,7 @@ msix_config:
   store: true
 
 dependency_overrides:
+  firebase_messaging: ^16.4.1
   # super_context_menu 0.9.1 pins device_info_plus <12 but livekit_client needs >=12; override to unblock
   device_info_plus: ^12.3.0
   # protocol_handler_windows needs local patches for compile issues
