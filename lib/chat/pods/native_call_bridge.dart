@@ -96,8 +96,11 @@ class NativeCallBridge extends _$NativeCallBridge {
     _listenersRegistered = true;
 
     _nativeCallChannel.setMethodCallHandler((call) async {
-      if (call.method == 'onAcceptedCall') {
-        await _onAcceptedPayload(call.arguments);
+      switch (call.method) {
+        case 'onAcceptedCall':
+          await _onAcceptedPayload(call.arguments);
+        case 'onAudioSessionActive':
+          state = state.copyWith(isAudioSessionActive: call.arguments == true);
       }
     });
 

@@ -212,13 +212,19 @@ import flutter_callkit_incoming
         // no-op: plugin already emits timeout event to Dart
     }
     
-    // AVAudioSession handoff is intentionally empty here.
-    // flutter_callkit_incoming already emits the standard AVAudioSession.interruptionNotification
-    // (.ended + .shouldResume) immediately after calling this delegate, which LiveKit's
-    // RTCAudioSession / audio_session listens for and reacts to.
-    func didActivateAudioSession(_ audioSession: AVAudioSession) {}
+    func didActivateAudioSession(_ audioSession: AVAudioSession) {
+        print("[CallKit] didActivateAudioSession")
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = true
+        nativeCallChannel?.invokeMethod("onAudioSessionActive", arguments: true)
+    }
     
-    func didDeactivateAudioSession(_ audioSession: AVAudioSession) {}
+    func didDeactivateAudioSession(_ audioSession: AVAudioSession) {
+        print("[CallKit] didDeactivateAudioSession")
+        RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+        RTCAudioSession.sharedInstance().isAudioEnabled = false
+        nativeCallChannel?.invokeMethod("onAudioSessionActive", arguments: false)
+    }
     
     func providerDidReset() {
         // no-op: plugin manages its own provider
