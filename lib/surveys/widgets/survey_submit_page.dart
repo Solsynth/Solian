@@ -51,18 +51,7 @@ class SurveySubmitPage extends ConsumerWidget {
             child: Text('Failed to load survey: $error'),
           ),
         ),
-        data: (survey) => DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colorScheme.primaryContainer.withOpacity(0.28),
-                colorScheme.surface,
-              ],
-            ),
-          ),
-          child: Center(
+        data: (survey) => Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: ConstrainedBox(
@@ -147,7 +136,6 @@ class SurveySubmitPage extends ConsumerWidget {
               ),
             ),
           ),
-        ),
       ),
     );
   }

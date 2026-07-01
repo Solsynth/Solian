@@ -336,7 +336,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
               child: Text(
                 q.title,
                 style: _isFullPage
-                    ? theme.textTheme.headlineSmall?.copyWith(
+                    ? theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       )
                     : theme.textTheme.titleMedium,
@@ -596,26 +596,25 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
       );
     }
 
-    return Row(
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        for (var value = min; value <= max; value++) ...[
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: _AnswerCard(
-                selected: _ratingSelected == value,
-                onTap: () => setState(() {
-                  _ratingSelected = value;
-                  _userHasEdited = true;
-                }),
-                leading: Icon(
-                  _ratingSelected == value ? Icons.star : Icons.star_outline,
-                ),
-                title: '$value',
+        for (var value = min; value <= max; value++)
+          SizedBox(
+            width: 72,
+            child: _AnswerCard(
+              selected: _ratingSelected == value,
+              onTap: () => setState(() {
+                _ratingSelected = value;
+                _userHasEdited = true;
+              }),
+              leading: Icon(
+                _ratingSelected == value ? Icons.star : Icons.star_outline,
               ),
+              title: '$value',
             ),
           ),
-        ],
       ],
     );
   }
