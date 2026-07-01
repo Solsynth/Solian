@@ -91,7 +91,8 @@ class CallScreen extends HookConsumerWidget {
     useEffect(() {
       if (!isNativeCallAvailable) return null;
       final sub = ref.listenManual(nativeCallBridgeProvider, (previous, current) {
-        final nativeEnded = previous?.callUuid != null && current.callUuid == null;
+        final nativeEnded = current.systemEndedAt != null &&
+            current.systemEndedAt != previous?.systemEndedAt;
         if (!nativeEnded || !context.mounted) return;
         Logger.root.info('[Call] Native/system call ended, leaving CallScreen');
         unawaited(() async {

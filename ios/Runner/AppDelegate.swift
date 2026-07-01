@@ -229,7 +229,7 @@ import flutter_callkit_incoming
     }
     
     func providerDidReset() {
-        nativeCallChannel?.invokeMethod("onEndedCall", arguments: nil)
+        print("[CallKit] providerDidReset")
     }
 
     private func setupNativeCallChannel(binaryMessenger: FlutterBinaryMessenger) {

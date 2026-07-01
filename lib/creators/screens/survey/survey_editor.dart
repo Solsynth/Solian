@@ -1007,7 +1007,7 @@ class _QuestionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const Gap(16),
+            const Gap(20),
             SizedBox(
               width: 260,
               child: DropdownButtonFormField<SnSurveyQuestionType>(
@@ -1136,7 +1136,8 @@ class _QuestionCapabilitySection extends StatelessWidget {
           _OptionsSection(question: question, onChanged: onChanged),
           const Gap(16),
         ],
-        if (question.type == SnSurveyQuestionType.multipleChoice)
+        if (question.type == SnSurveyQuestionType.multipleChoice) ...[
+          const Gap(12),
           _NumericField(
             label: 'Maximum selections',
             helperText: 'Leave empty to allow choosing any number of options.',
@@ -1148,7 +1149,8 @@ class _QuestionCapabilitySection extends StatelessWidget {
               ),
             ),
           ),
-        if (question.type == SnSurveyQuestionType.freeText)
+        ],
+        if (question.type == SnSurveyQuestionType.freeText) ...[
           _NumericField(
             label: 'Maximum text length',
             helperText: 'Optional response length limit.',
@@ -1160,6 +1162,7 @@ class _QuestionCapabilitySection extends StatelessWidget {
               ),
             ),
           ),
+        ],
         if (question.type == SnSurveyQuestionType.rating)
           Row(
             children: [
@@ -1196,19 +1199,23 @@ class _QuestionCapabilitySection extends StatelessWidget {
             title: 'Yes / No response',
             subtitle: 'Respondents will answer with a boolean value.',
           ),
-        if (question.type == SnSurveyQuestionType.freeText)
+        if (question.type == SnSurveyQuestionType.freeText) ...[
+          const Gap(12),
           const _PreviewTile(
             icon: Icons.short_text,
             title: 'Free text response',
             subtitle: 'Supports optional text length constraints.',
           ),
-        if (question.type == SnSurveyQuestionType.rating)
+        ],
+        if (question.type == SnSurveyQuestionType.rating) ...[
+          const Gap(12),
           const _PreviewTile(
             icon: Icons.star_outline,
             title: 'Rating response',
             subtitle:
                 'Collected as a numeric value within your configured range.',
           ),
+        ],
       ],
     );
   }

@@ -102,7 +102,8 @@ class NativeCallBridge extends _$NativeCallBridge {
         case 'onAudioSessionActive':
           state = state.copyWith(isAudioSessionActive: call.arguments == true);
         case 'onEndedCall':
-          clearAcceptedCall();
+          state = state.copyWith(systemEndedAt: DateTime.now());
+          clearAcceptedCall(preserveSystemEnd: true);
       }
     });
 
@@ -404,7 +405,8 @@ class NativeCallBridge extends _$NativeCallBridge {
 
   String? currentRoomId() => state.callKitAcceptedRoomId ?? state.roomId;
 
-  void clearAcceptedCall() {
+  void clearAcceptedCall({bool preserveSystemEnd = false}) {
+    final systemEndedAt = preserveSystemEnd ? state.systemEndedAt : null;
     state = state.copyWith(
       callUuid: null,
       roomId: null,
@@ -417,6 +419,7 @@ class NativeCallBridge extends _$NativeCallBridge {
       isOutgoing: false,
       isAudioSessionActive: false,
       source: null,
+      systemEndedAt: systemEndedAt,
     );
   }
 }
@@ -439,6 +442,7 @@ class NativeCallState {
   final bool isAudioSessionActive;
   final NativeCallSource? source;
   final String? pushToken;
+  final DateTime? systemEndedAt;
 
   const NativeCallState({
     this.isConnected = false,
@@ -458,6 +462,7 @@ class NativeCallState {
     this.isAudioSessionActive = false,
     this.source,
     this.pushToken,
+    this.systemEndedAt,
   });
 
   NativeCallState copyWith({
@@ -478,6 +483,7 @@ class NativeCallState {
     bool? isAudioSessionActive,
     Object? source = _unset,
     Object? pushToken = _unset,
+    Object? systemEndedAt = _unset,
   }) {
     return NativeCallState(
       isConnected: isConnected ?? this.isConnected,
@@ -507,6 +513,9 @@ class NativeCallState {
           ? this.source
           : source as NativeCallSource?,
       pushToken: identical(pushToken, _unset) ? this.pushToken : pushToken as String?,
+      systemEndedAt: identical(systemEndedAt, _unset)
+          ? this.systemEndedAt
+          : systemEndedAt as DateTime?,
     );
   }
 }

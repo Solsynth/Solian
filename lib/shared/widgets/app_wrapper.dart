@@ -293,8 +293,9 @@ class AppWrapper extends HookConsumerWidget {
         );
         final currRoomId = current.callKitAcceptedRoomId;
         if (currRoomId == null) {
-          if ((previous?.callKitAcceptedRoomId != null || previous?.callUuid != null) &&
-              ref.read(callProvider).isConnected) {
+          final nativeEnded = current.systemEndedAt != null &&
+              current.systemEndedAt != previous?.systemEndedAt;
+          if (nativeEnded && ref.read(callProvider).isConnected) {
             Logger.root.info('[AppWrapper] Native call ended, disconnecting Flutter call');
             unawaited(ref.read(callProvider.notifier).disconnect());
           }
