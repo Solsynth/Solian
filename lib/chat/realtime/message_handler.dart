@@ -228,9 +228,11 @@ class RealtimeMessageHandler {
       MessageStatus.sent,
     );
 
-    final isPlaceholderFinalize = updateEvent.type == 'messages.sync.finalize';
+    final isSilentSync =
+        updateEvent.type == 'messages.sync.finalize' ||
+        updateEvent.type == 'messages.sync.links';
 
-    if (!isPlaceholderFinalize) {
+    if (!isSilentSync) {
       await _repository.saveMessage(updateEvent);
       onNewMessage?.call(updateEvent);
     }
@@ -257,6 +259,7 @@ class RealtimeMessageHandler {
 
     // Handle edit/delete events
     if (type == 'messages.update' ||
+        type == 'messages.sync.finalize' ||
         type == 'messages.sync.links' ||
         type == 'messages.delete') {
       if (type == 'messages.delete') {
