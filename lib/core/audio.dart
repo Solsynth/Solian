@@ -1,11 +1,21 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:island/core/config.dart';
 import 'package:audio_session/audio_session.dart';
 
 final sfxPlayerProvider = Provider<AudioPlayer>((ref) {
+  final player = AudioPlayer();
+  ref.onDispose(() {
+    player.dispose();
+  });
+  return player;
+});
+
+final callInviteLoopPlayerProvider = Provider<AudioPlayer>((ref) {
   final player = AudioPlayer();
   ref.onDispose(() {
     player.dispose();
@@ -89,4 +99,36 @@ void playMessageSfx(WidgetRef ref) {
   final settings = ref.read(appSettingsProvider);
   if (!settings.soundEffects) return;
   _playSfx('assets/audio/messages.mp3', 0.75);
+}
+
+Future<void> playCallInvitedSfxLoop(WidgetRef ref) async {
+  final settings = ref.read(appSettingsProvider);
+  if (!settings.soundEffects || (!kIsWeb && Platform.isIOS)) return;
+
+  final player = ref.read(callInviteLoopPlayerProvider);
+  try {
+    await player.stop();
+    await player.setVolume(0.75);
+    await player.setLoopMode(LoopMode.one);
+    await player.setAudioSource(
+      AudioSource.asset('assets/audio/call_invited.wav'),
+    );
+    await player.play();
+    Future.delayed(const Duration(minutes: 1), () {
+      unawaited(stopCallInvitedSfxLoop(ref));
+    });
+  } on PlayerInterruptedException catch (_) {
+    await player.stop();
+  } on PlayerException catch (e) {
+    if (e.code != -11849) rethrow;
+  }
+}
+
+Future<void> stopCallInvitedSfxLoop(WidgetRef ref) async {
+  final player = ref.read(callInviteLoopPlayerProvider);
+  try {
+    await player.stop();
+  } catch (_) {
+    // ponytail: ignore stop races when the sheet closes as timeout fires
+  }
 }

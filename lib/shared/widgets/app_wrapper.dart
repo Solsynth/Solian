@@ -40,6 +40,7 @@ import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/activity/activity_rpc.dart';
+import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
@@ -133,6 +134,11 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
+      if (!kIsWeb && Platform.isIOS) {
+        // ponytail: let CallKit own iOS incoming-call UX
+        return null;
+      }
+
       void pruneRecentInvites() {
         final now = DateTime.now();
         recentlyHandledInvites.value.removeWhere(
@@ -174,6 +180,7 @@ class AppWrapper extends HookConsumerWidget {
         }
 
         activeInviteKey.value = invite.dedupeKey;
+        await playCallInvitedSfxLoop(ref);
         final shouldJoin = await showModalBottomSheet<bool>(
           context: navigatorContext,
           useRootNavigator: true,
@@ -184,7 +191,7 @@ class AppWrapper extends HookConsumerWidget {
             onJoin: () => Navigator.pop(context, true),
             onDismiss: () => Navigator.pop(context, false),
           ),
-        );
+        ).whenComplete(() => stopCallInvitedSfxLoop(ref));
         activeInviteKey.value = null;
 
         final now = DateTime.now();
