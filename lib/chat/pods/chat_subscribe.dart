@@ -5,6 +5,7 @@ import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:island/accounts/account_pod.dart";
 import "package:island/chat/messages_notifier.dart";
+import "package:island/chat/pods/chat_foreground_rooms.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_summary.dart";
 import "package:island/core/lifecycle.dart";
@@ -236,9 +237,10 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     _sendMessage = wsState.sendMessage;
     _sendSubscribe(reason: 'initial');
 
-    Future.microtask(
-      () => ref.read(currentSubscribedChatIdProvider.notifier).set(roomId),
-    );
+    Future.microtask(() {
+      ref.read(currentSubscribedChatIdProvider.notifier).set(roomId);
+      ref.read(foregroundChatRoomIdsProvider.notifier).add(roomId);
+    });
 
     // Send initial read receipt
     sendReadReceipt();
@@ -320,6 +322,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         if (current == roomId) {
           subscribedNotifier.set(null);
         }
+        ref.read(foregroundChatRoomIdsProvider.notifier).remove(roomId);
       });
       // Defer to avoid ref.read() inside lifecycle callback
       Future.microtask(() {

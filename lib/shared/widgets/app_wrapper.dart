@@ -17,6 +17,7 @@ import 'package:island/auth/challenge_ws_listener.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/accounts/pods/friend_status_listener.dart';
 import 'package:island/accounts/screens/me/account_qr.dart';
+import 'package:island/core/lifecycle.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
@@ -117,6 +118,24 @@ class AppWrapper extends HookConsumerWidget {
     useEffect(() {
       ref.read(desktopPresenceProvider);
       return null;
+    }, []);
+
+    useEffect(() {
+      if (kIsWeb ||
+          !(Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+        return null;
+      }
+
+      final listener = _DesktopWindowFocusListener(ref);
+      windowManager.addListener(listener);
+      windowManager.isFocused().then(
+        (focused) =>
+            ref.read(desktopWindowFocusedProvider.notifier).set(focused),
+      );
+
+      return () {
+        windowManager.removeListener(listener);
+      };
     }, []);
 
     useEffect(() {
@@ -1112,6 +1131,22 @@ class _BackdropOrb extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _DesktopWindowFocusListener with WindowListener {
+  _DesktopWindowFocusListener(this.ref);
+
+  final WidgetRef ref;
+
+  @override
+  void onWindowFocus() {
+    ref.read(desktopWindowFocusedProvider.notifier).set(true);
+  }
+
+  @override
+  void onWindowBlur() {
+    ref.read(desktopWindowFocusedProvider.notifier).set(false);
   }
 }
 
