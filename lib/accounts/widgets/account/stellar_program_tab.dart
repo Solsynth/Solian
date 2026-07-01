@@ -410,7 +410,7 @@ class StellarProgramTab extends HookConsumerWidget {
           const Gap(16),
           _buildSubscriptionQueueSummary(context, ref),
           const Gap(16),
-          if (!Platform.isIOS) ...[
+          if (!kIsWeb && !Platform.isIOS) ...[
             _buildGiftingSection(context, ref),
             const Gap(16),
           ],
