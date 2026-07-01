@@ -152,6 +152,12 @@ Widget _buildChatRoomContextMenu({
   required Widget child,
 }) {
   return ContextMenuWidget(
+    previewBuilder: (_, child) {
+      return Material(
+        color: Theme.of(context).colorScheme.onSurface,
+        child: child,
+      );
+    },
     menuProvider: (_) {
       return Menu(
         children: [

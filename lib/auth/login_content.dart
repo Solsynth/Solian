@@ -302,24 +302,19 @@ class _LoginCheckScreen extends HookConsumerWidget {
           return;
         }
 
-        // Extract tag ID from the deep link
-        // Format: solian://phpass/{tag_id} or solian://?uid=...&...
-        String? tagId;
-        if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
-          // Path-based format: solian://phpass/{tag_id}
-          tagId = uri.pathSegments.first;
-        } else {
-          // Query-based format: solian://?uid=...
-          tagId = uri.queryParameters['uid'];
-        }
+        // Login uses the raw NFC payload, not the resolved passport record id.
+        // Plain tags send the path id; encrypted SUN tags send the full URL.
+        final payload = uri.host == 'phpass' && uri.pathSegments.isNotEmpty
+            ? uri.pathSegments.first
+            : uri.toString();
 
-        if (tagId == null || tagId.isEmpty) {
+        if (payload.isEmpty) {
           scanError.value = 'nfcTagInvalid'.tr();
           isScanning.value = false;
           return;
         }
 
-        passwordController.text = '${tag.id}:$tagId';
+        passwordController.text = '${tag.id}:$payload';
         isScanning.value = false;
         performCheckTicket();
       } catch (e) {
