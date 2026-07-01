@@ -683,6 +683,12 @@ class AttachmentPreview extends HookConsumerWidget {
     );
 
     return ContextMenuWidget(
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
+        );
+      },
       menuProvider: (MenuRequest request) => Menu(
         children: [
           if (item.isOnDevice && item.type == UniversalFileType.image)

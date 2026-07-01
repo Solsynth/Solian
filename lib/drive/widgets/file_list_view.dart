@@ -561,8 +561,12 @@ class FileListView extends HookConsumerWidget {
                 toggleSelection(selectedFileIds, fileItem.file);
               },
             ),
-            folder: (folderItem) =>
-                _buildWaterfallFolderTile(folderItem, currentPath, context),
+            folder: (folderItem) => _buildWaterfallFolderTile(
+              folderItem,
+              ref,
+              currentPath,
+              context,
+            ),
             unindexedFile: (unindexedFileItem) {
               // Should not happen
               return const SizedBox.shrink();
@@ -595,17 +599,14 @@ class FileListView extends HookConsumerWidget {
             folder: (folderItem) {
               final theme = Theme.of(context);
               return ContextMenuWidget(
-                menuProvider: (_) {
-                  return Menu(
-                    children: [
-                      MenuAction(
-                        title: 'Inspect',
-                        image: MenuImage.icon(Symbols.info),
-                        callback: () => onInspectFile(folderItem.file),
-                      ),
-                    ],
+                previewBuilder: (_, child) {
+                  return Material(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    child: child,
                   );
                 },
+                menuProvider: (_) =>
+                    _buildFolderMenu(context, ref, folderItem.file),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () {
@@ -671,6 +672,11 @@ class FileListView extends HookConsumerWidget {
                         ),
                       ],
                     ).opacity(0.85).padding(top: 2, bottom: 4),
+                    trailing: _buildFolderActions(
+                      context,
+                      ref,
+                      folderItem.file,
+                    ),
                   ),
                 ),
               );
@@ -753,6 +759,12 @@ class FileListView extends HookConsumerWidget {
     VoidCallback? toggleSelection,
   ) {
     return ContextMenuWidget(
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
+        );
+      },
       menuProvider: (_) {
         return Menu(
           children: [
@@ -879,6 +891,163 @@ class FileListView extends HookConsumerWidget {
     );
   }
 
+  Future<void> _renameFolder(
+    BuildContext context,
+    WidgetRef ref,
+    SnCloudFile folder,
+  ) async {
+    await CloudFileActionsSheet.showRenameSheet(
+      context: context,
+      file: folder,
+      onRenamed: (_) {
+        ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+      },
+    );
+  }
+
+  Future<void> _deleteFolder(
+    BuildContext context,
+    WidgetRef ref,
+    SnCloudFile folder,
+  ) async {
+    final confirmed = await showConfirmAlert(
+      'confirmDeleteFile'.tr(),
+      'delete'.tr(),
+      isDanger: true,
+    );
+    if (!confirmed || !context.mounted) return;
+
+    showLoadingModal(context);
+    try {
+      await ref.read(driveFileUploaderProvider).deleteFile(folder.id);
+      ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+    } catch (_) {
+      showSnackBar('failedToDeleteFile'.tr());
+    } finally {
+      if (context.mounted) {
+        hideLoadingModal(context);
+      }
+    }
+  }
+
+  Future<void> _handleFolderAction(
+    BuildContext context,
+    WidgetRef ref,
+    SnCloudFile folder,
+    String action,
+  ) async {
+    switch (action) {
+      case 'inspect':
+        onInspectFile(folder);
+        break;
+      case 'rename':
+        await _renameFolder(context, ref, folder);
+        break;
+      case 'move':
+        await _showMoveToFolderSheet(
+          context: context,
+          ref: ref,
+          fileId: folder.id,
+          fileName: folder.name,
+          isUnindexed: false,
+        );
+        break;
+      case 'delete':
+        await _deleteFolder(context, ref, folder);
+        break;
+    }
+  }
+
+  Menu _buildFolderMenu(
+    BuildContext context,
+    WidgetRef ref,
+    SnCloudFile folder,
+  ) {
+    return Menu(
+      children: [
+        MenuAction(
+          title: 'Inspect',
+          image: MenuImage.icon(Symbols.info),
+          callback: () => _handleFolderAction(context, ref, folder, 'inspect'),
+        ),
+        MenuSeparator(),
+        MenuAction(
+          title: 'rename'.tr(),
+          image: MenuImage.icon(Symbols.edit),
+          callback: () => _handleFolderAction(context, ref, folder, 'rename'),
+        ),
+        MenuAction(
+          title: 'moveToFolder'.tr(),
+          image: MenuImage.icon(Symbols.drive_file_move),
+          callback: () => _handleFolderAction(context, ref, folder, 'move'),
+        ),
+        MenuSeparator(),
+        MenuAction(
+          title: 'delete'.tr(),
+          image: MenuImage.icon(Symbols.delete),
+          callback: () => _handleFolderAction(context, ref, folder, 'delete'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFolderActions(
+    BuildContext context,
+    WidgetRef ref,
+    SnCloudFile folder,
+  ) {
+    return PopupMenuButton<String>(
+      tooltip: 'more'.tr(),
+      onSelected: (value) => _handleFolderAction(context, ref, folder, value),
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          value: 'inspect',
+          child: Row(
+            children: [
+              const Icon(Symbols.info),
+              const Gap(12),
+              Text('Inspect'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'rename',
+          child: Row(
+            children: [
+              const Icon(Symbols.edit),
+              const Gap(12),
+              Text('rename').tr(),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'move',
+          child: Row(
+            children: [
+              const Icon(Symbols.drive_file_move),
+              const Gap(12),
+              Text('moveToFolder').tr(),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'delete',
+          child: Row(
+            children: [
+              const Icon(Symbols.delete),
+              const Gap(12),
+              Text('delete').tr(),
+            ],
+          ),
+        ),
+      ],
+      child: const Padding(
+        padding: EdgeInsets.all(8),
+        child: Icon(Symbols.more_vert),
+      ),
+    );
+  }
+
   List<Widget> _buildIndexedFileActions(
     SnCloudFile file,
     WidgetRef ref,
@@ -892,10 +1061,11 @@ class FileListView extends HookConsumerWidget {
           onInspectFile(file);
           break;
         case 'download':
-          ref.read(driveFileDownloaderProvider).downloadFile(
+          ref
+              .read(driveFileDownloaderProvider)
+              .downloadFile(
                 file,
-                useDownloadsFolder:
-                    HardwareKeyboard.instance.isShiftPressed,
+                useDownloadsFolder: HardwareKeyboard.instance.isShiftPressed,
               );
           break;
         case 'rename':
@@ -921,9 +1091,7 @@ class FileListView extends HookConsumerWidget {
           Share.share(url);
           break;
         case 'copyLink':
-          Clipboard.setData(
-            ClipboardData(text: file.storageUrl ?? file.id),
-          );
+          Clipboard.setData(ClipboardData(text: file.storageUrl ?? file.id));
           showSnackBar('linkCopied'.tr());
           break;
         case 'fileInfo':
@@ -946,9 +1114,7 @@ class FileListView extends HookConsumerWidget {
               showLoadingModal(context);
             }
             try {
-              await ref
-                  .read(driveFileUploaderProvider)
-                  .deleteFile(file.id);
+              await ref.read(driveFileUploaderProvider).deleteFile(file.id);
               ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
@@ -1130,21 +1296,18 @@ class FileListView extends HookConsumerWidget {
 
   Widget _buildWaterfallFolderTile(
     FolderItem folderItem,
+    WidgetRef ref,
     ValueNotifier<String> currentPath,
     BuildContext context,
   ) {
     return ContextMenuWidget(
-      menuProvider: (_) {
-        return Menu(
-          children: [
-            MenuAction(
-              title: 'Inspect',
-              image: MenuImage.icon(Symbols.info),
-              callback: () => onInspectFile(folderItem.file),
-            ),
-          ],
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
         );
       },
+      menuProvider: (_) => _buildFolderMenu(context, ref, folderItem.file),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: () {
@@ -1176,15 +1339,18 @@ class FileListView extends HookConsumerWidget {
                 color: Theme.of(context).colorScheme.primaryFixedDim,
               ),
               const Gap(16),
-              Text(
-                folderItem.file.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+              Expanded(
+                child: Text(
+                  folderItem.file.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                ),
               ),
+              _buildFolderActions(context, ref, folderItem.file),
             ],
           ),
         ),
@@ -1343,6 +1509,12 @@ class FileListView extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ContextMenuWidget(
+          previewBuilder: (_, child) {
+            return Material(
+              color: Theme.of(context).colorScheme.onSurface,
+              child: child,
+            );
+          },
           menuProvider: (_) {
             return Menu(
               children: [
@@ -1703,6 +1875,12 @@ class FileListView extends HookConsumerWidget {
     VoidCallback? toggleSelection,
   ) {
     return ContextMenuWidget(
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
+        );
+      },
       menuProvider: (_) {
         return Menu(
           children: [
@@ -2571,8 +2749,9 @@ class _FileActionListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foreground =
-        isDanger ? theme.colorScheme.error : theme.colorScheme.onSurface;
+    final foreground = isDanger
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurface;
 
     return InkWell(
       onTap: onTap,

@@ -1371,6 +1371,12 @@ class _DriveTabChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return ContextMenuWidget(
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
+        );
+      },
       menuProvider: (_) {
         return Menu(
           children: [

@@ -293,15 +293,16 @@ class PostActionableItem extends HookConsumerWidget {
             );
           };
         case 'collections':
-          return () => showPostCollectionsSheet(
-            context,
-            item,
-            onChanged: onRefresh,
-          );
+          return () =>
+              showPostCollectionsSheet(context, item, onChanged: onRefresh);
         case 'bookmark':
           return () async {
             try {
-              await toggleBookmark(ref, postId: item.id, currentlyBookmarked: item.isBookmarked);
+              await toggleBookmark(
+                ref,
+                postId: item.id,
+                currentlyBookmarked: item.isBookmarked,
+              );
               onUpdate?.call(item.copyWith(isBookmarked: !item.isBookmarked));
             } catch (err) {
               showErrorAlert(err);
@@ -350,6 +351,12 @@ class PostActionableItem extends HookConsumerWidget {
           );
 
     final widgetItem = ContextMenuWidget(
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
+        );
+      },
       menuProvider: (_) {
         return Menu(
           children: [
@@ -639,7 +646,7 @@ class PostItem extends HookConsumerWidget {
           Gap(renderingPadding.vertical),
         if (isShowReference)
           ReferencedPostWidget(
-            item: item, 
+            item: item,
             renderingPadding: renderingPadding,
             onPostTap: onPostTap,
           ),
@@ -727,7 +734,8 @@ Widget buildPostTranslationSection({
             ),
             MarkdownTextContent(
               textStyle: TextStyle(
-                fontSize: theme.textTheme.bodyMedium!.fontSize! * (textScale ?? 1),
+                fontSize:
+                    theme.textTheme.bodyMedium!.fontSize! * (textScale ?? 1),
               ),
               content: translatedText!,
               isSelectable: isTextSelectable,
@@ -789,7 +797,10 @@ Widget buildPostTranslationSection({
     children.add(translatableWidget);
   }
 
-  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: children,
+  );
 }
 
 class PostActionSheet extends StatelessWidget {
@@ -978,8 +989,9 @@ class _PostActionListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foreground =
-        isDanger ? theme.colorScheme.error : theme.colorScheme.onSurface;
+    final foreground = isDanger
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurface;
 
     return InkWell(
       onTap: onTap,

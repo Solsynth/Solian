@@ -186,9 +186,9 @@ class MessageItem extends HookConsumerWidget {
               timer.cancel();
               flashTimer.value = null;
               flashOpacity.value = 0;
-              ref.read(flashingMessagesProvider.notifier).clearMessage(
-                message.id,
-              );
+              ref
+                  .read(flashingMessagesProvider.notifier)
+                  .clearMessage(message.id);
               return;
             }
             flashOpacity.value = pulseSequence[step];
@@ -358,6 +358,12 @@ class MessageItem extends HookConsumerWidget {
                 }
               : null,
           child: ContextMenuWidget(
+            previewBuilder: (_, child) {
+              return Material(
+                color: Theme.of(context).colorScheme.onSurface,
+                child: child,
+              );
+            },
             menuProvider: (_) {
               return Menu(
                 children: [
@@ -1534,7 +1540,11 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
       isCompact: true,
     );
 
-    final attachmentMaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
+    final attachmentMaxH =
+        ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) ==
+            'small'
+        ? 200.0
+        : 560.0;
     final hasBodyContent =
         remoteMessage.repliedMessageId != null ||
         remoteMessage.meta['redirect'] is Map ||
@@ -1564,61 +1574,67 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
           if (hasBodyContent || hasProgress)
             Padding(
               padding: const EdgeInsets.only(
-                left: 10, right: 10, top: 6, bottom: 6,
+                left: 10,
+                right: 10,
+                top: 6,
+                bottom: 6,
               ),
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (remoteMessage.repliedMessageId != null)
-                  MessageQuoteWidget(
-                    message: message,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (remoteMessage.repliedMessageId != null)
+                    MessageQuoteWidget(
+                      message: message,
+                      textColor: textColor,
+                      isReply: true,
+                    ).padding(vertical: 4),
+                  if (remoteMessage.meta['redirect'] is Map)
+                    (() {
+                      final data = SnRedirectData.fromJson(
+                        Map<String, dynamic>.from(
+                          remoteMessage.meta['redirect'] as Map,
+                        ),
+                      );
+                      return data.map(
+                        historySegment: (_) => RedirectMessageCard(
+                          redirect: data,
+                          textColor: textColor,
+                        ).padding(vertical: 4),
+                        singleMessage: (_) => RedirectInlineContent(
+                          redirect: data,
+                          textColor: textColor,
+                        ).padding(vertical: 4),
+                      );
+                    })(),
+                  if (remoteMessage.forwardedMessageId != null && !isRedirect)
+                    MessageQuoteWidget(
+                      message: message,
+                      textColor: textColor,
+                      isReply: false,
+                    ).padding(vertical: 4),
+                  if (!isRedirect && MessageContent.hasContent(remoteMessage))
+                    MessageContent(
+                      item: remoteMessage,
+                      translatedText: translatedText,
+                    ),
+                  if (remoteMessage.meta['embeds'] != null &&
+                      kMessageEnableEmbedTypes.contains(message.type))
+                    EmbedListWidget(
+                      embeds: remoteMessage.meta['embeds'] as List<dynamic>,
+                      isInteractive: true,
+                      isFullPost: false,
+                      renderingPadding: EdgeInsets.zero,
+                      maxWidth: 480,
+                    ),
+                  FileUploadProgressWidget(
+                    progress: progress,
                     textColor: textColor,
-                    isReply: true,
-                  ).padding(vertical: 4),
-                if (remoteMessage.meta['redirect'] is Map)
-                  (() {
-                    final data = SnRedirectData.fromJson(
-                      Map<String, dynamic>.from(
-                        remoteMessage.meta['redirect'] as Map,
-                      ),
-                    );
-                    return data.map(
-                      historySegment: (_) => RedirectMessageCard(
-                        redirect: data,
-                        textColor: textColor,
-                      ).padding(vertical: 4),
-                      singleMessage: (_) => RedirectInlineContent(
-                        redirect: data,
-                        textColor: textColor,
-                      ).padding(vertical: 4),
-                    );
-                  })(),
-                if (remoteMessage.forwardedMessageId != null && !isRedirect)
-                  MessageQuoteWidget(
-                    message: message,
-                    textColor: textColor,
-                    isReply: false,
-                  ).padding(vertical: 4),
-                if (!isRedirect && MessageContent.hasContent(remoteMessage))
-                  MessageContent(item: remoteMessage, translatedText: translatedText),
-                if (remoteMessage.meta['embeds'] != null &&
-                    kMessageEnableEmbedTypes.contains(message.type))
-                  EmbedListWidget(
-                    embeds: remoteMessage.meta['embeds'] as List<dynamic>,
-                    isInteractive: true,
-                    isFullPost: false,
-                    renderingPadding: EdgeInsets.zero,
-                    maxWidth: 480,
+                    hasContent: MessageContent.hasContent(remoteMessage),
                   ),
-                FileUploadProgressWidget(
-                  progress: progress,
-                  textColor: textColor,
-                  hasContent: MessageContent.hasContent(remoteMessage),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -1927,7 +1943,15 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                               remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
-                                final amaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
+                                final amaxH =
+                                    ref.watch(
+                                          appSettingsProvider.select(
+                                            (s) => s.attachmentPreviewMode,
+                                          ),
+                                        ) ==
+                                        'small'
+                                    ? 200.0
+                                    : 560.0;
                                 return CloudFileList(
                                   files: remoteMessage.attachments,
                                   maxHeight: amaxH,
@@ -2096,7 +2120,15 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
-                                final amaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
+                                final amaxH =
+                                    ref.watch(
+                                          appSettingsProvider.select(
+                                            (s) => s.attachmentPreviewMode,
+                                          ),
+                                        ) ==
+                                        'small'
+                                    ? 200.0
+                                    : 560.0;
                                 return CloudFileList(
                                   files: remoteMessage.attachments,
                                   maxHeight: amaxH,
@@ -2198,7 +2230,15 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                                 remoteMessage.attachments.isNotEmpty)
                               LayoutBuilder(
                                 builder: (context, constraints) {
-                                  final amaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
+                                  final amaxH =
+                                      ref.watch(
+                                            appSettingsProvider.select(
+                                              (s) => s.attachmentPreviewMode,
+                                            ),
+                                          ) ==
+                                          'small'
+                                      ? 200.0
+                                      : 560.0;
                                   return CloudFileList(
                                     files: remoteMessage.attachments,
                                     maxHeight: amaxH,

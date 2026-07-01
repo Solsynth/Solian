@@ -45,6 +45,12 @@ class PostItemCreator extends HookConsumerWidget {
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
     return ContextMenuWidget(
+      previewBuilder: (_, child) {
+        return Material(
+          color: Theme.of(context).colorScheme.onSurface,
+          child: child,
+        );
+      },
       menuProvider: (_) {
         return Menu(
           children: [
