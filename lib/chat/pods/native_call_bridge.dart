@@ -4,11 +4,13 @@ import 'dart:io';
 
 import 'package:callkeep/callkeep.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:island/core/utils/call_kit_utils.dart';
+import 'package:island/main.dart' show globalOverlay;
 
 part 'native_call_bridge.g.dart';
 
@@ -58,7 +60,31 @@ Future<void> _ensureCallKeepSetup({required bool backgroundMode}) async {
 
   _registerPlatformListeners();
   _setupFuture = _callKeep.setup(
-    showAlertDialog: null,
+    showAlertDialog: () async {
+      final context = globalOverlay.currentState?.context;
+      if (context == null || !context.mounted) return false;
+      return await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: const Text('Permissions Required'),
+              content: const Text(
+                'This application needs to access your phone accounts.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+    },
     options: <String, dynamic>{
       'ios': {
         'appName': 'Solian',
@@ -67,18 +93,19 @@ Future<void> _ensureCallKeepSetup({required bool backgroundMode}) async {
       'android': {
         'additionalPermissions': <String>[
           'android.permission.CALL_PHONE',
+          'android.permission.READ_PHONE_STATE',
           'android.permission.READ_PHONE_NUMBERS',
         ],
-        'alertTitle': 'Permissions required',
+        'alertTitle': 'Permissions Required',
         'alertDescription':
-            'This application needs to access your phone accounts',
+            'This application needs to access your phone accounts.',
         'cancelButton': 'Cancel',
         'okButton': 'OK',
         'foregroundService': <String, String>{
           'channelId': 'dev.solsynth.solian.calls',
           'channelName': 'Solian Calls',
-          'notificationTitle': 'Solian call is active',
-          'notificationIcon': 'mipmap/launcher_icon',
+          'notificationTitle': 'Solian is running in the background',
+          'notificationIcon': 'drawable/ic_notification',
         },
       },
     },
