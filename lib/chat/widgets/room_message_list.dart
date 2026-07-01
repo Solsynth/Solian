@@ -34,8 +34,20 @@ class RoomMessageList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(appSettingsProvider);
-    final chatState = ref.watch(chatRoomStateProvider(roomId));
+    final displayStyle = ref.watch(
+      appSettingsProvider.select((settings) => settings.messageDisplayStyle),
+    );
+    final disableAnimationSetting = ref.watch(
+      appSettingsProvider.select((settings) => settings.disableAnimation),
+    );
+    final lastReadAnchorMessageId = ref.watch(
+      chatRoomStateProvider(
+        roomId,
+      ).select((state) => state.lastReadAnchorMessageId),
+    );
+    final roomOpenTime = ref.watch(
+      chatRoomStateProvider(roomId).select((state) => state.roomOpenTime),
+    );
     final chatStateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
     final skipInitialLoadMessageAnimations = useState(true);
     final previousMessageCount = useRef<int?>(null);
@@ -65,18 +77,22 @@ class RoomMessageList extends HookConsumerWidget {
       return null;
     }, [messages.length]);
 
-    final useColumnDisplay = settings.messageDisplayStyle == 'column';
-    final useBubbleDisplay =
-        settings.messageDisplayStyle != 'compact' && !useColumnDisplay;
+    final useColumnDisplay = displayStyle == 'column';
+    final useBubbleDisplay = displayStyle != 'compact' && !useColumnDisplay;
     final useStickyGroupedDisplay = useBubbleDisplay || useColumnDisplay;
 
-    int lastReturnedIndex = -1;
+    final messageIndexById = useMemoized(() {
+      return {
+        for (var i = 0; i < messages.length; i++)
+          messages[i].clientMessageId ?? messages[i].id: i,
+      };
+    }, [messages]);
 
     final listWidget = SuperListView.builder(
       listController: chatStateNotifier.listController,
       controller: chatStateNotifier.scrollController,
       reverse: true,
-      padding: EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 8),
       itemCount: messages.length,
       findChildIndexCallback: (key) {
         if (messages.isEmpty) return null;
@@ -88,16 +104,7 @@ class RoomMessageList extends HookConsumerWidget {
 
         final messageId = keyString.substring(messageKeyPrefix.length);
 
-        final index = messages.indexWhere(
-          (m) => (m.clientMessageId ?? m.id) == messageId,
-        );
-
-        if (index > lastReturnedIndex) {
-          lastReturnedIndex = index;
-          return index;
-        }
-
-        return null;
+        return messageIndexById[messageId];
       },
       extentEstimation: (_, _) => 40,
       itemBuilder: (context, index) {
@@ -140,8 +147,8 @@ class RoomMessageList extends HookConsumerWidget {
           '$messageKeyPrefix${message.clientMessageId ?? message.id}',
         );
         final showLastReadMarker =
-            chatState.lastReadAnchorMessageId != null &&
-            message.id == chatState.lastReadAnchorMessageId;
+            lastReadAnchorMessageId != null &&
+            message.id == lastReadAnchorMessageId;
 
         Widget buildMessage(
           LocalChatMessage item,
@@ -163,10 +170,10 @@ class RoomMessageList extends HookConsumerWidget {
             onMessageAction: chatStateNotifier.onMessageAction,
             onJump: onJump,
             disableAnimation:
-                settings.disableAnimation ||
+                disableAnimationSetting ||
                 skipInitialLoadMessageAnimations.value ||
                 skipBatchMessageAnimations,
-            roomOpenTime: chatState.roomOpenTime,
+            roomOpenTime: roomOpenTime,
           );
         }
 
@@ -181,6 +188,7 @@ class RoomMessageList extends HookConsumerWidget {
                 avatarSize: useColumnDisplay ? 24 : 32,
                 avatarLeft: 12,
                 avatarTop: useColumnDisplay ? 8 : 9,
+                stickyEnabled: !disableAnimationSetting,
                 children: [
                   for (var i = groupedMessages.length - 1; i >= 0; i--)
                     buildMessage(
@@ -274,13 +282,13 @@ class _LastReadMarker extends StatelessWidget {
 
 class _StickyBubbleMessageGroup extends StatefulWidget {
   static const double _viewportTopMargin = 12;
-  static const Duration _stickDuration = Duration(milliseconds: 70);
 
   final String roomId;
   final SnChatMember sender;
   final double avatarSize;
   final double avatarLeft;
   final double avatarTop;
+  final bool stickyEnabled;
   final List<Widget> children;
 
   const _StickyBubbleMessageGroup({
@@ -290,6 +298,7 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
     required this.avatarSize,
     required this.avatarLeft,
     required this.avatarTop,
+    required this.stickyEnabled,
     required this.children,
   });
 
@@ -301,11 +310,24 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
 class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
   final _key = GlobalKey();
   ScrollPosition? _position;
+  bool _framePending = false;
+  double? _stickyOffset;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateScrollPosition();
+    _scheduleOffsetUpdate();
+  }
+
+  @override
+  void didUpdateWidget(covariant _StickyBubbleMessageGroup oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.stickyEnabled != widget.stickyEnabled ||
+        oldWidget.children.length != widget.children.length) {
+      _stickyOffset = null;
+      _scheduleOffsetUpdate();
+    }
   }
 
   @override
@@ -315,7 +337,7 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
   }
 
   void _updateScrollPosition() {
-    final nextPosition = _readScrollPosition();
+    final nextPosition = widget.stickyEnabled ? _readScrollPosition() : null;
     if (identical(_position, nextPosition)) return;
 
     _position?.removeListener(_handleScroll);
@@ -334,9 +356,20 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     }
   }
 
-  void _handleScroll() {
-    if (!mounted) return;
-    setState(() {});
+  void _handleScroll() => _scheduleOffsetUpdate();
+
+  void _scheduleOffsetUpdate() {
+    if (!widget.stickyEnabled || _framePending || !mounted) return;
+    _framePending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _framePending = false;
+      if (!mounted || !widget.stickyEnabled) return;
+
+      final nextOffset = _avatarOffset();
+      final currentOffset = _stickyOffset ?? widget.avatarTop;
+      if ((currentOffset - nextOffset).abs() < 0.5) return;
+      setState(() => _stickyOffset = nextOffset);
+    });
   }
 
   double _avatarOffset() {
@@ -355,20 +388,23 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     } catch (_) {
       return widget.avatarTop;
     }
-    final stickyDelta = _StickyBubbleMessageGroup._viewportTopMargin - groupTop;
+
     final maxOffset = (box.size.height - widget.avatarSize).clamp(
       0.0,
       double.infinity,
     );
     if (maxOffset <= widget.avatarTop) return widget.avatarTop;
 
+    final stickyDelta = _StickyBubbleMessageGroup._viewportTopMargin - groupTop;
     return (widget.avatarTop + stickyDelta).clamp(widget.avatarTop, maxOffset);
   }
 
   @override
   Widget build(BuildContext context) {
     _updateScrollPosition();
-    final offset = _avatarOffset();
+    final offset = widget.stickyEnabled
+        ? (_stickyOffset ?? widget.avatarTop)
+        : widget.avatarTop;
 
     return Stack(
       key: _key,
@@ -381,14 +417,8 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
         Positioned(
           left: widget.avatarLeft,
           top: 0,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(end: offset),
-            duration: MediaQuery.disableAnimationsOf(context)
-                ? Duration.zero
-                : _StickyBubbleMessageGroup._stickDuration,
-            curve: Curves.easeOutCubic,
-            builder: (context, value, child) =>
-                Transform.translate(offset: Offset(0, value), child: child),
+          child: Transform.translate(
+            offset: Offset(0, offset),
             child: ChatRoomMemberRegion(
               roomId: widget.roomId,
               member: widget.sender,
