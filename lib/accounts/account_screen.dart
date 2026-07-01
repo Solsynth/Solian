@@ -291,7 +291,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const StickerMarketplaceRoute());
                     },
                   },
-
                 ];
                 return Column(
                   children: menuItems.map((item) {

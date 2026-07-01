@@ -74,21 +74,42 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userStatus = ref.watch(accountStatusProvider(uname));
+    final renderPadding =
+        padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: userStatus.when(
         data: (status) => (status?.isCustomized ?? false)
-            ? AccountStatusWidget(uname: uname, padding: padding)
-            : _StatusCallToActionCard(padding: padding),
+            ? AccountStatusWidget(uname: uname, padding: renderPadding)
+            : Padding(
+                padding: renderPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Symbols.keyboard_arrow_up),
+                        const SizedBox(width: 4),
+                        Text('Create Status').tr(),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tap to set your current activity and let others know what you\'re up to',
+                      style: const TextStyle(fontSize: 12),
+                    ).tr().opacity(0.75),
+                  ],
+                ),
+              ).opacity(0.85),
         error: (error, _) => _StatusStateCard(
-          padding: padding,
+          padding: renderPadding,
           icon: Symbols.error,
           title: 'Status unavailable',
           subtitle: '$error',
         ),
         loading: () => _StatusStateCard(
-          padding: padding,
+          padding: renderPadding,
           icon: Symbols.more_horiz,
           title: 'loading'.tr(),
           subtitle: 'Fetching current status',
@@ -135,6 +156,86 @@ class AccountStatusWidget extends HookConsumerWidget {
         title: getStatusDisplayLabel(context, statusValue),
         subtitle: 'No custom status set',
       ).opacity(0.85);
+    }
+
+    final hasMedia = statusValue.icon != null || statusValue.background != null;
+    if (!hasMedia) {
+      return Padding(
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 27, vertical: 4),
+        child: Row(
+          spacing: 4,
+          children: [
+            Icon(
+              getStatusIndicatorIcon(statusValue),
+              fill: getStatusIndicatorFill(statusValue),
+              color: getStatusIndicatorColor(statusValue),
+              size: 16,
+            ).padding(right: 4),
+            if (statusValue.isCustomized)
+              Flexible(
+                child: GestureDetector(
+                  onLongPress: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Activity Details'),
+                        content: buildActivityDetails(status.value),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: Tooltip(
+                    richMessage: getActivityFullMessage(statusValue),
+                    child: Text(
+                      getActivityTitle(statusValue.label, statusValue.meta) ??
+                          getStatusDisplayLabel(context, statusValue),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: Text(
+                  getStatusDisplayLabel(context, statusValue),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (statusValue.isIdleOrOnline)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'idle',
+                  style: TextStyle(fontSize: 11, color: Colors.amber.shade700),
+                ).tr(),
+              ),
+            if (getActivitySubtitle(statusValue.meta) != null)
+              Flexible(
+                child: Text(
+                  getActivitySubtitle(statusValue.meta)!,
+                ).opacity(0.75),
+              )
+            else if (!statusValue.isOnline &&
+                account.value?.profile.lastSeenAt != null)
+              Flexible(
+                child: Text(
+                  account.value!.profile.lastSeenAt!.formatRelative(context),
+                ).opacity(0.75),
+              ),
+          ],
+        ),
+      ).opacity(statusValue.isCustomized ? 1 : 0.85);
     }
 
     return _StatusDisplayCard(
@@ -222,47 +323,6 @@ class AccountStatusLabel extends StatelessWidget {
   }
 }
 
-class _StatusCallToActionCard extends StatelessWidget {
-  final EdgeInsets? padding;
-
-  const _StatusCallToActionCard({this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Icon(Symbols.add_reaction, color: colorScheme.onPrimaryContainer),
-          const Gap(12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'statusCreate'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Gap(2),
-                Text(
-                  'Tap to set your current activity and let others know what you\'re up to',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ).tr(),
-              ],
-            ),
-          ),
-          Icon(Symbols.chevron_right, color: colorScheme.onSurfaceVariant),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatusStateCard extends StatelessWidget {
   final EdgeInsets? padding;
   final IconData icon;
@@ -280,7 +340,7 @@ class _StatusStateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
       child: Row(
         children: [
           Icon(icon, color: colorScheme.onSurfaceVariant),
@@ -366,8 +426,9 @@ class _StatusDisplayCard extends StatelessWidget {
           );
 
     Widget card = Container(
-      margin:
-          padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: hasBackground
+          ? EdgeInsets.zero
+          : (padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),

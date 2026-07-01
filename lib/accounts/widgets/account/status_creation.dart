@@ -409,6 +409,7 @@ class _StatusPreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final previewLabel = label.isNotEmpty ? label : 'Status preview';
+    final hasMedia = icon != null || background != null;
     final hasBackground = background != null;
     final textShadow = hasBackground
         ? const [
@@ -420,6 +421,57 @@ class _StatusPreviewCard extends StatelessWidget {
       2 => Symbols.sentiment_sad,
       _ => Symbols.sentiment_stressed,
     };
+
+    if (!hasMedia) {
+      return Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          border: Border.all(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(statusIcon, color: colorScheme.onPrimaryContainer),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    previewLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (symbol.isNotEmpty)
+                    Text(
+                      symbol,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     final card = Container(
       decoration: BoxDecoration(
