@@ -17,8 +17,11 @@ import flutter_callkit_incoming
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
     private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
+    private let nativeCallChannelName = "dev.solsynth.solian/native_call"
+    private let pendingAcceptedCallKey = "dev.solsynth.solian.callkit.pendingAcceptedCall"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private var implicitDeepLinkChannel: FlutterMethodChannel?
+    private var nativeCallChannel: FlutterMethodChannel?
     
     static var shared: AppDelegate? = UIApplication.shared.delegate as? AppDelegate
     
@@ -42,7 +45,11 @@ import flutter_callkit_incoming
             _ = handleIncomingDeepLink(launchUrl)
         }
         
-        UNUserNotificationCenter.current().delegate = notifyDelegate
+        if let controller = window?.rootViewController as? FlutterViewController {
+            setupNativeCallChannel(binaryMessenger: controller.binaryMessenger)
+        }
+
+        UNUserNotificationCenter.current().delegate = self
         
         let replyableMessageCategory = UNNotificationCategory(
             identifier: "CHAT_MESSAGE",
@@ -138,7 +145,7 @@ import flutter_callkit_incoming
         // Critical: don't let this plugin configure AVAudioSession — LiveKit owns it.
         // Setting false prevents flutter_callkit_incoming from calling setCategory/setMode/setActive,
         // which would otherwise fight with audio_session → RTCAudioSession.
-        // reportData.configureAudioSession = false
+        reportData.configureAudioSession = false
         
         print("[CallKit] reporting to showCallkitIncoming id=\(id) caller=\(nameCaller) handle=\(handle) isVideo=\(isVideo) fromPushKit=true")
         guard let plugin = SwiftFlutterCallkitIncomingPlugin.sharedInstance else {
@@ -153,12 +160,40 @@ import flutter_callkit_incoming
     }
     
     
+    // MARK: - Notifications
+
+    override func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                         willPresent notification: UNNotification,
+                                         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        CallkitNotificationManager.shared.userNotificationCenter(
+            center,
+            willPresent: notification,
+            withCompletionHandler: completionHandler
+        )
+    }
+
+    override func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                         didReceive response: UNNotificationResponse,
+                                         withCompletionHandler completionHandler: @escaping () -> Void) {
+        if response.actionIdentifier == CallkitNotificationManager.CALLBACK_ACTION {
+            let data = response.notification.request.content.userInfo as? [String: Any]
+            SwiftFlutterCallkitIncomingPlugin.sharedInstance?.sendCallbackEvent(data)
+            completionHandler()
+            return
+        }
+
+        notifyDelegate.userNotificationCenter(
+            center,
+            didReceive: response,
+            withCompletionHandler: completionHandler
+        )
+    }
+
     // MARK: - CallkitIncomingAppDelegate
     
     func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
         print("[CallKit] onAccept: \(call.uuid)")
-        // WebRTC: activate audio session here if using RTCAudioSession
-        // RTCAudioSession.sharedInstance().isAudioEnabled = true
+        storeAcceptedCall(call)
         action.fulfill()
     }
     
@@ -187,6 +222,47 @@ import flutter_callkit_incoming
     
     func providerDidReset() {
         // no-op: plugin manages its own provider
+    }
+
+    private func setupNativeCallChannel(binaryMessenger: FlutterBinaryMessenger) {
+        nativeCallChannel = FlutterMethodChannel(
+            name: nativeCallChannelName,
+            binaryMessenger: binaryMessenger
+        )
+        nativeCallChannel?.setMethodCallHandler { call, result in
+            switch call.method {
+            case "consumePendingAcceptedCall":
+                result(self.consumePendingAcceptedCall())
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+
+    private func storeAcceptedCall(_ call: Call) {
+        let extra = call.data.extra as? [String: Any] ?? [:]
+        var payload: [String: Any] = [
+            "id": call.uuid.uuidString.lowercased(),
+            "nameCaller": call.data.nameCaller,
+            "handle": call.data.handle,
+            "type": call.data.type,
+            "extra": extra,
+        ]
+        if let roomId = extra["room_id"] {
+            payload["room_id"] = roomId
+        }
+        UserDefaults.shared.set(payload, forKey: pendingAcceptedCallKey)
+        UserDefaults.shared.synchronize()
+        nativeCallChannel?.invokeMethod("onAcceptedCall", arguments: payload)
+    }
+
+    private func consumePendingAcceptedCall() -> [String: Any]? {
+        let defaults = UserDefaults.shared
+        defer {
+            defaults.removeObject(forKey: pendingAcceptedCallKey)
+            defaults.synchronize()
+        }
+        return defaults.dictionary(forKey: pendingAcceptedCallKey)
     }
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

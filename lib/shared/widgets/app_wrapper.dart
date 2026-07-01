@@ -171,6 +171,18 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
+      if (!isNativeCallAvailable) return null;
+      final sub = ref.listenManual(appLifecycleStateProvider, (previous, next) {
+        final state = next.value;
+        if (state == AppLifecycleState.resumed) {
+          Logger.root.info('[AppWrapper] App resumed, syncing native call state');
+          unawaited(ref.read(nativeCallBridgeProvider.notifier).ensureInitialized());
+        }
+      });
+      return sub.close;
+    }, []);
+
+    useEffect(() {
       if (!kIsWeb && Platform.isIOS) {
         // ponytail: let CallKit own iOS incoming-call UX
         return null;

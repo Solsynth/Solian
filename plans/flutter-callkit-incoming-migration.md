@@ -2,7 +2,7 @@
 
 ## Goal
 
-Android keeps `callkeep` (Android-only via `VoiceConnectionService`). iOS moves from custom native CallKit code + path-dependency `callkeep` to the `flutter_callkit_incoming` package, which handles PushKit, CXProvider, and event delivery to Dart as a single unit.
+Migrate away from the in-repo `packages/callkeep` plugin to `flutter_callkit_incoming`, which handles PushKit, CXProvider, and event delivery to Dart as a single unit.
 
 ## Context: Why This Architecture
 
@@ -238,7 +238,7 @@ Despite the package swap, the **architecture is preserved**:
 
 ## Cleanup After Migration
 
-- Delete `packages/callkeep/` if iOS no longer uses it (keep for Android for now; a future PR removes it entirely).
+- Delete `packages/callkeep/`.
 - Delete `ios/Runner/AppDelegate.swift` lines referencing the UserDefaults handoff keys, native `CXProvider` reporting payload, debug method channel.
 - Flutter clean + pod deintegrate + pod install.
 - Clean derived data in Xcode; do a fresh `flutter build ios` to ensure no stale `callkeep` framework references.

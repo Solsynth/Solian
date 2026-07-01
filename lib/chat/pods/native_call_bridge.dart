@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:logging/logging.dart';
@@ -12,6 +13,7 @@ import 'package:island/core/utils/call_kit_utils.dart';
 part 'native_call_bridge.g.dart';
 
 const _unset = Object();
+const _nativeCallChannel = MethodChannel('dev.solsynth.solian/native_call');
 
 bool get isNativeCallAvailable =>
     !kIsWeb && (Platform.isIOS || Platform.isAndroid);
@@ -93,6 +95,12 @@ class NativeCallBridge extends _$NativeCallBridge {
     if (_listenersRegistered) return;
     _listenersRegistered = true;
 
+    _nativeCallChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onAcceptedCall') {
+        await _onAcceptedPayload(call.arguments);
+      }
+    });
+
     FlutterCallkitIncoming.onEvent.listen(
       _onCallEvent,
       onError: (e, st) {
@@ -114,7 +122,7 @@ class NativeCallBridge extends _$NativeCallBridge {
       case CallEventActionCallStart():
         _onStart(event.callKitParams);
       case CallEventActionCallAccept():
-        await _onAccept(event.callKitParams.id);
+        await _onAccept(event.callKitParams);
       case CallEventActionCallDecline():
         await _onDecline(event.callKitParams.id);
       case CallEventActionCallEnded():
@@ -129,6 +137,8 @@ class NativeCallBridge extends _$NativeCallBridge {
         break;
       case CallEventActionCallConnected():
         state = state.copyWith(isConnected: true, isAcceptedPending: false);
+      case CallEventActionCallToggleAudioSession():
+        state = state.copyWith(isAudioSessionActive: event.isActive);
       default:
         Logger.root.warning('[NativeCallBridge] unhandled event: $event');
     }
@@ -167,26 +177,57 @@ class NativeCallBridge extends _$NativeCallBridge {
     );
   }
 
-  Future<void> _onAccept(String uuid) async {
+  Future<void> _onAccept(CallKitParams params) async {
+    await _setAcceptedCall(
+      uuid: params.id,
+      roomId: params.extra?['room_id']?.toString(),
+      roomName: (params.nameCaller ?? '').trim(),
+      extra: params.extra ?? const <String, dynamic>{},
+    );
+  }
+
+  Future<void> _onAcceptedPayload(Object? payload) async {
+    if (payload is! Map) return;
+    final data = payload.map((key, value) => MapEntry(key.toString(), value));
+    final extra = data['extra'] is Map
+        ? (data['extra'] as Map).map((key, value) => MapEntry(key.toString(), value))
+        : const <String, dynamic>{};
+    await _setAcceptedCall(
+      uuid: data['id']?.toString() ?? data['uuid']?.toString() ?? '',
+      roomId: data['room_id']?.toString() ?? extra['room_id']?.toString(),
+      roomName: data['nameCaller']?.toString() ?? data['caller_name']?.toString(),
+      extra: extra,
+    );
+  }
+
+  Future<void> _setAcceptedCall({
+    required String uuid,
+    required String? roomId,
+    required String? roomName,
+    required Map<String, dynamic> extra,
+  }) async {
     if (uuid.isEmpty) return;
-    final descriptor = await _lookupDescriptor(uuid);
-    if (descriptor == null) {
+    final normalizedName = (roomName ?? '').trim();
+    final displayName = normalizedName.isEmpty ? (roomId ?? 'Voice Call') : normalizedName;
+
+    if (roomId == null || roomId.isEmpty) {
       Logger.root.warning(
-        '[NativeCallBridge] Native answer: no descriptor for uuid=$uuid',
+        '[NativeCallBridge] Native answer missing room_id: uuid=$uuid extra=$extra',
       );
     }
+
     state = state.copyWith(
       callUuid: uuid,
-      roomId: descriptor?.roomId,
-      roomName: descriptor?.callerName,
-      callKitAcceptedRoomId: descriptor?.roomId,
-      isAcceptedPending: descriptor != null,
+      roomId: roomId,
+      roomName: displayName,
+      callKitAcceptedRoomId: roomId,
+      isAcceptedPending: roomId != null && roomId.isNotEmpty,
       isConnected: false,
       isIncomingDisplayed: false,
+      isAudioSessionActive: Platform.isIOS ? true : state.isAudioSessionActive,
+      source: NativeCallSource.incomingPush,
     );
-    Logger.root.info(
-      '[NativeCallBridge] Native answer: room=${state.callKitAcceptedRoomId} uuid=$uuid',
-    );
+    Logger.root.info('[NativeCallBridge] Native answer: room=$roomId uuid=$uuid');
   }
 
   Future<void> _onDecline(String uuid) async {
@@ -204,34 +245,6 @@ class NativeCallBridge extends _$NativeCallBridge {
     state = state.copyWith(isIncomingDisplayed: false);
   }
 
-  /// Look up the call descriptor that was stored via showIncomingCall /
-  /// startOutgoingCall. On iOS, the descriptor lives only in Dart since the
-  /// plugin keeps its own descriptor map natively.
-  Future<SystemCallDescriptor?> _lookupDescriptor(String? callUuid) async {
-    if (callUuid == null || callUuid.isEmpty) return null;
-    final active = await FlutterCallkitIncoming.activeCalls();
-    for (final params in active) {
-      if (params.id == callUuid) {
-        final extra = params.extra ?? const <String, dynamic>{};
-        final roomId = extra['room_id']?.toString();
-        final rawName = (params.nameCaller ?? '').trim();
-        final callerName = rawName.isEmpty ? 'Voice Call' : rawName;
-        final handle = params.handle ?? roomId ?? 'unknown';
-        if (roomId == null) continue;
-        return createSystemCallDescriptor(
-          roomId: roomId,
-          callerName: callerName,
-          handle: handle,
-          hasVideo: (params.type ?? 0) > 0,
-          source: NativeCallSource.incomingPush,
-          callUuid: params.id,
-          metadata: Map<String, dynamic>.from(extra),
-        );
-      }
-    }
-    return null;
-  }
-
   Future<void> ensureInitialized() async {
     if (!isNativeCallAvailable || _isInitializing) return;
     _isInitializing = true;
@@ -240,10 +253,50 @@ class NativeCallBridge extends _$NativeCallBridge {
       final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
       state = state.copyWith(pushToken: token);
       Logger.root.info('[NativeCallBridge] Initialized token=${token != null ? "${token.substring(0, 8)}…" : "none"}');
+      await _consumePendingAcceptedCall();
+      await _restoreActiveCallState();
     } catch (e) {
-      Logger.root.warning('[NativeCallBridge] Failed to get VoIP token: $e');
+      Logger.root.warning('[NativeCallBridge] Failed to initialize native call bridge: $e');
     }
     _isInitializing = false;
+  }
+
+  Future<void> _consumePendingAcceptedCall() async {
+    if (!Platform.isIOS) return;
+    final payload = await _nativeCallChannel.invokeMethod<Object?>(
+      'consumePendingAcceptedCall',
+    );
+    await _onAcceptedPayload(payload);
+  }
+
+  Future<void> _restoreActiveCallState() async {
+    final activeCalls = await FlutterCallkitIncoming.activeCalls();
+    if (activeCalls.isEmpty) return;
+
+    final params = activeCalls.firstWhere(
+      (call) => call.isAccepted == true,
+      orElse: () => activeCalls.first,
+    );
+    final extra = params.extra ?? const <String, dynamic>{};
+    final roomId = extra['room_id']?.toString();
+    final rawName = (params.nameCaller ?? '').trim();
+    final roomName = rawName.isEmpty ? (roomId ?? 'Voice Call') : rawName;
+    final isAccepted = params.isAccepted == true;
+
+    state = state.copyWith(
+      callUuid: params.id,
+      roomId: roomId,
+      roomName: roomName,
+      callKitAcceptedRoomId: isAccepted ? roomId : null,
+      isAcceptedPending: isAccepted && roomId != null && roomId.isNotEmpty,
+      isIncomingDisplayed: !isAccepted,
+      isOutgoing: false,
+      isAudioSessionActive: Platform.isIOS ? isAccepted : state.isAudioSessionActive,
+      source: NativeCallSource.incomingPush,
+    );
+    Logger.root.info(
+      '[NativeCallBridge] Restored active call: uuid=${params.id} room=$roomId accepted=$isAccepted',
+    );
   }
 
   Future<SystemCallDescriptor> startOutgoingCall({
