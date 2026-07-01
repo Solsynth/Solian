@@ -313,7 +313,6 @@ class CalendarSearchQuery {
   final int offset;
   final int take;
   final bool isSearchActive;
-  final int debounceKey;
 
   const CalendarSearchQuery({
     this.query,
@@ -325,7 +324,6 @@ class CalendarSearchQuery {
     this.offset = 0,
     this.take = 50,
     this.isSearchActive = false,
-    this.debounceKey = 0,
   });
 
   @override
@@ -341,8 +339,7 @@ class CalendarSearchQuery {
           notableDayTag == other.notableDayTag &&
           offset == other.offset &&
           take == other.take &&
-          isSearchActive == other.isSearchActive &&
-          debounceKey == other.debounceKey;
+          isSearchActive == other.isSearchActive;
 
   @override
   int get hashCode =>
@@ -356,7 +353,6 @@ class CalendarSearchQuery {
         offset,
         take,
         isSearchActive,
-        debounceKey,
       );
 
   bool _listEquals(List<String> a, List<String> b) {
@@ -374,14 +370,20 @@ Future<List<CalendarSearchResult>> calendarSearch(
   Ref ref,
   CalendarSearchQuery query,
 ) async {
+  final normalizedQuery = query.query?.trim();
+  final hasFilters =
+      (normalizedQuery?.isNotEmpty ?? false) ||
+      query.tags.isNotEmpty ||
+      query.notableDayTag != null;
+
   // Return empty if search is not active (avoids unnecessary API calls)
-  if (!query.isSearchActive) {
+  if (!query.isSearchActive || !hasFilters) {
     return const [];
   }
 
   final client = ref.watch(solarNetworkClientProvider);
   final results = await client.accounts.searchCalendarEvents(
-    query: query.query,
+    query: normalizedQuery,
     accountId: query.accountId,
     tags: query.tags.isEmpty ? null : query.tags,
     startTime: query.startTime,

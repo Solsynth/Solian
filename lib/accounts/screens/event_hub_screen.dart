@@ -71,23 +71,6 @@ class EventHubScreen extends HookConsumerWidget {
       return () => debounceTimer.value?.cancel();
     }, [searchQuery.value]);
 
-    // Also debounce tag/notableDayTag changes
-    final lastTagFilterKey = useRef<String>('');
-    final debouncedTagTrigger = useRef<Timer?>(null);
-    final tagDebounceKey = useState<int>(0);
-    final currentTagFilterKey =
-        '${selectedTags.value.join(",")}|${selectedNotableDayTag.value ?? ""}';
-
-    useEffect(() {
-      if (lastTagFilterKey.value == currentTagFilterKey) return null;
-      debouncedTagTrigger.value?.cancel();
-      debouncedTagTrigger.value = Timer(debounceDelay, () {
-        lastTagFilterKey.value = currentTagFilterKey;
-        tagDebounceKey.value++;
-      });
-      return () => debouncedTagTrigger.value?.cancel();
-    }, [currentTagFilterKey]);
-
     final query = EventCalendarQuery(
       uname: name,
       year: focusedMonth.value.year,
@@ -122,23 +105,22 @@ class EventHubScreen extends HookConsumerWidget {
     final searchResultsAsync = ref.watch(
       calendarSearchProvider(
         CalendarSearchQuery(
-          query: debouncedSearchQuery.value.isNotEmpty
-              ? debouncedSearchQuery.value
+          query: debouncedSearchQuery.value.trim().isNotEmpty
+              ? debouncedSearchQuery.value.trim()
               : null,
           tags: searchTags,
-          startTime: DateTime(
+          startTime: DateTime.utc(
             focusedMonth.value.year,
             focusedMonth.value.month,
             1,
-          ).toUtc(),
-          endTime: DateTime(
+          ),
+          endTime: DateTime.utc(
             focusedMonth.value.year,
             focusedMonth.value.month + 1,
-            0,
-          ).toUtc(),
+            1,
+          ),
           notableDayTag: selectedNotableDayTag.value?.value,
           isSearchActive: isSearchActive.value && hasActiveFilters,
-          debounceKey: tagDebounceKey.value,
         ),
       ),
     );
@@ -198,11 +180,10 @@ class EventHubScreen extends HookConsumerWidget {
       }
     }
 
-    // Cleanup debounce timers on dispose
+    // Cleanup debounce timer on dispose
     useEffect(() {
       return () {
         debounceTimer.value?.cancel();
-        debouncedTagTrigger.value?.cancel();
       };
     }, []);
 
@@ -258,7 +239,6 @@ class EventHubScreen extends HookConsumerWidget {
                 debounceTimer.value?.cancel();
                 searchQuery.value = '';
                 debouncedSearchQuery.value = '';
-                lastTagFilterKey.value = currentTagFilterKey;
               },
               onSelectDate: (value) {
                 selectedDate.value = value;
@@ -655,30 +635,6 @@ class EventHubScreen extends HookConsumerWidget {
       ),
       body: Column(
         children: [
-          // Horizontal scrollable filter chips
-          if (isSearchActive.value)
-            _SearchFilterChips(
-              selectedTags: selectedTags.value,
-              selectedNotableDayTag: selectedNotableDayTag.value,
-              usedTags: usedTagsAsync.value ?? [],
-              onToggleTag: (tag) {
-                final newTags = Set<String>.from(selectedTags.value);
-                if (newTags.contains(tag)) {
-                  newTags.remove(tag);
-                } else {
-                  newTags.add(tag);
-                }
-                selectedTags.value = newTags;
-              },
-              onNotableDayTagChanged: (tag) {
-                selectedNotableDayTag.value = tag;
-              },
-              onClearFilters: () {
-                selectedTags.value = {};
-                selectedNotableDayTag.value = null;
-              },
-            ),
-          // Main content
           Expanded(
             child: (isSearchActive.value && hasActiveFilters)
                 ? searchResultsWidget
@@ -1264,8 +1220,6 @@ class _DayAgenda extends StatelessWidget {
   ) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: color, fill: 1),
-        const Gap(6),
         Text(
           title,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -2209,7 +2163,7 @@ class _CalendarFiltersSidebar extends StatelessWidget {
           subtitle: const Text('Show holidays and public notable dates'),
           onChanged: onToggleNotableDays,
         ),
-        const Divider(height: 32),
+        const Gap(16),
         // Tag filters section
         if (usedTags.isNotEmpty || selectedTags.isNotEmpty) ...[
           _CalendarFilterGroup(
@@ -2265,7 +2219,7 @@ class _CalendarFiltersSidebar extends StatelessWidget {
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ],
-        const Divider(height: 32),
+        const Gap(16),
         _CalendarFilterGroup(
           title: 'Selected date',
           children: [
@@ -2283,127 +2237,6 @@ class _CalendarFiltersSidebar extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  static String _notableDayTagLabel(NotableDayTagFilter tag) {
-    return switch (tag) {
-      NotableDayTagFilter.holiday => 'Holiday',
-      NotableDayTagFilter.event => 'Event',
-      NotableDayTagFilter.anniversary => 'Anniversary',
-      NotableDayTagFilter.memorial => 'Memorial',
-      NotableDayTagFilter.festival => 'Festival',
-    };
-  }
-}
-
-/// Search & filter bar widget shown below the AppBar when search is active
-/// Horizontal scrollable filter chips (shown below AppBar when searching)
-class _SearchFilterChips extends StatelessWidget {
-  final Set<String> selectedTags;
-  final NotableDayTagFilter? selectedNotableDayTag;
-  final List<String> usedTags;
-  final ValueChanged<String> onToggleTag;
-  final ValueChanged<NotableDayTagFilter?> onNotableDayTagChanged;
-  final VoidCallback onClearFilters;
-
-  const _SearchFilterChips({
-    required this.selectedTags,
-    required this.selectedNotableDayTag,
-    required this.usedTags,
-    required this.onToggleTag,
-    required this.onNotableDayTagChanged,
-    required this.onClearFilters,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final hasFilters = selectedTags.isNotEmpty || selectedNotableDayTag != null;
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          const Gap(12),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  // Notable day type filters
-                  ...NotableDayTagFilter.values.map((tag) {
-                    final isSelected = selectedNotableDayTag == tag;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: FilterChip(
-                        label: Text(_notableDayTagLabel(tag)),
-                        selected: isSelected,
-                        onSelected: (_) =>
-                            onNotableDayTagChanged(isSelected ? null : tag),
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        selectedColor: colorScheme.tertiaryContainer,
-                        checkmarkColor: colorScheme.onTertiaryContainer,
-                        labelStyle: theme.textTheme.labelSmall?.copyWith(
-                          color: isSelected
-                              ? colorScheme.onTertiaryContainer
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                        side: BorderSide(
-                          color: isSelected
-                              ? colorScheme.tertiary
-                              : colorScheme.outlineVariant,
-                        ),
-                      ),
-                    );
-                  }),
-                  // Separator
-                  if (usedTags.isNotEmpty)
-                    Container(
-                      width: 1,
-                      height: 24,
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      color: colorScheme.outlineVariant,
-                    ),
-                  // User's used tags
-                  ...usedTags.map((tag) {
-                    final isSelected = selectedTags.contains(tag);
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: FilterChip(
-                        label: Text(tag),
-                        selected: isSelected,
-                        onSelected: (_) => onToggleTag(tag),
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-          // Clear all button
-          if (hasFilters) ...[
-            const Gap(4),
-            IconButton(
-              onPressed: onClearFilters,
-              icon: const Icon(Symbols.clear_all, size: 18),
-              visualDensity: VisualDensity.compact,
-              tooltip: 'Clear filters',
-            ),
-          ],
-          const Gap(8),
-        ],
-      ),
     );
   }
 
@@ -2480,12 +2313,11 @@ class _SearchResultsList extends StatelessWidget {
               ),
               // Items for this date
               ...section.items.map((item) {
+                Widget child;
+
                 if (item.userEvent != null) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
+                  child = Card(
+                    margin: EdgeInsets.zero,
                     elevation: 0,
                     color: colorScheme.surfaceContainerLow,
                     shape: RoundedRectangleBorder(
@@ -2498,18 +2330,27 @@ class _SearchResultsList extends StatelessWidget {
                     ),
                   );
                 } else if (item.notableDay != null) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: _NotableDayResultCard(
-                      notableDay: item.notableDay!,
-                      onTap: onOpenNotableDay,
-                    ),
+                  child = _NotableDayResultCard(
+                    notableDay: item.notableDay!,
+                    onTap: onOpenNotableDay,
                   );
+                } else {
+                  return const SizedBox.shrink();
                 }
-                return const SizedBox.shrink();
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 640),
+                      child: child,
+                    ),
+                  ),
+                );
               }),
             ],
           ),
