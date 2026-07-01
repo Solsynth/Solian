@@ -644,12 +644,28 @@ class MessagesNotifier extends _$MessagesNotifier {
   void _replaceMessage(String messageId, LocalChatMessage replacement) {
     var replaced = false;
     final updated = _currentMessages.map((message) {
-      if (message.id != messageId) return message;
+      final matchesPendingId = message.id == messageId;
+      final matchesReplacementId = message.id == replacement.id;
+      final matchesClientMessageId =
+          replacement.clientMessageId != null &&
+          message.clientMessageId == replacement.clientMessageId;
+      if (!matchesPendingId && !matchesReplacementId && !matchesClientMessageId) {
+        return message;
+      }
       replaced = true;
       return replacement;
     }).toList();
 
-    _emitMessages(replaced ? updated : [replacement, ...updated]);
+    if (replaced) {
+      _emitMessages(updated);
+      return;
+    }
+
+    if (_currentMessages.any((message) => message.id == replacement.id)) {
+      return;
+    }
+
+    _emitMessages([replacement, ...updated]);
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({

@@ -20,6 +20,14 @@ import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+double _parsePlaceholderProgress(dynamic value) {
+  if (value is num) return value.toDouble().clamp(0.0, 1.0);
+  if (value is String) {
+    return (double.tryParse(value) ?? 0).clamp(0.0, 1.0);
+  }
+  return 0;
+}
+
 class MessageContent extends StatelessWidget {
   final SnChatMessage item;
   final String? translatedText;
@@ -834,8 +842,9 @@ class _PlaceholderMessageContent extends StatelessWidget {
     }
 
     if (kind == 'uploading') {
-      final progress =
-          (item.meta['placeholder_progress'] as num?)?.toDouble() ?? 0;
+      final progress = _parsePlaceholderProgress(
+        item.meta['placeholder_progress'],
+      );
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
