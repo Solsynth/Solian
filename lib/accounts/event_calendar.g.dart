@@ -610,7 +610,7 @@ final class CalendarSearchProvider
   }
 }
 
-String _$calendarSearchHash() => r'58ff0dca31f21f95db5784564e2d3fa24a3f01b2';
+String _$calendarSearchHash() => r'41318711e8dabd4cbc06171dd4122c0040207aca';
 
 /// Provider for searching calendar events + notable days
 
