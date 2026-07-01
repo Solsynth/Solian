@@ -8,6 +8,7 @@ import 'package:island/plugins/models/plugin_manifest.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 // ---------------------------------------------------------------------------
 // Standalone route screen (thin wrapper)
@@ -20,7 +21,7 @@ class PluginManagerScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Plugins')),
+      appBar: AppBar(title: Text('plugins'.tr())),
       body: const PluginManagerContent(),
     );
   }
@@ -52,12 +53,12 @@ class PluginManagerContent extends HookConsumerWidget {
             Icon(Symbols.extension,
                 size: 48, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 12),
-            Text('No plugins installed',
+            Text('pluginsEmptyTitle'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     )),
             const SizedBox(height: 4),
-            Text('Create one with the editor',
+            Text('pluginsEmptyHint'.tr(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     )),
@@ -68,13 +69,13 @@ class PluginManagerContent extends HookConsumerWidget {
                 FilledButton.tonalIcon(
                   onPressed: () => _openEditor(context, manager, refresh),
                   icon: const Icon(Symbols.add, size: 18),
-                  label: const Text('New Plugin'),
+                  label: Text('newPlugin'.tr()),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () => _installFromFolder(context, manager, refresh),
                   icon: const Icon(Symbols.folder_open, size: 18),
-                  label: const Text('From Folder'),
+                  label: Text('fromFolder'.tr()),
                 ),
               ],
             ),
@@ -93,7 +94,7 @@ class PluginManagerContent extends HookConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${plugins.length} plugin${plugins.length == 1 ? '' : 's'}',
+                  'pluginsCount'.plural(plugins.length),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -105,19 +106,19 @@ class PluginManagerContent extends HookConsumerWidget {
                   refresh();
                 },
                 icon: const Icon(Symbols.refresh, size: 20),
-                tooltip: 'Reload plugins',
+                tooltip: 'reloadPlugins'.tr(),
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
                 onPressed: () => _installFromFolder(context, manager, refresh),
                 icon: const Icon(Symbols.folder_open, size: 20),
-                tooltip: 'Install from folder',
+                tooltip: 'installFromFolder'.tr(),
                 visualDensity: VisualDensity.compact,
               ),
               FilledButton.tonalIcon(
                 onPressed: () => _openEditor(context, manager, refresh),
                 icon: const Icon(Symbols.add, size: 18),
-                label: const Text('New'),
+                label: Text('new'.tr()),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -147,8 +148,10 @@ class PluginManagerContent extends HookConsumerWidget {
                 },
                 onUninstall: () async {
                   final confirm = await showConfirmAlert(
-                    'Remove "${entry.value.manifest.name}"? This cannot be undone.',
-                    'Uninstall plugin',
+                    'pluginUninstallConfirm'.tr(
+                      namedArgs: {'name': entry.value.manifest.name},
+                    ),
+                    'uninstallPlugin'.tr(),
                     icon: Symbols.delete_forever,
                     isDanger: true,
                   );
@@ -188,7 +191,7 @@ class PluginManagerContent extends HookConsumerWidget {
     VoidCallback onDone,
   ) async {
     final result = await FilePicker.getDirectoryPath(
-      dialogTitle: 'Select plugin folder',
+      dialogTitle: 'selectPluginFolder'.tr(),
     );
     if (result == null) return;
 
@@ -197,16 +200,14 @@ class PluginManagerContent extends HookConsumerWidget {
       onDone();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Plugin installed')),
+          SnackBar(content: Text('pluginInstalled'.tr())),
         );
       }
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Invalid plugin folder — must contain a valid manifest.json',
-            ),
+          SnackBar(
+            content: Text('invalidPluginFolder'.tr()),
           ),
         );
       }
@@ -352,9 +353,9 @@ class _PluginTile extends StatelessWidget {
                       if (v == 'uninstall') onUninstall();
                     },
                     itemBuilder: (_) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'uninstall',
-                        child: Text('Uninstall'),
+                        child: Text('uninstall'.tr()),
                       ),
                     ],
                   ),
@@ -382,13 +383,13 @@ class _PluginEditorSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final codeController = useTextEditingController();
-    final nameController = useTextEditingController(text: 'My Plugin');
+    final nameController = useTextEditingController(text: 'myPlugin'.tr());
     final output = useState<String?>(null);
     final isError = useState(false);
     final isRunning = useState(false);
 
     return SheetScaffold(
-      titleText: 'New Plugin',
+      titleText: 'newPlugin'.tr(),
       actions: [
         FilledButton.icon(
           onPressed: isRunning.value
@@ -407,11 +408,11 @@ class _PluginEditorSheet extends HookConsumerWidget {
                     );
 
                     if (instance.state == PluginState.active) {
-                      output.value = 'Plugin loaded successfully.';
+                      output.value = 'pluginLoadedSuccessfully'.tr();
                       isError.value = false;
                       onSaved();
                     } else {
-                      output.value = instance.lastError ?? 'Unknown error';
+                      output.value = instance.lastError ?? 'unknownError'.tr();
                       isError.value = true;
                     }
                   } catch (e) {
@@ -422,7 +423,7 @@ class _PluginEditorSheet extends HookConsumerWidget {
                   }
                 },
           icon: const Icon(Symbols.play_arrow, size: 18),
-          label: const Text('Run'),
+          label: Text('run'.tr()),
           style: FilledButton.styleFrom(
             visualDensity: VisualDensity.compact,
             padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -443,7 +444,7 @@ class _PluginEditorSheet extends HookConsumerWidget {
             TextField(
               controller: nameController,
               decoration: InputDecoration(
-                labelText: 'Plugin name',
+                labelText: 'pluginName'.tr(),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8)),
                 isDense: true,
@@ -467,10 +468,7 @@ class _PluginEditorSheet extends HookConsumerWidget {
                       borderRadius: BorderRadius.circular(8)),
                   alignLabelWithHint: true,
                   contentPadding: const EdgeInsets.all(12),
-                  hintText: '// Write your plugin code here\n'
-                      'function on_load() {\n'
-                      '  notify("Hello", "from my plugin!");\n'
-                      '}\n',
+                  hintText: 'pluginCodeHint'.tr(),
                 ),
               ),
             ),
