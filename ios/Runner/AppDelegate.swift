@@ -199,11 +199,13 @@ import flutter_callkit_incoming
     
     func onDecline(_ call: Call, _ action: CXEndCallAction) {
         print("[CallKit] onDecline: \(call.uuid)")
+        nativeCallChannel?.invokeMethod("onEndedCall", arguments: call.uuid.uuidString.lowercased())
         action.fulfill()
     }
     
     func onEnd(_ call: Call, _ action: CXEndCallAction) {
         print("[CallKit] onEnd: \(call.uuid)")
+        nativeCallChannel?.invokeMethod("onEndedCall", arguments: call.uuid.uuidString.lowercased())
         action.fulfill()
     }
     
@@ -227,7 +229,7 @@ import flutter_callkit_incoming
     }
     
     func providerDidReset() {
-        // no-op: plugin manages its own provider
+        nativeCallChannel?.invokeMethod("onEndedCall", arguments: nil)
     }
 
     private func setupNativeCallChannel(binaryMessenger: FlutterBinaryMessenger) {

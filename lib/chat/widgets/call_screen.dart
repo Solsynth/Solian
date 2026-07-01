@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
@@ -8,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
@@ -83,6 +86,20 @@ class CallScreen extends HookConsumerWidget {
     useEffect(() {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       return null;
+    }, []);
+
+    useEffect(() {
+      if (!isNativeCallAvailable) return null;
+      final sub = ref.listenManual(nativeCallBridgeProvider, (previous, current) {
+        final nativeEnded = previous?.callUuid != null && current.callUuid == null;
+        if (!nativeEnded || !context.mounted) return;
+        Logger.root.info('[Call] Native/system call ended, leaving CallScreen');
+        unawaited(() async {
+          await callNotifier.disconnect();
+          if (context.mounted) await context.router.maybePop();
+        }());
+      });
+      return sub.close;
     }, []);
 
     // Resolve room title: prefer explicit name, then other DM member's name

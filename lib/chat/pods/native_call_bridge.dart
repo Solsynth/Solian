@@ -101,6 +101,8 @@ class NativeCallBridge extends _$NativeCallBridge {
           await _onAcceptedPayload(call.arguments);
         case 'onAudioSessionActive':
           state = state.copyWith(isAudioSessionActive: call.arguments == true);
+        case 'onEndedCall':
+          clearAcceptedCall();
       }
     });
 
@@ -173,8 +175,6 @@ class NativeCallBridge extends _$NativeCallBridge {
       callUuid: params.id,
       roomId: roomId,
       roomName: roomName,
-      callKitAcceptedRoomId: roomId,
-      isAcceptedPending: true,
       isOutgoing: true,
       source: NativeCallSource.outgoingLocal,
     );
@@ -321,8 +321,6 @@ class NativeCallBridge extends _$NativeCallBridge {
       callUuid: descriptor.callUuid,
       roomId: roomId,
       roomName: callerName,
-      callKitAcceptedRoomId: roomId,
-      isAcceptedPending: true,
       isOutgoing: true,
       source: NativeCallSource.outgoingLocal,
     );

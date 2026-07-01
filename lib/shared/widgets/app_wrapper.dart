@@ -24,7 +24,7 @@ import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/widgets/incoming_call_invite_sheet.dart';
-import 'package:island/chat/widgets/call_screen.dart';
+import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
 import 'package:island/notifications/notification.dart';
@@ -293,6 +293,11 @@ class AppWrapper extends HookConsumerWidget {
         );
         final currRoomId = current.callKitAcceptedRoomId;
         if (currRoomId == null) {
+          if ((previous?.callKitAcceptedRoomId != null || previous?.callUuid != null) &&
+              ref.read(callProvider).isConnected) {
+            Logger.root.info('[AppWrapper] Native call ended, disconnecting Flutter call');
+            unawaited(ref.read(callProvider.notifier).disconnect());
+          }
           lastHandledAcceptedRoomId.value = null;
           return;
         }
@@ -1101,8 +1106,10 @@ class AppWrapper extends HookConsumerWidget {
           (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
         await createCallWindow(room, cameraEnabled: cameraEnabled);
       } else {
-        await router.pushWidget(
-          CallScreen(room: room, cameraEnabled: cameraEnabled),
+        await pushCallScreenOnce(
+          ref,
+          room,
+          cameraEnabled: cameraEnabled,
         );
       }
       return true;

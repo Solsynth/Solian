@@ -30,6 +30,7 @@ final ProviderContainer _overlayContainer = ProviderContainer();
 
 // Track if the full-screen CallScreen is active to prevent overlay from showing
 bool _isCallScreenActive = false;
+String? _pendingCallScreenRoomId;
 
 /// Set whether the full-screen CallScreen is currently active.
 /// When active, the floating overlay will not be shown.
@@ -42,6 +43,23 @@ void setCallScreenActive(bool active) {
 
 /// Check if the full-screen CallScreen is currently active.
 bool isCallScreenActive() => _isCallScreenActive;
+
+Future<bool> pushCallScreenOnce(
+  WidgetRef ref,
+  SnChatRoom room, {
+  bool cameraEnabled = false,
+}) async {
+  if (_isCallScreenActive || _pendingCallScreenRoomId == room.id) return true;
+  _pendingCallScreenRoomId = room.id;
+  try {
+    await ref.read(routerProvider).pushWidget(
+      CallScreen(room: room, cameraEnabled: cameraEnabled),
+    );
+    return true;
+  } finally {
+    _pendingCallScreenRoomId = null;
+  }
+}
 
 final _callOverlayStateProvider =
     NotifierProvider<_CallOverlayStateNotifier, _CallOverlayState>(
@@ -178,7 +196,6 @@ class _CallOverlayPanel extends ConsumerStatefulWidget {
 class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     with SingleTickerProviderStateMixin {
   late Offset _position;
-  late Size _size;
   late bool _isExpanded;
   late SnChatRoom _room;
   late AnimationController _animController;
@@ -188,7 +205,6 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
   void initState() {
     super.initState();
     _position = widget.initialPosition;
-    _size = widget.initialSize;
     _isExpanded = widget.initialExpanded;
     _room = widget.initialRoom;
     _animController = AnimationController(
@@ -281,10 +297,16 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
         child: GestureDetector(
           onPanUpdate: (details) {
             final screenSize = MediaQuery.of(context).size;
-            const collapsedWidth = 120.0;
-            const collapsedHeight = 80.0;
-            final overlayWidth = _isExpanded ? _size.width : collapsedWidth;
-            final overlayHeight = _isExpanded ? _size.height : collapsedHeight;
+            final overlayWidth = !isConnected && !isReconnecting && hasActiveCall
+                ? 320.0
+                : isReconnecting
+                ? 220.0
+                : 140.0;
+            final overlayHeight = !isConnected && !isReconnecting && hasActiveCall
+                ? 180.0
+                : isReconnecting
+                ? 120.0
+                : 140.0;
 
             setState(() {
               _position = Offset(
@@ -402,8 +424,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
             (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
           createCallWindow(room);
         } else {
-          final router = ref.read(routerProvider);
-          router.pushWidget(CallScreen(room: room));
+          pushCallScreenOnce(ref, room);
         }
       },
       child: _buildPanelContainer(
