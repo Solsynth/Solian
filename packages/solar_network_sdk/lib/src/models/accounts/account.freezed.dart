@@ -1357,7 +1357,7 @@ $UsernameColorCopyWith<$Res>? get usernameColor {
 /// @nodoc
 mixin _$SnAccountStatus {
 
- String get id; int get attitude; bool get isOnline; bool get isIdle; DateTime? get idleSince; bool get isCustomized;@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int get type; String get label; String? get symbol; Map<String, dynamic>? get meta; DateTime? get clearedAt; String? get appIdentifier; bool get isAutomated; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get attitude; bool get isOnline; bool get isIdle; DateTime? get idleSince; bool get isCustomized;@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int get type; String get label; String? get symbol; SnCloudFileReference? get icon; SnCloudFileReference? get background; Map<String, dynamic>? get meta; DateTime? get clearedAt; String? get appIdentifier; bool get isAutomated; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1370,16 +1370,16 @@ $SnAccountStatusCopyWith<SnAccountStatus> get copyWith => _$SnAccountStatusCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,const DeepCollectionEquality().hash(meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hashAll([runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,icon,background,const DeepCollectionEquality().hash(meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, icon: $icon, background: $background, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1390,11 +1390,11 @@ abstract mixin class $SnAccountStatusCopyWith<$Res>  {
   factory $SnAccountStatusCopyWith(SnAccountStatus value, $Res Function(SnAccountStatus) _then) = _$SnAccountStatusCopyWithImpl;
 @useResult
 $Res call({
- String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, SnCloudFileReference? icon, SnCloudFileReference? background, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnAccountCopyWith<$Res>? get account;
+$SnCloudFileReferenceCopyWith<$Res>? get icon;$SnCloudFileReferenceCopyWith<$Res>? get background;$SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
@@ -1407,7 +1407,7 @@ class _$SnAccountStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
@@ -1418,7 +1418,9 @@ as DateTime?,isCustomized: null == isCustomized ? _self.isCustomized : isCustomi
 as bool,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,symbol: freezed == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
-as String?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as String?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,clearedAt: freezed == clearedAt ? _self.clearedAt : clearedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,appIdentifier: freezed == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
 as String?,isAutomated: null == isAutomated ? _self.isAutomated : isAutomated // ignore: cast_nullable_to_non_nullable
@@ -1431,6 +1433,30 @@ as DateTime?,
   ));
 }
 /// Create a copy of SnAccountStatus
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
+  });
+}/// Create a copy of SnAccountStatus
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get background {
+    if (_self.background == null) {
+    return null;
+  }
+
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
+    return _then(_self.copyWith(background: value));
+  });
+}/// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -1521,10 +1547,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountStatus() when $default != null:
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1542,10 +1568,10 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountStatus():
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1559,10 +1585,10 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountStatus() when $default != null:
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1574,7 +1600,7 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 @JsonSerializable()
 
 class _SnAccountStatus implements SnAccountStatus {
-  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, this.isIdle = false, this.idleSince, required this.isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) this.type = SnAccountStatusType.defaultType, this.label = "", this.symbol, required final  Map<String, dynamic>? meta, required this.clearedAt, this.appIdentifier, this.isAutomated = false, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, this.isIdle = false, this.idleSince, required this.isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) this.type = SnAccountStatusType.defaultType, this.label = "", this.symbol, this.icon, this.background, required final  Map<String, dynamic>? meta, required this.clearedAt, this.appIdentifier, this.isAutomated = false, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnAccountStatus.fromJson(Map<String, dynamic> json) => _$SnAccountStatusFromJson(json);
 
 @override final  String id;
@@ -1586,6 +1612,8 @@ class _SnAccountStatus implements SnAccountStatus {
 @override@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) final  int type;
 @override@JsonKey() final  String label;
 @override final  String? symbol;
+@override final  SnCloudFileReference? icon;
+@override final  SnCloudFileReference? background;
  final  Map<String, dynamic>? _meta;
 @override Map<String, dynamic>? get meta {
   final value = _meta;
@@ -1617,16 +1645,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,const DeepCollectionEquality().hash(_meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hashAll([runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,icon,background,const DeepCollectionEquality().hash(_meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, icon: $icon, background: $background, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1637,11 +1665,11 @@ abstract mixin class _$SnAccountStatusCopyWith<$Res> implements $SnAccountStatus
   factory _$SnAccountStatusCopyWith(_SnAccountStatus value, $Res Function(_SnAccountStatus) _then) = __$SnAccountStatusCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, SnCloudFileReference? icon, SnCloudFileReference? background, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnAccountCopyWith<$Res>? get account;
+@override $SnCloudFileReferenceCopyWith<$Res>? get icon;@override $SnCloudFileReferenceCopyWith<$Res>? get background;@override $SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
@@ -1654,7 +1682,7 @@ class __$SnAccountStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountStatus(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
@@ -1665,7 +1693,9 @@ as DateTime?,isCustomized: null == isCustomized ? _self.isCustomized : isCustomi
 as bool,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,symbol: freezed == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
-as String?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as String?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,clearedAt: freezed == clearedAt ? _self.clearedAt : clearedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,appIdentifier: freezed == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
 as String?,isAutomated: null == isAutomated ? _self.isAutomated : isAutomated // ignore: cast_nullable_to_non_nullable
@@ -1679,6 +1709,30 @@ as DateTime?,
 }
 
 /// Create a copy of SnAccountStatus
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
+  });
+}/// Create a copy of SnAccountStatus
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get background {
+    if (_self.background == null) {
+    return null;
+  }
+
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
+    return _then(_self.copyWith(background: value));
+  });
+}/// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

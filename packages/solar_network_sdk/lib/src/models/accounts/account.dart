@@ -161,6 +161,8 @@ sealed class SnAccountStatus with _$SnAccountStatus {
     int type,
     @Default("") String label,
     String? symbol,
+    SnCloudFileReference? icon,
+    SnCloudFileReference? background,
     required Map<String, dynamic>? meta,
     required DateTime? clearedAt,
     String? appIdentifier,

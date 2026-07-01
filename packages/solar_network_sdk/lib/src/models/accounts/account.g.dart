@@ -179,6 +179,14 @@ _SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
           : _statusTypeFromJson(_readStatusType(json, 'type')),
       label: json['label'] as String? ?? "",
       symbol: json['symbol'] as String?,
+      icon: json['icon'] == null
+          ? null
+          : SnCloudFileReference.fromJson(json['icon'] as Map<String, dynamic>),
+      background: json['background'] == null
+          ? null
+          : SnCloudFileReference.fromJson(
+              json['background'] as Map<String, dynamic>,
+            ),
       meta: json['meta'] as Map<String, dynamic>?,
       clearedAt: json['cleared_at'] == null
           ? null
@@ -207,6 +215,8 @@ Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
       'type': instance.type,
       'label': instance.label,
       'symbol': instance.symbol,
+      'icon': instance.icon?.toJson(),
+      'background': instance.background?.toJson(),
       'meta': instance.meta,
       'cleared_at': instance.clearedAt?.toIso8601String(),
       'app_identifier': instance.appIdentifier,

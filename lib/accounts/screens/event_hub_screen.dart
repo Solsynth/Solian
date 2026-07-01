@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/event_calendar.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/screens/event_hub_schedule.dart';
 import 'package:island/accounts/widgets/account/calendar_event_creation_sheet.dart';
 import 'package:island/core/network.dart';
@@ -947,15 +948,27 @@ class _CalendarDayCell extends StatelessWidget {
             if (statuses.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 1),
-                child: Icon(
-                  switch (statuses.first.attitude) {
-                    0 => Symbols.sentiment_satisfied,
-                    2 => Symbols.sentiment_dissatisfied,
-                    _ => Symbols.sentiment_neutral,
-                  },
-                  size: 16,
-                  color: textColor,
-                ),
+                child: statuses.first.icon != null
+                    ? ClipOval(
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CloudFileWidget(
+                            item: statuses.first.icon!,
+                            fit: BoxFit.cover,
+                            useInternalGate: false,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        switch (statuses.first.attitude) {
+                          0 => Symbols.sentiment_satisfied,
+                          2 => Symbols.sentiment_dissatisfied,
+                          _ => Symbols.sentiment_neutral,
+                        },
+                        size: 16,
+                        color: textColor,
+                      ),
               ),
             // Event icon + title
             if (userEvents.isNotEmpty)
@@ -1357,59 +1370,150 @@ class _DayAgenda extends StatelessWidget {
 
   Widget _buildStatusMini(BuildContext context, SnAccountStatus status) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainerHighest,
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Row(
+    final hasBackground = status.background != null;
+    final hasIcon = status.icon != null;
+    final textShadow = hasBackground
+        ? const [
+            Shadow(color: Colors.black54, blurRadius: 8, offset: Offset(0, 2)),
+          ]
+        : null;
+    final title = status.label.isNotEmpty
+        ? status.label
+        : getStatusDisplayLabel(context, status);
+
+    final card = Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  switch (status.attitude) {
-                    0 => Symbols.sentiment_satisfied,
-                    2 => Symbols.sentiment_dissatisfied,
-                    _ => Symbols.sentiment_neutral,
-                  },
-                  size: 18,
-                  color: colorScheme.onPrimaryContainer,
+            if (hasBackground)
+              Positioned.fill(
+                child: CloudImageWidget(
+                  file: status.background,
+                  aspectRatio: 16 / 9,
+                  noBlurhash: true,
                 ),
               ),
-            ),
-            const Gap(10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (status.label.isNotEmpty)
-                    Text(
-                      status.label,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  Text(
-                    status.isOnline ? 'online'.tr() : 'offline'.tr(),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+            if (hasBackground)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.08),
+                        Colors.black.withOpacity(0.45),
+                      ],
                     ),
                   ),
-                ],
+                ),
+              ),
+            Align(
+              alignment: hasBackground
+                  ? Alignment.bottomLeft
+                  : Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    hasIcon
+                        ? ProfilePictureWidget(
+                            file: status.icon,
+                            radius: hasBackground ? 24 : 20,
+                            borderRadius: hasBackground ? 14 : 12,
+                            fallbackIcon: switch (status.attitude) {
+                              0 => Symbols.sentiment_satisfied,
+                              2 => Symbols.sentiment_dissatisfied,
+                              _ => Symbols.sentiment_neutral,
+                            },
+                          )
+                        : Container(
+                            width: hasBackground ? 48 : 40,
+                            height: hasBackground ? 48 : 40,
+                            decoration: BoxDecoration(
+                              color: hasBackground
+                                  ? Colors.white24
+                                  : colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(
+                                hasBackground ? 14 : 12,
+                              ),
+                            ),
+                            child: Icon(
+                              switch (status.attitude) {
+                                0 => Symbols.sentiment_satisfied,
+                                2 => Symbols.sentiment_dissatisfied,
+                                _ => Symbols.sentiment_neutral,
+                              },
+                              size: hasBackground ? 22 : 18,
+                              color: hasBackground
+                                  ? Colors.white
+                                  : colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: hasBackground ? 2 : 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: hasBackground ? Colors.white : null,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: textShadow,
+                                ),
+                          ),
+                          if ((status.symbol ?? '').isNotEmpty)
+                            Text(
+                              status.symbol!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: hasBackground
+                                        ? Colors.white.withOpacity(0.92)
+                                        : colorScheme.onSurfaceVariant,
+                                    shadows: textShadow,
+                                  ),
+                            ),
+                          Text(
+                            status.isOnline ? 'online'.tr() : 'offline'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: hasBackground
+                                      ? Colors.white.withOpacity(0.82)
+                                      : colorScheme.onSurfaceVariant,
+                                  shadows: textShadow,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+
+    if (hasBackground) {
+      return AspectRatio(aspectRatio: 16 / 9, child: card);
+    }
+
+    return card;
   }
 }
 
