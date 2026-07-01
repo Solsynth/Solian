@@ -271,6 +271,9 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final lastResyncAt = useRef<DateTime?>(null);
     final isResyncing = useRef(false);
+    final weakConnectionMode = ref.watch(
+      appSettingsProvider.select((settings) => settings.weakConnectionMode),
+    );
 
     Future<void> resyncRoom({
       bool force = false,
@@ -319,6 +322,21 @@ class ChatRoomScreen extends HookConsumerWidget {
       });
       return timer.cancel;
     }, [id]);
+
+    useEffect(() {
+      if (!weakConnectionMode) return null;
+
+      const weakConnectionSyncInterval = Duration(seconds: 45);
+      final timer = Timer.periodic(weakConnectionSyncInterval, (_) {
+        final currentLifecycle = ref.read(appLifecycleStateProvider).value;
+        if (currentLifecycle != AppLifecycleState.resumed) return;
+        Future.microtask(() {
+          resyncRoom(reason: 'weak-connection-periodic');
+        });
+      });
+
+      return timer.cancel;
+    }, [id, weakConnectionMode, messagesNotifier]);
 
     final lifecycleState = ref.watch(appLifecycleStateProvider);
     final previousLifecycleState = useRef<AppLifecycleState?>(null);

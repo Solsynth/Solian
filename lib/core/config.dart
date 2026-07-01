@@ -36,6 +36,7 @@ const kAppCustomColorsStoreKey = 'app_custom_colors';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppCustomFonts = 'app_custom_fonts';
 const kAppDataSavingMode = 'app_data_saving_mode';
+const kAppWeakConnectionMode = 'app_weak_connection_mode';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppFestivalFeatures = 'app_feastival_features';
 const kAppWindowSize = 'app_window_size';
@@ -45,6 +46,7 @@ const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
 const kAppAttachmentsListStyle = 'app_attachments_list_style';
+const kAppAttachmentPreviewMode = 'app_attachment_preview_mode';
 const kAppLinkCollapseMode = 'app_link_collapse_mode';
 const kAppThemeMode = 'app_theme_mode';
 const kAppDisableAnimation = 'app_disable_animation';
@@ -438,6 +440,7 @@ sealed class ExploreSettings with _$ExploreSettings {
 sealed class AppSettings with _$AppSettings {
   const factory AppSettings({
     required bool dataSavingMode,
+    required bool weakConnectionMode,
     required bool soundEffects,
     required bool festivalFeatures,
     required bool enterToSend,
@@ -453,6 +456,7 @@ sealed class AppSettings with _$AppSettings {
     required String? defaultPoolId,
     required String messageDisplayStyle,
     required String attachmentsListStyle,
+    required String attachmentPreviewMode,
     required String linkCollapseMode,
     required String? themeMode,
     required bool disableAnimation,
@@ -486,6 +490,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
     return AppSettings(
       dataSavingMode: prefs.getBool(kAppDataSavingMode) ?? false,
+      weakConnectionMode: prefs.getBool(kAppWeakConnectionMode) ?? false,
       soundEffects: prefs.getBool(kAppSoundEffects) ?? true,
       festivalFeatures: prefs.getBool(kAppFestivalFeatures) ?? true,
       enterToSend: prefs.getBool(kAppEnterToSend) ?? true,
@@ -501,6 +506,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
       attachmentsListStyle: prefs.getString(kAppAttachmentsListStyle) ?? 'row',
+      attachmentPreviewMode: prefs.getString(kAppAttachmentPreviewMode) ?? 'large',
       linkCollapseMode: prefs.getString(kAppLinkCollapseMode) ?? 'expand',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
@@ -590,6 +596,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(dataSavingMode: value);
   }
 
+  void setWeakConnectionMode(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppWeakConnectionMode, value);
+    state = state.copyWith(weakConnectionMode: value);
+  }
+
   void setSoundEffects(bool value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppSoundEffects, value);
@@ -668,6 +680,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppAttachmentsListStyle, value);
     state = state.copyWith(attachmentsListStyle: value);
+  }
+
+  void setAttachmentPreviewMode(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppAttachmentPreviewMode, value);
+    state = state.copyWith(attachmentPreviewMode: value);
   }
 
   void setLinkCollapseMode(String value) {

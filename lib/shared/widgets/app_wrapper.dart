@@ -200,6 +200,7 @@ class AppWrapper extends HookConsumerWidget {
 
         activeInviteKey.value = invite.dedupeKey;
         await playCallInvitedSfxLoop(ref);
+        if (!navigatorContext.mounted) return;
         final shouldJoin = await showModalBottomSheet<bool>(
           context: navigatorContext,
           useRootNavigator: true,

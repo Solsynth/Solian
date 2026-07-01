@@ -713,6 +713,47 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           ListTile(
             minLeadingWidth: 48,
+            title: Text('settingsAttachmentsStyle').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.image),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'large',
+                    child: Text(
+                      'settingsAttachmentPreviewLarge',
+                    ).tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'small',
+                    child: Text(
+                      'settingsAttachmentPreviewSmall',
+                    ).tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.attachmentPreviewMode,
+                ),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setAttachmentPreviewMode(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
             title: Text('settingsLinkCollapseMode').tr(),
             contentPadding: const EdgeInsets.only(left: 24, right: 17),
             leading: const Icon(Symbols.unfold_more),
@@ -1468,6 +1509,9 @@ class SettingsScreen extends HookConsumerWidget {
         searchTerms: [
           'transparent app bar',
           'data saving',
+          'weak connection',
+          'periodic sync',
+          'chat recovery',
           'disable animation',
           'default screen',
           'search engine',
@@ -1496,6 +1540,23 @@ class SettingsScreen extends HookConsumerWidget {
               value: settings.dataSavingMode,
               onChanged: (value) {
                 ref.read(appSettingsProvider.notifier).setDataSavingMode(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: const Text('Weak connection mode'),
+            subtitle: const Text(
+              'Periodically runs timestamp-based chat sync while the room is open.',
+            ),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.network_check),
+            trailing: Switch(
+              value: settings.weakConnectionMode,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setWeakConnectionMode(value);
               },
             ),
           ),

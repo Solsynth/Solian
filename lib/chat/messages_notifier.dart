@@ -57,6 +57,10 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isLoadingInitial = false;
   bool _isLoadingMore = false;
   bool _allRemoteMessagesFetched = false;
+  int? _latestObservedRoomSequence;
+  final Set<int> _queuedMissingRoomSequences = <int>{};
+  final Set<int> _inFlightMissingRoomSequences = <int>{};
+  Future<void>? _missingSequenceSyncOperation;
 
   /// Track the last offset fetched from API to prevent overlapping fetches
   /// This is separate from DB offset since we fetch in larger batches (_fetchBatchSize)
@@ -115,6 +119,217 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   String? get _fileEncryptKey =>
       _isE2eeRoom ? deriveE2eeFileEncryptKey(roomId) : null;
+
+  int? _extractRoomSequence(dynamic raw) {
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '');
+  }
+
+  int? _roomSequenceOf(LocalChatMessage message) =>
+      _extractRoomSequence(message.data['room_sequence']);
+
+  LocalChatMessage _applyRoomSequence(
+    LocalChatMessage message,
+    int? roomSequence,
+  ) {
+    if (roomSequence == null || _roomSequenceOf(message) == roomSequence) {
+      return message;
+    }
+
+    final updatedData = Map<String, dynamic>.from(message.data);
+    updatedData['room_sequence'] = roomSequence;
+
+    final updated = LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: updatedData,
+      createdAt: message.createdAt,
+      clientMessageId: message.clientMessageId,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+
+    unawaited(_repository.saveMessage(updated));
+    return updated;
+  }
+
+  void _refreshLatestObservedRoomSequence(Iterable<LocalChatMessage> messages) {
+    for (final message in messages) {
+      final roomSequence = _roomSequenceOf(message);
+      if (roomSequence == null) continue;
+      if (_latestObservedRoomSequence == null ||
+          roomSequence > _latestObservedRoomSequence!) {
+        _latestObservedRoomSequence = roomSequence;
+      }
+    }
+  }
+
+  void _observeRoomSequence(int? roomSequence, DateTime messageCreatedAt) {
+    if (roomSequence == null) return;
+
+    _queuedMissingRoomSequences.remove(roomSequence);
+    _inFlightMissingRoomSequences.remove(roomSequence);
+
+    final latestObserved = _latestObservedRoomSequence;
+    if (latestObserved == null) {
+      _latestObservedRoomSequence = roomSequence;
+      return;
+    }
+
+    if (roomSequence <= latestObserved) return;
+
+    if (roomSequence > latestObserved + 1) {
+      for (
+        var missing = latestObserved + 1;
+        missing < roomSequence;
+        missing++
+      ) {
+        if (_queuedMissingRoomSequences.contains(missing) ||
+            _inFlightMissingRoomSequences.contains(missing)) {
+          continue;
+        }
+        _queuedMissingRoomSequences.add(missing);
+      }
+      if (_queuedMissingRoomSequences.isNotEmpty) {
+        unawaited(_syncMissingRoomSequences(messageCreatedAt));
+      }
+    }
+
+    _latestObservedRoomSequence = roomSequence;
+  }
+
+  int _currentSyncTimestampMs(DateTime fallbackTimestamp) {
+    var latestTimestamp = fallbackTimestamp.millisecondsSinceEpoch;
+    for (final message in _currentMessages) {
+      final timestamp = message.createdAt.millisecondsSinceEpoch;
+      if (timestamp > latestTimestamp) {
+        latestTimestamp = timestamp;
+      }
+    }
+    return latestTimestamp;
+  }
+
+  Future<void> _syncMissingRoomSequences(DateTime fallbackTimestamp) async {
+    if (_missingSequenceSyncOperation != null) {
+      await _missingSequenceSyncOperation;
+      return;
+    }
+
+    final operation = _syncMissingRoomSequencesImpl(fallbackTimestamp);
+    _missingSequenceSyncOperation = operation;
+    try {
+      await operation;
+    } finally {
+      _missingSequenceSyncOperation = null;
+    }
+  }
+
+  Future<void> _syncMissingRoomSequencesImpl(DateTime fallbackTimestamp) async {
+    while (_queuedMissingRoomSequences.isNotEmpty) {
+      final batch = _queuedMissingRoomSequences.toList()..sort();
+      _queuedMissingRoomSequences.clear();
+      _inFlightMissingRoomSequences.addAll(batch);
+
+      final singles = <int>[];
+      final ranges = <Map<String, int>>[];
+      var index = 0;
+      while (index < batch.length) {
+        final start = batch[index];
+        var end = start;
+        while (index + 1 < batch.length && batch[index + 1] == end + 1) {
+          index++;
+          end = batch[index];
+        }
+        if (start == end) {
+          singles.add(start);
+        } else {
+          ranges.add({'start_sequence': start, 'end_sequence': end});
+        }
+        index++;
+      }
+
+      try {
+        final response = await _apiClient.post(
+          '/messager/chat/$roomId/sync',
+          data: {
+            'last_sync_timestamp': _currentSyncTimestampMs(fallbackTimestamp),
+            if (singles.isNotEmpty) 'missing_sequences': singles,
+            if (ranges.isNotEmpty) 'missing_sequence_ranges': ranges,
+          },
+        );
+        await _applySyncedMissingSequenceMessages(
+          response.data as Map<String, dynamic>,
+        );
+      } catch (err, stackTrace) {
+        Logger.root.info(
+          'Failed to recover missing room sequences for room $roomId',
+          err,
+          stackTrace,
+        );
+      } finally {
+        _inFlightMissingRoomSequences.removeAll(batch);
+      }
+    }
+  }
+
+  Future<void> _applySyncedMissingSequenceMessages(
+    Map<String, dynamic> payload,
+  ) async {
+    final rawMessages = (payload['messages'] as List?) ?? const [];
+    if (rawMessages.isEmpty) return;
+
+    final remoteMessages = <SnChatMessage>[];
+    final roomSequencesById = <String, int>{};
+    for (final rawMessage in rawMessages.whereType<Map>()) {
+      final json = Map<String, dynamic>.from(rawMessage);
+      final remoteMessage = _tryParseChatMessage(
+        json,
+        context: 'room sync recovery',
+      );
+      if (remoteMessage == null) continue;
+      final roomSequence = _extractRoomSequence(
+        json['room_sequence'] ?? json['roomSequence'],
+      );
+      if (roomSequence != null) {
+        roomSequencesById[remoteMessage.id] = roomSequence;
+      }
+      remoteMessages.add(remoteMessage);
+    }
+    if (remoteMessages.isEmpty) return;
+
+    final processed = await _syncService.processRemoteMessages(remoteMessages);
+    final processedById = {
+      for (final message in processed) message.id: message,
+    };
+
+    for (final remoteMessage in remoteMessages) {
+      final localMessage = processedById[remoteMessage.id];
+      if (localMessage == null) continue;
+      final roomSequence = roomSequencesById[remoteMessage.id];
+      final messageWithSequence = _applyRoomSequence(
+        localMessage,
+        roomSequence,
+      );
+      _observeRoomSequence(roomSequence, remoteMessage.createdAt);
+      _upsertReceivedMessageInState(messageWithSequence);
+      await _processMessageSideEffects(remoteMessage);
+    }
+  }
 
   Options? _mlsWriteOptions() {
     if (!_isE2eeRoom) return null;
@@ -278,26 +493,32 @@ class MessagesNotifier extends _$MessagesNotifier {
       _pendingCache,
       _messageCache,
       e2eeService: _e2eeService,
-      onNewMessage: (message) {
-        _upsertReceivedMessageInState(message);
+      onNewMessage: (message, roomSequence) {
+        final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        _observeRoomSequence(roomSequence, message.createdAt);
+        _upsertReceivedMessageInState(messageWithSequence);
       },
-      onMessageUpdate: (message) {
+      onMessageUpdate: (message, roomSequence) {
+        final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        _observeRoomSequence(roomSequence, message.createdAt);
         final list = [..._currentMessages];
-        final index = list.indexWhere((m) => m.id == message.id);
+        final index = list.indexWhere((m) => m.id == messageWithSequence.id);
         if (index >= 0) {
-          list[index] = message;
+          list[index] = messageWithSequence;
         } else {
-          list.add(message);
+          list.add(messageWithSequence);
         }
         _emitMessages(list);
       },
-      onMessageDelete: (message) {
+      onMessageDelete: (message, roomSequence) {
+        final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        _observeRoomSequence(roomSequence, message.createdAt);
         final list = [..._currentMessages];
-        final index = list.indexWhere((m) => m.id == message.id);
+        final index = list.indexWhere((m) => m.id == messageWithSequence.id);
         if (index >= 0) {
-          list[index] = message;
+          list[index] = messageWithSequence;
         } else {
-          list.add(message);
+          list.add(messageWithSequence);
         }
         _emitMessages(list);
       },
@@ -618,6 +839,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           uniqueMessages.add(message);
         }
       }
+      _refreshLatestObservedRoomSequence(uniqueMessages);
       if (ref.mounted) {
         state = AsyncValue.data(_filterActiveMessages(uniqueMessages));
       }
@@ -636,9 +858,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   void _emitMessages(List<LocalChatMessage> messages) {
     if (!ref.mounted) return;
-    state = AsyncValue.data(
-      _filterActiveMessages(_sortMessages(_normalizeMessageMembers(messages))),
-    );
+    final normalized = _sortMessages(_normalizeMessageMembers(messages));
+    _refreshLatestObservedRoomSequence(normalized);
+    state = AsyncValue.data(_filterActiveMessages(normalized));
   }
 
   void _replaceMessage(String messageId, LocalChatMessage replacement) {
@@ -649,7 +871,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       final matchesClientMessageId =
           replacement.clientMessageId != null &&
           message.clientMessageId == replacement.clientMessageId;
-      if (!matchesPendingId && !matchesReplacementId && !matchesClientMessageId) {
+      if (!matchesPendingId &&
+          !matchesReplacementId &&
+          !matchesClientMessageId) {
         return message;
       }
       replaced = true;
