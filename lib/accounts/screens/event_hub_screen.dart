@@ -218,8 +218,8 @@ class EventHubScreen extends HookConsumerWidget {
               includeNotableDays: includeNotableDays.value,
               fullDateFormat: _formatFullDate(selectedDate.value),
               // New: tag filter params
-              selectedTags: selectedTags.value,
-              selectedNotableDayTag: selectedNotableDayTag.value,
+              initialSelectedTags: selectedTags.value,
+              initialSelectedNotableDayTag: selectedNotableDayTag.value,
               usedTags: usedTagsAsync.value ?? [],
               onToggleTag: (tag) {
                 final newTags = Set<String>.from(selectedTags.value);
@@ -733,6 +733,7 @@ class _MonthCalendarView extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final day = monthDays[index];
                   final entry = _entryForDay(entries, day);
+                  final dayEvents = eventHubEventsForDay(entries, day);
                   return _CalendarDayCell(
                     day: day,
                     focusedMonth: focusedMonth,
@@ -740,6 +741,7 @@ class _MonthCalendarView extends StatelessWidget {
                     entry: entry,
                     gridIndex: index,
                     onTap: () => onSelectDate(day),
+                    userEventsOverride: dayEvents,
                   );
                 },
               ),
@@ -846,6 +848,7 @@ class _CalendarDayCell extends StatelessWidget {
   final SnEventCalendarEntry? entry;
   final int gridIndex;
   final VoidCallback onTap;
+  final List<SnUserCalendarEvent>? userEventsOverride;
 
   const _CalendarDayCell({
     required this.day,
@@ -854,6 +857,7 @@ class _CalendarDayCell extends StatelessWidget {
     required this.entry,
     required this.gridIndex,
     required this.onTap,
+    this.userEventsOverride,
   });
 
   @override
@@ -863,7 +867,10 @@ class _CalendarDayCell extends StatelessWidget {
     final isSelected = DateUtils.isSameDay(day, selectedDate);
     final isToday = DateUtils.isSameDay(day, DateTime.now());
     final isOutside = !_sameMonth(day, focusedMonth);
-    final userEvents = entry?.userEvents ?? const <SnUserCalendarEvent>[];
+    final userEvents =
+        userEventsOverride ??
+        entry?.userEvents ??
+        const <SnUserCalendarEvent>[];
     final notableDays = entry?.notableDays ?? const <SnNotableDay>[];
     final checkIn = entry?.checkInResult;
     final statuses = entry?.statuses ?? const <SnAccountStatus>[];
@@ -1955,13 +1962,13 @@ class _CalendarFilterGroup extends StatelessWidget {
   }
 }
 
-class _CalendarFiltersSheet extends StatelessWidget {
+class _CalendarFiltersSheet extends StatefulWidget {
   final DateTime selectedDate;
   final DateTime focusedMonth;
   final bool includeNotableDays;
   final String fullDateFormat;
-  final Set<String> selectedTags;
-  final NotableDayTagFilter? selectedNotableDayTag;
+  final Set<String> initialSelectedTags;
+  final NotableDayTagFilter? initialSelectedNotableDayTag;
   final List<String> usedTags;
   final ValueChanged<String> onToggleTag;
   final ValueChanged<NotableDayTagFilter?> onNotableDayTagChanged;
@@ -1976,8 +1983,8 @@ class _CalendarFiltersSheet extends StatelessWidget {
     required this.focusedMonth,
     required this.includeNotableDays,
     required this.fullDateFormat,
-    required this.selectedTags,
-    required this.selectedNotableDayTag,
+    required this.initialSelectedTags,
+    required this.initialSelectedNotableDayTag,
     required this.usedTags,
     required this.onToggleTag,
     required this.onNotableDayTagChanged,
@@ -1989,28 +1996,44 @@ class _CalendarFiltersSheet extends StatelessWidget {
   });
 
   @override
+  State<_CalendarFiltersSheet> createState() => _CalendarFiltersSheetState();
+}
+
+class _CalendarFiltersSheetState extends State<_CalendarFiltersSheet> {
+  late Set<String> _selectedTags;
+  late NotableDayTagFilter? _selectedNotableDayTag;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTags = Set<String>.from(widget.initialSelectedTags);
+    _selectedNotableDayTag = widget.initialSelectedNotableDayTag;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final usedTags = widget.usedTags;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
         _MonthPicker(
-          selectedDate: selectedDate,
-          focusedMonth: focusedMonth,
-          onSelectDate: onSelectDate,
-          onMonthChanged: onMonthChanged,
+          selectedDate: widget.selectedDate,
+          focusedMonth: widget.focusedMonth,
+          onSelectDate: widget.onSelectDate,
+          onMonthChanged: widget.onMonthChanged,
         ),
         const Gap(16),
         SwitchListTile(
-          value: includeNotableDays,
+          value: widget.includeNotableDays,
           contentPadding: EdgeInsets.zero,
           dense: true,
           title: Text('eventHubIncludeNotableDays'.tr()),
           subtitle: Text('eventHubIncludeNotableDaysDesc'.tr()),
-          onChanged: onToggleNotableDays,
+          onChanged: widget.onToggleNotableDays,
         ),
-        const Divider(height: 32),
+        const Gap(16),
         // Tag filters section
-        if (usedTags.isNotEmpty || selectedTags.isNotEmpty) ...[
+        if (usedTags.isNotEmpty || _selectedTags.isNotEmpty) ...[
           _CalendarFilterGroup(
             title: 'eventHubFilterByTags'.tr(),
             children: [
@@ -2018,11 +2041,20 @@ class _CalendarFiltersSheet extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 6,
                 children: usedTags.map((tag) {
-                  final isSelected = selectedTags.contains(tag);
+                  final isSelected = _selectedTags.contains(tag);
                   return FilterChip(
                     label: Text(tag),
                     selected: isSelected,
-                    onSelected: (_) => onToggleTag(tag),
+                    onSelected: (_) {
+                      setState(() {
+                        if (_selectedTags.contains(tag)) {
+                          _selectedTags.remove(tag);
+                        } else {
+                          _selectedTags.add(tag);
+                        }
+                      });
+                      widget.onToggleTag(tag);
+                    },
                     visualDensity: VisualDensity.compact,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   );
@@ -2040,12 +2072,15 @@ class _CalendarFiltersSheet extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: NotableDayTagFilter.values.map((tag) {
-                final isSelected = selectedNotableDayTag == tag;
+                final isSelected = _selectedNotableDayTag == tag;
                 return FilterChip(
                   label: Text(_notableDayTagLabel(tag)),
                   selected: isSelected,
                   onSelected: (selected) {
-                    onNotableDayTagChanged(selected ? tag : null);
+                    setState(() {
+                      _selectedNotableDayTag = selected ? tag : null;
+                    });
+                    widget.onNotableDayTagChanged(selected ? tag : null);
                   },
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -2055,25 +2090,31 @@ class _CalendarFiltersSheet extends StatelessWidget {
           ],
         ),
         // Clear filters button
-        if (selectedTags.isNotEmpty || selectedNotableDayTag != null) ...[
+        if (_selectedTags.isNotEmpty || _selectedNotableDayTag != null) ...[
           const Gap(12),
           TextButton.icon(
-            onPressed: onClearFilters,
+            onPressed: () {
+              setState(() {
+                _selectedTags = {};
+                _selectedNotableDayTag = null;
+              });
+              widget.onClearFilters();
+            },
             icon: const Icon(Symbols.clear_all, size: 16),
             label: Text('eventHubClearFilters'.tr()),
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ],
-        const Divider(height: 32),
+        const Gap(16),
         _CalendarFilterGroup(
           title: 'eventHubSelectedDate'.tr(),
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(fullDateFormat),
+              title: Text(widget.fullDateFormat),
               subtitle: Text('eventHubSelectedDateHint'.tr()),
               trailing: TextButton(
-                onPressed: onJumpToToday,
+                onPressed: widget.onJumpToToday,
                 child: Text('eventHubToday'.tr()),
               ),
             ),

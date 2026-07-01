@@ -495,12 +495,7 @@ class FriendStatusItem extends ConsumerWidget {
                       width: 2,
                     ),
                   ),
-                  child: Icon(
-                    indicatorIcon,
-                    size: 10,
-                    color: Colors.white,
-                    fill: indicatorFill,
-                  ),
+                  child: const SizedBox.shrink(),
                 ),
               ),
             ],
