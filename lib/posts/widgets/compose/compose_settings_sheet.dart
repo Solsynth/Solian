@@ -63,16 +63,16 @@ class ComposeSettingsSheet extends HookConsumerWidget {
         : null;
 
     final languages = [
-      (code: null, name: 'Auto'),
-      (code: 'en', name: 'English'),
-      (code: 'zh', name: 'Chinese'),
-      (code: 'ja', name: 'Japanese'),
-      (code: 'ko', name: 'Korean'),
-      (code: 'es', name: 'Spanish'),
-      (code: 'fr', name: 'French'),
-      (code: 'de', name: 'German'),
-      (code: 'ru', name: 'Russian'),
-      (code: 'pt', name: 'Portuguese'),
+      (code: null, name: 'languageAuto'.tr()),
+      (code: 'en', name: 'languageEN'.tr()),
+      (code: 'zh', name: 'languageCN'.tr()),
+      (code: 'ja', name: 'languageJA'.tr()),
+      (code: 'ko', name: 'languageKO'.tr()),
+      (code: 'es', name: 'languageES'.tr()),
+      (code: 'fr', name: 'languageFR'.tr()),
+      (code: 'de', name: 'languageDE'.tr()),
+      (code: 'ru', name: 'languageRU'.tr()),
+      (code: 'pt', name: 'languagePT'.tr()),
     ];
 
     String getLanguageDisplayName(String? code) {

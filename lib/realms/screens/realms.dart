@@ -59,7 +59,7 @@ class RealmListScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: Icon(isCardMode ? Symbols.view_list : Symbols.grid_view),
-            tooltip: isCardMode ? 'Switch to list view' : 'Switch to card view',
+            tooltip: isCardMode ? 'realmSwitchToListView' : 'realmSwitchToCardView'.tr(),
             onPressed: () {
               ref
                   .read(appSettingsProvider.notifier)
