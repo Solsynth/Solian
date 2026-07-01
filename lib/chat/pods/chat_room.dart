@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/database.dart';
 import 'package:island/data/message.dart';
+import 'package:island/core/audio.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/lifecycle.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/e2ee/e2ee.dart';
 import 'package:logging/logging.dart';
@@ -91,7 +95,9 @@ SnChatMessage _mergeUpdatedRemoteMessage(
       updateRemote.type == 'messages.sync.finalize';
 
   return existingRemote.copyWith(
-    content: isLinkPreviewUpdate ? existingRemote.content : updateRemote.content,
+    content: isLinkPreviewUpdate
+        ? existingRemote.content
+        : updateRemote.content,
     attachments: updateRemote.attachments,
     membersMentioned: updateRemote.membersMentioned,
     repliedMessageId: updateRemote.repliedMessageId,
@@ -278,6 +284,28 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     }
   }
 
+  bool get _isDesktop =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux);
+
+  bool _shouldPlayForegroundRoomMessageSfx(
+    SnChatMessage message, {
+    required String? currentUserId,
+  }) {
+    if (!_isDesktop) return false;
+    if (ref.read(desktopWindowFocusedProvider)) return false;
+    if (!ref.read(foregroundChatRoomIdsProvider).contains(message.chatRoomId)) {
+      return false;
+    }
+    if (message.type.startsWith('system.') ||
+        message.type.startsWith('messages.')) {
+      return false;
+    }
+    return currentUserId == null || message.sender.accountId != currentUserId;
+  }
+
   @override
   Future<void> build() async {
     // Set up global WebSocket listener for real-time message handling
@@ -348,6 +376,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             );
           }
           await db.saveMessageWithSender(localMessage);
+          if (_shouldPlayForegroundRoomMessageSfx(
+            message,
+            currentUserId: currentUserId,
+          )) {
+            playMessageSfxRef(ref);
+          }
           eventBus.fire(ChatMessageNewEvent(message));
         }
       case 'messages.update':

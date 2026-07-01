@@ -2,6 +2,18 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 
+final desktopWindowFocusedProvider =
+    NotifierProvider<DesktopWindowFocusedNotifier, bool>(
+      DesktopWindowFocusedNotifier.new,
+    );
+
+class DesktopWindowFocusedNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void set(bool value) => state = value;
+}
+
 final appLifecycleStateProvider = StreamProvider<AppLifecycleState>((ref) {
   final controller = StreamController<AppLifecycleState>();
 

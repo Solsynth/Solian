@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:island/core/config.dart';
 import 'package:audio_session/audio_session.dart';
@@ -92,13 +92,19 @@ Future<void> _playSfx(String assetPath, double volume) async {
 void playNotificationSfx(WidgetRef ref) {
   final settings = ref.read(appSettingsProvider);
   if (!settings.soundEffects) return;
-  _playSfx('assets/audio/notification.mp3', 0.75);
+  _playSfx('assets/audio/notification.wav', 0.75);
 }
 
 void playMessageSfx(WidgetRef ref) {
   final settings = ref.read(appSettingsProvider);
   if (!settings.soundEffects) return;
-  _playSfx('assets/audio/messages.mp3', 0.75);
+  _playSfx('assets/audio/messages.wav', 0.75);
+}
+
+void playMessageSfxRef(Ref ref) {
+  final settings = ref.read(appSettingsProvider);
+  if (!settings.soundEffects) return;
+  _playSfx('assets/audio/messages.wav', 0.75);
 }
 
 Future<void> playCallInvitedSfxLoop(WidgetRef ref) async {
