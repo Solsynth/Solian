@@ -59,10 +59,24 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatRoom = ref.watch(chatRoomProvider(id));
     final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
     final onlineCount = ref.watch(chatOnlineCountProvider(id));
-    final settings = ref.watch(appSettingsProvider);
+    final chatEventMessageMode = ref.watch(
+      appSettingsProvider.select((settings) => settings.chatEventMessageMode),
+    );
 
-    // Universal chat room state - manages all UI state for this room
-    final chatState = ref.watch(chatRoomStateProvider(id));
+    // Universal chat room state - manages all UI state for this room.
+    // Watch only the fields that affect the whole screen; input state stays
+    // inside the ChatInput Consumer so attachments/typing don't rebuild the list.
+    final isSelectionMode = ref.watch(
+      chatRoomStateProvider(id).select((state) => state.isSelectionMode),
+    );
+    final selectedMessageIds = ref.watch(
+      chatRoomStateProvider(id).select((state) => state.selectedMessageIds),
+    );
+    final dismissedLastReadAnchorMessageId = ref.watch(
+      chatRoomStateProvider(
+        id,
+      ).select((state) => state.dismissedLastReadAnchorMessageId),
+    );
     final chatStateNotifier = ref.read(chatRoomStateProvider(id).notifier);
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
     final pendingSharePayloadNotifier = ref.watch(chatSharePayloadProvider(id));
@@ -486,11 +500,11 @@ class ChatRoomScreen extends HookConsumerWidget {
     final inputKey = useMemoized(() => GlobalKey(), []);
 
     final openThinkingSheet = useCallback(() {
-      if (chatState.selectedMessageIds.isEmpty) return;
+      if (selectedMessageIds.isEmpty) return;
 
       final selectedMessageData =
           messages.value
-              ?.where((msg) => chatState.selectedMessageIds.contains(msg.id))
+              ?.where((msg) => selectedMessageIds.contains(msg.id))
               .map(
                 (msg) => {
                   'id': msg.id,
@@ -510,137 +524,126 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
 
       chatStateNotifier.exitSelectionMode();
-    }, [chatState.selectedMessageIds, messages, chatStateNotifier]);
+    }, [selectedMessageIds, messages, chatStateNotifier]);
 
-    final openRedirectSheet = useCallback(
-      () async {
-        if (chatState.selectedMessageIds.isEmpty) return;
+    final openRedirectSheet = useCallback(() async {
+      if (selectedMessageIds.isEmpty) return;
 
-        final allMessages = messages.value ?? const <LocalChatMessage>[];
-        final selectedMessages =
-            allMessages
-                .where((msg) => chatState.selectedMessageIds.contains(msg.id))
-                .toList()
-              ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      final allMessages = messages.value ?? const <LocalChatMessage>[];
+      final selectedMessages =
+          allMessages
+              .where((msg) => selectedMessageIds.contains(msg.id))
+              .toList()
+            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-        // Safety: ensure selected ids are from current source room only.
-        final crossRoomSelected = selectedMessages
-            .where((msg) => msg.roomId != id)
-            .toList();
-        if (crossRoomSelected.isNotEmpty) {
-          showErrorAlert('chatRedirectSameRoomOnly'.tr());
-          return;
+      // Safety: ensure selected ids are from current source room only.
+      final crossRoomSelected = selectedMessages
+          .where((msg) => msg.roomId != id)
+          .toList();
+      if (crossRoomSelected.isNotEmpty) {
+        showErrorAlert('chatRedirectSameRoomOnly'.tr());
+        return;
+      }
+
+      if (selectedMessages.isEmpty) return;
+      if (selectedMessages.length > 100) {
+        showErrorAlert('chatRedirectTooMany'.tr());
+        return;
+      }
+      if (selectedMessages.any((msg) => msg.type != 'text')) {
+        showErrorAlert('chatRedirectTextOnly'.tr());
+        return;
+      }
+
+      if (!context.mounted) return;
+
+      final destinationRoomId = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => _RedirectRoomSelectorSheet(currentRoomId: id),
+      );
+
+      if (destinationRoomId == null || !context.mounted) return;
+
+      final rooms = ref
+          .read(chatRoomJoinedProvider)
+          .maybeWhen(data: (items) => items, orElse: () => <SnChatRoom>[]);
+      SnChatRoom? destinationRoom;
+      for (final room in rooms) {
+        if (room.id == destinationRoomId) {
+          destinationRoom = room;
+          break;
         }
-
-        if (selectedMessages.isEmpty) return;
-        if (selectedMessages.length > 100) {
-          showErrorAlert('chatRedirectTooMany'.tr());
-          return;
-        }
-        if (selectedMessages.any((msg) => msg.type != 'text')) {
-          showErrorAlert('chatRedirectTextOnly'.tr());
-          return;
-        }
-
-        if (!context.mounted) return;
-
-        final destinationRoomId = await showModalBottomSheet<String>(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => _RedirectRoomSelectorSheet(currentRoomId: id),
-        );
-
-        if (destinationRoomId == null || !context.mounted) return;
-
-        final rooms = ref
-            .read(chatRoomJoinedProvider)
-            .maybeWhen(data: (items) => items, orElse: () => <SnChatRoom>[]);
-        SnChatRoom? destinationRoom;
-        for (final room in rooms) {
+      }
+      if (destinationRoom == null) {
+        final loadedRooms = await ref.read(chatRoomJoinedProvider.future);
+        for (final room in loadedRooms) {
           if (room.id == destinationRoomId) {
             destinationRoom = room;
             break;
           }
         }
-        if (destinationRoom == null) {
-          final loadedRooms = await ref.read(chatRoomJoinedProvider.future);
-          for (final room in loadedRooms) {
-            if (room.id == destinationRoomId) {
-              destinationRoom = room;
-              break;
-            }
-          }
-        }
-        final destinationName = destinationRoom?.name?.trim().isNotEmpty == true
-            ? destinationRoom!.name!
-            : 'this room';
+      }
+      final destinationName = destinationRoom?.name?.trim().isNotEmpty == true
+          ? destinationRoom!.name!
+          : 'this room';
+
+      if (!context.mounted) return;
+
+      final shouldProceed =
+          await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text('chatRedirectConfirmTitle'.tr()),
+              content: Text(
+                'chatRedirectConfirmBody'.tr(
+                  args: [selectedMessages.length.toString(), destinationName],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text('cancel'.tr()),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text('redirect'.tr()),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+      if (!shouldProceed || !context.mounted) return;
+
+      try {
+        showLoadingModal(context);
+        final client = ref.read(solarNetworkClientProvider);
+        await client.chat.redirectMessages(
+          roomId: destinationRoomId,
+          messageIds: selectedMessages.map((m) => m.id).toList(),
+        );
 
         if (!context.mounted) return;
-
-        final shouldProceed =
-            await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text('chatRedirectConfirmTitle'.tr()),
-                content: Text(
-                  'chatRedirectConfirmBody'.tr(
-                    args: [selectedMessages.length.toString(), destinationName],
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                    child: Text('cancel'.tr()),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                    child: Text('redirect'.tr()),
-                  ),
-                ],
-              ),
-            ) ??
-            false;
-
-        if (!shouldProceed || !context.mounted) return;
-
-        try {
-          showLoadingModal(context);
-          final client = ref.read(solarNetworkClientProvider);
-          await client.chat.redirectMessages(
-            roomId: destinationRoomId,
-            messageIds: selectedMessages.map((m) => m.id).toList(),
-          );
-
-          if (!context.mounted) return;
-          chatStateNotifier.exitSelectionMode();
-          showSnackBar(
-            'chatRedirectSuccess'.tr(
-              args: [selectedMessages.length.toString()],
-            ),
-          );
-        } catch (err) {
-          showErrorAlert(err);
-        } finally {
-          if (context.mounted) {
-            hideLoadingModal(context);
-          }
+        chatStateNotifier.exitSelectionMode();
+        showSnackBar(
+          'chatRedirectSuccess'.tr(args: [selectedMessages.length.toString()]),
+        );
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) {
+          hideLoadingModal(context);
         }
-      },
-      [
-        chatState.selectedMessageIds,
-        messages,
-        ref,
-        context,
-        id,
-        chatStateNotifier,
-      ],
-    );
+      }
+    }, [selectedMessageIds, messages, ref, context, id, chatStateNotifier]);
 
     final uploadAttachment = useCallback((
       int index, {
       String? encryptKey,
     }) async {
-      final attachment = chatState.attachments[index];
+      final attachments = ref.read(chatRoomStateProvider(id)).attachments;
+      final attachment = attachments[index];
       if (attachment.isOnCloud) return;
 
       final config = await showModalBottomSheet<AttachmentUploadConfig>(
@@ -648,7 +651,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         isScrollControlled: true,
         builder: (context) => AttachmentUploaderSheet(
           ref: ref,
-          attachments: chatState.attachments,
+          attachments: attachments,
           index: index,
           encryptedUpload: chatRoom.value?.encryptionMode == 3,
         ),
@@ -708,7 +711,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       } finally {
         chatStateNotifier.clearAttachmentUploadProgress(trackedIndex);
       }
-    }, [chatState.attachments, chatStateNotifier, ref, context]);
+    }, [chatStateNotifier, ref, context, id, chatRoom.value?.encryptionMode]);
 
     final onJump = useCallback((String messageId) {
       messages.when(
@@ -759,8 +762,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     })();
     final effectiveLastReadAnchorMessageId =
         (isAtLatestMessages.value ||
-                visibleLastReadAnchorMessageId ==
-                    chatState.dismissedLastReadAnchorMessageId)
+            visibleLastReadAnchorMessageId == dismissedLastReadAnchorMessageId)
         ? null
         : visibleLastReadAnchorMessageId;
 
@@ -874,7 +876,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                             ? Center(
                                 key: const ValueKey('empty-messages'),
                                 child: Text(
-                                  settings.chatEventMessageMode ==
+                                  chatEventMessageMode ==
                                           kChatEventMessageModeNone
                                       ? 'No visible messages (event/system hidden)'
                                       : 'No messages yet'.tr(),
@@ -1076,81 +1078,105 @@ class ChatRoomScreen extends HookConsumerWidget {
                   ],
                 ),
               ),
-              if (!chatState.isSelectionMode)
+              if (!isSelectionMode)
                 chatRoom.when(
                   data: (room) => room != null
                       ? Align(
                           alignment: Alignment.bottomCenter,
-                          child: ChatInput(
-                            key: inputKey,
-                            messageController:
-                                chatStateNotifier.messageController,
-                            chatRoom: room,
-                            onSend: chatStateNotifier.sendMessage,
-                            onClear: () {
-                              if (chatState.messageEditingTo != null) {
-                                chatStateNotifier.clearAttachmentsOnly();
-                              }
-                              chatStateNotifier.setEditingTo(null);
-                              chatStateNotifier.setReplyingTo(null);
-                              chatStateNotifier.setForwardingTo(null);
-                              chatStateNotifier.clearInput();
+                          child: Consumer(
+                            builder: (context, ref, _) {
+                              final inputState = ref.watch(
+                                chatRoomStateProvider(id).select(
+                                  (state) => (
+                                    attachments: state.attachments,
+                                    attachmentProgress:
+                                        state.attachmentProgress,
+                                    editingTo: state.messageEditingTo,
+                                    replyingTo: state.messageReplyingTo,
+                                    forwardingTo: state.messageForwardingTo,
+                                    embeds: state.embeds,
+                                  ),
+                                ),
+                              );
+
+                              return ChatInput(
+                                key: inputKey,
+                                messageController:
+                                    chatStateNotifier.messageController,
+                                chatRoom: room,
+                                onSend: chatStateNotifier.sendMessage,
+                                onClear: () {
+                                  if (inputState.editingTo != null) {
+                                    chatStateNotifier.clearAttachmentsOnly();
+                                  }
+                                  chatStateNotifier.setEditingTo(null);
+                                  chatStateNotifier.setReplyingTo(null);
+                                  chatStateNotifier.setForwardingTo(null);
+                                  chatStateNotifier.clearInput();
+                                },
+                                messageEditingTo: inputState.editingTo,
+                                messageReplyingTo: inputState.replyingTo,
+                                messageForwardingTo: inputState.forwardingTo,
+                                embeds: inputState.embeds,
+                                onEmbedsChanged: chatStateNotifier.setEmbeds,
+                                isMessageListScrolling:
+                                    !isAtLatestMessages.value,
+                                onPickFile: (isPhoto) {
+                                  if (isPhoto) {
+                                    chatStateNotifier.pickPhotos();
+                                  } else {
+                                    chatStateNotifier.pickVideos();
+                                  }
+                                },
+                                onPickAudio: chatStateNotifier.pickAudio,
+                                onPickGeneralFile: chatStateNotifier.pickFiles,
+                                onLinkAttachment: () =>
+                                    chatStateNotifier.linkAttachment(context),
+                                attachments: inputState.attachments,
+                                onUploadAttachment: uploadAttachment,
+                                onDeleteAttachment: (index) async {
+                                  final attachment =
+                                      inputState.attachments[index];
+                                  if (attachment.isOnCloud &&
+                                      !attachment.isLink) {
+                                    final client = ref.read(apiClientProvider);
+                                    await client.delete(
+                                      '/fs/files/${attachment.data.id}',
+                                    );
+                                  }
+                                  final clone = List.of(inputState.attachments);
+                                  clone.removeAt(index);
+                                  chatStateNotifier.updateAttachments(clone);
+                                },
+                                onMoveAttachment: (idx, delta) {
+                                  if (idx + delta < 0 ||
+                                      idx + delta >=
+                                          inputState.attachments.length) {
+                                    return;
+                                  }
+                                  final clone = List.of(inputState.attachments);
+                                  clone.insert(
+                                    idx + delta,
+                                    clone.removeAt(idx),
+                                  );
+                                  chatStateNotifier.updateAttachments(clone);
+                                },
+                                onAttachmentsChanged:
+                                    chatStateNotifier.updateAttachments,
+                                attachmentProgress:
+                                    inputState.attachmentProgress,
+                              );
                             },
-                            messageEditingTo: chatState.messageEditingTo,
-                            messageReplyingTo: chatState.messageReplyingTo,
-                            messageForwardingTo: chatState.messageForwardingTo,
-                            embeds: chatState.embeds,
-                            onEmbedsChanged: (embeds) {
-                              chatStateNotifier.setEmbeds(embeds);
-                            },
-                            isMessageListScrolling: !isAtLatestMessages.value,
-                            onPickFile: (isPhoto) {
-                              if (isPhoto) {
-                                chatStateNotifier.pickPhotos();
-                              } else {
-                                chatStateNotifier.pickVideos();
-                              }
-                            },
-                            onPickAudio: chatStateNotifier.pickAudio,
-                            onPickGeneralFile: chatStateNotifier.pickFiles,
-                            onLinkAttachment: () =>
-                                chatStateNotifier.linkAttachment(context),
-                            attachments: chatState.attachments,
-                            onUploadAttachment: uploadAttachment,
-                            onDeleteAttachment: (index) async {
-                              final attachment = chatState.attachments[index];
-                              if (attachment.isOnCloud && !attachment.isLink) {
-                                final client = ref.watch(apiClientProvider);
-                                await client.delete(
-                                  '/fs/files/${attachment.data.id}',
-                                );
-                              }
-                              final clone = List.of(chatState.attachments);
-                              clone.removeAt(index);
-                              chatStateNotifier.updateAttachments(clone);
-                            },
-                            onMoveAttachment: (idx, delta) {
-                              if (idx + delta < 0 ||
-                                  idx + delta >= chatState.attachments.length) {
-                                return;
-                              }
-                              final clone = List.of(chatState.attachments);
-                              clone.insert(idx + delta, clone.removeAt(idx));
-                              chatStateNotifier.updateAttachments(clone);
-                            },
-                            onAttachmentsChanged:
-                                chatStateNotifier.updateAttachments,
-                            attachmentProgress: chatState.attachmentProgress,
                           ),
                         )
                       : const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
                   loading: () => const SizedBox.shrink(),
                 ),
-              if (chatState.isSelectionMode)
+              if (isSelectionMode)
                 RoomSelectionMode(
-                  visible: chatState.isSelectionMode,
-                  selectedCount: chatState.selectedMessageIds.length,
+                  visible: isSelectionMode,
+                  selectedCount: selectedMessageIds.length,
                   onClose: chatStateNotifier.exitSelectionMode,
                   onAIThink: openThinkingSheet,
                   onRedirect: openRedirectSheet,
