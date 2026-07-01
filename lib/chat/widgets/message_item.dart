@@ -1534,6 +1534,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
       isCompact: true,
     );
 
+    final attachmentMaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
     final messageBody = Container(
       decoration: BoxDecoration(
         color: containerColor,
@@ -1573,18 +1574,19 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               textColor: textColor,
               isReply: false,
             ).padding(vertical: 4),
-          if (!isRedirect && MessageContent.hasContent(remoteMessage))
-            MessageContent(item: remoteMessage, translatedText: translatedText),
           if (!isRedirect && remoteMessage.attachments.isNotEmpty)
             LayoutBuilder(
               builder: (context, constraints) {
                 return CloudFileList(
                   files: remoteMessage.attachments,
+                  maxHeight: attachmentMaxH,
                   maxWidth: constraints.maxWidth,
                   padding: const EdgeInsets.symmetric(vertical: 4),
                 );
               },
             ),
+          if (!isRedirect && MessageContent.hasContent(remoteMessage))
+            MessageContent(item: remoteMessage, translatedText: translatedText),
           if (remoteMessage.meta['embeds'] != null &&
               kMessageEnableEmbedTypes.contains(message.type))
             EmbedListWidget(
@@ -1904,21 +1906,23 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                               isReply: false,
                             ).padding(vertical: 4),
                           if (!isRedirect &&
-                              MessageContent.hasContent(remoteMessage))
-                            MessageContent(
-                              item: remoteMessage,
-                              translatedText: translatedText,
-                            ),
-                          if (!isRedirect &&
                               remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
+                                final amaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
                                 return CloudFileList(
                                   files: remoteMessage.attachments,
+                                  maxHeight: amaxH,
                                   maxWidth: constraints.maxWidth,
                                   padding: EdgeInsets.symmetric(vertical: 4),
                                 );
                               },
+                            ),
+                          if (!isRedirect &&
+                              MessageContent.hasContent(remoteMessage))
+                            MessageContent(
+                              item: remoteMessage,
+                              translatedText: translatedText,
                             ),
                           if (remoteMessage.meta['embeds'] != null &&
                               kMessageEnableEmbedTypes.contains(message.type))
@@ -2071,21 +2075,23 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               isReply: false,
                             ).padding(vertical: 4),
                           if (!isRedirect &&
-                              MessageContent.hasContent(remoteMessage))
-                            MessageContent(
-                              item: remoteMessage,
-                              translatedText: translatedText,
-                            ),
-                          if (!isRedirect &&
                               remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
+                                final amaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
                                 return CloudFileList(
                                   files: remoteMessage.attachments,
+                                  maxHeight: amaxH,
                                   maxWidth: constraints.maxWidth,
                                   padding: EdgeInsets.symmetric(vertical: 4),
                                 );
                               },
+                            ),
+                          if (!isRedirect &&
+                              MessageContent.hasContent(remoteMessage))
+                            MessageContent(
+                              item: remoteMessage,
+                              translatedText: translatedText,
                             ),
                           if (remoteMessage.meta['embeds'] != null &&
                               kMessageEnableEmbedTypes.contains(message.type))
@@ -2170,21 +2176,23 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                                 isReply: false,
                               ).padding(vertical: 4),
                             if (!isRedirect &&
-                                MessageContent.hasContent(remoteMessage))
-                              MessageContent(
-                                item: remoteMessage,
-                                translatedText: translatedText,
-                              ),
-                            if (!isRedirect &&
                                 remoteMessage.attachments.isNotEmpty)
                               LayoutBuilder(
                                 builder: (context, constraints) {
+                                  final amaxH = ref.watch(appSettingsProvider.select((s) => s.attachmentPreviewMode)) == 'small' ? 200.0 : 560.0;
                                   return CloudFileList(
                                     files: remoteMessage.attachments,
+                                    maxHeight: amaxH,
                                     maxWidth: constraints.maxWidth,
                                     padding: EdgeInsets.symmetric(vertical: 4),
                                   );
                                 },
+                              ),
+                            if (!isRedirect &&
+                                MessageContent.hasContent(remoteMessage))
+                              MessageContent(
+                                item: remoteMessage,
+                                translatedText: translatedText,
                               ),
                             if (remoteMessage.meta['embeds'] != null &&
                                 kMessageEnableEmbedTypes.contains(message.type))

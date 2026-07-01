@@ -30,9 +30,12 @@ class RealtimeMessageHandler {
   StreamSubscription<ChatMessageDeleteEvent>? _deleteMessageSub;
 
   // Callbacks for UI updates
-  final void Function(LocalChatMessage message)? onNewMessage;
-  final void Function(LocalChatMessage message)? onMessageUpdate;
-  final void Function(LocalChatMessage message)? onMessageDelete;
+  final void Function(LocalChatMessage message, int? roomSequence)?
+  onNewMessage;
+  final void Function(LocalChatMessage message, int? roomSequence)?
+  onMessageUpdate;
+  final void Function(LocalChatMessage message, int? roomSequence)?
+  onMessageDelete;
   final void Function()? onReconnectionNeeded;
 
   bool _isJumping = false;
@@ -134,27 +137,28 @@ class RealtimeMessageHandler {
         // mutations such as update/delete/reaction are encoded in the parsed
         // SnChatMessage.type, not in WebSocketPacket.type.
         final message = _parseMessage(packet.data);
+        final roomSequence = _extractRoomSequence(packet.data);
         if (message == null || message.chatRoomId != _roomId) break;
 
         switch (message.type) {
           case 'messages.update':
           case 'messages.sync.finalize':
           case 'messages.sync.links':
-            _handleUpdateMessage(message);
+            _handleUpdateMessage(message, roomSequence: roomSequence);
             break;
           case 'messages.delete':
-            _handleDeleteMessageEvent(message);
+            _handleDeleteMessageEvent(message, roomSequence: roomSequence);
             break;
           case 'messages.reaction.added':
           case 'messages.reaction.removed':
-            _handleReactionEvent(message);
+            _handleReactionEvent(message, roomSequence: roomSequence);
             break;
           case 'messages.pinned':
           case 'messages.unpinned':
-            _handleNewMessage(message);
+            _handleNewMessage(message, roomSequence: roomSequence);
             break;
           default:
-            _handleNewMessage(message);
+            _handleNewMessage(message, roomSequence: roomSequence);
         }
         break;
 
@@ -175,7 +179,10 @@ class RealtimeMessageHandler {
     }
   }
 
-  Future<void> _handleNewMessage(SnChatMessage remoteMessage) async {
+  Future<void> _handleNewMessage(
+    SnChatMessage remoteMessage, {
+    int? roomSequence,
+  }) async {
     if (_isJumping) {
       _hasPendingRefresh = true;
       _logger.info('Queued new message during jump: ${remoteMessage.id}');
@@ -198,11 +205,14 @@ class RealtimeMessageHandler {
     final processed = await _syncService.processRemoteMessages([remoteMessage]);
 
     if (processed.isNotEmpty) {
-      onNewMessage?.call(processed.first);
+      onNewMessage?.call(processed.first, roomSequence);
     }
   }
 
-  Future<void> _handleUpdateMessage(SnChatMessage remoteMessage) async {
+  Future<void> _handleUpdateMessage(
+    SnChatMessage remoteMessage, {
+    int? roomSequence,
+  }) async {
     if (_isJumping) {
       _hasPendingRefresh = true;
       return;
@@ -234,13 +244,13 @@ class RealtimeMessageHandler {
 
     if (!isSilentSync) {
       await _repository.saveMessage(updateEvent);
-      onNewMessage?.call(updateEvent);
+      onNewMessage?.call(updateEvent, roomSequence);
     }
 
     final updated = _buildUpdatedMessage(existing, updateEvent);
 
     await _repository.saveMessage(updated);
-    onMessageUpdate?.call(updated);
+    onMessageUpdate?.call(updated, roomSequence);
   }
 
   Future<void> _handleUpdateEvent(ChatMessageUpdateEvent event) async {
@@ -284,11 +294,14 @@ class RealtimeMessageHandler {
     _messageCache.remove(targetId);
     final updated = await _repository.getLocalMessage(targetId);
     if (updated != null) {
-      onMessageUpdate?.call(updated);
+      onMessageUpdate?.call(updated, null);
     }
   }
 
-  Future<void> _handleReactionEvent(SnChatMessage remoteMessage) async {
+  Future<void> _handleReactionEvent(
+    SnChatMessage remoteMessage, {
+    int? roomSequence,
+  }) async {
     final targetId = remoteMessage.meta['message_id']?.toString();
     if (targetId == null) return;
 
@@ -345,14 +358,17 @@ class RealtimeMessageHandler {
     final updated = _copyWithMergedData(existing, updatedData);
     await _repository.saveMessage(updated);
     _messageCache.put(updated);
-    onMessageUpdate?.call(updated);
+    onMessageUpdate?.call(updated, roomSequence);
   }
 
   Future<void> _handleDeleteEvent(ChatMessageDeleteEvent event) async {
     await _handleDeleteMessage(event.messageId);
   }
 
-  Future<void> _handleDeleteMessageEvent(SnChatMessage remoteMessage) async {
+  Future<void> _handleDeleteMessageEvent(
+    SnChatMessage remoteMessage, {
+    int? roomSequence,
+  }) async {
     if (_isJumping) {
       _hasPendingRefresh = true;
       return;
@@ -363,7 +379,7 @@ class RealtimeMessageHandler {
       MessageStatus.sent,
     );
     await _repository.saveMessage(deleteEvent);
-    onNewMessage?.call(deleteEvent);
+    onNewMessage?.call(deleteEvent, roomSequence);
 
     final targetId =
         remoteMessage.meta['message_id']?.toString() ?? remoteMessage.id;
@@ -401,7 +417,7 @@ class RealtimeMessageHandler {
 
     await _repository.saveMessage(deleted);
     _messageCache.put(deleted);
-    onMessageDelete?.call(deleted);
+    onMessageDelete?.call(deleted, null);
   }
 
   void _handleE2eeEnabled() {
@@ -427,7 +443,7 @@ class RealtimeMessageHandler {
       );
       await _repository.saveMessage(local);
       _messageCache.put(local);
-      onMessageUpdate?.call(local);
+      onMessageUpdate?.call(local, null);
     } catch (e) {
       _logger.warning('Failed to handle placeholder update: $e');
     }
@@ -448,7 +464,7 @@ class RealtimeMessageHandler {
       );
       await _repository.saveMessage(local);
       _messageCache.put(local);
-      onMessageUpdate?.call(local);
+      onMessageUpdate?.call(local, null);
     } catch (e) {
       _logger.warning('Failed to handle placeholder finalize: $e');
     }
@@ -464,7 +480,7 @@ class RealtimeMessageHandler {
 
     final message = await _repository.getLocalMessage(messageId);
     if (message != null) {
-      onMessageDelete?.call(message);
+      onMessageDelete?.call(message, null);
     }
   }
 
@@ -514,7 +530,7 @@ class RealtimeMessageHandler {
     );
 
     await _repository.saveMessage(systemMessage);
-    onNewMessage?.call(systemMessage);
+    onNewMessage?.call(systemMessage, null);
   }
 
   /// Inserts the E2EE history unavailable message.
@@ -540,6 +556,13 @@ class RealtimeMessageHandler {
     }
   }
 
+  int? _extractRoomSequence(dynamic data) {
+    if (data is! Map) return null;
+    final raw = data['room_sequence'] ?? data['roomSequence'];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '');
+  }
+
   LocalChatMessage _buildUpdatedMessage(
     LocalChatMessage existing,
     LocalChatMessage updateEvent,
@@ -548,10 +571,11 @@ class RealtimeMessageHandler {
     final isLinkPreviewUpdate = updateEvent.type == 'messages.sync.links';
     final isPlaceholderFinalize = updateEvent.type == 'messages.sync.finalize';
     final isSilentSync = isLinkPreviewUpdate || isPlaceholderFinalize;
-    final mergedMeta = isPlaceholderFinalize
-        ? Map<String, dynamic>.of(updateRemote.meta)
-        : Map<String, dynamic>.of(existing.toRemoteMessage().meta)
-            ..addAll(updateRemote.meta);
+    final mergedMeta =
+        isPlaceholderFinalize
+              ? Map<String, dynamic>.of(updateRemote.meta)
+              : Map<String, dynamic>.of(existing.toRemoteMessage().meta)
+          ..addAll(updateRemote.meta);
     mergedMeta
       ..remove('message_id')
       ..remove('placeholder_kind')
