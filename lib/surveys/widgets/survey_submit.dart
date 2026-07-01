@@ -167,11 +167,9 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
           if (saved is int) _ratingSelected = saved;
           break;
         case SnSurveyQuestionType.freeText:
-          if (saved is String) {
-            _textController.removeListener(_controllerListener);
-            _textController.text = saved;
-            _textController.addListener(_controllerListener);
-          }
+          _textController.removeListener(_controllerListener);
+          _textController.text = saved is String ? saved : '';
+          _textController.addListener(_controllerListener);
           break;
       }
     }
@@ -335,11 +333,9 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
             Expanded(
               child: Text(
                 q.title,
-                style: _isFullPage
-                    ? theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      )
-                    : theme.textTheme.titleMedium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
               ),
             ),
             if (q.isRequired)
@@ -713,56 +709,63 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
           ),
         ),
         const SizedBox(height: 16),
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            OutlinedButton.icon(
-              icon: const Icon(Icons.arrow_back),
-              label: Text(_index == 0 ? 'close'.tr() : 'back'.tr()),
-              onPressed: () {
-                if (_index == 0) {
-                  widget.onCancel?.call();
-                  return;
-                }
-                setState(() {
-                  _index--;
-                  _userHasEdited = false;
-                  _loadCurrentIntoLocalState();
-                });
-              },
-            ),
-            const Spacer(),
             if (canModify && !expired)
-              OutlinedButton.icon(
-                icon: const Icon(Icons.edit),
-                label: Text('modifyAnswers'.tr()),
-                onPressed: () {
-                  setState(() {
-                    _isModifying = true;
-                    _index = 0;
-                    _userHasEdited = false;
-                    _loadCurrentIntoLocalState();
-                  });
-                },
-              ),
-            if (canModify && !expired) const SizedBox(width: 8),
-            FilledButton.icon(
-              icon: Icon(isLast ? Icons.check : Icons.arrow_forward),
-              label: Text(isLast ? 'done'.tr() : 'next'.tr()),
-              onPressed: () {
-                if (isLast) {
-                  if (canModify && !expired) {
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.edit),
+                  label: Text('modifyAnswers'.tr()),
+                  onPressed: () {
                     setState(() {
-                      _isModifying = false;
+                      _isModifying = true;
+                      _index = 0;
+                      _userHasEdited = false;
+                      _loadCurrentIntoLocalState();
                     });
-                  }
-                  return;
-                }
-                setState(() {
-                  _index++;
-                  _userHasEdited = false;
-                  _loadCurrentIntoLocalState();
-                });
-              },
+                  },
+                ),
+              ),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.arrow_back),
+                  label: Text(_index == 0 ? 'close'.tr() : 'back'.tr()),
+                  onPressed: () {
+                    if (_index == 0) {
+                      widget.onCancel?.call();
+                      return;
+                    }
+                    setState(() {
+                      _index--;
+                      _userHasEdited = false;
+                      _loadCurrentIntoLocalState();
+                    });
+                  },
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  icon: Icon(isLast ? Icons.check : Icons.arrow_forward),
+                  label: Text(isLast ? 'done'.tr() : 'next'.tr()),
+                  onPressed: () {
+                    if (isLast) {
+                      if (canModify && !expired) {
+                        setState(() {
+                          _isModifying = false;
+                        });
+                      }
+                      return;
+                    }
+                    setState(() {
+                      _index++;
+                      _userHasEdited = false;
+                      _loadCurrentIntoLocalState();
+                    });
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -824,7 +827,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (survey.title != null)
+                  if (survey.title != null && !_isFullPage)
                     Text(
                       survey.title!,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -833,7 +836,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  if (survey.description != null)
+                  if (survey.description != null && !_isFullPage)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
@@ -847,7 +850,7 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     )
-                  else
+                  else if (!_isFullPage)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
