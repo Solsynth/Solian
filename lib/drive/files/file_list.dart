@@ -1530,7 +1530,7 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                   children: [
                     SizedBox(
                       width: 180,
-                      height: 80,
+                      height: 82,
                       child: InkWell(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(12),
@@ -1565,7 +1565,7 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                     ),
                     SizedBox(
                       width: 180,
-                      height: 80,
+                      height: 82,
                       child: InkWell(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(12),
