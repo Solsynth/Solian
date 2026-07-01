@@ -13,19 +13,27 @@ List<SnUserCalendarEvent> eventHubEventsForDay(
   List<SnEventCalendarEntry> entries,
   DateTime day,
 ) {
+  final events = <SnUserCalendarEvent>[];
+  final seen = <String>{};
+
   for (final entry in entries) {
-    if (_sameDay(entry.date, day)) {
-      final events = [...entry.userEvents];
-      events.sort((a, b) {
-        if (a.isAllDay != b.isAllDay) return a.isAllDay ? -1 : 1;
-        return a.startTime.compareTo(b.startTime);
-      });
-      return events;
+    for (final event in entry.userEvents) {
+      if (_dateOnly(day).isBefore(_dateOnly(event.startTime)) ||
+          _dateOnly(day).isAfter(_dateOnly(event.endTime))) {
+        continue;
+      }
+      if (seen.add(event.id)) events.add(event);
     }
   }
 
-  return const [];
+  events.sort((a, b) {
+    if (a.isAllDay != b.isAllDay) return a.isAllDay ? -1 : 1;
+    return a.startTime.compareTo(b.startTime);
+  });
+  return events;
 }
+
+DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
 List<EventHubDaySection> buildEventHubAgendaSections(
   List<SnEventCalendarEntry> entries, {
@@ -45,6 +53,3 @@ List<EventHubDaySection> buildEventHubAgendaSections(
       .where((section) => section.events.isNotEmpty)
       .toList();
 }
-
-bool _sameDay(DateTime a, DateTime b) =>
-    a.year == b.year && a.month == b.month && a.day == b.day;
