@@ -205,9 +205,12 @@ class CloudFileList extends HookConsumerWidget {
         if (isAudio) {
           item = SizedBox(height: 120, child: widgetItem);
         } else {
-          item = AspectRatio(
-            aspectRatio: (file.ratio as num?)?.toDouble() ?? 1.0,
-            child: widgetItem,
+          item = ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: AspectRatio(
+              aspectRatio: (file.ratio as num?)?.toDouble() ?? 1.0,
+              child: widgetItem,
+            ),
           );
         }
         children.add(item);
@@ -245,6 +248,7 @@ class CloudFileList extends HookConsumerWidget {
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: files.length == 1 ? double.infinity : 320,
+                        maxHeight: maxHeight,
                       ),
                       child: filesToShow[i].mimeType.startsWith('audio')
                           ? SizedBox(
