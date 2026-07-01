@@ -274,7 +274,7 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                 ),
                 if (canEdit)
                   IconButton(
-                    tooltip: 'Refresh permissions',
+                    tooltip: 'actionRefreshPermissions'.tr(),
                     visualDensity: VisualDensity(vertical: -3),
                     onPressed: () =>
                         ref.invalidate(realmRolePermissionsProvider(realmSlug)),
@@ -1570,7 +1570,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Boost leaderboard',
+                  tooltip: 'actionOpenBoostLeaderboard'.tr(),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -1701,7 +1701,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Edit realm identity',
+                  tooltip: 'actionEditRealmIdentity'.tr(),
                   visualDensity: VisualDensity(vertical: -3),
                   onPressed: () {
                     showModalBottomSheet(
@@ -1848,7 +1848,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Refresh labels',
+                  tooltip: 'actionRefreshLabels'.tr(),
                   visualDensity: VisualDensity(vertical: -3),
                   onPressed: () => ref.invalidate(realmLabelsProvider(slug)),
                   icon: const Icon(Symbols.refresh),
@@ -1938,7 +1938,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Edit label',
+                            tooltip: 'actionEditLabel'.tr(),
                             onPressed: boost.boostLevel < 1
                                 ? null
                                 : () {
@@ -1955,7 +1955,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             icon: const Icon(Symbols.edit),
                           ),
                           IconButton(
-                            tooltip: 'Delete label',
+                            tooltip: 'actionDeleteLabel'.tr(),
                             onPressed: boost.boostLevel < 1
                                 ? null
                                 : () {
