@@ -459,14 +459,14 @@ class EventHubScreen extends HookConsumerWidget {
                   ),
                   const Gap(16),
                   Text(
-                    'No search results',
+                    'noSearchResults'.tr(),
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const Gap(8),
                   Text(
-                    'Try different tags or keywords',
+                    'eventHubNoResultsHint'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                     ),
@@ -495,7 +495,7 @@ class EventHubScreen extends HookConsumerWidget {
               Icon(Symbols.error, size: 48, color: colorScheme.error),
               const Gap(16),
               Text(
-                'Search failed',
+                'eventHubSearchFailed'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               Text(
@@ -608,7 +608,9 @@ class EventHubScreen extends HookConsumerWidget {
               isSearchActive.value ? Symbols.search_off : Symbols.search,
               color: Theme.of(context).appBarTheme.foregroundColor,
             ),
-            tooltip: isSearchActive.value ? 'Close search' : 'Search events',
+            tooltip: isSearchActive.value
+                ? 'eventHubSearchClose'.tr()
+                : 'searchEvents'.tr(),
           ),
           // Filters
           IconButton(
@@ -617,7 +619,7 @@ class EventHubScreen extends HookConsumerWidget {
               Symbols.tune,
               color: Theme.of(context).appBarTheme.foregroundColor,
             ),
-            tooltip: 'Filters',
+            tooltip: 'eventHubFilters'.tr(),
           ),
           if (isWide) ...[
             IconButton(
@@ -627,7 +629,7 @@ class EventHubScreen extends HookConsumerWidget {
                 Symbols.calendar_today,
                 color: Theme.of(context).appBarTheme.foregroundColor,
               ),
-              tooltip: 'Events',
+              tooltip: 'eventHubEvents'.tr(),
             ),
           ],
           const Gap(8),
@@ -691,14 +693,14 @@ class _MonthCalendarView extends StatelessWidget {
               height: weekRowHeight,
               child: Row(
                 children: List.generate(7, (index) {
-                  const names = [
-                    'Mon',
-                    'Tue',
-                    'Wed',
-                    'Thu',
-                    'Fri',
-                    'Sat',
-                    'Sun',
+                  final names = [
+                    'eventHubWeekdayMon'.tr(),
+                    'eventHubWeekdayTue'.tr(),
+                    'eventHubWeekdayWed'.tr(),
+                    'eventHubWeekdayThu'.tr(),
+                    'eventHubWeekdayFri'.tr(),
+                    'eventHubWeekdaySat'.tr(),
+                    'eventHubWeekdaySun'.tr(),
                   ];
                   return Expanded(
                     child: Padding(
@@ -1135,7 +1137,7 @@ class _DayAgenda extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'No events',
+                'eventHubNoEvents'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -1389,7 +1391,7 @@ class _DayAgenda extends StatelessWidget {
                       ),
                     ),
                   Text(
-                    status.isOnline ? 'Online' : 'Offline',
+                    status.isOnline ? 'online'.tr() : 'offline'.tr(),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -1443,7 +1445,9 @@ class _WeekView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              'Week of ${DateFormat.yMMMMd().format(weekDays.first)}',
+              'eventHubWeekNumber'.tr(
+                args: [_weekOfMonth(selectedDate).toString()],
+              ),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: colorScheme.onSurface,
@@ -1500,7 +1504,7 @@ class _WeekView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No events this week',
+                  'eventHubNoEventsWeek'.tr(),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -1582,7 +1586,7 @@ class _DayView extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(32),
               child: Text(
-                'No events',
+                'eventHubNoEvents'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -1607,7 +1611,7 @@ class _DayView extends StatelessWidget {
                       padding: const EdgeInsets.all(12),
                       child: Text(
                         event.isAllDay
-                            ? 'All day'
+                            ? 'eventHubAllDay'.tr()
                             : DateFormat.Hm().format(event.startTime.toLocal()),
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: colorScheme.onSurfaceVariant,
@@ -2000,15 +2004,15 @@ class _CalendarFiltersSheet extends StatelessWidget {
           value: includeNotableDays,
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: const Text('Include notable days'),
-          subtitle: const Text('Show holidays and public notable dates'),
+          title: Text('eventHubIncludeNotableDays'.tr()),
+          subtitle: Text('eventHubIncludeNotableDaysDesc'.tr()),
           onChanged: onToggleNotableDays,
         ),
         const Divider(height: 32),
         // Tag filters section
         if (usedTags.isNotEmpty || selectedTags.isNotEmpty) ...[
           _CalendarFilterGroup(
-            title: 'Filter by tags',
+            title: 'eventHubFilterByTags'.tr(),
             children: [
               Wrap(
                 spacing: 6,
@@ -2056,23 +2060,21 @@ class _CalendarFiltersSheet extends StatelessWidget {
           TextButton.icon(
             onPressed: onClearFilters,
             icon: const Icon(Symbols.clear_all, size: 16),
-            label: const Text('Clear filters'),
+            label: Text('eventHubClearFilters'.tr()),
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ],
         const Divider(height: 32),
         _CalendarFilterGroup(
-          title: 'Selected date',
+          title: 'eventHubSelectedDate'.tr(),
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(fullDateFormat),
-              subtitle: const Text(
-                'Day, week, and year views follow this date',
-              ),
+              subtitle: Text('eventHubSelectedDateHint'.tr()),
               trailing: TextButton(
                 onPressed: onJumpToToday,
-                child: const Text('Today'),
+                child: Text('eventHubToday'.tr()),
               ),
             ),
           ],
@@ -2083,11 +2085,11 @@ class _CalendarFiltersSheet extends StatelessWidget {
 
   static String _notableDayTagLabel(NotableDayTagFilter tag) {
     return switch (tag) {
-      NotableDayTagFilter.holiday => 'Holiday',
-      NotableDayTagFilter.event => 'Event',
-      NotableDayTagFilter.anniversary => 'Anniversary',
-      NotableDayTagFilter.memorial => 'Memorial',
-      NotableDayTagFilter.festival => 'Festival',
+      NotableDayTagFilter.holiday => 'eventHubNotableHoliday'.tr(),
+      NotableDayTagFilter.event => 'eventHubNotableEvent'.tr(),
+      NotableDayTagFilter.anniversary => 'eventHubNotableAnniversary'.tr(),
+      NotableDayTagFilter.memorial => 'eventHubNotableMemorial'.tr(),
+      NotableDayTagFilter.festival => 'eventHubNotableFestival'.tr(),
     };
   }
 }
@@ -2135,10 +2137,19 @@ class _CalendarFiltersSidebar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
         SegmentedButton<EventHubViewMode>(
-          segments: const [
-            ButtonSegment(value: EventHubViewMode.day, label: Text('Day')),
-            ButtonSegment(value: EventHubViewMode.week, label: Text('Week')),
-            ButtonSegment(value: EventHubViewMode.month, label: Text('Month')),
+          segments: [
+            ButtonSegment(
+              value: EventHubViewMode.day,
+              label: Text('eventHubViewDay'.tr()),
+            ),
+            ButtonSegment(
+              value: EventHubViewMode.week,
+              label: Text('eventHubViewWeek'.tr()),
+            ),
+            ButtonSegment(
+              value: EventHubViewMode.month,
+              label: Text('eventHubViewMonth'.tr()),
+            ),
           ],
           selected: {currentMode},
           emptySelectionAllowed: false,
@@ -2159,15 +2170,15 @@ class _CalendarFiltersSidebar extends StatelessWidget {
           value: includeNotableDays,
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: const Text('Include notable days'),
-          subtitle: const Text('Show holidays and public notable dates'),
+          title: Text('eventHubIncludeNotableDays'.tr()),
+          subtitle: Text('eventHubIncludeNotableDaysDesc'.tr()),
           onChanged: onToggleNotableDays,
         ),
         const Gap(16),
         // Tag filters section
         if (usedTags.isNotEmpty || selectedTags.isNotEmpty) ...[
           _CalendarFilterGroup(
-            title: 'Filter by tags',
+            title: 'eventHubFilterByTags'.tr(),
             children: [
               Wrap(
                 spacing: 6,
@@ -2189,7 +2200,7 @@ class _CalendarFiltersSidebar extends StatelessWidget {
         ],
         // Notable day tag filter
         _CalendarFilterGroup(
-          title: 'Notable day type',
+          title: 'eventHubNotableDayType'.tr(),
           children: [
             Wrap(
               spacing: 6,
@@ -2215,23 +2226,21 @@ class _CalendarFiltersSidebar extends StatelessWidget {
           TextButton.icon(
             onPressed: onClearFilters,
             icon: const Icon(Symbols.clear_all, size: 16),
-            label: const Text('Clear filters'),
+            label: Text('eventHubClearFilters'.tr()),
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           ),
         ],
         const Gap(16),
         _CalendarFilterGroup(
-          title: 'Selected date',
+          title: 'eventHubSelectedDate'.tr(),
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(fullDateFormat),
-              subtitle: const Text(
-                'Day, week, and year views follow this date',
-              ),
+              subtitle: Text('eventHubSelectedDateHint'.tr()),
               trailing: TextButton(
                 onPressed: onJumpToToday,
-                child: const Text('Today'),
+                child: Text('eventHubToday'.tr()),
               ),
             ),
           ],
@@ -2242,11 +2251,11 @@ class _CalendarFiltersSidebar extends StatelessWidget {
 
   static String _notableDayTagLabel(NotableDayTagFilter tag) {
     return switch (tag) {
-      NotableDayTagFilter.holiday => 'Holiday',
-      NotableDayTagFilter.event => 'Event',
-      NotableDayTagFilter.anniversary => 'Anniversary',
-      NotableDayTagFilter.memorial => 'Memorial',
-      NotableDayTagFilter.festival => 'Festival',
+      NotableDayTagFilter.holiday => 'eventHubNotableHoliday'.tr(),
+      NotableDayTagFilter.event => 'eventHubNotableEvent'.tr(),
+      NotableDayTagFilter.anniversary => 'eventHubNotableAnniversary'.tr(),
+      NotableDayTagFilter.memorial => 'eventHubNotableMemorial'.tr(),
+      NotableDayTagFilter.festival => 'eventHubNotableFestival'.tr(),
     };
   }
 }
@@ -2286,7 +2295,7 @@ class _SearchResultsList extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
             child: Text(
-              'Search Results (${results.length})',
+              'eventHubSearchResults'.tr(args: [results.length.toString()]),
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: colorScheme.onSurface,
@@ -2635,7 +2644,7 @@ class _NotableDayDetailDialog extends HookConsumerWidget {
         Icon(Symbols.error, size: 48, color: colorScheme.error),
         const Gap(16),
         Text(
-          'Failed to load notable day',
+          'eventHubFailedToLoadNotableDay'.tr(),
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         Text(
@@ -2753,8 +2762,13 @@ List<DateTime> _buildMonthCells(DateTime focusedMonth) {
 bool _sameMonth(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month;
 
+int _weekOfMonth(DateTime date) {
+  final firstDayWeekday = DateTime(date.year, date.month, 1).weekday;
+  return ((date.day + firstDayWeekday - 2) ~/ 7) + 1;
+}
+
 String _formatEventTime(SnUserCalendarEvent event) {
-  if (event.isAllDay) return 'All day';
+  if (event.isAllDay) return 'eventHubAllDay'.tr();
   final start = DateFormat.Hm().format(event.startTime.toLocal());
   final end = DateFormat.Hm().format(event.endTime.toLocal());
   return '$start – $end';
