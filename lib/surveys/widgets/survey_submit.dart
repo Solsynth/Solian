@@ -570,48 +570,39 @@ class _SurveySubmitState extends ConsumerState<SurveySubmit> {
   Widget _buildRating(BuildContext context, SnSurveyQuestion q) {
     final min = (q.minValue ?? 1).round();
     final max = (q.maxValue ?? 5).round();
+    final buttons = [
+      for (var value = min; value <= max; value++)
+        IconButton(
+          tooltip: '$value',
+          style: IconButton.styleFrom(
+            shape: const CircleBorder(),
+            backgroundColor: Colors.transparent,
+          ),
+          icon: Icon(
+            (_ratingSelected ?? 0) >= value ? Icons.star : Icons.star_border,
+            color: (_ratingSelected ?? 0) >= value ? Colors.amber : null,
+          ),
+          onPressed: () {
+            setState(() {
+              _ratingSelected = value;
+              _userHasEdited = true;
+            });
+          },
+        ),
+    ];
+
     if (!_isFullPage) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(max, (i) {
-          final value = i + 1;
-          final selected = (_ratingSelected ?? 0) >= value;
-          return IconButton(
-            icon: Icon(
-              selected ? Icons.star : Icons.star_border,
-              color: selected ? Colors.amber : null,
-            ),
-            onPressed: () {
-              setState(() {
-                _ratingSelected = value;
-                _userHasEdited = true;
-              });
-            },
-          );
-        }),
+        children: buttons,
       );
     }
 
     return Wrap(
+      alignment: WrapAlignment.center,
       spacing: 8,
       runSpacing: 8,
-      children: [
-        for (var value = min; value <= max; value++)
-          SizedBox(
-            width: 72,
-            child: _AnswerCard(
-              selected: _ratingSelected == value,
-              onTap: () => setState(() {
-                _ratingSelected = value;
-                _userHasEdited = true;
-              }),
-              leading: Icon(
-                _ratingSelected == value ? Icons.star : Icons.star_outline,
-              ),
-              title: '$value',
-            ),
-          ),
-      ],
+      children: buttons,
     );
   }
 

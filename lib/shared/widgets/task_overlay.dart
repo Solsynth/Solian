@@ -186,90 +186,81 @@ class _TaskOverlayBar extends ConsumerWidget {
       snapshot.visibleTasks.length,
       completedCount,
     );
-    final horizontalPadding = _overlayPadding(context);
     final fillColor = _statusFillColor(colorScheme, primaryTask);
     final trackColor = colorScheme.surfaceContainerHighest;
 
     return Material(
       color: Colors.transparent,
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: isDesktop ? 0 : horizontalPadding.left,
-          right: isDesktop ? 0 : horizontalPadding.right,
-        ),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _showTaskSheet(context, ref),
-          child: SizedBox(
-            height: height,
-            child: ClipRRect(
-              borderRadius: BorderRadius.zero,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final fillWidth =
-                      constraints.maxWidth * snapshot.progress.clamp(0, 1);
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      DecoratedBox(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _showTaskSheet(context, ref),
+        child: SizedBox(
+          height: height,
+          child: ClipRRect(
+            borderRadius: BorderRadius.zero,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final fillWidth =
+                    constraints.maxWidth * snapshot.progress.clamp(0, 1);
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: trackColor,
+                        border: Border(
+                          top: BorderSide(
+                            color: colorScheme.outlineVariant.withOpacity(0.3),
+                          ),
+                          bottom: BorderSide(
+                            color: colorScheme.outlineVariant.withOpacity(0.5),
+                          ),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.14),
+                            blurRadius: 22,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeOutCubic,
+                        width: fillWidth,
                         decoration: BoxDecoration(
-                          color: trackColor,
-                          border: Border(
-                            top: BorderSide(
-                              color: colorScheme.outlineVariant.withOpacity(
-                                0.3,
-                              ),
-                            ),
-                            bottom: BorderSide(
-                              color: colorScheme.outlineVariant.withOpacity(
-                                0.5,
-                              ),
-                            ),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.14),
-                              blurRadius: 22,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                          color: fillColor,
+                          borderRadius: BorderRadius.zero,
                         ),
                       ),
-                      Align(
+                    ),
+                    _buildForeground(
+                      context,
+                      theme,
+                      color: Colors.white,
+                      text: '$title · $subtitle',
+                    ),
+                    ClipRect(
+                      child: Align(
                         alignment: Alignment.centerLeft,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 240),
-                          curve: Curves.easeOutCubic,
-                          width: fillWidth,
-                          decoration: BoxDecoration(
-                            color: fillColor,
-                            borderRadius: BorderRadius.zero,
+                        widthFactor: snapshot.progress.clamp(0, 1),
+                        child: SizedBox(
+                          width: constraints.maxWidth,
+                          child: _buildForeground(
+                            context,
+                            theme,
+                            color: Colors.white,
+                            text: '$title · $subtitle',
                           ),
                         ),
                       ),
-                      _buildForeground(
-                        theme,
-                        color: Colors.white,
-                        text: '$title · $subtitle',
-                      ),
-                      ClipRect(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          widthFactor: snapshot.progress.clamp(0, 1),
-                          child: SizedBox(
-                            width: constraints.maxWidth,
-                            child: _buildForeground(
-                              theme,
-                              color: Colors.white,
-                              text: '$title · $subtitle',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -278,12 +269,16 @@ class _TaskOverlayBar extends ConsumerWidget {
   }
 
   Widget _buildForeground(
+    BuildContext context,
     ThemeData theme, {
     required Color color,
     required String text,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.only(
+        left: _contentHorizontalPadding(context),
+        right: _contentHorizontalPadding(context),
+      ),
       child: Row(
         children: [
           Container(
@@ -340,6 +335,12 @@ class _TaskOverlayBar extends ConsumerWidget {
     );
   }
 
+  double _contentHorizontalPadding(BuildContext context) {
+    if (isDesktop) return 16;
+    final mediaQuery = MediaQuery.of(context);
+    return 16 + math.max(mediaQuery.padding.left, mediaQuery.padding.right);
+  }
+
   String _buildTitle(AppTask? task) {
     if (task == null) return 'Tasks';
     if (task.title.isNotEmpty) return task.title;
@@ -372,15 +373,6 @@ class _TaskOverlayBar extends ConsumerWidget {
       AppTaskStatus.expired => 'Expired',
     };
     return otherCount > 0 ? '$label · +$otherCount more' : label;
-  }
-
-  EdgeInsets _overlayPadding(BuildContext context) {
-    if (isDesktop) return EdgeInsets.zero;
-    final mediaQuery = MediaQuery.of(context);
-    return EdgeInsets.only(
-      left: 10 + mediaQuery.padding.left,
-      right: 10 + mediaQuery.padding.right,
-    );
   }
 
   IconData _statusIcon(AppTask? task) {

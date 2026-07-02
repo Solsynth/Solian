@@ -291,6 +291,21 @@ class AppWrapper extends HookConsumerWidget {
           'pending=${current.isAcceptedPending} '
           'connected=${current.isConnected}',
         );
+        final callbackRequested = current.callbackRequestedAt != null &&
+            current.callbackRequestedAt != previous?.callbackRequestedAt;
+        if (callbackRequested && current.roomId != null) {
+          Logger.root.info(
+            '[AppWrapper] Native callback requested, navigating to CallScreen: ${current.roomId}',
+          );
+          unawaited(() async {
+            final didNavigate = await _navigateToCallScreen(ref, current.roomId!);
+            Logger.root.info(
+              '[AppWrapper] Callback navigation result room=${current.roomId} didNavigate=$didNavigate',
+            );
+            ref.read(nativeCallBridgeProvider.notifier).clearCallbackRequest();
+          }());
+        }
+
         final currRoomId = current.callKitAcceptedRoomId;
         if (currRoomId == null) {
           final nativeEnded = current.systemEndedAt != null &&

@@ -19,6 +19,7 @@ import flutter_callkit_incoming
     private let deepLinkChannelName = "dev.solsynth.solian/deeplink"
     private let nativeCallChannelName = "dev.solsynth.solian/native_call"
     private let pendingAcceptedCallKey = "dev.solsynth.solian.callkit.pendingAcceptedCall"
+    private let pendingCallbackCallKey = "dev.solsynth.solian.callkit.pendingCallbackCall"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private var implicitDeepLinkChannel: FlutterMethodChannel?
     private var nativeCallChannel: FlutterMethodChannel?
@@ -178,6 +179,7 @@ import flutter_callkit_incoming
         if response.actionIdentifier == CallkitNotificationManager.CALLBACK_ACTION {
             let data = response.notification.request.content.userInfo as? [String: Any]
             SwiftFlutterCallkitIncomingPlugin.sharedInstance?.sendCallbackEvent(data)
+            storeCallbackCall(data)
             completionHandler()
             return
         }
@@ -241,6 +243,8 @@ import flutter_callkit_incoming
             switch call.method {
             case "consumePendingAcceptedCall":
                 result(self.consumePendingAcceptedCall())
+            case "consumePendingCallbackCall":
+                result(self.consumePendingCallbackCall())
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -272,6 +276,31 @@ import flutter_callkit_incoming
         }
         return defaults.dictionary(forKey: pendingAcceptedCallKey)
     }
+
+    private func storeCallbackCall(_ rawPayload: [String: Any]?) {
+        guard let rawPayload else { return }
+        var payload = rawPayload
+        if payload["room_id"] == nil,
+           let extra = payload["extra"] as? [String: Any],
+           let roomId = extra["room_id"] {
+            payload["room_id"] = roomId
+        }
+        if payload["id"] == nil {
+            payload["id"] = UUID().uuidString.lowercased()
+        }
+        UserDefaults.shared.set(payload, forKey: pendingCallbackCallKey)
+        UserDefaults.shared.synchronize()
+        nativeCallChannel?.invokeMethod("onCallbackCall", arguments: payload)
+    }
+
+    private func consumePendingCallbackCall() -> [String: Any]? {
+        let defaults = UserDefaults.shared
+        defer {
+            defaults.removeObject(forKey: pendingCallbackCallKey)
+            defaults.synchronize()
+        }
+        return defaults.dictionary(forKey: pendingCallbackCallKey)
+    }
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
@@ -284,6 +313,36 @@ import flutter_callkit_incoming
     
     // MARK: Deep linking & Sharing
     
+    override func application(_ application: UIApplication,
+                              continue userActivity: NSUserActivity,
+                              restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        if let handleObj = userActivity.handle,
+           let isVideo = userActivity.isVideo {
+            let objData = handleObj.getDecryptHandle()
+            let nameCaller = objData["nameCaller"] as? String ?? ""
+            let handle = objData["handle"] as? String ?? ""
+            let roomId = handle
+            let data = flutter_callkit_incoming.Data(
+                id: UUID().uuidString.lowercased(),
+                nameCaller: nameCaller,
+                handle: handle,
+                type: isVideo ? 1 : 0
+            )
+            data.extra = ["room_id": roomId]
+            SwiftFlutterCallkitIncomingPlugin.sharedInstance?.startCall(data, fromPushKit: true)
+            storeCallbackCall([
+                "id": data.uuid,
+                "nameCaller": nameCaller,
+                "handle": handle,
+                "room_id": roomId,
+                "extra": ["room_id": roomId],
+                "type": isVideo ? 1 : 0,
+            ])
+        }
+
+        return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    }
+
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         let sharingIntent = SwiftFlutterSharingIntentPlugin.instance
         /// if the url is made from SwiftFlutterSharingIntentPlugin then handle it with plugin [SwiftFlutterSharingIntentPlugin]

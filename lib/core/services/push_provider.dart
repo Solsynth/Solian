@@ -11,8 +11,8 @@ enum PushNotificationProvider {
   appk;
 
   int get remoteType => switch (this) {
-    PushNotificationProvider.fcm => 0,
-    PushNotificationProvider.apple => 1,
+    PushNotificationProvider.fcm => 1,
+    PushNotificationProvider.apple => 0,
     PushNotificationProvider.appk => 4,
   };
 

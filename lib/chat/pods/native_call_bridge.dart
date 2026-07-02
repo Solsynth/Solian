@@ -101,6 +101,8 @@ class NativeCallBridge extends _$NativeCallBridge {
           await _onAcceptedPayload(call.arguments);
         case 'onAudioSessionActive':
           state = state.copyWith(isAudioSessionActive: call.arguments == true);
+        case 'onCallbackCall':
+          await _onCallbackPayload(call.arguments);
         case 'onEndedCall':
           state = state.copyWith(systemEndedAt: DateTime.now());
           clearAcceptedCall(preserveSystemEnd: true);
@@ -204,6 +206,27 @@ class NativeCallBridge extends _$NativeCallBridge {
     );
   }
 
+  Future<void> _onCallbackPayload(Object? payload) async {
+    if (payload is! Map) return;
+    final data = payload.map((key, value) => MapEntry(key.toString(), value));
+    final extra = data['extra'] is Map
+        ? (data['extra'] as Map).map((key, value) => MapEntry(key.toString(), value))
+        : const <String, dynamic>{};
+    final roomId = data['room_id']?.toString() ?? extra['room_id']?.toString() ?? data['handle']?.toString();
+    final roomName = data['nameCaller']?.toString() ?? data['caller_name']?.toString();
+    if (roomId == null || roomId.isEmpty) {
+      Logger.root.warning('[NativeCallBridge] Callback missing room_id: $data');
+      return;
+    }
+    state = state.copyWith(
+      roomId: roomId,
+      roomName: (roomName?.trim().isNotEmpty ?? false) ? roomName!.trim() : roomId,
+      source: NativeCallSource.outgoingLocal,
+      callbackRequestedAt: DateTime.now(),
+    );
+    Logger.root.info('[NativeCallBridge] Callback requested: room=$roomId');
+  }
+
   Future<void> _setAcceptedCall({
     required String uuid,
     required String? roomId,
@@ -235,18 +258,27 @@ class NativeCallBridge extends _$NativeCallBridge {
   }
 
   Future<void> _onDecline(String uuid) async {
-    state = state.copyWith(isIncomingDisplayed: false);
     Logger.root.info('[NativeCallBridge] Native decline: uuid=$uuid');
+    state = state.copyWith(
+      isIncomingDisplayed: false,
+      systemEndedAt: DateTime.now(),
+    );
+    clearAcceptedCall(preserveSystemEnd: true);
   }
 
   Future<void> _onEnded(String uuid) async {
     Logger.root.info('[NativeCallBridge] Native call ended: uuid=$uuid');
-    clearAcceptedCall();
+    state = state.copyWith(systemEndedAt: DateTime.now());
+    clearAcceptedCall(preserveSystemEnd: true);
   }
 
   Future<void> _onTimeout(String id) async {
     Logger.root.warning('[NativeCallBridge] Call timed out: id=$id');
-    state = state.copyWith(isIncomingDisplayed: false);
+    state = state.copyWith(
+      isIncomingDisplayed: false,
+      systemEndedAt: DateTime.now(),
+    );
+    clearAcceptedCall(preserveSystemEnd: true);
   }
 
   Future<void> ensureInitialized() async {
@@ -258,6 +290,7 @@ class NativeCallBridge extends _$NativeCallBridge {
       state = state.copyWith(pushToken: token);
       Logger.root.info('[NativeCallBridge] Initialized token=${token != null ? "${token.substring(0, 8)}…" : "none"}');
       await _consumePendingAcceptedCall();
+      await _consumePendingCallbackCall();
       await _restoreActiveCallState();
     } catch (e) {
       Logger.root.warning('[NativeCallBridge] Failed to initialize native call bridge: $e');
@@ -271,6 +304,14 @@ class NativeCallBridge extends _$NativeCallBridge {
       'consumePendingAcceptedCall',
     );
     await _onAcceptedPayload(payload);
+  }
+
+  Future<void> _consumePendingCallbackCall() async {
+    if (!Platform.isIOS) return;
+    final payload = await _nativeCallChannel.invokeMethod<Object?>(
+      'consumePendingCallbackCall',
+    );
+    await _onCallbackPayload(payload);
   }
 
   Future<void> _restoreActiveCallState() async {
@@ -403,6 +444,10 @@ class NativeCallBridge extends _$NativeCallBridge {
     state = state.copyWith(isAcceptedPending: false);
   }
 
+  void clearCallbackRequest() {
+    state = state.copyWith(callbackRequestedAt: null);
+  }
+
   String? currentRoomId() => state.callKitAcceptedRoomId ?? state.roomId;
 
   void clearAcceptedCall({bool preserveSystemEnd = false}) {
@@ -443,6 +488,7 @@ class NativeCallState {
   final NativeCallSource? source;
   final String? pushToken;
   final DateTime? systemEndedAt;
+  final DateTime? callbackRequestedAt;
 
   const NativeCallState({
     this.isConnected = false,
@@ -463,6 +509,7 @@ class NativeCallState {
     this.source,
     this.pushToken,
     this.systemEndedAt,
+    this.callbackRequestedAt,
   });
 
   NativeCallState copyWith({
@@ -484,6 +531,7 @@ class NativeCallState {
     Object? source = _unset,
     Object? pushToken = _unset,
     Object? systemEndedAt = _unset,
+    Object? callbackRequestedAt = _unset,
   }) {
     return NativeCallState(
       isConnected: isConnected ?? this.isConnected,
@@ -516,6 +564,9 @@ class NativeCallState {
       systemEndedAt: identical(systemEndedAt, _unset)
           ? this.systemEndedAt
           : systemEndedAt as DateTime?,
+      callbackRequestedAt: identical(callbackRequestedAt, _unset)
+          ? this.callbackRequestedAt
+          : callbackRequestedAt as DateTime?,
     );
   }
 }

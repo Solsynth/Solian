@@ -267,6 +267,7 @@ Future<void> subscribePushNotification(
     badge: true,
     sound: true,
   );
+  final deviceName = await getDeviceName();
 
   String? deviceToken;
   if (kIsWeb) {
@@ -287,19 +288,13 @@ Future<void> subscribePushNotification(
             apiClient,
             fcmToken,
             PushNotificationProvider.fcm.remoteType,
+            deviceName: deviceName,
           );
           return;
         }
         if (Platform.isIOS) {
-          final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
-          if (apnsToken != null && apnsToken.isNotEmpty) {
-            await _putTokenToRemote(
-              apiClient,
-              apnsToken,
-              PushNotificationProvider.apple.remoteType,
-            );
-          }
-          await _registerVoipTokenIfAvailable(apiClient);
+          await _registerApnsTokenIfAvailable(apiClient, deviceName: deviceName);
+          await _registerVoipTokenIfAvailable(apiClient, deviceName: deviceName);
         }
       })
       .onError((err) {
@@ -318,17 +313,54 @@ Future<void> subscribePushNotification(
       !kIsWeb && (Platform.isIOS || Platform.isMacOS)
           ? PushNotificationProvider.apple.remoteType
           : PushNotificationProvider.fcm.remoteType,
+      deviceName: deviceName,
     );
   }
   if (!kIsWeb && Platform.isIOS) {
-    registered = await _registerVoipTokenIfAvailable(apiClient) || registered;
+    registered =
+        await _registerVoipTokenIfAvailable(apiClient, deviceName: deviceName) ||
+        registered;
   }
   if (!registered && detailedErrors) {
     throw Exception("Failed to get device token for push notifications.");
   }
 }
 
-Future<bool> _registerVoipTokenIfAvailable(Dio apiClient) async {
+Future<bool> _registerApnsTokenIfAvailable(
+  Dio apiClient, {
+  required String deviceName,
+}) async {
+  if (kIsWeb || !Platform.isIOS) return false;
+  try {
+    String? apnsToken;
+    for (var i = 0; i < 10; i++) {
+      apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+      if (apnsToken != null && apnsToken.isNotEmpty) break;
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    }
+    if (apnsToken == null || apnsToken.isEmpty) {
+      return false;
+    }
+    Logger.root.info(
+      '[Notification] Registering APNs token ${apnsToken.substring(0, 8)}…',
+    );
+    await _putTokenToRemote(
+      apiClient,
+      apnsToken,
+      PushNotificationProvider.apple.remoteType,
+      deviceName: deviceName,
+    );
+    return true;
+  } catch (err) {
+    Logger.root.warning('[Notification] Failed to register APNs token: $err');
+    return false;
+  }
+}
+
+Future<bool> _registerVoipTokenIfAvailable(
+  Dio apiClient, {
+  required String deviceName,
+}) async {
   if (kIsWeb || !Platform.isIOS) return false;
   try {
     String? voipToken;
@@ -347,6 +379,7 @@ Future<bool> _registerVoipTokenIfAvailable(Dio apiClient) async {
       apiClient,
       voipToken,
       PushNotificationProvider.appk.remoteType,
+      deviceName: deviceName,
     );
     return true;
   } catch (err) {
@@ -355,13 +388,18 @@ Future<bool> _registerVoipTokenIfAvailable(Dio apiClient) async {
   }
 }
 
-Future<void> _putTokenToRemote(Dio apiClient, String token, int type) async {
+Future<void> _putTokenToRemote(
+  Dio apiClient,
+  String token,
+  int type, {
+  required String deviceName,
+}) async {
   await apiClient.put(
     "/ring/notifications/subscription",
     data: {
       "provider": type,
       "device_token": token,
-      "device_name": await getDeviceName(),
+      "device_name": deviceName,
       "app_id": kNotificationTenantAppId,
     },
   );
