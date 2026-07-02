@@ -672,8 +672,8 @@ Map<String, dynamic> _$SnNotificationPushSubscriptionToJson(
 };
 
 const _$SnNotificationPushSubscriptionProviderEnumMap = {
-  SnNotificationPushSubscriptionProvider.fcm: 0,
-  SnNotificationPushSubscriptionProvider.apple: 1,
+  SnNotificationPushSubscriptionProvider.apple: 0,
+  SnNotificationPushSubscriptionProvider.fcm: 1,
   SnNotificationPushSubscriptionProvider.sop: 2,
   SnNotificationPushSubscriptionProvider.unifiedPush: 3,
   SnNotificationPushSubscriptionProvider.appk: 4,
