@@ -101,6 +101,7 @@ class AppWrapper extends HookConsumerWidget {
     final bootstrapCompleted = useState(false);
     final startupGateResolved = useState(false);
     final onboardingChecked = useState(false);
+    final autoUpdateChecked = useState(false);
     final activeInviteKey = useRef<String?>(null);
     final recentlyHandledInvites = useRef(<String, DateTime>{});
     final lastHandledAcceptedRoomId = useRef<String?>(null);
@@ -114,7 +115,9 @@ class AppWrapper extends HookConsumerWidget {
           nativeState.callKitAcceptedRoomId == null) {
         return;
       }
-      Logger.root.info('[AppWrapper] Restarting iOS CallKit microphone: $reason');
+      Logger.root.info(
+        '[AppWrapper] Restarting iOS CallKit microphone: $reason',
+      );
       unawaited(() async {
         await Future<void>.delayed(const Duration(milliseconds: 250));
         await ref.read(callProvider.notifier).ensureMicrophoneEnabled();
@@ -175,8 +178,12 @@ class AppWrapper extends HookConsumerWidget {
       final sub = ref.listenManual(appLifecycleStateProvider, (previous, next) {
         final state = next.value;
         if (state == AppLifecycleState.resumed) {
-          Logger.root.info('[AppWrapper] App resumed, syncing native call state');
-          unawaited(ref.read(nativeCallBridgeProvider.notifier).ensureInitialized());
+          Logger.root.info(
+            '[AppWrapper] App resumed, syncing native call state',
+          );
+          unawaited(
+            ref.read(nativeCallBridgeProvider.notifier).ensureInitialized(),
+          );
         }
       });
       return sub.close;
@@ -291,14 +298,18 @@ class AppWrapper extends HookConsumerWidget {
           'pending=${current.isAcceptedPending} '
           'connected=${current.isConnected}',
         );
-        final callbackRequested = current.callbackRequestedAt != null &&
+        final callbackRequested =
+            current.callbackRequestedAt != null &&
             current.callbackRequestedAt != previous?.callbackRequestedAt;
         if (callbackRequested && current.roomId != null) {
           Logger.root.info(
             '[AppWrapper] Native callback requested, navigating to CallScreen: ${current.roomId}',
           );
           unawaited(() async {
-            final didNavigate = await _navigateToCallScreen(ref, current.roomId!);
+            final didNavigate = await _navigateToCallScreen(
+              ref,
+              current.roomId!,
+            );
             Logger.root.info(
               '[AppWrapper] Callback navigation result room=${current.roomId} didNavigate=$didNavigate',
             );
@@ -308,10 +319,13 @@ class AppWrapper extends HookConsumerWidget {
 
         final currRoomId = current.callKitAcceptedRoomId;
         if (currRoomId == null) {
-          final nativeEnded = current.systemEndedAt != null &&
+          final nativeEnded =
+              current.systemEndedAt != null &&
               current.systemEndedAt != previous?.systemEndedAt;
           if (nativeEnded && ref.read(callProvider).isConnected) {
-            Logger.root.info('[AppWrapper] Native call ended, disconnecting Flutter call');
+            Logger.root.info(
+              '[AppWrapper] Native call ended, disconnecting Flutter call',
+            );
             unawaited(ref.read(callProvider.notifier).disconnect());
           }
           lastHandledAcceptedRoomId.value = null;
@@ -390,7 +404,10 @@ class AppWrapper extends HookConsumerWidget {
     // Restart capture when that happens; this mirrors the manual mute/unmute fix.
     useEffect(() {
       if (!isNativeCallAvailable) return null;
-      final sub = ref.listenManual(nativeCallBridgeProvider, (previous, current) {
+      final sub = ref.listenManual(nativeCallBridgeProvider, (
+        previous,
+        current,
+      ) {
         if (!(previous?.isAudioSessionActive ?? false) &&
             current.isAudioSessionActive) {
           kickCallKitMicrophone('audio session activated');
@@ -496,7 +513,6 @@ class AppWrapper extends HookConsumerWidget {
           handleWhenReady();
         },
       );
-      UpdateService().checkForUpdates(context);
 
       void checkPendingShare([int retry = 0]) {
         final ctx = ref.read(routerProvider).navigatorKey.currentContext;
@@ -666,7 +682,11 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
-      if (shouldShowStartupSplash || onboardingChecked.value) return null;
+      if (shouldShowStartupSplash ||
+          onboardingChecked.value ||
+          autoUpdateChecked.value) {
+        return null;
+      }
 
       Future(() async {
         final prefs = ref.read(sharedPreferencesProvider);
@@ -678,20 +698,33 @@ class AppWrapper extends HookConsumerWidget {
             lastShownVersion == null || lastShownVersion != currentVersion;
 
         onboardingChecked.value = true;
-        if (!shouldShowOnboarding) return;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (shouldShowOnboarding) {
           final ctx = ref.read(routerProvider).navigatorKey.currentContext;
-          if (ctx == null || !ctx.mounted) return;
+          if (ctx != null && ctx.mounted) {
+            await showAppOnboardingSheet(
+              ctx,
+              version: packageInfo.version,
+              isFirstLaunch: lastShownVersion == null,
+              suggestAuth: token == null,
+            );
+            await prefs.setString(kOnboardingLastShownVersion, currentVersion);
+          }
+        }
 
-          await showAppOnboardingSheet(
-            ctx,
-            version: packageInfo.version,
-            isFirstLaunch: lastShownVersion == null,
-            suggestAuth: token == null,
-          );
-          await prefs.setString(kOnboardingLastShownVersion, currentVersion);
-        });
+        autoUpdateChecked.value = true;
+
+        Future<void> checkForUpdatesWhenReady([int retry = 0]) async {
+          final ctx = ref.read(routerProvider).navigatorKey.currentContext;
+          if (ctx != null && ctx.mounted) {
+            await UpdateService().checkForUpdates(ctx);
+            return;
+          }
+          if (retry >= 16) return;
+          await Future.delayed(const Duration(milliseconds: 250));
+          await checkForUpdatesWhenReady(retry + 1);
+        }
+
+        unawaited(checkForUpdatesWhenReady());
       });
       return null;
     }, [shouldShowStartupSplash, token]);
@@ -1085,7 +1118,9 @@ class AppWrapper extends HookConsumerWidget {
     bool showPendingJoin = false,
   }) async {
     try {
-      Logger.root.info('[AppWrapper] Navigating to CallScreen for room=$roomId');
+      Logger.root.info(
+        '[AppWrapper] Navigating to CallScreen for room=$roomId',
+      );
       final router = ref.read(routerProvider);
       final ctx = router.navigatorKey.currentContext;
       if (ctx == null || !ctx.mounted) {
@@ -1099,7 +1134,9 @@ class AppWrapper extends HookConsumerWidget {
       final apiClient = ref.read(apiClientProvider);
       final resp = await apiClient.get('/messager/chat/$roomId');
       final room = SnChatRoom.fromJson(resp.data);
-      Logger.root.info('[AppWrapper] Loaded room for call navigation room=$roomId');
+      Logger.root.info(
+        '[AppWrapper] Loaded room for call navigation room=$roomId',
+      );
       var cameraEnabled = false;
 
       if (!ctx.mounted) return false;
@@ -1122,11 +1159,7 @@ class AppWrapper extends HookConsumerWidget {
           (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
         await createCallWindow(room, cameraEnabled: cameraEnabled);
       } else {
-        await pushCallScreenOnce(
-          ref,
-          room,
-          cameraEnabled: cameraEnabled,
-        );
+        await pushCallScreenOnce(ref, room, cameraEnabled: cameraEnabled);
       }
       return true;
     } catch (e) {

@@ -68,17 +68,18 @@ class _ParsedVersion implements Comparable<_ParsedVersion> {
   const _ParsedVersion(this.major, this.minor, this.patch, this.build);
 
   static _ParsedVersion? tryParse(String input) {
-    // Expect format like 0.0.0+00 (build after '+'). Allow missing build as 0.
-    final partsPlus = input.split('+');
-    final core = partsPlus[0].trim();
-    final buildStr = partsPlus.length > 1 ? partsPlus[1].trim() : '0';
-    final coreParts = core.split('.');
-    if (coreParts.length != 3) return null;
+    final match = RegExp(
+      r'^[vV]?(\d+)\.(\d+)\.(\d+)(?:\+(\d+))?(?:[-+][0-9A-Za-z.-]+)?$',
+    ).firstMatch(input.trim());
+    if (match == null) return null;
 
-    final major = int.tryParse(coreParts[0]) ?? 0;
-    final minor = int.tryParse(coreParts[1]) ?? 0;
-    final patch = int.tryParse(coreParts[2]) ?? 0;
-    final build = int.tryParse(buildStr) ?? 0;
+    final major = int.tryParse(match.group(1)!);
+    final minor = int.tryParse(match.group(2)!);
+    final patch = int.tryParse(match.group(3)!);
+    final build = int.tryParse(match.group(4) ?? '0');
+    if (major == null || minor == null || patch == null || build == null) {
+      return null;
+    }
 
     return _ParsedVersion(major, minor, patch, build);
   }
@@ -302,7 +303,8 @@ class UpdateService {
   }
 
   bool _isWindowsUpdateZip(String fileName) {
-    return fileName.startsWith('solian-installer-') && fileName.endsWith('.zip');
+    return fileName.startsWith('solian-installer-') &&
+        fileName.endsWith('.zip');
   }
 
   bool _isWindowsExtractDir(String fileName) {
@@ -332,7 +334,10 @@ class UpdateService {
     return deleted;
   }
 
-  Future<void> installAndroidUpdate(String url, {required String apkName}) async {
+  Future<void> installAndroidUpdate(
+    String url, {
+    required String apkName,
+  }) async {
     if (!Platform.isAndroid) return;
 
     AzhonAppUpdate.dispose();
@@ -770,7 +775,9 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                         child: FilledButton.icon(
                           onPressed: () {
                             Logger.root.info(widget.androidUpdateUrl!);
-                            UpdateService(useProxy: _useProxy).installAndroidUpdate(
+                            UpdateService(
+                              useProxy: _useProxy,
+                            ).installAndroidUpdate(
                               widget.androidUpdateUrl!,
                               apkName:
                                   'solian-update-${widget.release.tagName}.apk',
