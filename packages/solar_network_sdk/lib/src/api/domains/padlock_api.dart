@@ -156,13 +156,13 @@ class PadlockApi extends BaseApi {
     return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  /// Deauthorizes (revokes) an authorized application.
+  /// Deauthorizes (revokes) an authorized application by record ID.
   ///
-  /// [appId] - The ID of the app to deauthorize.
+  /// [id] - The record ID of the authorized app entry to revoke.
   /// [type] - App type filter (optional).
-  Future<void> deauthorizeApp(String appId, {int? type}) async {
+  Future<void> deauthorizeApp(String id, {int? type}) async {
     await delete(
-      '$_basePath/authorized-apps/$appId',
+      '$_basePath/authorized-apps/$id',
       queryParameters: {'type': ?type},
     );
   }

@@ -199,7 +199,7 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final apps = ref.watch(authorizedAppsProvider);
 
-    void deauthorizeApp(String appId) async {
+    void deauthorizeApp(String id) async {
       final confirm = await showConfirmAlert(
         'authorizedAppDeauthorizeHint'.tr(),
         'deauthorize'.tr(),
@@ -208,7 +208,7 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.deauthorizeApp(appId);
+        await padlockApi.deauthorizeApp(id);
         ref.invalidate(authorizedAppsProvider);
       } catch (err) {
         showErrorAlert(err);
