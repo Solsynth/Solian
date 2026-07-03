@@ -52,9 +52,9 @@ Future<bool> pushCallScreenOnce(
   if (_isCallScreenActive || _pendingCallScreenRoomId == room.id) return true;
   _pendingCallScreenRoomId = room.id;
   try {
-    await ref.read(routerProvider).pushWidget(
-      CallScreen(room: room, cameraEnabled: cameraEnabled),
-    );
+    await ref
+        .read(routerProvider)
+        .pushWidget(CallScreen(room: room, cameraEnabled: cameraEnabled));
     return true;
   } finally {
     _pendingCallScreenRoomId = null;
@@ -281,8 +281,13 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
       data: (count) => count > 0,
       orElse: () => false,
     );
+    final shouldShowJoinPrompt =
+        !callState.hasJoined &&
+        !isConnected &&
+        !isReconnecting &&
+        hasActiveCall;
 
-    if (!isConnected && !isReconnecting && !hasActiveCall) {
+    if (!isConnected && !isReconnecting && !shouldShowJoinPrompt) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         hideCallOverlay();
       });
@@ -297,12 +302,12 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
         child: GestureDetector(
           onPanUpdate: (details) {
             final screenSize = MediaQuery.of(context).size;
-            final overlayWidth = !isConnected && !isReconnecting && hasActiveCall
+            final overlayWidth = shouldShowJoinPrompt
                 ? 320.0
                 : isReconnecting
                 ? 220.0
                 : 140.0;
-            final overlayHeight = !isConnected && !isReconnecting && hasActiveCall
+            final overlayHeight = shouldShowJoinPrompt
                 ? 180.0
                 : isReconnecting
                 ? 120.0
@@ -327,7 +332,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
           child: AnimatedBuilder(
             animation: _expandAnim,
             builder: (context, child) {
-              if (!isConnected && !isReconnecting && hasActiveCall) {
+              if (shouldShowJoinPrompt) {
                 return _buildJoinPrompt(context, ref, room, theme);
               }
 
@@ -829,8 +834,12 @@ class _CallOverlayBarState extends ConsumerState<CallOverlayBar> {
       data: (count) => count > 0,
       orElse: () => false,
     );
+    final shouldShowOverlay =
+        callState.isConnected ||
+        callState.isReconnecting ||
+        (!callState.hasJoined && hasActiveCall);
 
-    if (callState.isConnected || hasActiveCall) {
+    if (shouldShowOverlay) {
       showCallOverlay(widget.room);
     }
   }
@@ -845,6 +854,10 @@ class _CallOverlayBarState extends ConsumerState<CallOverlayBar> {
       data: (count) => count > 0,
       orElse: () => false,
     );
+    final shouldShowOverlay =
+        callState.isConnected ||
+        callState.isReconnecting ||
+        (!callState.hasJoined && hasActiveCall);
 
     ref.listen(callProvider.select((state) => state.isConnected), (
       previous,
@@ -855,7 +868,7 @@ class _CallOverlayBarState extends ConsumerState<CallOverlayBar> {
       }
     });
 
-    if (!_isCallScreenActive && (callState.isConnected || hasActiveCall)) {
+    if (!_isCallScreenActive && shouldShowOverlay) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_callOverlayEntry == null) {
           showCallOverlay(widget.room);

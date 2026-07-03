@@ -62,7 +62,9 @@ Future<void> _displayIncomingCall(SystemCallDescriptor descriptor) async {
   await FlutterCallkitIncoming.showCallkitIncoming(params);
 }
 
-Future<SystemCallDescriptor> _startOutgoingCall(SystemCallDescriptor descriptor) async {
+Future<SystemCallDescriptor> _startOutgoingCall(
+  SystemCallDescriptor descriptor,
+) async {
   final params = CallKitParams(
     id: descriptor.callUuid,
     nameCaller: descriptor.callerName,
@@ -196,12 +198,15 @@ class NativeCallBridge extends _$NativeCallBridge {
     if (payload is! Map) return;
     final data = payload.map((key, value) => MapEntry(key.toString(), value));
     final extra = data['extra'] is Map
-        ? (data['extra'] as Map).map((key, value) => MapEntry(key.toString(), value))
+        ? (data['extra'] as Map).map(
+            (key, value) => MapEntry(key.toString(), value),
+          )
         : const <String, dynamic>{};
     await _setAcceptedCall(
       uuid: data['id']?.toString() ?? data['uuid']?.toString() ?? '',
       roomId: data['room_id']?.toString() ?? extra['room_id']?.toString(),
-      roomName: data['nameCaller']?.toString() ?? data['caller_name']?.toString(),
+      roomName:
+          data['nameCaller']?.toString() ?? data['caller_name']?.toString(),
       extra: extra,
     );
   }
@@ -210,17 +215,25 @@ class NativeCallBridge extends _$NativeCallBridge {
     if (payload is! Map) return;
     final data = payload.map((key, value) => MapEntry(key.toString(), value));
     final extra = data['extra'] is Map
-        ? (data['extra'] as Map).map((key, value) => MapEntry(key.toString(), value))
+        ? (data['extra'] as Map).map(
+            (key, value) => MapEntry(key.toString(), value),
+          )
         : const <String, dynamic>{};
-    final roomId = data['room_id']?.toString() ?? extra['room_id']?.toString() ?? data['handle']?.toString();
-    final roomName = data['nameCaller']?.toString() ?? data['caller_name']?.toString();
+    final roomId =
+        data['room_id']?.toString() ??
+        extra['room_id']?.toString() ??
+        data['handle']?.toString();
+    final roomName =
+        data['nameCaller']?.toString() ?? data['caller_name']?.toString();
     if (roomId == null || roomId.isEmpty) {
       Logger.root.warning('[NativeCallBridge] Callback missing room_id: $data');
       return;
     }
     state = state.copyWith(
       roomId: roomId,
-      roomName: (roomName?.trim().isNotEmpty ?? false) ? roomName!.trim() : roomId,
+      roomName: (roomName?.trim().isNotEmpty ?? false)
+          ? roomName!.trim()
+          : roomId,
       source: NativeCallSource.outgoingLocal,
       callbackRequestedAt: DateTime.now(),
     );
@@ -235,7 +248,9 @@ class NativeCallBridge extends _$NativeCallBridge {
   }) async {
     if (uuid.isEmpty) return;
     final normalizedName = (roomName ?? '').trim();
-    final displayName = normalizedName.isEmpty ? (roomId ?? 'Voice Call') : normalizedName;
+    final displayName = normalizedName.isEmpty
+        ? (roomId ?? 'Voice Call')
+        : normalizedName;
 
     if (roomId == null || roomId.isEmpty) {
       Logger.root.warning(
@@ -251,10 +266,12 @@ class NativeCallBridge extends _$NativeCallBridge {
       isAcceptedPending: roomId != null && roomId.isNotEmpty,
       isConnected: false,
       isIncomingDisplayed: false,
-      isAudioSessionActive: Platform.isIOS ? true : state.isAudioSessionActive,
+      isAudioSessionActive: state.isAudioSessionActive,
       source: NativeCallSource.incomingPush,
     );
-    Logger.root.info('[NativeCallBridge] Native answer: room=$roomId uuid=$uuid');
+    Logger.root.info(
+      '[NativeCallBridge] Native answer: room=$roomId uuid=$uuid',
+    );
   }
 
   Future<void> _onDecline(String uuid) async {
@@ -288,12 +305,17 @@ class NativeCallBridge extends _$NativeCallBridge {
     try {
       final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
       state = state.copyWith(pushToken: token);
-      Logger.root.info('[NativeCallBridge] Initialized token=${token != null ? "${token.substring(0, 8)}…" : "none"}');
+      Logger.root.info(
+        '[NativeCallBridge] Initialized token=${token != null ? "${token.substring(0, 8)}…" : "none"}',
+      );
       await _consumePendingAcceptedCall();
       await _consumePendingCallbackCall();
       await _restoreActiveCallState();
+      await _refreshCallKitAudioSessionActive();
     } catch (e) {
-      Logger.root.warning('[NativeCallBridge] Failed to initialize native call bridge: $e');
+      Logger.root.warning(
+        '[NativeCallBridge] Failed to initialize native call bridge: $e',
+      );
     }
     _isInitializing = false;
   }
@@ -312,6 +334,20 @@ class NativeCallBridge extends _$NativeCallBridge {
       'consumePendingCallbackCall',
     );
     await _onCallbackPayload(payload);
+  }
+
+  Future<void> _refreshCallKitAudioSessionActive() async {
+    if (!Platform.isIOS) return;
+    try {
+      final active = await _nativeCallChannel.invokeMethod<bool>(
+        'isCallKitAudioSessionActive',
+      );
+      state = state.copyWith(isAudioSessionActive: active == true);
+    } catch (e) {
+      Logger.root.warning(
+        '[NativeCallBridge] Failed to read CallKit audio session state: $e',
+      );
+    }
   }
 
   Future<void> _restoreActiveCallState() async {
@@ -336,7 +372,7 @@ class NativeCallBridge extends _$NativeCallBridge {
       isAcceptedPending: isAccepted && roomId != null && roomId.isNotEmpty,
       isIncomingDisplayed: !isAccepted,
       isOutgoing: false,
-      isAudioSessionActive: Platform.isIOS ? isAccepted : state.isAudioSessionActive,
+      isAudioSessionActive: state.isAudioSessionActive,
       source: NativeCallSource.incomingPush,
     );
     Logger.root.info(
@@ -560,7 +596,9 @@ class NativeCallState {
       source: identical(source, _unset)
           ? this.source
           : source as NativeCallSource?,
-      pushToken: identical(pushToken, _unset) ? this.pushToken : pushToken as String?,
+      pushToken: identical(pushToken, _unset)
+          ? this.pushToken
+          : pushToken as String?,
       systemEndedAt: identical(systemEndedAt, _unset)
           ? this.systemEndedAt
           : systemEndedAt as DateTime?,

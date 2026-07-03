@@ -103,8 +103,8 @@ class AudioCallButton extends HookConsumerWidget {
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
 
-    // ponytail: In-app calls always use Flutter. CallKit is only for system-level (push/lock screen).
-    // Also check if a CallKit call is active for this room.
+    // ponytail: UI state still comes from Flutter call state.
+    // Also check if CallKit already owns this room (lock-screen pickup / phone log path).
     final hasNativeAcceptedCall =
         nativeBridge.callKitAcceptedRoomId == room.id &&
         (nativeBridge.isConnected || nativeBridge.isAcceptedPending);
@@ -127,11 +127,7 @@ class AudioCallButton extends HookConsumerWidget {
           (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
         await createCallWindow(room, cameraEnabled: cameraEnabled);
       } else {
-        await pushCallScreenOnce(
-          ref,
-          room,
-          cameraEnabled: cameraEnabled,
-        );
+        await pushCallScreenOnce(ref, room, cameraEnabled: cameraEnabled);
       }
     }
 
@@ -155,12 +151,16 @@ class AudioCallButton extends HookConsumerWidget {
         }
 
         if (isNativeCallAvailable) {
-          await ref.read(nativeCallBridgeProvider.notifier).startOutgoingCall(
-            roomId: room.id,
-            callerName: callKitDisplayName(),
-            hasVideo: result.cameraEnabled,
-          );
-          await ref.read(nativeCallBridgeProvider.notifier).markOutgoingConnecting();
+          await ref
+              .read(nativeCallBridgeProvider.notifier)
+              .startOutgoingCall(
+                roomId: room.id,
+                callerName: callKitDisplayName(),
+                hasVideo: result.cameraEnabled,
+              );
+          await ref
+              .read(nativeCallBridgeProvider.notifier)
+              .markOutgoingConnecting();
         }
 
         // Open call screen with camera setting

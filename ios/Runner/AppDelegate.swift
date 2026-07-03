@@ -23,6 +23,7 @@ import flutter_callkit_incoming
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
     private var implicitDeepLinkChannel: FlutterMethodChannel?
     private var nativeCallChannel: FlutterMethodChannel?
+    private var callKitAudioSessionActive = false
     
     static var shared: AppDelegate? = UIApplication.shared.delegate as? AppDelegate
     
@@ -147,6 +148,7 @@ import flutter_callkit_incoming
         // Setting false prevents flutter_callkit_incoming from calling setCategory/setMode/setActive,
         // which would otherwise fight with audio_session → RTCAudioSession.
         reportData.configureAudioSession = false
+        configureCallAudioSession("incoming push before report")
         
         print("[CallKit] reporting to showCallkitIncoming id=\(id) caller=\(nameCaller) handle=\(handle) isVideo=\(isVideo) fromPushKit=true")
         guard let plugin = SwiftFlutterCallkitIncomingPlugin.sharedInstance else {
@@ -201,12 +203,14 @@ import flutter_callkit_incoming
     
     func onDecline(_ call: Call, _ action: CXEndCallAction) {
         print("[CallKit] onDecline: \(call.uuid)")
+        callKitAudioSessionActive = false
         nativeCallChannel?.invokeMethod("onEndedCall", arguments: call.uuid.uuidString.lowercased())
         action.fulfill()
     }
     
     func onEnd(_ call: Call, _ action: CXEndCallAction) {
         print("[CallKit] onEnd: \(call.uuid)")
+        callKitAudioSessionActive = false
         nativeCallChannel?.invokeMethod("onEndedCall", arguments: call.uuid.uuidString.lowercased())
         action.fulfill()
     }
@@ -216,8 +220,20 @@ import flutter_callkit_incoming
         // no-op: plugin already emits timeout event to Dart
     }
     
+    private func configureCallAudioSession(_ reason: String) {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.mixWithOthers])
+            print("[CallKit] configured AVAudioSession reason=\(reason)")
+        } catch {
+            print("[CallKit] failed to configure AVAudioSession reason=\(reason) error=\(error.localizedDescription)")
+        }
+    }
+
     func didActivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] didActivateAudioSession")
+        configureCallAudioSession("didActivate")
+        callKitAudioSessionActive = true
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
         RTCAudioSession.sharedInstance().isAudioEnabled = true
         nativeCallChannel?.invokeMethod("onAudioSessionActive", arguments: true)
@@ -225,6 +241,7 @@ import flutter_callkit_incoming
     
     func didDeactivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] didDeactivateAudioSession")
+        callKitAudioSessionActive = false
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         RTCAudioSession.sharedInstance().isAudioEnabled = false
         nativeCallChannel?.invokeMethod("onAudioSessionActive", arguments: false)
@@ -232,6 +249,7 @@ import flutter_callkit_incoming
     
     func providerDidReset() {
         print("[CallKit] providerDidReset")
+        callKitAudioSessionActive = false
     }
 
     private func setupNativeCallChannel(binaryMessenger: FlutterBinaryMessenger) {
@@ -245,6 +263,8 @@ import flutter_callkit_incoming
                 result(self.consumePendingAcceptedCall())
             case "consumePendingCallbackCall":
                 result(self.consumePendingCallbackCall())
+            case "isCallKitAudioSessionActive":
+                result(self.callKitAudioSessionActive)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -329,6 +349,7 @@ import flutter_callkit_incoming
                 type: isVideo ? 1 : 0
             )
             data.extra = ["room_id": roomId]
+            data.configureAudioSession = false
             SwiftFlutterCallkitIncomingPlugin.sharedInstance?.startCall(data, fromPushKit: true)
             storeCallbackCall([
                 "id": data.uuid,

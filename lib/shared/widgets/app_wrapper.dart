@@ -112,7 +112,8 @@ class AppWrapper extends HookConsumerWidget {
       final nativeState = ref.read(nativeCallBridgeProvider);
       if (!callState.isConnected ||
           !nativeState.isAudioSessionActive ||
-          nativeState.callKitAcceptedRoomId == null) {
+          nativeState.callUuid == null ||
+          nativeState.roomId == null) {
         return;
       }
       Logger.root.info(
@@ -385,7 +386,8 @@ class AppWrapper extends HookConsumerWidget {
           if (!kIsWeb && Platform.isIOS) {
             final nativeState = ref.read(nativeCallBridgeProvider);
             if (nativeState.isAudioSessionActive &&
-                nativeState.callKitAcceptedRoomId != null) {
+                nativeState.callUuid != null &&
+                nativeState.roomId != null) {
               kickCallKitMicrophone('call connected');
             }
           }
