@@ -857,8 +857,36 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   List<LocalChatMessage> _dedupeMessages(List<LocalChatMessage> messages) {
-    final seenIds = <String>{};
-    return messages.where((message) => seenIds.add(message.id)).toList();
+    final result = <LocalChatMessage>[];
+    final indexById = <String, int>{};
+    final indexByClientId = <String, int>{};
+
+    for (final message in messages) {
+      final clientMessageId = message.clientMessageId;
+      final existingIndex =
+          indexById[message.id] ??
+          (clientMessageId == null ? null : indexByClientId[clientMessageId]);
+
+      if (existingIndex == null) {
+        indexById[message.id] = result.length;
+        if (clientMessageId != null) {
+          indexByClientId[clientMessageId] = result.length;
+        }
+        result.add(message);
+        continue;
+      }
+
+      if (result[existingIndex].status != MessageStatus.sent &&
+          message.status == MessageStatus.sent) {
+        result[existingIndex] = message;
+        indexById[message.id] = existingIndex;
+        if (clientMessageId != null) {
+          indexByClientId[clientMessageId] = existingIndex;
+        }
+      }
+    }
+
+    return result;
   }
 
   void _emitMessages(List<LocalChatMessage> messages) {
