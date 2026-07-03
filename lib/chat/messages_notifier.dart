@@ -856,9 +856,16 @@ class MessagesNotifier extends _$MessagesNotifier {
     Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(value));
   }
 
+  List<LocalChatMessage> _dedupeMessages(List<LocalChatMessage> messages) {
+    final seenIds = <String>{};
+    return messages.where((message) => seenIds.add(message.id)).toList();
+  }
+
   void _emitMessages(List<LocalChatMessage> messages) {
     if (!ref.mounted) return;
-    final normalized = _sortMessages(_normalizeMessageMembers(messages));
+    final normalized = _dedupeMessages(
+      _sortMessages(_normalizeMessageMembers(messages)),
+    );
     _refreshLatestObservedRoomSequence(normalized);
     state = AsyncValue.data(_filterActiveMessages(normalized));
   }
