@@ -136,6 +136,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
                   connected: () => Text('connectionConnected').tr(),
                   connecting: () => Text('connectionReconnecting').tr(),
                   disconnected: () => Text('connectionDisconnected').tr(),
+                  internetChanged: () => Text('connectionInternetChanged').tr(),
                   serverDown: () => Text('connectionServerDown').tr(),
                   duplicateDevice: () => Text(
                     'Another device has connected with the same account.',
@@ -156,6 +157,8 @@ class NetworkStatusSheet extends HookConsumerWidget {
                         Icon(Symbols.sync, color: Colors.orange, size: 16),
                     disconnected: () =>
                         Icon(Symbols.wifi_off, color: Colors.grey, size: 16),
+                    internetChanged: () =>
+                        Icon(Symbols.wifi, color: Colors.amber, size: 16),
                     serverDown: () =>
                         Icon(Symbols.cloud_off, color: Colors.red, size: 16),
                     duplicateDevice: () =>
@@ -234,6 +237,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
                       connected: () => false,
                       connecting: () => false,
                       disconnected: () => false,
+                      internetChanged: () => false,
                       serverDown: () => false,
                       duplicateDevice: () => false,
                       error: (_) => true,

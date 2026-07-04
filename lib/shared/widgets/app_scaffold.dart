@@ -434,6 +434,12 @@ class _WebSocketIndicator extends HookConsumerWidget {
       );
       opacity = 1.0;
       isInteractive = false;
+    } else if (websocketState == WebSocketState.internetChanged()) {
+      indicatorColor = Colors.amber;
+      indicatorText = 'connectionInternetChanged';
+      indicatorIcon = Icon(Symbols.wifi, color: Colors.white, size: 16);
+      opacity = 1.0;
+      isInteractive = false;
     } else if (websocketState == WebSocketState.serverDown()) {
       indicatorColor = Colors.red;
       indicatorText = 'connectionServerDown';

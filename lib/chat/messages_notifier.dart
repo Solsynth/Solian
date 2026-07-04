@@ -1,6 +1,7 @@
 import "dart:async";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
+import 'package:flutter/widgets.dart';
 import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/pods/chat_room.dart";
@@ -18,6 +19,8 @@ import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/core/services/ios_share_suggestions.dart";
+import "package:island/core/lifecycle.dart";
+import 'package:island/core/websocket.dart';
 import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
 import "package:island/accounts/account_pod.dart";
@@ -78,6 +81,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void>? _syncOperation;
   Future<void>? _loadInitialOperation;
   bool _isInitializing = false;
+  Timer? _weakInternetPollTimer;
+
+  static const Duration _weakInternetPollInterval = Duration(seconds: 30);
 
   Future<void> _runDeduped({
     required Future<void>? operation,
@@ -534,6 +540,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     ref.onDispose(() {
       disposed = true;
+      _weakInternetPollTimer?.cancel();
+      _weakInternetPollTimer = null;
       _realtime.stopListening();
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
@@ -625,6 +633,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     Logger.root.info('MessagesNotifier built for room $roomId');
+
+    _syncWeakInternetPolling(ref.read(weakInternetModeProvider));
+    ref.listen<bool>(weakInternetModeProvider, (previous, next) {
+      if (previous == next) return;
+      _syncWeakInternetPolling(next);
+    });
 
     _realtime.startListening();
 
@@ -1183,6 +1197,45 @@ class MessagesNotifier extends _$MessagesNotifier {
       _isLoadingMore = false;
       // Always reset global syncing state, regardless of disposal
       _setGlobalSyncing(false);
+    }
+  }
+
+  void _syncWeakInternetPolling(bool enabled) {
+    _weakInternetPollTimer?.cancel();
+    _weakInternetPollTimer = null;
+
+    if (!enabled || !ref.mounted) return;
+
+    Logger.root.info('Weak internet mode active for room $roomId');
+    Future.microtask(() => _pollForWeakInternetUpdates());
+    _weakInternetPollTimer = Timer.periodic(_weakInternetPollInterval, (_) {
+      unawaited(_pollForWeakInternetUpdates());
+    });
+  }
+
+  Future<void> _pollForWeakInternetUpdates() async {
+    if (!ref.mounted || _isLoadingInitial || _isSyncing || _isJumping) return;
+
+    final lifecycle = ref.read(appLifecycleStateProvider).value;
+    if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
+
+    final hasConnectivity = hasNetworkConnectivityValue(
+      ref.read(connectivityStatusProvider),
+    );
+    if (!hasConnectivity) return;
+
+    final weakInternetMode = ref.read(weakInternetModeProvider);
+    if (!weakInternetMode) return;
+
+    Logger.root.info('Polling messages for room $roomId due to weak internet');
+    try {
+      await loadInitial(forceRemoteRefresh: true);
+    } catch (err, stackTrace) {
+      Logger.root.info(
+        'Weak internet polling failed for room $roomId',
+        err,
+        stackTrace,
+      );
     }
   }
 

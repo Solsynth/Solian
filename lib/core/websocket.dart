@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -18,6 +19,7 @@ sealed class WebSocketState with _$WebSocketState {
   const factory WebSocketState.connected() = _Connected;
   const factory WebSocketState.connecting() = _Connecting;
   const factory WebSocketState.disconnected() = _Disconnected;
+  const factory WebSocketState.internetChanged() = _InternetChanged;
   const factory WebSocketState.serverDown() = _ServerDown;
   const factory WebSocketState.duplicateDevice() = _DuplicateDevice;
   const factory WebSocketState.error(String message) = _Error;
@@ -42,18 +44,32 @@ final websocketProvider = Provider<WebSocketService>((ref) {
   return service;
 });
 
+final weakInternetModeProvider = Provider<bool>((ref) {
+  final hasConnectivity = hasNetworkConnectivityValue(
+    ref.watch(connectivityStatusProvider),
+  );
+  if (!hasConnectivity) return false;
+
+  final websocketState = ref.watch(websocketStateProvider);
+  return websocketState.maybeWhen(connected: () => false, orElse: () => true);
+});
+
 class WebSocketService {
   Ref? _ref;
   WebSocketChannel? _channel;
   StreamSubscription? _channelSubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   final StreamController<WebSocketPacket> _streamController =
       StreamController<WebSocketPacket>.broadcast();
   final StreamController<WebSocketState> _statusStreamController =
       StreamController<WebSocketState>.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
+  Timer? _connectivityReconnectTimer;
   int _connectionGeneration = 0;
   bool _isClosing = false;
+
+  List<ConnectivityResult>? _lastConnectivityResults;
 
   DateTime? _heartbeatAt;
   Duration? heartbeatDelay;
@@ -70,6 +86,7 @@ class WebSocketService {
   Stream<WebSocketState> get statusStream => _statusStreamController.stream;
 
   Future<void> connect(Ref ref) async {
+    _ensureConnectivityWatch(ref);
     if (_isConnecting) {
       Logger.root.fine(
         '[WebSocket] Connection attempt already in progress, skipping',
@@ -209,6 +226,8 @@ class WebSocketService {
     _reconnectTimer = null;
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
+    _connectivityReconnectTimer?.cancel();
+    _connectivityReconnectTimer = null;
     _heartbeatAt = null;
     heartbeatDelay = null;
   }
@@ -374,6 +393,9 @@ class WebSocketService {
   void close() {
     _isClosing = true;
     _cancelTimers();
+    _connectivitySubscription?.cancel();
+    _connectivitySubscription = null;
+    _lastConnectivityResults = null;
     _channelSubscription?.cancel();
     _channelSubscription = null;
     _channel?.sink.close();
@@ -415,6 +437,84 @@ class WebSocketService {
     }
 
     _isConnecting = false;
+  }
+
+  void _ensureConnectivityWatch(Ref ref) {
+    if (_connectivitySubscription != null) return;
+
+    final connectivity = ref.read(connectivityProvider);
+    connectivity.checkConnectivity().then((results) {
+      _lastConnectivityResults = results;
+    });
+    _connectivitySubscription = connectivity.onConnectivityChanged.listen(
+      _handleConnectivityChanged,
+      onError: (error) {
+        Logger.root.warning('[WebSocket] Connectivity watch failed: $error');
+      },
+    );
+  }
+
+  void _handleConnectivityChanged(List<ConnectivityResult> results) {
+    final previous = _lastConnectivityResults;
+    _lastConnectivityResults = results;
+
+    if (_sameConnectivityResults(previous, results)) {
+      return;
+    }
+
+    final hadNetwork = previous != null && hasNetworkConnectivity(previous);
+    final hasNetwork = hasNetworkConnectivity(results);
+    Logger.root.info(
+      '[WebSocket] Connectivity changed: ${previous ?? const []} -> $results',
+    );
+
+    if (!hasNetwork) {
+      _connectivityReconnectTimer?.cancel();
+      _connectivityReconnectTimer = null;
+      _connectionGeneration++;
+      unawaited(_disposeActiveChannel(suppressReconnect: true));
+      _addStatus(WebSocketState.disconnected());
+      return;
+    }
+
+    if (previous == null) return;
+
+    if (!hadNetwork || _channel != null || _isConnecting) {
+      _scheduleConnectivityReconnect();
+    }
+  }
+
+  void _scheduleConnectivityReconnect() {
+    final ref = _ref;
+    if (ref == null || _isClosing) return;
+
+    _connectivityReconnectTimer?.cancel();
+    _connectivityReconnectTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (_isClosing) return;
+      if (!hasNetworkConnectivityValue(ref.read(connectivityStatusProvider))) {
+        Logger.root.info(
+          '[WebSocket] Skipping connectivity reconnect: offline again',
+        );
+        _addStatus(WebSocketState.disconnected());
+        return;
+      }
+
+      Logger.root.info(
+        '[WebSocket] Reconnecting after connectivity change to refresh route',
+      );
+      _addStatus(WebSocketState.internetChanged());
+      manualReconnect();
+    });
+  }
+
+  bool _sameConnectivityResults(
+    List<ConnectivityResult>? a,
+    List<ConnectivityResult> b,
+  ) {
+    if (a == null) return false;
+    final aSet = a.toSet();
+    final bSet = b.toSet();
+    return aSet.length == bSet.length && aSet.containsAll(bSet);
   }
 }
 

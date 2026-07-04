@@ -7,6 +7,7 @@ import 'package:island/accounts/relationship_pod.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/chat/widgets/chat_member_list_tile.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/websocket.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -183,12 +184,14 @@ class RoomAppBar extends ConsumerWidget {
     } else {
       title = room.name!;
     }
+    final weakInternetMode = ref.watch(weakInternetModeProvider);
     final subtitle = _buildSubtitle(
       context,
       room,
       validMembers,
       onlineStatus,
       userInfo.value?.id,
+      weakInternetMode,
     );
     final hasOnlineAccounts =
         room.type != 1 && (onlineStatus?.onlineAccounts.isNotEmpty == true);
@@ -230,6 +233,7 @@ Widget? _buildSubtitle(
   List<SnChatMember> validMembers,
   SnChatOnlineStatus? onlineStatus,
   String? currentUserId,
+  bool weakInternetMode,
 ) {
   final subtitleStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
     fontSize: 11,
@@ -247,12 +251,16 @@ Widget? _buildSubtitle(
     final label = status != null
         ? getStatusDisplayLabel(context, status)
         : null;
-    if (label == null && !isBot) return null;
+    if (label == null && !isBot && !weakInternetMode) return null;
     final statusColor = getStatusIndicatorColor(status);
     final isOnline = showsOnlinePresence(status);
 
     return Row(
       children: [
+        if (weakInternetMode) ...[
+          _WeakInternetChip(style: subtitleStyle),
+          if (label != null || isBot) const SizedBox(width: 6),
+        ],
         if (label != null) ...[
           Container(
             width: 6,
@@ -303,6 +311,10 @@ Widget? _buildSubtitle(
 
   return Row(
     children: [
+      if (weakInternetMode) ...[
+        _WeakInternetChip(style: subtitleStyle),
+        const SizedBox(width: 6),
+      ],
       if (_shouldShowSubtitleOnlineDot(room, onlineStatus))
         Container(
           width: 6,
@@ -323,6 +335,33 @@ Widget? _buildSubtitle(
       ),
     ],
   );
+}
+
+class _WeakInternetChip extends StatelessWidget {
+  final TextStyle? style;
+
+  const _WeakInternetChip({required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+      decoration: BoxDecoration(
+        color: Colors.amber.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.amber.withOpacity(0.45)),
+      ),
+      child: Text(
+        'weakInternetMode'.tr(),
+        style: style?.copyWith(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
 }
 
 bool _shouldShowSubtitleOnlineDot(
