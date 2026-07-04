@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -17,12 +18,14 @@ class PostRepliesSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
+    final repliesKey = useState(0);
 
     return SheetScaffold(
       titleText: 'repliesCount'.plural(post.repliesCount),
       child: Stack(
         children: [
           CustomScrollView(
+            key: ValueKey('post-replies-sheet-${repliesKey.value}'),
             slivers: [
               PostRepliesList(
                 postId: post.id.toString(),
@@ -42,7 +45,12 @@ class PostRepliesSheet extends HookConsumerWidget {
                   PostQuickReply(
                     parent: post,
                     onPosted: () {
-                      ref.invalidate(postRepliesProvider(post.id));
+                      repliesKey.value++;
+                      ref
+                          .read(
+                            postRepliesProvider(post.id.toString()).notifier,
+                          )
+                          .refresh();
                     },
                     onLaunch: () {
                       Navigator.of(context).pop();
