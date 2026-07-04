@@ -54,6 +54,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isJumping = false;
   bool _hasPendingRealtimeRefresh = false;
   bool _isUpdatingState = false;
+  List<LocalChatMessage> _messages = [];
   bool _isLoadingInitial = false;
   bool _isLoadingMore = false;
   bool _allRemoteMessagesFetched = false;
@@ -717,7 +718,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       (previous, next) {
         if (previous == next) return;
         if (_isJumping || _isLoadingInitial || !ref.mounted) return;
-        unawaited(loadInitial(forceRemoteRefresh: false));
+        _emitMessages(_currentMessages);
       },
     );
 
@@ -732,9 +733,16 @@ class MessagesNotifier extends _$MessagesNotifier {
       });
     });
 
-    return _normalizeMessageMembers(
-      await _loadInitialMessages(forceRemoteRefresh: false),
+    final initial = _dedupeMessages(
+      _sortMessages(
+        _normalizeMessageMembers(
+          await _loadInitialMessages(forceRemoteRefresh: false),
+        ),
+      ),
     );
+    _messages = initial;
+    _refreshLatestObservedRoomSequence(initial);
+    return _filterActiveMessages(initial);
   }
 
   bool _upsertMember(SnChatMember? member) {
@@ -839,6 +847,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           uniqueMessages.add(message);
         }
       }
+      _messages = uniqueMessages;
       _refreshLatestObservedRoomSequence(uniqueMessages);
       if (ref.mounted) {
         state = AsyncValue.data(_filterActiveMessages(uniqueMessages));
@@ -848,8 +857,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  List<LocalChatMessage> get _currentMessages =>
-      (ref.mounted ? state.value : null) ?? [];
+  List<LocalChatMessage> get _currentMessages => _messages;
 
   void _setGlobalSyncing(bool value) {
     if (!ref.mounted) return;
@@ -894,6 +902,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     final normalized = _dedupeMessages(
       _sortMessages(_normalizeMessageMembers(messages)),
     );
+    _messages = normalized;
     _refreshLatestObservedRoomSequence(normalized);
     state = AsyncValue.data(_filterActiveMessages(normalized));
   }
@@ -1187,7 +1196,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     final shouldShowEditTrail =
         chatMode != kChatEventMessageModeNone && isMessageUpdate;
 
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final currentMessages = _currentMessages;
     final existingIndex = currentMessages.indexWhere(
       (m) =>
           m.id == localMessage.id ||
@@ -1429,7 +1438,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _pendingMessages.remove(messageId);
       await _repository.deleteMessage(messageId);
 
-      final currentMessages = (ref.mounted ? state.value : null) ?? [];
+      final currentMessages = _currentMessages;
       final newMessages = currentMessages
           .where((m) => m.id != messageId)
           .toList();
