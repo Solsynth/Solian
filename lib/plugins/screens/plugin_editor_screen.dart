@@ -15,6 +15,7 @@ class PluginEditorScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+    final mediaQuery = MediaQuery.of(context);
     final codeController = useTextEditingController();
     final nameController = useTextEditingController(text: 'My Plugin');
     final output = useState<String?>(null);
@@ -62,84 +63,110 @@ class PluginEditorScreen extends HookConsumerWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Plugin name',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
+      body: AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight:
+                  mediaQuery.size.height -
+                  mediaQuery.padding.top -
+                  kToolbarHeight -
+                  32,
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: TextField(
-                controller: codeController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                style:
-                    const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                decoration: InputDecoration(
-                  labelText: 'JavaScript',
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  alignLabelWithHint: true,
-                  contentPadding: const EdgeInsets.all(12),
-                  hintText: '// Write your plugin code here\n'
-                      'function on_load() {\n'
-                      '  notify("Hello", "from my plugin!");\n'
-                      '}\n',
-                ),
-              ),
-            ),
-            if (output.value != null) ...[
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: isError.value
-                      ? cs.errorContainer
-                      : cs.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isError.value ? 'Error' : 'Output',
-                      style:
-                          Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: isError.value
-                                    ? cs.onErrorContainer
-                                    : cs.onPrimaryContainer,
-                              ),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Plugin name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      output.value!,
-                      style: TextStyle(
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 360,
+                    child: TextField(
+                      controller: codeController,
+                      maxLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.top,
+                      style: const TextStyle(
                         fontFamily: 'monospace',
-                        fontSize: 12,
+                        fontSize: 13,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'JavaScript',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignLabelWithHint: true,
+                        contentPadding: const EdgeInsets.all(12),
+                        hintText:
+                            '// Write your plugin code here\n'
+                            'function on_load() {\n'
+                            '  notify("Hello", "from my plugin!");\n'
+                            '}\n',
+                      ),
+                    ),
+                  ),
+                  if (output.value != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
                         color: isError.value
-                            ? cs.onErrorContainer
-                            : cs.onPrimaryContainer,
+                            ? cs.errorContainer
+                            : cs.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isError.value ? 'Error' : 'Output',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: isError.value
+                                      ? cs.onErrorContainer
+                                      : cs.onPrimaryContainer,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            output.value!,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              color: isError.value
+                                  ? cs.onErrorContainer
+                                  : cs.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
+                  const Spacer(),
+                ],
               ),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );
