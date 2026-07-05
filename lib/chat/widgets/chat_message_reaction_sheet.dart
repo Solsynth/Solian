@@ -751,7 +751,7 @@ class _CustomReactionForm extends HookConsumerWidget {
                     Offset(horizontalOffset, verticalOffset),
                     alignment: Alignment.topLeft,
                     onPick: (pack, sticker) {
-                      symbol.value = ':${pack.prefix}+${sticker.slug}:';
+                      symbol.value = '${pack.prefix}+${sticker.slug}';
                     },
                   );
                 },

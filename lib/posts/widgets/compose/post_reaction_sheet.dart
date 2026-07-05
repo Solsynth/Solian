@@ -613,50 +613,35 @@ class CustomReactionForm extends HookConsumerWidget {
             decoration: InputDecoration(
               labelText: 'stickerPlaceholder'.tr(),
               hintText: 'prefix+slug',
-
-              suffixIcon: InkWell(
-                onTapDown: (details) async {
-                  final screenSize = MediaQuery.sizeOf(context);
-                  const popoverWidth = 500.0;
-                  const popoverHeight = 500.0;
-                  const padding = 20.0;
-
-                  // Calculate safe horizontal position (centered, but within bounds)
-                  final maxHorizontalOffset = math.max(
-                    padding,
-                    screenSize.width - popoverWidth - padding,
-                  );
-                  final horizontalOffset =
-                      ((screenSize.width - popoverWidth) / 2).clamp(
-                        padding,
-                        maxHorizontalOffset,
-                      );
-
-                  // Calculate safe vertical position (bottom-aligned, but within bounds)
-                  final maxVerticalOffset = math.max(
-                    padding,
-                    screenSize.height - popoverHeight - padding,
-                  );
-                  final verticalOffset =
-                      (screenSize.height - popoverHeight - padding).clamp(
-                        padding,
-                        maxVerticalOffset,
-                      );
-
-                  await showStickerPickerPopover(
-                    context,
-                    Offset(horizontalOffset, verticalOffset),
-                    alignment: Alignment.topLeft,
-                    onPick: (pack, sticker) {
-                      symbol.value = '+${sticker.slug}';
-                    },
-                  );
-                },
-                child: const Icon(Symbols.sticky_note_2),
-              ),
+              suffixIcon: symbol.value.isEmpty
+                  ? const Icon(Symbols.sticky_note_2)
+                  : IconButton(
+                      onPressed: () => symbol.value = '',
+                      icon: const Icon(Symbols.close),
+                    ),
             ),
             controller: TextEditingController(text: symbol.value),
             onChanged: (value) => symbol.value = value,
+          ),
+          const Gap(12),
+          Container(
+            height: 280,
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              child: StickerPickerEmbedded(
+                height: 280,
+                onPick: (pack, sticker) {
+                  symbol.value = '${pack.prefix}+${sticker.slug}';
+                },
+                onLongPress: (pack, sticker) {
+                  symbol.value = '${pack.prefix}+${sticker.slug}';
+                },
+              ),
+            ),
           ),
           const Gap(24),
           Text(
