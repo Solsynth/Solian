@@ -378,8 +378,10 @@ class IslandApp extends HookConsumerWidget {
 
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
+    final router = ref.watch(routerProvider);
 
     IslandUIFoundation.configureOverlay(globalOverlay);
+    IslandUIFoundation.configureNavigator(router.navigatorKey);
     IslandUIFoundation.configureHaptic(() => settings.notifyWithHaptic);
 
     ThemeMode getThemeMode() {
@@ -455,8 +457,6 @@ class IslandApp extends HookConsumerWidget {
       });
       return null;
     }, []);
-
-    final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
       title: 'Solar Network',
