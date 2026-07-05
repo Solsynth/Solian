@@ -16,6 +16,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/deeplink_service.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -243,6 +244,11 @@ class AccountQrScreen extends HookConsumerWidget {
       }
 
       final uri = Uri.tryParse(value);
+      if (uri != null && uri.scheme == 'solian') {
+        eventBus.fire(SolianDeepLinkEvent(uri));
+        return;
+      }
+
       if (uri != null && (uri.hasScheme || uri.hasAuthority)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
         return;
@@ -1223,8 +1229,13 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
 
     final expired = remaining.value != null && remaining.value! <= 0;
     final currentChallenge = challenge;
-    final deviceName = currentChallenge?.deviceName ?? snapshot.deviceName ?? 'unknownDevice'.tr();
-    final platform = _qrLoginPlatformName(currentChallenge?.platform ?? snapshot.platform);
+    final deviceName =
+        currentChallenge?.deviceName ??
+        snapshot.deviceName ??
+        'unknownDevice'.tr();
+    final platform = _qrLoginPlatformName(
+      currentChallenge?.platform ?? snapshot.platform,
+    );
 
     Future<void> resolveQrLogin(bool approve) async {
       isBusy.value = true;
@@ -1282,7 +1293,8 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
                               ),
                               child: Icon(
                                 _qrLoginPlatformIcon(
-                                  currentChallenge?.platform ?? snapshot.platform,
+                                  currentChallenge?.platform ??
+                                      snapshot.platform,
                                 ),
                                 color: Theme.of(
                                   context,
@@ -1661,7 +1673,8 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
     }, [userCode]);
 
     final expired = remaining.value != null && remaining.value! <= 0;
-    final alreadyResolved = resolved.value == 'approved' ||
+    final alreadyResolved =
+        resolved.value == 'approved' ||
         resolved.value == 'declined' ||
         resolved.value == 'expired';
 
@@ -1728,9 +1741,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                                   Text(
                                     clientId,
                                     style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                   const Gap(2),
                                   Text(
@@ -1765,20 +1776,23 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                           label: 'challengeExpiresIn'.tr(),
                           value: expired
                               ? 'expired'.tr()
-                              : 'challengeSeconds'
-                                  .tr(args: ['${remaining.value}']),
+                              : 'challengeSeconds'.tr(
+                                  args: ['${remaining.value}'],
+                                ),
                           valueColor: expired ? theme.colorScheme.error : null,
                         ),
                       const SizedBox(height: 20),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer
-                              .withAlpha((255 * 0.3).round()),
+                          color: theme.colorScheme.primaryContainer.withAlpha(
+                            (255 * 0.3).round(),
+                          ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: theme.colorScheme.primary
-                                .withAlpha((255 * 0.3).round()),
+                            color: theme.colorScheme.primary.withAlpha(
+                              (255 * 0.3).round(),
+                            ),
                           ),
                         ),
                         child: Row(
@@ -1824,7 +1838,8 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                                 width: 18,
                                 height: 18,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2),
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Symbols.check),
                         label: Text('approve').tr(),

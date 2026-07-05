@@ -88,41 +88,56 @@ class WindowScaffold extends HookConsumerWidget {
       const SnNotificationOverlay(),
     ];
 
-    return DesktopWindowFrame(
-      isDesktopPlatform: isDesktop,
-      title: isDesktop
-          ? Platform.isMacOS
-                ? Text(
-                    'Solar Network',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  )
-                : Row(
-                    children: [
-                      Image.asset(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? 'assets/icons/icon-dark.webp'
-                            : 'assets/icons/icon.webp',
-                        width: 20,
-                        height: 20,
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      onKeyEvent: (_, event) {
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+        final isShiftTab =
+            event.logicalKey == LogicalKeyboardKey.tab &&
+            HardwareKeyboard.instance.isShiftPressed;
+        if (!isShiftTab) return KeyEventResult.ignored;
+
+        showPalette.value = !showPalette.value;
+        return KeyEventResult.handled;
+      },
+      child: DesktopWindowFrame(
+        isDesktopPlatform: isDesktop,
+        title: isDesktop
+            ? Platform.isMacOS
+                  ? Text(
+                      'Solar Network',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      const SizedBox(width: 8),
-                      Text('Solar Network'),
-                    ],
-                  )
-          : null,
-      overlays: [
-        ...overlays,
-        if (showPalette.value)
-          CommandPaletteWidget(onDismiss: () => showPalette.value = false),
-      ],
-      onClose: () => windowManager.hide(),
-      child: Column(
-        children: [
-          Expanded(child: child),
-          const TaskOverlayHost(),
+                    )
+                  : Row(
+                      children: [
+                        Image.asset(
+                          Theme.of(context).brightness == Brightness.dark
+                              ? 'assets/icons/icon-dark.webp'
+                              : 'assets/icons/icon.webp',
+                          width: 20,
+                          height: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text('Solar Network'),
+                      ],
+                    )
+            : null,
+        overlays: [
+          ...overlays,
+          if (showPalette.value)
+            CommandPaletteWidget(onDismiss: () => showPalette.value = false),
         ],
+        onClose: () => windowManager.hide(),
+        child: Column(
+          children: [
+            Expanded(child: child),
+            const TaskOverlayHost(),
+          ],
+        ),
       ),
     );
   }

@@ -159,7 +159,9 @@ String? parseWalletOrderId(String rawValue) {
 
   final segments = uri.pathSegments;
   final isSolianOrder =
-      uri.scheme == 'solian' && uri.host == 'orders' && segments.length == 1;
+      uri.scheme == 'solian' &&
+      (uri.host == 'orders' || uri.host == 'order') &&
+      segments.length == 1;
   final isWebOrder =
       (uri.host == 'solian.app' || uri.host.endsWith('.solian.app')) &&
       segments.length >= 2 &&
