@@ -35,15 +35,80 @@ class CloudFileListNotifier extends AsyncNotifier<PaginationState<SnCloudFile>>
 }
 
 class ComposeLinkAttachment extends HookConsumerWidget {
-  const ComposeLinkAttachment({super.key});
+  final bool allowMultiSelect;
+
+  const ComposeLinkAttachment({super.key, this.allowMultiSelect = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isSelectionMode = useState(false);
+    final selectedFiles = useState<Map<String, SnCloudFile>>({});
+
+    void toggleSelection(SnCloudFile file) {
+      final next = Map<String, SnCloudFile>.from(selectedFiles.value);
+      if (next.containsKey(file.id)) {
+        next.remove(file.id);
+      } else {
+        next[file.id] = file;
+      }
+      selectedFiles.value = next;
+    }
+
+    void setSelectionMode(bool value) {
+      isSelectionMode.value = value;
+      if (!value && selectedFiles.value.isNotEmpty) {
+        selectedFiles.value = {};
+      }
+    }
+
+    void handleSelected(SnCloudFile file) {
+      if (isSelectionMode.value) {
+        toggleSelection(file);
+        return;
+      }
+      Navigator.pop(context, file);
+    }
+
     return SheetScaffold(
       heightFactor: 0.6,
       titleText: 'linkAttachment'.tr(),
+      actions: [
+        if (allowMultiSelect && isSelectionMode.value)
+          Center(
+            child: Text(
+              'selectedCount'.tr(args: [selectedFiles.value.length.toString()]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        if (allowMultiSelect && isSelectionMode.value)
+          TextButton(
+            onPressed: selectedFiles.value.isEmpty
+                ? null
+                : () => Navigator.pop(
+                    context,
+                    selectedFiles.value.values.toList(growable: false),
+                  ),
+            child: Text('done'.tr()),
+          ),
+        if (allowMultiSelect)
+          IconButton(
+            onPressed: () => setSelectionMode(!isSelectionMode.value),
+            tooltip: isSelectionMode.value
+                ? 'exitSelectionMode'.tr()
+                : 'enterSelectionMode'.tr(),
+            icon: Icon(
+              isSelectionMode.value
+                  ? Symbols.check_box_outline_blank
+                  : Symbols.select_check_box,
+            ),
+          ),
+      ],
       child: CloudFileLinkPicker(
-        onSelected: (file) => Navigator.pop(context, file),
+        onSelected: handleSelected,
+        multiSelectEnabled: isSelectionMode.value,
+        selectedFileIds: selectedFiles.value.keys.toSet(),
+        onToggleSelection: toggleSelection,
       ),
     );
   }
@@ -51,12 +116,18 @@ class ComposeLinkAttachment extends HookConsumerWidget {
 
 class CloudFileLinkPicker extends HookConsumerWidget {
   final ValueChanged<SnCloudFile> onSelected;
+  final ValueChanged<SnCloudFile>? onToggleSelection;
+  final bool multiSelectEnabled;
+  final Set<String> selectedFileIds;
   final EdgeInsetsGeometry padding;
   final List<Widget> recentUploadsSliverHeaders;
 
   const CloudFileLinkPicker({
     super.key,
     required this.onSelected,
+    this.onToggleSelection,
+    this.multiSelectEnabled = false,
+    this.selectedFileIds = const {},
     this.padding = const EdgeInsets.all(12),
     this.recentUploadsSliverHeaders = const [],
   });
@@ -84,13 +155,23 @@ class CloudFileLinkPicker extends HookConsumerWidget {
                 _RecentCloudFilesWaterfall(
                   padding: padding,
                   onSelected: onSelected,
+                  multiSelectEnabled: multiSelectEnabled,
+                  selectedFileIds: selectedFileIds,
+                  onToggleSelection: onToggleSelection,
                   sliverHeaders: recentUploadsSliverHeaders,
                 ),
-                _IndexedCloudFilesBrowser(onSelected: onSelected),
+                _IndexedCloudFilesBrowser(
+                  onSelected: onSelected,
+                  multiSelectEnabled: multiSelectEnabled,
+                  selectedFileIds: selectedFileIds,
+                  onToggleSelection: onToggleSelection,
+                ),
                 _ManualCloudFileLinkForm(
                   idController: idController,
                   errorMessage: errorMessage,
                   onSelected: onSelected,
+                  multiSelectEnabled: multiSelectEnabled,
+                  onToggleSelection: onToggleSelection,
                 ),
               ],
             ),
@@ -103,8 +184,16 @@ class CloudFileLinkPicker extends HookConsumerWidget {
 
 class _IndexedCloudFilesBrowser extends HookConsumerWidget {
   final ValueChanged<SnCloudFile> onSelected;
+  final ValueChanged<SnCloudFile>? onToggleSelection;
+  final bool multiSelectEnabled;
+  final Set<String> selectedFileIds;
 
-  const _IndexedCloudFilesBrowser({required this.onSelected});
+  const _IndexedCloudFilesBrowser({
+    required this.onSelected,
+    required this.multiSelectEnabled,
+    required this.selectedFileIds,
+    this.onToggleSelection,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,39 +266,67 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
                 itemBuilder: (context, index) {
                   if (index == data.length) return footer;
                   return data[index].map(
-                    file: (fileItem) => ListTile(
-                      leading: const Icon(Symbols.description),
-                      title: Text(
-                        fileItem.file.name.isEmpty
-                            ? 'untitled'.tr()
-                            : fileItem.file.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(formatFileSize(fileItem.file.size)),
-                      onTap: () => onSelected(fileItem.file),
-                    ),
-                    folder: (folderItem) => ListTile(
-                      leading: const Icon(Symbols.folder),
-                      title: Text(
-                        folderItem.file.name.isEmpty
-                            ? 'untitled'.tr()
-                            : folderItem.file.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text('folder'.tr()),
-                      trailing: IconButton(
-                        icon: const Icon(Symbols.add),
-                        tooltip: 'linkAttachment'.tr(),
-                        onPressed: () => onSelected(folderItem.file),
-                      ),
-                      onTap: () {
-                        currentPath.value = currentPath.value == '/'
-                            ? '/${folderItem.file.name}'
-                            : '${currentPath.value}/${folderItem.file.name}';
-                      },
-                    ),
+                    file: (fileItem) {
+                      final isSelected = selectedFileIds.contains(
+                        fileItem.file.id,
+                      );
+                      return ListTile(
+                        leading: Icon(
+                          isSelected ? Symbols.check_box : Symbols.description,
+                        ),
+                        selected: isSelected,
+                        title: Text(
+                          fileItem.file.name.isEmpty
+                              ? 'untitled'.tr()
+                              : fileItem.file.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(formatFileSize(fileItem.file.size)),
+                        onTap: () => multiSelectEnabled
+                            ? onToggleSelection?.call(fileItem.file)
+                            : onSelected(fileItem.file),
+                      );
+                    },
+                    folder: (folderItem) {
+                      final isSelected = selectedFileIds.contains(
+                        folderItem.file.id,
+                      );
+                      return ListTile(
+                        leading: Icon(
+                          isSelected ? Symbols.check_box : Symbols.folder,
+                        ),
+                        selected: isSelected,
+                        title: Text(
+                          folderItem.file.name.isEmpty
+                              ? 'untitled'.tr()
+                              : folderItem.file.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text('folder'.tr()),
+                        trailing: IconButton(
+                          icon: Icon(
+                            multiSelectEnabled
+                                ? (isSelected
+                                      ? Symbols.check_box
+                                      : Symbols.check_box_outline_blank)
+                                : Symbols.add,
+                          ),
+                          tooltip: multiSelectEnabled
+                              ? 'selected'.tr()
+                              : 'linkAttachment'.tr(),
+                          onPressed: () => multiSelectEnabled
+                              ? onToggleSelection?.call(folderItem.file)
+                              : onSelected(folderItem.file),
+                        ),
+                        onTap: () {
+                          currentPath.value = currentPath.value == '/'
+                              ? '/${folderItem.file.name}'
+                              : '${currentPath.value}/${folderItem.file.name}';
+                        },
+                      );
+                    },
                     unindexedFile: (unindexedFileItem) =>
                         const SizedBox.shrink(),
                   );
@@ -226,11 +343,17 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
 class _RecentCloudFilesWaterfall extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final ValueChanged<SnCloudFile> onSelected;
+  final ValueChanged<SnCloudFile>? onToggleSelection;
+  final bool multiSelectEnabled;
+  final Set<String> selectedFileIds;
   final List<Widget> sliverHeaders;
 
   const _RecentCloudFilesWaterfall({
     required this.padding,
     required this.onSelected,
+    required this.multiSelectEnabled,
+    required this.selectedFileIds,
+    this.onToggleSelection,
     required this.sliverHeaders,
   });
 
@@ -256,7 +379,11 @@ class _RecentCloudFilesWaterfall extends StatelessWidget {
                 if (index == data.length) return footer;
                 return _CloudFileLinkTile(
                   file: data[index],
-                  onTap: () => onSelected(data[index]),
+                  isSelected: selectedFileIds.contains(data[index].id),
+                  showSelectionState: multiSelectEnabled,
+                  onTap: () => multiSelectEnabled
+                      ? onToggleSelection?.call(data[index])
+                      : onSelected(data[index]),
                 );
               }, childCount: data.length + 1),
             ),
@@ -269,9 +396,16 @@ class _RecentCloudFilesWaterfall extends StatelessWidget {
 
 class _CloudFileLinkTile extends ConsumerWidget {
   final SnCloudFile file;
+  final bool isSelected;
+  final bool showSelectionState;
   final VoidCallback onTap;
 
-  const _CloudFileLinkTile({required this.file, required this.onTap});
+  const _CloudFileLinkTile({
+    required this.file,
+    required this.isSelected,
+    required this.showSelectionState,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -295,23 +429,50 @@ class _CloudFileLinkTile extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
-              child: AspectRatio(
-                aspectRatio: ratio,
-                child: Container(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  child: previewWidget,
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: ratio,
+                    child: Container(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      child: previewWidget,
+                    ),
+                  ),
                 ),
-              ),
+                if (showSelectionState)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isSelected
+                            ? Symbols.check_circle
+                            : Symbols.radio_button_unchecked,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             Row(
               children: [
@@ -351,11 +512,15 @@ class _ManualCloudFileLinkForm extends ConsumerWidget {
   final TextEditingController idController;
   final ValueNotifier<String?> errorMessage;
   final ValueChanged<SnCloudFile> onSelected;
+  final ValueChanged<SnCloudFile>? onToggleSelection;
+  final bool multiSelectEnabled;
 
   const _ManualCloudFileLinkForm({
     required this.idController,
     required this.errorMessage,
     required this.onSelected,
+    required this.multiSelectEnabled,
+    this.onToggleSelection,
   });
 
   @override
@@ -402,7 +567,11 @@ class _ManualCloudFileLinkForm extends ConsumerWidget {
                   final cloudFile = await client.drive.getFileInfo(fileId);
 
                   if (context.mounted) {
-                    onSelected(cloudFile);
+                    if (multiSelectEnabled) {
+                      onToggleSelection?.call(cloudFile);
+                    } else {
+                      onSelected(cloudFile);
+                    }
                   }
                 } catch (e) {
                   errorMessage.value = 'failedToFetchFile'.tr(

@@ -757,26 +757,47 @@ class ComposeLogic {
     ComposeState state,
     BuildContext context,
   ) async {
-    final cloudFile = await showModalBottomSheet<SnCloudFile?>(
+    final result = await showModalBottomSheet<Object?>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      builder: (context) => ComposeLinkAttachment(),
+      builder: (context) => const ComposeLinkAttachment(allowMultiSelect: true),
     );
-    if (cloudFile == null) return;
+    if (result == null) return;
+
+    final cloudFiles = result is SnCloudFile
+        ? [result]
+        : result is List
+        ? result.whereType<SnCloudFile>().toList(growable: false)
+        : const <SnCloudFile>[];
+    if (cloudFiles.isEmpty) return;
+
+    final existingCloudIds = state.attachments.value
+        .where((item) => item.isOnCloud)
+        .map((item) => item.data.id)
+        .toSet();
+
+    final linkedAttachments = <UniversalFile>[];
+    for (final cloudFile in cloudFiles) {
+      if (!existingCloudIds.add(cloudFile.id)) continue;
+      linkedAttachments.add(
+        UniversalFile(
+          data: cloudFile,
+          type: switch (cloudFile.mimeType.split('/').firstOrNull) {
+            'image' => UniversalFileType.image,
+            'video' => UniversalFileType.video,
+            'audio' => UniversalFileType.audio,
+            _ => UniversalFileType.file,
+          },
+          isLink: true,
+        ),
+      );
+    }
+    if (linkedAttachments.isEmpty) return;
 
     state.attachments.value = [
       ...state.attachments.value,
-      UniversalFile(
-        data: cloudFile,
-        type: switch (cloudFile.mimeType.split('/').firstOrNull) {
-          'image' => UniversalFileType.image,
-          'video' => UniversalFileType.video,
-          'audio' => UniversalFileType.audio,
-          _ => UniversalFileType.file,
-        },
-        isLink: true,
-      ),
+      ...linkedAttachments,
     ];
   }
 
