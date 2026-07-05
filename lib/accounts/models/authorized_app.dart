@@ -15,6 +15,7 @@ sealed class AuthorizedApp with _$AuthorizedApp {
     @JsonKey(name: 'app_description') String? appDescription,
     required SnCloudFileReference? picture,
     required SnCloudFileReference? background,
+    @Default([]) List<String> scopes,
     @JsonKey(name: 'last_authorized_at') String? lastAuthorizedAt,
     @JsonKey(name: 'last_used_at') String? lastUsedAt,
   }) = _AuthorizedApp;

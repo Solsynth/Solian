@@ -156,6 +156,17 @@ class PadlockApi extends BaseApi {
     return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
+  /// Updates the scopes of an authorized application.
+  ///
+  /// [appId] - The record ID of the authorized app entry.
+  /// [scopes] - The new list of scopes.
+  Future<void> authorizeAppScopes(String appId, List<String> scopes) async {
+    await post(
+      '$_basePath/authorized-apps/$appId/scopes',
+      data: {'scopes': scopes},
+    );
+  }
+
   /// Deauthorizes (revokes) an authorized application by record ID.
   ///
   /// [id] - The record ID of the authorized app entry to revoke.

@@ -24,8 +24,13 @@ Future<List<AuthorizedApp>> authorizedApps(Ref ref) async {
 class _AuthorizedAppCard extends StatelessWidget {
   final AuthorizedApp app;
   final Function(String) deauthorize;
+  final VoidCallback? onEditScopes;
 
-  const _AuthorizedAppCard({required this.app, required this.deauthorize});
+  const _AuthorizedAppCard({
+    required this.app,
+    required this.deauthorize,
+    this.onEditScopes,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +142,43 @@ class _AuthorizedAppCard extends StatelessWidget {
                                     shadows: textShadow,
                                   ),
                             ),
+                            if (app.scopes.isNotEmpty) ...[
+                              Gap(6),
+                              GestureDetector(
+                                onTap: onEditScopes,
+                                child: Wrap(
+                                  spacing: 4,
+                                  runSpacing: 2,
+                                  children: app.scopes.map((scope) {
+                                    return Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: hasBackground
+                                            ? Colors.white.withOpacity(0.15)
+                                            : colorScheme.secondaryContainer,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        scope,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: hasBackground
+                                                  ? Colors.white
+                                                  : colorScheme
+                                                        .onSecondaryContainer,
+                                              shadows: textShadow,
+                                            ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -249,6 +291,27 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
                     return _AuthorizedAppCard(
                       app: app,
                       deauthorize: deauthorizeApp,
+                      onEditScopes: () async {
+                        final result = await showModalBottomSheet<List<String>>(
+                          context: context,
+                          useSafeArea: true,
+                          builder: (_) =>
+                              _ScopesEditor(initialScopes: app.scopes),
+                        );
+                        if (result == null || !context.mounted) return;
+                        showLoadingModal(context);
+                        try {
+                          await ref
+                              .read(solarNetworkClientProvider)
+                              .padlock
+                              .authorizeAppScopes(app.id, result);
+                          showSnackBar('scopesUpdated'.tr());
+                          ref.invalidate(authorizedAppsProvider);
+                        } catch (err) {
+                          showErrorAlert(err);
+                        }
+                        if (context.mounted) hideLoadingModal(context);
+                      },
                     );
                   },
                 ),
@@ -258,6 +321,114 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
           onRetry: () => ref.invalidate(authorizedAppsProvider),
         ),
         loading: () => ResponseLoadingWidget(),
+      ),
+    );
+  }
+}
+
+const _knownScopes = [
+  'openid',
+  'profile',
+  'email',
+  'address',
+  'phone',
+  'offline_access',
+];
+
+class _ScopesEditor extends StatefulWidget {
+  final List<String> initialScopes;
+  const _ScopesEditor({required this.initialScopes});
+
+  @override
+  State<_ScopesEditor> createState() => _ScopesEditorState();
+}
+
+class _ScopesEditorState extends State<_ScopesEditor> {
+  late Set<String> _selectedScopes;
+  final _customController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedScopes = widget.initialScopes.toSet();
+  }
+
+  @override
+  void dispose() {
+    _customController.dispose();
+    super.dispose();
+  }
+
+  void _addCustom() {
+    final text = _customController.text.trim();
+    if (text.isNotEmpty) {
+      setState(() => _selectedScopes.add(text));
+      _customController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetScaffold(
+      titleText: 'Scopes',
+      child: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final scope in _knownScopes)
+                FilterChip(
+                  label: Text(scope),
+                  selected: _selectedScopes.contains(scope),
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedScopes.add(scope);
+                      } else {
+                        _selectedScopes.remove(scope);
+                      }
+                    });
+                  },
+                ),
+              for (final scope in _selectedScopes.difference(
+                _knownScopes.toSet(),
+              ))
+                InputChip(
+                  label: Text(scope),
+                  onDeleted: () {
+                    setState(() => _selectedScopes.remove(scope));
+                  },
+                ),
+            ],
+          ),
+          Gap(12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _customController,
+                  decoration: InputDecoration(
+                    hintText: 'Add custom scope',
+                  ),
+                  onSubmitted: (_) => _addCustom(),
+                ),
+              ),
+              Gap(8),
+              IconButton(onPressed: _addCustom, icon: Icon(Icons.add)),
+            ],
+          ),
+          Gap(16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: () =>
+                  Navigator.pop(context, _selectedScopes.toList()),
+              child: Text('save'.tr()),
+            ),
+          ),
+        ],
       ),
     );
   }
