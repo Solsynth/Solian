@@ -3975,5 +3975,6 @@
   "unknownError": "Unknown error",
   "run": "Run",
   "pluginName": "Plugin name",
-  "pluginCodeHint": "// Write your plugin code here\nfunction on_load() {\n  notify(\"Hello\", \"from my plugin!\");\n}\n"
+  "pluginCodeHint": "// Write your plugin code here\nfunction on_load() {\n  notify(\"Hello\", \"from my plugin!\");\n}\n",
+  "idle": "Idle"
 }

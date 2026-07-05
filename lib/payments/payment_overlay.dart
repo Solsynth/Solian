@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -11,8 +13,10 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import 'package:island/developers/models/custom_app.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/wallets/pin_status.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 class PaymentOverlayOrderInfo {
   final String? productIdentifier;
@@ -32,12 +36,12 @@ class PaymentOverlayOrderInfo {
       productIdentifier:
           json['productIdentifier'] as String? ??
           json['product_identifier'] as String?,
-      app: json['app'] is Map<String, dynamic>
+      app: json['app'] is Map
           ? PaymentOverlayOrderApp.fromJson(
               Map<String, dynamic>.from(json['app'] as Map),
             )
           : null,
-      developer: json['developer'] is Map<String, dynamic>
+      developer: json['developer'] is Map
           ? PaymentOverlayOrderDeveloper.fromJson(
               Map<String, dynamic>.from(json['developer'] as Map),
             )
@@ -77,12 +81,12 @@ class PaymentOverlayOrderApp {
       slug: json['slug'] as String? ?? '',
       name: json['name'] as String? ?? '',
       description: json['description'] as String?,
-      picture: json['picture'] is Map<String, dynamic>
+      picture: json['picture'] is Map
           ? SnCloudFileReference.fromJson(
               Map<String, dynamic>.from(json['picture'] as Map),
             )
           : null,
-      background: json['background'] is Map<String, dynamic>
+      background: json['background'] is Map
           ? SnCloudFileReference.fromJson(
               Map<String, dynamic>.from(json['background'] as Map),
             )
@@ -142,6 +146,43 @@ class PaymentOverlayOrderItem {
           (json['unit_price'] as num?)?.toInt() ??
           0,
       currency: json['currency'] as String? ?? '',
+    );
+  }
+}
+
+class PaymentOverlayAppProduct {
+  final String id;
+  final String identifier;
+  final String? displayName;
+  final String? description;
+  final String currency;
+  final int price;
+  final SnCloudFileReference? picture;
+
+  const PaymentOverlayAppProduct({
+    required this.id,
+    required this.identifier,
+    required this.displayName,
+    required this.description,
+    required this.currency,
+    required this.price,
+    required this.picture,
+  });
+
+  factory PaymentOverlayAppProduct.fromJson(Map<String, dynamic> json) {
+    return PaymentOverlayAppProduct(
+      id: json['id'] as String? ?? '',
+      identifier: json['identifier'] as String? ?? '',
+      displayName:
+          json['display_name'] as String? ?? json['displayName'] as String?,
+      description: json['description'] as String?,
+      currency: json['currency'] as String? ?? '',
+      price: (json['price'] as num?)?.toInt() ?? 0,
+      picture: json['picture'] is Map
+          ? SnCloudFileReference.fromJson(
+              Map<String, dynamic>.from(json['picture'] as Map),
+            )
+          : null,
     );
   }
 }
@@ -263,6 +304,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   bool _requiresPinValidation = true;
   bool _hasBiometricSupport = false;
   bool _hasStoredPin = false;
+  SnPublisher? _publisher;
+  CustomApp? _appDetails;
+  List<PaymentOverlayAppProduct> _products = const [];
 
   bool get _isOrderExpired => widget.order.expiredAt.isBefore(DateTime.now());
   bool get _isOrderPayable => widget.order.status == 0 && !_isOrderExpired;
@@ -272,9 +316,10 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     super.initState();
     if (!_isOrderPayable) {
       _isInitializingAuth = false;
-      return;
+    } else {
+      _initializeBiometric();
     }
-    _initializeBiometric();
+    _loadEnrichment();
   }
 
   @override
@@ -322,6 +367,61 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       if (mounted) {
         setState(() {});
       }
+    }
+  }
+
+  Future<void> _loadEnrichment() async {
+    final appSlug = widget.orderInfo?.app?.slug;
+    final publisherName = widget.orderInfo?.developer?.publisherName;
+    if ((appSlug == null || appSlug.isEmpty) &&
+        (publisherName == null || publisherName.isEmpty)) {
+      return;
+    }
+
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      final results = await Future.wait<dynamic>([
+        if (publisherName != null && publisherName.isNotEmpty)
+          client.sphere.getPublisher(publisherName)
+        else
+          Future<SnPublisher?>.value(null),
+        if (appSlug != null && appSlug.isNotEmpty)
+          client.dio.get('/develop/apps/$appSlug')
+        else
+          Future<Response<dynamic>?>.value(null),
+        if (appSlug != null && appSlug.isNotEmpty)
+          client.dio.get('/develop/apps/$appSlug/products')
+        else
+          Future<Response<dynamic>?>.value(null),
+      ]);
+
+      final publisher = results[0] as SnPublisher?;
+      final appResponse = results[1] as Response<dynamic>?;
+      final productsResponse = results[2] as Response<dynamic>?;
+      final appDetails = appResponse?.data is Map
+          ? CustomApp.fromJson(
+              Map<String, dynamic>.from(appResponse!.data as Map),
+            )
+          : null;
+      final products = (productsResponse?.data as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map(
+            (item) => PaymentOverlayAppProduct.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _publisher = publisher;
+        _appDetails = appDetails;
+        _products = products;
+      });
+    } catch (err) {
+      Logger.root.log(.SEVERE, 'Order enrichment failed...', err);
+      showErrorAlert(err);
+      // Ignore enrichment failures.
     }
   }
 
@@ -470,38 +570,48 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     return parts.isNotEmpty ? parts.last : value;
   }
 
-  String get _merchantName {
-    final value = widget.orderInfo?.developer?.publisherName.trim();
-    if (value != null && value.isNotEmpty) return value;
-    final appName = widget.orderInfo?.app?.name.trim();
-    if (appName != null && appName.isNotEmpty) return appName;
-    return widget.order.appIdentifier;
+  PaymentOverlayAppProduct? _findProduct(PaymentOverlayOrderItem item) {
+    final parts = item.productIdentifier.split('.');
+    final identifier = parts.isNotEmpty ? parts.last : item.productIdentifier;
+    for (final product in _products) {
+      if (product.identifier == identifier ||
+          product.identifier == item.productIdentifier) {
+        return product;
+      }
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildContextInfoCard(),
-          if (widget.orderInfo?.items.isNotEmpty ?? false) ...[
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildContextInfoCard(),
+                    if (widget.orderInfo?.items.isNotEmpty ?? false) ...[
+                      const Gap(16),
+                      _buildItemsCard(),
+                    ],
+                    const Gap(16),
+                    _buildOrderSummary(),
+                    const Gap(24),
+                    _buildAuthenticationContent(),
+                  ],
+                ),
+              ),
+            ),
             const Gap(16),
-            _buildItemsCard(),
+            _buildActionButtons(),
           ],
-          const Gap(16),
-          // Order Summary
-          _buildOrderSummary(),
-          const Gap(32),
-
-          // Authentication Content
-          Expanded(child: _buildAuthenticationContent()),
-
-          // Action Buttons
-          const Gap(24),
-          _buildActionButtons(),
-        ],
+        ),
       ),
     );
   }
@@ -607,23 +717,20 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Widget _buildContextInfoCard() {
-    final app = widget.orderInfo?.app;
-    final merchantName = _merchantName;
-    final merchantHandle = widget.orderInfo?.developer?.publisherName;
-    final backgroundUrl = app?.background?.storageUrl;
-    final pictureUrl = app?.picture?.storageUrl;
-    final appDescription = app?.description?.trim();
+    final app = _appDetails;
 
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          if (backgroundUrl != null && backgroundUrl.isNotEmpty)
+          if (_publisher?.background != null || _appDetails?.background != null)
             Positioned.fill(
               child: Opacity(
                 opacity: 0.18,
-                child: Image.network(backgroundUrl, fit: BoxFit.cover),
+                child: CloudImageWidget(
+                  file: _appDetails?.background ?? _publisher?.background,
+                ),
               ),
             ),
           Container(
@@ -644,40 +751,26 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildInfoAvatar(pictureUrl),
+                    ProfilePictureWidget(
+                      file: _appDetails?.picture,
+                      fallbackIcon: Symbols.apps,
+                      borderRadius: 8,
+                    ),
                     const Gap(12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            merchantName,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                          if (merchantHandle != null &&
-                              merchantHandle.isNotEmpty) ...[
-                            const Gap(2),
+                          if (app != null || widget.orderInfo?.app != null) ...[
                             Text(
-                              '@$merchantHandle',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                          if (app != null) ...[
-                            const Gap(8),
-                            Text(
-                              app.name,
+                              app?.name ?? widget.orderInfo!.app!.name,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
-                            if (app.slug.isNotEmpty)
+                            if ((app?.slug ?? widget.orderInfo?.app?.slug ?? '')
+                                .isNotEmpty)
                               Text(
-                                app.slug,
+                                app?.slug ?? widget.orderInfo!.app!.slug,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
@@ -686,15 +779,33 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                                     ),
                               ),
                           ],
+                          const Gap(4),
+                          Row(
+                            spacing: 4,
+                            children: [
+                              Text(
+                                'from',
+                                style: TextStyle(fontSize: 11),
+                              ).opacity(0.8),
+                              ProfilePictureWidget(
+                                file: _publisher?.picture,
+                                radius: 8,
+                              ),
+                              Text(
+                                _publisher?.nick ?? 'unknown'.tr(),
+                                style: TextStyle(fontSize: 11),
+                              ).opacity(0.8),
+                            ],
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                if (appDescription != null && appDescription.isNotEmpty) ...[
+                if (_appDetails?.description?.isNotEmpty ?? false) ...[
                   const Gap(12),
                   Text(
-                    appDescription,
+                    _appDetails!.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -710,22 +821,6 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     );
   }
 
-  Widget _buildInfoAvatar(String? pictureUrl) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: pictureUrl != null && pictureUrl.isNotEmpty
-          ? Image.network(pictureUrl, fit: BoxFit.cover)
-          : Icon(Symbols.apps, color: colorScheme.primary),
-    );
-  }
-
   Widget _buildItemsCard() {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
@@ -736,15 +831,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Items',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const Gap(12),
-            ...widget.orderInfo!.items.map(
-              (item) => Padding(
+            ...widget.orderInfo!.items.map((item) {
+              final product = _findProduct(item);
+              return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,11 +845,17 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                         color: colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        Symbols.package_2,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: product?.picture != null
+                          ? CloudFileWidget(
+                              item: product!.picture!,
+                              noBlurhash: true,
+                            )
+                          : Icon(
+                              Symbols.package_2,
+                              size: 20,
+                              color: colorScheme.primary,
+                            ),
                     ),
                     const Gap(12),
                     Expanded(
@@ -768,13 +863,31 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _formatProductIdentifier(item.productIdentifier),
+                            product?.displayName?.trim().isNotEmpty == true
+                                ? product!.displayName!
+                                : _formatProductIdentifier(
+                                    item.productIdentifier,
+                                  ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const Gap(2),
+                          if (product?.description?.trim().isNotEmpty == true)
+                            Text(
+                              product!.description!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
                           Text(
                             '${item.quantity} × ${_formatCurrency(item.unitPrice, item.currency)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -792,8 +905,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                     ),
                   ],
                 ),
-              ),
-            ),
+              );
+            }),
           ],
         ),
       ),
@@ -921,41 +1034,39 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Widget _buildBiometricAuth() {
     final colorScheme = Theme.of(context).colorScheme;
-    return SingleChildScrollView(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(Symbols.fingerprint, size: 48, color: colorScheme.primary),
-            const Gap(16),
-            Text(
-              'useBiometricToConfirm'.tr(),
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Symbols.fingerprint, size: 48, color: colorScheme.primary),
+          const Gap(16),
+          Text(
+            'useBiometricToConfirm'.tr(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+          const Gap(4),
+          Text(
+            'The biometric data will only be processed on your device',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
-            const Gap(4),
-            Text(
-              'The biometric data will only be processed on your device',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(28),
-            FilledButton.tonalIcon(
-              onPressed: _authenticateWithBiometric,
-              icon: const Icon(Symbols.fingerprint),
-              label: Text('authenticateNow'.tr()),
-            ),
-            TextButton(
-              onPressed: () => _fallbackToPinMode(null),
-              child: Text('usePinInstead'.tr()),
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+          const Gap(28),
+          FilledButton.tonalIcon(
+            onPressed: _authenticateWithBiometric,
+            icon: const Icon(Symbols.fingerprint),
+            label: Text('authenticateNow'.tr()),
+          ),
+          TextButton(
+            onPressed: () => _fallbackToPinMode(null),
+            child: Text('usePinInstead'.tr()),
+          ),
+        ],
       ),
     );
   }

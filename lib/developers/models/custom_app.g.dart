@@ -14,10 +14,12 @@ _CustomApp _$CustomAppFromJson(Map<String, dynamic> json) => _CustomApp(
   status: (json['status'] as num?)?.toInt() ?? 0,
   picture: json['picture'] == null
       ? null
-      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
   background: json['background'] == null
       ? null
-      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(
+          json['background'] as Map<String, dynamic>,
+        ),
   verification: json['verification'] == null
       ? null
       : SnVerificationMark.fromJson(

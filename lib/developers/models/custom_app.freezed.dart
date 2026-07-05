@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CustomApp {
 
- String get id; String get slug; String get name; String? get description; int get status; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; CustomAppOauthConfig? get oauthConfig; CustomAppLinks? get links; List<CustomAppSecret> get secrets; String get publisherId; String? get paymentWalletId;
+ String get id; String get slug; String get name; String? get description; int get status; SnCloudFileReference? get picture; SnCloudFileReference? get background; SnVerificationMark? get verification; CustomAppOauthConfig? get oauthConfig; CustomAppLinks? get links; List<CustomAppSecret> get secrets; String get publisherId; String? get paymentWalletId;
 /// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +48,11 @@ abstract mixin class $CustomAppCopyWith<$Res>  {
   factory $CustomAppCopyWith(CustomApp value, $Res Function(CustomApp) _then) = _$CustomAppCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId, String? paymentWalletId
+ String id, String slug, String name, String? description, int status, SnCloudFileReference? picture, SnCloudFileReference? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId, String? paymentWalletId
 });
 
 
-$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$CustomAppOauthConfigCopyWith<$Res>? get oauthConfig;$CustomAppLinksCopyWith<$Res>? get links;
+$SnCloudFileReferenceCopyWith<$Res>? get picture;$SnCloudFileReferenceCopyWith<$Res>? get background;$SnVerificationMarkCopyWith<$Res>? get verification;$CustomAppOauthConfigCopyWith<$Res>? get oauthConfig;$CustomAppLinksCopyWith<$Res>? get links;
 
 }
 /// @nodoc
@@ -73,8 +73,8 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
 as SnVerificationMark?,oauthConfig: freezed == oauthConfig ? _self.oauthConfig : oauthConfig // ignore: cast_nullable_to_non_nullable
 as CustomAppOauthConfig?,links: freezed == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
 as CustomAppLinks?,secrets: null == secrets ? _self.secrets : secrets // ignore: cast_nullable_to_non_nullable
@@ -87,24 +87,24 @@ as String?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }/// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
+$SnCloudFileReferenceCopyWith<$Res>? get background {
     if (_self.background == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
     return _then(_self.copyWith(background: value));
   });
 }/// Create a copy of CustomApp
@@ -222,7 +222,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFileReference? picture,  SnCloudFileReference? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomApp() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId,_that.paymentWalletId);case _:
@@ -243,7 +243,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFileReference? picture,  SnCloudFileReference? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)  $default,) {final _that = this;
 switch (_that) {
 case _CustomApp():
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId,_that.paymentWalletId);}
@@ -260,7 +260,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFileReference? picture,  SnCloudFileReference? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomApp() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId,_that.paymentWalletId);case _:
@@ -283,8 +283,8 @@ class _CustomApp implements CustomApp {
 @override@JsonKey() final  String name;
 @override final  String? description;
 @override@JsonKey() final  int status;
-@override final  SnCloudFile? picture;
-@override final  SnCloudFile? background;
+@override final  SnCloudFileReference? picture;
+@override final  SnCloudFileReference? background;
 @override final  SnVerificationMark? verification;
 @override final  CustomAppOauthConfig? oauthConfig;
 @override final  CustomAppLinks? links;
@@ -331,11 +331,11 @@ abstract mixin class _$CustomAppCopyWith<$Res> implements $CustomAppCopyWith<$Re
   factory _$CustomAppCopyWith(_CustomApp value, $Res Function(_CustomApp) _then) = __$CustomAppCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId, String? paymentWalletId
+ String id, String slug, String name, String? description, int status, SnCloudFileReference? picture, SnCloudFileReference? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId, String? paymentWalletId
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $CustomAppOauthConfigCopyWith<$Res>? get oauthConfig;@override $CustomAppLinksCopyWith<$Res>? get links;
+@override $SnCloudFileReferenceCopyWith<$Res>? get picture;@override $SnCloudFileReferenceCopyWith<$Res>? get background;@override $SnVerificationMarkCopyWith<$Res>? get verification;@override $CustomAppOauthConfigCopyWith<$Res>? get oauthConfig;@override $CustomAppLinksCopyWith<$Res>? get links;
 
 }
 /// @nodoc
@@ -356,8 +356,8 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
 as SnVerificationMark?,oauthConfig: freezed == oauthConfig ? _self.oauthConfig : oauthConfig // ignore: cast_nullable_to_non_nullable
 as CustomAppOauthConfig?,links: freezed == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
 as CustomAppLinks?,secrets: null == secrets ? _self._secrets : secrets // ignore: cast_nullable_to_non_nullable
@@ -371,24 +371,24 @@ as String?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }/// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
+$SnCloudFileReferenceCopyWith<$Res>? get background {
     if (_self.background == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
     return _then(_self.copyWith(background: value));
   });
 }/// Create a copy of CustomApp

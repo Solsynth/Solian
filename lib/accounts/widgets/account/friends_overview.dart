@@ -80,16 +80,17 @@ class FriendsOverviewWidget extends HookConsumerWidget {
         final onlineFriends = friends
             .where((friend) => showsOnlinePresence(friend.status))
             .toList();
-        final offlineFriends = friends
-            .where((friend) => !showsOnlinePresence(friend.status))
-            .toList()
-          ..sort((a, b) {
-            final aLastOnline =
-                a.account.profile.lastSeenAt ?? a.status.updatedAt;
-            final bLastOnline =
-                b.account.profile.lastSeenAt ?? b.status.updatedAt;
-            return bLastOnline.compareTo(aLastOnline);
-          });
+        final offlineFriends =
+            friends
+                .where((friend) => !showsOnlinePresence(friend.status))
+                .toList()
+              ..sort((a, b) {
+                final aLastOnline =
+                    a.account.profile.lastSeenAt ?? a.status.updatedAt;
+                final bLastOnline =
+                    b.account.profile.lastSeenAt ?? b.status.updatedAt;
+                return bLastOnline.compareTo(aLastOnline);
+              });
         final displayFriends = onlineFriends.isNotEmpty
             ? onlineFriends
             : offlineFriends;
@@ -564,14 +565,6 @@ class _FriendTile extends ConsumerWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          if (friend.status.isIdleOrOnline)
-            Text(
-              'idle',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.amber.shade700,
-              ),
-              textAlign: TextAlign.center,
-            ).tr(),
         ],
       ),
     ).center();
