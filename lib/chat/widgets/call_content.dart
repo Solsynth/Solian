@@ -7,6 +7,7 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
+import 'package:island/drive/widgets/cloud_files.dart' show ProfilePictureWidget;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -50,30 +51,81 @@ Future<void> showToolParticipantsSheet(
         itemCount: toolParticipants.length,
         separatorBuilder: (_, _) => const Divider(height: 1),
         itemBuilder: (_, index) {
-          final live = toolParticipants[index];
-          final info = parseToolCallParticipant(live);
-          final title = info != null && info.username.isNotEmpty
-              ? info.username
-              : live.participant.name.isNotEmpty
-              ? live.participant.name
-              : 'unknownToolParticipant'.tr();
-          final subtitle = info == null
-              ? live.participant.identity
-              : '${info.slug} • ${live.participant.identity}';
-          return ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Symbols.terminal, size: 18),
-            ),
-            title: Text(title),
-            subtitle: Text(subtitle),
-            trailing: live.remoteParticipant.isSpeaking
-                ? const Icon(Symbols.graph_3, size: 18)
-                : null,
-          );
+          return _ToolParticipantListTile(live: toolParticipants[index]);
         },
       ),
     ),
   );
+}
+
+class _ToolParticipantListTile extends HookConsumerWidget {
+  final CallParticipantLive live;
+
+  const _ToolParticipantListTile({required this.live});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final info = parseToolCallParticipant(live);
+    final username = info?.username ?? '';
+    final account = username.isEmpty
+        ? const AsyncValue<Never>.loading()
+        : ref.watch(callParticipantAccountProvider(username));
+    final subtitle = info == null
+        ? live.participant.identity
+        : '${info.slug} • ${live.participant.identity}';
+
+    return ListTile(
+      leading: account.when(
+        data: (value) => Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ProfilePictureWidget(file: value.profile.picture, radius: 18),
+            Positioned(
+              right: -2,
+              bottom: -2,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.surface,
+                    width: 1.5,
+                  ),
+                ),
+                child: const Icon(Symbols.terminal, size: 11),
+              ),
+            ),
+          ],
+        ),
+        error: (_, _) => const CircleAvatar(
+          child: Icon(Symbols.terminal, size: 18),
+        ),
+        loading: () => const CircleAvatar(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      title: account.maybeWhen(
+        data: (value) => AccountName(
+          account: value,
+          style: Theme.of(context).textTheme.bodyLarge,
+          hideOverlay: true,
+        ),
+        orElse: () => Text(
+          username.isNotEmpty ? username : 'unknownToolParticipant'.tr(),
+        ),
+      ),
+      subtitle: Text(subtitle),
+      trailing: live.remoteParticipant.isSpeaking
+          ? const Icon(Symbols.graph_3, size: 18)
+          : null,
+    );
+  }
 }
 
 bool _hasActiveVideo(CallParticipantLive participant) {
