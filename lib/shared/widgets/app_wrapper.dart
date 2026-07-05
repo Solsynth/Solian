@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -29,6 +30,7 @@ import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
+import 'package:island/payments/payment_overlay.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
@@ -854,6 +856,7 @@ class AppWrapper extends HookConsumerWidget {
   void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {
     String path = '/${uri.host}${uri.path}';
     final transferRequestId = parseWalletTransferRequestId(uri.toString());
+    final orderId = parseWalletOrderId(uri.toString());
 
     if (transferRequestId != null) {
       try {
@@ -862,6 +865,20 @@ class AppWrapper extends HookConsumerWidget {
           ref: ref,
           requestId: transferRequestId,
         );
+      } catch (err) {
+        showErrorAlert(err);
+      }
+
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
+
+    if (orderId != null) {
+      try {
+        await _handleWalletOrderDeepLink(context, ref, orderId);
       } catch (err) {
         showErrorAlert(err);
       }
@@ -969,6 +986,55 @@ class AppWrapper extends HookConsumerWidget {
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       windowManager.show();
+    }
+  }
+
+  Future<void> _handleWalletOrderDeepLink(
+    BuildContext context,
+    WidgetRef ref,
+    String orderId,
+  ) async {
+    showLoadingModal(context);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      final response = await client.dio.get('/wallet/orders/$orderId');
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final order = SnWalletOrder.fromJson(data);
+      final orderInfo = PaymentOverlayOrderInfo.fromJson(data);
+
+      if (context.mounted) {
+        hideLoadingModal(context);
+      }
+      if (!context.mounted) return;
+
+      if (order.status == 0 && !order.expiredAt.isBefore(DateTime.now())) {
+        final paidOrder = await PaymentOverlay.show(
+          context: context,
+          order: order,
+          orderInfo: orderInfo,
+        );
+        if (paidOrder != null) {
+          ref.invalidate(walletCurrentProvider);
+          ref.invalidate(walletListProvider);
+          ref.invalidate(walletStatsProvider);
+          showSnackBar('paymentSuccess'.tr());
+        }
+        return;
+      }
+
+      if (order.status == 1) {
+        showSnackBar('paymentSuccess'.tr());
+      } else if (order.status == 2) {
+        showSnackBar('completed'.tr());
+      } else if (order.status == 3) {
+        showSnackBar('cancelled'.tr());
+      } else {
+        showSnackBar('expired'.tr());
+      }
+    } finally {
+      if (context.mounted) {
+        hideLoadingModal(context);
+      }
     }
   }
 

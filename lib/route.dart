@@ -71,6 +71,7 @@ class AppRouter extends RootStackRouter {
       page: TransactionDetailRoute.page,
       path: '/wallet/transactions/:id',
     ),
+    AutoRoute(page: WalletOrderDetailRoute.page, path: '/orders/:id'),
 
     // Main tabs shell route
     AutoRoute(

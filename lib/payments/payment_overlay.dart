@@ -14,8 +14,141 @@ import 'package:pinput/pinput.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/wallets/pin_status.dart';
 
+class PaymentOverlayOrderInfo {
+  final String? productIdentifier;
+  final PaymentOverlayOrderApp? app;
+  final PaymentOverlayOrderDeveloper? developer;
+  final List<PaymentOverlayOrderItem> items;
+
+  const PaymentOverlayOrderInfo({
+    this.productIdentifier,
+    this.app,
+    this.developer,
+    this.items = const [],
+  });
+
+  factory PaymentOverlayOrderInfo.fromJson(Map<String, dynamic> json) {
+    return PaymentOverlayOrderInfo(
+      productIdentifier:
+          json['productIdentifier'] as String? ??
+          json['product_identifier'] as String?,
+      app: json['app'] is Map<String, dynamic>
+          ? PaymentOverlayOrderApp.fromJson(
+              Map<String, dynamic>.from(json['app'] as Map),
+            )
+          : null,
+      developer: json['developer'] is Map<String, dynamic>
+          ? PaymentOverlayOrderDeveloper.fromJson(
+              Map<String, dynamic>.from(json['developer'] as Map),
+            )
+          : null,
+      items: (json['items'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map(
+            (item) => PaymentOverlayOrderItem.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class PaymentOverlayOrderApp {
+  final String id;
+  final String slug;
+  final String name;
+  final String? description;
+  final SnCloudFileReference? picture;
+  final SnCloudFileReference? background;
+
+  const PaymentOverlayOrderApp({
+    required this.id,
+    required this.slug,
+    required this.name,
+    required this.description,
+    required this.picture,
+    required this.background,
+  });
+
+  factory PaymentOverlayOrderApp.fromJson(Map<String, dynamic> json) {
+    return PaymentOverlayOrderApp(
+      id: json['id'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String?,
+      picture: json['picture'] is Map<String, dynamic>
+          ? SnCloudFileReference.fromJson(
+              Map<String, dynamic>.from(json['picture'] as Map),
+            )
+          : null,
+      background: json['background'] is Map<String, dynamic>
+          ? SnCloudFileReference.fromJson(
+              Map<String, dynamic>.from(json['background'] as Map),
+            )
+          : null,
+    );
+  }
+}
+
+class PaymentOverlayOrderDeveloper {
+  final String id;
+  final String publisherId;
+  final String publisherName;
+
+  const PaymentOverlayOrderDeveloper({
+    required this.id,
+    required this.publisherId,
+    required this.publisherName,
+  });
+
+  factory PaymentOverlayOrderDeveloper.fromJson(Map<String, dynamic> json) {
+    return PaymentOverlayOrderDeveloper(
+      id: json['id'] as String? ?? '',
+      publisherId:
+          json['publisherId'] as String? ??
+          json['publisher_id'] as String? ??
+          '',
+      publisherName:
+          json['publisherName'] as String? ??
+          json['publisher_name'] as String? ??
+          '',
+    );
+  }
+}
+
+class PaymentOverlayOrderItem {
+  final String productIdentifier;
+  final int quantity;
+  final int unitPrice;
+  final String currency;
+
+  const PaymentOverlayOrderItem({
+    required this.productIdentifier,
+    required this.quantity,
+    required this.unitPrice,
+    required this.currency,
+  });
+
+  factory PaymentOverlayOrderItem.fromJson(Map<String, dynamic> json) {
+    return PaymentOverlayOrderItem(
+      productIdentifier:
+          json['productIdentifier'] as String? ??
+          json['product_identifier'] as String? ??
+          '',
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      unitPrice:
+          (json['unitPrice'] as num?)?.toInt() ??
+          (json['unit_price'] as num?)?.toInt() ??
+          0,
+      currency: json['currency'] as String? ?? '',
+    );
+  }
+}
+
 class PaymentOverlay extends HookConsumerWidget {
   final SnWalletOrder order;
+  final PaymentOverlayOrderInfo? orderInfo;
   final String? payerWalletId;
   final Function(SnWalletOrder completedOrder)? onPaymentSuccess;
   final Function(String error)? onPaymentError;
@@ -25,6 +158,7 @@ class PaymentOverlay extends HookConsumerWidget {
   const PaymentOverlay({
     super.key,
     required this.order,
+    this.orderInfo,
     this.payerWalletId,
     this.onPaymentSuccess,
     this.onPaymentError,
@@ -47,6 +181,7 @@ class PaymentOverlay extends HookConsumerWidget {
           heightFactor: 0.7,
           child: _PaymentContent(
             order: order,
+            orderInfo: orderInfo,
             payerWalletId: payerWalletId,
             onPaymentSuccess: onPaymentSuccess,
             onPaymentError: onPaymentError,
@@ -61,6 +196,7 @@ class PaymentOverlay extends HookConsumerWidget {
   static Future<SnWalletOrder?> show({
     required BuildContext context,
     required SnWalletOrder order,
+    PaymentOverlayOrderInfo? orderInfo,
     String? payerWalletId,
     bool enableBiometric = true,
   }) {
@@ -69,8 +205,10 @@ class PaymentOverlay extends HookConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
+      useRootNavigator: true,
       builder: (context) => PaymentOverlay(
         order: order,
+        orderInfo: orderInfo,
         payerWalletId: payerWalletId,
         enableBiometric: enableBiometric,
         onPaymentSuccess: (completedOrder) {
@@ -90,6 +228,7 @@ class PaymentOverlay extends HookConsumerWidget {
 
 class _PaymentContent extends ConsumerStatefulWidget {
   final SnWalletOrder order;
+  final PaymentOverlayOrderInfo? orderInfo;
   final String? payerWalletId;
   final Function(SnWalletOrder)? onPaymentSuccess;
   final Function(String)? onPaymentError;
@@ -98,6 +237,7 @@ class _PaymentContent extends ConsumerStatefulWidget {
 
   const _PaymentContent({
     required this.order,
+    this.orderInfo,
     this.payerWalletId,
     this.onPaymentSuccess,
     this.onPaymentError,
@@ -124,9 +264,16 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   bool _hasBiometricSupport = false;
   bool _hasStoredPin = false;
 
+  bool get _isOrderExpired => widget.order.expiredAt.isBefore(DateTime.now());
+  bool get _isOrderPayable => widget.order.status == 0 && !_isOrderExpired;
+
   @override
   void initState() {
     super.initState();
+    if (!_isOrderPayable) {
+      _isInitializingAuth = false;
+      return;
+    }
     _initializeBiometric();
   }
 
@@ -318,6 +465,19 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     return '${value.toStringAsFixed(2)} $currency';
   }
 
+  String _formatProductIdentifier(String value) {
+    final parts = value.split('.');
+    return parts.isNotEmpty ? parts.last : value;
+  }
+
+  String get _merchantName {
+    final value = widget.orderInfo?.developer?.publisherName.trim();
+    if (value != null && value.isNotEmpty) return value;
+    final appName = widget.orderInfo?.app?.name.trim();
+    if (appName != null && appName.isNotEmpty) return appName;
+    return widget.order.appIdentifier;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -325,6 +485,12 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildContextInfoCard(),
+          if (widget.orderInfo?.items.isNotEmpty ?? false) ...[
+            const Gap(16),
+            _buildItemsCard(),
+          ],
+          const Gap(16),
           // Order Summary
           _buildOrderSummary(),
           const Gap(32),
@@ -378,6 +544,39 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                 ),
               ],
             ),
+            const Gap(8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'orderId'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Flexible(
+                  child: Text(
+                    widget.order.id,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'expired'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  DateFormat.yMd().add_Hm().format(widget.order.expiredAt),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
             if (widget.order.remarks != null) ...[
               const Gap(8),
               Row(
@@ -407,7 +606,205 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     );
   }
 
+  Widget _buildContextInfoCard() {
+    final app = widget.orderInfo?.app;
+    final merchantName = _merchantName;
+    final merchantHandle = widget.orderInfo?.developer?.publisherName;
+    final backgroundUrl = app?.background?.storageUrl;
+    final pictureUrl = app?.picture?.storageUrl;
+    final appDescription = app?.description?.trim();
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          if (backgroundUrl != null && backgroundUrl.isNotEmpty)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.18,
+                child: Image.network(backgroundUrl, fit: BoxFit.cover),
+              ),
+            ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                  Theme.of(context).colorScheme.surface,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoAvatar(pictureUrl),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            merchantName,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          if (merchantHandle != null &&
+                              merchantHandle.isNotEmpty) ...[
+                            const Gap(2),
+                            Text(
+                              '@$merchantHandle',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                          if (app != null) ...[
+                            const Gap(8),
+                            Text(
+                              app.name,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            if (app.slug.isNotEmpty)
+                              Text(
+                                app.slug,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (appDescription != null && appDescription.isNotEmpty) ...[
+                  const Gap(12),
+                  Text(
+                    appDescription,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoAvatar(String? pictureUrl) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: pictureUrl != null && pictureUrl.isNotEmpty
+          ? Image.network(pictureUrl, fit: BoxFit.cover)
+          : Icon(Symbols.apps, color: colorScheme.primary),
+    );
+  }
+
+  Widget _buildItemsCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: colorScheme.surfaceContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Items',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const Gap(12),
+            ...widget.orderInfo!.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Symbols.package_2,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _formatProductIdentifier(item.productIdentifier),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const Gap(2),
+                          Text(
+                            '${item.quantity} × ${_formatCurrency(item.unitPrice, item.currency)}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      _formatCurrency(
+                        item.unitPrice * item.quantity,
+                        item.currency,
+                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAuthenticationContent() {
+    if (!_isOrderPayable) {
+      return _buildOrderStateContent();
+    }
+
     if (_isInitializingAuth) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -417,6 +814,33 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     }
 
     return _isPinMode ? _buildPinInput() : _buildBiometricAuth();
+  }
+
+  Widget _buildOrderStateContent() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final (IconData icon, String message) = switch (widget.order.status) {
+      1 => (Symbols.check_circle, 'paymentSuccess'.tr()),
+      2 => (Symbols.task_alt, 'completed'.tr()),
+      3 => (Symbols.cancel, 'cancelled'.tr()),
+      _ => (Symbols.schedule, 'expired'.tr()),
+    };
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 48, color: colorScheme.primary),
+          const Gap(16),
+          Text(
+            message,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPinInput() {
@@ -542,10 +966,12 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
         Expanded(
           child: OutlinedButton(
             onPressed: widget.onCancel,
-            child: Text('cancel'.tr()),
+            child: Text(_isOrderPayable ? 'cancel'.tr() : 'close'.tr()),
           ),
         ),
-        if (!_isInitializingAuth && !_requiresPinValidation) ...[
+        if (_isOrderPayable &&
+            !_isInitializingAuth &&
+            !_requiresPinValidation) ...[
           const Gap(12),
           Expanded(
             child: FilledButton(
@@ -554,7 +980,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
             ),
           ),
         ],
-        if (_isPinMode && _pin.length == 6) ...[
+        if (_isOrderPayable && _isPinMode && _pin.length == 6) ...[
           const Gap(12),
           Expanded(
             child: FilledButton(

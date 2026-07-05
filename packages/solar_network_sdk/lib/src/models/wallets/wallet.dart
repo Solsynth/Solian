@@ -71,7 +71,9 @@ sealed class SnTransaction with _$SnTransaction {
     required double amount,
     required String? remarks,
     required int type,
-    @Default(2) int status, // 0: Pending, 1: Frozen, 2: Confirmed, 3: Refunded, 4: Cancelled
+    @Default(2)
+    int
+    status, // 0: Pending, 1: Frozen, 2: Confirmed, 3: Refunded, 4: Cancelled
     @Default(false) bool isFrozen,
     @Default(false) bool requireConfirmation,
     DateTime? frozenAt,
@@ -229,8 +231,9 @@ sealed class SnWalletFund with _$SnWalletFund {
 }
 
 extension SnWalletFundX on SnWalletFund {
-  double get raisedAmount =>
-      isRaising ? recipients.where((r) => r.isReceived).fold(0.0, (s, r) => s + r.amount) : 0;
+  double get raisedAmount => isRaising
+      ? recipients.where((r) => r.isReceived).fold(0.0, (s, r) => s + r.amount)
+      : 0;
 }
 
 /// Contribution type enum matching the server.
