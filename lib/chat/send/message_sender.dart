@@ -760,7 +760,7 @@ class MessageSender {
         });
 
     // Timeout
-    Future.delayed(const Duration(seconds: 12), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (!completer.isCompleted) {
         subscription?.cancel();
         completer.completeError(TimeoutException('Message delivery timeout'));

@@ -105,6 +105,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  Future<T> _keepAliveWhileSending<T>(Future<T> Function() task) async {
+    final keepAliveLink = ref.keepAlive();
+    try {
+      return await task();
+    } finally {
+      keepAliveLink.close();
+    }
+  }
+
   late final MessageCache _messageCache;
   late final PendingMessageCache _pendingCache;
   late final MessageRepository _repository;
@@ -1319,99 +1328,101 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    if (content.trim().isEmpty &&
-        attachments.isEmpty &&
-        (embeds == null || embeds.isEmpty)) {
-      return;
-    }
-
-    // Run plugin hooks before sending
-    final hookResult = PluginHooks().runBeforeMessageSend(content);
-    if (hookResult.cancelled) {
-      showSnackBar('Message blocked by plugin: ${hookResult.cancelledBy}');
-      return;
-    }
-    final effectiveContent = hookResult.data ?? content;
-
-    String? pendingMessageId;
-    final result = await _sender.sendTextMessage(
-      content: effectiveContent,
-      attachments: attachments,
-      sender: _identity,
-      editingTo: editingTo,
-      replyingTo: replyingTo,
-      forwardingTo: forwardingTo,
-      embeds: embeds,
-      onPending: editingTo == null
-          ? (pending) {
-              pendingMessageId = pending.id;
-              _pendingMessages[pending.id] = pending;
-              _emitMessages([pending, ..._currentMessages]);
-            }
-          : null,
-      onProgress: onProgress,
-    );
-
-    if (!result.success || result.message == null) {
-      if (pendingMessageId != null) {
-        final pending = _pendingMessages[pendingMessageId!];
-        if (pending != null) {
-          pending.status = MessageStatus.failed;
-          _replaceMessage(pending.id, pending);
-        }
+    await _keepAliveWhileSending(() async {
+      if (content.trim().isEmpty &&
+          attachments.isEmpty &&
+          (embeds == null || embeds.isEmpty)) {
+        return;
       }
-      showErrorAlert(result.error ?? 'Failed to send message');
-      return;
-    }
 
-    final sentMessage = result.message!;
-    final room = await ref.read(chatRoomProvider(roomId).future);
-    final currentUserId = await ref
-        .read(userInfoProvider.future)
-        .then((account) => account?.id);
-    if (room != null) {
-      unawaited(
-        IosShareSuggestionsService.instance.donateChatRoom(
-          room,
-          currentUserId: currentUserId,
-        ),
+      // Run plugin hooks before sending
+      final hookResult = PluginHooks().runBeforeMessageSend(content);
+      if (hookResult.cancelled) {
+        showSnackBar('Message blocked by plugin: ${hookResult.cancelledBy}');
+        return;
+      }
+      final effectiveContent = hookResult.data ?? content;
+
+      String? pendingMessageId;
+      final result = await _sender.sendTextMessage(
+        content: effectiveContent,
+        attachments: attachments,
+        sender: _identity,
+        editingTo: editingTo,
+        replyingTo: replyingTo,
+        forwardingTo: forwardingTo,
+        embeds: embeds,
+        onPending: editingTo == null
+            ? (pending) {
+                pendingMessageId = pending.id;
+                _pendingMessages[pending.id] = pending;
+                _emitMessages([pending, ..._currentMessages]);
+              }
+            : null,
+        onProgress: onProgress,
       );
-    }
-    if (pendingMessageId != null) {
-      _pendingMessages.remove(pendingMessageId);
-    }
 
-    if (editingTo != null) {
-      var replaced = false;
-      final updated = _currentMessages.map((message) {
-        if (message.id != sentMessage.id) return message;
-        replaced = true;
-        return sentMessage;
-      }).toList();
-
-      if (!replaced) {
-        updated.add(sentMessage);
+      if (!result.success || result.message == null) {
+        if (pendingMessageId != null) {
+          final pending = _pendingMessages[pendingMessageId!];
+          if (pending != null) {
+            pending.status = MessageStatus.failed;
+            _replaceMessage(pending.id, pending);
+          }
+        }
+        showErrorAlert(result.error ?? 'Failed to send message');
+        return;
       }
 
-      final eventMessage = result.eventMessage;
-      if (eventMessage != null &&
-          _shouldIncludeInActiveList(eventMessage) &&
-          !updated.any((message) => message.id == eventMessage.id)) {
-        updated.add(eventMessage);
+      final sentMessage = result.message!;
+      final room = await ref.read(chatRoomProvider(roomId).future);
+      final currentUserId = await ref
+          .read(userInfoProvider.future)
+          .then((account) => account?.id);
+      if (room != null) {
+        unawaited(
+          IosShareSuggestionsService.instance.donateChatRoom(
+            room,
+            currentUserId: currentUserId,
+          ),
+        );
+      }
+      if (pendingMessageId != null) {
+        _pendingMessages.remove(pendingMessageId);
       }
 
-      _emitMessages(updated);
-      return;
-    }
+      if (editingTo != null) {
+        var replaced = false;
+        final updated = _currentMessages.map((message) {
+          if (message.id != sentMessage.id) return message;
+          replaced = true;
+          return sentMessage;
+        }).toList();
 
-    if (pendingMessageId != null) {
-      ref
-          .read(chatRoomStateProvider(roomId).notifier)
-          .updateAttachmentProgress(pendingMessageId!, null);
-      _replaceMessage(pendingMessageId!, sentMessage);
-    } else {
-      _emitMessages([sentMessage, ..._currentMessages]);
-    }
+        if (!replaced) {
+          updated.add(sentMessage);
+        }
+
+        final eventMessage = result.eventMessage;
+        if (eventMessage != null &&
+            _shouldIncludeInActiveList(eventMessage) &&
+            !updated.any((message) => message.id == eventMessage.id)) {
+          updated.add(eventMessage);
+        }
+
+        _emitMessages(updated);
+        return;
+      }
+
+      if (pendingMessageId != null) {
+        ref
+            .read(chatRoomStateProvider(roomId).notifier)
+            .updateAttachmentProgress(pendingMessageId!, null);
+        _replaceMessage(pendingMessageId!, sentMessage);
+      } else {
+        _emitMessages([sentMessage, ..._currentMessages]);
+      }
+    });
   }
 
   Future<void> sendVoiceMessage(
@@ -1420,38 +1431,42 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
   }) async {
-    final result = await _sender.sendVoiceMessage(
-      filePath: filePath,
-      sender: _identity,
-      durationMs: durationMs,
-      forwardingTo: forwardingTo,
-      replyingTo: replyingTo,
-    );
+    await _keepAliveWhileSending(() async {
+      final result = await _sender.sendVoiceMessage(
+        filePath: filePath,
+        sender: _identity,
+        durationMs: durationMs,
+        forwardingTo: forwardingTo,
+        replyingTo: replyingTo,
+      );
 
-    if (!result.success || result.message == null) {
-      showErrorAlert(result.error ?? 'Failed to send voice message');
-      return;
-    }
+      if (!result.success || result.message == null) {
+        showErrorAlert(result.error ?? 'Failed to send voice message');
+        return;
+      }
 
-    _emitMessages([result.message!, ..._currentMessages]);
+      _emitMessages([result.message!, ..._currentMessages]);
+    });
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    final result = await _sender.retryMessage(
-      pendingMessageId,
-      sender: _identity,
-    );
+    await _keepAliveWhileSending(() async {
+      final result = await _sender.retryMessage(
+        pendingMessageId,
+        sender: _identity,
+      );
 
-    if (!result.success || result.message == null) {
-      showErrorAlert(result.error ?? 'Failed to retry message');
-      return;
-    }
+      if (!result.success || result.message == null) {
+        showErrorAlert(result.error ?? 'Failed to retry message');
+        return;
+      }
 
-    final updated = _currentMessages.map((m) {
-      if (m.id == pendingMessageId) return result.message!;
-      return m;
-    }).toList();
-    _emitMessages(updated);
+      final updated = _currentMessages.map((m) {
+        if (m.id == pendingMessageId) return result.message!;
+        return m;
+      }).toList();
+      _emitMessages(updated);
+    });
   }
 
   Future<void> receiveMessage(
