@@ -34,6 +34,47 @@ part 'post_shared.g.dart';
 const kMessageEnableEmbedTypes = ['text', 'messages.new'];
 const kPostThreadingLineWidth = 1.0;
 
+class SponsoredBadge extends StatelessWidget {
+  final bool compact;
+
+  const SponsoredBadge({super.key, this.compact = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 6 : 8,
+        vertical: compact ? 2 : 3,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Symbols.campaign,
+            size: compact ? 10 : 12,
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
+          Gap(compact ? 3 : 4),
+          Text(
+            'postSponsored'.tr(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSecondaryContainer,
+              fontWeight: FontWeight.w600,
+              fontSize: compact ? 9 : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Converts HTML content to markdown if contentType indicates HTML (contentType == 1)
 String _convertContentToMarkdown(SnPost post) {
   if (post.contentType == 1 && post.content != null) {

@@ -69,6 +69,7 @@ sealed class SnPost with _$SnPost {
     @Default(false) bool isTruncated,
     @Default(null) SnActivityPubActor? boostedBy,
     @Default(null) DateTime? boostedAt,
+    @Default(false) bool sponsored,
     @Default(false) bool isBookmarked,
   }) = _SnPost;
 

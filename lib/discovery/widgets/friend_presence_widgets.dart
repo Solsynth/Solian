@@ -94,6 +94,17 @@ Color _getActivityColor(int type) {
   }
 }
 
+String _resolveActivityStatusKey(int type, bool isActive) {
+  if (!isActive) {
+    return switch (type) {
+      1 => 'presenceTypePlayed',
+      2 => 'presenceTypeListened',
+      _ => kPresenceActivityTypes[type],
+    };
+  }
+  return kPresenceActivityTypes[type];
+}
+
 class _SteamHeroImage extends StatelessWidget {
   final Map<String, dynamic> meta;
 
@@ -302,29 +313,12 @@ class FriendPresenceItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            kPresenceActivityTypes[activity.type],
+                            _resolveActivityStatusKey(activity.type, isActive),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: theme.colorScheme.onTertiaryContainer,
                             ),
                           ).tr(),
                         ),
-                        if (isActive)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'presenceOngoing',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onPrimaryContainer,
-                              ),
-                            ).tr(),
-                          ),
                       ],
                     ),
                   ],

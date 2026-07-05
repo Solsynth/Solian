@@ -650,6 +650,18 @@ class PostItem extends HookConsumerWidget {
             renderingPadding: renderingPadding,
             onPostTap: onPostTap,
           ),
+        if (item.sponsored)
+          Padding(
+            padding: EdgeInsets.only(
+              left: renderingPadding.horizontal,
+              right: renderingPadding.horizontal,
+              bottom: 6,
+            ),
+            child: const Align(
+              alignment: Alignment.centerLeft,
+              child: SponsoredBadge(),
+            ),
+          ),
         PostHeader(
           item: item,
           isFullPost: isFullPost,

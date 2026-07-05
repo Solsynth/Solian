@@ -120,6 +120,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   boostedAt: json['boosted_at'] == null
       ? null
       : DateTime.parse(json['boosted_at'] as String),
+  sponsored: json['sponsored'] as bool? ?? false,
   isBookmarked: json['is_bookmarked'] as bool? ?? false,
 );
 
@@ -181,6 +182,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'is_truncated': instance.isTruncated,
   'boosted_by': instance.boostedBy?.toJson(),
   'boosted_at': instance.boostedAt?.toIso8601String(),
+  'sponsored': instance.sponsored,
   'is_bookmarked': instance.isBookmarked,
 };
 
