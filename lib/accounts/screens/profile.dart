@@ -1359,7 +1359,7 @@ class AccountProfileContent extends HookConsumerWidget {
     Future<void> directMessageAction() async {
       if (!account.hasValue) return;
       if (accountChat.value != null) {
-        context.router.push(ChatRoomRoute(id: accountChat.value!.id));
+        context.router.navigate(ChatRoomRoute(id: accountChat.value!.id));
         return;
       }
       showLoadingModal(context);
