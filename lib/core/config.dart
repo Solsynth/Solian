@@ -83,6 +83,7 @@ const kAppMacosNowPlayingReuseFixedManualId =
 const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
+const kAppDesktopUseSeparateCallWindow = 'app_desktop_use_separate_call_window';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
@@ -343,6 +344,25 @@ class DesktopNowPlayingEnabledNotifier extends Notifier<bool> {
 final desktopNowPlayingEnabledProvider =
     NotifierProvider<DesktopNowPlayingEnabledNotifier, bool>(
       DesktopNowPlayingEnabledNotifier.new,
+    );
+
+class DesktopUseSeparateCallWindowNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppDesktopUseSeparateCallWindow) ?? true;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopUseSeparateCallWindow, value);
+    state = value;
+  }
+}
+
+final desktopUseSeparateCallWindowProvider =
+    NotifierProvider<DesktopUseSeparateCallWindowNotifier, bool>(
+      DesktopUseSeparateCallWindowNotifier.new,
     );
 
 class DesktopRpcServerEnabledNotifier extends Notifier<bool> {

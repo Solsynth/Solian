@@ -48,13 +48,20 @@ Future<bool> pushCallScreenOnce(
   WidgetRef ref,
   SnChatRoom room, {
   bool cameraEnabled = false,
+  bool microphoneEnabled = true,
 }) async {
   if (_isCallScreenActive || _pendingCallScreenRoomId == room.id) return true;
   _pendingCallScreenRoomId = room.id;
   try {
     await ref
         .read(routerProvider)
-        .pushWidget(CallScreen(room: room, cameraEnabled: cameraEnabled));
+        .pushWidget(
+          CallScreen(
+            room: room,
+            cameraEnabled: cameraEnabled,
+            microphoneEnabled: microphoneEnabled,
+          ),
+        );
     return true;
   } finally {
     _pendingCallScreenRoomId = null;

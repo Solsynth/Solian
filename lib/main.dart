@@ -83,7 +83,7 @@ void main(List<String> args) async {
           await windowManager.ensureInitialized();
           final callPrefs = await SharedPreferences.getInstance();
           final savedSize = callPrefs.getString('callWindowSize');
-          Size initialSize = const Size(280, 160);
+          Size initialSize = const Size(1100, 760);
           if (savedSize != null) {
             try {
               final parts = savedSize.split(',');
@@ -97,7 +97,7 @@ void main(List<String> args) async {
           }
           WindowOptions windowOptions = WindowOptions(
             size: initialSize,
-            minimumSize: const Size(200, 120),
+            minimumSize: const Size(720, 520),
             maximumSize: const Size(1200, 900),
             center: true,
             backgroundColor: Colors.transparent,

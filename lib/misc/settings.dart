@@ -964,10 +964,42 @@ class SettingsScreen extends HookConsumerWidget {
             'activity status',
             'music status',
             'media status',
+            'call window',
+            'separate window',
+            'desktop call window',
             'disable presence',
             'turn off presence',
           ],
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Text(
+                'settingsCalls'.tr(),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDesktopUseSeparateCallWindow').tr(),
+              subtitle: Text(
+                'settingsDesktopUseSeparateCallWindowHelper'.tr(),
+              ),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.open_in_new),
+              trailing: Switch(
+                value: ref.watch(desktopUseSeparateCallWindowProvider),
+                onChanged: (value) {
+                  ref
+                      .read(desktopUseSeparateCallWindowProvider.notifier)
+                      .setEnabled(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
+            const Divider(height: 24),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
               child: Text(

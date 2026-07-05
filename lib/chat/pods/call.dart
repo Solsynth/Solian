@@ -123,9 +123,17 @@ class CallNotifier extends _$CallNotifier {
     return _controller!;
   }
 
-  Future<void> joinRoom(SnChatRoom room, {bool cameraEnabled = false}) async {
+  Future<void> joinRoom(
+    SnChatRoom room, {
+    bool cameraEnabled = false,
+    bool microphoneEnabled = true,
+  }) async {
     final ctrl = _ensureController();
-    await ctrl.joinRoom(room, cameraEnabled: cameraEnabled);
+    await ctrl.joinRoom(
+      room,
+      cameraEnabled: cameraEnabled,
+      microphoneEnabled: microphoneEnabled,
+    );
   }
 
   Future<void> ensureMicrophoneEnabled() => _ctrl.ensureMicrophoneEnabled();

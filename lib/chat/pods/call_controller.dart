@@ -96,7 +96,10 @@ class CallController {
     _room!.addListener(_onRoomChange);
     _roomListener!
       ..on<lk.ParticipantConnectedEvent>((e) {
-        _refreshLiveParticipants();
+        _syncLiveParticipants();
+      })
+      ..on<lk.ParticipantDisconnectedEvent>((e) {
+        _syncLiveParticipants();
       })
       ..on<lk.RoomDisconnectedEvent>((e) {
         if (_isManualDisconnect) {
@@ -151,38 +154,7 @@ class CallController {
   }
 
   void _onRoomChange() {
-    _refreshLiveParticipants();
-  }
-
-  void _refreshLiveParticipants() {
-    if (_room == null) return;
-    final remoteParticipants = _room!.remoteParticipants;
-    _participants = [];
-    if (_localParticipant != null) {
-      final localInfo = _buildParticipant();
-      _participants.add(
-        CallParticipantLive(
-          participant: localInfo,
-          remoteParticipant: _localParticipant!,
-        ),
-      );
-    }
-    _participants.addAll(
-      remoteParticipants.values.map((remote) {
-        final match =
-            _participantInfoByIdentity[remote.identity] ??
-            CallParticipant(
-              identity: remote.identity,
-              name: remote.identity,
-              joinedAt: DateTime.now(),
-            );
-        return CallParticipantLive(
-          participant: match,
-          remoteParticipant: remote,
-        );
-      }),
-    );
-    _bumpParticipantSync();
+    _syncLiveParticipants();
   }
 
   CallParticipant _buildParticipant({List<CallParticipant>? participants}) {
@@ -203,17 +175,19 @@ class CallController {
         );
   }
 
-  void _updateLiveParticipants(List<CallParticipant> participants) {
-    for (final p in participants) {
-      _participantInfoByIdentity[p.identity] = p;
+  void _syncLiveParticipants({List<CallParticipant>? participants}) {
+    if (participants != null) {
+      for (final p in participants) {
+        _participantInfoByIdentity[p.identity] = p;
+      }
     }
     if (_room == null) {
       _participants = [];
       _bumpParticipantSync();
       return;
     }
-    final remoteParticipants = _room!.remoteParticipants;
-    final remotes = remoteParticipants.values.toList();
+
+    final remotes = _room!.remoteParticipants.values.toList();
     _participants = [];
     if (_localParticipant != null) {
       final localInfo = _buildParticipant(participants: participants);
@@ -224,28 +198,28 @@ class CallController {
         ),
       );
     }
-    _participants.addAll(
-      participants.map((p) {
-        lk.RemoteParticipant? remote;
-        for (final r in remotes) {
-          if (r.identity == p.identity) {
-            remote = r;
-            break;
-          }
-        }
-        if (_localParticipant != null &&
-            p.identity == _localParticipant!.identity) {
-          return null;
-        }
-        return remote != null
-            ? CallParticipantLive(participant: p, remoteParticipant: remote)
-            : null;
-      }).whereType<CallParticipantLive>(),
-    );
+
+    for (final remote in remotes) {
+      final match =
+          _participantInfoByIdentity[remote.identity] ??
+          CallParticipant(
+            identity: remote.identity,
+            name: remote.identity,
+            joinedAt: DateTime.now(),
+          );
+      _participants.add(
+        CallParticipantLive(participant: match, remoteParticipant: remote),
+      );
+    }
+
     _bumpParticipantSync();
   }
 
-  Future<void> joinRoom(SnChatRoom room, {bool cameraEnabled = false}) async {
+  Future<void> joinRoom(
+    SnChatRoom room, {
+    bool cameraEnabled = false,
+    bool microphoneEnabled = true,
+  }) async {
     var roomId = room.id;
     if (_roomId == roomId &&
         _room != null &&
@@ -278,7 +252,11 @@ class CallController {
       _participants = [];
     }
     try {
-      await _performConnection(room, cameraEnabled: cameraEnabled);
+      await _performConnection(
+        room,
+        cameraEnabled: cameraEnabled,
+        microphoneEnabled: microphoneEnabled,
+      );
     } catch (e) {
       _state = state.copyWith(error: e.toString());
     }
@@ -287,6 +265,7 @@ class CallController {
   Future<void> _performConnection(
     SnChatRoom room, {
     bool cameraEnabled = false,
+    bool microphoneEnabled = true,
   }) async {
     if (!kIsWeb && Platform.isIOS) {
       final micStatus = await Permission.microphone.request();
@@ -341,14 +320,17 @@ class CallController {
       connectOptions: lk.ConnectOptions(autoSubscribe: true),
       roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
       fastConnectOptions: lk.FastConnectOptions(
-        microphone: lk.TrackOption(enabled: true),
+        microphone: lk.TrackOption(enabled: microphoneEnabled),
         camera: lk.TrackOption(enabled: cameraEnabled),
       ),
     );
     _localParticipant = _room!.localParticipant;
+    if (!microphoneEnabled) {
+      await _localParticipant?.setMicrophoneEnabled(false);
+    }
 
     _initRoomListeners();
-    _updateLiveParticipants(participants);
+    _syncLiveParticipants(participants: participants);
     _startConnectionHealthMonitor();
     _reconnectGraceTimer?.cancel();
 
@@ -360,6 +342,8 @@ class CallController {
     _state = state.copyWith(
       isConnected: true,
       isReconnecting: false,
+      isMicrophoneEnabled: microphoneEnabled,
+      isCameraEnabled: cameraEnabled,
       reconnectAttempt: 0,
       hasJoined: true,
       error: null,
@@ -514,6 +498,7 @@ class CallController {
           endpoint: _cachedEndpoint!,
           token: _cachedToken!,
           cameraEnabled: state.isCameraEnabled,
+          microphoneEnabled: state.isMicrophoneEnabled,
         );
         Logger.root.info('[Call] Reconnection successful');
         _reconnectAttempts = 0;
@@ -541,6 +526,7 @@ class CallController {
     required String endpoint,
     required String token,
     bool cameraEnabled = false,
+    bool microphoneEnabled = true,
   }) async {
     if (!kIsWeb && Platform.isIOS) {
       final micStatus = await Permission.microphone.request();
@@ -576,14 +562,17 @@ class CallController {
       connectOptions: lk.ConnectOptions(autoSubscribe: true),
       roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
       fastConnectOptions: lk.FastConnectOptions(
-        microphone: lk.TrackOption(enabled: true),
+        microphone: lk.TrackOption(enabled: microphoneEnabled),
         camera: lk.TrackOption(enabled: cameraEnabled),
       ),
     );
     _localParticipant = _room!.localParticipant;
+    if (!microphoneEnabled) {
+      await _localParticipant?.setMicrophoneEnabled(false);
+    }
 
     _initRoomListeners();
-    _refreshLiveParticipants();
+    _syncLiveParticipants();
     _startConnectionHealthMonitor();
     _reconnectGraceTimer?.cancel();
 
@@ -595,6 +584,8 @@ class CallController {
     _state = state.copyWith(
       isConnected: true,
       isReconnecting: false,
+      isMicrophoneEnabled: microphoneEnabled,
+      isCameraEnabled: cameraEnabled,
       reconnectAttempt: 0,
       hasJoined: true,
       error: null,

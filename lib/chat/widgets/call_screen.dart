@@ -46,7 +46,13 @@ bool _isMemberAlreadyInCall(
 class CallScreen extends HookConsumerWidget {
   final SnChatRoom room;
   final bool cameraEnabled;
-  const CallScreen({super.key, required this.room, this.cameraEnabled = false});
+  final bool microphoneEnabled;
+  const CallScreen({
+    super.key,
+    required this.room,
+    this.cameraEnabled = false,
+    this.microphoneEnabled = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,6 +64,13 @@ class CallScreen extends HookConsumerWidget {
     ref.watch(callProvider.select((state) => state.participantSyncVersion));
     final callNotifier = ref.read(callProvider.notifier);
     final controlsVisible = useState(true);
+    final topOverlayInset = controlsVisible.value ? 84.0 : 0.0;
+    final bottomOverlayInset = controlsVisible.value
+        ? mediaQuery.padding.bottom + 112
+        : 0.0;
+    final toolParticipants = callNotifier.participants
+        .where(isToolCallParticipant)
+        .toList();
 
     useEffect(() {
       // Mark CallScreen as active and hide overlay
@@ -65,7 +78,13 @@ class CallScreen extends HookConsumerWidget {
       hideCallOverlay();
 
       Logger.root.info('[Call] Joining the call...');
-      callNotifier.joinRoom(room, cameraEnabled: cameraEnabled).catchError((_) {
+      callNotifier
+          .joinRoom(
+            room,
+            cameraEnabled: cameraEnabled,
+            microphoneEnabled: microphoneEnabled,
+          )
+          .catchError((_) {
         showConfirmAlert(
           'Seems there already has a call connected, do you want override it?',
           'Call already connected',
@@ -74,7 +93,11 @@ class CallScreen extends HookConsumerWidget {
           Logger.root.info('[Call] Joining the call... with overrides');
           callNotifier.disconnect();
           callNotifier.dispose();
-          callNotifier.joinRoom(room, cameraEnabled: cameraEnabled);
+          callNotifier.joinRoom(
+            room,
+            cameraEnabled: cameraEnabled,
+            microphoneEnabled: microphoneEnabled,
+          );
         });
       });
       return () {
@@ -90,8 +113,12 @@ class CallScreen extends HookConsumerWidget {
 
     useEffect(() {
       if (!isNativeCallAvailable) return null;
-      final sub = ref.listenManual(nativeCallBridgeProvider, (previous, current) {
-        final nativeEnded = current.systemEndedAt != null &&
+      final sub = ref.listenManual(nativeCallBridgeProvider, (
+        previous,
+        current,
+      ) {
+        final nativeEnded =
+            current.systemEndedAt != null &&
             current.systemEndedAt != previous?.systemEndedAt;
         if (!nativeEnded || !context.mounted) return;
         Logger.root.info('[Call] Native/system call ended, leaving CallScreen');
@@ -134,6 +161,7 @@ class CallScreen extends HookConsumerWidget {
 
       // Fetch members if not available
       if (members.isEmpty) {
+        showLoadingModal(context);
         try {
           final apiClient = ref.read(apiClientProvider);
           final resp = await apiClient.get(
@@ -143,7 +171,11 @@ class CallScreen extends HookConsumerWidget {
           members = (resp.data as List)
               .map((e) => SnChatMember.fromJson(e as Map<String, dynamic>))
               .toList();
-        } catch (_) {}
+        } catch (err) {
+          showErrorAlert(err);
+        } finally {
+          if (context.mounted) hideLoadingModal(context);
+        }
       }
 
       final inviteCandidates = members.where((member) {
@@ -207,47 +239,59 @@ class CallScreen extends HookConsumerWidget {
           children: [
             SafeArea(
               bottom: false,
-              child: callState.error != null
-                  ? Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 320),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Symbols.error_outline,
-                              size: 48,
-                              color: Colors.white70,
-                            ),
-                            const Gap(8),
-                            Text(
-                              callState.error!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                            const Gap(10),
-                            TextButton(
-                              onPressed: () {
-                                callNotifier.disconnect();
-                                callNotifier.dispose();
-                                callNotifier.joinRoom(room);
-                              },
-                              child: Text('retry').tr(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        const SizedBox(height: 6),
-                        Expanded(
-                          child: CallContent(
-                            outerMaxHeight: MediaQuery.of(context).size.height,
+              child: AnimatedPadding(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                padding: EdgeInsets.only(
+                  top: topOverlayInset,
+                  bottom: bottomOverlayInset,
+                ),
+                child: callState.error != null
+                    ? Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 320),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Symbols.error_outline,
+                                size: 48,
+                                color: Colors.white70,
+                              ),
+                              const Gap(8),
+                              Text(
+                                callState.error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                              const Gap(10),
+                              TextButton(
+                                onPressed: () {
+                                  callNotifier.disconnect();
+                                  callNotifier.dispose();
+                                  callNotifier.joinRoom(
+                                    room,
+                                    cameraEnabled: cameraEnabled,
+                                    microphoneEnabled: microphoneEnabled,
+                                  );
+                                },
+                                child: Text('retry').tr(),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      )
+                    : Column(
+                        children: [
+                          const SizedBox(height: 6),
+                          Expanded(
+                            child: CallContent(
+                              outerMaxHeight: MediaQuery.of(context).size.height,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 180),
@@ -320,6 +364,27 @@ class CallScreen extends HookConsumerWidget {
                         minHeight: 36,
                       ),
                     ),
+                    if (toolParticipants.isNotEmpty)
+                      IconButton(
+                        onPressed: () => showToolParticipantsSheet(
+                          context,
+                          toolParticipants,
+                        ),
+                        tooltip: 'toolsInCall'.tr(),
+                        icon: Badge.count(
+                          count: toolParticipants.length,
+                          child: const Icon(
+                            Symbols.terminal,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                      ),
                     IconButton(
                       onPressed: inviteToCall,
                       tooltip: 'inviteToCall'.tr(),

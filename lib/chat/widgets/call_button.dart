@@ -11,6 +11,7 @@ import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/call_window.dart';
 import 'package:island/chat/widgets/pending_join_sheet.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -102,6 +103,9 @@ class AudioCallButton extends HookConsumerWidget {
     final nativeBridge = ref.watch(nativeCallBridgeProvider);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
+    final useSeparateCallWindow = ref.watch(
+      desktopUseSeparateCallWindowProvider,
+    );
 
     // ponytail: UI state still comes from Flutter call state.
     // Also check if CallKit already owns this room (lock-screen pickup / phone log path).
@@ -122,12 +126,25 @@ class AudioCallButton extends HookConsumerWidget {
           : 'Voice Call';
     }
 
-    Future<void> openCallScreen({bool cameraEnabled = false}) async {
+    Future<void> openCallScreen({
+      bool cameraEnabled = false,
+      bool microphoneEnabled = true,
+    }) async {
       if (!kIsWeb &&
+          useSeparateCallWindow &&
           (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
-        await createCallWindow(room, cameraEnabled: cameraEnabled);
+        await createCallWindow(
+          room,
+          cameraEnabled: cameraEnabled,
+          microphoneEnabled: microphoneEnabled,
+        );
       } else {
-        await pushCallScreenOnce(ref, room, cameraEnabled: cameraEnabled);
+        await pushCallScreenOnce(
+          ref,
+          room,
+          cameraEnabled: cameraEnabled,
+          microphoneEnabled: microphoneEnabled,
+        );
       }
     }
 
@@ -135,7 +152,9 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         // Show pending join sheet
-        final result = await showModalBottomSheet<({bool cameraEnabled})>(
+        final result = await showModalBottomSheet<
+          ({bool cameraEnabled, bool microphoneEnabled})
+        >(
           context: context,
           useSafeArea: true,
           isScrollControlled: true,
@@ -164,7 +183,10 @@ class AudioCallButton extends HookConsumerWidget {
         }
 
         // Open call screen with camera setting
-        await openCallScreen(cameraEnabled: result.cameraEnabled);
+        await openCallScreen(
+          cameraEnabled: result.cameraEnabled,
+          microphoneEnabled: result.microphoneEnabled,
+        );
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -228,7 +250,9 @@ class AudioCallButton extends HookConsumerWidget {
           isLoading.value = true;
           try {
             // Show pending join sheet
-            final result = await showModalBottomSheet<({bool cameraEnabled})>(
+            final result = await showModalBottomSheet<
+              ({bool cameraEnabled, bool microphoneEnabled})
+            >(
               context: context,
               useSafeArea: true,
               isScrollControlled: true,
@@ -256,7 +280,10 @@ class AudioCallButton extends HookConsumerWidget {
                   .markOutgoingConnecting();
             }
 
-            await openCallScreen(cameraEnabled: result.cameraEnabled);
+            await openCallScreen(
+              cameraEnabled: result.cameraEnabled,
+              microphoneEnabled: result.microphoneEnabled,
+            );
           } catch (e) {
             showErrorAlert(e);
           } finally {

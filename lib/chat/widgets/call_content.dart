@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:collection/collection.dart';
@@ -6,8 +7,74 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+final RegExp _toolParticipantPattern = RegExp(r'^(.+)_tool_([A-Za-z0-9_-]+)$');
+
+class ToolCallParticipantInfo {
+  final String username;
+  final String slug;
+
+  const ToolCallParticipantInfo({required this.username, required this.slug});
+}
+
+ToolCallParticipantInfo? parseToolCallParticipant(
+  CallParticipantLive participant,
+) {
+  final match = _toolParticipantPattern.firstMatch(participant.participant.identity);
+  if (match == null) return null;
+  return ToolCallParticipantInfo(
+    username: match.group(1) ?? '',
+    slug: match.group(2) ?? '',
+  );
+}
+
+bool isToolCallParticipant(CallParticipantLive participant) =>
+    parseToolCallParticipant(participant) != null;
+
+Future<void> showToolParticipantsSheet(
+  BuildContext context,
+  List<CallParticipantLive> toolParticipants,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (ctx) => SheetScaffold(
+      titleText: 'toolsInCall'.tr(),
+      heightFactor: 0.5,
+      child: ListView.separated(
+        itemCount: toolParticipants.length,
+        separatorBuilder: (_, _) => const Divider(height: 1),
+        itemBuilder: (_, index) {
+          final live = toolParticipants[index];
+          final info = parseToolCallParticipant(live);
+          final title = info != null && info.username.isNotEmpty
+              ? info.username
+              : live.participant.name.isNotEmpty
+              ? live.participant.name
+              : 'unknownToolParticipant'.tr();
+          final subtitle = info == null
+              ? live.participant.identity
+              : '${info.slug} • ${live.participant.identity}';
+          return ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Symbols.terminal, size: 18),
+            ),
+            title: Text(title),
+            subtitle: Text(subtitle),
+            trailing: live.remoteParticipant.isSpeaking
+                ? const Icon(Symbols.graph_3, size: 18)
+                : null,
+          );
+        },
+      ),
+    ),
+  );
+}
 
 bool _hasActiveVideo(CallParticipantLive participant) {
   return participant.hasVideo &&
@@ -128,7 +195,9 @@ class CallContent extends HookConsumerWidget {
     final callNotifier = ref.read(callProvider.notifier);
     final viewMode = callState.viewMode;
 
-    final participants = callNotifier.participants;
+    final participants = callNotifier.participants
+        .where((participant) => !isToolCallParticipant(participant))
+        .toList();
     final hasRenderableCall =
         participants.isNotEmpty || callState.hasJoined || callState.isReconnecting;
 

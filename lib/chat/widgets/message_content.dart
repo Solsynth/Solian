@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:island/chat/e2ee_message_display.dart';
@@ -600,55 +599,53 @@ class _VoiceMessageContent extends HookConsumerWidget {
           Expanded(
             child: Row(
               children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 28,
-                    child: _VoiceWaveformProgress(
-                      bars: waveformBars.value,
-                      progress: (shownPosition.inMilliseconds / totalMs).clamp(
-                        0.0,
-                        1.0,
-                      ),
-                      onSeekStart: mediaUrl == null
-                          ? null
-                          : (ratio) {
-                              isScrubbing.value = true;
-                              scrubPosition.value = Duration(
-                                milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
-                                    .toInt(),
-                              );
-                            },
-                      onSeekUpdate: mediaUrl == null
-                          ? null
-                          : (ratio) {
-                              isScrubbing.value = true;
-                              scrubPosition.value = Duration(
-                                milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
-                                    .toInt(),
-                              );
-                            },
-                      onSeekEnd: mediaUrl == null
-                          ? null
-                          : () async {
-                              await ensureLoaded();
-                              await player.seek(scrubPosition.value);
-                              isScrubbing.value = false;
-                            },
+                SizedBox(
+                  height: 28,
+                  width: 180,
+                  child: _VoiceWaveformProgress(
+                    bars: waveformBars.value,
+                    progress: (shownPosition.inMilliseconds / totalMs).clamp(
+                      0.0,
+                      1.0,
                     ),
+                    onSeekStart: mediaUrl == null
+                        ? null
+                        : (ratio) {
+                            isScrubbing.value = true;
+                            scrubPosition.value = Duration(
+                              milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                                  .toInt(),
+                            );
+                          },
+                    onSeekUpdate: mediaUrl == null
+                        ? null
+                        : (ratio) {
+                            isScrubbing.value = true;
+                            scrubPosition.value = Duration(
+                              milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                                  .toInt(),
+                            );
+                          },
+                    onSeekEnd: mediaUrl == null
+                        ? null
+                        : () async {
+                            await ensureLoaded();
+                            await player.seek(scrubPosition.value);
+                            isScrubbing.value = false;
+                          },
                   ),
                 ),
                 const Gap(8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 72),
+                Flexible(
+                  flex: 1,
                   child: Text(
                     '${_formatSeconds(shownPosition)} / ${_formatSeconds(total)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.right,
-                    style: GoogleFonts.robotoMono(
+                    style: TextStyle(
                       fontSize: 11,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
@@ -740,6 +737,7 @@ class _VoiceWaveformProgress extends StatelessWidget {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: List.generate(barCount, (index) {
                 final normalized = waveform[index].clamp(0.12, 1.0);

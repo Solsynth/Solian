@@ -15,7 +15,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 /// - Confirm to join
 class PendingJoinSheet extends HookConsumerWidget {
   final SnChatRoom room;
-  final ValueChanged<({bool cameraEnabled})> onJoin;
+  final ValueChanged<({bool cameraEnabled, bool microphoneEnabled})> onJoin;
 
   const PendingJoinSheet({
     super.key,
@@ -26,6 +26,7 @@ class PendingJoinSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cameraEnabled = useState(false);
+    final microphoneEnabled = useState(true);
     final participants = ref.watch(activeCallParticipantsProvider(room.id));
 
     return SheetScaffold(
@@ -41,14 +42,19 @@ class PendingJoinSheet extends HookConsumerWidget {
                 Row(
                   children: [
                     Icon(
-                      cameraEnabled.value ? Symbols.videocam : Symbols.videocam_off,
+                      cameraEnabled.value
+                          ? Symbols.videocam
+                          : Symbols.videocam_off,
                       color: cameraEnabled.value
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text('Camera', style: Theme.of(context).textTheme.bodyLarge),
+                      child: Text(
+                        'Camera',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                     Switch(
                       value: cameraEnabled.value,
@@ -58,12 +64,23 @@ class PendingJoinSheet extends HookConsumerWidget {
                 ),
                 Row(
                   children: [
-                    Icon(Symbols.mic, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      microphoneEnabled.value ? Symbols.mic : Symbols.mic_off,
+                      color: microphoneEnabled.value
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text('Microphone', style: Theme.of(context).textTheme.bodyLarge),
+                      child: Text(
+                        'Microphone',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
-                    Icon(Symbols.check_circle, color: Theme.of(context).colorScheme.primary, size: 20),
+                    Switch(
+                      value: microphoneEnabled.value,
+                      onChanged: (v) => microphoneEnabled.value = v,
+                    ),
                   ],
                 ),
               ],
@@ -144,7 +161,10 @@ class PendingJoinSheet extends HookConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: FilledButton.icon(
-                onPressed: () => onJoin((cameraEnabled: cameraEnabled.value)),
+                onPressed: () => onJoin((
+                  cameraEnabled: cameraEnabled.value,
+                  microphoneEnabled: microphoneEnabled.value,
+                )),
                 icon: const Icon(Symbols.call),
                 label: const Text('Join Call'),
                 style: FilledButton.styleFrom(
