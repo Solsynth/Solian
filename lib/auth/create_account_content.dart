@@ -809,7 +809,7 @@ class CreateAccountContent extends HookConsumerWidget {
           } else {
             // Existing user, switch to login
             showSnackBar('Account already exists. Redirecting to login.');
-            if (context.mounted) context.router.push(const LoginRoute());
+            if (context.mounted) context.router.push(LoginRoute());
           }
         } catch (err) {
           showErrorAlert(err);
@@ -975,7 +975,7 @@ class _PostCreateModal extends HookConsumerWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.router.replace(const LoginRoute());
+                context.router.replace(LoginRoute());
               },
               child: Text('login'.tr()),
             ),

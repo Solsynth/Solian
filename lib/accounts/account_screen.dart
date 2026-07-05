@@ -420,7 +420,7 @@ class _UnauthorizedAccountScreen extends HookConsumerWidget {
                 child: InkWell(
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                   onTap: () {
-                    context.router.push(const LoginRoute());
+                    context.router.push(LoginRoute());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(16),
