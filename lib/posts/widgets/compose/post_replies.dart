@@ -6,6 +6,14 @@ import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+typedef PostRepliesQuery = ({String postId, String? order, bool orderDesc});
+
+PostRepliesQuery postRepliesQuery(
+  String postId, {
+  String? order,
+  bool orderDesc = true,
+}) => (postId: postId, order: order, orderDesc: orderDesc);
+
 final postRepliesProvider = AsyncNotifierProvider.autoDispose.family(
   PostRepliesNotifier.new,
 );
@@ -14,16 +22,18 @@ class PostRepliesNotifier extends AsyncNotifier<PaginationState<SnPost>>
     with AsyncPaginationController<SnPost> {
   static const int pageSize = 20;
 
-  final String arg;
+  final PostRepliesQuery arg;
   PostRepliesNotifier(this.arg);
 
   @override
   Future<List<SnPost>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
     final result = await client.sphere.getPostReplies(
-      postId: arg,
+      postId: arg.postId,
       offset: fetchedCount,
       take: pageSize,
+      order: arg.order,
+      orderDesc: arg.orderDesc,
     );
     totalCount = result.totalCount;
     return result.items;
@@ -44,18 +54,24 @@ class PostRepliesNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
 class PostRepliesList extends HookConsumerWidget {
   final String postId;
+  final String? order;
+  final bool orderDesc;
   final double? maxWidth;
   final VoidCallback? onOpen;
   const PostRepliesList({
     super.key,
     required this.postId,
+    this.order,
+    this.orderDesc = true,
     this.maxWidth,
     this.onOpen,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postRepliesProvider(postId);
+    final provider = postRepliesProvider(
+      postRepliesQuery(postId, order: order, orderDesc: orderDesc),
+    );
     final notifier = ref.read(provider.notifier);
 
     final skeletonItem = Padding(
@@ -77,8 +93,15 @@ class PostRepliesList extends HookConsumerWidget {
               ),
             ),
       itemBuilder: (context, index, item) {
+        final theme = Theme.of(context);
         final contentWidget = Card(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          elevation: 0,
+          color: theme.colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: theme.dividerColor.withOpacity(0.45)),
+          ),
           child: PostActionableItem(
             borderRadius: 8,
             item: item,

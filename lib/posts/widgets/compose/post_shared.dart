@@ -262,16 +262,12 @@ Widget _buildBlogPreviewCard(
             if (title?.isNotEmpty ?? false)
               Text(
                 title!,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
               ),
             if (description?.isNotEmpty ?? false)
-              Text(
-                description!,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(description!, style: Theme.of(context).textTheme.bodyMedium),
             if (host.isNotEmpty)
               Row(
                 children: [
@@ -292,10 +288,8 @@ Widget _buildBlogPreviewCard(
                     child: Text(
                       host,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -479,12 +473,28 @@ class RepliesNotifier extends _$RepliesNotifier {
 Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await client.dio.get('/sphere/posts/$id/replies/featured');
-    return SnPost.fromJson(resp.data);
+    final result = await client.sphere.getPostReplies(
+      postId: id,
+      take: 1,
+      order: 'popularity',
+    );
+    if (result.items.isEmpty) return null;
+    return result.items.first;
   } catch (_) {
     return null;
   }
 }
+
+final postRepliesPreviewProvider = FutureProvider.autoDispose
+    .family<List<SnPost>, String>((ref, id) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      final result = await client.sphere.getPostReplies(
+        postId: id,
+        take: 3,
+        order: 'popularity',
+      );
+      return result.items;
+    });
 
 class PostVisibilityHelpers {
   static IconData getVisibilityIcon(int visibility) {
@@ -844,9 +854,9 @@ class PostReplyPreview extends HookConsumerWidget {
       return null;
     }, [parent]);
 
-    final featuredReply = isOpenable
+    final previewReplies = isOpenable
         ? null
-        : ref.watch(postFeaturedReplyProvider(parent.id));
+        : ref.watch(postRepliesPreviewProvider(parent.id));
 
     Widget buildReplyNode(
       ThreadedReplyNode node,
@@ -976,52 +986,63 @@ class PostReplyPreview extends HookConsumerWidget {
                   ),
               ],
             )
-          : (featuredReply!).map(
+          : (previewReplies!).map(
               data: (data) => ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        if (data.value != null)
+                    for (final post in data.value) ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 8,
+                        children: [
                           _buildProfilePicture(
                             context,
-                            data.value!,
+                            post,
                             radius: 12,
                           ).padding(top: 4),
-                        if (data.value?.content?.isNotEmpty ?? false)
-                          Expanded(
-                            child: MarkdownTextContent(
-                              content: _convertContentToMarkdown(data.value!),
-                              attachments: data.value!.attachments,
+                          if (post.content?.isNotEmpty ?? false)
+                            Expanded(
+                              child: MarkdownTextContent(
+                                content: _convertContentToMarkdown(post),
+                                attachments: post.attachments,
+                                noMentionChip: post.fediverseUri != null,
+                              ),
+                            )
+                          else if (post.attachments.isNotEmpty)
+                            Expanded(
+                              child: _buildAttachmentPreview(
+                                context,
+                                post.attachments,
+                              ).padding(bottom: 4),
+                            )
+                          else
+                            Expanded(
+                              child: Text(
+                                'postHasAttachments',
+                              ).plural(post.attachments.length),
                             ),
-                          )
-                        else if (data.value?.attachments.isNotEmpty ?? false)
-                          Expanded(
-                            child: _buildAttachmentPreview(
-                              context,
-                              data.value!.attachments,
-                            ).padding(bottom: 4),
-                          )
-                        else
-                          Expanded(
-                            child: Text(
-                              'postHasAttachments',
-                            ).plural(data.value?.attachments.length ?? 0),
+                        ],
+                      ),
+                      if (post.reactionsCount.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: _buildCompactReactions(
+                            context,
+                            ref,
+                            post.reactionsCount,
                           ),
-                      ],
-                    ),
-                    if (data.value?.reactionsCount.isNotEmpty ?? false)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32),
-                        child: _buildCompactReactions(
-                          context,
-                          ref,
-                          data.value!.reactionsCount,
                         ),
+                      if (post.id != data.value.last.id) const Gap(8),
+                    ],
+                    if (parent.repliesCount > data.value.length)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'repliesLoadMore',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ).opacity(0.8),
                       ),
                   ],
                 ),
@@ -1286,14 +1307,17 @@ class ReferencedPostWidget extends HookConsumerWidget {
                       child: referencePost.type == 1
                           ? _buildArticlePreviewCard(context, referencePost)
                           : referencePost.type == 2
-                              ? _buildBlogPreviewCard(context, referencePost)
-                              : Builder(
+                          ? _buildBlogPreviewCard(context, referencePost)
+                          : Builder(
                               builder: (context) {
                                 final referenceContent =
                                     _convertContentToMarkdown(referencePost);
                                 final shouldTruncateReferenceBody =
-                                    (referencePost.content?.isNotEmpty ?? false) &&
-                                    _shouldClampRegularPostBody(referenceContent);
+                                    (referencePost.content?.isNotEmpty ??
+                                        false) &&
+                                    _shouldClampRegularPostBody(
+                                      referenceContent,
+                                    );
                                 final referencePreviewContent =
                                     shouldTruncateReferenceBody
                                     ? _truncateRegularPostBody(referenceContent)
@@ -1304,7 +1328,8 @@ class ReferencedPostWidget extends HookConsumerWidget {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (referencePost.title?.isNotEmpty ?? false)
+                                    if (referencePost.title?.isNotEmpty ??
+                                        false)
                                       Text(
                                         referencePost.title!,
                                         style: TextStyle(
@@ -1328,10 +1353,13 @@ class ReferencedPostWidget extends HookConsumerWidget {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ).padding(bottom: 4),
-                                    if (referencePost.content?.isNotEmpty ?? false)
+                                    if (referencePost.content?.isNotEmpty ??
+                                        false)
                                       MarkdownTextContent(
                                         content: referencePreviewContent,
-                                        textStyle: const TextStyle(fontSize: 14),
+                                        textStyle: const TextStyle(
+                                          fontSize: 14,
+                                        ),
                                         isSelectable: false,
                                         linesMargin: referencePost.type == 0
                                             ? const EdgeInsets.only(bottom: 4)
@@ -1344,7 +1372,10 @@ class ReferencedPostWidget extends HookConsumerWidget {
                                         shouldTruncateReferenceBody)
                                       const PostTruncateHint(
                                         isCompact: true,
-                                        margin: EdgeInsets.only(top: 4, bottom: 4),
+                                        margin: EdgeInsets.only(
+                                          top: 4,
+                                          bottom: 4,
+                                        ),
                                       ),
                                     if (referencePost.attachments.isNotEmpty)
                                       CloudFileList(
@@ -1983,7 +2014,8 @@ class PostBody extends ConsumerWidget {
               ],
             ),
           ),
-        if ((item.isTruncated && item.type != 1 && item.type != 2) || shouldClampRegularBody)
+        if ((item.isTruncated && item.type != 1 && item.type != 2) ||
+            shouldClampRegularBody)
           PostTruncateHint(
             isCompact: true,
             withArrow: isInteractive,
@@ -1994,7 +2026,10 @@ class PostBody extends ConsumerWidget {
               right: renderingPadding.horizontal,
             ),
           ),
-        if (item.attachments.isNotEmpty && item.type != 1 && item.type != 2 && !hideAttachments)
+        if (item.attachments.isNotEmpty &&
+            item.type != 1 &&
+            item.type != 2 &&
+            !hideAttachments)
           CloudFileList(
             files: item.attachments,
             sourcePost: item,

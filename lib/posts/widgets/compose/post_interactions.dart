@@ -554,7 +554,7 @@ class PostRepliesListNonSliver extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postRepliesProvider(postId);
+    final provider = postRepliesProvider(postRepliesQuery(postId));
     final notifier = ref.read(provider.notifier);
 
     final skeletonItem = Padding(
@@ -709,7 +709,7 @@ class PostRepliesListSliver extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = postRepliesProvider(postId);
+    final provider = postRepliesProvider(postRepliesQuery(postId));
     final notifier = ref.read(provider.notifier);
 
     final skeletonItem = Padding(

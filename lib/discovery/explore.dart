@@ -1936,7 +1936,11 @@ class _TimelineDetailPane extends HookConsumerWidget {
                         onRefresh: () async {
                           ref.invalidate(postProvider(postId));
                           ref
-                              .read(postRepliesProvider(postId).notifier)
+                              .read(
+                                postRepliesProvider(
+                                  postRepliesQuery(postId),
+                                ).notifier,
+                              )
                               .refresh();
                         },
                         onUpdate: (newPost) {
@@ -1946,7 +1950,11 @@ class _TimelineDetailPane extends HookConsumerWidget {
                         },
                         onReplyPosted: () {
                           ref
-                              .read(postRepliesProvider(postId).notifier)
+                              .read(
+                                postRepliesProvider(
+                                  postRepliesQuery(postId),
+                                ).notifier,
+                              )
                               .refresh();
                         },
                         threadSection:
@@ -1969,7 +1977,11 @@ class _TimelineDetailPane extends HookConsumerWidget {
                               onRefresh: () {
                                 ref.invalidate(postProvider(postId));
                                 ref
-                                    .read(postRepliesProvider(postId).notifier)
+                                    .read(
+                                      postRepliesProvider(
+                                        postRepliesQuery(postId),
+                                      ).notifier,
+                                    )
                                     .refresh();
                               },
                               onUpdate: (newPost) {

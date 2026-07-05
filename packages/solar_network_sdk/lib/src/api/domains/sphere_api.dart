@@ -396,10 +396,17 @@ class SphereApi extends BaseApi {
     required String postId,
     int offset = 0,
     int take = 20,
+    String? order,
+    bool orderDesc = true,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts/$postId/replies',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        'order': ?order,
+        'orderDesc': orderDesc,
+      },
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPost.fromJson);

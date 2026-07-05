@@ -1946,7 +1946,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                       parent: post,
                       onPosted: () {
                         ref
-                            .read(postRepliesProvider(postId).notifier)
+                            .read(
+                              postRepliesProvider(
+                                postRepliesQuery(postId),
+                              ).notifier,
+                            )
                             .refresh();
                       },
                     ),
@@ -2450,7 +2454,11 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
                               parent: post,
                               onPosted: () {
                                 ref
-                                    .read(postRepliesProvider(postId).notifier)
+                                    .read(
+                                      postRepliesProvider(
+                                        postRepliesQuery(postId),
+                                      ).notifier,
+                                    )
                                     .refresh();
                               },
                             ),
@@ -2692,7 +2700,11 @@ class PostDetailScreen extends HookConsumerWidget {
                   );
                   if (result != null) {
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   }
                 };
               case 'delete':
@@ -2713,7 +2725,11 @@ class PostDetailScreen extends HookConsumerWidget {
                           .then((_) {
                             ref.invalidate(postProvider(id));
                             ref
-                                .read(postRepliesProvider(id).notifier)
+                                .read(
+                                  postRepliesProvider(
+                                    postRepliesQuery(id),
+                                  ).notifier,
+                                )
                                 .refresh();
                           });
                     }
@@ -2735,7 +2751,11 @@ class PostDetailScreen extends HookConsumerWidget {
                   );
                   if (result != null) {
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   }
                 };
               case 'forward':
@@ -2748,7 +2768,11 @@ class PostDetailScreen extends HookConsumerWidget {
                   );
                   if (result != null) {
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   }
                 };
               case 'pin':
@@ -2802,7 +2826,11 @@ class PostDetailScreen extends HookConsumerWidget {
                     if (context.mounted) showLoadingModal(context);
                     await client.sphere.boostPost(postItem.id);
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   } catch (err) {
                     showErrorAlert(err);
                   } finally {
@@ -2842,7 +2870,11 @@ class PostDetailScreen extends HookConsumerWidget {
                       currentlyBookmarked: postItem.isBookmarked,
                     );
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   } catch (err) {
                     showErrorAlert(err);
                   }
@@ -2969,7 +3001,11 @@ class PostDetailScreen extends HookConsumerWidget {
                 ExtendedRefreshIndicator(
                   onRefresh: () async {
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   },
                   child: postItem.type == 2
                       ? _BlogPostDetailLayout(
@@ -2985,7 +3021,11 @@ class PostDetailScreen extends HookConsumerWidget {
                           onRefresh: () {
                             ref.invalidate(postProvider(id));
                             ref
-                                .read(postRepliesProvider(id).notifier)
+                                .read(
+                                  postRepliesProvider(
+                                    postRepliesQuery(id),
+                                  ).notifier,
+                                )
                                 .refresh();
                           },
                           onUpdate: (newItem) {
@@ -3005,7 +3045,11 @@ class PostDetailScreen extends HookConsumerWidget {
                           onRefresh: () {
                             ref.invalidate(postProvider(id));
                             ref
-                                .read(postRepliesProvider(id).notifier)
+                                .read(
+                                  postRepliesProvider(
+                                    postRepliesQuery(id),
+                                  ).notifier,
+                                )
                                 .refresh();
                           },
                           onTranslate: translatePost,
@@ -3020,7 +3064,11 @@ class PostDetailScreen extends HookConsumerWidget {
                   trailing: trailing,
                   onRefresh: () async {
                     ref.invalidate(postProvider(id));
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   },
                   onUpdate: (newItem) {
                     ref
@@ -3028,7 +3076,11 @@ class PostDetailScreen extends HookConsumerWidget {
                         .updatePost(newItem);
                   },
                   onReplyPosted: () {
-                    ref.read(postRepliesProvider(id).notifier).refresh();
+                    ref
+                        .read(
+                          postRepliesProvider(postRepliesQuery(id)).notifier,
+                        )
+                        .refresh();
                   },
                   threadSection:
                       postItem.repliedPostId != null ||
@@ -3048,7 +3100,11 @@ class PostDetailScreen extends HookConsumerWidget {
                     ),
                     onRefresh: () {
                       ref.invalidate(postProvider(id));
-                      ref.read(postRepliesProvider(id).notifier).refresh();
+                      ref
+                          .read(
+                            postRepliesProvider(postRepliesQuery(id)).notifier,
+                          )
+                          .refresh();
                     },
                     onUpdate: (newItem) {
                       ref
