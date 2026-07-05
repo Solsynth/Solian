@@ -1,22 +1,17 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/auth/models/authorize_client_info.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-const _scopeLabels = <String, String>{
-  'openid': 'Read your Solarpass profile',
-  'profile': 'Read your public profile information',
-  'email': 'Read your email address',
-  'offline_access': "Access your account when you're not logged in",
-  '*': 'Full access: this app can do anything as you',
-};
 
 @RoutePage()
 class AuthorizeScreen extends ConsumerStatefulWidget {
@@ -40,7 +35,7 @@ class AuthorizeScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
-  Map<String, dynamic>? _clientInfo;
+  AuthorizeClientInfo? _clientInfo;
   bool _loading = true;
   bool _submitting = false;
   String? _error;
@@ -67,7 +62,9 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
         queryParameters: _queryParams,
       );
       setState(() {
-        _clientInfo = Map<String, dynamic>.from(resp.data as Map);
+        _clientInfo = AuthorizeClientInfo.fromJson(
+          Map<String, dynamic>.from(resp.data as Map),
+        );
         _loading = false;
       });
     } on DioException catch (e) {
@@ -98,9 +95,15 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
         options: Options(contentType: 'application/x-www-form-urlencoded'),
       );
       final data = Map<String, dynamic>.from(resp.data as Map);
-      final redirectUri = data['redirectUri'] as String?;
+      final redirectUri = _readStringFrom(data, const [
+        'redirectUri',
+        'redirect_uri',
+      ]);
       if (redirectUri != null && redirectUri.isNotEmpty) {
-        await launchUrlString(redirectUri, mode: LaunchMode.externalApplication);
+        await launchUrlString(
+          redirectUri,
+          mode: LaunchMode.externalApplication,
+        );
       }
       if (mounted) Navigator.of(context).pop();
     } on DioException catch (e) {
@@ -116,8 +119,16 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
     }
   }
 
-  String? _fileUrl(Map<String, dynamic>? obj) {
-    final id = obj?['id'] as String?;
+  String? _readStringFrom(Map<String, dynamic>? source, List<String> keys) {
+    if (source == null) return null;
+    for (final key in keys) {
+      final value = source[key];
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+    }
+    return null;
+  }
+
+  String? _fileUrl(String? id) {
     if (id == null || id.isEmpty) return null;
     final serverUrl = ref.read(serverUrlProvider);
     return '$serverUrl/drive/files/$id';
@@ -125,227 +136,522 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final user = ref.watch(userInfoProvider).value;
-    final clientName = _clientInfo?['clientName'] as String? ?? 'Unknown App';
-    final scopes = (_clientInfo?['scopes'] as List?)?.cast<String>() ?? [];
-    final clientPicture = _fileUrl(
-      _clientInfo?['picture'] as Map<String, dynamic>?,
-    );
-    final userPicture = _fileUrl(user?.profile.picture?.toJson());
+    final clientName = _clientInfo?.clientName ?? 'Unknown App';
+    final homeUri = _clientInfo?.homeUri;
+    final description = _clientInfo?.description;
+    final scopes = _clientInfo?.scopes ?? const <String>[];
+    final clientPicture = _fileUrl(_clientInfo?.picture?.id);
+    final userPicture = _fileUrl(user?.profile.picture?.id);
+    final useTwoPaneLayout = context.isTwoPaneScreen;
+    final pagePadding = context.responsivePagePadding;
+    final sectionGap = context.responsiveSectionGap;
 
     return AppScaffold(
+      isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
-        title: const Text('Authorize App'),
+        title: Text('authorizeAppTitle').tr(),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // User account card
-                  if (user != null)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 22,
-                              backgroundImage: userPicture != null
-                                  ? NetworkImage(userPicture)
-                                  : null,
-                              child: userPicture == null
-                                  ? const Icon(Symbols.person)
-                                  : null,
+          : _clientInfo == null
+          ? _AuthorizeLoadFailedState(error: _error)
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final content = useTwoPaneLayout
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 11,
+                            child: _AuthorizeIntroPanel(
+                              user: user,
+                              userPicture: userPicture,
+                              clientName: clientName,
+                              description: description,
+                              sectionGap: sectionGap,
                             ),
-                            const Gap(12),
+                          ),
+                          Gap(sectionGap),
+                          Expanded(
+                            flex: 10,
+                            child: _AuthorizeDecisionPanel(
+                              clientName: clientName,
+                              clientPicture: clientPicture,
+                              homeUri: homeUri,
+                              scopes: scopes,
+                              error: _error,
+                              submitting: _submitting,
+                              onApprove: () => _submitDecision(true),
+                              onDeny: () => _submitDecision(false),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _AuthorizeIntroPanel(
+                            user: user,
+                            userPicture: userPicture,
+                            clientName: clientName,
+                            description: description,
+                            sectionGap: sectionGap,
+                          ),
+                          Gap(sectionGap),
+                          _AuthorizeDecisionPanel(
+                            clientName: clientName,
+                            clientPicture: clientPicture,
+                            homeUri: homeUri,
+                            scopes: scopes,
+                            error: _error,
+                            submitting: _submitting,
+                            onApprove: () => _submitDecision(true),
+                            onDeny: () => _submitDecision(false),
+                          ),
+                        ],
+                      );
+
+                return SingleChildScrollView(
+                  padding: EdgeInsets.all(pagePadding),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - pagePadding * 2,
+                      ),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: useTwoPaneLayout ? 1100 : null,
+                          child: IntrinsicHeight(child: content),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class _AuthorizeLoadFailedState extends StatelessWidget {
+  final String? error;
+
+  const _AuthorizeLoadFailedState({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(context.responsivePagePadding),
+        child: Card(
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: colorScheme.errorContainer,
+                  child: Icon(
+                    Symbols.error,
+                    color: colorScheme.onErrorContainer,
+                    size: 30,
+                  ),
+                ),
+                const Gap(16),
+                Text(
+                  'authorizeAppFailedTitle'.tr(),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Gap(8),
+                Text(
+                  error ?? 'authorizeAppFailedDescription'.tr(),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthorizeIntroPanel extends StatelessWidget {
+  final dynamic user;
+  final String? userPicture;
+  final String clientName;
+  final String? description;
+  final double sectionGap;
+
+  const _AuthorizeIntroPanel({
+    required this.user,
+    required this.userPicture,
+    required this.clientName,
+    required this.description,
+    required this.sectionGap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: Padding(
+        padding: EdgeInsets.all(context.isDesktopScreen ? 28 : 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                Symbols.shield_lock,
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ),
+            Gap(sectionGap),
+            Text(
+              'authorizeAppGrantAccess'.tr(),
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const Gap(10),
+            Text(
+              'authorizeAppReviewHint'.tr(args: [clientName]),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (description != null) ...[
+              const Gap(16),
+              Text(
+                description!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            Gap(sectionGap),
+            if (user != null)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: colorScheme.outlineVariant),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundImage: userPicture != null
+                          ? NetworkImage(userPicture!)
+                          : null,
+                      child: userPicture == null
+                          ? const Icon(Symbols.person)
+                          : null,
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.nick.isNotEmpty ? user.nick : user.name,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Gap(2),
+                          Text(
+                            '@${user.name}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthorizeDecisionPanel extends StatelessWidget {
+  final String clientName;
+  final String? clientPicture;
+  final String? homeUri;
+  final List<String> scopes;
+  final String? error;
+  final bool submitting;
+  final VoidCallback onApprove;
+  final VoidCallback onDeny;
+
+  const _AuthorizeDecisionPanel({
+    required this.clientName,
+    required this.clientPicture,
+    required this.homeUri,
+    required this.scopes,
+    required this.error,
+    required this.submitting,
+    required this.onApprove,
+    required this.onDeny,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final wideButtons = !context.isCompactScreen;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: Padding(
+        padding: EdgeInsets.all(context.isDesktopScreen ? 28 : 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundImage: clientPicture != null
+                      ? NetworkImage(clientPicture!)
+                      : null,
+                  child: clientPicture == null
+                      ? const Icon(Symbols.extension, size: 28)
+                      : null,
+                ),
+                const Gap(14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        clientName,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        'authorizeAppWantsAccess'.tr(),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (homeUri != null) ...[
+              const Gap(12),
+              Text(
+                homeUri!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+            const Gap(20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.shield,
+                        size: 18,
+                        color: colorScheme.primary,
+                      ),
+                      const Gap(8),
+                      Text(
+                        'authorizeAppRequestedPermissions'.tr(),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(12),
+                  if (scopes.isEmpty)
+                    Text(
+                      'authorizeAppNoScopes'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  else
+                    ...scopes.map(
+                      (scope) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              scope == '*'
+                                  ? Symbols.warning
+                                  : Symbols.check_circle,
+                              size: 18,
+                              color: scope == '*'
+                                  ? Colors.orange
+                                  : Colors.green,
+                            ),
+                            const Gap(8),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    user.nick.isNotEmpty ? user.nick : user.name,
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '@${user.name}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                _humanizeScope(scope).tr(),
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  const Gap(24),
-
-                  // Client info
-                  Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundImage: clientPicture != null
-                            ? NetworkImage(clientPicture)
-                            : null,
-                        child: clientPicture == null
-                            ? const Icon(Symbols.extension, size: 28)
-                            : null,
-                      ),
-                      const Gap(12),
-                      Text(
-                        clientName,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        'wants access to your account',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Gap(24),
-
-                  // Permissions
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Symbols.shield,
-                                size: 18,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const Gap(8),
-                              Text(
-                                'Requested permissions',
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(12),
-                          if (scopes.isEmpty)
-                            Text(
-                              'No explicit scopes provided.',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            )
-                          else
-                            ...scopes.map(
-                              (s) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      s == '*'
-                                          ? Symbols.warning
-                                          : Symbols.check_circle,
-                                      size: 18,
-                                      color: s == '*'
-                                          ? Colors.orange
-                                          : Colors.green,
-                                    ),
-                                    const Gap(8),
-                                    Expanded(
-                                      child: Text(
-                                        _scopeLabels[s] ?? s,
-                                        style: theme.textTheme.bodyMedium,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Gap(16),
-
-                  // Error
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Card(
-                        color: theme.colorScheme.errorContainer,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.error,
-                                color: theme.colorScheme.onErrorContainer,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  _error!,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.onErrorContainer,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: _submitting
-                              ? null
-                              : () => _submitDecision(true),
-                          icon: _submitting
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Symbols.check),
-                          label: const Text('Authorize'),
-                        ),
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _submitting
-                              ? null
-                              : () => _submitDecision(false),
-                          icon: const Icon(Symbols.close),
-                          label: const Text('Deny'),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
+            if (error != null) ...[
+              const Gap(16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Symbols.error, color: colorScheme.onErrorContainer),
+                    const Gap(8),
+                    Expanded(
+                      child: Text(
+                        error!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const Gap(20),
+            if (wideButtons)
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: submitting ? null : onApprove,
+                      icon: submitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Symbols.check),
+                      label: Text('authorizeAppApprove').tr(),
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: submitting ? null : onDeny,
+                      icon: const Icon(Symbols.close),
+                      label: Text('authorizeAppDeny').tr(),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton.icon(
+                    onPressed: submitting ? null : onApprove,
+                    icon: submitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Symbols.check),
+                    label: Text('authorizeAppApprove').tr(),
+                  ),
+                  const Gap(12),
+                  OutlinedButton.icon(
+                    onPressed: submitting ? null : onDeny,
+                    icon: const Icon(Symbols.close),
+                    label: Text('authorizeAppDeny').tr(),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
     );
+  }
+}
+
+String _humanizeScope(String scope) {
+  switch (scope) {
+    case 'account.connections':
+      return 'authorizeScopeAccountConnections';
+    case 'posts.create':
+      return 'authorizeScopePostsCreate';
+    case 'posts.react':
+      return 'authorizeScopePostsReact';
+    case 'posts.create.blog':
+      return 'authorizeScopePostsCreateBlog';
+    case 'notifications.push':
+      return 'authorizeScopeNotificationsPush';
+    case 'openid':
+      return 'authorizeScopeOpenId';
+    case 'profile':
+      return 'authorizeScopeProfile';
+    case 'email':
+      return 'authorizeScopeEmail';
+    case 'offline_access':
+      return 'authorizeScopeOfflineAccess';
+    case '*':
+      return 'authorizeScopeAll';
+    default:
+      return scope;
   }
 }
