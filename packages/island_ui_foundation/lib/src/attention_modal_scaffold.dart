@@ -107,62 +107,82 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
       ],
     );
 
-    if (!isWideScreen(context) && !widget.forceCard) {
+    final wide = isWideScreen(context);
+    final showAsCard = wide || widget.forceCard;
+
+    // CRITICAL: The widget tree structure below MUST be identical regardless
+    // of screen width. Only the *parameters* of the widgets change.
+    //
+    // If the tree structure changed (e.g. different parent widget types),
+    // Flutter's reconciliation would fail to match old → new, disposing the
+    // entire subtree and recreating it from scratch — which destroys state
+    // in child widgets (such as the ComposeState held by hooks in
+    // HookConsumerWidget). By keeping every widget type and position stable,
+    // only constraints / decoration / padding are mutated, so Flutter
+    // preserves the Element tree and child State objects survive layout
+    // transitions.
+
+    // Determine parameters based on layout mode
+    double widthFactor;
+    double effectiveMaxWidth;
+    EdgeInsets verticalPadding;
+
+    if (showAsCard) {
+      // Wide / forced-card layout
+      final largeWide = wide && !widget.forceCard;
+      widthFactor = largeWide ? 0.8 : 0.92;
+      effectiveMaxWidth = widget.maxWidth ?? 800;
+      verticalPadding = EdgeInsets.symmetric(
+        vertical: math.min(MediaQuery.of(context).size.height * 0.04, 32),
+      );
+    } else {
+      // Narrow / mobile layout
       final isDesktop =
           !kIsWeb &&
           (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
-      final content = ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight:
-              MediaQuery.of(context).size.height *
-              (widget.maxHeightFactor ?? 0.85),
-        ),
-        child: Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: cardContent,
-        ),
+      widthFactor = 1.0;
+      effectiveMaxWidth = double.infinity;
+      verticalPadding = EdgeInsets.only(
+        top: isDesktop ? 32 : 0,
       );
-      final paddedContent = isDesktop
-          ? Padding(padding: const EdgeInsets.only(top: 32), child: content)
-          : content;
-      return SafeArea(child: paddedContent);
     }
 
-    final wide = isWideScreen(context);
-    final useLegacyWideSizing = wide && !widget.forceCard;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: math.min(MediaQuery.of(context).size.height * 0.04, 32),
-      ),
-      child: Center(
-        child: FractionallySizedBox(
-          widthFactor: useLegacyWideSizing ? 0.8 : 0.92,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: widget.maxWidth ?? 800,
-              maxHeight:
-                  MediaQuery.of(context).size.height *
-                  (widget.maxHeightFactor ?? 0.85),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
+    return SafeArea(
+      child: Padding(
+        padding: verticalPadding,
+        child: Center(
+          child: FractionallySizedBox(
+            widthFactor: widthFactor,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: effectiveMaxWidth,
+                maxHeight:
+                    MediaQuery.of(context).size.height *
+                    (widget.maxHeightFactor ?? 0.85),
               ),
-              child: Material(
-                color: Theme.of(context).colorScheme.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+              child: Container(
+                decoration: showAsCard
+                    ? BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      )
+                    : null,
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface,
+                  shape: showAsCard
+                      ? RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        )
+                      : null,
+                  clipBehavior: showAsCard ? Clip.antiAlias : Clip.none,
+                  child: cardContent,
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: cardContent,
               ),
             ),
           ),

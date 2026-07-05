@@ -50,11 +50,13 @@ class PostComposeDialog extends HookConsumerWidget {
     }
 
     final completer = Completer<bool?>();
+    final dialogKey = GlobalKey();
     showAttentionModal(
       id: 'post-compose',
       replaceIfExists: true,
       barrierDismissible: true,
       builder: (overlayContext, dismiss) => PostComposeDialog(
+        key: dialogKey,
         originalPost: originalPost,
         initialState: initialState,
         onCancel: () {
