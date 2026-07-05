@@ -449,6 +449,7 @@ class AuthorizeRoute extends _i71.PageRouteInfo<AuthorizeRouteArgs> {
     String? scope,
     String? state,
     String? responseType,
+    String? userCode,
     List<_i71.PageRouteInfo>? children,
   }) : super(
          AuthorizeRoute.name,
@@ -459,6 +460,7 @@ class AuthorizeRoute extends _i71.PageRouteInfo<AuthorizeRouteArgs> {
            scope: scope,
            state: state,
            responseType: responseType,
+           userCode: userCode,
          ),
          initialChildren: children,
        );
@@ -478,6 +480,7 @@ class AuthorizeRoute extends _i71.PageRouteInfo<AuthorizeRouteArgs> {
         scope: args.scope,
         state: args.state,
         responseType: args.responseType,
+        userCode: args.userCode,
       );
     },
   );
@@ -491,6 +494,7 @@ class AuthorizeRouteArgs {
     this.scope,
     this.state,
     this.responseType,
+    this.userCode,
   });
 
   final _i73.Key? key;
@@ -505,9 +509,11 @@ class AuthorizeRouteArgs {
 
   final String? responseType;
 
+  final String? userCode;
+
   @override
   String toString() {
-    return 'AuthorizeRouteArgs{key: $key, clientId: $clientId, redirectUri: $redirectUri, scope: $scope, state: $state, responseType: $responseType}';
+    return 'AuthorizeRouteArgs{key: $key, clientId: $clientId, redirectUri: $redirectUri, scope: $scope, state: $state, responseType: $responseType, userCode: $userCode}';
   }
 
   @override
@@ -519,7 +525,8 @@ class AuthorizeRouteArgs {
         redirectUri == other.redirectUri &&
         scope == other.scope &&
         state == other.state &&
-        responseType == other.responseType;
+        responseType == other.responseType &&
+        userCode == other.userCode;
   }
 
   @override
@@ -529,7 +536,8 @@ class AuthorizeRouteArgs {
       redirectUri.hashCode ^
       scope.hashCode ^
       state.hashCode ^
-      responseType.hashCode;
+      responseType.hashCode ^
+      userCode.hashCode;
 }
 
 /// generated route for
@@ -1757,18 +1765,51 @@ class LevelingRoute extends _i71.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i40.LoginScreen]
-class LoginRoute extends _i71.PageRouteInfo<void> {
-  const LoginRoute({List<_i71.PageRouteInfo>? children})
-    : super(LoginRoute.name, initialChildren: children);
+class LoginRoute extends _i71.PageRouteInfo<LoginRouteArgs> {
+  LoginRoute({
+    _i73.Key? key,
+    String? redirectUri,
+    List<_i71.PageRouteInfo>? children,
+  }) : super(
+         LoginRoute.name,
+         args: LoginRouteArgs(key: key, redirectUri: redirectUri),
+         initialChildren: children,
+       );
 
   static const String name = 'LoginRoute';
 
   static _i71.PageInfo page = _i71.PageInfo(
     name,
     builder: (data) {
-      return const _i40.LoginScreen();
+      final args = data.argsAs<LoginRouteArgs>(
+        orElse: () => const LoginRouteArgs(),
+      );
+      return _i40.LoginScreen(key: args.key, redirectUri: args.redirectUri);
     },
   );
+}
+
+class LoginRouteArgs {
+  const LoginRouteArgs({this.key, this.redirectUri});
+
+  final _i73.Key? key;
+
+  final String? redirectUri;
+
+  @override
+  String toString() {
+    return 'LoginRouteArgs{key: $key, redirectUri: $redirectUri}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LoginRouteArgs) return false;
+    return key == other.key && redirectUri == other.redirectUri;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ redirectUri.hashCode;
 }
 
 /// generated route for

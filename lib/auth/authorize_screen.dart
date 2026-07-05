@@ -20,6 +20,7 @@ class AuthorizeScreen extends ConsumerStatefulWidget {
   final String? scope;
   final String? state;
   final String? responseType;
+  final String? userCode;
 
   const AuthorizeScreen({
     super.key,
@@ -28,6 +29,7 @@ class AuthorizeScreen extends ConsumerStatefulWidget {
     this.scope,
     this.state,
     this.responseType,
+    this.userCode,
   });
 
   @override
@@ -46,6 +48,8 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
     _loadClientInfo();
   }
 
+  bool get _isDeviceCode => widget.userCode != null && widget.userCode!.isNotEmpty;
+
   Map<String, String> get _queryParams => {
     if (widget.clientId != null) 'client_id': widget.clientId!,
     if (widget.redirectUri != null) 'redirect_uri': widget.redirectUri!,
@@ -57,16 +61,40 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
   Future<void> _loadClientInfo() async {
     try {
       final dio = ref.read(padlockApiClientProvider);
-      final resp = await dio.get(
-        '/auth/open/authorize',
-        queryParameters: _queryParams,
-      );
-      setState(() {
-        _clientInfo = AuthorizeClientInfo.fromJson(
-          Map<String, dynamic>.from(resp.data as Map),
+      if (_isDeviceCode) {
+        final deviceResp = await dio.get(
+          '/auth/open/device/code/${Uri.encodeComponent(widget.userCode!)}',
         );
-        _loading = false;
-      });
+        final deviceData = Map<String, dynamic>.from(deviceResp.data as Map);
+        final clientId = deviceData['clientId'] as String?;
+        if (clientId == null) {
+          setState(() {
+            _error = 'Invalid device code';
+            _loading = false;
+          });
+          return;
+        }
+        final resp = await dio.get('/auth/open/authorize', queryParameters: {
+          'client_id': clientId,
+        });
+        setState(() {
+          _clientInfo = AuthorizeClientInfo.fromJson(
+            Map<String, dynamic>.from(resp.data as Map),
+          );
+          _loading = false;
+        });
+      } else {
+        final resp = await dio.get(
+          '/auth/open/authorize',
+          queryParameters: _queryParams,
+        );
+        setState(() {
+          _clientInfo = AuthorizeClientInfo.fromJson(
+            Map<String, dynamic>.from(resp.data as Map),
+          );
+          _loading = false;
+        });
+      }
     } on DioException catch (e) {
       setState(() {
         _error = e.response?.data?.toString() ?? e.message ?? 'Failed to load';
@@ -87,25 +115,33 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
     });
     try {
       final dio = ref.read(padlockApiClientProvider);
-      final body = Map<String, String>.from(_queryParams);
-      body['authorize'] = authorize.toString();
-      final resp = await dio.post(
-        '/auth/open/authorize',
-        data: body,
-        options: Options(contentType: 'application/x-www-form-urlencoded'),
-      );
-      final data = Map<String, dynamic>.from(resp.data as Map);
-      final redirectUri = _readStringFrom(data, const [
-        'redirectUri',
-        'redirect_uri',
-      ]);
-      if (redirectUri != null && redirectUri.isNotEmpty) {
-        await launchUrlString(
-          redirectUri,
-          mode: LaunchMode.externalApplication,
+      if (_isDeviceCode) {
+        final action = authorize ? 'approve' : 'decline';
+        await dio.post(
+          '/auth/open/device/code/${Uri.encodeComponent(widget.userCode!)}/$action',
         );
+        if (mounted) Navigator.of(context).pop();
+      } else {
+        final body = Map<String, String>.from(_queryParams);
+        body['authorize'] = authorize.toString();
+        final resp = await dio.post(
+          '/auth/open/authorize',
+          data: body,
+          options: Options(contentType: 'application/x-www-form-urlencoded'),
+        );
+        final data = Map<String, dynamic>.from(resp.data as Map);
+        final redirectUri = _readStringFrom(data, const [
+          'redirectUri',
+          'redirect_uri',
+        ]);
+        if (redirectUri != null && redirectUri.isNotEmpty) {
+          await launchUrlString(
+            redirectUri,
+            mode: LaunchMode.externalApplication,
+          );
+        }
+        if (mounted) Navigator.of(context).pop();
       }
-      if (mounted) Navigator.of(context).pop();
     } on DioException catch (e) {
       setState(() {
         _error = e.response?.data?.toString() ?? e.message ?? 'Failed';
@@ -126,6 +162,31 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
       if (value is String && value.trim().isNotEmpty) return value.trim();
     }
     return null;
+  }
+
+  Widget _buildDecisionPanel({
+    required String clientName,
+    required String? clientPicture,
+    required String? homeUri,
+    required List<String> scopes,
+  }) {
+    return Column(
+      children: [
+        if (_isDeviceCode && widget.userCode != null)
+          _DeviceCodeBanner(userCode: widget.userCode!),
+        if (_isDeviceCode && widget.userCode != null) const Gap(16),
+        _AuthorizeDecisionPanel(
+          clientName: clientName,
+          clientPicture: clientPicture,
+          homeUri: homeUri,
+          scopes: scopes,
+          error: _error,
+          submitting: _submitting,
+          onApprove: () => _submitDecision(true),
+          onDeny: () => _submitDecision(false),
+        ),
+      ],
+    );
   }
 
   String? _fileUrl(String? id) {
@@ -151,7 +212,9 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
       isNoBackground: false,
       appBar: AppBar(
         leading: const AutoLeadingButton(),
-        title: Text('authorizeAppTitle').tr(),
+        title: Text(
+          _isDeviceCode ? 'deviceAuthTitle' : 'authorizeAppTitle',
+        ).tr(),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -176,15 +239,11 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
                           Gap(sectionGap),
                           Expanded(
                             flex: 10,
-                            child: _AuthorizeDecisionPanel(
+                            child: _buildDecisionPanel(
                               clientName: clientName,
                               clientPicture: clientPicture,
                               homeUri: homeUri,
                               scopes: scopes,
-                              error: _error,
-                              submitting: _submitting,
-                              onApprove: () => _submitDecision(true),
-                              onDeny: () => _submitDecision(false),
                             ),
                           ),
                         ],
@@ -200,15 +259,11 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
                             sectionGap: sectionGap,
                           ),
                           Gap(sectionGap),
-                          _AuthorizeDecisionPanel(
+                          _buildDecisionPanel(
                             clientName: clientName,
                             clientPicture: clientPicture,
                             homeUri: homeUri,
                             scopes: scopes,
-                            error: _error,
-                            submitting: _submitting,
-                            onApprove: () => _submitDecision(true),
-                            onDeny: () => _submitDecision(false),
                           ),
                         ],
                       );
@@ -622,6 +677,66 @@ class _AuthorizeDecisionPanel extends StatelessWidget {
                   ),
                 ],
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeviceCodeBanner extends StatelessWidget {
+  final String userCode;
+
+  const _DeviceCodeBanner({required this.userCode});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.primaryContainer.withOpacity(0.4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: colorScheme.primary.withOpacity(0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(Symbols.phonelink, size: 20, color: colorScheme.primary),
+                const Gap(8),
+                Text(
+                  'deviceAuthCode'.tr(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: Text(
+                userCode,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 4,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
           ],
         ),
       ),
