@@ -16,6 +16,7 @@ import 'package:island/posts/widgets/compose/compose_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_form_fields.dart';
 import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
+import 'package:island/posts/widgets/compose/compose_state_utils.dart';
 import 'package:island/posts/widgets/compose/compose_toolbar.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
@@ -213,6 +214,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
       }
       return null;
     }, [initialState]);
+
+    final stateNotifier = ComposeStateUtils.useStateNotifier(state);
+    useListenable(stateNotifier);
 
     final restorePrompted = useState(false);
 
