@@ -39,8 +39,10 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
+import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -162,6 +164,38 @@ String? _getBlogUrl(SnPost post) {
     }
   }
   return null;
+}
+
+String? extractInternalPostIdFromUri(Uri url) {
+  if (url.scheme == 'solian' &&
+      url.host == 'posts' &&
+      url.pathSegments.isNotEmpty) {
+    return url.pathSegments.first;
+  }
+  if ((url.scheme == 'http' || url.scheme == 'https') &&
+      url.host == 'solian.app' &&
+      url.pathSegments.length >= 2 &&
+      url.pathSegments.first == 'posts') {
+    return url.pathSegments[1];
+  }
+  return null;
+}
+
+Future<void> showPostDetailAttentionModal(String id) async {
+  showAttentionModal(
+    id: 'post-detail:$id',
+    replaceIfExists: true,
+    barrierDismissible: true,
+    builder: (context, dismiss) =>
+        PostDetailAttentionModal(id: id, onDismiss: dismiss),
+  );
+}
+
+bool openPostDetailAttentionModalForUri(Uri url) {
+  final postId = extractInternalPostIdFromUri(url);
+  if (postId == null) return false;
+  showPostDetailAttentionModal(postId);
+  return true;
 }
 
 class PostRealmBadge extends StatelessWidget {
@@ -2611,11 +2645,45 @@ class _BlogPostSummaryCard extends StatelessWidget {
   }
 }
 
-@RoutePage()
-class PostDetailScreen extends HookConsumerWidget {
-  final String id;
+class PostDetailAttentionModal extends StatelessWidget {
+  static const double _modalMaxWidth = 520;
 
-  const PostDetailScreen({super.key, @PathParam('id') required this.id});
+  final String id;
+  final VoidCallback onDismiss;
+
+  const PostDetailAttentionModal({
+    super.key,
+    required this.id,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AttentionModalScaffold(
+      titleText: 'postDetail'.tr(),
+      onDismiss: onDismiss,
+      maxWidth: _modalMaxWidth,
+      forceCard: true,
+      actions: [
+        IconButton(
+          onPressed: () {
+            onDismiss();
+            context.router.push(PostDetailRoute(id: id));
+          },
+          icon: const Icon(Symbols.open_in_new),
+          tooltip: 'open'.tr(),
+        ),
+      ],
+      child: _PostDetailBody(id: id, isEmbedded: true),
+    );
+  }
+}
+
+class _PostDetailBody extends HookConsumerWidget {
+  final String id;
+  final bool isEmbedded;
+
+  const _PostDetailBody({required this.id, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2648,488 +2716,403 @@ class PostDetailScreen extends HookConsumerWidget {
       }
     }
 
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: isBlogPost
-          ? PreferredSize(
-              preferredSize: Size.fromHeight(
-                isBlogAppBarVisible.value ? kToolbarHeight : 0,
-              ),
-              child: ClipRect(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  height: isBlogAppBarVisible.value ? kToolbarHeight : 0,
-                  child: AppBar(
-                    leading: const AutoLeadingButton(),
-                    title: Text('postDetail').tr(),
+    if (isEmbedded && isBlogPost) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isBlogAppBarVisible.value) {
+          isBlogAppBarVisible.value = false;
+        }
+      });
+    }
+
+    return postState.when(
+      data: (post) {
+        final postItem = post!;
+        final isMediaPostLayout =
+            isWideScreen(context) && _isMediaPost(postItem) && !isEmbedded;
+
+        Widget buildMenuItem({required String label, required IconData icon}) {
+          return Row(
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 12),
+              Text(label),
+            ],
+          );
+        }
+
+        void refreshPost() {
+          ref.invalidate(postProvider(id));
+          ref
+              .read(postRepliesProvider(postRepliesQuery(id)).notifier)
+              .refresh();
+        }
+
+        void Function() getMenuAction(String action) {
+          switch (action) {
+            case 'edit':
+              return () async {
+                final result = await PostComposeDialog.show(
+                  context,
+                  originalPost: postItem,
+                );
+                if (result != null) refreshPost();
+              };
+            case 'delete':
+              return () {
+                showConfirmAlert(
+                  'deletePostHint'.tr(),
+                  'deletePost'.tr(),
+                  isDanger: true,
+                ).then((confirm) {
+                  if (confirm) {
+                    final client = ref.watch(solarNetworkClientProvider);
+                    client.sphere
+                        .deletePost(postItem.id)
+                        .catchError((err) {
+                          showErrorAlert(err);
+                          return err;
+                        })
+                        .then((_) {
+                          refreshPost();
+                        });
+                  }
+                });
+              };
+            case 'copyLink':
+              return () {
+                Clipboard.setData(
+                  ClipboardData(
+                    text: 'https://solian.app/posts/${postItem.id}',
                   ),
-                ),
-              ),
-            )
-          : AppBar(
-              leading: const AutoLeadingButton(),
-              title: Text('postDetail').tr(),
-            ),
-      body: postState.when(
-        data: (post) {
-          final postItem = post!;
-          final isMediaPostLayout =
-              isWideScreen(context) && _isMediaPost(postItem);
-
-          Widget buildMenuItem({
-            required String label,
-            required IconData icon,
-          }) {
-            return Row(
-              children: [
-                Icon(icon, size: 18),
-                const SizedBox(width: 12),
-                Text(label),
-              ],
-            );
-          }
-
-          void Function() getMenuAction(String action) {
-            switch (action) {
-              case 'edit':
-                return () async {
-                  final result = await PostComposeDialog.show(
-                    context,
-                    originalPost: postItem,
-                  );
-                  if (result != null) {
-                    ref.invalidate(postProvider(id));
+                );
+              };
+            case 'reply':
+              return () async {
+                final result = await PostComposeDialog.show(
+                  context,
+                  initialState: PostComposeInitialState(replyingTo: postItem),
+                );
+                if (result != null) refreshPost();
+              };
+            case 'forward':
+              return () async {
+                final result = await PostComposeDialog.show(
+                  context,
+                  initialState: PostComposeInitialState(forwardingTo: postItem),
+                );
+                if (result != null) refreshPost();
+              };
+            case 'pin':
+              return () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => PostPinSheet(post: postItem),
+                ).then((value) {
+                  if (value is int) {
                     ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
+                        .read(postStateProvider(id).notifier)
+                        .updatePost(postItem.copyWith(pinMode: value));
                   }
-                };
-              case 'delete':
-                return () {
-                  showConfirmAlert(
-                    'deletePostHint'.tr(),
-                    'deletePost'.tr(),
-                    isDanger: true,
-                  ).then((confirm) {
-                    if (confirm) {
-                      final client = ref.watch(solarNetworkClientProvider);
-                      client.sphere
-                          .deletePost(postItem.id)
-                          .catchError((err) {
-                            showErrorAlert(err);
-                            return err;
-                          })
-                          .then((_) {
-                            ref.invalidate(postProvider(id));
-                            ref
-                                .read(
-                                  postRepliesProvider(
-                                    postRepliesQuery(id),
-                                  ).notifier,
-                                )
-                                .refresh();
-                          });
-                    }
-                  });
-                };
-              case 'copyLink':
-                return () {
-                  Clipboard.setData(
-                    ClipboardData(
-                      text: 'https://solian.app/posts/${postItem.id}',
-                    ),
-                  );
-                };
-              case 'reply':
-                return () async {
-                  final result = await PostComposeDialog.show(
-                    context,
-                    initialState: PostComposeInitialState(replyingTo: postItem),
-                  );
-                  if (result != null) {
-                    ref.invalidate(postProvider(id));
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  }
-                };
-              case 'forward':
-                return () async {
-                  final result = await PostComposeDialog.show(
-                    context,
-                    initialState: PostComposeInitialState(
-                      forwardingTo: postItem,
-                    ),
-                  );
-                  if (result != null) {
-                    ref.invalidate(postProvider(id));
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  }
-                };
-              case 'pin':
-                return () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => PostPinSheet(post: postItem),
-                  ).then((value) {
-                    if (value is int) {
+                });
+              };
+            case 'unpin':
+              return () {
+                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+                  confirm,
+                ) async {
+                  if (confirm) {
+                    final client = ref.watch(solarNetworkClientProvider);
+                    try {
+                      if (context.mounted) showLoadingModal(context);
+                      await client.sphere.unpinPost(postItem.id);
                       ref
                           .read(postStateProvider(id).notifier)
-                          .updatePost(postItem.copyWith(pinMode: value));
+                          .updatePost(postItem.copyWith(pinMode: null));
+                    } catch (err) {
+                      showErrorAlert(err);
+                    } finally {
+                      if (context.mounted) hideLoadingModal(context);
                     }
-                  });
-                };
-              case 'unpin':
-                return () {
-                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then(
-                    (confirm) async {
-                      if (confirm) {
-                        final client = ref.watch(solarNetworkClientProvider);
-                        try {
-                          if (context.mounted) showLoadingModal(context);
-                          await client.sphere.unpinPost(postItem.id);
+                  }
+                });
+              };
+            case 'award':
+              return () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => PostAwardSheet(post: postItem),
+                );
+              };
+            case 'boost':
+              return () async {
+                final client = ref.read(solarNetworkClientProvider);
+                try {
+                  if (context.mounted) showLoadingModal(context);
+                  await client.sphere.boostPost(postItem.id);
+                  refreshPost();
+                } catch (err) {
+                  showErrorAlert(err);
+                } finally {
+                  if (context.mounted) hideLoadingModal(context);
+                }
+              };
+            case 'share':
+              return () {
+                showShareSheetLink(
+                  context: context,
+                  link: 'https://solian.app/posts/${postItem.id}',
+                  title: 'sharePost'.tr(),
+                  toSystem: true,
+                );
+              };
+            case 'sharePhoto':
+              return () {
+                sharePostAsScreenshot(context, ref, postItem);
+              };
+            case 'openBrowser':
+              return () {
+                launchUrlString(postItem.fediverseUri!);
+              };
+            case 'report':
+              return () {
+                showAbuseReportSheet(
+                  context,
+                  resourceIdentifier: 'post:${postItem.id}',
+                );
+              };
+            case 'bookmark':
+              return () async {
+                try {
+                  await toggleBookmark(
+                    ref,
+                    postId: postItem.id,
+                    currentlyBookmarked: postItem.isBookmarked,
+                  );
+                  refreshPost();
+                } catch (err) {
+                  showErrorAlert(err);
+                }
+              };
+            default:
+              return () {};
+          }
+        }
+
+        final user = ref.watch(userInfoProvider);
+        final isAuthor =
+            user.value != null &&
+            user.value?.id == postItem.publisher?.accountId;
+
+        final postMenuItems = <PopupMenuEntry<String>>[
+          if (isAuthor)
+            PopupMenuItem<String>(
+              value: 'edit',
+              child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
+            ),
+          if (isAuthor)
+            PopupMenuItem<String>(
+              value: 'delete',
+              child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
+            ),
+          if (isAuthor) const PopupMenuDivider(),
+          PopupMenuItem<String>(
+            value: 'copyLink',
+            child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
+          ),
+          PopupMenuItem<String>(
+            value: 'reply',
+            child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
+          ),
+          PopupMenuItem<String>(
+            value: 'forward',
+            child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
+          ),
+          if (isAuthor && postItem.pinMode == null)
+            PopupMenuItem<String>(
+              value: 'pin',
+              child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
+            )
+          else if (isAuthor && postItem.pinMode != null)
+            PopupMenuItem<String>(
+              value: 'unpin',
+              child: buildMenuItem(
+                label: 'unpinPost'.tr(),
+                icon: Symbols.keep_off,
+              ),
+            ),
+          PopupMenuItem<String>(
+            value: 'award',
+            child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem<String>(
+            value: 'boost',
+            child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
+          ),
+          PopupMenuItem<String>(
+            value: 'bookmark',
+            child: buildMenuItem(
+              label: postItem.isBookmarked
+                  ? 'unbookmark'.tr()
+                  : 'bookmark'.tr(),
+              icon: postItem.isBookmarked
+                  ? Symbols.bookmark_added
+                  : Symbols.bookmark,
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem<String>(
+            value: 'share',
+            child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
+          ),
+          if (!kIsWeb)
+            PopupMenuItem<String>(
+              value: 'sharePhoto',
+              child: buildMenuItem(
+                label: 'sharePostPhoto'.tr(),
+                icon: Symbols.share_reviews,
+              ),
+            ),
+          if (postItem.fediverseUri != null)
+            PopupMenuItem<String>(
+              value: 'openBrowser',
+              child: buildMenuItem(
+                label: 'openInBrowser'.tr(),
+                icon: Symbols.open_in_new,
+              ),
+            ),
+          const PopupMenuDivider(),
+          PopupMenuItem<String>(
+            value: 'report',
+            child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
+          ),
+        ];
+
+        final trailing = PopupMenuButton<String>(
+          icon: const Icon(Symbols.more_horiz),
+          style: ButtonStyle(
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+            padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+            minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+          ),
+          itemBuilder: (context) => postMenuItems,
+          onSelected: (action) => getMenuAction(action)(),
+        );
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            if (postItem.type == 2 || isMediaPostLayout)
+              ExtendedRefreshIndicator(
+                onRefresh: () async {
+                  refreshPost();
+                },
+                child: postItem.type == 2
+                    ? _BlogPostDetailLayout(
+                        post: postItem,
+                        postId: id,
+                        trailing: trailing,
+                        translatedText: translatedText.value,
+                        isTranslating: translating.value,
+                        onTranslate: translatePost,
+                        onAppBarVisibilityChanged: (visible) {
+                          if (!isEmbedded) {
+                            isBlogAppBarVisible.value = visible;
+                          }
+                        },
+                        onRefresh: refreshPost,
+                        onUpdate: (newItem) {
                           ref
                               .read(postStateProvider(id).notifier)
-                              .updatePost(postItem.copyWith(pinMode: null));
-                        } catch (err) {
-                          showErrorAlert(err);
-                        } finally {
-                          if (context.mounted) hideLoadingModal(context);
-                        }
-                      }
-                    },
-                  );
-                };
-              case 'award':
-                return () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useRootNavigator: true,
-                    builder: (context) => PostAwardSheet(post: postItem),
-                  );
-                };
-              case 'boost':
-                return () async {
-                  final client = ref.read(solarNetworkClientProvider);
-                  try {
-                    if (context.mounted) showLoadingModal(context);
-                    await client.sphere.boostPost(postItem.id);
-                    ref.invalidate(postProvider(id));
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  } catch (err) {
-                    showErrorAlert(err);
-                  } finally {
-                    if (context.mounted) hideLoadingModal(context);
-                  }
-                };
-              case 'share':
-                return () {
-                  showShareSheetLink(
-                    context: context,
-                    link: 'https://solian.app/posts/${postItem.id}',
-                    title: 'sharePost'.tr(),
-                    toSystem: true,
-                  );
-                };
-              case 'sharePhoto':
-                return () {
-                  sharePostAsScreenshot(context, ref, postItem);
-                };
-              case 'openBrowser':
-                return () {
-                  launchUrlString(postItem.fediverseUri!);
-                };
-              case 'report':
-                return () {
-                  showAbuseReportSheet(
-                    context,
-                    resourceIdentifier: 'post:${postItem.id}',
-                  );
-                };
-              case 'bookmark':
-                return () async {
-                  try {
-                    await toggleBookmark(
-                      ref,
-                      postId: postItem.id,
-                      currentlyBookmarked: postItem.isBookmarked,
-                    );
-                    ref.invalidate(postProvider(id));
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  } catch (err) {
-                    showErrorAlert(err);
-                  }
-                };
-              default:
-                return () {};
-            }
-          }
-
-          final user = ref.watch(userInfoProvider);
-          final isAuthor =
-              user.value != null &&
-              user.value?.id == postItem.publisher?.accountId;
-
-          final postMenuItems = <PopupMenuEntry<String>>[
-            if (isAuthor)
-              PopupMenuItem<String>(
-                value: 'edit',
-                child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
-              ),
-            if (isAuthor)
-              PopupMenuItem<String>(
-                value: 'delete',
-                child: buildMenuItem(
-                  label: 'delete'.tr(),
-                  icon: Symbols.delete,
-                ),
-              ),
-            if (isAuthor) const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              value: 'copyLink',
-              child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
-            ),
-            PopupMenuItem<String>(
-              value: 'reply',
-              child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
-            ),
-            PopupMenuItem<String>(
-              value: 'forward',
-              child: buildMenuItem(
-                label: 'forward'.tr(),
-                icon: Symbols.forward,
-              ),
-            ),
-            if (isAuthor && postItem.pinMode == null)
-              PopupMenuItem<String>(
-                value: 'pin',
-                child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
+                              .updatePost(newItem);
+                        },
+                      )
+                    : _PostDetailLargeScreenLayout(
+                        post: postItem,
+                        postId: id,
+                        onUpdate: (newItem) {
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(newItem);
+                        },
+                        onRefresh: refreshPost,
+                        onTranslate: translatePost,
+                        translatedText: translatedText.value,
+                        isTranslating: translating.value,
+                      ),
               )
-            else if (isAuthor && postItem.pinMode != null)
-              PopupMenuItem<String>(
-                value: 'unpin',
-                child: buildMenuItem(
-                  label: 'unpinPost'.tr(),
-                  icon: Symbols.keep_off,
-                ),
-              ),
-            PopupMenuItem<String>(
-              value: 'award',
-              child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              value: 'boost',
-              child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
-            ),
-            PopupMenuItem<String>(
-              value: 'bookmark',
-              child: buildMenuItem(
-                label: postItem.isBookmarked
-                    ? 'unbookmark'.tr()
-                    : 'bookmark'.tr(),
-                icon: postItem.isBookmarked
-                    ? Symbols.bookmark_added
-                    : Symbols.bookmark,
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              value: 'share',
-              child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
-            ),
-            if (!kIsWeb)
-              PopupMenuItem<String>(
-                value: 'sharePhoto',
-                child: buildMenuItem(
-                  label: 'sharePostPhoto'.tr(),
-                  icon: Symbols.share_reviews,
-                ),
-              ),
-            if (postItem.fediverseUri != null)
-              PopupMenuItem<String>(
-                value: 'openBrowser',
-                child: buildMenuItem(
-                  label: 'openInBrowser'.tr(),
-                  icon: Symbols.open_in_new,
-                ),
-              ),
-            const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              value: 'report',
-              child: buildMenuItem(
-                label: 'abuseReport'.tr(),
-                icon: Symbols.flag,
-              ),
-            ),
-          ];
-
-          final trailing = PopupMenuButton<String>(
-            icon: const Icon(Symbols.more_horiz),
-            style: ButtonStyle(
-              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-              padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
-              minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
-            ),
-            itemBuilder: (context) => postMenuItems,
-            onSelected: (action) => getMenuAction(action)(),
-          );
-
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              if (postItem.type == 2 || isMediaPostLayout)
-                ExtendedRefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(postProvider(id));
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  },
-                  child: postItem.type == 2
-                      ? _BlogPostDetailLayout(
-                          post: postItem,
-                          postId: id,
-                          trailing: trailing,
-                          translatedText: translatedText.value,
-                          isTranslating: translating.value,
-                          onTranslate: translatePost,
-                          onAppBarVisibilityChanged: (visible) {
-                            isBlogAppBarVisible.value = visible;
-                          },
-                          onRefresh: () {
-                            ref.invalidate(postProvider(id));
-                            ref
-                                .read(
-                                  postRepliesProvider(
-                                    postRepliesQuery(id),
-                                  ).notifier,
-                                )
-                                .refresh();
-                          },
-                          onUpdate: (newItem) {
-                            ref
-                                .read(postStateProvider(id).notifier)
-                                .updatePost(newItem);
-                          },
-                        )
-                      : _PostDetailLargeScreenLayout(
-                          post: postItem,
-                          postId: id,
-                          onUpdate: (newItem) {
-                            ref
-                                .read(postStateProvider(id).notifier)
-                                .updatePost(newItem);
-                          },
-                          onRefresh: () {
-                            ref.invalidate(postProvider(id));
-                            ref
-                                .read(
-                                  postRepliesProvider(
-                                    postRepliesQuery(id),
-                                  ).notifier,
-                                )
-                                .refresh();
-                          },
-                          onTranslate: translatePost,
-                          translatedText: translatedText.value,
-                          isTranslating: translating.value,
-                        ),
-                )
-              else
-                PostDetailContent(
-                  postId: id,
+            else
+              PostDetailContent(
+                postId: id,
+                post: postItem,
+                trailing: trailing,
+                onRefresh: () async {
+                  refreshPost();
+                },
+                onUpdate: (newItem) {
+                  ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                },
+                onReplyPosted: refreshPost,
+                threadSection:
+                    postItem.repliedPostId != null ||
+                        postItem.forwardedPostId != null
+                    ? PostThreadCard(post: postItem)
+                    : null,
+                collectionSection: postItem.publisherCollections.isNotEmpty
+                    ? PostCollectionNavigation(post: postItem)
+                    : null,
+                realmSection: postItem.realm != null
+                    ? PostRealmBadge(realm: postItem.realm!)
+                    : null,
+                actionBuilder: (context, onTranslate) => PostActionButtons(
                   post: postItem,
-                  trailing: trailing,
-                  onRefresh: () async {
-                    ref.invalidate(postProvider(id));
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  },
+                  renderingPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  onRefresh: refreshPost,
                   onUpdate: (newItem) {
                     ref
                         .read(postStateProvider(id).notifier)
                         .updatePost(newItem);
                   },
-                  onReplyPosted: () {
-                    ref
-                        .read(
-                          postRepliesProvider(postRepliesQuery(id)).notifier,
-                        )
-                        .refresh();
-                  },
-                  threadSection:
-                      postItem.repliedPostId != null ||
-                          postItem.forwardedPostId != null
-                      ? PostThreadCard(post: postItem)
-                      : null,
-                  collectionSection: postItem.publisherCollections.isNotEmpty
-                      ? PostCollectionNavigation(post: postItem)
-                      : null,
-                  realmSection: postItem.realm != null
-                      ? PostRealmBadge(realm: postItem.realm!)
-                      : null,
-                  actionBuilder: (context, onTranslate) => PostActionButtons(
-                    post: postItem,
-                    renderingPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
-                    onRefresh: () {
-                      ref.invalidate(postProvider(id));
-                      ref
-                          .read(
-                            postRepliesProvider(postRepliesQuery(id)).notifier,
-                          )
-                          .refresh();
-                    },
-                    onUpdate: (newItem) {
-                      ref
-                          .read(postStateProvider(id).notifier)
-                          .updatePost(newItem);
-                    },
-                    onTranslate: onTranslate,
-                  ).alignment(Alignment.centerLeft),
-                  interactionsSection: DefaultTabController(
-                    length: 4,
-                    child: PostInteractionsSlivers(
-                      postId: id,
-                      maxWidth: _postDetailMaxWidth,
-                    ),
+                  onTranslate: onTranslate,
+                ).alignment(Alignment.centerLeft),
+                interactionsSection: DefaultTabController(
+                  length: 4,
+                  child: PostInteractionsSlivers(
+                    postId: id,
+                    maxWidth: _postDetailMaxWidth,
                   ),
                 ),
-            ],
-          );
-        },
-        loading: () => ResponseLoadingWidget(),
-        error: (e, _) => ResponseErrorWidget(
-          error: e,
-          onRetry: () => ref.invalidate(postProvider(id)),
-        ),
+              ),
+          ],
+        );
+      },
+      loading: () => const ResponseLoadingWidget(),
+      error: (e, _) => ResponseErrorWidget(
+        error: e,
+        onRetry: () => ref.invalidate(postProvider(id)),
       ),
+    );
+  }
+}
+
+@RoutePage()
+class PostDetailScreen extends HookConsumerWidget {
+  final String id;
+
+  const PostDetailScreen({super.key, @PathParam('id') required this.id});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        leading: const AutoLeadingButton(),
+        title: Text('postDetail').tr(),
+      ),
+      body: _PostDetailBody(id: id),
     );
   }
 }

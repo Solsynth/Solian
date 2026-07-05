@@ -129,13 +129,15 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
     }
 
     final wide = isWideScreen(context);
+    final useLegacyWideSizing = wide && !widget.forceCard;
+
     return Padding(
       padding: EdgeInsets.symmetric(
         vertical: math.min(MediaQuery.of(context).size.height * 0.04, 32),
       ),
       child: Center(
         child: FractionallySizedBox(
-          widthFactor: wide ? 0.8 : 0.92,
+          widthFactor: useLegacyWideSizing ? 0.8 : 0.92,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: widget.maxWidth ?? 800,

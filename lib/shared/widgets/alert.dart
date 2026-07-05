@@ -24,6 +24,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/network/domain_trust.dart';
+import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/shared/widgets/content/domain_trust_sheet.dart';
 
 OverlayEntry? _loadingOverlay;
@@ -440,6 +441,9 @@ Future<void> openExternalLinkWithContainer(
   Uri url,
   ProviderContainer container,
 ) async {
+  if (openPostDetailAttentionModalForUri(url)) {
+    return;
+  }
   if (url.scheme == 'solian') {
     await launchUrl(url, mode: LaunchMode.externalApplication);
     return;

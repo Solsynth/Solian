@@ -14,6 +14,7 @@ import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_replies_sheet.dart';
 import 'package:island/realms/widgets/realm_label.dart';
@@ -1619,8 +1620,8 @@ class PostHeader extends HookConsumerWidget {
                               item.actor != null)
                       ? () {
                           if (item.publisher != null) {
-                            context.router.push(
-                              PublisherProfileRoute(name: item.publisher!.name),
+                            showPublisherProfileAttentionModal(
+                              item.publisher!.name,
                             );
                           } else if (item.actor != null) {
                             context.router.push(

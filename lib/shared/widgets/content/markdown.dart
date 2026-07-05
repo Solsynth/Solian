@@ -14,6 +14,7 @@ import 'package:island/accounts/screens/profile.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/database.dart';
 import 'package:island/shared/widgets/content/markdown_remote_image.dart';
+import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -138,6 +139,14 @@ class MarkdownTextContent extends HookConsumerWidget {
         : MarkdownConfig.defaultConfig;
 
     final onMentionTap = useCallback((String type, String id) {
+      if (type == 'accounts') {
+        showAccountProfileAttentionModal(id);
+        return;
+      }
+      if (type == 'publishers') {
+        showPublisherProfileAttentionModal(id);
+        return;
+      }
       final fullPath = '/$type/$id';
       context.router.pushPath(fullPath);
     }, [context]);
@@ -201,6 +210,9 @@ class MarkdownTextContent extends HookConsumerWidget {
             onTap: (href) async {
               final url = Uri.tryParse(href);
               if (url != null) {
+                if (openPostDetailAttentionModalForUri(url)) {
+                  return;
+                }
                 if (url.scheme == 'solian') {
                   final fullPath = ['/', url.host, url.path].join('');
                   context.router.pushPath(fullPath);
@@ -664,9 +676,7 @@ class SpoilerSpanNode extends SpanNode {
   InlineSpan build() {
     final recognizer = TapGestureRecognizer()..onTap = onToggle;
 
-    return TextSpan(
-      children: _buildSpoilerSegments(recognizer),
-    );
+    return TextSpan(children: _buildSpoilerSegments(recognizer));
   }
 
   List<InlineSpan> _buildSpoilerSegments(TapGestureRecognizer recognizer) {
@@ -715,7 +725,11 @@ class SpoilerSpanNode extends SpanNode {
                   ),
                 ),
                 child: revealed
-                    ? Text(part, key: ValueKey('revealed-$part'), style: baseStyle)
+                    ? Text(
+                        part,
+                        key: ValueKey('revealed-$part'),
+                        style: baseStyle,
+                      )
                     : Text(
                         part,
                         key: ValueKey('hidden-$part'),

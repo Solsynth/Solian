@@ -19,8 +19,10 @@ import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/posts/activity_heatmap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -29,6 +31,46 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'publisher_profile.g.dart';
+
+Future<void> showPublisherProfileAttentionModal(String name) async {
+  showAttentionModal(
+    id: 'publisher-profile:$name',
+    replaceIfExists: true,
+    barrierDismissible: true,
+    builder: (context, dismiss) =>
+        PublisherProfileAttentionModal(name: name, onDismiss: dismiss),
+  );
+}
+
+class PublisherProfileAttentionModal extends StatelessWidget {
+  final String name;
+  final VoidCallback onDismiss;
+
+  const PublisherProfileAttentionModal({
+    super.key,
+    required this.name,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AttentionModalScaffold(
+      titleText: '@$name',
+      onDismiss: onDismiss,
+      actions: [
+        IconButton(
+          onPressed: () {
+            onDismiss();
+            context.router.push(PublisherProfileRoute(name: name));
+          },
+          icon: const Icon(Symbols.open_in_new),
+          tooltip: 'open'.tr(),
+        ),
+      ],
+      child: PublisherProfileContent(name: name, isEmbedded: true),
+    );
+  }
+}
 
 class _PinnedPostsPageView extends HookConsumerWidget {
   final String pubName;
@@ -778,6 +820,33 @@ class PublisherProfileScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final publisher = ref.watch(publisherProvider(name));
+
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        leading: const AutoLeadingButton(),
+        title: Text(publisher.value?.nick ?? '@$name'),
+      ),
+      body: PublisherProfileContent(name: name),
+    );
+  }
+}
+
+class PublisherProfileContent extends HookConsumerWidget {
+  static const double _wideLayoutMinWidth = 900;
+
+  final String name;
+  final bool isEmbedded;
+
+  const PublisherProfileContent({
+    super.key,
+    required this.name,
+    this.isEmbedded = false,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final publisher = ref.watch(publisherProvider(name));
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
     final heatmap = ref.watch(publisherHeatmapProvider(name));
@@ -850,163 +919,161 @@ class PublisherProfileScreen extends HookConsumerWidget {
 
     return publisher.when(
       data: (data) {
-        return AppScaffold(
-          isNoBackground: false,
-          appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.nick)),
-          body: isWideScreen(context)
-              ? Row(
-                  spacing: 12,
-                  children: [
-                    Flexible(
-                      flex: 4,
-                      child: Card(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(8),
-                            topRight: Radius.circular(8),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : MediaQuery.of(context).size.width;
+            final useWideLayout =
+                isWideScreen(context) && availableWidth >= _wideLayoutMinWidth;
+
+            return useWideLayout
+                ? Row(
+                    spacing: 12,
+                    children: [
+                      Flexible(
+                        flex: 4,
+                        child: Card(
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                              topRight: Radius.circular(8),
+                            ),
                           ),
-                        ),
-                        margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: _PinnedPostsPageView(
-                                pubName: name,
-                              ).padding(horizontal: 12),
-                            ),
-                            SliverPostList(
-                              maxWidth: double.infinity,
-                              itemPadding: EdgeInsets.symmetric(vertical: 4),
-                              query: queryState.value,
-                              queryKey: 'publisher-$name',
-                            ),
-                            SliverGap(
-                              MediaQuery.of(context).padding.bottom + 16,
-                            ),
-                          ],
-                        ).clipRRect(topRight: 12),
-                      ),
-                    ),
-                    Flexible(
-                      flex: 3,
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Column(
-                            spacing: 12,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _PublisherBasisWidget(
-                                data: data,
-                                subStatus: subStatus,
-                                ratingOverview: ratingOverview,
-                                subscribing: subscribing,
-                                subscribe: subscribe,
-                                unsubscribe: unsubscribe,
-                                toggleNotify: toggleNotify,
+                          margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
+                          child: CustomScrollView(
+                            slivers: [
+                              SliverToBoxAdapter(
+                                child: _PinnedPostsPageView(
+                                  pubName: name,
+                                ).padding(horizontal: 12),
                               ),
-                              if (data.account?.badges.isNotEmpty ?? false)
-                                _PublisherBadgesWidget(
-                                  data: data,
-                                  badges: badges,
-                                ),
-                              if (data.verification != null)
-                                _PublisherVerificationWidget(data: data),
-                              _PublisherHeatmapWidget(
-                                heatmap: heatmap,
-                                forceDense: true,
+                              SliverPostList(
+                                maxWidth: double.infinity,
+                                itemPadding: EdgeInsets.symmetric(vertical: 4),
+                                query: queryState.value,
+                                queryKey: 'publisher-$name',
                               ),
-                              PostFilterWidget(
-                                categoryTabController: categoryTabController,
-                                initialQuery: queryState.value,
-                                onQueryChanged: (newQuery) =>
-                                    queryState.value = newQuery,
+                              SliverGap(
+                                MediaQuery.of(context).padding.bottom + 16,
                               ),
                             ],
+                          ).clipRRect(topRight: 12),
+                        ),
+                      ),
+                      Flexible(
+                        flex: 3,
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Column(
+                              spacing: 12,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _PublisherBasisWidget(
+                                  data: data,
+                                  subStatus: subStatus,
+                                  ratingOverview: ratingOverview,
+                                  subscribing: subscribing,
+                                  subscribe: subscribe,
+                                  unsubscribe: unsubscribe,
+                                  toggleNotify: toggleNotify,
+                                ),
+                                if (data.account?.badges.isNotEmpty ?? false)
+                                  _PublisherBadgesWidget(
+                                    data: data,
+                                    badges: badges,
+                                  ),
+                                if (data.verification != null)
+                                  _PublisherVerificationWidget(data: data),
+                                _PublisherHeatmapWidget(
+                                  heatmap: heatmap,
+                                  forceDense: true,
+                                ),
+                                PostFilterWidget(
+                                  categoryTabController: categoryTabController,
+                                  initialQuery: queryState.value,
+                                  onQueryChanged: (newQuery) =>
+                                      queryState.value = newQuery,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ).padding(right: 12),
-                    ),
-                  ],
-                )
-              : CustomScrollView(
-                  slivers: [
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _PublisherBasisWidget(
-                        data: data,
-                        subStatus: subStatus,
-                        ratingOverview: ratingOverview,
-                        subscribing: subscribing,
-                        subscribe: subscribe,
-                        unsubscribe: unsubscribe,
-                        toggleNotify: toggleNotify,
-                      ).padding(horizontal: 12),
-                    ),
-                    const SliverGap(12),
-                    if (data.account?.badges.isNotEmpty ?? false)
-                      ...([
-                        SliverToBoxAdapter(
-                          child: _PublisherBadgesWidget(
-                            data: data,
-                            badges: badges,
-                          ).padding(horizontal: 12),
-                        ),
-                        const SliverGap(12),
-                      ]),
-                    if (data.verification != null)
-                      ...([
-                        SliverToBoxAdapter(
-                          child: _PublisherVerificationWidget(
-                            data: data,
-                          ).padding(horizontal: 12),
-                        ),
-                        const SliverGap(12),
-                      ]),
-                    SliverToBoxAdapter(
-                      child: _PublisherHeatmapWidget(
-                        heatmap: heatmap,
-                      ).padding(horizontal: 12),
-                    ),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _PinnedPostsPageView(
-                        pubName: name,
-                      ).padding(horizontal: 12),
-                    ),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: PostFilterWidget(
-                        categoryTabController: categoryTabController,
-                        initialQuery: queryState.value,
-                        onQueryChanged: (newQuery) =>
-                            queryState.value = newQuery,
-                      ).padding(horizontal: 12),
-                    ),
-                    const SliverGap(12),
-                    SliverPostList(
-                      key: ValueKey(queryState.value),
-                      query: queryState.value,
-                      queryKey: 'publisher-$name',
-                      maxWidth: double.infinity,
-                      itemPadding: const EdgeInsets.symmetric(vertical: 4),
-                    ),
-                    SliverGap(MediaQuery.of(context).padding.bottom + 16),
-                  ],
-                ),
+                        ).padding(right: 12),
+                      ),
+                    ],
+                  )
+                : CustomScrollView(
+                    slivers: [
+                      const SliverGap(12),
+                      SliverToBoxAdapter(
+                        child: _PublisherBasisWidget(
+                          data: data,
+                          subStatus: subStatus,
+                          ratingOverview: ratingOverview,
+                          subscribing: subscribing,
+                          subscribe: subscribe,
+                          unsubscribe: unsubscribe,
+                          toggleNotify: toggleNotify,
+                        ).padding(horizontal: 12),
+                      ),
+                      const SliverGap(12),
+                      if (data.account?.badges.isNotEmpty ?? false)
+                        ...([
+                          SliverToBoxAdapter(
+                            child: _PublisherBadgesWidget(
+                              data: data,
+                              badges: badges,
+                            ).padding(horizontal: 12),
+                          ),
+                          const SliverGap(12),
+                        ]),
+                      if (data.verification != null)
+                        ...([
+                          SliverToBoxAdapter(
+                            child: _PublisherVerificationWidget(
+                              data: data,
+                            ).padding(horizontal: 12),
+                          ),
+                          const SliverGap(12),
+                        ]),
+                      SliverToBoxAdapter(
+                        child: _PublisherHeatmapWidget(
+                          heatmap: heatmap,
+                        ).padding(horizontal: 12),
+                      ),
+                      const SliverGap(12),
+                      SliverToBoxAdapter(
+                        child: _PinnedPostsPageView(
+                          pubName: name,
+                        ).padding(horizontal: 12),
+                      ),
+                      const SliverGap(12),
+                      SliverToBoxAdapter(
+                        child: PostFilterWidget(
+                          categoryTabController: categoryTabController,
+                          initialQuery: queryState.value,
+                          onQueryChanged: (newQuery) =>
+                              queryState.value = newQuery,
+                        ).padding(horizontal: 12),
+                      ),
+                      const SliverGap(12),
+                      SliverPostList(
+                        key: ValueKey(queryState.value),
+                        query: queryState.value,
+                        queryKey: 'publisher-$name',
+                        maxWidth: double.infinity,
+                        itemPadding: const EdgeInsets.symmetric(vertical: 4),
+                      ),
+                      SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                    ],
+                  );
+          },
         );
       },
-      error: (error, stackTrace) => AppScaffold(
-        isNoBackground: false,
-        appBar: AppBar(leading: const AutoLeadingButton()),
-        body: Center(child: Text(error.toString())),
-      ),
-      loading: () => AppScaffold(
-        isNoBackground: false,
-        appBar: AppBar(leading: const AutoLeadingButton()),
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      error: (error, stackTrace) => Center(child: Text(error.toString())),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }
