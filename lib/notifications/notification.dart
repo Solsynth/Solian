@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -268,4 +269,128 @@ class NotificationModal extends HookConsumerWidget {
       ),
     );
   }
+}
+
+// ==========================================
+// Custom App Notifications (POST /api/private/apps/{appId}/notifications)
+// ==========================================
+
+/// Request body for sending a custom-app notification.
+/// Docs: DysonNetwork/docs/CUSTOM_APP_NOTIFICATIONS.md
+class CustomAppNotificationRequest {
+  final String topic;
+  final String title;
+  final String? accountId;
+  final List<String>? accountIds;
+  final bool broadcastToAll;
+  final String? subtitle;
+  final String? body;
+  final String? actionUri;
+  final String? pushType;
+  final bool? isSilent;
+  final bool? isSavable;
+  final Map<String, dynamic>? meta;
+
+  CustomAppNotificationRequest({
+    required this.topic,
+    required this.title,
+    this.accountId,
+    this.accountIds,
+    this.broadcastToAll = false,
+    this.subtitle,
+    this.body,
+    this.actionUri,
+    this.pushType,
+    this.isSilent,
+    this.isSavable,
+    this.meta,
+  }) : assert(
+         broadcastToAll || accountId != null || (accountIds?.isNotEmpty == true),
+         'Must provide at least one of: broadcastToAll, accountId, or accountIds',
+       );
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{
+      'topic': topic,
+      'title': title,
+    };
+    if (broadcastToAll) data['broadcast_to_all'] = true;
+    if (accountId != null) data['account_id'] = accountId;
+    if (accountIds?.isNotEmpty == true) {
+      data['account_ids'] = accountIds;
+    }
+    if (subtitle != null) data['subtitle'] = subtitle;
+    if (body != null) data['body'] = body;
+    if (actionUri != null) data['action_uri'] = actionUri;
+    if (pushType != null) data['push_type'] = pushType;
+    if (isSilent != null) data['is_silent'] = isSilent;
+    if (isSavable != null) data['is_savable'] = isSavable;
+    if (meta != null) data['meta'] = meta;
+    return data;
+  }
+}
+
+/// Response from sending a custom-app notification.
+class CustomAppNotificationResponse {
+  final int sent;
+  final String scope;
+  final bool broadcastToAll;
+
+  CustomAppNotificationResponse({
+    required this.sent,
+    required this.scope,
+    required this.broadcastToAll,
+  });
+
+  factory CustomAppNotificationResponse.fromJson(Map<String, dynamic> json) {
+    return CustomAppNotificationResponse(
+      sent: (json['sent'] as num).toInt(),
+      scope: json['scope'] as String,
+      broadcastToAll: json['broadcast_to_all'] as bool,
+    );
+  }
+}
+
+/// Sends a custom-app notification using the app's API key.
+///
+/// Uses X-Api-Key auth (not Bearer). See CUSTOM_APP_NOTIFICATIONS.md.
+Future<CustomAppNotificationResponse> sendCustomAppNotification({
+  required String serverUrl,
+  required String appId,
+  required String apiKey,
+  required CustomAppNotificationRequest request,
+}) async {
+  final dio = Dio(BaseOptions(
+    baseUrl: serverUrl,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-Api-Key': apiKey,
+    },
+  ));
+  try {
+    final response = await dio.post<Map<String, dynamic>>(
+      '/api/private/apps/$appId/notifications',
+      data: request.toJson(),
+    );
+    return CustomAppNotificationResponse.fromJson(response.data!);
+  } finally {
+    dio.close();
+  }
+}
+
+/// Riverpod provider that creates a Dio instance for custom-app notification requests.
+@riverpod
+Dio customAppNotificationDio(Ref ref, String apiKey) {
+  final serverUrl = ref.watch(serverUrlProvider);
+  final dio = Dio(BaseOptions(
+    baseUrl: serverUrl,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-Api-Key': apiKey,
+    },
+  ));
+  ref.onDispose(() => dio.close());
+  return dio;
 }

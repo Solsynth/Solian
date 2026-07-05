@@ -54,3 +54,91 @@ abstract class _$NotificationUnreadCountNotifier extends $AsyncNotifier<int> {
     element.handleCreate(ref, build);
   }
 }
+
+/// Riverpod provider that creates a Dio instance for custom-app notification requests.
+
+@ProviderFor(customAppNotificationDio)
+final customAppNotificationDioProvider = CustomAppNotificationDioFamily._();
+
+/// Riverpod provider that creates a Dio instance for custom-app notification requests.
+
+final class CustomAppNotificationDioProvider
+    extends $FunctionalProvider<Dio, Dio, Dio>
+    with $Provider<Dio> {
+  /// Riverpod provider that creates a Dio instance for custom-app notification requests.
+  CustomAppNotificationDioProvider._({
+    required CustomAppNotificationDioFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'customAppNotificationDioProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$customAppNotificationDioHash();
+
+  @override
+  String toString() {
+    return r'customAppNotificationDioProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<Dio> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Dio create(Ref ref) {
+    final argument = this.argument as String;
+    return customAppNotificationDio(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Dio value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Dio>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CustomAppNotificationDioProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$customAppNotificationDioHash() =>
+    r'cc46972f29b0bd11305da5c206692f0c28e99505';
+
+/// Riverpod provider that creates a Dio instance for custom-app notification requests.
+
+final class CustomAppNotificationDioFamily extends $Family
+    with $FunctionalFamilyOverride<Dio, String> {
+  CustomAppNotificationDioFamily._()
+    : super(
+        retry: null,
+        name: r'customAppNotificationDioProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Riverpod provider that creates a Dio instance for custom-app notification requests.
+
+  CustomAppNotificationDioProvider call(String apiKey) =>
+      CustomAppNotificationDioProvider._(argument: apiKey, from: this);
+
+  @override
+  String toString() => r'customAppNotificationDioProvider';
+}
