@@ -223,11 +223,26 @@ import flutter_callkit_incoming
     private func configureCallAudioSession(_ reason: String) {
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.mixWithOthers])
+            try session.setCategory(
+                .playAndRecord,
+                mode: .voiceChat,
+                options: [.allowBluetooth, .defaultToSpeaker]
+            )
             print("[CallKit] configured AVAudioSession reason=\(reason)")
         } catch {
             print("[CallKit] failed to configure AVAudioSession reason=\(reason) error=\(error.localizedDescription)")
         }
+    }
+
+    private func prepareOutgoingCallAudioSession() {
+        // CallKit activates the session after the CXStartCallAction is fulfilled.
+        // The category must already support recording at that point; otherwise an
+        // in-app call starts from the app's ambient session and WebRTC's manual
+        // audio unit remains silent even after CallKit becomes active.
+        configureCallAudioSession("outgoing call before report")
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.useManualAudio = true
+        rtcSession.isAudioEnabled = false
     }
 
     func didActivateAudioSession(_ audioSession: AVAudioSession) {
@@ -265,6 +280,9 @@ import flutter_callkit_incoming
                 result(self.consumePendingCallbackCall())
             case "isCallKitAudioSessionActive":
                 result(self.callKitAudioSessionActive)
+            case "prepareOutgoingCallAudioSession":
+                self.prepareOutgoingCallAudioSession()
+                result(nil)
             default:
                 result(FlutterMethodNotImplemented)
             }

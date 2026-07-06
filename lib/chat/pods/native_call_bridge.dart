@@ -387,6 +387,11 @@ class NativeCallBridge extends _$NativeCallBridge {
     String? handle,
   }) async {
     await ensureInitialized();
+    if (Platform.isIOS) {
+      await _nativeCallChannel.invokeMethod<void>(
+        'prepareOutgoingCallAudioSession',
+      );
+    }
     final descriptor = createSystemCallDescriptor(
       roomId: roomId,
       callerName: callerName,
