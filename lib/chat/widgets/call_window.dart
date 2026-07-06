@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -208,6 +209,7 @@ class _CallWindowHome extends HookConsumerWidget {
     useEffect(() {
       () async {
         try {
+          await windowManager.setAlwaysOnTop(true);
           final resp = await apiClient.get('/messager/chat/${args.roomId}');
           var room = SnChatRoom.fromJson(resp.data);
           // Fetch members if not included
@@ -235,7 +237,7 @@ class _CallWindowHome extends HookConsumerWidget {
         }
       }();
 
-      windowManager.setPreventClose(true);
+      unawaited(windowManager.setPreventClose(true));
       final listener = _CallWindowListener(
         notifier: callNotifier,
         roomId: args.roomId,

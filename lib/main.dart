@@ -99,6 +99,7 @@ void main(List<String> args) async {
             size: initialSize,
             minimumSize: const Size(720, 520),
             maximumSize: const Size(1200, 900),
+            alwaysOnTop: true,
             center: true,
             backgroundColor: Colors.transparent,
             skipTaskbar: false,
@@ -108,6 +109,7 @@ void main(List<String> args) async {
           await windowManager.waitUntilReadyToShow(windowOptions, () async {
             await windowManager.show();
             await windowManager.focus();
+            await windowManager.setAlwaysOnTop(true);
             await windowManager.setResizable(true);
             // ponytail: prevent maximize — call window should stay compact
             await windowManager.setMaximizable(false);

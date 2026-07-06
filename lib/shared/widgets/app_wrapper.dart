@@ -205,6 +205,32 @@ class AppWrapper extends HookConsumerWidget {
         );
       }
 
+      BuildContext? resolveInviteModalContext() {
+        final router = ref.read(routerProvider);
+        final navigatorState = router.navigatorKey.currentState;
+        final overlayContext = navigatorState?.overlay?.context;
+        if (overlayContext != null && overlayContext.mounted) {
+          return overlayContext;
+        }
+
+        final navigatorContext = router.navigatorKey.currentContext;
+        if (navigatorContext != null && navigatorContext.mounted) {
+          return navigatorContext;
+        }
+
+        return null;
+      }
+
+      Future<BuildContext?> waitForInviteModalContext([int retry = 0]) async {
+        final context = resolveInviteModalContext();
+        if (context != null) return context;
+        if (retry >= 16) return null;
+
+        await WidgetsBinding.instance.endOfFrame;
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+        return waitForInviteModalContext(retry + 1);
+      }
+
       bool shouldSuppressInvite(IncomingCallInvite invite) {
         final callState = ref.read(callProvider);
         final callNotifier = ref.read(callProvider.notifier);
@@ -232,34 +258,54 @@ class AppWrapper extends HookConsumerWidget {
           return;
         }
 
-        final router = ref.read(routerProvider);
-        final navigatorContext = router.navigatorKey.currentContext;
-        if (navigatorContext == null || !navigatorContext.mounted) {
+        final modalContext = await waitForInviteModalContext();
+        if (modalContext == null) {
+          Logger.root.warning(
+            '[AppWrapper] Invite sheet aborted: navigator context unavailable for ${invite.dedupeKey}',
+          );
           return;
         }
 
         activeInviteKey.value = invite.dedupeKey;
-        await playCallInvitedSfxLoop(ref);
-        if (!navigatorContext.mounted) return;
-        final shouldJoin = await showModalBottomSheet<bool>(
-          context: navigatorContext,
-          useRootNavigator: true,
-          useSafeArea: true,
-          isScrollControlled: true,
-          builder: (context) => IncomingCallInviteSheet(
-            invite: invite,
-            onJoin: () => Navigator.pop(context, true),
-            onDismiss: () => Navigator.pop(context, false),
-          ),
-        ).whenComplete(() => stopCallInvitedSfxLoop(ref));
-        activeInviteKey.value = null;
+        bool shouldRecordInvite = false;
+        bool shouldJoin = false;
+        try {
+          await playCallInvitedSfxLoop(ref);
+          if (!modalContext.mounted) return;
+
+          shouldJoin =
+              await showModalBottomSheet<bool>(
+                context: modalContext,
+                useRootNavigator: true,
+                useSafeArea: true,
+                isScrollControlled: true,
+                builder: (context) => IncomingCallInviteSheet(
+                  invite: invite,
+                  onJoin: () => Navigator.pop(context, true),
+                  onDismiss: () => Navigator.pop(context, false),
+                ),
+              ) ==
+              true;
+          shouldRecordInvite = true;
+        } catch (err, st) {
+          Logger.root.severe(
+            '[AppWrapper] Failed to present incoming call invite for ${invite.dedupeKey}',
+            err,
+            st,
+          );
+        } finally {
+          activeInviteKey.value = null;
+          await stopCallInvitedSfxLoop(ref);
+        }
 
         final now = DateTime.now();
-        recentlyHandledInvites.value[invite.dedupeKey] = shouldJoin == true
-            ? now.add(const Duration(minutes: 2))
-            : now.add(const Duration(seconds: 30));
+        if (shouldRecordInvite) {
+          recentlyHandledInvites.value[invite.dedupeKey] = shouldJoin
+              ? now.add(const Duration(minutes: 2))
+              : now.add(const Duration(seconds: 30));
+        }
 
-        if (shouldJoin == true) {
+        if (shouldJoin) {
           await _navigateToCallScreen(
             ref,
             invite.roomId,
