@@ -86,7 +86,7 @@ Future<SystemCallDescriptor> _startOutgoingCall(
 @Riverpod(keepAlive: true)
 class NativeCallBridge extends _$NativeCallBridge {
   bool _listenersRegistered = false;
-  bool _isInitializing = false;
+  Future<void>? _initializationFuture;
 
   @override
   NativeCallState build() {
@@ -299,9 +299,27 @@ class NativeCallBridge extends _$NativeCallBridge {
   }
 
   Future<void> ensureInitialized() async {
-    if (!isNativeCallAvailable || _isInitializing) return;
-    _isInitializing = true;
+    if (!isNativeCallAvailable) return;
     _registerListeners();
+
+    final existingInitialization = _initializationFuture;
+    if (existingInitialization != null) {
+      await existingInitialization;
+      return;
+    }
+
+    final initialization = _initializeNativeCallBridge();
+    _initializationFuture = initialization;
+    try {
+      await initialization;
+    } finally {
+      if (identical(_initializationFuture, initialization)) {
+        _initializationFuture = null;
+      }
+    }
+  }
+
+  Future<void> _initializeNativeCallBridge() async {
     try {
       final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
       state = state.copyWith(pushToken: token);
@@ -317,7 +335,6 @@ class NativeCallBridge extends _$NativeCallBridge {
         '[NativeCallBridge] Failed to initialize native call bridge: $e',
       );
     }
-    _isInitializing = false;
   }
 
   Future<void> _consumePendingAcceptedCall() async {
@@ -347,6 +364,21 @@ class NativeCallBridge extends _$NativeCallBridge {
       Logger.root.warning(
         '[NativeCallBridge] Failed to read CallKit audio session state: $e',
       );
+    }
+  }
+
+  Future<void> _prepareOutgoingIOSAudioSession() async {
+    if (!Platform.isIOS) return;
+    try {
+      await _nativeCallChannel.invokeMethod<void>(
+        'prepareOutgoingCallAudioSession',
+      );
+    } on MissingPluginException catch (e) {
+      Logger.root.warning(
+        '[NativeCallBridge] iOS audio prep channel unavailable: $e',
+      );
+    } on PlatformException catch (e) {
+      Logger.root.warning('[NativeCallBridge] iOS audio prep failed: $e');
     }
   }
 
@@ -387,11 +419,7 @@ class NativeCallBridge extends _$NativeCallBridge {
     String? handle,
   }) async {
     await ensureInitialized();
-    if (Platform.isIOS) {
-      await _nativeCallChannel.invokeMethod<void>(
-        'prepareOutgoingCallAudioSession',
-      );
-    }
+    await _prepareOutgoingIOSAudioSession();
     final descriptor = createSystemCallDescriptor(
       roomId: roomId,
       callerName: callerName,
@@ -399,7 +427,6 @@ class NativeCallBridge extends _$NativeCallBridge {
       hasVideo: hasVideo,
       source: NativeCallSource.outgoingLocal,
     );
-    await _startOutgoingCall(descriptor);
     state = state.copyWith(
       callUuid: descriptor.callUuid,
       roomId: roomId,
@@ -407,6 +434,14 @@ class NativeCallBridge extends _$NativeCallBridge {
       isOutgoing: true,
       source: NativeCallSource.outgoingLocal,
     );
+    try {
+      await _startOutgoingCall(descriptor);
+    } catch (_) {
+      if (state.callUuid == descriptor.callUuid) {
+        clearAcceptedCall();
+      }
+      rethrow;
+    }
     return descriptor;
   }
 
