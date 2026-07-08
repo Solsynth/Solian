@@ -51,6 +51,11 @@ import 'package:island/auth/login_content.dart';
 import 'package:island/misc/tray_manager.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/sharing_intent.dart';
+import 'package:island/accounts/screens/physical_passport.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/response.dart';
+import 'package:gap/gap.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/core/tour/tour.dart';
@@ -1000,12 +1005,14 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
-    if (path.startsWith('/phpass/')) {
-      final tagId = path.substring('/phpass/'.length);
-      if (tagId.isNotEmpty) {
-        context.router.navigate(PhysicalPassportRoute());
-        return;
-      }
+    final passportDeepLink = parsePhysicalPassportDeepLink(uri.toString());
+    if (passportDeepLink != null) {
+      await _handlePhysicalPassportDeepLink(
+        context,
+        ref,
+        passportDeepLink,
+      );
+      return;
     }
 
     if (path == '/dashboard') {
@@ -1082,6 +1089,131 @@ class AppWrapper extends HookConsumerWidget {
         hideLoadingModal(context);
       }
     }
+  }
+
+  Future<void> _handlePhysicalPassportDeepLink(
+    BuildContext context,
+    WidgetRef ref,
+    PhysicalPassportDeepLink link,
+  ) async {
+    final navigatorContext =
+        ref.read(routerProvider).navigatorKey.currentContext ?? context;
+
+    showModalBottomSheet(
+      context: navigatorContext,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, sheetRef, child) {
+            if (link.isPathBased) {
+              final asyncData = sheetRef.watch(
+                scanPhysicalPassportProvider(link.tagId!),
+              );
+              return _buildPassportScanSheet(sheetContext, asyncData);
+            } else {
+              final asyncData = sheetRef.watch(
+                scanPhysicalPassportByParamsProvider(
+                  link.queryParameters!,
+                ),
+              );
+              return _buildPassportScanSheet(sheetContext, asyncData);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPassportScanSheet(
+    BuildContext context,
+    AsyncValue<SnScanResult> asyncData,
+  ) {
+    return SheetScaffold(
+      heightFactor: 0.5,
+      titleText: 'scanPhysicalPassport'.tr(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: asyncData.when(
+          data: (result) => _buildScanResultCard(context, result),
+          error: (error, _) => ResponseErrorWidget(
+            error: error,
+            onRetry: () => Navigator.of(context).pop(),
+          ),
+          loading: () => const ResponseLoadingWidget(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanResultCard(BuildContext context, SnScanResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (result.account != null)
+          Card(
+            margin: EdgeInsets.zero,
+            child: InkWell(
+              child: AccountNameplate(
+                name: result.account!.name,
+                isOutlined: false,
+              ),
+              onTap: () {
+                context.router.push(
+                  AccountProfileRoute(name: result.account!.name),
+                );
+              },
+            ),
+          )
+        else
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            color: colorScheme.primaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.check_circle,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
+                      const Gap(8),
+                      Text(
+                        'physicalPassportScanned'.tr(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(12),
+                  Text(
+                    'ID: ${result.id}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                  const Gap(12),
+                  Text('tagNotClaimed'.tr()),
+                ],
+              ),
+            ),
+          ),
+        const Gap(24),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('done').tr(),
+        ),
+      ],
+    );
   }
 
   Future<void> _handleProtocolWebAuth(
