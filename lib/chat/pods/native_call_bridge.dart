@@ -382,6 +382,24 @@ class NativeCallBridge extends _$NativeCallBridge {
     }
   }
 
+  Future<void> prepareInAppLiveKitAudioSession() async {
+    if (!Platform.isIOS) return;
+    state = state.copyWith(isAudioSessionActive: false);
+    try {
+      await _nativeCallChannel.invokeMethod<void>(
+        'prepareInAppLiveKitAudioSession',
+      );
+    } on MissingPluginException catch (e) {
+      Logger.root.warning(
+        '[NativeCallBridge] in-app LiveKit audio prep channel unavailable: $e',
+      );
+    } on PlatformException catch (e) {
+      Logger.root.warning(
+        '[NativeCallBridge] in-app LiveKit audio prep failed: $e',
+      );
+    }
+  }
+
   Future<void> _restoreActiveCallState() async {
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
     if (activeCalls.isEmpty) return;

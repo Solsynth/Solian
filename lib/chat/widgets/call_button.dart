@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
@@ -99,7 +98,6 @@ class AudioCallButton extends HookConsumerWidget {
     );
     final callState = ref.watch(callProvider);
     final callNotifier = ref.read(callProvider.notifier);
-    final currentUserId = ref.watch(userInfoProvider).value?.id;
     final nativeBridge = ref.watch(nativeCallBridgeProvider);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
@@ -113,18 +111,6 @@ class AudioCallButton extends HookConsumerWidget {
         nativeBridge.callKitAcceptedRoomId == room.id &&
         (nativeBridge.isConnected || nativeBridge.isAcceptedPending);
     final isInCall = callState.isConnected || hasNativeAcceptedCall;
-
-    String callKitDisplayName() {
-      if (room.name?.trim().isNotEmpty == true) return room.name!.trim();
-      final other = (room.members ?? const <SnChatMember>[])
-          .where((m) => m.accountId != currentUserId)
-          .firstOrNull;
-      return other?.nick?.trim().isNotEmpty == true
-          ? other!.nick!.trim()
-          : other?.account.nick.trim().isNotEmpty == true
-          ? other!.account.nick.trim()
-          : 'Voice Call';
-    }
 
     Future<void> openCallScreen({
       bool cameraEnabled = false,
@@ -152,34 +138,28 @@ class AudioCallButton extends HookConsumerWidget {
       isLoading.value = true;
       try {
         // Show pending join sheet
-        final result = await showModalBottomSheet<
-          ({bool cameraEnabled, bool microphoneEnabled})
-        >(
-          context: context,
-          useSafeArea: true,
-          isScrollControlled: true,
-          builder: (context) => PendingJoinSheet(
-            room: room,
-            onJoin: (settings) => Navigator.pop(context, settings),
-          ),
-        );
+        final result =
+            await showModalBottomSheet<
+              ({bool cameraEnabled, bool microphoneEnabled})
+            >(
+              context: context,
+              useSafeArea: true,
+              isScrollControlled: true,
+              builder: (context) => PendingJoinSheet(
+                room: room,
+                onJoin: (settings) => Navigator.pop(context, settings),
+              ),
+            );
 
         if (result == null) {
           isLoading.value = false;
           return;
         }
 
-        if (isNativeCallAvailable) {
+        if (!kIsWeb && Platform.isIOS) {
           await ref
               .read(nativeCallBridgeProvider.notifier)
-              .startOutgoingCall(
-                roomId: room.id,
-                callerName: callKitDisplayName(),
-                hasVideo: result.cameraEnabled,
-              );
-          await ref
-              .read(nativeCallBridgeProvider.notifier)
-              .markOutgoingConnecting();
+              .prepareInAppLiveKitAudioSession();
         }
 
         // Open call screen with camera setting
@@ -250,34 +230,28 @@ class AudioCallButton extends HookConsumerWidget {
           isLoading.value = true;
           try {
             // Show pending join sheet
-            final result = await showModalBottomSheet<
-              ({bool cameraEnabled, bool microphoneEnabled})
-            >(
-              context: context,
-              useSafeArea: true,
-              isScrollControlled: true,
-              builder: (context) => PendingJoinSheet(
-                room: room,
-                onJoin: (settings) => Navigator.pop(context, settings),
-              ),
-            );
+            final result =
+                await showModalBottomSheet<
+                  ({bool cameraEnabled, bool microphoneEnabled})
+                >(
+                  context: context,
+                  useSafeArea: true,
+                  isScrollControlled: true,
+                  builder: (context) => PendingJoinSheet(
+                    room: room,
+                    onJoin: (settings) => Navigator.pop(context, settings),
+                  ),
+                );
 
             if (result == null) {
               isLoading.value = false;
               return;
             }
 
-            if (isNativeCallAvailable) {
+            if (!kIsWeb && Platform.isIOS) {
               await ref
                   .read(nativeCallBridgeProvider.notifier)
-                  .startOutgoingCall(
-                    roomId: room.id,
-                    callerName: callKitDisplayName(),
-                    hasVideo: result.cameraEnabled,
-                  );
-              await ref
-                  .read(nativeCallBridgeProvider.notifier)
-                  .markOutgoingConnecting();
+                  .prepareInAppLiveKitAudioSession();
             }
 
             await openCallScreen(

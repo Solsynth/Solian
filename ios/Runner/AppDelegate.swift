@@ -245,12 +245,25 @@ import flutter_callkit_incoming
         rtcSession.isAudioEnabled = false
     }
 
+    private func prepareInAppLiveKitAudioSession() {
+        // In-app joins do not need a CallKit transaction. Release WebRTC from
+        // CallKit/manual-audio mode and let LiveKit/flutter_webrtc configure the
+        // AVAudioSession as part of the room connection.
+        callKitAudioSessionActive = false
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.useManualAudio = false
+        rtcSession.isAudioEnabled = true
+        print("[CallKit] prepared in-app LiveKit audio session ownership")
+    }
+
     func didActivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] didActivateAudioSession")
         configureCallAudioSession("didActivate")
         callKitAudioSessionActive = true
-        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
-        RTCAudioSession.sharedInstance().isAudioEnabled = true
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.useManualAudio = true
+        rtcSession.audioSessionDidActivate(audioSession)
+        rtcSession.isAudioEnabled = true
         nativeCallChannel?.invokeMethod("onAudioSessionActive", arguments: true)
     }
     
@@ -282,6 +295,9 @@ import flutter_callkit_incoming
                 result(self.callKitAudioSessionActive)
             case "prepareOutgoingCallAudioSession":
                 self.prepareOutgoingCallAudioSession()
+                result(nil)
+            case "prepareInAppLiveKitAudioSession":
+                self.prepareInAppLiveKitAudioSession()
                 result(nil)
             default:
                 result(FlutterMethodNotImplemented)

@@ -1285,8 +1285,6 @@ class AccountProfileScreen extends HookConsumerWidget {
 }
 
 class AccountProfileContent extends HookConsumerWidget {
-  static const double _wideLayoutMinWidth = 900;
-
   final String name;
   final bool isEmbedded;
 
@@ -1383,220 +1381,140 @@ class AccountProfileContent extends HookConsumerWidget {
       [user, account],
     );
 
-    return account.when(
-      data: (data) {
-        final accountPublishers = ref.watch(accountPublishersProvider(data.id));
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth.isFinite
-                ? constraints.maxWidth
-                : MediaQuery.of(context).size.width;
-            final useWideLayout =
-                isWideScreen(context) && availableWidth >= _wideLayoutMinWidth;
+    return DefaultTabController(
+      length: 2,
+      child: account.when(
+        data: (data) {
+          final accountPublishers = ref.watch(
+            accountPublishersProvider(data.id),
+          );
+          final theme = Theme.of(context);
 
-            return useWideLayout
-                ? Row(
-                    spacing: 12,
-                    children: [
-                      Flexible(
-                        flex: 4,
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverGap(16),
-                            AccountTimelineList(uname: name),
-                            SliverGap(
-                              MediaQuery.of(context).padding.bottom + 16,
-                            ),
-                          ],
+          final boardContent = SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Column(
+              spacing: 12,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isEmbedded) ...[
+                  const Gap(8),
+                  Text(
+                    data.nick,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                _AccountBasicInfo(
+                  data: data,
+                  uname: name,
+                  accountDeveloper: accountDeveloper,
+                ),
+                ActivityPresenceWidget(uname: name, isCompact: false),
+                if (data.badges.isNotEmpty)
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: BadgeList(badges: data.badges),
+                    ),
+                  ),
+                Column(
+                  spacing: 12,
+                  children: [
+                    LevelingProgressCard(
+                      level: data.profile.level,
+                      experience: data.profile.experience,
+                      progress: data.profile.levelingProgress,
+                    ),
+                    if (data.profile.verification != null)
+                      Card(
+                        margin: EdgeInsets.zero,
+                        child: VerificationStatusCard(
+                          mark: data.profile.verification!,
                         ),
                       ),
-                      Flexible(
-                        flex: 3,
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              spacing: 12,
-                              children: [
-                                _AccountBasicInfo(
-                                  data: data,
-                                  uname: name,
-                                  accountDeveloper: accountDeveloper,
-                                ),
-                                ActivityPresenceWidget(
-                                  uname: name,
-                                  isCompact: false,
-                                ),
-                                if (data.badges.isNotEmpty)
-                                  Card(
-                                    margin: EdgeInsets.zero,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: BadgeList(badges: data.badges),
-                                    ),
-                                  ),
-                                Column(
-                                  spacing: 12,
-                                  children: [
-                                    LevelingProgressCard(
-                                      level: data.profile.level,
-                                      experience: data.profile.experience,
-                                      progress: data.profile.levelingProgress,
-                                    ),
-                                    if (data.profile.verification != null)
-                                      Card(
-                                        margin: EdgeInsets.zero,
-                                        child: VerificationStatusCard(
-                                          mark: data.profile.verification!,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                if (data.contacts.any((c) => c.isPublic))
-                                  _AccountProfileContacts(data: data),
-                                _AccountProfileDetail(data: data),
-                                _AccountPublisherList(
-                                  publishers: accountPublishers.value ?? [],
-                                ),
-                                ?accountPunishment.whenOrNull(
-                                  data: (data) => data != null
-                                      ? _AccountPunishment(
-                                          punishment: data,
-                                          onTap: showPunishmentSheet,
-                                        )
-                                      : null,
-                                ),
-                                if (user.value != null && !isCurrentUser)
-                                  _AccountAction(
-                                    data: data,
-                                    accountRelationship: accountRelationship,
-                                    accountChat: accountChat,
-                                    relationshipAction: relationshipAction,
-                                    blockAction: blockAction,
-                                    directMessageAction: directMessageAction,
-                                  ).padding(horizontal: 4),
-                                Card(
-                                  margin: EdgeInsets.zero,
-                                  child: FortuneGraphWidget(
-                                    events: accountEvents,
-                                    eventCalandarUser: data.name,
-                                    margin: EdgeInsets.zero,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ).padding(horizontal: 12)
-                : CustomScrollView(
-                    slivers: [
-                      if (!isEmbedded)
-                        SliverAppBar(
-                          pinned: true,
-                          leading: AutoLeadingButton(),
-                          title: Text(data.nick),
-                          flexibleSpace: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Container(
-                                  color: Theme.of(
-                                    context,
-                                  ).appBarTheme.backgroundColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      SliverToBoxAdapter(
-                        child: Column(
-                          spacing: 12,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _AccountBasicInfo(
-                              data: data,
-                              uname: name,
-                              accountDeveloper: accountDeveloper,
-                            ),
-                            ActivityPresenceWidget(
-                              uname: name,
-                              isCompact: false,
-                            ),
-                            if (data.badges.isNotEmpty)
-                              Card(
-                                margin: EdgeInsets.zero,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: BadgeList(badges: data.badges),
-                                ),
-                              ),
-                            Column(
-                              spacing: 12,
-                              children: [
-                                LevelingProgressCard(
-                                  level: data.profile.level,
-                                  experience: data.profile.experience,
-                                  progress: data.profile.levelingProgress,
-                                ),
-                                if (data.profile.verification != null)
-                                  Card(
-                                    margin: EdgeInsets.zero,
-                                    child: VerificationStatusCard(
-                                      mark: data.profile.verification!,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            if (data.contacts.any((c) => c.isPublic))
-                              _AccountProfileContacts(data: data),
-                            _AccountPublisherList(
-                              publishers: accountPublishers.value ?? [],
-                            ),
-                            _AccountProfileDetail(data: data),
-                            ?accountPunishment.whenOrNull(
-                              data: (data) => data != null
-                                  ? _AccountPunishment(
-                                      punishment: data,
-                                      onTap: showPunishmentSheet,
-                                    )
-                                  : null,
-                            ),
-                            if (user.value != null && !isCurrentUser)
-                              _AccountAction(
-                                data: data,
-                                accountRelationship: accountRelationship,
-                                accountChat: accountChat,
-                                relationshipAction: relationshipAction,
-                                blockAction: blockAction,
-                                directMessageAction: directMessageAction,
-                              ),
-                            Card(
-                              margin: EdgeInsets.zero,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: FortuneGraphWidget(
-                                  events: accountEvents,
-                                  eventCalandarUser: data.name,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ).padding(vertical: isEmbedded ? 8 : 8, horizontal: 8),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        sliver: AccountTimelineList(uname: name),
-                      ),
-                    ],
-                  );
-          },
-        );
-      },
-      error: (error, stackTrace) => Center(child: Text(error.toString())),
-      loading: () => const Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+                if (data.contacts.any((c) => c.isPublic))
+                  _AccountProfileContacts(data: data),
+                _AccountPublisherList(
+                  publishers: accountPublishers.value ?? [],
+                ),
+                _AccountProfileDetail(data: data),
+                ?accountPunishment.whenOrNull(
+                  data: (punishmentData) => punishmentData != null
+                      ? _AccountPunishment(
+                          punishment: punishmentData,
+                          onTap: showPunishmentSheet,
+                        )
+                      : null,
+                ),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: FortuneGraphWidget(
+                      events: accountEvents,
+                      eventCalandarUser: data.name,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          final timelineContent = CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                sliver: AccountTimelineList(uname: name),
+              ),
+              SliverGap(MediaQuery.of(context).padding.bottom + 16),
+            ],
+          );
+
+          return Column(
+            children: [
+              Material(
+                color: theme.colorScheme.surface,
+                elevation: 0,
+                child: TabBar(
+                  tabs: [
+                    Tab(text: 'board'.tr()),
+                    Tab(text: 'timeline'.tr()),
+                  ],
+                ),
+              ),
+              if (user.value != null && !isCurrentUser)
+                Material(
+                  color: theme.colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: _AccountAction(
+                      data: data,
+                      accountRelationship: accountRelationship,
+                      accountChat: accountChat,
+                      relationshipAction: relationshipAction,
+                      blockAction: blockAction,
+                      directMessageAction: directMessageAction,
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: TabBarView(
+                  children: [boardContent, timelineContent],
+                ),
+              ),
+            ],
+          );
+        },
+        error: (error, stackTrace) => Center(child: Text(error.toString())),
+        loading: () => const Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }
