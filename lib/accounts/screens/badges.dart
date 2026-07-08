@@ -221,7 +221,7 @@ class _BadgeCard extends ConsumerWidget {
                     if (description != null && description.isNotEmpty) ...[
                       const Gap(4),
                       Text(
-                        description,
+                        description.trExists() ? description.tr() : description,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

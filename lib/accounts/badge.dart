@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -133,15 +134,14 @@ String? getBadgeDescription(
   final fallback = kBadgeTemplates[badge.type]?.description;
   final badgeCaption = badge.caption;
 
-  final desc = (primary != null && primary.isNotEmpty)
+  var desc = (primary != null && primary.isNotEmpty)
       ? primary
       : (fallback != null && fallback.isNotEmpty)
-          ? fallback
-          : null;
+      ? fallback
+      : null;
+  if (desc?.trExists() ?? false) desc = desc?.tr();
 
-  if (badgeCaption != null &&
-      badgeCaption.isNotEmpty &&
-      badgeCaption != desc) {
+  if (badgeCaption != null && badgeCaption.isNotEmpty && badgeCaption != desc) {
     return desc != null ? '$desc\n$badgeCaption' : badgeCaption;
   }
 
@@ -235,7 +235,9 @@ class _CachedSvgIconState extends State<_CachedSvgIcon> {
         });
       } else {
         // On native, use cache manager
-        final fileInfo = await DefaultCacheManager().getFileFromCache(widget.url);
+        final fileInfo = await DefaultCacheManager().getFileFromCache(
+          widget.url,
+        );
         if (!mounted) return;
 
         if (fileInfo != null) {
@@ -244,7 +246,9 @@ class _CachedSvgIconState extends State<_CachedSvgIcon> {
             _loading = false;
           });
         } else {
-          final downloaded = await DefaultCacheManager().downloadFile(widget.url);
+          final downloaded = await DefaultCacheManager().downloadFile(
+            widget.url,
+          );
           if (!mounted) return;
           setState(() {
             _cachedSvgContent = downloaded.file.path;
