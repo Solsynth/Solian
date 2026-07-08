@@ -961,6 +961,14 @@ class PostReplyPreview extends HookConsumerWidget {
                         post.reactionsCount,
                       ),
                     ),
+                  if (post.repliesCount > children.length)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text('repliesCount')
+                          .plural(post.repliesCount)
+                          .fontSize(12)
+                          .opacity(0.7),
+                    ),
                 ],
               ),
             ),
@@ -1033,6 +1041,7 @@ class PostReplyPreview extends HookConsumerWidget {
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
                   children: [
                     for (final post in data.value) ...[
                       Row(
@@ -1076,13 +1085,20 @@ class PostReplyPreview extends HookConsumerWidget {
                             post.reactionsCount,
                           ),
                         ),
-                      if (post.id != data.value.last.id) const Gap(8),
+                      if (post.repliesCount > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Text('repliesCount')
+                              .plural(post.repliesCount)
+                              .fontSize(12)
+                              .opacity(0.7),
+                        ),
                     ],
                     if (parent.repliesCount > data.value.length)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'repliesLoadMore',
+                          'repliesCount'.plural(parent.repliesCount),
                           style: Theme.of(context).textTheme.bodySmall,
                         ).opacity(0.8),
                       ),
