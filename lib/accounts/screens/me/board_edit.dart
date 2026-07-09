@@ -26,14 +26,14 @@ class _EditorItem {
   final int? customIndex;
 
   const _EditorItem.prebuilt(this.prebuiltKey)
-      : key = 'p_$prebuiltKey',
-        type = _EditorItemType.prebuilt,
-        customIndex = null;
+    : key = 'p_$prebuiltKey',
+      type = _EditorItemType.prebuilt,
+      customIndex = null;
 
   const _EditorItem.custom(this.customIndex)
-      : key = 'c_$customIndex',
-        type = _EditorItemType.custom,
-        prebuiltKey = null;
+    : key = 'c_$customIndex',
+      type = _EditorItemType.custom,
+      prebuiltKey = null;
 }
 
 List<_EditorItem> _buildEditorItems(
@@ -162,15 +162,17 @@ class BoardEditorState extends _$BoardEditorState {
             defaultPrebuilt[key] = isEnabled;
           }
         } else if (kind == 1) {
-          custom.add(AccountBoardItem(
-            id: map['id'] as String?,
-            order: map['order'] as int? ?? 0,
-            kind: BoardWidgetKind.customApp,
-            customAppId: map['custom_app_id'] as String?,
-            customAppWidgetKey: map['custom_app_widget_key'] as String?,
-            isEnabled: map['is_enabled'] as bool? ?? true,
-            payload: (map['payload'] as Map<String, dynamic>?) ?? {},
-          ));
+          custom.add(
+            AccountBoardItem(
+              id: map['id'] as String?,
+              order: map['order'] as int? ?? 0,
+              kind: BoardWidgetKind.customApp,
+              customAppId: map['custom_app_id'] as String?,
+              customAppWidgetKey: map['custom_app_widget_key'] as String?,
+              isEnabled: map['is_enabled'] as bool? ?? true,
+              payload: (map['payload'] as Map<String, dynamic>?) ?? {},
+            ),
+          );
         }
       }
 
@@ -380,11 +382,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
         });
       } else {
         final customItem = customItems[item.customIndex!];
-        items.add({
-          ...customItem.toJson(),
-          'order': order++,
-          'kind': 1,
-        });
+        items.add({...customItem.toJson(), 'order': order++, 'kind': 1});
       }
     }
 
@@ -417,6 +415,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     final items = _buildEditorItems(boardState.$1, customItems);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: ReorderableListView.builder(
@@ -457,23 +456,27 @@ class AccountBoardEditScreen extends HookConsumerWidget {
             },
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              final myId = ref.read(userInfoProvider).value?.id;
-              if (myId == null) return;
-              final result = await showModalBottomSheet<AccountBoardItem?>(
-                context: context,
-                isScrollControlled: true,
-                builder: (ctx) => AddCustomWidgetSheet(accountId: myId),
-              );
-              if (result != null) {
-                notifier.addCustom(result);
-              }
-            },
-            icon: const Icon(Symbols.add, size: 18),
-            label: Text('boardAddCustomWidget'.tr()),
+        Material(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: FilledButton.icon(
+              onPressed: () async {
+                final myId = ref.read(userInfoProvider).value?.id;
+                if (myId == null) return;
+                final result = await showModalBottomSheet<AccountBoardItem?>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (ctx) => AddCustomWidgetSheet(accountId: myId),
+                );
+                if (result != null) {
+                  notifier.addCustom(result);
+                }
+              },
+              icon: const Icon(Symbols.add, size: 18),
+              label: Text('boardAddCustomWidget'.tr()),
+            ),
           ),
         ),
       ],
@@ -572,10 +575,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                 ],
               ),
             ),
-            Switch(
-              value: isEnabled,
-              onChanged: (_) => notifier.toggle(key),
-            ),
+            Switch(value: isEnabled, onChanged: (_) => notifier.toggle(key)),
           ],
         ),
       ),
