@@ -132,6 +132,72 @@ class BoardEditorState extends _$BoardEditorState {
       const [],
     );
   }
+
+  Future<void> loadFromServer() async {
+    try {
+      final dio = ref.read(apiClientProvider);
+      final response = await dio.get('/passport/accounts/me/board');
+      final list = response.data as List<dynamic>;
+
+      final defaultPrebuilt = <String, bool>{
+        'activity': false,
+        'badges': false,
+        'leveling': false,
+        'social_credits': false,
+        'contacts': false,
+        'publishers': false,
+        'notable_days': false,
+        'verification': false,
+        'fortune': false,
+      };
+      final custom = <AccountBoardItem>[];
+
+      for (final json in list) {
+        final map = json as Map<String, dynamic>;
+        final kind = map['kind'] as int;
+        if (kind == 0) {
+          final key = map['widget_key'] as String;
+          final isEnabled = map['is_enabled'] as bool? ?? true;
+          if (defaultPrebuilt.containsKey(key)) {
+            defaultPrebuilt[key] = isEnabled;
+          }
+        } else if (kind == 1) {
+          custom.add(AccountBoardItem(
+            id: map['id'] as String?,
+            order: map['order'] as int? ?? 0,
+            kind: BoardWidgetKind.customApp,
+            customAppId: map['custom_app_id'] as String?,
+            customAppWidgetKey: map['custom_app_widget_key'] as String?,
+            isEnabled: map['is_enabled'] as bool? ?? true,
+            payload: (map['payload'] as Map<String, dynamic>?) ?? {},
+          ));
+        }
+      }
+
+      final orderedPrebuilt = <String, bool>{};
+      for (final json in list) {
+        final map = json as Map<String, dynamic>;
+        if ((map['kind'] as int) != 0) continue;
+        final key = map['widget_key'] as String;
+        if (orderedPrebuilt.containsKey(key)) continue;
+        if (defaultPrebuilt.containsKey(key)) {
+          orderedPrebuilt[key] = defaultPrebuilt[key]!;
+        }
+      }
+      for (final key in defaultPrebuilt.keys) {
+        if (!orderedPrebuilt.containsKey(key)) {
+          orderedPrebuilt[key] = defaultPrebuilt[key]!;
+        }
+      }
+
+      custom.sort((a, b) => a.order.compareTo(b.order));
+      for (var i = 0; i < custom.length; i++) {
+        custom[i] = custom[i].copyWith(order: i);
+      }
+
+      state = (orderedPrebuilt, custom);
+    } catch (_) {}
+  }
 }
 
 class _PrebuiltWidgetMeta {
@@ -204,6 +270,11 @@ class AccountBoardEditScreen extends HookConsumerWidget {
 
     final theme = Theme.of(context);
     final showPreview = useState(false);
+
+    useEffect(() {
+      ref.read(boardEditorStateProvider.notifier).loadFromServer();
+      return null;
+    }, []);
 
     final enabledKeys = boardState.$1.entries
         .where((e) => e.value)
@@ -302,14 +373,18 @@ class AccountBoardEditScreen extends HookConsumerWidget {
         final isEnabled = boardState.$1[key]!;
         items.add({
           'order': order++,
-          'kind': 'prebuilt',
+          'kind': 0,
           'widget_key': key,
           'is_enabled': isEnabled,
           'payload': <String, dynamic>{},
         });
       } else {
         final customItem = customItems[item.customIndex!];
-        items.add(customItem.copyWith(order: order++).toJson());
+        items.add({
+          ...customItem.toJson(),
+          'order': order++,
+          'kind': 1,
+        });
       }
     }
 

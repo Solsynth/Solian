@@ -158,11 +158,11 @@ class PadlockApi extends BaseApi {
 
   /// Updates the scopes of an authorized application.
   ///
-  /// [appId] - The record ID of the authorized app entry.
+  /// [id] - The record ID of the authorized app entry.
   /// [scopes] - The new list of scopes.
-  Future<void> authorizeAppScopes(String appId, List<String> scopes) async {
+  Future<void> authorizeAppScopes(String id, List<String> scopes) async {
     await post(
-      '$_basePath/authorized-apps/$appId/scopes',
+      '$_basePath/authorized-apps/$id/scopes',
       data: {'scopes': scopes},
     );
   }

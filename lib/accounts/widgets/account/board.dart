@@ -86,7 +86,7 @@ class AccountBoardItem {
     return {
       if (id != null) 'id': id,
       'order': order,
-      'kind': kind == BoardWidgetKind.customApp ? 'custom_app' : 'prebuilt',
+      'kind': kind.index,
       if (widgetKey != null) 'widget_key': widgetKey,
       if (customAppId != null) 'custom_app_id': customAppId,
       if (customAppWidgetKey != null)
