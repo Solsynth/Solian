@@ -119,7 +119,59 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
     return imageUri;
   }
 
+  Widget _buildSteamImage(String gameId, {double width = 64, double height = 64, double borderRadius = 12}) {
+    final steamBgColor = const Color(0xFF1B2838);
+    final steamUrl =
+        'https://cdn.cloudflare.steamstatic.com/steam/apps/$gameId/library_600x900.jpg';
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: CachedNetworkImage(
+        imageUrl: steamUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: steamBgColor,
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          child: Center(
+            child: SizedBox(
+              width: width * 0.5,
+              height: height * 0.5,
+              child: const CircularProgressIndicator(strokeWidth: 1),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: steamBgColor,
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          child: const Icon(
+            Symbols.sports_esports,
+            color: Colors.white70,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildImages(WidgetRef ref, SnPresenceActivity activity) {
+    final isSteam = activity.manualId == 'steam' && activity.meta != null;
+    if (isSteam) {
+      final meta = activity.meta as Map<String, dynamic>;
+      final gameId = meta['game_id']?.toString();
+      if (gameId != null) {
+        return [_buildSteamImage(gameId)];
+      }
+    }
+
     final imageUri = _resolveArtworkUrl(ref, activity.largeImage ?? activity.smallImage);
     if (imageUri.isEmpty) {
       return const [];
@@ -165,61 +217,10 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
   Widget buildSteamCompactImage({required SnPresenceActivity activity}) {
     final meta = activity.meta as Map<String, dynamic>;
     final gameId = meta['game_id']?.toString();
-    final steamBgColor = const Color(0xFF1B2838);
     if (gameId == null) {
-      return Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: steamBgColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          Symbols.sports_esports,
-          color: Colors.white70,
-          size: 18,
-        ),
-      );
+      return _buildSteamImage('', width: 32, height: 32, borderRadius: 8);
     }
-    final steamUrl =
-        'https://cdn.cloudflare.steamstatic.com/steam/apps/$gameId/library_600x900.jpg';
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: CachedNetworkImage(
-        imageUrl: steamUrl,
-        width: 32,
-        height: 32,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: steamBgColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Center(
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 1),
-            ),
-          ),
-        ),
-        errorWidget: (context, url, error) => Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: steamBgColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Symbols.sports_esports,
-            color: Colors.white70,
-            size: 18,
-          ),
-        ),
-      ),
-    );
+    return _buildSteamImage(gameId, width: 32, height: 32, borderRadius: 8);
   }
 
   Widget _buildCompactImage(SnPresenceActivity activity, WidgetRef ref) {
@@ -395,54 +396,40 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
             final colorScheme = Theme.of(context).colorScheme;
             final textTheme = Theme.of(context).textTheme;
 
-            return Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
-                children: [
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                if (activities.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 4,
+                      vertical: 8,
                     ),
-                    child: Text(
-                      'activities',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ).tr(),
-                  ),
-                  if (activities.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        spacing: 4,
-                        children: [
-                          Icon(Symbols.inbox, size: 16),
-                          Text('dataEmpty', style: textTheme.bodySmall).tr(),
-                        ],
-                      ).opacity(0.75),
-                    ),
-                  ...activities.map((activity) {
-                    final images = _buildImages(ref, activity);
-
-                    return Stack(
+                    child: Row(
+                      spacing: 4,
                       children: [
-                        Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: colorScheme.outlineVariant,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
+                        Icon(Symbols.inbox, size: 16),
+                        Text('dataEmpty', style: textTheme.bodySmall).tr(),
+                      ],
+                    ).opacity(0.75),
+                  ),
+                ...activities.map((activity) {
+                  final images = _buildImages(ref, activity);
+
+                  return Stack(
+                    children: [
+                      Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: colorScheme.outlineVariant,
+                            width: 1,
                           ),
-                          margin: EdgeInsets.zero,
-                          child: ListTile(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        margin: EdgeInsets.zero,
+                        child: ListTile(
                             title: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -648,7 +635,7 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                               ],
                             ),
                           ),
-                        ).padding(horizontal: 8),
+                        ),
                         if (activity.manualId == 'spotify')
                           Positioned(
                             top: 16,
@@ -667,7 +654,6 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                     );
                   }),
                 ],
-              ).padding(horizontal: 8, top: 8, bottom: 16),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),

@@ -87,7 +87,8 @@ class AccountBoardItem {
       'kind': kind == BoardWidgetKind.customApp ? 'custom_app' : 'prebuilt',
       if (widgetKey != null) 'widget_key': widgetKey,
       if (customAppId != null) 'custom_app_id': customAppId,
-      if (customAppWidgetKey != null) 'custom_app_widget_key': customAppWidgetKey,
+      if (customAppWidgetKey != null)
+        'custom_app_widget_key': customAppWidgetKey,
       'is_enabled': isEnabled,
       'payload': payload,
     };
@@ -144,11 +145,13 @@ class BoardWidgetDefinition {
       key: json['key'] as String? ?? '',
       isEnabled: json['is_enabled'] as bool? ?? true,
       rendererType: json['renderer_type'] as String? ?? '',
-      fieldTypes: (json['field_types'] as List<dynamic>?)
+      fieldTypes:
+          (json['field_types'] as List<dynamic>?)
               ?.map((e) => BoardWidgetField.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      requiredFields: (json['required_fields'] as List<dynamic>?)
+      requiredFields:
+          (json['required_fields'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
@@ -182,8 +185,12 @@ class BoardWidgetApp {
       name: json['name'] as String? ?? '',
       description: json['description'] as String?,
       pictureId: json['picture'] as String?,
-      boardWidgets: (json['board_widgets'] as List<dynamic>?)
-              ?.map((e) => BoardWidgetDefinition.fromJson(e as Map<String, dynamic>))
+      boardWidgets:
+          (json['board_widgets'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    BoardWidgetDefinition.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -219,22 +226,62 @@ class AccountBoard extends StatelessWidget {
 
   static List<AccountBoardItem> defaultBoard() {
     return const [
-      AccountBoardItem(order: 0, kind: BoardWidgetKind.prebuilt, widgetKey: 'activity'),
-      AccountBoardItem(order: 1, kind: BoardWidgetKind.prebuilt, widgetKey: 'badges'),
-      AccountBoardItem(order: 2, kind: BoardWidgetKind.prebuilt, widgetKey: 'leveling'),
-      AccountBoardItem(order: 3, kind: BoardWidgetKind.prebuilt, widgetKey: 'social_credits'),
-      AccountBoardItem(order: 4, kind: BoardWidgetKind.prebuilt, widgetKey: 'contacts'),
-      AccountBoardItem(order: 5, kind: BoardWidgetKind.prebuilt, widgetKey: 'publishers'),
-      AccountBoardItem(order: 6, kind: BoardWidgetKind.prebuilt, widgetKey: 'notable_days'),
-      AccountBoardItem(order: 7, kind: BoardWidgetKind.prebuilt, widgetKey: 'verification'),
-      AccountBoardItem(order: 8, kind: BoardWidgetKind.prebuilt, widgetKey: 'fortune'),
+      AccountBoardItem(
+        order: 0,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'activity',
+      ),
+      AccountBoardItem(
+        order: 1,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'badges',
+      ),
+      AccountBoardItem(
+        order: 2,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'leveling',
+      ),
+      AccountBoardItem(
+        order: 3,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'social_credits',
+      ),
+      AccountBoardItem(
+        order: 4,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'contacts',
+      ),
+      AccountBoardItem(
+        order: 5,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'publishers',
+      ),
+      AccountBoardItem(
+        order: 6,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'notable_days',
+      ),
+      AccountBoardItem(
+        order: 7,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'verification',
+      ),
+      AccountBoardItem(
+        order: 8,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'links',
+      ),
+      AccountBoardItem(
+        order: 9,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'fortune',
+      ),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final sortedItems = [...items]
-      ..sort((a, b) => a.order.compareTo(b.order));
+    final sortedItems = [...items]..sort((a, b) => a.order.compareTo(b.order));
 
     return Column(
       spacing: 12,
@@ -267,48 +314,42 @@ class AccountBoard extends StatelessWidget {
       isCompact: isCompact,
       child: switch (widgetKey) {
         'badges' => _BadgesBoardWidget(
-            badges: account.badges,
-            showCount: payload['show_count'] as bool? ?? true,
-          ),
+          badges: account.badges,
+          showCount: payload['show_count'] as bool? ?? true,
+        ),
         'bio' => _BioBoardWidget(
-            bio: account.profile.bio,
-            maxLines: payload['max_lines'] as int? ?? 5,
-          ),
+          bio: account.profile.bio,
+          maxLines: payload['max_lines'] as int? ?? 5,
+        ),
         'links' => _LinksBoardWidget(
-            links: account.profile.links,
-            showIcons: payload['show_icons'] as bool? ?? true,
-          ),
+          links: account.profile.links,
+          showIcons: payload['show_icons'] as bool? ?? true,
+        ),
         'notable_days' => _NotableDaysBoardWidget(
-            account: account,
-            showBirthday: payload['show_birthday'] as bool? ?? true,
-            showJoined: payload['show_joined'] as bool? ?? true,
-          ),
+          account: account,
+          showBirthday: payload['show_birthday'] as bool? ?? true,
+          showJoined: payload['show_joined'] as bool? ?? true,
+        ),
         'social_credits' => _SocialCreditsBoardWidget(
-            credits: account.profile.socialCredits,
-            creditsLevel: account.profile.socialCreditsLevel,
-            showGraph: payload['show_graph'] as bool? ?? false,
-          ),
+          credits: account.profile.socialCredits,
+          creditsLevel: account.profile.socialCreditsLevel,
+          showGraph: payload['show_graph'] as bool? ?? false,
+        ),
         'leveling' => _LevelingBoardWidget(
-            level: account.profile.level,
-            experience: account.profile.experience,
-            progress: account.profile.levelingProgress,
-          ),
+          level: account.profile.level,
+          experience: account.profile.experience,
+          progress: account.profile.levelingProgress,
+        ),
         'verification' => _VerificationBoardWidget(
-            verification: account.profile.verification,
-          ),
-        'contacts' => _ContactsBoardWidget(
-            contacts: account.contacts,
-          ),
-        'publishers' => _PublishersBoardWidget(
-            publishers: publishers,
-          ),
+          verification: account.profile.verification,
+        ),
+        'contacts' => _ContactsBoardWidget(contacts: account.contacts),
+        'publishers' => _PublishersBoardWidget(publishers: publishers),
         'fortune' => _FortuneBoardWidget(
-            uname: uname,
-            accountName: account.name,
-          ),
-        'activity' => _ActivityBoardWidget(
-            uname: uname,
-          ),
+          uname: uname,
+          accountName: account.name,
+        ),
+        'activity' => _ActivityBoardWidget(uname: uname),
         _ => _UnknownWidget(keyLabel: widgetKey),
       },
     );
@@ -359,10 +400,7 @@ class _BoardWidgetCard extends StatelessWidget {
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: CloudImageWidget(
-                fileId: background,
-                fit: BoxFit.cover,
-              ),
+              child: CloudImageWidget(fileId: background, fit: BoxFit.cover),
             ),
           ),
           Positioned.fill(
@@ -373,7 +411,12 @@ class _BoardWidgetCard extends StatelessWidget {
               ),
             ),
           ),
-          Card(margin: EdgeInsets.zero, color: Colors.transparent, elevation: 0, child: content),
+          Card(
+            margin: EdgeInsets.zero,
+            color: Colors.transparent,
+            elevation: 0,
+            child: content,
+          ),
         ],
       );
     }
@@ -456,7 +499,11 @@ class _BioBoardWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Symbols.description, size: 18, color: theme.colorScheme.primary),
+            Icon(
+              Symbols.description,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
             const Gap(8),
             Text(
               'bio',
@@ -468,10 +515,7 @@ class _BioBoardWidget extends StatelessWidget {
         ),
         const Gap(8),
         if (bio.isNotEmpty)
-          MarkdownTextContent(
-            content: bio,
-            linesMargin: EdgeInsets.zero,
-          )
+          MarkdownTextContent(content: bio, linesMargin: EdgeInsets.zero)
         else
           Text(
             'bioEmpty'.tr(),
@@ -542,7 +586,11 @@ class _LinkTile extends StatelessWidget {
   final String url;
   final bool showIcon;
 
-  const _LinkTile({required this.name, required this.url, this.showIcon = true});
+  const _LinkTile({
+    required this.name,
+    required this.url,
+    this.showIcon = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -565,7 +613,11 @@ class _LinkTile extends StatelessWidget {
         child: Row(
           children: [
             if (showIcon)
-              Icon(Symbols.open_in_new, size: 14, color: theme.colorScheme.primary),
+              Icon(
+                Symbols.open_in_new,
+                size: 14,
+                color: theme.colorScheme.primary,
+              ),
             if (showIcon) const Gap(8),
             Expanded(
               child: Text(
@@ -574,7 +626,11 @@ class _LinkTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(Symbols.arrow_outward, size: 14, color: theme.colorScheme.onSurfaceVariant),
+            Icon(
+              Symbols.arrow_outward,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
@@ -603,7 +659,11 @@ class _NotableDaysBoardWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Symbols.calendar_today, size: 18, color: theme.colorScheme.primary),
+            Icon(
+              Symbols.calendar_today,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
             const Gap(8),
             Text(
               'notableDay'.tr(),
@@ -614,28 +674,35 @@ class _NotableDaysBoardWidget extends StatelessWidget {
           ],
         ),
         const Gap(12),
-        Wrap(spacing: 12, runSpacing: 12, children: [
-          if (showJoined)
-            _NotableDayChip(
-              icon: Symbols.calendar_month,
-              label: 'joinedAt'.tr(args: [account.createdAt.formatCustom('yyyy-MM-dd')]),
-            ),
-          if (showBirthday && account.profile.birthday != null) ...[
-            _NotableDayChip(
-              icon: Symbols.cake,
-              label: account.profile.birthday!.formatCustom('yyyy-MM-dd'),
-            ),
-            _NotableDayChip(
-              icon: Symbols.timer,
-              label: '${now.difference(account.profile.birthday!).inDays ~/ 365} yrs',
-            ),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            if (showJoined)
+              _NotableDayChip(
+                icon: Symbols.calendar_month,
+                label: 'joinedAt'.tr(
+                  args: [account.createdAt.formatCustom('yyyy-MM-dd')],
+                ),
+              ),
+            if (showBirthday && account.profile.birthday != null) ...[
+              _NotableDayChip(
+                icon: Symbols.cake,
+                label: account.profile.birthday!.formatCustom('yyyy-MM-dd'),
+              ),
+              _NotableDayChip(
+                icon: Symbols.timer,
+                label:
+                    '${now.difference(account.profile.birthday!).inDays ~/ 365} yrs',
+              ),
+            ],
+            if (account.profile.timeZone.isNotEmpty)
+              _NotableDayChip(
+                icon: Symbols.schedule,
+                label: account.profile.timeZone,
+              ),
           ],
-          if (account.profile.timeZone.isNotEmpty)
-            _NotableDayChip(
-              icon: Symbols.schedule,
-              label: account.profile.timeZone,
-            ),
-        ]),
+        ),
       ],
     );
   }
@@ -657,18 +724,22 @@ class _NotableDayChip extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, spacing: 6, children: [
-        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
-        Flexible(
-          child: Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 6,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          Flexible(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -706,7 +777,11 @@ class _SocialCreditsBoardWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Symbols.attribution, size: 18, color: theme.colorScheme.primary),
+            Icon(
+              Symbols.attribution,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
             const Gap(8),
             Text(
               'socialCredits'.tr(),
@@ -717,35 +792,38 @@ class _SocialCreditsBoardWidget extends StatelessWidget {
           ],
         ),
         const Gap(12),
-        Row(spacing: 12, children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: levelColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
+        Row(
+          spacing: 12,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: levelColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(Symbols.stars, color: levelColor, size: 28),
             ),
-            child: Icon(Symbols.stars, color: levelColor, size: 28),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                credits.toStringAsFixed(2),
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: levelColor,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  credits.toStringAsFixed(2),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: levelColor,
+                  ),
                 ),
-              ),
-              Text(
-                levelLabel,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                Text(
+                  levelLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ]),
+              ],
+            ),
+          ],
+        ),
         if (showGraph) ...[
           const Gap(16),
           ClipRRect(
@@ -783,7 +861,11 @@ class _LevelingBoardWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Symbols.trending_up, size: 18, color: theme.colorScheme.primary),
+            Icon(
+              Symbols.trending_up,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
             const Gap(8),
             Text(
               'leveling'.tr(),
@@ -794,54 +876,58 @@ class _LevelingBoardWidget extends StatelessWidget {
           ],
         ),
         const Gap(12),
-        Row(spacing: 12, children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Text(
-                '$level',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onPrimaryContainer,
+        Row(
+          spacing: 12,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Text(
+                  '$level',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'levelingProgressLevel'.tr(args: ['$level']),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'levelingProgressLevel'.tr(args: ['$level']),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const Gap(4),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  const Gap(4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
+                    ),
                   ),
-                ),
-                const Gap(2),
-                Text(
-                  '${_formatExp(experience)} XP',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  const Gap(2),
+                  Text(
+                    '${_formatExp(experience)} XP',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ],
     );
   }
@@ -907,7 +993,11 @@ class _ContactsBoardWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Symbols.contact_phone, size: 18, color: theme.colorScheme.primary),
+            Icon(
+              Symbols.contact_phone,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
             const Gap(8),
             Text(
               'contactMethod',
@@ -921,7 +1011,9 @@ class _ContactsBoardWidget extends StatelessWidget {
           const Gap(12),
           Column(
             spacing: 8,
-            children: publicContacts.map((contact) => _BoardContactTile(contact: contact)).toList(),
+            children: publicContacts
+                .map((contact) => _BoardContactTile(contact: contact))
+                .toList(),
           ),
         ] else ...[
           const Gap(8),
@@ -974,31 +1066,37 @@ class _BoardContactTile extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(children: [
-          Icon(iconData, size: 16, color: theme.colorScheme.primary),
-          const Gap(8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  contact.content,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+        child: Row(
+          children: [
+            Icon(iconData, size: 16, color: theme.colorScheme.primary),
+            const Gap(8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    contact.content,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  typeLabel,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  Text(
+                    typeLabel,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Icon(Symbols.chevron_right, size: 16, color: theme.colorScheme.onSurfaceVariant),
-        ]),
+            Icon(
+              Symbols.chevron_right,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1033,9 +1131,7 @@ class _PublishersBoardWidget extends StatelessWidget {
           Column(
             spacing: 8,
             children: publishers
-                .map(
-                  (p) => _BoardPublisherTile(publisher: p),
-                )
+                .map((p) => _BoardPublisherTile(publisher: p))
                 .toList(),
           ),
         ] else ...[
@@ -1067,23 +1163,29 @@ class _BoardPublisherTile extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(children: [
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.2),
+              ),
+            ),
+            child: ProfilePictureWidget(file: publisher.picture, radius: 18),
           ),
-          child: ProfilePictureWidget(file: publisher.picture, radius: 18),
-        ),
-        const Gap(8),
-        Expanded(
-          child: Text(
-            publisher.nick,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-            overflow: TextOverflow.ellipsis,
+          const Gap(8),
+          Expanded(
+            child: Text(
+              publisher.nick,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -1098,13 +1200,16 @@ class _FortuneBoardWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final events = ref.watch(
-      eventCalendarProvider(EventCalendarQuery(uname: uname, year: now.year, month: now.month)),
+      eventCalendarProvider(
+        EventCalendarQuery(uname: uname, year: now.year, month: now.month),
+      ),
     );
 
     return FortuneGraphWidget(
       events: events,
       eventCalandarUser: accountName,
       margin: EdgeInsets.zero,
+      noPadding: true,
     );
   }
 }
@@ -1145,7 +1250,7 @@ class _ActivityBoardWidget extends HookConsumerWidget {
                 ),
               );
             }
-            return ActivityPresenceWidget(uname: uname, isCompact: true);
+            return ActivityPresenceWidget(uname: uname);
           },
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
@@ -1186,41 +1291,43 @@ class _CustomAppBoardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Symbols.extension,
+                    size: 20,
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
                 ),
-                child: Icon(
-                  Symbols.extension,
-                  size: 20,
-                  color: theme.colorScheme.onSecondaryContainer,
-                ),
-              ),
-              const Gap(12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'boardCustomAppWidget'.tr(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'boardCustomAppWidget'.tr(),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '$appId / $widgetKey',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      Text(
+                        '$appId / $widgetKey',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const Gap(12),
             Text(
               'boardCustomAppWidgetDescription'.tr(),
@@ -1247,16 +1354,22 @@ class _UnknownWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [
-          Icon(Symbols.question_mark, size: 18, color: theme.colorScheme.error),
-          const Gap(8),
-          Text(
-            'boardUnknownWidget'.tr(args: [keyLabel]),
-            style: theme.textTheme.bodySmall?.copyWith(
+        Row(
+          children: [
+            Icon(
+              Symbols.question_mark,
+              size: 18,
               color: theme.colorScheme.error,
             ),
-          ),
-        ]),
+            const Gap(8),
+            Text(
+              'boardUnknownWidget'.tr(args: [keyLabel]),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

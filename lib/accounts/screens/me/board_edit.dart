@@ -20,17 +20,20 @@ part 'board_edit.g.dart';
 class BoardEditorState extends _$BoardEditorState {
   @override
   (Map<String, bool>, List<AccountBoardItem>) build() {
-    return ({
-      'activity': true,
-      'badges': true,
-      'leveling': true,
-      'social_credits': true,
-      'contacts': true,
-      'publishers': true,
-      'notable_days': true,
-      'verification': true,
-      'fortune': true,
-    }, const []);
+    return (
+      {
+        'activity': true,
+        'badges': true,
+        'leveling': true,
+        'social_credits': true,
+        'contacts': true,
+        'publishers': true,
+        'notable_days': true,
+        'verification': true,
+        'fortune': true,
+      },
+      const [],
+    );
   }
 
   Map<String, bool> get prebuilt => state.$1;
@@ -49,7 +52,8 @@ class BoardEditorState extends _$BoardEditorState {
   }
 
   void toggle(String key) {
-    final newPrebuilt = Map<String, bool>.from(state.$1)..[key] = !state.$1[key]!;
+    final newPrebuilt = Map<String, bool>.from(state.$1)
+      ..[key] = !state.$1[key]!;
     state = (newPrebuilt, state.$2);
   }
 
@@ -68,17 +72,20 @@ class BoardEditorState extends _$BoardEditorState {
   }
 
   void reset() {
-    state = ({
-      'activity': true,
-      'badges': true,
-      'leveling': true,
-      'social_credits': true,
-      'contacts': true,
-      'publishers': true,
-      'notable_days': true,
-      'verification': true,
-      'fortune': true,
-    }, const []);
+    state = (
+      {
+        'activity': true,
+        'badges': true,
+        'leveling': true,
+        'social_credits': true,
+        'contacts': true,
+        'publishers': true,
+        'notable_days': true,
+        'verification': true,
+        'fortune': true,
+      },
+      const [],
+    );
   }
 }
 
@@ -167,7 +174,9 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     final customItems = boardState.$2;
     final items = [
       ...prebuiltItems,
-      ...customItems.asMap().entries.map((e) => e.value.copyWith(order: prebuiltItems.length + e.key)),
+      ...customItems.asMap().entries.map(
+        (e) => e.value.copyWith(order: prebuiltItems.length + e.key),
+      ),
     ];
 
     return AppScaffold(
@@ -251,7 +260,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
       children: [
         Expanded(
           child: ReorderableListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             itemCount: allKeys.length,
             onReorder: notifier.reorder,
             buildDefaultDragHandles: false,
@@ -272,7 +281,10 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                 key: ValueKey(key),
                 margin: const EdgeInsets.only(bottom: 8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       ReorderableDragStartListener(
@@ -292,7 +304,8 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
-                          _PrebuiltWidgetMeta._widgets[key]?.icon ?? Symbols.question_mark,
+                          _PrebuiltWidgetMeta._widgets[key]?.icon ??
+                              Symbols.question_mark,
                           size: 18,
                           color: isEnabled
                               ? theme.colorScheme.onPrimaryContainer
@@ -307,33 +320,44 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                             Row(
                               children: [
                                 Text(
-                                  _PrebuiltWidgetMeta._widgets[key]?.name.tr() ?? key,
+                                  _PrebuiltWidgetMeta._widgets[key]?.name
+                                          .tr() ??
+                                      key,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: isEnabled ? null : theme.colorScheme.onSurfaceVariant,
+                                    color: isEnabled
+                                        ? null
+                                        : theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                                 if (orderIndex != null) ...[
                                   const Gap(6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary.withOpacity(0.15),
+                                      color: theme.colorScheme.primary
+                                          .withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       '#${orderIndex + 1}',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: theme.colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                   ),
                                 ],
                               ],
                             ),
                             Text(
-                              _PrebuiltWidgetMeta._widgets[key]?.description.tr() ?? '',
+                              _PrebuiltWidgetMeta._widgets[key]?.description
+                                      .tr() ??
+                                  '',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -369,7 +393,10 @@ class AccountBoardEditScreen extends HookConsumerWidget {
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -397,7 +424,9 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                             ),
                           ),
                           Text(
-                            'boardFieldCount'.tr(args: ['${item.payload.length}']),
+                            'boardFieldCount'.tr(
+                              args: ['${item.payload.length}'],
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

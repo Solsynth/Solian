@@ -15,7 +15,6 @@ import 'package:island/developers/models/developer.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/core/utils/text.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
@@ -28,7 +27,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/accounts/screens/punishment_user_sheet.dart';
 
@@ -327,73 +325,10 @@ class _AccountBasicInfo extends HookWidget {
                     ],
                   ),
                 ],
-                // Links
-                if (data.profile.links.isNotEmpty)
-                  Column(
-                    spacing: 8,
-                    children: data.profile.links
-                        .map(
-                          (link) => _LinkCard(
-                            name: link.name.capitalizeEachWord(),
-                            url: link.url,
-                          ),
-                        )
-                        .toList(),
-                  ).padding(top: 12),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _LinkCard extends StatelessWidget {
-  final String name;
-  final String url;
-
-  const _LinkCard({required this.name, required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: () {
-        if (!url.startsWith('http') && !url.contains('://')) {
-          launchUrlString('https://$url');
-        } else {
-          launchUrlString(url);
-        }
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(Symbols.link, size: 16, color: theme.colorScheme.primary),
-            const Gap(8),
-            Expanded(
-              child: Text(
-                name,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Icon(
-              Symbols.arrow_outward,
-              size: 14,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -925,16 +860,42 @@ class AccountProfileContent extends HookConsumerWidget {
 
           return LayoutBuilder(
             builder: (context, constraints) {
-              final useWide = isWideScreen(context) && constraints.maxWidth >= 900;
+              final useWide =
+                  isWideScreen(context) && constraints.maxWidth >= 900;
 
               final tabBar = Material(
                 color: theme.colorScheme.surface,
                 elevation: 0,
-                child: TabBar(
-                  tabs: [
-                    Tab(text: 'board'.tr()),
-                    Tab(text: 'timeline'.tr()),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: TabBar(
+                    indicator: BoxDecoration(
+                      color: theme.colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerHeight: 0,
+                    labelColor: theme.colorScheme.onSecondaryContainer,
+                    unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                    splashBorderRadius: BorderRadius.circular(20),
+                    labelStyle: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    tabs: [
+                      Tab(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text('board'.tr()),
+                        ),
+                      ),
+                      Tab(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text('timeline'.tr()),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
 
@@ -946,7 +907,10 @@ class AccountProfileContent extends HookConsumerWidget {
                       Material(
                         color: theme.colorScheme.surface,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           child: _AccountAction(
                             data: data,
                             accountRelationship: accountRelationship,
@@ -968,24 +932,31 @@ class AccountProfileContent extends HookConsumerWidget {
 
               return Row(
                 spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Flexible(
                     flex: 4,
-                    child: Column(
-                      children: [
-                        tabBar,
-                        Expanded(
-                          child: TabBarView(
-                            children: [boardContentNoHeader, timelineContent],
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Column(
+                        children: [
+                          tabBar,
+                          Expanded(
+                            child: TabBarView(
+                              children: [boardContentNoHeader, timelineContent],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Flexible(
                     flex: 3,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
                       child: Column(
                         spacing: 12,
                         crossAxisAlignment: CrossAxisAlignment.stretch,

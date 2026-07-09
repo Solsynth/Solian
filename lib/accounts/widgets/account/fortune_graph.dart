@@ -29,6 +29,8 @@ class FortuneGraphWidget extends HookConsumerWidget {
 
   final EdgeInsets? margin;
 
+  final bool noPadding;
+
   const FortuneGraphWidget({
     super.key,
     required this.events,
@@ -38,6 +40,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
     this.onPointSelected,
     this.eventCalandarUser,
     this.margin,
+    this.noPadding = false,
   });
 
   @override
@@ -53,10 +56,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
             ..sort((a, b) => a.date.compareTo(b.date)),
     );
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+    final titleRow = Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('fortuneGraph').tr().fontSize(18).bold(),
@@ -76,7 +76,16 @@ class FortuneGraphWidget extends HookConsumerWidget {
                 },
               ),
           ],
-        ).padding(all: 16, bottom: 24),
+        );
+
+    final paddedTitle = noPadding
+        ? titleRow.padding(bottom: 24)
+        : titleRow.padding(all: 16, bottom: 24);
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        paddedTitle,
         SizedBox(
           height: height,
           child: filteredEvents.when(
