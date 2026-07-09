@@ -16,7 +16,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:process_run/process_run.dart';
-import 'package:collection/collection.dart'; // Added for firstWhereOrNull
+
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -28,7 +28,6 @@ class GithubReleaseInfo {
   final String body;
   final String htmlUrl;
   final DateTime createdAt;
-  final List<GithubReleaseAsset> assets;
 
   const GithubReleaseInfo({
     required this.tagName,
@@ -36,26 +35,7 @@ class GithubReleaseInfo {
     required this.body,
     required this.htmlUrl,
     required this.createdAt,
-    this.assets = const [],
   });
-}
-
-/// Data model for a GitHub release asset
-class GithubReleaseAsset {
-  final String name;
-  final String browserDownloadUrl;
-
-  const GithubReleaseAsset({
-    required this.name,
-    required this.browserDownloadUrl,
-  });
-
-  factory GithubReleaseAsset.fromJson(Map<String, dynamic> json) {
-    return GithubReleaseAsset(
-      name: json['name'] as String,
-      browserDownloadUrl: json['browser_download_url'] as String,
-    );
-  }
 }
 
 /// Parses version and build number from "x.y.z+build"
@@ -145,28 +125,27 @@ Future<void> _cleanupDirectory(String? dirPath) async {
 }
 
 class UpdateService {
-  UpdateService({Dio? dio, this.useProxy = false})
+  UpdateService({Dio? dio})
     : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              headers: {
-                // Identify the app to GitHub; avoids some rate-limits and adds clarity
-                'Accept': 'application/vnd.github+json',
-                'User-Agent': 'solian-update-checker',
-              },
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 15),
-            ),
-          );
+           dio ??
+           Dio(
+             BaseOptions(
+               headers: {
+                 'Accept': 'application/vnd.github+json',
+                 'User-Agent': 'solian-update-checker',
+               },
+               connectTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 15),
+             ),
+           );
 
   final Dio _dio;
-  final bool useProxy;
-
-  static const _proxyBaseUrl = 'https://ghfast.top/';
 
   static const _releasesLatestApi =
       'https://api.github.com/repos/solsynth/solian/releases/latest';
+
+  static const _downloadBaseUrl =
+      'https://fs.solsynth.dev/d/public/r2/solian';
 
   /// Checks GitHub for the latest release and compares against the current app version.
   /// If update is available, shows a bottom sheet with changelog and an action to open release page.
@@ -250,11 +229,15 @@ class UpdateService {
       builder: (ctx) {
         String? androidUpdateUrl;
         String? windowsUpdateUrl;
+        String? linuxUpdateUrl;
         if (Platform.isAndroid) {
-          androidUpdateUrl = _getAndroidUpdateUrl(release.assets);
+          androidUpdateUrl = getAndroidDownloadUrl('arm64');
         }
         if (Platform.isWindows) {
-          windowsUpdateUrl = _getWindowsUpdateUrl();
+          windowsUpdateUrl = getWindowsDownloadUrl();
+        }
+        if (Platform.isLinux) {
+          linuxUpdateUrl = getLinuxDownloadUrl();
         }
         return _UpdateSheet(
           release: release,
@@ -266,37 +249,33 @@ class UpdateService {
           },
           androidUpdateUrl: androidUpdateUrl,
           windowsUpdateUrl: windowsUpdateUrl,
-          useProxy: useProxy, // Pass the useProxy flag
+          linuxUpdateUrl: linuxUpdateUrl,
         );
       },
     );
   }
 
-  String? _getAndroidUpdateUrl(List<GithubReleaseAsset> assets) {
-    final arm64 = assets.firstWhereOrNull(
-      (asset) => asset.name == 'app-arm64-v8a-release.apk',
-    );
-    final armeabi = assets.firstWhereOrNull(
-      (asset) => asset.name == 'app-armeabi-v7a-release.apk',
-    );
-    final x86_64 = assets.firstWhereOrNull(
-      (asset) => asset.name == 'app-x86_64-release.apk',
-    );
+  static const _androidFileNames = (
+    arm64: 'app-arm64-v8a-release.apk',
+    armeabi: 'app-armeabi-v7a-release.apk',
+    x86_64: 'app-x86_64-release.apk',
+  );
 
-    // Prioritize arm64, then armeabi, then x86_64
-    if (arm64 != null) {
-      return 'https://fs.solsynth.dev/d/public/r2/solian/${arm64.name}';
-    } else if (armeabi != null) {
-      return 'https://fs.solsynth.dev/d/public/r2/solian/${armeabi.name}';
-    } else if (x86_64 != null) {
-      return 'https://fs.solsynth.dev/d/public/r2/solian/${x86_64.name}';
-    }
-    return null;
+  static const _windowsFileName = 'build-output-windows-installer.zip';
+  static const _linuxFileName = 'build-output-linux-appimage.zip';
+
+  String getAndroidDownloadUrl(String arch) {
+    final fileName = switch (arch) {
+      'arm64' => _androidFileNames.arm64,
+      'armeabi' => _androidFileNames.armeabi,
+      'x86_64' => _androidFileNames.x86_64,
+      _ => _androidFileNames.arm64,
+    };
+    return '$_downloadBaseUrl/$fileName';
   }
 
-  String _getWindowsUpdateUrl() {
-    return 'https://fs.solsynth.dev/d/public/r2/solian/build-output-windows-installer.zip';
-  }
+  String getWindowsDownloadUrl() => '$_downloadBaseUrl/$_windowsFileName';
+  String getLinuxDownloadUrl() => '$_downloadBaseUrl/$_linuxFileName';
 
   bool _isAndroidUpdateApk(String fileName) {
     return fileName.startsWith('solian-update-') && fileName.endsWith('.apk');
@@ -311,6 +290,13 @@ class UpdateService {
     return fileName.startsWith('solian-installer-');
   }
 
+  bool _isLinuxUpdateFile(String fileName) {
+    return fileName.startsWith('solian-linux-') &&
+        (fileName.endsWith('.zip') || fileName.endsWith('.AppImage'));
+  }
+
+
+
   Future<int> cleanupPreviousUpdateArtifacts() async {
     final tempDir = await getTemporaryDirectory();
     var deleted = 0;
@@ -319,10 +305,14 @@ class UpdateService {
       final fileName = path.basename(entity.path);
       try {
         if (entity is File &&
-            (_isAndroidUpdateApk(fileName) || _isWindowsUpdateZip(fileName))) {
+            (_isAndroidUpdateApk(fileName) ||
+                _isWindowsUpdateZip(fileName) ||
+                _isLinuxUpdateFile(fileName))) {
           await entity.delete();
           deleted++;
-        } else if (entity is Directory && _isWindowsExtractDir(fileName)) {
+        } else if (entity is Directory &&
+            (_isWindowsExtractDir(fileName) ||
+                fileName.startsWith('solian-linux-'))) {
           await entity.delete(recursive: true);
           deleted++;
         }
@@ -341,11 +331,8 @@ class UpdateService {
     if (!Platform.isAndroid) return;
 
     AzhonAppUpdate.dispose();
-    final downloadUrl = useProxy
-        ? 'https://fs.solsynth.dev/d/rainyun02/solian/${Uri.encodeComponent(url.split('/').last)}'
-        : url;
     final model = UpdateModel(
-      downloadUrl,
+      url,
       apkName,
       'launcher_icon',
       'https://apps.apple.com/us/app/solian/id6499032345',
@@ -389,17 +376,32 @@ class UpdateService {
     );
   }
 
+  /// Performs automatic Linux update: download and install AppImage
+  Future<void> performAutomaticLinuxUpdate(
+    BuildContext context,
+    String url,
+  ) async {
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _LinuxUpdateDialog(
+        updateUrl: url,
+        onComplete: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
   /// Fetch the latest release info from GitHub.
   /// Public so other screens (e.g., About) can manually trigger update checks.
   Future<GithubReleaseInfo?> fetchLatestRelease() async {
-    final apiEndpoint = useProxy
-        ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
-        : _releasesLatestApi;
-
     Logger.root.info(
-      '[Update] Fetching latest release from GitHub API: $apiEndpoint (Proxy: $useProxy)',
+      '[Update] Fetching latest release from GitHub API: $_releasesLatestApi',
     );
-    final resp = await _dio.get(apiEndpoint);
+    final resp = await _dio.get(_releasesLatestApi);
     if (resp.statusCode != 200) {
       Logger.root.severe(
         '[Update] Failed to fetch latest release. Status code: ${resp.statusCode}',
@@ -415,11 +417,6 @@ class UpdateService {
     final htmlUrl = (data['html_url'] ?? '').toString();
     final createdAtStr = (data['created_at'] ?? '').toString();
     final createdAt = DateTime.tryParse(createdAtStr) ?? DateTime.now();
-    final assetsData =
-        (data['assets'] as List<dynamic>?)
-            ?.map((e) => GithubReleaseAsset.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [];
 
     if (tagName.isEmpty || htmlUrl.isEmpty) {
       Logger.root.severe(
@@ -435,7 +432,6 @@ class UpdateService {
       body: body,
       htmlUrl: htmlUrl,
       createdAt: createdAt,
-      assets: assetsData,
     );
   }
 }
@@ -689,18 +685,240 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
   }
 }
 
+class _LinuxUpdateDialog extends StatefulWidget {
+  const _LinuxUpdateDialog({
+    required this.updateUrl,
+    required this.onComplete,
+  });
+
+  final String updateUrl;
+  final VoidCallback onComplete;
+
+  @override
+  State<_LinuxUpdateDialog> createState() => _LinuxUpdateDialogState();
+}
+
+class _LinuxUpdateDialogState extends State<_LinuxUpdateDialog> {
+  final ValueNotifier<double?> progressNotifier = ValueNotifier<double?>(null);
+  final ValueNotifier<String> messageNotifier = ValueNotifier<String>(
+    'Downloading AppImage...',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _startUpdate();
+  }
+
+  Future<void> _startUpdate() async {
+    String? appImagePath;
+
+    try {
+      // Step 1: Download
+      appImagePath = await _downloadLinuxAppImage(
+        widget.updateUrl,
+        onProgress: (received, total) {
+          if (total == -1) {
+            progressNotifier.value = null;
+          } else {
+            progressNotifier.value = received / total;
+          }
+        },
+      );
+      if (appImagePath == null) {
+        _showError('Failed to download AppImage');
+        return;
+      }
+
+      // Step 2: Make executable and move to applications directory
+      messageNotifier.value = 'Installing AppImage...';
+      progressNotifier.value = null;
+
+      final success = await _installLinuxAppImage(appImagePath);
+      if (!mounted) return;
+
+      if (success) {
+        messageNotifier.value = 'Update Complete';
+        progressNotifier.value = 1.0;
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.of(context).pop();
+          widget.onComplete();
+        }
+      } else {
+        _showError('Failed to install AppImage');
+      }
+    } catch (e) {
+      _showError('Update failed: $e');
+    } finally {
+      await _cleanupFile(appImagePath);
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Failed'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Installing Update'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ValueListenableBuilder<double?>(
+            valueListenable: progressNotifier,
+            builder: (context, progress, child) {
+              return LinearProgressIndicator(value: progress);
+            },
+          ),
+          const SizedBox(height: 16),
+          ValueListenableBuilder<String>(
+            valueListenable: messageNotifier,
+            builder: (context, message, child) {
+              return Text(message);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _downloadLinuxAppImage(
+    String url, {
+    void Function(int received, int total)? onProgress,
+  }) async {
+    try {
+      Logger.root.info(
+        '[Update] Starting Linux AppImage download from: $url',
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      final fileName =
+          'solian-linux-${DateTime.now().millisecondsSinceEpoch}.zip';
+      final filePath = path.join(tempDir.path, fileName);
+
+      final response = await Dio().download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            Logger.root.info(
+              '[Update] Download progress: ${(received / total * 100).toStringAsFixed(1)}%',
+            );
+          }
+          onProgress?.call(received, total);
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Logger.root.info(
+          '[Update] Linux AppImage downloaded successfully to: $filePath',
+        );
+        return filePath;
+      } else {
+        Logger.root.severe(
+          '[Update] Failed to download Linux AppImage. Status: ${response.statusCode}',
+        );
+        return null;
+      }
+    } catch (e) {
+      Logger.root.severe('[Update] Error downloading Linux AppImage: $e');
+      return null;
+    }
+  }
+
+  Future<bool> _installLinuxAppImage(String zipPath) async {
+    try {
+      Logger.root.info('[Update] Installing Linux AppImage from: $zipPath');
+
+      final tempDir = await getTemporaryDirectory();
+      final extractDir = path.join(
+        tempDir.path,
+        'solian-linux-${DateTime.now().millisecondsSinceEpoch}',
+      );
+
+      // Extract the zip
+      final zipFile = File(zipPath);
+      final bytes = await zipFile.readAsBytes();
+      final archive = ZipDecoder().decodeBytes(bytes);
+
+      String? appImageFile;
+      for (final file in archive) {
+        final filename = file.name;
+        if (file.isFile) {
+          final data = file.content as List<int>;
+          final filePath = path.join(extractDir, filename);
+          await Directory(path.dirname(filePath)).create(recursive: true);
+          await File(filePath).writeAsBytes(data);
+          if (filename.endsWith('.AppImage')) {
+            appImageFile = filePath;
+          }
+        } else {
+          final dirPath = path.join(extractDir, filename);
+          await Directory(dirPath).create(recursive: true);
+        }
+      }
+
+      if (appImageFile == null) {
+        Logger.root.severe('[Update] No AppImage file found in archive');
+        return false;
+      }
+
+      // Make executable
+      final shell = Shell();
+      await shell.run('chmod +x $appImageFile');
+
+      // Move to a permanent location (e.g., ~/.local/bin or ~/Applications)
+      final homeDir = Platform.environment['HOME'] ?? '';
+      if (homeDir.isEmpty) {
+        Logger.root.severe('[Update] Cannot determine HOME directory');
+        return false;
+      }
+
+      final appsDir = path.join(homeDir, '.local', 'bin');
+      await Directory(appsDir).create(recursive: true);
+
+      final destPath = path.join(appsDir, 'solian.AppImage');
+      await File(appImageFile).copy(destPath);
+      await File(destPath).setLastModified(DateTime.now());
+
+      Logger.root.info('[Update] Linux AppImage installed to: $destPath');
+      return true;
+    } catch (e) {
+      Logger.root.severe('[Update] Error installing Linux AppImage: $e');
+      return false;
+    }
+  }
+}
+
 class _UpdateSheet extends StatefulWidget {
   const _UpdateSheet({
     required this.release,
     required this.onOpen,
     this.androidUpdateUrl,
     this.windowsUpdateUrl,
-    this.useProxy = false,
+    this.linuxUpdateUrl,
   });
 
   final String? androidUpdateUrl;
   final String? windowsUpdateUrl;
-  final bool useProxy;
+  final String? linuxUpdateUrl;
   final GithubReleaseInfo release;
   final VoidCallback onOpen;
 
@@ -709,13 +927,6 @@ class _UpdateSheet extends StatefulWidget {
 }
 
 class _UpdateSheetState extends State<_UpdateSheet> {
-  late bool _useProxy;
-
-  @override
-  void initState() {
-    super.initState();
-    _useProxy = widget.useProxy;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -753,16 +964,6 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                 ),
               ),
             ),
-            if (!kIsWeb && Platform.isAndroid)
-              SwitchListTile(
-                title: Text('useSecondarySourceForDownload'.tr()),
-                value: _useProxy,
-                onChanged: (value) {
-                  setState(() {
-                    _useProxy = value;
-                  });
-                },
-              ).padding(horizontal: 8),
             Column(
               children: [
                 Row(
@@ -775,9 +976,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                         child: FilledButton.icon(
                           onPressed: () {
                             Logger.root.info(widget.androidUpdateUrl!);
-                            UpdateService(
-                              useProxy: _useProxy,
-                            ).installAndroidUpdate(
+                            UpdateService().installAndroidUpdate(
                               widget.androidUpdateUrl!,
                               apkName:
                                   'solian-update-${widget.release.tagName}.apk',
@@ -793,13 +992,25 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () {
-                            // Access the UpdateService instance to call the automatic update method
-                            final updateService = UpdateService(
-                              useProxy: widget.useProxy,
-                            );
+                            final updateService = UpdateService();
                             updateService.performAutomaticWindowsUpdate(
                               context,
                               widget.windowsUpdateUrl!,
+                            );
+                          },
+                          icon: const Icon(Symbols.update),
+                          label: Text('installUpdate'.tr()),
+                        ),
+                      ),
+                    if (!kIsWeb &&
+                        Platform.isLinux &&
+                        widget.linuxUpdateUrl != null)
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            UpdateService().performAutomaticLinuxUpdate(
+                              context,
+                              widget.linuxUpdateUrl!,
                             );
                           },
                           icon: const Icon(Symbols.update),
