@@ -341,9 +341,9 @@ class AppWrapper extends HookConsumerWidget {
     useEffect(() {
       if (!isNativeCallAvailable) return null;
 
-      final sub = ref.listenManual(nativeCallBridgeProvider, (
-        previous,
-        current,
+      void handleNativeCallState(
+        NativeCallState? previous,
+        NativeCallState current,
       ) {
         Logger.root.info(
           '[AppWrapper] Native call state changed '
@@ -386,16 +386,6 @@ class AppWrapper extends HookConsumerWidget {
           return;
         }
 
-        if (!kIsWeb &&
-            Platform.isIOS &&
-            current.isAcceptedPending &&
-            !current.isAudioSessionActive) {
-          Logger.root.info(
-            '[AppWrapper] Waiting for CallKit audio session before joining room=$currRoomId',
-          );
-          return;
-        }
-
         if (currRoomId != lastHandledAcceptedRoomId.value &&
             (current.isAcceptedPending || current.isConnected)) {
           lastHandledAcceptedRoomId.value = currRoomId;
@@ -416,7 +406,16 @@ class AppWrapper extends HookConsumerWidget {
             }
           }());
         }
-      });
+      }
+
+      final sub = ref.listenManual(
+        nativeCallBridgeProvider,
+        handleNativeCallState,
+      );
+      unawaited(() async {
+        await ref.read(nativeCallBridgeProvider.notifier).ensureInitialized();
+        handleNativeCallState(null, ref.read(nativeCallBridgeProvider));
+      }());
       return sub.close;
     }, []);
 
@@ -1368,7 +1367,17 @@ class AppWrapper extends HookConsumerWidget {
         '[AppWrapper] Navigating to CallScreen for room=$roomId',
       );
       final router = ref.read(routerProvider);
-      final ctx = router.navigatorKey.currentContext;
+      Future<BuildContext?> waitForNavigatorContext([int retry = 0]) async {
+        final ctx = router.navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) return ctx;
+        if (retry >= 16) return null;
+
+        await WidgetsBinding.instance.endOfFrame;
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+        return waitForNavigatorContext(retry + 1);
+      }
+
+      final ctx = await waitForNavigatorContext();
       if (ctx == null || !ctx.mounted) {
         Logger.root.warning(
           '[AppWrapper] Navigation aborted: navigator context unavailable for room=$roomId',
