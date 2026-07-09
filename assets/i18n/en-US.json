@@ -4015,5 +4015,9 @@
   "boardAddWidget": "Add Widget",
   "boardCustomWidgets": "Custom Widgets",
   "boardFieldCount": "{} fields configured",
+  "boardSelectApp": "Select App",
+  "boardWidgetNotConfigured": "Not configured by the app developer",
+  "boardAddWidgetConfirm": "Add widget \"{0}\" from {1}?",
+  "boardAppNoWidgets": "This app has no widgets",
   "activityPresenceEmpty": "No recent activity"
 }

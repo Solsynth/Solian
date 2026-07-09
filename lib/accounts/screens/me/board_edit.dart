@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/board.dart';
 import 'package:island/accounts/widgets/account/board_custom_widget_sheet.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -15,6 +16,39 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'board_edit.g.dart';
+
+enum _EditorItemType { prebuilt, custom }
+
+class _EditorItem {
+  final String key;
+  final _EditorItemType type;
+  final String? prebuiltKey;
+  final int? customIndex;
+
+  const _EditorItem.prebuilt(this.prebuiltKey)
+      : key = 'p_$prebuiltKey',
+        type = _EditorItemType.prebuilt,
+        customIndex = null;
+
+  const _EditorItem.custom(this.customIndex)
+      : key = 'c_$customIndex',
+        type = _EditorItemType.custom,
+        prebuiltKey = null;
+}
+
+List<_EditorItem> _buildEditorItems(
+  Map<String, bool> prebuilt,
+  List<AccountBoardItem> custom,
+) {
+  final items = <_EditorItem>[];
+  for (final key in prebuilt.keys) {
+    items.add(_EditorItem.prebuilt(key));
+  }
+  for (var i = 0; i < custom.length; i++) {
+    items.add(_EditorItem.custom(i));
+  }
+  return items;
+}
 
 @riverpod
 class BoardEditorState extends _$BoardEditorState {
@@ -40,15 +74,26 @@ class BoardEditorState extends _$BoardEditorState {
   List<AccountBoardItem> get customItems => state.$2;
 
   void reorder(int oldIndex, int newIndex) {
-    final keys = state.$1.keys.toList();
+    final items = _buildEditorItems(state.$1, state.$2);
     if (newIndex > oldIndex) newIndex--;
-    final item = keys.removeAt(oldIndex);
-    keys.insert(newIndex, item);
+    final moved = items.removeAt(oldIndex);
+    items.insert(newIndex, moved);
+
     final newPrebuilt = <String, bool>{};
-    for (final key in keys) {
-      newPrebuilt[key] = state.$1[key]!;
+    final newCustom = <AccountBoardItem>[];
+    var customOrder = 0;
+
+    for (final item in items) {
+      if (item.type == _EditorItemType.prebuilt) {
+        newPrebuilt[item.prebuiltKey!] = state.$1[item.prebuiltKey]!;
+      } else {
+        newCustom.add(
+          state.$2[item.customIndex!].copyWith(order: customOrder++),
+        );
+      }
     }
-    state = (newPrebuilt, state.$2);
+
+    state = (newPrebuilt, newCustom);
   }
 
   void toggle(String key) {
@@ -204,9 +249,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
       floatingActionButton: showPreview.value
           ? null
           : FloatingActionButton(
-              onPressed: () {
-                showSnackBar('settingsSaved'.tr());
-              },
+              onPressed: () => _saveBoard(context, ref),
               child: const Icon(Symbols.check),
             ),
       body: userInfo.when(
@@ -245,23 +288,65 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     );
   }
 
+  Future<void> _saveBoard(BuildContext context, WidgetRef ref) async {
+    final boardState = ref.read(boardEditorStateProvider);
+    final customItems = boardState.$2;
+    final editorItems = _buildEditorItems(boardState.$1, customItems);
+
+    final items = <Map<String, dynamic>>[];
+    var order = 0;
+
+    for (final item in editorItems) {
+      if (item.type == _EditorItemType.prebuilt) {
+        final key = item.prebuiltKey!;
+        final isEnabled = boardState.$1[key]!;
+        items.add({
+          'order': order++,
+          'kind': 'prebuilt',
+          'widget_key': key,
+          'is_enabled': isEnabled,
+          'payload': <String, dynamic>{},
+        });
+      } else {
+        final customItem = customItems[item.customIndex!];
+        items.add(customItem.copyWith(order: order++).toJson());
+      }
+    }
+
+    try {
+      showLoadingModal(context);
+      final dio = ref.read(apiClientProvider);
+      await dio.put('/passport/accounts/me/board', data: items);
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showSnackBar('settingsSaved'.tr());
+      }
+    } catch (err) {
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+  }
+
   Widget _buildEditor(BuildContext context, WidgetRef ref, ThemeData theme) {
     final boardState = ref.watch(boardEditorStateProvider);
     final notifier = ref.read(boardEditorStateProvider.notifier);
 
-    final allKeys = boardState.$1.keys.toList();
+    final allPrebuiltKeys = boardState.$1.keys.toList();
     final enabledKeys = boardState.$1.entries
         .where((e) => e.value)
         .map((e) => e.key)
         .toList();
     final customItems = boardState.$2;
+    final items = _buildEditorItems(boardState.$1, customItems);
 
     return Column(
       children: [
         Expanded(
           child: ReorderableListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            itemCount: allKeys.length,
+            itemCount: items.length,
             onReorder: notifier.reorder,
             buildDefaultDragHandles: false,
             proxyDecorator: (child, index, animation) {
@@ -273,178 +358,30 @@ class AccountBoardEditScreen extends HookConsumerWidget {
               );
             },
             itemBuilder: (context, index) {
-              final key = allKeys[index];
-              final isEnabled = boardState.$1[key] ?? false;
-              final orderIndex = isEnabled ? enabledKeys.indexOf(key) : null;
-
-              return Card(
-                key: ValueKey(key),
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      ReorderableDragStartListener(
-                        index: index,
-                        child: const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Icon(Symbols.drag_handle, size: 20),
-                        ),
-                      ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: isEnabled
-                              ? theme.colorScheme.primaryContainer
-                              : theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          _PrebuiltWidgetMeta._widgets[key]?.icon ??
-                              Symbols.question_mark,
-                          size: 18,
-                          color: isEnabled
-                              ? theme.colorScheme.onPrimaryContainer
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  _PrebuiltWidgetMeta._widgets[key]?.name
-                                          .tr() ??
-                                      key,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: isEnabled
-                                        ? null
-                                        : theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                if (orderIndex != null) ...[
-                                  const Gap(6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 1,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary
-                                          .withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '#${orderIndex + 1}',
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color: theme.colorScheme.primary,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            Text(
-                              _PrebuiltWidgetMeta._widgets[key]?.description
-                                      .tr() ??
-                                  '',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: isEnabled,
-                        onChanged: (_) => notifier.toggle(key),
-                      ),
-                    ],
-                  ),
-                ),
+              final item = items[index];
+              if (item.type == _EditorItemType.custom) {
+                return _buildCustomItem(
+                  context,
+                  theme,
+                  customItems[item.customIndex!],
+                  item.customIndex!,
+                  notifier,
+                  index,
+                );
+              }
+              return _buildPrebuiltItem(
+                context,
+                theme,
+                item.prebuiltKey!,
+                boardState.$1,
+                allPrebuiltKeys,
+                enabledKeys,
+                notifier,
+                index,
               );
             },
           ),
         ),
-        if (customItems.isNotEmpty) ...[
-          const Gap(4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              'boardCustomWidgets'.tr(),
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          ...customItems.asMap().entries.map((entry) {
-            final i = entry.key;
-            final item = entry.value;
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Symbols.extension,
-                        size: 18,
-                        color: theme.colorScheme.onSecondaryContainer,
-                      ),
-                    ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.customAppWidgetKey ?? 'boardCustomWidget'.tr(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            'boardFieldCount'.tr(
-                              args: ['${item.payload.length}'],
-                            ),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Symbols.delete, size: 18),
-                      color: theme.colorScheme.error,
-                      onPressed: () => notifier.removeCustom(i),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
         Padding(
           padding: const EdgeInsets.all(16),
           child: OutlinedButton.icon(
@@ -465,6 +402,174 @@ class AccountBoardEditScreen extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPrebuiltItem(
+    BuildContext context,
+    ThemeData theme,
+    String key,
+    Map<String, bool> prebuiltState,
+    List<String> allPrebuiltKeys,
+    List<String> enabledKeys,
+    BoardEditorState notifier,
+    int index,
+  ) {
+    final isEnabled = prebuiltState[key] ?? false;
+    final orderIndex = isEnabled ? enabledKeys.indexOf(key) : null;
+
+    return Card(
+      key: ValueKey('p_$key'),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            ReorderableDragStartListener(
+              index: index,
+              child: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Symbols.drag_handle, size: 20),
+              ),
+            ),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: isEnabled
+                    ? theme.colorScheme.primaryContainer
+                    : theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                _PrebuiltWidgetMeta._widgets[key]?.icon ??
+                    Symbols.question_mark,
+                size: 18,
+                color: isEnabled
+                    ? theme.colorScheme.onPrimaryContainer
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        _PrebuiltWidgetMeta._widgets[key]?.name.tr() ?? key,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isEnabled
+                              ? null
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      if (orderIndex != null) ...[
+                        const Gap(6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '#${orderIndex + 1}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  Text(
+                    _PrebuiltWidgetMeta._widgets[key]?.description.tr() ?? '',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: isEnabled,
+              onChanged: (_) => notifier.toggle(key),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomItem(
+    BuildContext context,
+    ThemeData theme,
+    AccountBoardItem item,
+    int customIndex,
+    BoardEditorState notifier,
+    int index,
+  ) {
+    return Card(
+      key: ValueKey('c_$customIndex'),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            ReorderableDragStartListener(
+              index: index,
+              child: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Symbols.drag_handle, size: 20),
+              ),
+            ),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Symbols.extension,
+                size: 18,
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.customAppWidgetKey ?? 'boardCustomWidget'.tr(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'boardWidgetNotConfigured'.tr(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Symbols.delete, size: 18),
+              color: theme.colorScheme.error,
+              onPressed: () => notifier.removeCustom(customIndex),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

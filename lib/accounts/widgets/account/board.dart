@@ -209,6 +209,18 @@ Future<List<BoardWidgetApp>> boardWidgetApps(Ref ref) async {
       .toList();
 }
 
+@riverpod
+Future<BoardWidgetApp?> boardWidgetByAppSlug(Ref ref, String slug) async {
+  final dio = ref.watch(apiClientProvider);
+  final response = await dio.get(
+    '/develop/apps/board',
+    queryParameters: {'slug': slug},
+  );
+  final list = response.data as List<dynamic>;
+  if (list.isEmpty) return null;
+  return BoardWidgetApp.fromJson(list.first as Map<String, dynamic>);
+}
+
 /// Renders a list of board items for an account.
 class AccountBoard extends StatelessWidget {
   final SnAccount account;

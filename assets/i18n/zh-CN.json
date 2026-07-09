@@ -4021,5 +4021,9 @@
   "boardAddWidget": "添加组件",
   "boardCustomWidgets": "自定义组件",
   "boardFieldCount": "已配置 {} 个字段",
+  "boardSelectApp": "选择应用",
+  "boardWidgetNotConfigured": "未由应用开发者配置",
+  "boardAddWidgetConfirm": "确定要添加来自 {1} 的组件 \"{0}\" 吗？",
+  "boardAppNoWidgets": "此应用没有可用的组件",
   "activityPresenceEmpty": "暂无活动"
 }
