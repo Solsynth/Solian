@@ -461,11 +461,12 @@ class ActiveBadgeMark extends ConsumerWidget {
 
 class VerificationStatusCard extends StatelessWidget {
   final SnVerificationMark mark;
-  const VerificationStatusCard({super.key, required this.mark});
+  final bool noPadding;
+  const VerificationStatusCard({super.key, required this.mark, this.noPadding = false});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Icon(
@@ -486,7 +487,8 @@ class VerificationStatusCard extends StatelessWidget {
           'Verified by\n${mark.verifiedBy ?? 'No one verified it'}',
         ).fontSize(11).opacity(0.8),
       ],
-    ).padding(horizontal: 24, vertical: 16);
+    );
+    return noPadding ? content : content.padding(horizontal: 24, vertical: 16);
   }
 }
 

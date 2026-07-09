@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +14,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -592,6 +594,17 @@ class _LinkTile extends StatelessWidget {
     this.showIcon = true,
   });
 
+  String _displayUrl(String url) {
+    try {
+      final target =
+          (!url.startsWith('http') && !url.contains('://')) ? 'https://$url' : url;
+      final uri = Uri.parse(target);
+      return uri.host.replaceFirst('www.', '');
+    } catch (_) {
+      return url;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -605,31 +618,53 @@ class _LinkTile extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showIcon)
-              Icon(
-                Symbols.open_in_new,
-                size: 14,
-                color: theme.colorScheme.primary,
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  Symbols.open_in_new,
+                  size: 14,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             if (showIcon) const Gap(8),
             Expanded(
-              child: Text(
-                name,
-                style: theme.textTheme.bodyMedium,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Gap(2),
+                  Text(
+                    _displayUrl(url),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-            Icon(
-              Symbols.arrow_outward,
-              size: 14,
-              color: theme.colorScheme.onSurfaceVariant,
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(
+                Symbols.arrow_outward,
+                size: 14,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -965,7 +1000,7 @@ class _VerificationBoardWidget extends StatelessWidget {
         ),
         const Gap(12),
         if (verification != null)
-          VerificationStatusCard(mark: verification!)
+          VerificationStatusCard(mark: verification!, noPadding: true)
         else
           Text(
             'verificationNone'.tr(),
@@ -1157,34 +1192,45 @@ class _BoardPublisherTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.2),
+    return InkWell(
+      onTap: () {
+        context.router.push(PublisherProfileRoute(name: publisher.name));
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: ProfilePictureWidget(file: publisher.picture, radius: 18),
+            ),
+            const Gap(8),
+            Expanded(
+              child: Text(
+                publisher.nick,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            child: ProfilePictureWidget(file: publisher.picture, radius: 18),
-          ),
-          const Gap(8),
-          Expanded(
-            child: Text(
-              publisher.nick,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
+            Icon(
+              Symbols.arrow_outward,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
