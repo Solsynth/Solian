@@ -16,7 +16,7 @@ final class BoardEditorStateProvider
     extends
         $NotifierProvider<
           BoardEditorState,
-          (Map<String, bool>, List<AccountBoardItem>)
+          (Map<String, bool>, List<AccountBoardItem>, List<String>)
         > {
   BoardEditorStateProvider._()
     : super(
@@ -38,40 +38,41 @@ final class BoardEditorStateProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(
-    (Map<String, bool>, List<AccountBoardItem>) value,
+    (Map<String, bool>, List<AccountBoardItem>, List<String>) value,
   ) {
     return $ProviderOverride(
       origin: this,
       providerOverride:
-          $SyncValueProvider<(Map<String, bool>, List<AccountBoardItem>)>(
-            value,
-          ),
+          $SyncValueProvider<
+            (Map<String, bool>, List<AccountBoardItem>, List<String>)
+          >(value),
     );
   }
 }
 
-String _$boardEditorStateHash() => r'b5f01b824590a086ecbd32d299f1583a694a7e1b';
+String _$boardEditorStateHash() => r'83336ccaaedf1d6b6e7952490bd8c06809409730';
 
 abstract class _$BoardEditorState
-    extends $Notifier<(Map<String, bool>, List<AccountBoardItem>)> {
-  (Map<String, bool>, List<AccountBoardItem>) build();
+    extends
+        $Notifier<(Map<String, bool>, List<AccountBoardItem>, List<String>)> {
+  (Map<String, bool>, List<AccountBoardItem>, List<String>) build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
         this.ref
             as $Ref<
-              (Map<String, bool>, List<AccountBoardItem>),
-              (Map<String, bool>, List<AccountBoardItem>)
+              (Map<String, bool>, List<AccountBoardItem>, List<String>),
+              (Map<String, bool>, List<AccountBoardItem>, List<String>)
             >;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                (Map<String, bool>, List<AccountBoardItem>),
-                (Map<String, bool>, List<AccountBoardItem>)
+                (Map<String, bool>, List<AccountBoardItem>, List<String>),
+                (Map<String, bool>, List<AccountBoardItem>, List<String>)
               >,
-              (Map<String, bool>, List<AccountBoardItem>),
+              (Map<String, bool>, List<AccountBoardItem>, List<String>),
               Object?,
               Object?
             >;

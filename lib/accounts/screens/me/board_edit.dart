@@ -39,7 +39,44 @@ class _EditorItem {
 List<_EditorItem> _buildEditorItems(
   Map<String, bool> prebuilt,
   List<AccountBoardItem> custom,
+  List<String>? itemOrder,
 ) {
+  if (itemOrder != null) {
+    final items = <_EditorItem>[];
+    final seenPrebuilt = <String>{};
+    final seenCustom = <int>{};
+
+    for (final key in itemOrder) {
+      if (key.startsWith('p_')) {
+        final prebuiltKey = key.substring(2);
+        if (prebuilt.containsKey(prebuiltKey) && seenPrebuilt.add(prebuiltKey)) {
+          items.add(_EditorItem.prebuilt(prebuiltKey));
+        }
+      } else if (key.startsWith('c_')) {
+        final customIndex = int.tryParse(key.substring(2));
+        if (customIndex != null &&
+            customIndex >= 0 &&
+            customIndex < custom.length &&
+            seenCustom.add(customIndex)) {
+          items.add(_EditorItem.custom(customIndex));
+        }
+      }
+    }
+
+    for (final key in prebuilt.keys) {
+      if (seenPrebuilt.add(key)) {
+        items.add(_EditorItem.prebuilt(key));
+      }
+    }
+    for (var i = 0; i < custom.length; i++) {
+      if (seenCustom.add(i)) {
+        items.add(_EditorItem.custom(i));
+      }
+    }
+
+    return items;
+  }
+
   final items = <_EditorItem>[];
   for (final key in prebuilt.keys) {
     items.add(_EditorItem.prebuilt(key));
@@ -50,10 +87,35 @@ List<_EditorItem> _buildEditorItems(
   return items;
 }
 
+List<AccountBoardItem> _buildPreviewItems(
+  (Map<String, bool>, List<AccountBoardItem>, List<String>) boardState,
+) {
+  final items = <AccountBoardItem>[];
+  final editorItems = _buildEditorItems(boardState.$1, boardState.$2, boardState.$3);
+
+  for (final editorItem in editorItems) {
+    if (editorItem.type == _EditorItemType.prebuilt) {
+      final key = editorItem.prebuiltKey!;
+      items.add(
+        AccountBoardItem(
+          order: items.length,
+          kind: BoardWidgetKind.prebuilt,
+          widgetKey: key,
+          isEnabled: boardState.$1[key] ?? false,
+        ),
+      );
+    } else {
+      items.add(boardState.$2[editorItem.customIndex!].copyWith(order: items.length));
+    }
+  }
+
+  return items;
+}
+
 @riverpod
 class BoardEditorState extends _$BoardEditorState {
   @override
-  (Map<String, bool>, List<AccountBoardItem>) build() {
+  (Map<String, bool>, List<AccountBoardItem>, List<String>) build() {
     return (
       {
         'activity': true,
@@ -67,44 +129,61 @@ class BoardEditorState extends _$BoardEditorState {
         'fortune': true,
       },
       const [],
+      const [
+        'p_activity',
+        'p_badges',
+        'p_leveling',
+        'p_social_credits',
+        'p_contacts',
+        'p_publishers',
+        'p_notable_days',
+        'p_verification',
+        'p_fortune',
+      ],
     );
   }
 
   Map<String, bool> get prebuilt => state.$1;
   List<AccountBoardItem> get customItems => state.$2;
+  List<String> get itemOrder => state.$3;
 
   void reorder(int oldIndex, int newIndex) {
-    final items = _buildEditorItems(state.$1, state.$2);
+    final items = _buildEditorItems(state.$1, state.$2, state.$3);
     if (newIndex > oldIndex) newIndex--;
     final moved = items.removeAt(oldIndex);
     items.insert(newIndex, moved);
 
     final newPrebuilt = <String, bool>{};
     final newCustom = <AccountBoardItem>[];
-    var customOrder = 0;
+    final newOrder = <String>[];
 
     for (final item in items) {
       if (item.type == _EditorItemType.prebuilt) {
         newPrebuilt[item.prebuiltKey!] = state.$1[item.prebuiltKey]!;
+        newOrder.add(item.key);
       } else {
-        newCustom.add(
-          state.$2[item.customIndex!].copyWith(order: customOrder++),
-        );
+        final newCustomIndex = newCustom.length;
+        newCustom.add(state.$2[item.customIndex!].copyWith(order: newCustomIndex));
+        newOrder.add('c_$newCustomIndex');
       }
     }
 
-    state = (newPrebuilt, newCustom);
+    state = (newPrebuilt, newCustom, newOrder);
   }
 
   void toggle(String key) {
     final newPrebuilt = Map<String, bool>.from(state.$1)
       ..[key] = !state.$1[key]!;
-    state = (newPrebuilt, state.$2);
+    state = (newPrebuilt, state.$2, state.$3);
   }
 
   void addCustom(AccountBoardItem item) {
     final newOrder = state.$2.length;
-    state = (state.$1, [...state.$2, item.copyWith(order: newOrder)]);
+    state = (
+      state.$1,
+      [...state.$2, item.copyWith(order: newOrder)],
+      [...state.$3, 'c_$newOrder'],
+    );
   }
 
   void removeCustom(int index) {
@@ -113,7 +192,17 @@ class BoardEditorState extends _$BoardEditorState {
     for (var i = 0; i < items.length; i++) {
       items[i] = items[i].copyWith(order: i);
     }
-    state = (state.$1, items);
+    final newOrder = <String>[];
+    for (final key in state.$3) {
+      if (!key.startsWith('c_')) {
+        newOrder.add(key);
+        continue;
+      }
+      final customIndex = int.tryParse(key.substring(2));
+      if (customIndex == null || customIndex == index) continue;
+      newOrder.add('c_${customIndex > index ? customIndex - 1 : customIndex}');
+    }
+    state = (state.$1, items, newOrder);
   }
 
   void reset() {
@@ -130,6 +219,17 @@ class BoardEditorState extends _$BoardEditorState {
         'fortune': true,
       },
       const [],
+      const [
+        'p_activity',
+        'p_badges',
+        'p_leveling',
+        'p_social_credits',
+        'p_contacts',
+        'p_publishers',
+        'p_notable_days',
+        'p_verification',
+        'p_fortune',
+      ],
     );
   }
 
@@ -137,8 +237,6 @@ class BoardEditorState extends _$BoardEditorState {
     try {
       final dio = ref.read(apiClientProvider);
       final response = await dio.get('/passport/accounts/me/board');
-      final list = response.data as List<dynamic>;
-
       final defaultPrebuilt = <String, bool>{
         'activity': false,
         'badges': false,
@@ -150,40 +248,36 @@ class BoardEditorState extends _$BoardEditorState {
         'verification': false,
         'fortune': false,
       };
+      final list = response.data as List<dynamic>;
+      final parsedItems = parseAccountBoardItems(list);
       final custom = <AccountBoardItem>[];
 
+      for (final item in parsedItems) {
+        if (item.kind == BoardWidgetKind.prebuilt) {
+          final key = item.widgetKey;
+          if (key != null && defaultPrebuilt.containsKey(key)) {
+            defaultPrebuilt[key] = item.isEnabled;
+          }
+        } else if (item.kind == BoardWidgetKind.customApp) {
+          custom.add(item);
+        }
+      }
+
+      final orderedPrebuilt = <String, bool>{};
+      final mixedOrder = <String>[];
+      var customOrderIndex = 0;
       for (final json in list) {
         final map = json as Map<String, dynamic>;
         final kind = map['kind'] as int;
         if (kind == 0) {
           final key = map['widget_key'] as String;
-          final isEnabled = map['is_enabled'] as bool? ?? true;
-          if (defaultPrebuilt.containsKey(key)) {
-            defaultPrebuilt[key] = isEnabled;
+          if (!orderedPrebuilt.containsKey(key) &&
+              defaultPrebuilt.containsKey(key)) {
+            orderedPrebuilt[key] = defaultPrebuilt[key]!;
           }
+          mixedOrder.add('p_$key');
         } else if (kind == 1) {
-          custom.add(
-            AccountBoardItem(
-              id: map['id'] as String?,
-              order: map['order'] as int? ?? 0,
-              kind: BoardWidgetKind.customApp,
-              customAppId: map['custom_app_id'] as String?,
-              customAppWidgetKey: map['custom_app_widget_key'] as String?,
-              isEnabled: map['is_enabled'] as bool? ?? true,
-              payload: (map['payload'] as Map<String, dynamic>?) ?? {},
-            ),
-          );
-        }
-      }
-
-      final orderedPrebuilt = <String, bool>{};
-      for (final json in list) {
-        final map = json as Map<String, dynamic>;
-        if ((map['kind'] as int) != 0) continue;
-        final key = map['widget_key'] as String;
-        if (orderedPrebuilt.containsKey(key)) continue;
-        if (defaultPrebuilt.containsKey(key)) {
-          orderedPrebuilt[key] = defaultPrebuilt[key]!;
+          mixedOrder.add('c_${customOrderIndex++}');
         }
       }
       for (final key in defaultPrebuilt.keys) {
@@ -197,7 +291,22 @@ class BoardEditorState extends _$BoardEditorState {
         custom[i] = custom[i].copyWith(order: i);
       }
 
-      state = (orderedPrebuilt, custom);
+      final normalizedOrder = <String>[];
+      customOrderIndex = 0;
+      for (final key in mixedOrder) {
+        if (key.startsWith('p_')) {
+          normalizedOrder.add(key);
+        } else if (key.startsWith('c_') && customOrderIndex < custom.length) {
+          normalizedOrder.add('c_${customOrderIndex++}');
+        }
+      }
+      for (final key in orderedPrebuilt.keys) {
+        if (!normalizedOrder.contains('p_$key')) {
+          normalizedOrder.add('p_$key');
+        }
+      }
+
+      state = (orderedPrebuilt, custom, normalizedOrder);
     } catch (_) {}
   }
 }
@@ -278,24 +387,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    final enabledKeys = boardState.$1.entries
-        .where((e) => e.value)
-        .map((e) => e.key)
-        .toList();
-    final prebuiltItems = enabledKeys.asMap().entries.map((e) {
-      return AccountBoardItem(
-        order: e.key,
-        kind: BoardWidgetKind.prebuilt,
-        widgetKey: e.value,
-      );
-    }).toList();
-    final customItems = boardState.$2;
-    final items = [
-      ...prebuiltItems,
-      ...customItems.asMap().entries.map(
-        (e) => e.value.copyWith(order: prebuiltItems.length + e.key),
-      ),
-    ];
+    final items = _buildPreviewItems(boardState);
 
     return AppScaffold(
       appBar: AppBar(
@@ -364,7 +456,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
   Future<void> _saveBoard(BuildContext context, WidgetRef ref) async {
     final boardState = ref.read(boardEditorStateProvider);
     final customItems = boardState.$2;
-    final editorItems = _buildEditorItems(boardState.$1, customItems);
+    final editorItems = _buildEditorItems(boardState.$1, customItems, boardState.$3);
 
     final items = <Map<String, dynamic>>[];
     var order = 0;
@@ -390,6 +482,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
       showLoadingModal(context);
       final dio = ref.read(apiClientProvider);
       await dio.put('/passport/accounts/me/board', data: items);
+      ref.invalidate(myAccountBoardProvider);
       if (context.mounted) {
         hideLoadingModal(context);
         showSnackBar('settingsSaved'.tr());
@@ -412,7 +505,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
         .map((e) => e.key)
         .toList();
     final customItems = boardState.$2;
-    final items = _buildEditorItems(boardState.$1, customItems);
+    final items = _buildEditorItems(boardState.$1, customItems, boardState.$3);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
