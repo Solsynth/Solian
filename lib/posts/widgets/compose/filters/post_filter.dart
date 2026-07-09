@@ -125,7 +125,7 @@ class PostFilterWidget extends HookConsumerWidget {
       return () => categoryTabController.removeListener(onTabChanged);
     }, [categoryTabController]);
 
-    return Card(
+    return Card.outlined(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: Column(
