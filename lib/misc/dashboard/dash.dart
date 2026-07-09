@@ -823,6 +823,7 @@ class ChatListCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRooms = ref.watch(chatRoomJoinedProvider);
+    final chatSummaries = ref.watch(chatSummaryProvider);
     final chatUnreadCount = ref.watch(chatUnreadCountProvider);
 
     return Card(
@@ -872,8 +873,20 @@ class ChatListCard extends HookConsumerWidget {
                 if (rooms.isEmpty) {
                   return Center(child: Text('noChatRoomsAvailable'.tr()));
                 }
-                // Take only the first 5 rooms
-                final recentRooms = rooms.take(5).toList();
+                // Sort rooms by last message time (most recent first), then take top 5
+                final summaries = chatSummaries.asData?.value ?? {};
+                final sortedRooms = List<SnChatRoom>.from(rooms)
+                  ..sort((a, b) {
+                    final aTime =
+                        summaries[a.id]?.lastMessage?.createdAt;
+                    final bTime =
+                        summaries[b.id]?.lastMessage?.createdAt;
+                    if (aTime == null && bTime == null) return 0;
+                    if (aTime == null) return 1;
+                    if (bTime == null) return -1;
+                    return bTime.compareTo(aTime);
+                  });
+                final recentRooms = sortedRooms.take(5).toList();
                 return Column(
                   children: recentRooms.map((room) {
                     return ChatRoomListTile(
