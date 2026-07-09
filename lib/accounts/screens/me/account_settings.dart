@@ -170,6 +170,17 @@ class AccountSettingsScreen extends HookConsumerWidget {
           context.router.push(const AccountUpdateProfileRoute());
         },
       ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.dashboard_customize),
+        title: Text('editBoard').tr(),
+        subtitle: Text('editBoardDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          context.router.push(const AccountBoardEditRoute());
+        },
+      ),
     ];
 
     final securitySettings = [

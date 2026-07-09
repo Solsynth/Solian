@@ -2,28 +2,20 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
-import 'package:island/accounts/widgets/account/badge.dart';
-import 'package:island/accounts/widgets/account/fortune_graph.dart';
-import 'package:island/accounts/widgets/account/leveling_progress.dart';
 import 'package:island/accounts/widgets/account/status.dart';
-import 'package:island/accounts/widgets/account/activity_presence.dart';
+import 'package:island/accounts/widgets/account/board.dart';
 import 'package:island/accounts/screens/profile_timeline.dart';
 import 'package:island/developers/models/developer.dart';
-import 'package:island/accounts/event_calendar.dart';
-import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
-import 'package:island/core/services/time.dart';
-import 'package:island/core/services/timezone/native.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
@@ -357,250 +349,6 @@ class _AccountBasicInfo extends HookWidget {
   }
 }
 
-class _AccountProfileDetail extends StatelessWidget {
-  final SnAccount data;
-
-  const _AccountProfileDetail({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Symbols.badge,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Gap(12),
-                Text(
-                  'about',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
-              ],
-            ),
-            const Gap(12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _DetailChip(
-                  icon: Symbols.calendar_month,
-                  label: 'joinedAt'.tr(
-                    args: [data.createdAt.formatCustom('yyyy-MM-dd')],
-                  ),
-                ),
-                if (data.profile.birthday != null)
-                  _DetailChip(
-                    icon: Symbols.cake,
-                    label:
-                        '${data.profile.birthday!.formatCustom('yyyy-MM-dd')} · ${DateTime.now().difference(data.profile.birthday!).inDays ~/ 365} yrs',
-                  ),
-                if (data.profile.firstName.isNotEmpty ||
-                    data.profile.middleName.isNotEmpty ||
-                    data.profile.lastName.isNotEmpty)
-                  _DetailChip(
-                    icon: Symbols.id_card,
-                    label: [
-                      data.profile.firstName,
-                      data.profile.middleName,
-                      data.profile.lastName,
-                    ].where((s) => s.isNotEmpty).join(' '),
-                  ),
-                _DetailChip(
-                  icon: Symbols.person,
-                  label:
-                      '${data.profile.gender.isEmpty ? 'unspecified'.tr() : data.profile.gender} · ${data.profile.pronouns.isEmpty ? 'unspecified'.tr() : data.profile.pronouns}',
-                ),
-                if (data.profile.location.isNotEmpty)
-                  _DetailChip(
-                    icon: Symbols.location_on,
-                    label: data.profile.location,
-                  ),
-                Tooltip(
-                  message: 'creditsStatus'.tr(),
-                  child: _DetailChip(
-                    icon: Symbols.attribution,
-                    label:
-                        '${data.profile.socialCredits.toStringAsFixed(2)} pts · ${_getCreditsLevelText(data.profile.socialCreditsLevel)}',
-                  ),
-                ),
-                _DetailChip(
-                  icon: Symbols.fingerprint,
-                  label: data.id,
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: data.id));
-                  },
-                ),
-              ],
-            ),
-            if (data.profile.timeZone.isNotEmpty && !kIsWeb) ...[
-              const Gap(16),
-              Builder(
-                builder: (context) {
-                  try {
-                    final tzInfo = getTzInfo(data.profile.timeZone);
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Symbols.schedule,
-                            size: 20,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const Gap(12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'timeZone',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ).tr(),
-                                const Gap(4),
-                                Row(
-                                  spacing: 8,
-                                  children: [
-                                    Text(
-                                      data.profile.timeZone,
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            theme.colorScheme.primaryContainer,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        tzInfo.$2.formatCustomGlobal('HH:mm'),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onPrimaryContainer,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                    ),
-                                    Text(
-                                      'UTC${tzInfo.$1.formatOffset()}',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } catch (e) {
-                    return const SizedBox.shrink();
-                  }
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getCreditsLevelText(int level) {
-    switch (level) {
-      case -1:
-        return 'socialCreditsLevelPoor'.tr();
-      case 0:
-        return 'socialCreditsLevelNormal'.tr();
-      case 1:
-        return 'socialCreditsLevelGood'.tr();
-      case 2:
-        return 'socialCreditsLevelExcellent'.tr();
-      default:
-        return 'unknown'.tr();
-    }
-  }
-}
-
-class _DetailChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _DetailChip({required this.icon, required this.label, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 6,
-          children: [
-            Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
-            Flexible(
-              child: Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _LinkCard extends StatelessWidget {
   final String name;
   final String url;
@@ -642,278 +390,6 @@ class _LinkCard extends StatelessWidget {
             Icon(
               Symbols.arrow_outward,
               size: 14,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AccountProfileContacts extends StatelessWidget {
-  final SnAccount data;
-
-  const _AccountProfileContacts({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final publicContacts = data.contacts.where((c) => c.isPublic).toList();
-    if (publicContacts.isEmpty) return const SizedBox.shrink();
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Symbols.contact_phone,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Gap(12),
-                Text(
-                  'contactMethod',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
-              ],
-            ),
-            const Gap(12),
-            Column(
-              spacing: 8,
-              children: publicContacts
-                  .map((contact) => _ContactCard(contact: contact))
-                  .toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ContactCard extends StatelessWidget {
-  final dynamic contact;
-
-  const _ContactCard({required this.contact});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconData = switch (contact.type) {
-      0 => Symbols.mail,
-      1 => Symbols.phone,
-      _ => Symbols.home,
-    };
-    final typeLabel = switch (contact.type) {
-      0 => 'contactMethodTypeEmail'.tr(),
-      1 => 'contactMethodTypePhone'.tr(),
-      _ => 'contactMethodTypeAddress'.tr(),
-    };
-
-    return InkWell(
-      onTap: () {
-        switch (contact.type) {
-          case 0:
-            launchUrlString('mailto:${contact.content}');
-          case 1:
-            launchUrlString('tel:${contact.content}');
-          default:
-            Clipboard.setData(ClipboardData(text: contact.content));
-        }
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(iconData, size: 18, color: theme.colorScheme.primary),
-            ),
-            const Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    typeLabel,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Gap(2),
-                  Text(
-                    contact.content,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Symbols.chevron_right,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AccountPublisherList extends StatelessWidget {
-  final List<SnPublisher> publishers;
-
-  const _AccountPublisherList({required this.publishers});
-
-  @override
-  Widget build(BuildContext context) {
-    if (publishers.isEmpty) return const SizedBox.shrink();
-
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Symbols.verified,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Gap(12),
-                Text(
-                  'publishers',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
-              ],
-            ),
-            const Gap(16),
-            ...publishers.map(
-              (publisher) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _PublisherCard(
-                  publisher: publisher,
-                  onTap: () {
-                    Navigator.pop(context, true);
-                    context.router.push(
-                      PublisherProfileRoute(name: publisher.name),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PublisherCard extends StatelessWidget {
-  final SnPublisher publisher;
-  final VoidCallback onTap;
-
-  const _PublisherCard({required this.publisher, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                ),
-              ),
-              child: ProfilePictureWidget(file: publisher.picture, radius: 24),
-            ),
-            const Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    publisher.nick,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Gap(2),
-                  Text(
-                    publisher.bio.isNotEmpty
-                        ? publisher.bio
-                              .split('\n')
-                              .where((line) => line.trim().isNotEmpty)
-                              .join('\n')
-                        : 'descriptionNone'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Symbols.chevron_right,
-              size: 18,
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
@@ -1296,14 +772,7 @@ class AccountProfileContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-
     final account = ref.watch(accountProvider(name));
-    final accountEvents = ref.watch(
-      eventCalendarProvider(
-        EventCalendarQuery(uname: name, year: now.year, month: now.month),
-      ),
-    );
     final accountChat = ref.watch(accountDirectChatProvider(name));
     final accountRelationship = ref.watch(accountRelationshipProvider(name));
     final accountDeveloper = ref.watch(accountBotDeveloperProvider(name));
@@ -1391,7 +860,7 @@ class AccountProfileContent extends HookConsumerWidget {
           final theme = Theme.of(context);
 
           final boardContent = SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
               spacing: 12,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1410,38 +879,12 @@ class AccountProfileContent extends HookConsumerWidget {
                   uname: name,
                   accountDeveloper: accountDeveloper,
                 ),
-                ActivityPresenceWidget(uname: name, isCompact: false),
-                if (data.badges.isNotEmpty)
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: BadgeList(badges: data.badges),
-                    ),
-                  ),
-                Column(
-                  spacing: 12,
-                  children: [
-                    LevelingProgressCard(
-                      level: data.profile.level,
-                      experience: data.profile.experience,
-                      progress: data.profile.levelingProgress,
-                    ),
-                    if (data.profile.verification != null)
-                      Card(
-                        margin: EdgeInsets.zero,
-                        child: VerificationStatusCard(
-                          mark: data.profile.verification!,
-                        ),
-                      ),
-                  ],
-                ),
-                if (data.contacts.any((c) => c.isPublic))
-                  _AccountProfileContacts(data: data),
-                _AccountPublisherList(
+                AccountBoard(
+                  account: data,
+                  items: AccountBoard.defaultBoard(),
+                  uname: name,
                   publishers: accountPublishers.value ?? [],
                 ),
-                _AccountProfileDetail(data: data),
                 ?accountPunishment.whenOrNull(
                   data: (punishmentData) => punishmentData != null
                       ? _AccountPunishment(
@@ -1450,15 +893,21 @@ class AccountProfileContent extends HookConsumerWidget {
                         )
                       : null,
                 ),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: FortuneGraphWidget(
-                      events: accountEvents,
-                      eventCalandarUser: data.name,
-                    ),
-                  ),
+              ],
+            ),
+          );
+
+          final boardContentNoHeader = SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              spacing: 12,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AccountBoard(
+                  account: data,
+                  items: AccountBoard.defaultBoard(),
+                  uname: name,
+                  publishers: accountPublishers.value ?? [],
                 ),
               ],
             ),
@@ -1467,16 +916,18 @@ class AccountProfileContent extends HookConsumerWidget {
           final timelineContent = CustomScrollView(
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.zero,
                 sliver: AccountTimelineList(uname: name),
               ),
               SliverGap(MediaQuery.of(context).padding.bottom + 16),
             ],
           );
 
-          return Column(
-            children: [
-              Material(
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final useWide = isWideScreen(context) && constraints.maxWidth >= 900;
+
+              final tabBar = Material(
                 color: theme.colorScheme.surface,
                 elevation: 0,
                 child: TabBar(
@@ -1485,31 +936,89 @@ class AccountProfileContent extends HookConsumerWidget {
                     Tab(text: 'timeline'.tr()),
                   ],
                 ),
-              ),
-              if (user.value != null && !isCurrentUser)
-                Material(
-                  color: theme.colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+              );
+
+              if (!useWide) {
+                return Column(
+                  children: [
+                    tabBar,
+                    if (user.value != null && !isCurrentUser)
+                      Material(
+                        color: theme.colorScheme.surface,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: _AccountAction(
+                            data: data,
+                            accountRelationship: accountRelationship,
+                            accountChat: accountChat,
+                            relationshipAction: relationshipAction,
+                            blockAction: blockAction,
+                            directMessageAction: directMessageAction,
+                          ),
+                        ),
+                      ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [boardContent, timelineContent],
+                      ),
                     ),
-                    child: _AccountAction(
-                      data: data,
-                      accountRelationship: accountRelationship,
-                      accountChat: accountChat,
-                      relationshipAction: relationshipAction,
-                      blockAction: blockAction,
-                      directMessageAction: directMessageAction,
+                  ],
+                );
+              }
+
+              return Row(
+                spacing: 12,
+                children: [
+                  Flexible(
+                    flex: 4,
+                    child: Column(
+                      children: [
+                        tabBar,
+                        Expanded(
+                          child: TabBarView(
+                            children: [boardContentNoHeader, timelineContent],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              Expanded(
-                child: TabBarView(
-                  children: [boardContent, timelineContent],
-                ),
-              ),
-            ],
+                  Flexible(
+                    flex: 3,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      child: Column(
+                        spacing: 12,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _AccountBasicInfo(
+                            data: data,
+                            uname: name,
+                            accountDeveloper: accountDeveloper,
+                          ),
+                          ?accountPunishment.whenOrNull(
+                            data: (punishmentData) => punishmentData != null
+                                ? _AccountPunishment(
+                                    punishment: punishmentData,
+                                    onTap: showPunishmentSheet,
+                                  )
+                                : null,
+                          ),
+                          if (user.value != null && !isCurrentUser)
+                            _AccountAction(
+                              data: data,
+                              accountRelationship: accountRelationship,
+                              accountChat: accountChat,
+                              relationshipAction: relationshipAction,
+                              blockAction: blockAction,
+                              directMessageAction: directMessageAction,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
         error: (error, stackTrace) => Center(child: Text(error.toString())),
