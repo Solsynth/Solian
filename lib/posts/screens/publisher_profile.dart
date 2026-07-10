@@ -313,6 +313,8 @@ class _PublisherBasisWidget extends HookWidget {
                             )
                           : Text(
                               data.nick,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -413,103 +415,118 @@ class _PublisherBasisWidget extends HookWidget {
                   ],
                 ),
                 if (!isWideScreen(context))
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, bottom: 4),
-                    child: HandleChip(
-                      handle: data.name,
-                      allowCopy: true,
-                      maxLines: 1,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: HandleChip(
+                        handle: data.name,
+                        allowCopy: true,
+                        maxLines: 1,
+                      ),
                     ),
                   ),
                 if (data.account != null && data.type == 0) ...[
                   Row(
                     children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer
-                                .withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 8,
-                            children: [
-                              Icon(
-                                Symbols.person,
-                                size: 18,
-                                color: theme.colorScheme.onSecondaryContainer,
-                                fill: 1,
-                              ),
-                              Text(
-                                'publisherBelongsTo'.tr(
-                                  args: ['@${data.account!.name}'],
+                      Flexible(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondaryContainer
+                                  .withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 8,
+                              children: [
+                                Icon(
+                                  Symbols.person,
+                                  size: 18,
+                                  color: theme.colorScheme.onSecondaryContainer,
+                                  fill: 1,
                                 ),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                Flexible(
+                                  child: Text(
+                                    'publisherBelongsTo'.tr(
+                                      args: ['@${data.account!.name}'],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        onTap: () {
-                          context.router.push(
-                            AccountProfileRoute(name: data.account!.name),
-                          );
-                        },
-                      ).padding(top: 8, bottom: 4),
+                          onTap: () {
+                            context.router.push(
+                              AccountProfileRoute(name: data.account!.name),
+                            );
+                          },
+                        ).padding(top: 8, bottom: 4),
+                      ),
                     ],
                   ),
                 ],
                 if (data.realm != null) ...[
                   Row(
                     children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiaryContainer
-                                .withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 8,
-                            children: [
-                              Icon(
-                                Symbols.public,
-                                size: 18,
-                                color: theme.colorScheme.onTertiaryContainer,
-                                fill: 1,
-                              ),
-                              Text(
-                                'publisherBelongsToRealm'.tr(
-                                  args: [data.realm!.name],
+                      Flexible(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.tertiaryContainer
+                                  .withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 8,
+                              children: [
+                                Icon(
+                                  Symbols.public,
+                                  size: 18,
+                                  color: theme.colorScheme.onTertiaryContainer,
+                                  fill: 1,
                                 ),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                Flexible(
+                                  child: Text(
+                                    'publisherBelongsToRealm'.tr(
+                                      args: [data.realm!.name],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        onTap: () {
-                          context.router.push(
-                            RealmDetailRoute(slug: data.realm!.slug),
-                          );
-                        },
-                      ).padding(top: 8, bottom: 4),
+                          onTap: () {
+                            context.router.push(
+                              RealmDetailRoute(slug: data.realm!.slug),
+                            );
+                          },
+                        ).padding(top: 8, bottom: 4),
+                      ),
                     ],
                   ),
                 ],
@@ -637,6 +654,8 @@ class _PublisherBasisWidget extends HookWidget {
                                   : Text(
                                       _getFirstLine(data.bio),
                                       key: const ValueKey('collapsed'),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                             ).alignment(Alignment.centerLeft),
                           ),
@@ -854,7 +873,8 @@ class _PublisherTabBar extends StatelessWidget {
         padding: const EdgeInsets.only(top: 8),
         child: TabBar(
           isScrollable: true,
-          tabAlignment: TabAlignment.start,
+          tabAlignment: TabAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           indicator: BoxDecoration(
             color: theme.colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(20),
@@ -876,6 +896,44 @@ class _PublisherTabBar extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PublisherTabBarHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final Color backgroundColor;
+
+  /// TabBar (~46) + top padding (8).
+  static const double _height = 54;
+
+  _PublisherTabBarHeaderDelegate({
+    required this.child,
+    required this.backgroundColor,
+  });
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Material(
+      color: backgroundColor,
+      elevation: overlapsContent ? 1 : 0,
+      child: SizedBox(height: _height, child: child),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _PublisherTabBarHeaderDelegate oldDelegate) {
+    return child != oldDelegate.child ||
+        backgroundColor != oldDelegate.backgroundColor;
   }
 }
 
@@ -1132,25 +1190,19 @@ class _PublisherCollectionSheet extends ConsumerWidget {
         return Column(
           children: [
             for (final post in result.items)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  child: InkWell(
-                    onTap: () {
-                      onDismiss();
-                      context.router.push(PostDetailRoute(id: post.id));
-                    },
-                    child: PostItem(
-                      item: post,
-                      isFullPost: false,
-                      isEmbedReply: false,
-                      isCompact: true,
-                      hideAttachments: true,
-                      isTextSelectable: false,
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                    ),
-                  ),
+              Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: PostActionableItem(
+                  onTap: () {
+                    onDismiss();
+                    context.router.push(PostDetailRoute(id: post.id));
+                  },
+                  borderRadius: 8,
+                  item: post,
+                  isFullPost: false,
+                  isEmbedReply: false,
+                  isCompact: true,
+                  hideAttachments: true,
                 ),
               ),
           ],
@@ -1185,7 +1237,7 @@ class _PublisherCollectionSheet extends ConsumerWidget {
 
           if (!useWideLayout) {
             return ListView(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
               children: [
                 PublisherCollectionHeader(collection: collection, title: title),
                 const Gap(16),
@@ -1297,9 +1349,11 @@ class _PublisherStickerPacksTab extends HookConsumerWidget {
                       )
                     : null,
                 trailing: const Icon(Symbols.chevron_right),
-                onTap: () => context.router.push(
-                  StickerMarketplacePackDetailRoute(id: pack.id),
-                ),
+                onTap: () {
+                  context.router.navigate(
+                    StickerMarketplacePackDetailRoute(id: pack.id),
+                  );
+                },
               ),
             );
           },
@@ -1505,39 +1559,54 @@ class PublisherProfileContent extends HookConsumerWidget {
               final tabBar = const _PublisherTabBar();
 
               if (!useWideLayout) {
-                return Column(
-                  children: [
-                    const Gap(12),
-                    _PublisherBasisWidget(
-                      data: data,
-                      subStatus: subStatus,
-                      ratingOverview: ratingOverview,
-                      subscribing: subscribing,
-                      subscribe: subscribe,
-                      unsubscribe: unsubscribe,
-                      toggleNotify: toggleNotify,
-                    ).padding(horizontal: 12),
-                    const Gap(12),
-                    if (data.account?.badges.isNotEmpty ?? false) ...[
-                      _PublisherBadgesWidget(
-                        data: data,
-                        badges: badges,
-                      ).padding(horizontal: 12),
-                      const Gap(12),
-                    ],
-                    if (data.verification != null) ...[
-                      _PublisherVerificationWidget(
-                        data: data,
-                      ).padding(horizontal: 12),
-                      const Gap(12),
-                    ],
-                    _PublisherHeatmapWidget(
-                      heatmap: heatmap,
-                    ).padding(horizontal: 12),
-                    const Gap(12),
-                    tabBar,
-                    Expanded(child: TabBarView(children: publicationViews)),
+                // NestedScrollView lets the tall profile header scroll away on
+                // short/narrow viewports instead of overflowing the Column.
+                return NestedScrollView(
+                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Gap(12),
+                          _PublisherBasisWidget(
+                            data: data,
+                            subStatus: subStatus,
+                            ratingOverview: ratingOverview,
+                            subscribing: subscribing,
+                            subscribe: subscribe,
+                            unsubscribe: unsubscribe,
+                            toggleNotify: toggleNotify,
+                          ).padding(horizontal: 12),
+                          const Gap(12),
+                          if (data.account?.badges.isNotEmpty ?? false) ...[
+                            _PublisherBadgesWidget(
+                              data: data,
+                              badges: badges,
+                            ).padding(horizontal: 12),
+                            const Gap(12),
+                          ],
+                          if (data.verification != null) ...[
+                            _PublisherVerificationWidget(
+                              data: data,
+                            ).padding(horizontal: 12),
+                            const Gap(12),
+                          ],
+                          _PublisherHeatmapWidget(
+                            heatmap: heatmap,
+                          ).padding(horizontal: 12),
+                          const Gap(4),
+                        ],
+                      ),
+                    ),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _PublisherTabBarHeaderDelegate(
+                        child: tabBar,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                      ),
+                    ),
                   ],
+                  body: TabBarView(children: publicationViews),
                 );
               }
 

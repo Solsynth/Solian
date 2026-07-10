@@ -25,7 +25,9 @@ class NotificationCard extends HookConsumerWidget {
           }
           if (uri.startsWith('/')) {
             // In-app routes
-            ref.read(routerProvider).pushPath(notification.meta['action_uri']);
+            ref
+                .read(routerProvider)
+                .navigatePath(notification.meta['action_uri']);
           } else {
             // External URLs
             launchUrlString(uri);

@@ -110,7 +110,9 @@ class NotificationItemWidget extends HookConsumerWidget {
             uri = uri.replaceFirst('solian://', '');
           }
           if (uri.startsWith('/')) {
-            ref.read(routerProvider).pushPath(notification.meta['action_uri']);
+            ref
+                .read(routerProvider)
+                .navigatePath(notification.meta['action_uri']);
           } else {
             launchUrlString(uri);
           }

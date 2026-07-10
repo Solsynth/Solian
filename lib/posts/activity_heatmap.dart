@@ -234,26 +234,31 @@ class ActivityHeatmapWidget extends HookConsumerWidget {
             Row(
               children: [
                 if (selectedItem.value != null)
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: selectedItem.value!.value.toInt().toString(),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(
-                          text: ' activities on ',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        TextSpan(
-                          text: _formatDate(selectedItem.value!.dateString),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                  Expanded(
+                    child: RichText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: selectedItem.value!.value.toInt().toString(),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(
+                            text: ' activities on ',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          TextSpan(
+                            text: _formatDate(selectedItem.value!.dateString),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                const Spacer(),
+                  )
+                else
+                  const Spacer(),
                 Text(
                   'Less',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(

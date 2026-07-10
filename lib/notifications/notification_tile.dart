@@ -170,12 +170,14 @@ class NotificationTile extends ConsumerWidget {
           if (uri.startsWith('/')) {
             // In-app routes — use global router so navigation works
             // inside attention modals where context.router is unavailable.
-            ref.read(routerProvider).pushPath(
-              notification.meta['action_uri'],
-              onFailure: (err) {
-                showErrorAlert('Unable to open page: $err');
-              },
-            );
+            ref
+                .read(routerProvider)
+                .navigatePath(
+                  notification.meta['action_uri'],
+                  onFailure: (err) {
+                    showErrorAlert('Unable to open page: $err');
+                  },
+                );
             dismissAttentionModal('notifications');
           } else {
             // External URLs

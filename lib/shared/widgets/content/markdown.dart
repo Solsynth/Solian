@@ -148,7 +148,7 @@ class MarkdownTextContent extends HookConsumerWidget {
         return;
       }
       final fullPath = '/$type/$id';
-      context.router.pushPath(fullPath);
+      context.router.navigatePath(fullPath);
     }, [context]);
 
     final mentionGenerator = MentionChipGenerator(
@@ -215,7 +215,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                 }
                 if (url.scheme == 'solian') {
                   final fullPath = ['/', url.host, url.path].join('');
-                  context.router.pushPath(fullPath);
+                  context.router.navigatePath(fullPath);
                   return;
                 }
                 await openExternalLink(url, ref);

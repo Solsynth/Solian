@@ -68,7 +68,7 @@ class AccountProfileAttentionModal extends StatelessWidget {
           tooltip: 'open'.tr(),
         ),
       ],
-      child: AccountProfileContent(name: name, isEmbedded: true),
+      child: AccountProfileContent(name: name),
     );
   }
 }
@@ -685,12 +685,10 @@ class AccountProfileScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: isWideScreen(context)
-          ? AppBar(
-              leading: const AutoLeadingButton(),
-              title: Text(account.value?.nick ?? '@$name'),
-            )
-          : null,
+      appBar: AppBar(
+        leading: const AutoLeadingButton(),
+        title: Text(account.value?.nick ?? '@$name'),
+      ),
       body: AccountProfileContent(name: name),
     );
   }
@@ -698,12 +696,10 @@ class AccountProfileScreen extends HookConsumerWidget {
 
 class AccountProfileContent extends HookConsumerWidget {
   final String name;
-  final bool isEmbedded;
 
   const AccountProfileContent({
     super.key,
     required this.name,
-    this.isEmbedded = false,
   });
 
   @override
@@ -836,32 +832,31 @@ class AccountProfileContent extends HookConsumerWidget {
                     AccountBoard.defaultBoard()
               : AccountBoard.defaultBoard();
 
+          final showActions = user.value != null && !isCurrentUser;
+
           final boardContent = ExtendedRefreshIndicator(
             onRefresh: refreshProfile,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(
-                horizontal: isEmbedded ? 0 : 12,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
                 spacing: 12,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (isEmbedded) ...[
-                    const Gap(8),
-                    Text(
-                      data.nick,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
                   _AccountBasicInfo(
                     data: data,
                     uname: name,
                     accountDeveloper: accountDeveloper,
                   ),
+                  if (showActions)
+                    _AccountAction(
+                      data: data,
+                      accountRelationship: accountRelationship,
+                      accountChat: accountChat,
+                      relationshipAction: relationshipAction,
+                      blockAction: blockAction,
+                      directMessageAction: directMessageAction,
+                    ),
                   AccountBoard(
                     account: data,
                     items: accountBoard,
@@ -907,7 +902,7 @@ class AccountProfileContent extends HookConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 0 : 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   sliver: AccountTimelineList(uname: name),
                 ),
                 SliverGap(MediaQuery.of(context).padding.bottom + 16),
@@ -926,6 +921,7 @@ class AccountProfileContent extends HookConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: TabBar(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     indicator: BoxDecoration(
                       color: theme.colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(20),
@@ -960,24 +956,6 @@ class AccountProfileContent extends HookConsumerWidget {
                 return Column(
                   children: [
                     tabBar,
-                    if (user.value != null && !isCurrentUser)
-                      Material(
-                        color: theme.colorScheme.surface,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          child: _AccountAction(
-                            data: data,
-                            accountRelationship: accountRelationship,
-                            accountChat: accountChat,
-                            relationshipAction: relationshipAction,
-                            blockAction: blockAction,
-                            directMessageAction: directMessageAction,
-                          ),
-                        ),
-                      ),
                     Expanded(
                       child: TabBarView(
                         children: [boardContent, timelineContent],
@@ -1031,7 +1009,7 @@ class AccountProfileContent extends HookConsumerWidget {
                                   )
                                 : null,
                           ),
-                          if (user.value != null && !isCurrentUser)
+                          if (showActions)
                             _AccountAction(
                               data: data,
                               accountRelationship: accountRelationship,

@@ -124,7 +124,7 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
       if (payload != null) {
         if (payload.startsWith('/')) {
           // In-app routes
-          router.pushPath(payload);
+          router.navigatePath(payload);
         } else {
           // External URLs
           launchUrlString(payload);
@@ -293,8 +293,14 @@ Future<void> subscribePushNotification(
           return;
         }
         if (Platform.isIOS) {
-          await _registerApnsTokenIfAvailable(apiClient, deviceName: deviceName);
-          await _registerVoipTokenIfAvailable(apiClient, deviceName: deviceName);
+          await _registerApnsTokenIfAvailable(
+            apiClient,
+            deviceName: deviceName,
+          );
+          await _registerVoipTokenIfAvailable(
+            apiClient,
+            deviceName: deviceName,
+          );
         }
       })
       .onError((err) {
@@ -318,7 +324,10 @@ Future<void> subscribePushNotification(
   }
   if (!kIsWeb && Platform.isIOS) {
     registered =
-        await _registerVoipTokenIfAvailable(apiClient, deviceName: deviceName) ||
+        await _registerVoipTokenIfAvailable(
+          apiClient,
+          deviceName: deviceName,
+        ) ||
         registered;
   }
   if (!registered && detailedErrors) {

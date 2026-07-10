@@ -54,7 +54,7 @@ class LoginScreen extends HookConsumerWidget {
       Future.microtask(() async {
         // Try in-app navigation first
         try {
-          await router.pushPath(uri);
+          await router.navigatePath(uri);
         } catch (_) {}
         // Check if we landed on the 404 catch-all
         if (router.stack.isNotEmpty &&
