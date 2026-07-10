@@ -231,6 +231,7 @@ void main(List<String> args) async {
         'network',
         PluginNetworkApi(prefs, pluginNetworkScope.read(apiClientProvider)),
       );
+      controller.registerApi('ws', PluginWebsocketApi());
       await controller.initialize();
       PluginEventBridge().activate();
       Logger.root.info(

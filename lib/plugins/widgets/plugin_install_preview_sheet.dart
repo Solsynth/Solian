@@ -124,7 +124,8 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         [
-                          if (preview.author.trim().isNotEmpty) preview.author,
+                          if (preview.displayAttribution.isNotEmpty)
+                            preview.displayAttribution,
                           'v${preview.version}',
                           if (preview.isInstalled &&
                               preview.installedVersion != null)
@@ -133,7 +134,7 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
                                 'version': preview.installedVersion!,
                               },
                             ),
-                        ].join(' · '),
+                        ].where((s) => s.isNotEmpty).join(' · '),
                         style: tt.bodySmall?.copyWith(
                           color: cs.onSurfaceVariant,
                         ),
@@ -256,10 +257,10 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
               label: 'pluginInstallPreviewInstalledLabel'.tr(),
               value: 'v${preview.installedVersion}',
             ),
-          if (preview.author.trim().isNotEmpty)
+          if (preview.displayAttribution.isNotEmpty)
             _DetailRow(
               label: 'pluginInstallPreviewAuthor'.tr(),
-              value: preview.author,
+              value: preview.displayAttribution,
             ),
           _DetailRow(
             label: 'pluginInstallPreviewEntry'.tr(),
@@ -564,6 +565,8 @@ class _PermissionTile extends StatelessWidget {
       'uiRender' => Symbols.widgets,
       'networkInternet' => Symbols.public,
       'solarNetworkApi' => Symbols.cloud,
+      'websocketSubscribe' => Symbols.sensors,
+      'websocketSend' => Symbols.send,
       'sdkPostsRead' => Symbols.article,
       'sdkPostsCreate' => Symbols.edit_note,
       'sdkChatRead' => Symbols.chat,

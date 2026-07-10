@@ -20,6 +20,12 @@ enum PluginPermission {
   /// Make requests to the configured Solar Network server as the signed-in user.
   solarNetworkApi,
 
+  /// Subscribe to realtime packets from the app WebSocket connection.
+  websocketSubscribe,
+
+  /// Send packets on the app WebSocket connection.
+  websocketSend,
+
   /// Read posts.
   sdkPostsRead,
 

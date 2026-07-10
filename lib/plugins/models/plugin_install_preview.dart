@@ -27,6 +27,8 @@ class PluginInstallPreview {
     required this.name,
     required this.version,
     this.author = '',
+    this.publisher,
+    this.publisherLabel = '',
     this.description = '',
     this.homepage,
     this.entry = 'main.js',
@@ -46,7 +48,16 @@ class PluginInstallPreview {
   final String id;
   final String name;
   final String version;
+
+  /// Manifest author (folder installs / fallback).
   final String author;
+
+  /// Hydrated marketplace publisher when available.
+  final SnPublisher? publisher;
+
+  /// Precomputed publisher display label (nick preferred).
+  final String publisherLabel;
+
   final String description;
   final String? homepage;
   final String entry;
@@ -65,6 +76,23 @@ class PluginInstallPreview {
 
   /// Conflict against an existing install with the same [id].
   final PluginInstallConflict conflict;
+
+  /// Attribution line: manifest author first, then publisher if author empty.
+  String get displayAttribution {
+    final a = author.trim();
+    if (a.isNotEmpty) return a;
+    final pub = publisherLabel.trim();
+    if (pub.isNotEmpty) return pub;
+    if (publisher != null) {
+      final nick = publisher!.nick.trim();
+      if (nick.isNotEmpty) return nick;
+      final name = publisher!.name.trim();
+      if (name.isNotEmpty) return name;
+    }
+    return '';
+  }
+
+  bool get hasPublisher => publisher != null || publisherLabel.trim().isNotEmpty;
 
   bool get hasConflict => conflict != PluginInstallConflict.none;
 
@@ -119,7 +147,10 @@ class PluginInstallPreview {
       id: plugin.pluginId,
       name: plugin.name,
       version: plugin.version,
+      // Prefer manifest author for attribution; keep publisher for optional UI.
       author: plugin.displayAuthor,
+      publisher: plugin.publisher,
+      publisherLabel: plugin.displayPublisher,
       description: plugin.description ?? '',
       homepage: plugin.homepage,
       entry: plugin.entry,
@@ -286,6 +317,14 @@ class PluginPermissionInfo {
     'solarNetworkApi': (
       'pluginPermSolarNetworkApi',
       'pluginPermSolarNetworkApiDesc',
+    ),
+    'websocketSubscribe': (
+      'pluginPermWebsocketSubscribe',
+      'pluginPermWebsocketSubscribeDesc',
+    ),
+    'websocketSend': (
+      'pluginPermWebsocketSend',
+      'pluginPermWebsocketSendDesc',
     ),
     'sdkPostsRead': ('pluginPermSdkPostsRead', 'pluginPermSdkPostsReadDesc'),
     'sdkPostsCreate': (

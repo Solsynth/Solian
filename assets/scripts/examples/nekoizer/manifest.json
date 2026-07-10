@@ -1,7 +1,7 @@
 {
   "id": "me.littlesheep.nekoizer",
   "name": "Nekoizer",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "LittleSheep",
   "description": "Add a '喵' to every single messages and posts.",
   "entry": "main.js",

@@ -29,9 +29,12 @@ controller.registerApi('tasks', BackgroundTaskApi());
 controller.registerApi('notify', NotifyApi());
 controller.registerApi('dashboard', DashboardApi());
 controller.registerApi('network', PluginNetworkApi(prefs, apiClient));
+controller.registerApi('ws', PluginWebsocketApi());
 
 await controller.initialize();
 PluginEventBridge().activate(); // forwards Island event bus → plugins
+// Later (AppWrapper): PluginController.instance.getApi<PluginWebsocketApi>()
+//   ?.attach(websocketService);
 ```
 
 Each `PluginApi` may:
@@ -151,6 +154,8 @@ Plugins must declare which APIs they intend to use in `manifest.json`. The sandb
 | `uiRender` | `ui.*` (incl. dashboard registration when host registers it) | Foundation (+ Island dashboard) |
 | `networkInternet` | `internet.*` | Island host |
 | `solarNetworkApi` | `solar.*` | Island host |
+| `websocketSubscribe` | `ws.subscribe`, `ws.unsubscribe`, `ws.is_connected`, optional `on_ws_status` | Island host |
+| `websocketSend` | `ws.send` | Island host |
 | `notify` | `notify()`, `showAlert`, … | Island host |
 | `tasksSchedule` | `tasks.*` | Foundation |
 | *(none)* | `icons.*` (Material Symbols lookup) | Island host |
@@ -293,6 +298,131 @@ function onNewMessage() {
 
 events.subscribe("message.received", "onNewMessage");
 ```
+
+---
+
+### `ws` (WebSocket)
+
+> Host API (Island). Backed by the app's authenticated [WebSocketService]
+> (`lib/core/websocket.dart`). Plugins share the same connection as the rest of
+> the app — they do **not** open a separate socket.
+
+| Permission | Methods |
+|------------|---------|
+| `websocketSubscribe` | `ws.subscribe`, `ws.unsubscribe`, `ws.is_connected`, optional `on_ws_status` |
+| `websocketSend` | `ws.send` |
+
+Declare the permissions you need in `manifest.json`:
+
+```json
+{
+  "permissions": ["websocketSubscribe", "websocketSend", "notify"]
+}
+```
+
+#### Packet shape
+
+Packets match the app `WebSocketPacket` model:
+
+```json
+{
+  "type": "messages.new",
+  "data": { "...": "..." },
+  "endpoint": null,
+  "error_message": null
+}
+```
+
+Handlers receive a JS object with keys `type`, `data`, `endpoint`, and
+`error_message`.
+
+#### `ws.subscribe(handlerName)` / `ws.subscribe(type, handlerName)`
+
+Register a handler for incoming packets.
+
+- One argument: receive **all** packets.
+- Two arguments: only packets whose `type` equals the filter string.
+
+```javascript
+function onAnyPacket(packet) {
+  // packet.type, packet.data, packet.endpoint, packet.error_message
+  if (packet.type === "messages.new") {
+    notify("Realtime", "New chat activity");
+  }
+}
+
+function onTyping(packet) {
+  // only messages.typing (example type)
+}
+
+ws.subscribe("onAnyPacket");
+ws.subscribe("messages.typing", "onTyping");
+```
+
+Re-registering the same handler name for a plugin replaces the previous filter.
+
+#### `ws.unsubscribe(handlerName?)`
+
+Remove a handler (or all handlers for this plugin if `handlerName` is omitted).
+
+```javascript
+ws.unsubscribe("onTyping");
+ws.unsubscribe(); // clear all for this plugin
+```
+
+#### `ws.send(type, data?, endpoint?)`
+
+> Requires `websocketSend`.
+
+Send a packet on the shared app WebSocket as the signed-in user.
+
+Returns `true` if the host accepted the send (socket connected), otherwise
+`false`.
+
+**Reserved types** (blocked for plugins): `ping`, `pong`, `error`, `error.dupe`.
+
+```javascript
+// Example: emit a custom app packet (type must be understood by the server)
+ws.send("plugins.ping", { plugin_id: "com.example.demo" });
+
+// Optional endpoint field (when the protocol uses it)
+ws.send("some.action", { id: "abc" }, "sphere");
+```
+
+#### `ws.is_connected()`
+
+> Requires `websocketSubscribe`.
+
+Returns whether the app WebSocket channel is currently open.
+
+```javascript
+if (ws.is_connected()) {
+  ws.send("plugins.hello", {});
+}
+```
+
+#### Optional: `on_ws_status(status)`
+
+If a global function `on_ws_status` is defined, the host calls it when
+connection state changes:
+
+```javascript
+function on_ws_status(info) {
+  // info.status: connected | connecting | disconnected |
+  //              internet_changed | server_down | duplicate_device | error
+  // info.message: present when status === "error"
+  notify("WebSocket", info.status);
+}
+```
+
+#### Notes
+
+- The host attaches `PluginWebsocketApi` to the live `WebSocketService` during
+  app bootstrap (`AppWrapper`). Sending before attach returns `false`.
+- Prefer high-level `events.*` / `hooks.*` when they cover your use case;
+  use `ws` only when you need raw realtime packets.
+- Sending arbitrary packets can affect other clients and server state — request
+  only the permissions you need and validate `type` carefully.
 
 ---
 
