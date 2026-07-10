@@ -19,7 +19,7 @@ sealed class PostListQuery with _$PostListQuery {
     List<String>? tags,
     bool? pinned,
     @Default(false) bool shuffle,
-    @Default(false) bool includeReplies,
+    @Default(false) bool? includeReplies,
     bool? mediaOnly,
     String? queryTerm,
     String? searchEngine,

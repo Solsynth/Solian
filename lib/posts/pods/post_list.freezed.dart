@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PostListQuery {
 
- String? get pubName; List<String>? get publishers; String? get realm; int? get type; List<String>? get categories; List<String>? get tags; bool? get pinned; bool get shuffle; bool get includeReplies; bool? get mediaOnly; String? get queryTerm; String? get searchEngine; String? get order; int? get periodStart; int? get periodEnd; bool get orderDesc;
+ String? get pubName; List<String>? get publishers; String? get realm; int? get type; List<String>? get categories; List<String>? get tags; bool? get pinned; bool get shuffle; bool? get includeReplies; bool? get mediaOnly; String? get queryTerm; String? get searchEngine; String? get order; int? get periodStart; int? get periodEnd; bool get orderDesc;
 /// Create a copy of PostListQuery
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $PostListQueryCopyWith<$Res>  {
   factory $PostListQueryCopyWith(PostListQuery value, $Res Function(PostListQuery) _then) = _$PostListQueryCopyWithImpl;
 @useResult
 $Res call({
- String? pubName, List<String>? publishers, String? realm, int? type, List<String>? categories, List<String>? tags, bool? pinned, bool shuffle, bool includeReplies, bool? mediaOnly, String? queryTerm, String? searchEngine, String? order, int? periodStart, int? periodEnd, bool orderDesc
+ String? pubName, List<String>? publishers, String? realm, int? type, List<String>? categories, List<String>? tags, bool? pinned, bool shuffle, bool? includeReplies, bool? mediaOnly, String? queryTerm, String? searchEngine, String? order, int? periodStart, int? periodEnd, bool orderDesc
 });
 
 
@@ -62,7 +62,7 @@ class _$PostListQueryCopyWithImpl<$Res>
 
 /// Create a copy of PostListQuery
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? pubName = freezed,Object? publishers = freezed,Object? realm = freezed,Object? type = freezed,Object? categories = freezed,Object? tags = freezed,Object? pinned = freezed,Object? shuffle = null,Object? includeReplies = null,Object? mediaOnly = freezed,Object? queryTerm = freezed,Object? searchEngine = freezed,Object? order = freezed,Object? periodStart = freezed,Object? periodEnd = freezed,Object? orderDesc = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pubName = freezed,Object? publishers = freezed,Object? realm = freezed,Object? type = freezed,Object? categories = freezed,Object? tags = freezed,Object? pinned = freezed,Object? shuffle = null,Object? includeReplies = freezed,Object? mediaOnly = freezed,Object? queryTerm = freezed,Object? searchEngine = freezed,Object? order = freezed,Object? periodStart = freezed,Object? periodEnd = freezed,Object? orderDesc = null,}) {
   return _then(_self.copyWith(
 pubName: freezed == pubName ? _self.pubName : pubName // ignore: cast_nullable_to_non_nullable
 as String?,publishers: freezed == publishers ? _self.publishers : publishers // ignore: cast_nullable_to_non_nullable
@@ -72,8 +72,8 @@ as int?,categories: freezed == categories ? _self.categories : categories // ign
 as List<String>?,tags: freezed == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>?,pinned: freezed == pinned ? _self.pinned : pinned // ignore: cast_nullable_to_non_nullable
 as bool?,shuffle: null == shuffle ? _self.shuffle : shuffle // ignore: cast_nullable_to_non_nullable
-as bool,includeReplies: null == includeReplies ? _self.includeReplies : includeReplies // ignore: cast_nullable_to_non_nullable
-as bool,mediaOnly: freezed == mediaOnly ? _self.mediaOnly : mediaOnly // ignore: cast_nullable_to_non_nullable
+as bool,includeReplies: freezed == includeReplies ? _self.includeReplies : includeReplies // ignore: cast_nullable_to_non_nullable
+as bool?,mediaOnly: freezed == mediaOnly ? _self.mediaOnly : mediaOnly // ignore: cast_nullable_to_non_nullable
 as bool?,queryTerm: freezed == queryTerm ? _self.queryTerm : queryTerm // ignore: cast_nullable_to_non_nullable
 as String?,searchEngine: freezed == searchEngine ? _self.searchEngine : searchEngine // ignore: cast_nullable_to_non_nullable
 as String?,order: freezed == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? pubName,  List<String>? publishers,  String? realm,  int? type,  List<String>? categories,  List<String>? tags,  bool? pinned,  bool shuffle,  bool includeReplies,  bool? mediaOnly,  String? queryTerm,  String? searchEngine,  String? order,  int? periodStart,  int? periodEnd,  bool orderDesc)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? pubName,  List<String>? publishers,  String? realm,  int? type,  List<String>? categories,  List<String>? tags,  bool? pinned,  bool shuffle,  bool? includeReplies,  bool? mediaOnly,  String? queryTerm,  String? searchEngine,  String? order,  int? periodStart,  int? periodEnd,  bool orderDesc)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostListQuery() when $default != null:
 return $default(_that.pubName,_that.publishers,_that.realm,_that.type,_that.categories,_that.tags,_that.pinned,_that.shuffle,_that.includeReplies,_that.mediaOnly,_that.queryTerm,_that.searchEngine,_that.order,_that.periodStart,_that.periodEnd,_that.orderDesc);case _:
@@ -183,7 +183,7 @@ return $default(_that.pubName,_that.publishers,_that.realm,_that.type,_that.cate
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? pubName,  List<String>? publishers,  String? realm,  int? type,  List<String>? categories,  List<String>? tags,  bool? pinned,  bool shuffle,  bool includeReplies,  bool? mediaOnly,  String? queryTerm,  String? searchEngine,  String? order,  int? periodStart,  int? periodEnd,  bool orderDesc)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? pubName,  List<String>? publishers,  String? realm,  int? type,  List<String>? categories,  List<String>? tags,  bool? pinned,  bool shuffle,  bool? includeReplies,  bool? mediaOnly,  String? queryTerm,  String? searchEngine,  String? order,  int? periodStart,  int? periodEnd,  bool orderDesc)  $default,) {final _that = this;
 switch (_that) {
 case _PostListQuery():
 return $default(_that.pubName,_that.publishers,_that.realm,_that.type,_that.categories,_that.tags,_that.pinned,_that.shuffle,_that.includeReplies,_that.mediaOnly,_that.queryTerm,_that.searchEngine,_that.order,_that.periodStart,_that.periodEnd,_that.orderDesc);}
@@ -200,7 +200,7 @@ return $default(_that.pubName,_that.publishers,_that.realm,_that.type,_that.cate
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? pubName,  List<String>? publishers,  String? realm,  int? type,  List<String>? categories,  List<String>? tags,  bool? pinned,  bool shuffle,  bool includeReplies,  bool? mediaOnly,  String? queryTerm,  String? searchEngine,  String? order,  int? periodStart,  int? periodEnd,  bool orderDesc)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? pubName,  List<String>? publishers,  String? realm,  int? type,  List<String>? categories,  List<String>? tags,  bool? pinned,  bool shuffle,  bool? includeReplies,  bool? mediaOnly,  String? queryTerm,  String? searchEngine,  String? order,  int? periodStart,  int? periodEnd,  bool orderDesc)?  $default,) {final _that = this;
 switch (_that) {
 case _PostListQuery() when $default != null:
 return $default(_that.pubName,_that.publishers,_that.realm,_that.type,_that.categories,_that.tags,_that.pinned,_that.shuffle,_that.includeReplies,_that.mediaOnly,_that.queryTerm,_that.searchEngine,_that.order,_that.periodStart,_that.periodEnd,_that.orderDesc);case _:
@@ -250,7 +250,7 @@ class _PostListQuery implements PostListQuery {
 
 @override final  bool? pinned;
 @override@JsonKey() final  bool shuffle;
-@override@JsonKey() final  bool includeReplies;
+@override@JsonKey() final  bool? includeReplies;
 @override final  bool? mediaOnly;
 @override final  String? queryTerm;
 @override final  String? searchEngine;
@@ -289,7 +289,7 @@ abstract mixin class _$PostListQueryCopyWith<$Res> implements $PostListQueryCopy
   factory _$PostListQueryCopyWith(_PostListQuery value, $Res Function(_PostListQuery) _then) = __$PostListQueryCopyWithImpl;
 @override @useResult
 $Res call({
- String? pubName, List<String>? publishers, String? realm, int? type, List<String>? categories, List<String>? tags, bool? pinned, bool shuffle, bool includeReplies, bool? mediaOnly, String? queryTerm, String? searchEngine, String? order, int? periodStart, int? periodEnd, bool orderDesc
+ String? pubName, List<String>? publishers, String? realm, int? type, List<String>? categories, List<String>? tags, bool? pinned, bool shuffle, bool? includeReplies, bool? mediaOnly, String? queryTerm, String? searchEngine, String? order, int? periodStart, int? periodEnd, bool orderDesc
 });
 
 
@@ -306,7 +306,7 @@ class __$PostListQueryCopyWithImpl<$Res>
 
 /// Create a copy of PostListQuery
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? pubName = freezed,Object? publishers = freezed,Object? realm = freezed,Object? type = freezed,Object? categories = freezed,Object? tags = freezed,Object? pinned = freezed,Object? shuffle = null,Object? includeReplies = null,Object? mediaOnly = freezed,Object? queryTerm = freezed,Object? searchEngine = freezed,Object? order = freezed,Object? periodStart = freezed,Object? periodEnd = freezed,Object? orderDesc = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pubName = freezed,Object? publishers = freezed,Object? realm = freezed,Object? type = freezed,Object? categories = freezed,Object? tags = freezed,Object? pinned = freezed,Object? shuffle = null,Object? includeReplies = freezed,Object? mediaOnly = freezed,Object? queryTerm = freezed,Object? searchEngine = freezed,Object? order = freezed,Object? periodStart = freezed,Object? periodEnd = freezed,Object? orderDesc = null,}) {
   return _then(_PostListQuery(
 pubName: freezed == pubName ? _self.pubName : pubName // ignore: cast_nullable_to_non_nullable
 as String?,publishers: freezed == publishers ? _self._publishers : publishers // ignore: cast_nullable_to_non_nullable
@@ -316,8 +316,8 @@ as int?,categories: freezed == categories ? _self._categories : categories // ig
 as List<String>?,tags: freezed == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>?,pinned: freezed == pinned ? _self.pinned : pinned // ignore: cast_nullable_to_non_nullable
 as bool?,shuffle: null == shuffle ? _self.shuffle : shuffle // ignore: cast_nullable_to_non_nullable
-as bool,includeReplies: null == includeReplies ? _self.includeReplies : includeReplies // ignore: cast_nullable_to_non_nullable
-as bool,mediaOnly: freezed == mediaOnly ? _self.mediaOnly : mediaOnly // ignore: cast_nullable_to_non_nullable
+as bool,includeReplies: freezed == includeReplies ? _self.includeReplies : includeReplies // ignore: cast_nullable_to_non_nullable
+as bool?,mediaOnly: freezed == mediaOnly ? _self.mediaOnly : mediaOnly // ignore: cast_nullable_to_non_nullable
 as bool?,queryTerm: freezed == queryTerm ? _self.queryTerm : queryTerm // ignore: cast_nullable_to_non_nullable
 as String?,searchEngine: freezed == searchEngine ? _self.searchEngine : searchEngine // ignore: cast_nullable_to_non_nullable
 as String?,order: freezed == order ? _self.order : order // ignore: cast_nullable_to_non_nullable

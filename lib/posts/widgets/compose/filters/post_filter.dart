@@ -31,7 +31,9 @@ class PostFilterWidget extends HookConsumerWidget {
         initialQuery.periodEnd != null ||
         initialQuery.order != null;
 
-    final includeReplies = useState<bool>(initialQuery.includeReplies);
+    final includeReplies = useState<bool?>(
+      initialQuery.includeReplies ?? false,
+    );
     final mediaOnly = useState<bool>(initialQuery.mediaOnly ?? false);
     final queryTerm = useState<String?>(initialQuery.queryTerm);
     final searchEngine = useState<String?>(initialQuery.searchEngine);
@@ -94,7 +96,7 @@ class PostFilterWidget extends HookConsumerWidget {
     ].where((it) => it).length;
 
     useEffect(() {
-      includeReplies.value = initialQuery.includeReplies;
+      includeReplies.value = initialQuery.includeReplies ?? false;
       mediaOnly.value = initialQuery.mediaOnly ?? false;
       queryTerm.value = initialQuery.queryTerm;
       searchEngine.value = initialQuery.searchEngine;
@@ -159,12 +161,18 @@ class PostFilterWidget extends HookConsumerWidget {
                     _FilterChipButton(
                       icon: Symbols.reply,
                       label: 'reply'.tr(),
-                      stateIcon: includeReplies.value
-                          ? Symbols.check_circle
-                          : Symbols.remove_circle,
-                      emphasized: includeReplies.value,
+                      stateIcon: switch (includeReplies.value) {
+                        true => Symbols.check_circle,
+                        false => Symbols.remove_circle,
+                        null => Symbols.radio_button_unchecked,
+                      },
+                      emphasized: includeReplies.value != null,
                       onTap: () {
-                        includeReplies.value = !includeReplies.value;
+                        includeReplies.value = switch (includeReplies.value) {
+                          false => null,
+                          null => true,
+                          true => false,
+                        };
                         updateQuery();
                       },
                     ),
