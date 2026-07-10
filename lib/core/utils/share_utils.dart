@@ -15,6 +15,10 @@ import 'package:share_plus/share_plus.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+Widget contextMenuPreviewBuilder(BuildContext context, Widget child) {
+  return Material(color: Theme.of(context).colorScheme.surface, child: child);
+}
+
 /// Shares a post as a screenshot image
 Future<void> sharePostAsScreenshot(
   BuildContext context,

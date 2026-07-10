@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/core/services/image.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -683,12 +684,7 @@ class AttachmentPreview extends HookConsumerWidget {
     );
 
     return ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (MenuRequest request) => Menu(
         children: [
           if (item.isOnDevice && item.type == UniversalFileType.image)

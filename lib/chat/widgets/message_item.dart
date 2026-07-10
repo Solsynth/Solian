@@ -20,6 +20,7 @@ import 'package:island/chat/messages_notifier.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:island/data/message.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/core/translate.dart';
@@ -358,12 +359,7 @@ class MessageItem extends HookConsumerWidget {
                 }
               : null,
           child: ContextMenuWidget(
-            previewBuilder: (_, child) {
-              return Material(
-                color: Theme.of(context).colorScheme.onSurface,
-                child: child,
-              );
-            },
+            previewBuilder: contextMenuPreviewBuilder,
             menuProvider: (_) {
               return Menu(
                 children: [

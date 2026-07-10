@@ -11,6 +11,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
@@ -599,12 +600,7 @@ class FileListView extends HookConsumerWidget {
             folder: (folderItem) {
               final theme = Theme.of(context);
               return ContextMenuWidget(
-                previewBuilder: (_, child) {
-                  return Material(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    child: child,
-                  );
-                },
+                previewBuilder: contextMenuPreviewBuilder,
                 menuProvider: (_) =>
                     _buildFolderMenu(context, ref, folderItem.file),
                 child: InkWell(
@@ -759,12 +755,7 @@ class FileListView extends HookConsumerWidget {
     VoidCallback? toggleSelection,
   ) {
     return ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) {
         return Menu(
           children: [
@@ -1301,12 +1292,7 @@ class FileListView extends HookConsumerWidget {
     BuildContext context,
   ) {
     return ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) => _buildFolderMenu(context, ref, folderItem.file),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
@@ -1509,12 +1495,7 @@ class FileListView extends HookConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ContextMenuWidget(
-          previewBuilder: (_, child) {
-            return Material(
-              color: Theme.of(context).colorScheme.onSurface,
-              child: child,
-            );
-          },
+          previewBuilder: contextMenuPreviewBuilder,
           menuProvider: (_) {
             return Menu(
               children: [
@@ -1875,12 +1856,7 @@ class FileListView extends HookConsumerWidget {
     VoidCallback? toggleSelection,
   ) {
     return ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) {
         return Menu(
           children: [

@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
@@ -45,12 +46,7 @@ class PostItemCreator extends HookConsumerWidget {
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
     return ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) {
         return Menu(
           children: [

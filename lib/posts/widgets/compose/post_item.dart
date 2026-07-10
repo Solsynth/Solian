@@ -351,12 +351,7 @@ class PostActionableItem extends HookConsumerWidget {
           );
 
     final widgetItem = ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) {
         return Menu(
           children: [

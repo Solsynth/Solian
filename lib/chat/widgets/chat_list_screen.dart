@@ -25,6 +25,7 @@ import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:island/data/database.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
@@ -152,12 +153,7 @@ Widget _buildChatRoomContextMenu({
   required Widget child,
 }) {
   return ContextMenuWidget(
-    previewBuilder: (_, child) {
-      return Material(
-        color: Theme.of(context).colorScheme.onSurface,
-        child: child,
-      );
-    },
+    previewBuilder: contextMenuPreviewBuilder,
     menuProvider: (_) {
       return Menu(
         children: [

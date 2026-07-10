@@ -15,6 +15,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/core/config.dart';
@@ -1371,12 +1372,7 @@ class _DriveTabChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return ContextMenuWidget(
-      previewBuilder: (_, child) {
-        return Material(
-          color: Theme.of(context).colorScheme.onSurface,
-          child: child,
-        );
-      },
+      previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) {
         return Menu(
           children: [
