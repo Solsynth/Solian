@@ -44,6 +44,10 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
         'icon': Symbols.notifications,
       },
       'chatList': {'name': 'dashboardCardChats'.tr(), 'icon': Symbols.chat},
+      'weather': {
+        'name': 'dashboardCardWeather'.tr(),
+        'icon': Symbols.partly_cloudy_day,
+      },
     };
     for (final item
         in PluginManager().getApi<DashboardApi>()?.items ??

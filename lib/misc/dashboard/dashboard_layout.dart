@@ -5,6 +5,7 @@ class DashboardLayout {
   /// Default card order for both mobile (single column) and desktop (waterfall).
   static const defaultCardLayouts = [
     'checkIn',
+    'weather',
     'fortuneCard',
     'postFeatured',
     'friendsOverview',

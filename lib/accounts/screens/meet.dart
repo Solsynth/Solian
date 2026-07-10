@@ -145,28 +145,25 @@ class MeetScreen extends HookConsumerWidget {
 
         if (canReverseGeocode) {
           try {
-            final placemarks = await placemarkFromCoordinates(
+            final placemarks = await Geocoding().placemarkFromCoordinates(
               latitude,
               longitude,
             );
             if (placemarks.isNotEmpty) {
               final placemark = placemarks.first;
-              final names =
-                  [placemark.name, placemark.subLocality, placemark.locality]
-                      .where((e) => e?.trim().isNotEmpty ?? false)
-                      .cast<String>()
-                      .toList();
+              final names = [
+                placemark.name,
+                placemark.subLocality,
+                placemark.locality,
+              ].whereType<String>().where((e) => e.trim().isNotEmpty).toList();
               name = names.isNotEmpty ? names.first : null;
-              address =
-                  [
-                        placemark.street,
-                        placemark.subAdministrativeArea,
-                        placemark.administrativeArea,
-                        placemark.country,
-                      ]
-                      .where((e) => e?.trim().isNotEmpty ?? false)
-                      .cast<String>()
-                      .join(', ');
+              address = [
+                placemark.street,
+                placemark.subAdministrativeArea,
+                placemark.administrativeArea,
+                placemark.country,
+              ].whereType<String>().where((e) => e.trim().isNotEmpty).join(', ');
+              if (address.isEmpty) address = null;
             }
           } catch (_) {}
         }

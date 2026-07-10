@@ -34,6 +34,7 @@ import 'package:slide_countdown/slide_countdown.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/misc/dashboard/dash_customize.dart';
 import 'package:island/misc/dashboard/dashboard_layout.dart';
+import 'package:island/misc/dashboard/weather.dart';
 import 'package:island/core/config.dart';
 import 'package:island/plugins/apis/dashboard_api.dart';
 import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
@@ -79,6 +80,8 @@ class DashboardRenderer {
         return NotificationsCard();
       case 'chatList':
         return ChatListCard();
+      case 'weather':
+        return const WeatherCard();
       default:
         return const SizedBox.shrink();
     }
@@ -119,9 +122,7 @@ class DashboardGrid extends HookConsumerWidget {
         children: [
           Container(
             padding: isAuthenticated
-                ? EdgeInsets.only(
-                    top: devicePadding.top + (isWide ? 16 : 24),
-                  )
+                ? EdgeInsets.only(top: devicePadding.top + (isWide ? 16 : 24))
                 : EdgeInsets.zero,
             child: isAuthenticated
                 ? (isWide
@@ -141,7 +142,9 @@ class DashboardGrid extends HookConsumerWidget {
                                         ?.showClockAndCountdown ??
                                     true)
                                   Expanded(child: ClockCard(compact: true)),
-                                if (appSettings.dashboardConfig?.showSearchBar ??
+                                if (appSettings
+                                        .dashboardConfig
+                                        ?.showSearchBar ??
                                     true)
                                   IconButton(
                                     onPressed: () {
