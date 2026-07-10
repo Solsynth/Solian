@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/core/config.dart';
+import 'package:island/misc/dashboard/dashboard_layout.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/plugins/apis/dashboard_api.dart';
 import 'package:island/plugins/icons/plugin_icon_font_registry.dart';
@@ -18,7 +19,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
     BuildContext context,
   ) {
     final metadata = <String, Map<String, dynamic>>{
-      // Vertical layout cards
       'checkIn': {
         'name': 'dashboardCardCheckIn'.tr(),
         'icon': Symbols.check_circle,
@@ -44,27 +44,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
         'icon': Symbols.notifications,
       },
       'chatList': {'name': 'dashboardCardChats'.tr(), 'icon': Symbols.chat},
-      // Horizontal layout columns
-      'activityColumn': {
-        'name': 'dashboardCardActivityColumn'.tr(),
-        'icon': Symbols.dashboard,
-        'description': 'dashboardCardActivityColumnDescription'.tr(),
-      },
-      'postsColumn': {
-        'name': 'dashboardCardPostsColumn'.tr(),
-        'icon': Symbols.article,
-        'description': 'dashboardCardPostsColumnDescription'.tr(),
-      },
-      'socialColumn': {
-        'name': 'dashboardCardSocialColumn'.tr(),
-        'icon': Symbols.group,
-        'description': 'dashboardCardSocialColumnDescription'.tr(),
-      },
-      'chatsColumn': {
-        'name': 'dashboardCardChatsColumn'.tr(),
-        'icon': Symbols.chat,
-        'description': 'dashboardCardChatsColumnDescription'.tr(),
-      },
     };
     for (final item
         in PluginManager().getApi<DashboardApi>()?.items ??
@@ -87,24 +66,18 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
     final tabController = useTabController(initialLength: 2);
     final appSettings = ref.watch(appSettingsProvider);
 
-    // Local state for editing
-    final verticalLayouts = useState<List<String>>(
-      (appSettings.dashboardConfig?.verticalLayouts ??
-              [
-                'checkIn',
-                'fortuneCard',
-                'postFeatured',
-                'friendsOverview',
-                'notifications',
-                'chatList',
-                'fortuneGraph',
-              ])
-          .where((id) => id != 'accountUnactivated')
-          .toList(),
+    // Mobile (narrow): single-column card stack
+    final mobileLayouts = useState<List<String>>(
+      DashboardLayout.resolveCardLayouts(
+        appSettings.dashboardConfig?.verticalLayouts,
+      ),
     );
 
-    final horizontalLayouts = useState<List<String>>(
-      _migrateHorizontalLayouts(appSettings.dashboardConfig?.horizontalLayouts),
+    // Desktop (wide): waterfall / masonry of the same section cards
+    final desktopLayouts = useState<List<String>>(
+      DashboardLayout.resolveCardLayouts(
+        appSettings.dashboardConfig?.horizontalLayouts,
+      ),
     );
 
     final showSearchBar = useState<bool>(
@@ -117,8 +90,10 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
 
     void saveConfig() {
       final config = DashboardConfig(
-        verticalLayouts: verticalLayouts.value,
-        horizontalLayouts: horizontalLayouts.value,
+        // Stored field names kept for prefs compatibility:
+        // verticalLayouts = mobile, horizontalLayouts = desktop.
+        verticalLayouts: mobileLayouts.value,
+        horizontalLayouts: desktopLayouts.value,
         showSearchBar: showSearchBar.value,
         showClockAndCountdown: showClockAndCountdown.value,
       );
@@ -137,8 +112,8 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
             TabBar(
               controller: tabController,
               tabs: [
-                Tab(text: 'dashboardTabVertical'.tr()),
-                Tab(text: 'dashboardTabHorizontal'.tr()),
+                Tab(text: 'dashboardTabMobile'.tr()),
+                Tab(text: 'dashboardTabDesktop'.tr()),
               ],
             ),
             Expanded(
@@ -148,23 +123,19 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
                     child: TabBarView(
                       controller: tabController,
                       children: [
-                        // Vertical layout
                         _buildSliverLayoutEditor(
                           context,
                           ref,
-                          'dashboardLayoutVertical'.tr(),
-                          verticalLayouts,
-                          false,
+                          'dashboardLayoutMobile'.tr(),
+                          mobileLayouts,
                           showSearchBar,
                           showClockAndCountdown,
                         ),
-                        // Horizontal layout
                         _buildSliverLayoutEditor(
                           context,
                           ref,
-                          'dashboardLayoutHorizontal'.tr(),
-                          horizontalLayouts,
-                          true,
+                          'dashboardLayoutDesktop'.tr(),
+                          desktopLayouts,
                           showSearchBar,
                           showClockAndCountdown,
                         ),
@@ -180,48 +151,17 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
     );
   }
 
-  List<String> _migrateHorizontalLayouts(List<String>? existingLayouts) {
-    if (existingLayouts == null || existingLayouts.isEmpty) {
-      // Default horizontal layout using column groups
-      return ['activityColumn', 'postsColumn', 'socialColumn', 'chatsColumn'];
-    }
-
-    // If it already contains column groups, use as-is
-    if (existingLayouts.any(
-      (id) => id.contains('Column') || id.startsWith('plugin:'),
-    )) {
-      return existingLayouts.where((id) => id != 'accountUnactivated').toList();
-    }
-
-    // Migrate from old individual card format to column groups
-    // This is a simple migration - in a real app you might want more sophisticated logic
-    return ['activityColumn', 'postsColumn', 'socialColumn', 'chatsColumn'];
-  }
-
   Widget _buildSliverLayoutEditor(
     BuildContext context,
     WidgetRef ref,
     String title,
     ValueNotifier<List<String>> layouts,
-    bool isHorizontal,
     ValueNotifier<bool> showSearchBar,
     ValueNotifier<bool> showClockAndCountdown,
   ) {
     final cardMetadata = _getCardMetadata(context);
-    // Filter available cards based on layout mode
-    final relevantCards = isHorizontal
-        ? cardMetadata.entries
-              .where(
-                (entry) =>
-                    entry.key.contains('Column') ||
-                    entry.key.startsWith('plugin:'),
-              )
-              .map((e) => e.key)
-              .toList()
-        : cardMetadata.entries
-              .where((entry) => !entry.key.contains('Column'))
-              .map((e) => e.key)
-              .toList();
+    // Same section cards for mobile and desktop (no column groups).
+    final relevantCards = cardMetadata.keys.toList();
 
     final availableCards = relevantCards
         .where((cardId) => !layouts.value.contains(cardId))
@@ -229,7 +169,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
 
     return CustomScrollView(
       slivers: [
-        // Title
         SliverToBoxAdapter(
           child: Text(
             title,
@@ -259,7 +198,7 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
                   ),
                   contentPadding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
                   title: Text(metadata['name'] as String),
-                  subtitle: isHorizontal && metadata.containsKey('description')
+                  subtitle: metadata.containsKey('description')
                       ? Text(
                           metadata['description'] as String,
                           style: Theme.of(context).textTheme.bodySmall
@@ -344,9 +283,7 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
               ),
             ),
           ),
-        // Divider
         const SliverToBoxAdapter(child: Divider()),
-        // Reset tile
         SliverToBoxAdapter(
           child: ListTile(
             dense: true,
@@ -371,15 +308,13 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
               if (confirmed) {
                 ref.read(appSettingsProvider.notifier).resetDashboardConfig();
                 if (context.mounted) {
-                  Navigator.of(context).pop(); // Close the sheet
+                  Navigator.of(context).pop();
                 }
               }
             },
           ),
         ),
-        // Divider
         const SliverToBoxAdapter(child: Divider()),
-        // Settings checkboxes
         SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
