@@ -492,15 +492,18 @@ the same media-aware surface used by the Drive UI. A page returned
 from a command opens as a separate full-screen plugin page. Input callbacks
 receive the submitted text as their first argument after the callback name.
 
-`ui.icon(name, size, style?, font?)` resolves names programmatically:
+`ui.icon(name, size, style?, font?)` resolves names as follows:
 
-- **Material Symbols** when `font` is omitted — snake_case names such as
-  `dashboard`, `chat`, `settings`. Optional `style`: `outlined` (default),
-  `rounded`, or `sharp` (or name suffixes like `dashboard_rounded`).
+- **Material Symbols** (default): a **curated const map** of `Symbols.*` icons
+  (tree-shake friendly — no dynamic `IconData`). Common names like
+  `dashboard`, `chat`, `settings`, `notifications`, … Optional style suffixes
+  (`dashboard_rounded`) when that variant is in the map.
 - **Plugin font** when `font` is set (after `icons.register_font`), or via
-  shorthand `fontId:iconName` (e.g. `brand:logo`).
+  shorthand `fontId:iconName` (e.g. `brand:logo`). Custom fonts render via
+  `Text` + `FontLoader`, not `IconData`, so release icon tree-shaking still works.
 
-Use `icons.search` / `icons.exists` to discover valid names.
+Use `icons.search` / `icons.exists` to discover names in the curated set or a
+registered plugin font.
 
 `ui.plugin_asset(path, kind, fit)` renders a file shipped inside the plugin.
 The path is always relative to the plugin folder and is validated by the host;
@@ -573,11 +576,13 @@ descriptor from an action callback to replace the visible item.
 
 Two sources:
 
-1. **Material Symbols** (~4k names) — default when no custom font is set  
-2. **Plugin-owned icon fonts** — TTF/OTF + name→codepoint map under the plugin folder
+1. **Material Symbols** — curated **const** `Symbols.*` map (release tree-shake
+   safe; not the full 4k dynamic library)  
+2. **Plugin-owned icon fonts** — TTF/OTF + name→codepoint map under the plugin
+   folder (rendered without `IconData`)
 
-Lookup is programmatic (unicode / glyph map), not a fixed switch. Custom fonts
-are sandboxed to the calling plugin (paths cannot escape the plugin directory).
+Custom fonts are sandboxed to the calling plugin (paths cannot escape the
+plugin directory).
 
 #### Material Symbols
 
@@ -881,10 +886,10 @@ Check the app's log viewer (Cmd/Ctrl+K → "Log Viewer") for plugin-related log 
   launch. Re-enable them manually in Settings → Plugins after reviewing the
   plugin or its error message.
 - Web builds compile, but JS execution is a no-op stub (`flutter_js` needs FFI).
-- **Material Symbols by name:** Flutter’s icon tree-shaker only keeps glyphs
-  referenced by compile-time constant `IconData`s. Full dynamic lookup in
-  release builds needs `--no-tree-shake-icons` (e.g.
-  `flutter build apk --no-tree-shake-icons`). Debug builds are unaffected.
+- **Material Symbols by name:** only a curated const set is available (so
+  release builds can tree-shake icon fonts). For full custom sets, ship a
+  plugin icon font via `icons.register_font` instead of relying on dynamic
+  Material lookup / `--no-tree-shake-icons`.
 
 ## Reusing the foundation in another app
 

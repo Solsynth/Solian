@@ -81,13 +81,11 @@ class PluginUiRenderer extends StatelessWidget {
       case 'spacing':
         return SizedBox(height: (desc.data['size'] as num?)?.toDouble() ?? 8);
       case 'icon':
-        return Icon(
-          PluginIconFontRegistry.resolve(
-            name: desc.data['name']?.toString(),
-            style: desc.data['style']?.toString(),
-            font: desc.data['font']?.toString(),
-            pluginId: desc.data['pluginId']?.toString(),
-          ),
+        return PluginIconFontRegistry.buildIcon(
+          name: desc.data['name']?.toString(),
+          style: desc.data['style']?.toString(),
+          font: desc.data['font']?.toString(),
+          pluginId: desc.data['pluginId']?.toString(),
           size: (desc.data['size'] as num?)?.toDouble() ?? 20,
         );
       case 'link':

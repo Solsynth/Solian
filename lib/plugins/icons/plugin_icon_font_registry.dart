@@ -10,6 +10,14 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('PluginIconFontRegistry');
 
+/// Glyph in a plugin-loaded font (not an [IconData] — keeps icon tree-shaking).
+class PluginIconGlyph {
+  final String fontFamily;
+  final int codePoint;
+
+  const PluginIconGlyph({required this.fontFamily, required this.codePoint});
+}
+
 /// A custom icon font registered by a plugin (TTF/OTF + name→codepoint map).
 class PluginIconFont {
   final String pluginId;
@@ -28,24 +36,17 @@ class PluginIconFont {
     this.loadError,
   });
 
-  IconData? iconData(String name) {
+  PluginIconGlyph? glyph(String name) {
     final codePoint = glyphs[MaterialSymbolLookup.normalize(name)];
     if (codePoint == null) return null;
-    // ignore: non_const_argument_for_const_parameter
-    return IconData(
-      // ignore: non_const_argument_for_const_parameter
-      codePoint,
-      // ignore: non_const_argument_for_const_parameter
-      fontFamily: fontFamily,
-    );
+    return PluginIconGlyph(fontFamily: fontFamily, codePoint: codePoint);
   }
 }
 
 /// Host registry for plugin-provided icon fonts with name-based lookup.
 ///
-/// Plugins ship a font under their folder and a glyph map (inline object or
-/// JSON asset), then call `icons.register_font(...)`. When no custom font is
-/// set, resolution falls back to [MaterialSymbolLookup].
+/// Custom glyphs are **not** exposed as [IconData] (that would disable Flutter
+/// icon font tree-shaking). Use [buildIcon] / [glyph] and render via [Text].
 class PluginIconFontRegistry {
   PluginIconFontRegistry._();
   static final PluginIconFontRegistry instance = PluginIconFontRegistry._();
@@ -70,10 +71,6 @@ class PluginIconFontRegistry {
       _fonts[_key(pluginId, fontId)];
 
   /// Sync registration for the JS bridge (`sendMessage` is synchronous).
-  ///
-  /// Reads font bytes and glyph map from disk immediately, registers the
-  /// glyph table, and kicks off [FontLoader] without blocking the return
-  /// on engine font registration (usually finishes before first paint).
   Map<String, dynamic> registerSync({
     required String pluginId,
     required String id,
@@ -238,6 +235,7 @@ class PluginIconFontRegistry {
       'fontFamily': f.fontFamily,
       'loaded': f.loaded,
       'found': true,
+      'const': false,
     };
   }
 
@@ -272,7 +270,10 @@ class PluginIconFontRegistry {
     return getFont(pluginId, font)?.glyphs.length ?? 0;
   }
 
-  /// Resolve to [IconData]. Supports Material names, custom fonts, or `font:name`.
+  /// Resolve to **const** Material [IconData] only.
+  ///
+  /// Custom plugin fonts cannot become [IconData] without breaking icon
+  /// tree-shaking — use [buildIcon] / [glyph] for those.
   static IconData resolve({
     String? name,
     String? style,
@@ -284,19 +285,57 @@ class PluginIconFontRegistry {
       return orElse ?? MaterialSymbolLookup.fallback;
     }
     final parsed = instance.parseIconRef(name, font: font);
-    if (parsed.font == null) {
-      return MaterialSymbolLookup.resolve(
-        parsed.name,
-        style: style,
-        orElse: orElse,
+    if (parsed.font != null) {
+      // Prefer Material name if someone used a plain alias; else fallback.
+      return orElse ?? MaterialSymbolLookup.fallback;
+    }
+    return MaterialSymbolLookup.resolve(
+      parsed.name,
+      style: style,
+      orElse: orElse,
+    );
+  }
+
+  /// Glyph for a custom font, if registered.
+  static PluginIconGlyph? glyph({
+    required String? name,
+    String? font,
+    String? pluginId,
+  }) {
+    if (name == null || pluginId == null) return null;
+    final parsed = instance.parseIconRef(name, font: font);
+    if (parsed.font == null) return null;
+    return instance.getFont(pluginId, parsed.font!)?.glyph(parsed.name);
+  }
+
+  /// Build an icon widget — Material via [Icon], plugin fonts via [Text].
+  static Widget buildIcon({
+    String? name,
+    double size = 24,
+    String? style,
+    String? font,
+    String? pluginId,
+    Color? color,
+  }) {
+    final custom = glyph(name: name, font: font, pluginId: pluginId);
+    if (custom != null) {
+      return Text(
+        String.fromCharCode(custom.codePoint),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: custom.fontFamily,
+          fontSize: size,
+          height: 1.0,
+          color: color,
+          leadingDistribution: TextLeadingDistribution.even,
+        ),
       );
     }
-    if (pluginId != null) {
-      final data =
-          instance.getFont(pluginId, parsed.font!)?.iconData(parsed.name);
-      if (data != null) return data;
-    }
-    return orElse ?? MaterialSymbolLookup.fallback;
+    return Icon(
+      resolve(name: name, style: style, font: font, pluginId: pluginId),
+      size: size,
+      color: color,
+    );
   }
 
   /// Parse `"myfont:logo"` or plain `"logo"` (+ optional [font] arg).
