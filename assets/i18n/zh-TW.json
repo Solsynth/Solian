@@ -3942,6 +3942,8 @@
   "bioEmpty": "暫無簡介",
   "boardCustomAppWidget": "自定義應用組件",
   "boardCustomAppWidgetDescription": "此組件由自定義應用提供。請在應用設定中配置。",
+  "boardCustomAppWidgetFooterProvided": "這是由自定義應用提供的組件。",
+  "boardCustomAppWidgetFooterLayout": "佈局：{}",
   "boardUnknownWidget": "未知組件",
   "contactsEmpty": "暫無聯絡方式",
   "linksEmpty": "暫無連結",

@@ -123,7 +123,9 @@ String getBadgeName(
     if (entry?.label != null && entry!.label!.isNotEmpty) return entry.label!;
   }
   final template = kBadgeTemplates[badge.type];
-  return template?.name ?? badge.label ?? 'unknown';
+  var name = template?.name ?? badge.label ?? 'unknown';
+  if (name.trExists()) name = name.tr();
+  return name;
 }
 
 String? getBadgeDescription(

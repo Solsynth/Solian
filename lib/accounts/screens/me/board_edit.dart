@@ -686,57 +686,81 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     return Card(
       key: ValueKey('c_$customIndex'),
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Row(
-          children: [
-            ReorderableDragStartListener(
-              index: index,
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Icon(Symbols.drag_handle, size: 20),
-              ),
-            ),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Symbols.extension,
-                size: 18,
-                color: theme.colorScheme.onSecondaryContainer,
-              ),
-            ),
-            const Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.customAppWidgetKey ?? 'boardCustomWidget'.tr(),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+      child: Consumer(
+        builder: (context, ref, _) {
+          final definitionAsync = ref.watch(
+            boardWidgetDefinitionProvider((
+              appId: item.customAppId ?? '',
+              widgetKey: item.customAppWidgetKey ?? '',
+            )),
+          );
+          final definition = definitionAsync.asData?.value?.definition;
+          final title =
+              definition?.name ??
+              item.customAppWidgetKey ??
+              'boardCustomWidget'.tr();
+          final subtitle =
+              definition?.description?.trim().isNotEmpty == true
+              ? definition!.description!
+              : item.payload.isEmpty
+              ? 'boardWidgetNotConfigured'.tr()
+              : 'boardCustomAppWidgetDescription'.tr();
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                ReorderableDragStartListener(
+                  index: index,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(Symbols.drag_handle, size: 20),
                   ),
-                  Text(
-                    'boardWidgetNotConfigured'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                ),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
-              ),
+                  child: Icon(
+                    Symbols.extension,
+                    size: 18,
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.delete, size: 18),
+                  color: theme.colorScheme.error,
+                  onPressed: () => notifier.removeCustom(customIndex),
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Symbols.delete, size: 18),
-              color: theme.colorScheme.error,
-              onPressed: () => notifier.removeCustom(customIndex),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

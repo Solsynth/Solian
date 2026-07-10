@@ -3992,6 +3992,8 @@
   "bioEmpty": "暂无简介",
   "boardCustomAppWidget": "自定义应用组件",
   "boardCustomAppWidgetDescription": "此组件由自定义应用提供。请在应用设置中配置。",
+  "boardCustomAppWidgetFooterProvided": "这是由自定义应用提供的组件。",
+  "boardCustomAppWidgetFooterLayout": "布局：{}",
   "boardUnknownWidget": "未知组件",
   "contactsEmpty": "暂无联系方式",
   "linksEmpty": "暂无链接",

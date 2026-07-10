@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -19,6 +21,7 @@ import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 part 'board.g.dart';
@@ -125,6 +128,8 @@ class BoardWidgetField {
 
 class BoardWidgetDefinition {
   final String key;
+  final String name;
+  final String? description;
   final bool isEnabled;
   final String rendererType;
   final List<BoardWidgetField> fieldTypes;
@@ -134,6 +139,8 @@ class BoardWidgetDefinition {
 
   const BoardWidgetDefinition({
     required this.key,
+    required this.name,
+    this.description,
     this.isEnabled = true,
     this.rendererType = '',
     this.fieldTypes = const [],
@@ -145,6 +152,8 @@ class BoardWidgetDefinition {
   factory BoardWidgetDefinition.fromJson(Map<String, dynamic> json) {
     return BoardWidgetDefinition(
       key: json['key'] as String? ?? '',
+      name: json['name'] as String? ?? json['key'] as String? ?? '',
+      description: json['description'] as String?,
       isEnabled: json['is_enabled'] as bool? ?? true,
       rendererType: json['renderer_type'] as String? ?? '',
       fieldTypes:
@@ -198,6 +207,151 @@ class BoardWidgetApp {
     );
   }
 }
+
+List<AccountBoardItem> parseAccountBoardItems(List<dynamic> list) {
+  final items = <AccountBoardItem>[];
+
+  for (final json in list) {
+    final map = Map<String, dynamic>.from(json as Map);
+    final payloadRaw = map['payload'];
+
+    items.add(
+      AccountBoardItem(
+        id: map['id'] as String?,
+        order: map['order'] as int? ?? 0,
+        kind: BoardWidgetKind.values[map['kind'] as int? ?? 0],
+        widgetKey: map['widget_key'] as String?,
+        customAppId: map['custom_app_id'] as String?,
+        customAppWidgetKey: map['custom_app_widget_key'] as String?,
+        isEnabled: map['is_enabled'] as bool? ?? true,
+        payload: payloadRaw is Map<String, dynamic>
+            ? payloadRaw
+            : payloadRaw is Map
+            ? Map<String, dynamic>.from(payloadRaw)
+            : const {},
+      ),
+    );
+  }
+
+  items.sort((a, b) => a.order.compareTo(b.order));
+  return items;
+}
+
+final myAccountBoardProvider = FutureProvider<List<AccountBoardItem>>((
+  ref,
+) async {
+  final dio = ref.watch(apiClientProvider);
+  final response = await dio.get('/passport/accounts/me/board');
+  final list = response.data as List<dynamic>;
+  return parseAccountBoardItems(list);
+});
+
+String? _payloadStringValue(Map<String, dynamic> payload, String key) {
+  final value = payload[key];
+  if (value is Map && value['value'] is String) {
+    return value['value'] as String;
+  }
+  return null;
+}
+
+bool _isRemoteImageUri(String? value) {
+  if (value == null || value.isEmpty) return false;
+  final uri = Uri.tryParse(value);
+  return uri != null &&
+      uri.hasScheme &&
+      (uri.scheme == 'http' || uri.scheme == 'https');
+}
+
+class _BoardImageView extends StatelessWidget {
+  final String source;
+  final BoxFit fit;
+  final double? aspectRatio;
+
+  const _BoardImageView({
+    required this.source,
+    this.fit = BoxFit.cover,
+    this.aspectRatio,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final child = _isRemoteImageUri(source)
+        ? CachedNetworkImage(imageUrl: source, fit: fit)
+        : CloudImageWidget(fileId: source, fit: fit);
+
+    if (aspectRatio != null) {
+      return AspectRatio(aspectRatio: aspectRatio!, child: child);
+    }
+    return child;
+  }
+}
+
+class _BoardProfileImageView extends StatelessWidget {
+  final String source;
+  final double radius;
+  final bool isSquare;
+
+  const _BoardProfileImageView({
+    required this.source,
+    required this.radius,
+    this.isSquare = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isRemoteImageUri(source)) {
+      if (isSquare) {
+        return SizedBox(
+          width: radius * 2,
+          height: radius * 2,
+          child: CachedNetworkImage(imageUrl: source),
+        );
+      }
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage: CachedNetworkImageProvider(source),
+      );
+    }
+    if (isSquare) {
+      return SizedBox(
+        width: radius * 2,
+        height: radius * 2,
+        child: CloudImageWidget(fileId: source),
+      );
+    }
+    return ProfilePictureWidget(fileId: source, radius: radius);
+  }
+}
+
+Map<String, dynamic>? _payloadFieldValue(
+  Map<String, dynamic> payload,
+  String key,
+) {
+  final value = payload[key];
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return null;
+}
+
+bool _isReservedPayloadField(String key) =>
+    key == 'image' || key == 'background';
+
+final boardWidgetDefinitionProvider =
+    FutureProvider.family<
+      ({BoardWidgetApp app, BoardWidgetDefinition definition})?,
+      ({String appId, String widgetKey})
+    >((ref, arg) async {
+      final apps = await ref.watch(boardWidgetAppsProvider.future);
+      for (final app in apps) {
+        if (app.id != arg.appId) continue;
+        for (final definition in app.boardWidgets) {
+          if (definition.key == arg.widgetKey) {
+            return (app: app, definition: definition);
+          }
+        }
+      }
+      return null;
+    });
 
 @riverpod
 Future<List<BoardWidgetApp>> boardWidgetApps(Ref ref) async {
@@ -309,63 +463,71 @@ class AccountBoard extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, AccountBoardItem item) {
     if (item.kind == BoardWidgetKind.customApp) {
+      final payload = item.payload;
       return _CustomAppBoardWidget(
         appId: item.customAppId ?? '',
         widgetKey: item.customAppWidgetKey ?? '',
-        background: item.payload['background'] as String?,
-        image: item.payload['image'] as String?,
+        background: _payloadStringValue(payload, 'background'),
+        image: _payloadStringValue(payload, 'image'),
+        payload: payload,
+        isConfigured: payload.isNotEmpty,
       );
     }
 
     final widgetKey = item.widgetKey ?? '';
     final payload = item.payload;
-    final background = payload['background'] as String?;
-    final image = payload['image'] as String?;
+    final background = _payloadStringValue(payload, 'background');
+    final image = _payloadStringValue(payload, 'image');
+
+    final hasPadding = item.kind == .prebuilt; // Prebuilt ones do have padding
 
     return _BoardWidgetCard(
       background: background,
       image: image,
       isCompact: isCompact,
-      child: switch (widgetKey) {
-        'badges' => _BadgesBoardWidget(
-          badges: account.badges,
-          showCount: payload['show_count'] as bool? ?? true,
-        ),
-        'bio' => _BioBoardWidget(
-          bio: account.profile.bio,
-          maxLines: payload['max_lines'] as int? ?? 5,
-        ),
-        'links' => _LinksBoardWidget(
-          links: account.profile.links,
-          showIcons: payload['show_icons'] as bool? ?? true,
-        ),
-        'notable_days' => _NotableDaysBoardWidget(
-          account: account,
-          showBirthday: payload['show_birthday'] as bool? ?? true,
-          showJoined: payload['show_joined'] as bool? ?? true,
-        ),
-        'social_credits' => _SocialCreditsBoardWidget(
-          credits: account.profile.socialCredits,
-          creditsLevel: account.profile.socialCreditsLevel,
-          showGraph: payload['show_graph'] as bool? ?? false,
-        ),
-        'leveling' => _LevelingBoardWidget(
-          level: account.profile.level,
-          experience: account.profile.experience,
-          progress: account.profile.levelingProgress,
-        ),
-        'verification' => _VerificationBoardWidget(
-          verification: account.profile.verification,
-        ),
-        'contacts' => _ContactsBoardWidget(contacts: account.contacts),
-        'publishers' => _PublishersBoardWidget(publishers: publishers),
-        'fortune' => _FortuneBoardWidget(
-          uname: uname,
-          accountName: account.name,
-        ),
-        'activity' => _ActivityBoardWidget(uname: uname),
-        _ => _UnknownWidget(keyLabel: widgetKey),
-      },
+      child: Padding(
+        padding: hasPadding ? const EdgeInsets.all(16) : .zero,
+        child: switch (widgetKey) {
+          'badges' => _BadgesBoardWidget(
+            badges: account.badges,
+            showCount: payload['show_count'] as bool? ?? true,
+          ),
+          'bio' => _BioBoardWidget(
+            bio: account.profile.bio,
+            maxLines: payload['max_lines'] as int? ?? 5,
+          ),
+          'links' => _LinksBoardWidget(
+            links: account.profile.links,
+            showIcons: payload['show_icons'] as bool? ?? true,
+          ),
+          'notable_days' => _NotableDaysBoardWidget(
+            account: account,
+            showBirthday: payload['show_birthday'] as bool? ?? true,
+            showJoined: payload['show_joined'] as bool? ?? true,
+          ),
+          'social_credits' => _SocialCreditsBoardWidget(
+            credits: account.profile.socialCredits,
+            creditsLevel: account.profile.socialCreditsLevel,
+            showGraph: payload['show_graph'] as bool? ?? false,
+          ),
+          'leveling' => _LevelingBoardWidget(
+            level: account.profile.level,
+            experience: account.profile.experience,
+            progress: account.profile.levelingProgress,
+          ),
+          'verification' => _VerificationBoardWidget(
+            verification: account.profile.verification,
+          ),
+          'contacts' => _ContactsBoardWidget(contacts: account.contacts),
+          'publishers' => _PublishersBoardWidget(publishers: publishers),
+          'fortune' => _FortuneBoardWidget(
+            uname: uname,
+            accountName: account.name,
+          ),
+          'activity' => _ActivityBoardWidget(uname: uname),
+          _ => _UnknownWidget(keyLabel: widgetKey),
+        },
+      ),
     );
   }
 }
@@ -386,17 +548,19 @@ class _BoardWidgetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final imageSource = image;
+    final backgroundSource = background;
 
     Widget content = child;
 
-    if (image != null) {
+    if (imageSource != null) {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: CloudImageWidget(
-              fileId: image,
+            child: _BoardImageView(
+              source: imageSource,
               fit: BoxFit.cover,
               aspectRatio: 16 / 5,
             ),
@@ -405,16 +569,19 @@ class _BoardWidgetCard extends StatelessWidget {
         ],
       );
     } else {
-      content = Padding(padding: const EdgeInsets.all(16), child: child);
+      content = child;
     }
 
-    if (background != null) {
+    if (backgroundSource != null) {
       return Stack(
         children: [
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: CloudImageWidget(fileId: background, fit: BoxFit.cover),
+              child: _BoardImageView(
+                source: backgroundSource,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           Positioned.fill(
@@ -608,8 +775,9 @@ class _LinkTile extends StatelessWidget {
 
   String _displayUrl(String url) {
     try {
-      final target =
-          (!url.startsWith('http') && !url.contains('://')) ? 'https://$url' : url;
+      final target = (!url.startsWith('http') && !url.contains('://'))
+          ? 'https://$url'
+          : url;
       final uri = Uri.parse(target);
       return uri.host.replaceFirst('www.', '');
     } catch (_) {
@@ -1318,84 +1486,841 @@ class _ActivityBoardWidget extends HookConsumerWidget {
   }
 }
 
-class _CustomAppBoardWidget extends StatelessWidget {
+class _CustomPayloadField {
+  final String name;
+  final String label;
+  final Object? value;
+
+  const _CustomPayloadField({
+    required this.name,
+    required this.label,
+    required this.value,
+  });
+}
+
+List<_CustomPayloadField> _collectCustomPayloadFields(
+  Map<String, dynamic> payload,
+  BoardWidgetDefinition definition,
+) {
+  final fields = <_CustomPayloadField>[];
+  final seenKeys = <String>{};
+
+  for (final field in definition.fieldTypes) {
+    if (_isReservedPayloadField(field.name)) continue;
+    final payloadField = _payloadFieldValue(payload, field.name);
+    if (payloadField == null) continue;
+    fields.add(
+      _CustomPayloadField(
+        name: field.name,
+        label: (payloadField['label'] as String?) ?? field.label,
+        value: payloadField['value'],
+      ),
+    );
+    seenKeys.add(field.name);
+  }
+
+  for (final entry in payload.entries) {
+    if (_isReservedPayloadField(entry.key) || seenKeys.contains(entry.key)) {
+      continue;
+    }
+    final payloadField = _payloadFieldValue(payload, entry.key);
+    if (payloadField == null) continue;
+    fields.add(
+      _CustomPayloadField(
+        name: entry.key,
+        label: (payloadField['label'] as String?) ?? entry.key,
+        value: payloadField['value'],
+      ),
+    );
+  }
+
+  return fields;
+}
+
+String _stringifyCustomPayloadValue(Object? value) {
+  if (value == null) return '-';
+  if (value is String) return value;
+  if (value is num || value is bool) return value.toString();
+  if (value is Map<String, dynamic> && value['value'] != null) {
+    return _stringifyCustomPayloadValue(value['value']);
+  }
+  if (value is List<dynamic>) {
+    return value.map((e) => '·  ${e.toString()}').join('\n');
+  }
+  return value.toString();
+}
+
+class _CustomAppBoardWidget extends ConsumerWidget {
   final String appId;
   final String widgetKey;
   final String? background;
   final String? image;
+  final Map<String, dynamic> payload;
+  final bool isConfigured;
 
   const _CustomAppBoardWidget({
     required this.appId,
     required this.widgetKey,
     this.background,
     this.image,
+    required this.payload,
+    this.isConfigured = true,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final definitionAsync = ref.watch(
+      boardWidgetDefinitionProvider((appId: appId, widgetKey: widgetKey)),
+    );
+
+    return _BoardWidgetCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [_buildCustomContent(context, theme, definitionAsync)],
+      ),
+    );
+  }
+
+  Widget _buildCustomContent(
+    BuildContext context,
+    ThemeData theme,
+    AsyncValue<({BoardWidgetApp app, BoardWidgetDefinition definition})?>
+    definitionAsync,
+  ) {
+    if (!isConfigured) {
+      return Text(
+        'boardWidgetNotConfigured'.tr(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.error,
+        ),
+      );
+    }
+
+    return definitionAsync.when(
+      data: (resolved) {
+        if (resolved == null) {
+          return Text(
+            'boardCustomAppWidgetDescription'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          );
+        }
+
+        final fields = _collectCustomPayloadFields(
+          payload,
+          resolved.definition,
+        );
+        if (fields.isEmpty) {
+          return Text(
+            'boardWidgetNotConfigured'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          );
+        }
+
+        final footer = _CustomWidgetFooter(
+          text: [resolved.app.name, resolved.definition.name].join(' · '),
+          description: resolved.definition.description,
+          layout: resolved.definition.rendererType,
+        );
+
+        return switch (resolved.definition.rendererType) {
+          'hero' => _CustomHeroBoardLayout(
+            fields: fields,
+            background: background,
+            image: image,
+            footer: footer,
+          ),
+          'inline' => _CustomInlineBoardLayout(
+            fields: fields,
+            image: image,
+            footer: footer,
+          ),
+          'grid' => _CustomGridBoardLayout(
+            fields: fields,
+            background: background,
+            image: image,
+            footer: footer,
+          ),
+          'data' => _CustomDataBoardLayout(
+            fields: fields,
+            image: image,
+            footer: footer,
+          ),
+          'list' => _CustomListBoardLayout(
+            fields: fields,
+            image: image,
+            footer: footer,
+          ),
+          _ => _CustomListBoardLayout(
+            fields: fields,
+            image: image,
+            footer: footer,
+          ),
+        };
+      },
+      loading: () => Text(
+        'loading'.tr(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      error: (_, _) => Text(
+        'boardCustomAppWidgetDescription'.tr(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _CustomHeroBoardLayout extends StatelessWidget {
+  final List<_CustomPayloadField> fields;
+  final String? background;
+  final String? image;
+  final Widget footer;
+
+  const _CustomHeroBoardLayout({
+    required this.fields,
+    this.background,
+    this.image,
+    required this.footer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final heroField = fields.first;
+    final remainingCount = fields.length - 1;
+    final backgroundSource = background;
+    final imageSource = image;
+
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (imageSource != null) ...[
+          Align(
+            alignment: .centerLeft,
+            child: _BoardProfileImageView(source: imageSource, radius: 28),
+          ),
+          const Gap(12),
+        ],
+        Text(
+          heroField.label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: backgroundSource != null
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Gap(4),
+        Text(
+          _stringifyCustomPayloadValue(heroField.value),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            height: 1.15,
+          ),
+        ),
+        if (remainingCount > 0) ...[
+          const Gap(8),
+          Text(
+            '+$remainingCount',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const Gap(6),
+        footer,
+      ],
+    );
+
+    if (backgroundSource != null) {
+      return Container(
+        constraints: const BoxConstraints(minHeight: 132),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: _BoardImageView(
+                source: backgroundSource,
+                fit: BoxFit.cover,
+              ).clipRRect(all: 8),
+            ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.08),
+                      theme.colorScheme.surface.withOpacity(0.82),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(padding: const EdgeInsets.all(12), child: body),
+          ],
+        ),
+      );
+    }
+
+    return body;
+  }
+}
+
+class _CustomInlineBoardLayout extends StatelessWidget {
+  final List<_CustomPayloadField> fields;
+  final String? image;
+  final Widget footer;
+
+  const _CustomInlineBoardLayout({
+    required this.fields,
+    this.image,
+    required this.footer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mainField = fields.first;
+    final remainingCount = fields.length - 1;
+    final imageSource = image;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (imageSource != null) ...[
+          _BoardProfileImageView(
+            source: imageSource,
+            radius: 44,
+            isSquare: true,
+          ).clipRRect(topLeft: 8, bottomLeft: 8),
+          const Gap(12),
+        ],
+        Expanded(
+          child: SizedBox(
+            height: 44 * 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mainField.label,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Gap(2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _stringifyCustomPayloadValue(mainField.value),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (remainingCount > 0) ...[
+                      const Gap(6),
+                      Flexible(
+                        child: Text(
+                          '+$remainingCount',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const Gap(6),
+                const Spacer(),
+                Align(alignment: .bottomLeft, child: footer),
+              ],
+            ).padding(vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomDataBoardLayout extends StatelessWidget {
+  final List<_CustomPayloadField> fields;
+  final String? image;
+  final Widget footer;
+
+  const _CustomDataBoardLayout({
+    required this.fields,
+    this.image,
+    required this.footer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final imageSource = image;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            if (imageSource != null)
+              Container(
+                constraints: const BoxConstraints(minWidth: 132, maxWidth: 220),
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _BoardImageView(
+                  source: imageSource,
+                  fit: BoxFit.cover,
+                  aspectRatio: 1,
+                ),
+              ),
+            ...fields.map(
+              (field) => Container(
+                constraints: const BoxConstraints(minWidth: 132, maxWidth: 220),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(
+                    0.45,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      field.label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      _stringifyCustomPayloadValue(field.value),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const Gap(8),
+        footer,
+      ],
+    );
+  }
+}
+
+class _CustomGridBoardLayout extends StatelessWidget {
+  final List<_CustomPayloadField> fields;
+  final String? background;
+  final String? image;
+  final Widget footer;
+
+  const _CustomGridBoardLayout({
+    required this.fields,
+    this.background,
+    this.image,
+    required this.footer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final visibleFields = _buildGridFields(fields).take(6).toList();
+    final backgroundSource = background;
+    final imageSource = image;
+    final rows = <List<_CustomPayloadField>>[];
+
+    for (var i = 0; i < visibleFields.length; i += 3) {
+      rows.add(
+        visibleFields.sublist(
+          i,
+          i + 3 > visibleFields.length ? visibleFields.length : i + 3,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (backgroundSource != null || imageSource != null) ...[
+          SizedBox(
+            height: 132,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (backgroundSource != null)
+                  _BoardImageView(
+                    source: backgroundSource,
+                    fit: BoxFit.cover,
+                  ).clipRRect(topLeft: 8, topRight: 8)
+                else
+                  Container(color: theme.colorScheme.surfaceContainerHighest),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.08),
+                        Colors.black.withOpacity(0.28),
+                      ],
+                    ),
+                  ),
+                ),
+                if (imageSource != null)
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: _BoardImageView(
+                          source: imageSource,
+                          fit: BoxFit.cover,
+                        ).clipRRect(all: 99),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const Gap(12),
+        ],
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: rows
+              .asMap()
+              .entries
+              .map(
+                (entry) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom: entry.key == rows.length - 1 ? 0 : 10,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (
+                        var index = 0;
+                        index < entry.value.length;
+                        index++
+                      ) ...[
+                        if (index > 0) const Gap(10),
+                        Expanded(
+                          child: _CustomGridFieldTile(
+                            field: entry.value[index],
+                            theme: theme,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+        ).padding(horizontal: 8),
+        const Gap(8),
+        footer.padding(horizontal: 18, vertical: 8),
+      ],
+    );
+  }
+}
+
+class _CustomGridFieldTile extends StatelessWidget {
+  final _CustomPayloadField field;
+  final ThemeData theme;
+
+  const _CustomGridFieldTile({required this.field, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints.tightFor(height: 56),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              field.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Gap(4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _CustomPayloadValueView(
+                  value: field.value,
+                  maxLines: 2,
+                  textStyle: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    height: 1.15,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+List<_CustomPayloadField> _buildGridFields(List<_CustomPayloadField> fields) {
+  final expanded = <_CustomPayloadField>[];
+
+  for (final field in fields) {
+    if (field.name == 'data' && field.value is Map) {
+      final entries = Map<String, dynamic>.from(field.value as Map).entries;
+      for (final entry in entries) {
+        expanded.add(
+          _CustomPayloadField(
+            name: entry.key,
+            label: entry.key,
+            value: entry.value,
+          ),
+        );
+      }
+      continue;
+    }
+
+    expanded.add(field);
+  }
+
+  return expanded;
+}
+
+class _CustomListBoardLayout extends StatelessWidget {
+  final List<_CustomPayloadField> fields;
+  final String? image;
+  final Widget footer;
+
+  const _CustomListBoardLayout({
+    required this.fields,
+    this.image,
+    required this.footer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final imageSource = image;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (imageSource != null) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: _BoardImageView(
+              source: imageSource,
+              fit: BoxFit.cover,
+              aspectRatio: 16 / 7,
+            ),
+          ),
+          const Gap(12),
+        ],
+        ...fields.map(
+          (field) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _CustomFieldRow(field: field),
+          ),
+        ),
+        footer,
+      ],
+    );
+  }
+}
+
+class _CustomWidgetFooter extends StatelessWidget {
+  final String text;
+  final String? description;
+  final String layout;
+
+  const _CustomWidgetFooter({
+    required this.text,
+    this.description,
+    required this.layout,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.3),
-            style: BorderStyle.solid,
+    return Tooltip(
+      message: [
+        'boardCustomAppWidgetFooterProvided'.tr(),
+        if (description != null && description!.trim().isNotEmpty)
+          description!.trim(),
+        if (kDebugMode)
+          'boardCustomAppWidgetFooterLayout'.tr(
+            args: [layout.isEmpty ? 'default' : layout],
           ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Symbols.extension,
-                    size: 20,
-                    color: theme.colorScheme.onSecondaryContainer,
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'boardCustomAppWidget'.tr(),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        '$appId / $widgetKey',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const Gap(12),
-            Text(
-              'boardCustomAppWidgetDescription'.tr(),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+      ].join('\n'),
+      child: Text(
+        text,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
+    );
+  }
+}
+
+class _CustomFieldRow extends StatelessWidget {
+  final _CustomPayloadField field;
+
+  const _CustomFieldRow({required this.field});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            field.label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const Gap(12),
+        Expanded(
+          flex: 3,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: _CustomPayloadValueView(
+              value: field.value,
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomPayloadValueView extends StatelessWidget {
+  final Object? value;
+  final TextAlign textAlign;
+  final TextStyle? textStyle;
+  final int? maxLines;
+
+  const _CustomPayloadValueView({
+    required this.value,
+    this.textAlign = TextAlign.left,
+    this.textStyle,
+    this.maxLines,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveStyle =
+        textStyle ??
+        theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500);
+
+    if (value is List) {
+      final items = value as List;
+      return Column(
+        crossAxisAlignment: textAlign == TextAlign.right
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        children: items
+            .map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: _CustomPayloadValueView(
+                  value: item,
+                  textAlign: textAlign,
+                  textStyle: effectiveStyle,
+                  maxLines: maxLines,
+                ),
+              ),
+            )
+            .toList(),
+      );
+    }
+
+    if (value is Map) {
+      final entries = Map<String, dynamic>.from(value as Map).entries.toList();
+      return Column(
+        crossAxisAlignment: textAlign == TextAlign.right
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        children: entries
+            .map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${entry.key}: ',
+                      style: effectiveStyle,
+                      textAlign: textAlign,
+                    ),
+                    Flexible(
+                      child: _CustomPayloadValueView(
+                        value: entry.value,
+                        textAlign: textAlign,
+                        textStyle: effectiveStyle,
+                        maxLines: maxLines,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      );
+    }
+
+    return Text(
+      _stringifyCustomPayloadValue(value),
+      style: effectiveStyle,
+      textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: maxLines != null ? TextOverflow.ellipsis : null,
     );
   }
 }

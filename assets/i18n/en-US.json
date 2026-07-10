@@ -3986,6 +3986,8 @@
   "bioEmpty": "No bio yet",
   "boardCustomAppWidget": "Custom App Widget",
   "boardCustomAppWidgetDescription": "This widget is provided by a custom app. Configure it in the app settings.",
+  "boardCustomAppWidgetFooterProvided": "A custom widget provided by the custom app.",
+  "boardCustomAppWidgetFooterLayout": "Layout: {}",
   "boardUnknownWidget": "Unknown widget",
   "contactsEmpty": "No contacts yet",
   "linksEmpty": "No links yet",

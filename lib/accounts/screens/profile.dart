@@ -21,6 +21,7 @@ import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -785,6 +786,43 @@ class AccountProfileContent extends HookConsumerWidget {
       [user, account],
     );
 
+    Future<void> refreshProfile() async {
+      ref.invalidate(accountProvider(name));
+      ref.invalidate(accountBotDeveloperProvider(name));
+      ref.invalidate(accountPunishmentOverviewProvider(name));
+      ref.invalidate(accountTimelineProvider(name));
+      ref.invalidate(boardWidgetAppsProvider);
+
+      if (account.value != null) {
+        ref.invalidate(accountPublishersProvider(account.value!.id));
+      }
+      if (user.value != null) {
+        ref.invalidate(accountDirectChatProvider(name));
+        ref.invalidate(accountRelationshipProvider(name));
+      }
+      if (isCurrentUser) {
+        ref.invalidate(myAccountBoardProvider);
+      }
+
+      final futures = <Future<dynamic>>[
+        ref.read(accountProvider(name).future),
+        ref.read(accountBotDeveloperProvider(name).future),
+        ref.read(accountPunishmentOverviewProvider(name).future),
+        ref.read(boardWidgetAppsProvider.future),
+      ];
+      if (account.value != null) {
+        futures.add(ref.read(accountPublishersProvider(account.value!.id).future));
+      }
+      if (user.value != null) {
+        futures.add(ref.read(accountDirectChatProvider(name).future));
+        futures.add(ref.read(accountRelationshipProvider(name).future));
+      }
+      if (isCurrentUser) {
+        futures.add(ref.read(myAccountBoardProvider.future));
+      }
+      await Future.wait(futures);
+    }
+
     return DefaultTabController(
       length: 2,
       child: account.when(
@@ -793,69 +831,88 @@ class AccountProfileContent extends HookConsumerWidget {
             accountPublishersProvider(data.id),
           );
           final theme = Theme.of(context);
+          final accountBoard = isCurrentUser
+              ? ref.watch(myAccountBoardProvider).asData?.value ??
+                    AccountBoard.defaultBoard()
+              : AccountBoard.defaultBoard();
 
-          final boardContent = SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (isEmbedded) ...[
-                  const Gap(8),
-                  Text(
-                    data.nick,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+          final boardContent = ExtendedRefreshIndicator(
+            onRefresh: refreshProfile,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                horizontal: isEmbedded ? 0 : 12,
+                vertical: 8,
+              ),
+              child: Column(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (isEmbedded) ...[
+                    const Gap(8),
+                    Text(
+                      data.nick,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                  ],
+                  _AccountBasicInfo(
+                    data: data,
+                    uname: name,
+                    accountDeveloper: accountDeveloper,
+                  ),
+                  AccountBoard(
+                    account: data,
+                    items: accountBoard,
+                    uname: name,
+                    publishers: accountPublishers.value ?? [],
+                  ),
+                  ?accountPunishment.whenOrNull(
+                    data: (punishmentData) => punishmentData != null
+                        ? _AccountPunishment(
+                            punishment: punishmentData,
+                            onTap: showPunishmentSheet,
+                          )
+                        : null,
                   ),
                 ],
-                _AccountBasicInfo(
-                  data: data,
-                  uname: name,
-                  accountDeveloper: accountDeveloper,
-                ),
-                AccountBoard(
-                  account: data,
-                  items: AccountBoard.defaultBoard(),
-                  uname: name,
-                  publishers: accountPublishers.value ?? [],
-                ),
-                ?accountPunishment.whenOrNull(
-                  data: (punishmentData) => punishmentData != null
-                      ? _AccountPunishment(
-                          punishment: punishmentData,
-                          onTap: showPunishmentSheet,
-                        )
-                      : null,
-                ),
-              ],
-            ),
-          );
-
-          final boardContentNoHeader = SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AccountBoard(
-                  account: data,
-                  items: AccountBoard.defaultBoard(),
-                  uname: name,
-                  publishers: accountPublishers.value ?? [],
-                ),
-              ],
-            ),
-          );
-
-          final timelineContent = CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.zero,
-                sliver: AccountTimelineList(uname: name),
               ),
-              SliverGap(MediaQuery.of(context).padding.bottom + 16),
-            ],
+            ),
+          );
+
+          final boardContentNoHeader = ExtendedRefreshIndicator(
+            onRefresh: refreshProfile,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AccountBoard(
+                    account: data,
+                    items: accountBoard,
+                    uname: name,
+                    publishers: accountPublishers.value ?? [],
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          final timelineContent = ExtendedRefreshIndicator(
+            onRefresh: refreshProfile,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 0 : 12),
+                  sliver: AccountTimelineList(uname: name),
+                ),
+                SliverGap(MediaQuery.of(context).padding.bottom + 16),
+              ],
+            ),
           );
 
           return LayoutBuilder(
@@ -931,7 +988,7 @@ class AccountProfileContent extends HookConsumerWidget {
               }
 
               return Row(
-                spacing: 12,
+                spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Flexible(
@@ -955,7 +1012,7 @@ class AccountProfileContent extends HookConsumerWidget {
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
                         vertical: 8,
-                        horizontal: 4,
+                        horizontal: 12,
                       ),
                       child: Column(
                         spacing: 12,
