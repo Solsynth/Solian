@@ -24,7 +24,9 @@ import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
 import 'package:island/plugins/apis/commands_api.dart';
+import 'package:island/plugins/apis/ui_api.dart';
 import 'package:island/plugins/plugin_manager.dart';
+import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -182,32 +184,39 @@ class CommandPaletteWidget extends HookConsumerWidget {
               .toList();
 
     // Plugin commands
-    final pluginCommandsApi =
-        PluginManager().getApi<CommandsApi>();
+    final pluginCommandsApi = PluginManager().getApi<CommandsApi>();
     final filteredPluginCommands = searchQuery.value.isEmpty
         ? <SpecialAction>[]
         : (pluginCommandsApi?.commands ?? [])
               .where((cmd) {
-                final query = searchQuery.value.toLowerCase()
-                    .replaceFirst(RegExp(r'^/'), '');
+                final query = searchQuery.value.toLowerCase().replaceFirst(
+                  RegExp(r'^/'),
+                  '',
+                );
                 return cmd.name.toLowerCase().contains(query) ||
                     cmd.description.toLowerCase().contains(query);
               })
-              .map((cmd) => SpecialAction(
-                    name: '/${cmd.name}',
-                    description: cmd.description,
-                    icon: Symbols.extension,
-                    searchableAliases: [cmd.name],
-                    action: () {
-                      final runtime = PluginManager().plugins[cmd.pluginId]?.runtime;
-                      if (runtime != null) {
-                        final result = pluginCommandsApi!.executeCommand(cmd, runtime);
-                        if (result != null) {
-                          _showCommandResult(context, result);
-                        }
+              .map(
+                (cmd) => SpecialAction(
+                  name: '/${cmd.name}',
+                  description: cmd.description,
+                  icon: Symbols.extension,
+                  searchableAliases: [cmd.name],
+                  action: () {
+                    final runtime =
+                        PluginManager().plugins[cmd.pluginId]?.runtime;
+                    if (runtime != null) {
+                      final result = pluginCommandsApi!.executeCommand(
+                        cmd,
+                        runtime,
+                      );
+                      if (result != null) {
+                        _showCommandResult(context, result, runtime: runtime);
                       }
-                    },
-                  ))
+                    }
+                  },
+                ),
+              )
               .take(5)
               .toList();
 
@@ -445,7 +454,52 @@ class CommandPaletteWidget extends HookConsumerWidget {
     ref.read(routerProvider).navigatePath(route.path);
   }
 
-  void _showCommandResult(BuildContext context, Object result) {
+  void _showCommandResult(
+    BuildContext context,
+    Object result, {
+    required dynamic runtime,
+  }) {
+    final descriptor = result is String
+        ? PluginUiRenderer.parse(result)
+        : result is Map && result['type'] is String
+        ? PluginUiDescriptor(
+            type: result['type'] as String,
+            data: result.map((key, value) => MapEntry(key.toString(), value)),
+          )
+        : null;
+    if (descriptor != null) {
+      PluginUiDescriptor currentDescriptor = descriptor;
+      showDialog<void>(
+        context: context,
+        builder: (_) => StatefulBuilder(
+          builder: (dialogContext, setDialogState) => Dialog.fullscreen(
+            child: PluginUiRenderer(
+              descriptor: currentDescriptor,
+              onCallback: (callback, [value]) {
+                final next = runtime.callFunction(
+                  callback,
+                  value == null ? null : [value],
+                );
+                final nextDescriptor = next is String
+                    ? PluginUiRenderer.parse(next)
+                    : next is Map && next['type'] is String
+                    ? PluginUiDescriptor(
+                        type: next['type'] as String,
+                        data: next.map(
+                          (key, value) => MapEntry(key.toString(), value),
+                        ),
+                      )
+                    : null;
+                if (nextDescriptor != null) {
+                  setDialogState(() => currentDescriptor = nextDescriptor);
+                }
+              },
+            ),
+          ),
+        ),
+      );
+      return;
+    }
     // Parse UI descriptor from plugin if it's a JSON string
     String title = 'Command Result';
     String body = result.toString();
@@ -455,7 +509,8 @@ class CommandPaletteWidget extends HookConsumerWidget {
         final decoded = jsonDecode(result);
         if (decoded is Map<String, dynamic>) {
           title = decoded['title']?.toString() ?? title;
-          body = decoded['body']?.toString() ??
+          body =
+              decoded['body']?.toString() ??
               decoded['content']?.toString() ??
               body;
         }
@@ -507,15 +562,17 @@ class CommandPaletteWidget extends HookConsumerWidget {
           action: () {
             final params = uri.queryParameters;
             if (path == '/auth/authorize') {
-              ref.read(routerProvider).push(
-                AuthorizeRoute(
-                  clientId: params['client_id'],
-                  redirectUri: params['redirect_uri'],
-                  scope: params['scope'],
-                  state: params['state'],
-                  responseType: params['response_type'],
-                ),
-              );
+              ref
+                  .read(routerProvider)
+                  .push(
+                    AuthorizeRoute(
+                      clientId: params['client_id'],
+                      redirectUri: params['redirect_uri'],
+                      scope: params['scope'],
+                      state: params['state'],
+                      responseType: params['response_type'],
+                    ),
+                  );
             } else if (path == '/auth/callback' &&
                 params.containsKey('token')) {
               // Handled via deep link service; just navigate home

@@ -74,6 +74,25 @@ class PluginManager {
     return null;
   }
 
+  /// Resolve a plugin-owned relative asset without allowing directory escape.
+  String? resolvePluginAsset(String pluginId, String relativePath) {
+    final instance = _plugins[pluginId];
+    if (instance == null || instance.directoryPath.isEmpty) return null;
+    try {
+      final root = Directory(instance.directoryPath).resolveSymbolicLinksSync();
+      final file = File(path.join(root, relativePath));
+      if (!file.existsSync()) return null;
+      final candidate = file.resolveSymbolicLinksSync();
+      final normalizedRoot = root.endsWith(path.separator)
+          ? root
+          : '$root${path.separator}';
+      if (!candidate.startsWith(normalizedRoot)) return null;
+      return candidate;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Initialize the plugin manager and load all plugins.
   Future<void> initialize() async {
     if (_initialized) return;
@@ -662,6 +681,68 @@ class PluginManager {
     );
     buf.writeln(
       '  sendMessage("api:ui:register_dashboard_item", JSON.stringify({id: id, title: title, handler: handler, icon: icon || null}));',
+    );
+    buf.writeln('};');
+
+    buf.writeln('ui.page = function(title, child) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:page", JSON.stringify({title: title, child: child}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.row = function(children) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:row", JSON.stringify({children: children || []}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.column = function(children) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:column", JSON.stringify({children: children || []}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.spacing = function(size) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:spacing", JSON.stringify({size: size}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.icon = function(name, size) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:icon", JSON.stringify({name: name, size: size}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.link = function(label, url) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:link", JSON.stringify({label: label, url: url}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.input = function(label, hint, callback) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:input", JSON.stringify({label: label, hint: hint, callback: callback}));',
+    );
+    buf.writeln('};');
+
+    buf.writeln('ui.cloud_file = function(id, fit) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:cloud_file", JSON.stringify({id: id, fit: fit}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.image = function(url, fit) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:image", JSON.stringify({url: url, fit: fit}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.audio = function(url, filename, autoplay) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:audio", JSON.stringify({url: url, filename: filename, autoplay: autoplay}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.video = function(url, aspectRatio, autoplay) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:video", JSON.stringify({url: url, aspectRatio: aspectRatio, autoplay: autoplay}));',
+    );
+    buf.writeln('};');
+    buf.writeln('ui.plugin_asset = function(path, kind, fit) {');
+    buf.writeln(
+      '  return sendMessage("api:ui:plugin_asset", JSON.stringify({path: path, kind: kind, fit: fit}));',
     );
     buf.writeln('};');
 

@@ -572,10 +572,13 @@ class _PluginDashboardItemState extends State<_PluginDashboardItem> {
     _buildItem();
   }
 
-  void _buildItem([String? callback]) {
+  void _buildItem([String? callback, String? value]) {
     final runtime = PluginManager().plugins[widget.item.pluginId]?.runtime;
     if (runtime == null) return;
-    final result = runtime.callFunction(callback ?? widget.item.handlerName);
+    final result = runtime.callFunction(
+      callback ?? widget.item.handlerName,
+      value == null ? null : [value],
+    );
     final descriptor = switch (result) {
       String value => PluginUiRenderer.parse(value),
       Map value when value['type'] is String => PluginUiDescriptor(

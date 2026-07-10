@@ -12,6 +12,7 @@ Each plugin is a folder containing two files:
 my_plugin/
   manifest.json    # Metadata and permissions
   main.js          # Entry point
+  assets/           # Optional plugin-owned assets
 ```
 
 ### 2. Write a manifest
@@ -263,6 +264,52 @@ ui.section("My Section", [ui.text("Line 1"), ui.text("Line 2")]);
 #### `ui.divider()`
 
 A horizontal divider line.
+
+#### Layout and page elements
+
+The UI API also supports `ui.page(title, child)`, `ui.row(children)`,
+`ui.column(children)`, `ui.spacing(size)`, `ui.icon(name, size)`,
+`ui.link(label, url)`, `ui.input(label, hint, callback)`,
+`ui.cloud_file(file_id, fit)`, `ui.image(url, fit)`,
+`ui.audio(url, filename, autoplay)`, and `ui.video(url, aspect_ratio, autoplay)`.
+Cloud files use the app's authenticated Drive client and are rendered through
+the same media-aware surface used by the Drive UI. A page returned
+from a command opens as a separate full-screen plugin page. Input callbacks
+receive the submitted text as their first argument after the callback name.
+
+`ui.plugin_asset(path, kind, fit)` renders a file shipped inside the plugin.
+The path is always relative to the plugin folder and is validated by the host;
+path traversal is rejected. `kind` may be `image`, `audio`, `video`, or
+`file`; when omitted it is inferred from the extension.
+
+```javascript
+function showBranding() {
+  return ui.page("Branding", ui.column([
+    ui.plugin_asset("assets/logo.png", "image", "contain"),
+    ui.plugin_asset("assets/intro.mp3", "audio"),
+    ui.plugin_asset("assets/readme.txt", "file"),
+  ]));
+}
+```
+
+```javascript
+function search(value) {
+  return ui.page("Search", ui.column([
+    ui.text("You searched for: " + value),
+    ui.link("Open documentation", "https://example.com/docs"),
+  ]));
+}
+
+function openSearch() {
+  return ui.page("Search", ui.column([
+    ui.input("Query", "Type and press Enter", "search"),
+    ui.spacing(12),
+    ui.icon("dashboard", 28),
+  ]));
+}
+
+commands.register_command("search", "Open plugin search", "openSearch");
+```
 
 #### `ui.register_dashboard_item(id, title, handler, icon)`
 
