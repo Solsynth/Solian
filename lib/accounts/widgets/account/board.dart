@@ -248,10 +248,20 @@ final myAccountBoardProvider = FutureProvider<List<AccountBoardItem>>((
 
 String? _payloadStringValue(Map<String, dynamic> payload, String key) {
   final value = payload[key];
+  if (value is String) return value;
   if (value is Map && value['value'] is String) {
     return value['value'] as String;
   }
   return null;
+}
+
+List<String> _payloadFileIds(Map<String, dynamic> payload) {
+  final fileIds = payload['file_ids'];
+  if (fileIds is List) {
+    final ids = fileIds.whereType<String>().toList();
+    if (ids.isNotEmpty) return ids;
+  }
+  return [if (payload['file_id'] is String) payload['file_id'] as String];
 }
 
 bool _isRemoteImageUri(String? value) {
@@ -464,6 +474,40 @@ class AccountBoard extends StatelessWidget {
   Widget _buildItem(BuildContext context, AccountBoardItem item) {
     if (item.kind == BoardWidgetKind.customApp) {
       final payload = item.payload;
+      if (item.customAppId == null && item.customAppWidgetKey == 'text') {
+        return _BoardWidgetCard(
+          background: _payloadStringValue(payload, 'background'),
+          image: _payloadStringValue(payload, 'image'),
+          isCompact: isCompact,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: MarkdownTextContent(
+              content: _payloadStringValue(payload, 'content') ?? '',
+            ),
+          ),
+        );
+      }
+      if (item.customAppId == null && item.customAppWidgetKey == 'attachment') {
+        final fileIds = (payload['file_ids'] is List)
+            ? (payload['file_ids'] as List).whereType<String>().toList()
+            : [if (payload['file_id'] is String) payload['file_id'] as String];
+        return _BoardWidgetCard(
+          background: _payloadStringValue(payload, 'background'),
+          image: _payloadStringValue(payload, 'image'),
+          isCompact: isCompact,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: fileIds
+                .map(
+                  (id) => ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CloudImageWidget(fileId: id),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      }
       return _CustomAppBoardWidget(
         appId: item.customAppId ?? '',
         widgetKey: item.customAppWidgetKey ?? '',
@@ -479,7 +523,7 @@ class AccountBoard extends StatelessWidget {
     final background = _payloadStringValue(payload, 'background');
     final image = _payloadStringValue(payload, 'image');
 
-    final hasPadding = item.kind == .prebuilt; // Prebuilt ones do have padding
+    final hasPadding = item.kind == .prebuilt && widgetKey != 'image';
 
     return _BoardWidgetCard(
       background: background,
@@ -525,6 +569,20 @@ class AccountBoard extends StatelessWidget {
             accountName: account.name,
           ),
           'activity' => _ActivityBoardWidget(uname: uname),
+          'text' => MarkdownTextContent(
+            content: _payloadStringValue(payload, 'content') ?? '',
+          ),
+          'image' => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: _payloadFileIds(payload)
+                .map(
+                  (id) => ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CloudImageWidget(fileId: id),
+                  ),
+                )
+                .toList(),
+          ),
           _ => _UnknownWidget(keyLabel: widgetKey),
         },
       ),

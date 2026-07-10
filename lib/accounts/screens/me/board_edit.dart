@@ -7,9 +7,11 @@ import 'package:gap/gap.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/board.dart';
 import 'package:island/accounts/widgets/account/board_custom_widget_sheet.dart';
+import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -49,7 +51,8 @@ List<_EditorItem> _buildEditorItems(
     for (final key in itemOrder) {
       if (key.startsWith('p_')) {
         final prebuiltKey = key.substring(2);
-        if (prebuilt.containsKey(prebuiltKey) && seenPrebuilt.add(prebuiltKey)) {
+        if (prebuilt.containsKey(prebuiltKey) &&
+            seenPrebuilt.add(prebuiltKey)) {
           items.add(_EditorItem.prebuilt(prebuiltKey));
         }
       } else if (key.startsWith('c_')) {
@@ -91,7 +94,11 @@ List<AccountBoardItem> _buildPreviewItems(
   (Map<String, bool>, List<AccountBoardItem>, List<String>) boardState,
 ) {
   final items = <AccountBoardItem>[];
-  final editorItems = _buildEditorItems(boardState.$1, boardState.$2, boardState.$3);
+  final editorItems = _buildEditorItems(
+    boardState.$1,
+    boardState.$2,
+    boardState.$3,
+  );
 
   for (final editorItem in editorItems) {
     if (editorItem.type == _EditorItemType.prebuilt) {
@@ -105,7 +112,9 @@ List<AccountBoardItem> _buildPreviewItems(
         ),
       );
     } else {
-      items.add(boardState.$2[editorItem.customIndex!].copyWith(order: items.length));
+      items.add(
+        boardState.$2[editorItem.customIndex!].copyWith(order: items.length),
+      );
     }
   }
 
@@ -163,7 +172,9 @@ class BoardEditorState extends _$BoardEditorState {
         newOrder.add(item.key);
       } else {
         final newCustomIndex = newCustom.length;
-        newCustom.add(state.$2[item.customIndex!].copyWith(order: newCustomIndex));
+        newCustom.add(
+          state.$2[item.customIndex!].copyWith(order: newCustomIndex),
+        );
         newOrder.add('c_$newCustomIndex');
       }
     }
@@ -177,6 +188,15 @@ class BoardEditorState extends _$BoardEditorState {
     state = (newPrebuilt, state.$2, state.$3);
   }
 
+  void removePrebuilt(String key) {
+    final newPrebuilt = Map<String, bool>.from(state.$1)..remove(key);
+    state = (
+      newPrebuilt,
+      state.$2,
+      state.$3.where((item) => item != 'p_$key').toList(),
+    );
+  }
+
   void addCustom(AccountBoardItem item) {
     final newOrder = state.$2.length;
     state = (
@@ -184,6 +204,23 @@ class BoardEditorState extends _$BoardEditorState {
       [...state.$2, item.copyWith(order: newOrder)],
       [...state.$3, 'c_$newOrder'],
     );
+  }
+
+  void addBuiltIn(String key, Map<String, dynamic> payload) {
+    addCustom(
+      AccountBoardItem(
+        order: 0,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: key,
+        payload: payload,
+      ),
+    );
+  }
+
+  void updateCustom(int index, AccountBoardItem item) {
+    final items = [...state.$2];
+    items[index] = item.copyWith(order: items[index].order);
+    state = (state.$1, items, state.$3);
   }
 
   void removeCustom(int index) {
@@ -257,6 +294,8 @@ class BoardEditorState extends _$BoardEditorState {
           final key = item.widgetKey;
           if (key != null && defaultPrebuilt.containsKey(key)) {
             defaultPrebuilt[key] = item.isEnabled;
+          } else if (key == 'text' || key == 'image') {
+            custom.add(item);
           }
         } else if (item.kind == BoardWidgetKind.customApp) {
           custom.add(item);
@@ -271,6 +310,10 @@ class BoardEditorState extends _$BoardEditorState {
         final kind = map['kind'] as int;
         if (kind == 0) {
           final key = map['widget_key'] as String;
+          if (key == 'text' || key == 'image') {
+            mixedOrder.add('c_${customOrderIndex++}');
+            continue;
+          }
           if (!orderedPrebuilt.containsKey(key) &&
               defaultPrebuilt.containsKey(key)) {
             orderedPrebuilt[key] = defaultPrebuilt[key]!;
@@ -280,12 +323,6 @@ class BoardEditorState extends _$BoardEditorState {
           mixedOrder.add('c_${customOrderIndex++}');
         }
       }
-      for (final key in defaultPrebuilt.keys) {
-        if (!orderedPrebuilt.containsKey(key)) {
-          orderedPrebuilt[key] = defaultPrebuilt[key]!;
-        }
-      }
-
       custom.sort((a, b) => a.order.compareTo(b.order));
       for (var i = 0; i < custom.length; i++) {
         custom[i] = custom[i].copyWith(order: i);
@@ -315,6 +352,8 @@ class _PrebuiltWidgetMeta {
   const _PrebuiltWidgetMeta();
 
   static const _widgets = <String, _WidgetInfo>{
+    'text': _WidgetInfo(Symbols.text_fields, 'Text', 'Markdown text'),
+    'image': _WidgetInfo(Symbols.image, 'Image', 'Cloud file attachment'),
     'activity': _WidgetInfo(
       Symbols.podcasts,
       'activityPresence',
@@ -456,7 +495,11 @@ class AccountBoardEditScreen extends HookConsumerWidget {
   Future<void> _saveBoard(BuildContext context, WidgetRef ref) async {
     final boardState = ref.read(boardEditorStateProvider);
     final customItems = boardState.$2;
-    final editorItems = _buildEditorItems(boardState.$1, customItems, boardState.$3);
+    final editorItems = _buildEditorItems(
+      boardState.$1,
+      customItems,
+      boardState.$3,
+    );
 
     final items = <Map<String, dynamic>>[];
     var order = 0;
@@ -474,7 +517,11 @@ class AccountBoardEditScreen extends HookConsumerWidget {
         });
       } else {
         final customItem = customItems[item.customIndex!];
-        items.add({...customItem.toJson(), 'order': order++, 'kind': 1});
+        items.add({
+          ...customItem.toJson(),
+          'order': order++,
+          'kind': customItem.kind.index,
+        });
       }
     }
 
@@ -558,13 +605,107 @@ class AccountBoardEditScreen extends HookConsumerWidget {
               onPressed: () async {
                 final myId = ref.read(userInfoProvider).value?.id;
                 if (myId == null) return;
-                final result = await showModalBottomSheet<AccountBoardItem?>(
+                final type = await showModalBottomSheet<String>(
                   context: context,
                   isScrollControlled: true,
-                  builder: (ctx) => AddCustomWidgetSheet(accountId: myId),
+                  builder: (ctx) => SheetScaffold(
+                    titleText: 'boardAddCustomWidget'.tr(),
+                    heightFactor: 0.4,
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Symbols.text_fields),
+                            title: const Text('Text'),
+                            onTap: () => Navigator.pop(ctx, 'text'),
+                          ),
+                          ListTile(
+                            leading: const Icon(Symbols.attach_file),
+                            title: const Text('Image'),
+                            onTap: () => Navigator.pop(ctx, 'image'),
+                          ),
+                          ListTile(
+                            leading: const Icon(Symbols.extension),
+                            title: Text('boardAddCustomWidget'.tr()),
+                            onTap: () => Navigator.pop(ctx, 'custom'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
-                if (result != null) {
-                  notifier.addCustom(result);
+                if (type == 'custom') {
+                  if (!context.mounted) return;
+                  final result = await showModalBottomSheet<AccountBoardItem?>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (ctx) => AddCustomWidgetSheet(accountId: myId),
+                  );
+                  if (result != null) notifier.addCustom(result);
+                } else if (type == 'text' && context.mounted) {
+                  final controller = TextEditingController();
+                  final result = await showModalBottomSheet<String>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (ctx) => SheetScaffold(
+                      titleText: 'Text',
+                      heightFactor: 0.55,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: controller,
+                                maxLines: null,
+                                expands: true,
+                                autofocus: true,
+                                textAlignVertical: TextAlignVertical.top,
+                                decoration: const InputDecoration(
+                                  hintText: 'Markdown',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancel'),
+                                ),
+                                const SizedBox(width: 8),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.pop(ctx, controller.text),
+                                  child: const Text('Add'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                  if (result != null && result.trim().isNotEmpty) {
+                    notifier.addBuiltIn('text', {'content': result});
+                  }
+                } else if (type == 'image' && context.mounted) {
+                  final result = await showModalBottomSheet<List<SnCloudFile>>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (ctx) => const CloudFilePicker(
+                      allowMultiple: true,
+                      usage: 'board',
+                    ),
+                  );
+                  if (result != null && result.isNotEmpty) {
+                    notifier.addBuiltIn('image', {
+                      'file_id': result.first.id,
+                      'file_ids': result.map((file) => file.id).toList(),
+                    });
+                  }
                 }
               },
               icon: const Icon(Symbols.add, size: 18),
@@ -668,7 +809,12 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                 ],
               ),
             ),
-            Switch(value: isEnabled, onChanged: (_) => notifier.toggle(key)),
+            IconButton(
+              icon: const Icon(Symbols.delete, size: 18),
+              color: theme.colorScheme.error,
+              tooltip: 'delete'.tr(),
+              onPressed: () => notifier.removePrebuilt(key),
+            ),
           ],
         ),
       ),
@@ -683,6 +829,58 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     BoardEditorState notifier,
     int index,
   ) {
+    if (item.kind == BoardWidgetKind.prebuilt) {
+      final key = item.widgetKey ?? '';
+      final title = key == 'image' ? 'Image' : 'Text';
+      final icon = key == 'image' ? Symbols.image : Symbols.text_fields;
+      final description = key == 'image'
+          ? '${(item.payload['file_ids'] as List?)?.length ?? 1} file(s)'
+          : 'Markdown text';
+      return Card(
+        key: ValueKey('c_$customIndex'),
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              ReorderableDragStartListener(
+                index: index,
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Symbols.drag_handle, size: 20),
+                ),
+              ),
+              Icon(icon, color: theme.colorScheme.primary),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.bodyMedium),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Symbols.edit, size: 18),
+                onPressed: () =>
+                    _editBuiltIn(context, notifier, customIndex, item),
+              ),
+              IconButton(
+                icon: const Icon(Symbols.delete, size: 18),
+                color: theme.colorScheme.error,
+                onPressed: () => notifier.removeCustom(customIndex),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Card(
       key: ValueKey('c_$customIndex'),
       margin: const EdgeInsets.only(bottom: 8),
@@ -699,8 +897,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
               definition?.name ??
               item.customAppWidgetKey ??
               'boardCustomWidget'.tr();
-          final subtitle =
-              definition?.description?.trim().isNotEmpty == true
+          final subtitle = definition?.description?.trim().isNotEmpty == true
               ? definition!.description!
               : item.payload.isEmpty
               ? 'boardWidgetNotConfigured'.tr()
@@ -763,6 +960,84 @@ class AccountBoardEditScreen extends HookConsumerWidget {
         },
       ),
     );
+  }
+
+  Future<void> _editBuiltIn(
+    BuildContext context,
+    BoardEditorState notifier,
+    int index,
+    AccountBoardItem item,
+  ) async {
+    if (item.widgetKey == 'text') {
+      final controller = TextEditingController(
+        text: item.payload['content'] as String? ?? '',
+      );
+      final result = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) => SheetScaffold(
+          titleText: 'Text',
+          heightFactor: 0.55,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+            child: Column(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    maxLines: null,
+                    expands: true,
+                    autofocus: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    decoration: const InputDecoration(hintText: 'Markdown'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, controller.text),
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (result != null && result.trim().isNotEmpty) {
+        notifier.updateCustom(
+          index,
+          item.copyWith(payload: {'content': result}),
+        );
+      }
+      return;
+    }
+
+    final result = await showModalBottomSheet<List<SnCloudFile>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) =>
+          const CloudFilePicker(allowMultiple: true, usage: 'board'),
+    );
+    if (result != null && result.isNotEmpty) {
+      notifier.updateCustom(
+        index,
+        item.copyWith(
+          payload: {
+            'file_id': result.first.id,
+            'file_ids': result.map((file) => file.id).toList(),
+          },
+        ),
+      );
+    }
   }
 
   Widget _buildPreview(
