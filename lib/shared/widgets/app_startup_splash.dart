@@ -142,7 +142,7 @@ class StartupSplashScreen extends HookConsumerWidget {
           action: () async {
             final manager = PluginManager();
             await manager.initialize();
-            await manager.loadAll();
+            await manager.loadAllAtStartup();
           },
         ),
         if (kDebugStartup)

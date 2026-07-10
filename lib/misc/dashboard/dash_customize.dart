@@ -6,6 +6,8 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/plugins/apis/dashboard_api.dart';
+import 'package:island/plugins/plugin_manager.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class DashboardCustomizationSheet extends HookConsumerWidget {
@@ -14,7 +16,7 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
   static Map<String, Map<String, dynamic>> _getCardMetadata(
     BuildContext context,
   ) {
-    return {
+    final metadata = <String, Map<String, dynamic>>{
       // Vertical layout cards
       'checkIn': {
         'name': 'dashboardCardCheckIn'.tr(),
@@ -63,6 +65,16 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
         'description': 'dashboardCardChatsColumnDescription'.tr(),
       },
     };
+    for (final item
+        in PluginManager().getApi<DashboardApi>()?.items ??
+            const <PluginDashboardItem>[]) {
+      metadata[item.layoutId] = {
+        'name': item.title,
+        'icon': Symbols.extension,
+        'description': item.pluginId,
+      };
+    }
+    return metadata;
   }
 
   @override
@@ -170,7 +182,9 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
     }
 
     // If it already contains column groups, use as-is
-    if (existingLayouts.any((id) => id.contains('Column'))) {
+    if (existingLayouts.any(
+      (id) => id.contains('Column') || id.startsWith('plugin:'),
+    )) {
       return existingLayouts.where((id) => id != 'accountUnactivated').toList();
     }
 
@@ -192,7 +206,11 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
     // Filter available cards based on layout mode
     final relevantCards = isHorizontal
         ? cardMetadata.entries
-              .where((entry) => entry.key.contains('Column'))
+              .where(
+                (entry) =>
+                    entry.key.contains('Column') ||
+                    entry.key.startsWith('plugin:'),
+              )
               .map((e) => e.key)
               .toList()
         : cardMetadata.entries

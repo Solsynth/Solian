@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:island/plugins/bridge/js_bridge.dart';
 import 'package:island/plugins/models/plugin_manifest.dart';
@@ -12,9 +13,13 @@ import 'package:island/plugins/apis/plugin_api.dart';
 import 'package:island/plugins/apis/hooks_api.dart';
 import 'package:island/plugins/apis/commands_api.dart';
 import 'package:island/plugins/apis/events_api.dart';
+import 'package:island/plugins/apis/dashboard_api.dart';
 import 'package:island/plugins/background_runner.dart';
 
 final _log = Logger('PluginManager');
+
+const _kPluginStartupPendingKey = 'plugins_startup_pending_loads';
+const _kPluginStartupDisabledKey = 'plugins_startup_disabled';
 
 /// Runtime state of a loaded plugin.
 class PluginInstance {
@@ -75,6 +80,7 @@ class PluginManager {
 
     // Discover and load plugins from all sources
     await _discoverPlugins();
+    await _restoreStartupSafeguards();
 
     _initialized = true;
     _log.info('Plugin manager initialized with ${_plugins.length} plugins');
@@ -125,15 +131,111 @@ class PluginManager {
     }
   }
 
+  /// Quarantine a plugin whose previous load was interrupted by an app crash.
+  /// The marker is written before executing plugin code and only cleared after
+  /// successful activation, so the next launch can avoid loading it again.
+  Future<void> _restoreStartupSafeguards() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pending =
+          prefs.getStringList(_kPluginStartupPendingKey) ?? const [];
+      final disabled =
+          prefs.getStringList(_kPluginStartupDisabledKey) ?? const [];
+      final quarantined = {...pending, ...disabled};
+
+      for (final pluginId in quarantined) {
+        final instance = _plugins[pluginId];
+        if (instance == null) continue;
+        instance.state = PluginState.disabled;
+        instance.lastError = pending.contains(pluginId)
+            ? 'Disabled after its previous startup load was interrupted.'
+            : 'Disabled by the plugin startup safeguard.';
+      }
+
+      if (pending.isNotEmpty) {
+        await prefs.setStringList(
+          _kPluginStartupDisabledKey,
+          quarantined.toList(),
+        );
+        await prefs.remove(_kPluginStartupPendingKey);
+        _log.warning(
+          'Skipped ${pending.length} plugin(s) after interrupted startup load',
+        );
+      }
+    } catch (e) {
+      _log.warning('Failed to restore plugin startup safeguards: $e');
+    }
+  }
+
+  Future<void> _markPluginLoadPending(String pluginId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final pending =
+        prefs.getStringList(_kPluginStartupPendingKey) ?? <String>[];
+    if (!pending.contains(pluginId)) {
+      pending.add(pluginId);
+      await prefs.setStringList(_kPluginStartupPendingKey, pending);
+    }
+  }
+
+  Future<void> _clearPluginLoadPending(String pluginId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final pending =
+        prefs.getStringList(_kPluginStartupPendingKey) ?? <String>[];
+    if (pending.remove(pluginId)) {
+      await prefs.setStringList(_kPluginStartupPendingKey, pending);
+    }
+  }
+
+  Future<void> _quarantinePlugin(PluginInstance instance, String error) async {
+    unloadPlugin(instance.manifest.id);
+    instance.state = PluginState.disabled;
+    instance.lastError = 'Disabled after a failed load: $error';
+    _log.severe('Quarantined plugin ${instance.manifest.id}: $error');
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pending =
+          prefs.getStringList(_kPluginStartupPendingKey) ?? <String>[];
+      pending.remove(instance.manifest.id);
+      await prefs.setStringList(_kPluginStartupPendingKey, pending);
+
+      final disabled =
+          prefs.getStringList(_kPluginStartupDisabledKey) ?? <String>[];
+      if (!disabled.contains(instance.manifest.id)) {
+        disabled.add(instance.manifest.id);
+        await prefs.setStringList(_kPluginStartupDisabledKey, disabled);
+      }
+    } catch (e) {
+      _log.warning('Failed to persist plugin quarantine: $e');
+    }
+  }
+
+  Future<void> _removeStartupDisabled(String pluginId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final disabled =
+          prefs.getStringList(_kPluginStartupDisabledKey) ?? <String>[];
+      if (disabled.remove(pluginId)) {
+        await prefs.setStringList(_kPluginStartupDisabledKey, disabled);
+      }
+      await _clearPluginLoadPending(pluginId);
+    } catch (e) {
+      _log.warning('Failed to re-enable plugin $pluginId: $e');
+    }
+  }
+
   /// Load bundled JavaScript scripts from assets/scripts/.
   Future<void> _loadBundledScripts() async {
     try {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
       final allAssets = manifest.listAssets();
-      final scripts = allAssets
-          .where((a) => a.startsWith('assets/scripts/') && a.endsWith('.js'))
-          .toList()
-        ..sort();
+      final scripts =
+          allAssets
+              .where(
+                (a) => a.startsWith('assets/scripts/') && a.endsWith('.js'),
+              )
+              .toList()
+            ..sort();
 
       for (final assetPath in scripts) {
         final content = await rootBundle.loadString(assetPath);
@@ -162,6 +264,8 @@ class PluginManager {
     }
 
     try {
+      await _markPluginLoadPending(pluginId);
+
       // Create a dedicated JS runtime for this plugin
       final runtimeName = 'plugin:$pluginId';
       instance.runtime = _bridge.createRuntime(runtimeName);
@@ -170,12 +274,16 @@ class PluginManager {
       _registerPluginApis(instance);
 
       // Execute the plugin entry point
-      final entryPath = path.join(instance.directoryPath, instance.manifest.entry);
+      final entryPath = path.join(
+        instance.directoryPath,
+        instance.manifest.entry,
+      );
       final entryFile = File(entryPath);
       if (!await entryFile.exists()) {
-        instance.state = PluginState.error;
-        instance.lastError = 'Entry file not found: ${instance.manifest.entry}';
-        _log.warning('Plugin entry not found: $entryPath');
+        await _quarantinePlugin(
+          instance,
+          'Entry file not found: ${instance.manifest.entry}',
+        );
         return false;
       }
 
@@ -188,9 +296,7 @@ class PluginManager {
       _activePluginId = null;
 
       if (!result.success) {
-        instance.state = PluginState.error;
-        instance.lastError = result.error ?? 'Unknown error';
-        _log.warning('Plugin failed to load: $pluginId - ${instance.lastError}');
+        await _quarantinePlugin(instance, result.error ?? 'Unknown error');
         return false;
       }
 
@@ -198,13 +304,14 @@ class PluginManager {
       _callPluginHook(instance, 'on_load');
 
       instance.state = PluginState.active;
+      await _clearPluginLoadPending(pluginId);
       _log.info('Plugin activated: $pluginId');
       return true;
     } catch (e) {
-      instance.state = PluginState.error;
-      instance.lastError = e.toString();
-      _log.severe('Failed to load plugin $pluginId: $e');
+      await _quarantinePlugin(instance, e.toString());
       return false;
+    } finally {
+      _activePluginId = null;
     }
   }
 
@@ -221,6 +328,7 @@ class PluginManager {
     getApi<HooksApi>()?.clearHooks(pluginId);
     getApi<CommandsApi>()?.clearCommands(pluginId);
     getApi<EventsApi>()?.clearHandlers(pluginId);
+    getApi<DashboardApi>()?.clearItems(pluginId);
 
     // Dispose the JS runtime via bridge (single point of disposal)
     _bridge.disposeRuntime('plugin:$pluginId');
@@ -239,13 +347,15 @@ class PluginManager {
     instance.state = PluginState.disabled;
   }
 
-  /// Enable a previously disabled plugin.
-  void enablePlugin(String pluginId) {
+  /// Re-enable a plugin that was disabled manually or by the startup safeguard.
+  Future<void> enablePlugin(String pluginId) async {
     final instance = _plugins[pluginId];
     if (instance == null) return;
     if (instance.state != PluginState.disabled) return;
 
     instance.state = PluginState.discovered;
+    instance.lastError = null;
+    await _removeStartupDisabled(pluginId);
   }
 
   /// Load all discovered plugins.
@@ -253,6 +363,12 @@ class PluginManager {
     for (final id in _plugins.keys.toList()) {
       await loadPlugin(id);
     }
+  }
+
+  /// Load plugins during the startup splash with crash recovery enabled.
+  Future<void> loadAllAtStartup() async {
+    await initialize();
+    await loadAll();
   }
 
   /// Re-discover plugins from all sources and load them.
@@ -310,9 +426,7 @@ class PluginManager {
 
       // Copy to plugins directory
       final appDir = await getApplicationSupportDirectory();
-      final destDir = Directory(
-        path.join(appDir.path, 'plugins', manifest.id),
-      );
+      final destDir = Directory(path.join(appDir.path, 'plugins', manifest.id));
 
       if (await destDir.exists()) {
         await destDir.delete(recursive: true);
@@ -360,6 +474,7 @@ class PluginManager {
     }
 
     _plugins.remove(pluginId);
+    await _removeStartupDisabled(pluginId);
     _log.info('Uninstalled plugin: $pluginId');
   }
 
@@ -452,68 +567,124 @@ class PluginManager {
 
     buf.writeln('var hooks = {};');
     buf.writeln('hooks.before_post_create = function(handler) {');
-    buf.writeln('  sendMessage("api:hooks:before_post_create", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln(
+      '  sendMessage("api:hooks:before_post_create", JSON.stringify({handler: handler.name || handler.toString()}));',
+    );
     buf.writeln('};');
     buf.writeln('hooks.before_message_send = function(handler) {');
-    buf.writeln('  sendMessage("api:hooks:before_message_send", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln(
+      '  sendMessage("api:hooks:before_message_send", JSON.stringify({handler: handler.name || handler.toString()}));',
+    );
     buf.writeln('};');
     buf.writeln('hooks.before_post_display = function(handler) {');
-    buf.writeln('  sendMessage("api:hooks:before_post_display", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln(
+      '  sendMessage("api:hooks:before_post_display", JSON.stringify({handler: handler.name || handler.toString()}));',
+    );
     buf.writeln('};');
     buf.writeln('hooks.before_message_display = function(handler) {');
-    buf.writeln('  sendMessage("api:hooks:before_message_display", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln(
+      '  sendMessage("api:hooks:before_message_display", JSON.stringify({handler: handler.name || handler.toString()}));',
+    );
     buf.writeln('};');
 
     buf.writeln('var commands = {};');
-    buf.writeln('commands.register_command = function(name, description, handler, icon) {');
-    buf.writeln('  sendMessage("api:commands:register_command", JSON.stringify({name: name, description: description, handler: handler, icon: icon || null}));');
+    buf.writeln(
+      'commands.register_command = function(name, description, handler, icon) {',
+    );
+    buf.writeln(
+      '  sendMessage("api:commands:register_command", JSON.stringify({name: name, description: description, handler: handler, icon: icon || null}));',
+    );
     buf.writeln('};');
 
     buf.writeln('var events = {};');
     buf.writeln('events.subscribe = function(eventName, handler) {');
-    buf.writeln('  sendMessage("api:events:subscribe", JSON.stringify({event: eventName, handler: handler}));');
+    buf.writeln(
+      '  sendMessage("api:events:subscribe", JSON.stringify({event: eventName, handler: handler}));',
+    );
     buf.writeln('};');
     buf.writeln('events.list_events = function() {');
     buf.writeln('  return sendMessage("api:events:list_events", "[]");');
     buf.writeln('};');
 
     buf.writeln('function notify(title, body) {');
-    buf.writeln('  sendMessage("api:notify", JSON.stringify({title: title, body: body}));');
+    buf.writeln(
+      '  sendMessage("api:notify", JSON.stringify({title: title, body: body}));',
+    );
     buf.writeln('}');
     buf.writeln('function showAlert(message, title) {');
-    buf.writeln('  sendMessage("api:alert:show_alert", JSON.stringify({message: message, title: title || "Info"}));');
+    buf.writeln(
+      '  sendMessage("api:alert:show_alert", JSON.stringify({message: message, title: title || "Info"}));',
+    );
     buf.writeln('}');
     buf.writeln('function showError(message) {');
-    buf.writeln('  sendMessage("api:alert:show_error", JSON.stringify({message: message}));');
+    buf.writeln(
+      '  sendMessage("api:alert:show_error", JSON.stringify({message: message}));',
+    );
     buf.writeln('}');
     buf.writeln('function showConfirm(message, title) {');
-    buf.writeln('  sendMessage("api:alert:show_confirm", JSON.stringify({message: message, title: title || "Confirm"}));');
+    buf.writeln(
+      '  sendMessage("api:alert:show_confirm", JSON.stringify({message: message, title: title || "Confirm"}));',
+    );
     buf.writeln('}');
 
     buf.writeln('var ui = {};');
     buf.writeln('ui.card = function(title, body, actions) {');
-    buf.writeln('  var result = sendMessage("api:ui:card", JSON.stringify({title: title, body: body, actions: actions || []}));');
+    buf.writeln(
+      '  var result = sendMessage("api:ui:card", JSON.stringify({title: title, body: body, actions: actions || []}));',
+    );
     buf.writeln('  return result;');
     buf.writeln('};');
     buf.writeln('ui.list_items = function(items) {');
-    buf.writeln('  return sendMessage("api:ui:list_items", JSON.stringify({items: items}));');
+    buf.writeln(
+      '  return sendMessage("api:ui:list_items", JSON.stringify({items: items}));',
+    );
     buf.writeln('};');
     buf.writeln('ui.button = function(label, callback) {');
-    buf.writeln('  return sendMessage("api:ui:button", JSON.stringify({label: label, callback: callback || null}));');
+    buf.writeln(
+      '  return sendMessage("api:ui:button", JSON.stringify({label: label, callback: callback || null}));',
+    );
     buf.writeln('};');
     buf.writeln('ui.text = function(content) {');
-    buf.writeln('  return sendMessage("api:ui:text", JSON.stringify({content: content}));');
+    buf.writeln(
+      '  return sendMessage("api:ui:text", JSON.stringify({content: content}));',
+    );
     buf.writeln('};');
     buf.writeln('ui.section = function(title, children) {');
-    buf.writeln('  return sendMessage("api:ui:section", JSON.stringify({title: title, children: children || []}));');
+    buf.writeln(
+      '  return sendMessage("api:ui:section", JSON.stringify({title: title, children: children || []}));',
+    );
     buf.writeln('};');
     buf.writeln('ui.divider = function() {');
     buf.writeln('  return sendMessage("api:ui:divider", "{}");');
     buf.writeln('};');
+    buf.writeln(
+      'ui.register_dashboard_item = function(id, title, handler, icon) {',
+    );
+    buf.writeln(
+      '  sendMessage("api:ui:register_dashboard_item", JSON.stringify({id: id, title: title, handler: handler, icon: icon || null}));',
+    );
+    buf.writeln('};');
+
+    buf.writeln('var internet = {};');
+    buf.writeln(
+      'internet.request = function(method, url, options, callback) {',
+    );
+    buf.writeln(
+      '  sendMessage("api:internet:request", JSON.stringify({method: method, url: url, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));',
+    );
+    buf.writeln('};');
+    buf.writeln('var solar = {};');
+    buf.writeln('solar.request = function(method, path, options, callback) {');
+    buf.writeln(
+      '  sendMessage("api:solar:request", JSON.stringify({method: method, url: path, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));',
+    );
+    buf.writeln('};');
 
     buf.writeln('var tasks = {};');
     buf.writeln('tasks.schedule = function(intervalSeconds, handler) {');
-    buf.writeln('  sendMessage("api:tasks:schedule", JSON.stringify({interval: intervalSeconds, handler: handler}));');
+    buf.writeln(
+      '  sendMessage("api:tasks:schedule", JSON.stringify({interval: intervalSeconds, handler: handler}));',
+    );
     buf.writeln('};');
 
     final code = buf.toString();
@@ -548,7 +719,9 @@ class PluginManager {
   void fireEvent(String eventName, [Map<String, dynamic>? data]) {
     for (final instance in _plugins.values) {
       if (instance.state != PluginState.active) continue;
-      if (!instance.manifest.permissions.contains(PluginPermission.eventsSubscribe)) {
+      if (!instance.manifest.permissions.contains(
+        PluginPermission.eventsSubscribe,
+      )) {
         continue;
       }
 

@@ -1,0 +1,9 @@
+{
+  "id": "com.example.dashboard_status",
+  "name": "Dashboard Status",
+  "version": "1.0.0",
+  "author": "Island",
+  "description": "Adds a simple, interactive dashboard item.",
+  "entry": "main.js",
+  "permissions": ["uiRender"]
+}

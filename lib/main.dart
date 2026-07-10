@@ -148,6 +148,8 @@ void main(List<String> args) async {
   }
 
   Future<void> appRunner() async {
+    final prefs = await SharedPreferences.getInstance();
+
     try {
       await EasyLocalization.ensureInitialized();
       EasyLocalization.logger.enableBuildModes = [];
@@ -215,6 +217,14 @@ void main(List<String> args) async {
       manager.registerApi('commands', CommandsApi());
       manager.registerApi('notify', NotifyApi());
       manager.registerApi('ui', UiApi());
+      manager.registerApi('dashboard', DashboardApi());
+      final pluginNetworkScope = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      manager.registerApi(
+        'network',
+        PluginNetworkApi(prefs, pluginNetworkScope.read(apiClientProvider)),
+      );
       await manager.initialize();
       PluginEventBridge().activate();
       Logger.root.info(
@@ -224,7 +234,6 @@ void main(List<String> args) async {
       Logger.root.severe("[Plugin] Failed to initialize plugin system...", err);
     }
 
-    final prefs = await SharedPreferences.getInstance();
     HttpOverrides.global = createAppHttpOverridesFromPrefs(prefs);
 
     if (!kIsWeb &&

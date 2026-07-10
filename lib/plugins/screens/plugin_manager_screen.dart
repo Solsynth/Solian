@@ -38,10 +38,7 @@ class PluginManagerContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final manager = useMemoized(() => PluginManager());
     final refreshKey = useState(0);
-    final plugins = useMemoized(
-      () => manager.plugins,
-      [refreshKey.value],
-    );
+    final plugins = useMemoized(() => manager.plugins, [refreshKey.value]);
 
     void refresh() => refreshKey.value++;
 
@@ -50,18 +47,25 @@ class PluginManagerContent extends HookConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Symbols.extension,
-                size: 48, color: Theme.of(context).colorScheme.outline),
+            Icon(
+              Symbols.extension,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 12),
-            Text('pluginsEmptyTitle'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    )),
+            Text(
+              'pluginsEmptyTitle'.tr(),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('pluginsEmptyHint'.tr(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    )),
+            Text(
+              'pluginsEmptyHint'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -73,7 +77,8 @@ class PluginManagerContent extends HookConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
-                  onPressed: () => _installFromFolder(context, manager, refresh),
+                  onPressed: () =>
+                      _installFromFolder(context, manager, refresh),
                   icon: const Icon(Symbols.folder_open, size: 18),
                   label: Text('fromFolder'.tr()),
                 ),
@@ -96,8 +101,8 @@ class PluginManagerContent extends HookConsumerWidget {
                 child: Text(
                   'pluginsCount'.plural(plugins.length),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               IconButton(
@@ -137,10 +142,10 @@ class PluginManagerContent extends HookConsumerWidget {
               return _PluginTile(
                 key: ValueKey(entry.key),
                 instance: entry.value,
-                onToggle: (enabled) {
+                onToggle: (enabled) async {
                   if (enabled) {
-                    manager.enablePlugin(entry.key);
-                    manager.loadPlugin(entry.key);
+                    await manager.enablePlugin(entry.key);
+                    await manager.loadPlugin(entry.key);
                   } else {
                     manager.disablePlugin(entry.key);
                   }
@@ -199,17 +204,15 @@ class PluginManagerContent extends HookConsumerWidget {
     if (installed) {
       onDone();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('pluginInstalled'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('pluginInstalled'.tr())));
       }
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('invalidPluginFolder'.tr()),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('invalidPluginFolder'.tr())));
       }
     }
   }
@@ -237,11 +240,30 @@ class _PluginTile extends StatelessWidget {
     final manifest = instance.manifest;
     final isActive = instance.state == PluginState.active;
     final isError = instance.state == PluginState.error;
+    final isSafeguarded =
+        instance.state == PluginState.disabled && instance.lastError != null;
 
     final (icon, iconBg, iconFg) = switch (instance.state) {
-      PluginState.active => (Symbols.check_circle, cs.primaryContainer, cs.onPrimaryContainer),
-      PluginState.error => (Symbols.error, cs.errorContainer, cs.onErrorContainer),
-      PluginState.disabled => (Symbols.pause_circle, cs.surfaceContainerHighest, cs.onSurfaceVariant),
+      PluginState.active => (
+        Symbols.check_circle,
+        cs.primaryContainer,
+        cs.onPrimaryContainer,
+      ),
+      PluginState.error => (
+        Symbols.error,
+        cs.errorContainer,
+        cs.onErrorContainer,
+      ),
+      PluginState.disabled when isSafeguarded => (
+        Symbols.warning,
+        cs.errorContainer,
+        cs.onErrorContainer,
+      ),
+      PluginState.disabled => (
+        Symbols.pause_circle,
+        cs.surfaceContainerHighest,
+        cs.onSurfaceVariant,
+      ),
       _ => (Symbols.extension, cs.surfaceContainerHighest, cs.onSurfaceVariant),
     };
 
@@ -280,8 +302,8 @@ class _PluginTile extends StatelessWidget {
                     Text(
                       manifest.name,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -291,18 +313,19 @@ class _PluginTile extends StatelessWidget {
                           ? manifest.description
                           : manifest.id,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
+                        color: cs.onSurfaceVariant,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (isError && instance.lastError != null) ...[
+                    if ((isError || isSafeguarded) &&
+                        instance.lastError != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         instance.lastError!,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: cs.error,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: cs.error),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -313,24 +336,26 @@ class _PluginTile extends StatelessWidget {
                         spacing: 4,
                         runSpacing: 2,
                         children: manifest.permissions
-                            .map((p) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: cs.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    p.name,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          fontSize: 10,
-                                          color: cs.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ))
+                            .map(
+                              (p) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: cs.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  p.name,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        fontSize: 10,
+                                        color: cs.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     ],
@@ -342,13 +367,13 @@ class _PluginTile extends StatelessWidget {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Switch(
-                    value: isActive,
-                    onChanged: onToggle,
-                  ),
+                  Switch(value: isActive, onChanged: onToggle),
                   PopupMenuButton<String>(
-                    icon: Icon(Symbols.more_vert,
-                        size: 18, color: cs.onSurfaceVariant),
+                    icon: Icon(
+                      Symbols.more_vert,
+                      size: 18,
+                      color: cs.onSurfaceVariant,
+                    ),
                     onSelected: (v) {
                       if (v == 'uninstall') onUninstall();
                     },
@@ -446,10 +471,13 @@ class _PluginEditorSheet extends HookConsumerWidget {
               decoration: InputDecoration(
                 labelText: 'pluginName'.tr(),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -465,7 +493,8 @@ class _PluginEditorSheet extends HookConsumerWidget {
                 decoration: InputDecoration(
                   labelText: 'JavaScript',
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   alignLabelWithHint: true,
                   contentPadding: const EdgeInsets.all(12),
                   hintText: 'pluginCodeHint'.tr(),
@@ -480,7 +509,9 @@ class _PluginEditorSheet extends HookConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isError.value ? cs.errorContainer : cs.primaryContainer,
+                  color: isError.value
+                      ? cs.errorContainer
+                      : cs.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -489,11 +520,11 @@ class _PluginEditorSheet extends HookConsumerWidget {
                     Text(
                       isError.value ? 'Error' : 'Output',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: isError.value
-                                ? cs.onErrorContainer
-                                : cs.onPrimaryContainer,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: isError.value
+                            ? cs.onErrorContainer
+                            : cs.onPrimaryContainer,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(

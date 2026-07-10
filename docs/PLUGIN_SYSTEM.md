@@ -29,6 +29,9 @@ my_plugin/
 }
 ```
 
+A runnable dashboard-item example is included at
+`assets/scripts/examples/dashboard_status/` in the source tree.
+
 | Field | Required | Description |
 |-------|----------|-------------|
 | `id` | Yes | Unique reverse-domain identifier |
@@ -77,6 +80,8 @@ Plugins must declare which APIs they intend to use in `manifest.json`. The sandb
 | `eventsSubscribe` | `events.*`, `hooks.*` |
 | `commandsRegister` | `commands.*` |
 | `uiRender` | `ui.*` |
+| `networkInternet` | `internet.*` |
+| `solarNetworkApi` | `solar.*` |
 | `notify` | `notify()` |
 | `tasksSchedule` | `tasks.*` |
 | `sdkPostsRead` | *(future)* Read posts |
@@ -259,6 +264,75 @@ ui.section("My Section", [ui.text("Line 1"), ui.text("Line 2")]);
 
 A horizontal divider line.
 
+#### `ui.register_dashboard_item(id, title, handler, icon)`
+
+Register a configurable dashboard item. The handler is called whenever the
+item is displayed and must return a `ui.*` descriptor. Registered items appear
+in Dashboard → Customize on both narrow and expanded layouts. `id` only needs
+to be unique within the plugin; the app namespaces it by plugin ID.
+
+```javascript
+function buildStatus() {
+  return ui.card(
+    "Build status",
+    "All systems are ready.",
+    [ui.button("Refresh", "buildStatus")],
+  );
+}
+
+ui.register_dashboard_item(
+  "status",
+  "Build status",
+  "buildStatus",
+  "dashboard",
+);
+```
+
+Dashboard callbacks run in the same plugin sandbox. Return another UI
+descriptor from an action callback to replace the visible item.
+
+---
+
+### `internet`
+
+`networkInternet` grants a plugin outbound HTTP(S) access. It does not include
+cookies, app credentials, or the user's Solar Network token.
+
+#### `internet.request(method, url, options, callback)`
+
+Requests run asynchronously. `callback` is the name of a function that
+receives `{ok, status, data}` on completion, or `{ok: false, error}` if the
+request could not be made. Request headers cannot override `Authorization`,
+`Cookie`, or `Host`.
+
+```javascript
+function onStatus(response) {
+  if (response.ok) notify("Status", "Request completed");
+}
+
+internet.request("GET", "https://example.com/status", null, "onStatus");
+```
+
+### `solar`
+
+`solarNetworkApi` grants full access to the currently configured Solar Network
+API. Requests must use a relative API path; the host app attaches the current
+user token itself and never exposes it to JavaScript. This permission is
+separate from `networkInternet`.
+
+#### `solar.request(method, path, options, callback)`
+
+Uses the same asynchronous callback shape as `internet.request`.
+
+```javascript
+function onProfile(response) {
+  if (!response.ok) return;
+  notify("Solar Network", "Authenticated request completed");
+}
+
+solar.request("GET", "/sphere/accounts/me", null, "onProfile");
+```
+
 ---
 
 ### `tasks`
@@ -409,3 +483,8 @@ Check the app's log viewer (Cmd/Ctrl+K → "Log Viewer") for plugin-related log 
 - No filesystem or network access (fully sandboxed)
 - No `import` of external modules
 - Maximum of 16 simultaneous runtimes
+- `networkInternet` and `solarNetworkApi` are powerful opt-in permissions;
+  review plugins requesting them before installation.
+- Plugins whose startup load is interrupted or fails are disabled on the next
+  launch. Re-enable them manually in Settings → Plugins after reviewing the
+  plugin or its error message.

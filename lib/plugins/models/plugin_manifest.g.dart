@@ -44,6 +44,8 @@ const _$PluginPermissionEnumMap = {
   PluginPermission.eventsSubscribe: 'eventsSubscribe',
   PluginPermission.commandsRegister: 'commandsRegister',
   PluginPermission.uiRender: 'uiRender',
+  PluginPermission.networkInternet: 'networkInternet',
+  PluginPermission.solarNetworkApi: 'solarNetworkApi',
   PluginPermission.sdkPostsRead: 'sdkPostsRead',
   PluginPermission.sdkPostsCreate: 'sdkPostsCreate',
   PluginPermission.sdkChatRead: 'sdkChatRead',

@@ -10,4 +10,6 @@ export 'apis/commands_api.dart';
 export 'apis/hooks_api.dart';
 export 'apis/notify_api.dart';
 export 'apis/ui_api.dart';
+export 'apis/dashboard_api.dart';
+export 'apis/network_api.dart';
 export 'widgets/plugin_ui_bridge.dart';

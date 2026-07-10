@@ -37,6 +37,10 @@ import 'package:slide_countdown/slide_countdown.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/misc/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';
+import 'package:island/plugins/apis/dashboard_api.dart';
+import 'package:island/plugins/apis/ui_api.dart';
+import 'package:island/plugins/plugin_manager.dart';
+import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
@@ -56,6 +60,10 @@ class DashboardScreen extends HookConsumerWidget {
 class DashboardRenderer {
   // Map individual card IDs to widgets
   static Widget buildCard(String cardId, WidgetRef ref) {
+    final pluginItem = PluginManager().getApi<DashboardApi>()?.itemForLayoutId(
+      cardId,
+    );
+    if (pluginItem != null) return _PluginDashboardItem(item: pluginItem);
     switch (cardId) {
       case 'checkIn':
         return CheckInWidget(margin: EdgeInsets.zero);
@@ -81,6 +89,15 @@ class DashboardRenderer {
 
   // Map column group IDs to column widgets
   static Widget buildColumn(String columnId, WidgetRef ref) {
+    final pluginItem = PluginManager().getApi<DashboardApi>()?.itemForLayoutId(
+      columnId,
+    );
+    if (pluginItem != null) {
+      return SizedBox(
+        width: 400,
+        child: _PluginDashboardItem(item: pluginItem),
+      );
+    }
     switch (columnId) {
       case 'activityColumn':
         return SizedBox(
@@ -163,20 +180,16 @@ class DashboardGrid extends HookConsumerWidget {
       child: Stack(
         children: [
           Container(
-            constraints: BoxConstraints(
-              maxHeight: isWide
-                  ? math.min(640, MediaQuery.sizeOf(context).height * 0.65)
-                  : MediaQuery.sizeOf(context).height,
-            ),
             padding: isAuthenticated
-                ? (isWide
-                      ? EdgeInsets.only(top: devicePadding.top)
-                      : EdgeInsets.only(top: 24 + devicePadding.top))
+                ? EdgeInsets.only(
+                    top: devicePadding.top + (isWide ? 16 : 24),
+                    bottom: isWide ? 16 : 0,
+                  )
                 : EdgeInsets.zero,
             child: isAuthenticated
                 ? Column(
                     spacing: 16,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       // Clock card spans full width (only if enabled in settings)
                       if (isWide &&
@@ -280,7 +293,7 @@ class DashboardGrid extends HookConsumerWidget {
                     vertical: 8,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
@@ -303,11 +316,10 @@ class DashboardGrid extends HookConsumerWidget {
                       const Gap(16),
                       Text(
                         'dropToShare'.tr(),
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -349,7 +361,11 @@ class _DashboardGridWide extends HookConsumerWidget {
       children.add(SizedBox(width: MediaQuery.sizeOf(context).width));
     }
 
-    return Row(spacing: 16, children: children);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 16,
+      children: children,
+    );
   }
 }
 
@@ -523,14 +539,58 @@ class _DashboardGridNarrow extends HookConsumerWidget {
             backgroundColor: Theme.of(context).colorScheme.surface,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         ).padding(bottom: 80),
       ),
     );
 
-    return Column(spacing: 16, children: children);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 16,
+      children: children,
+    );
+  }
+}
+
+class _PluginDashboardItem extends StatefulWidget {
+  final PluginDashboardItem item;
+
+  const _PluginDashboardItem({required this.item});
+
+  @override
+  State<_PluginDashboardItem> createState() => _PluginDashboardItemState();
+}
+
+class _PluginDashboardItemState extends State<_PluginDashboardItem> {
+  PluginUiDescriptor? _descriptor;
+
+  @override
+  void initState() {
+    super.initState();
+    _buildItem();
+  }
+
+  void _buildItem([String? callback]) {
+    final runtime = PluginManager().plugins[widget.item.pluginId]?.runtime;
+    if (runtime == null) return;
+    final result = runtime.callFunction(callback ?? widget.item.handlerName);
+    final descriptor = switch (result) {
+      String value => PluginUiRenderer.parse(value),
+      Map value when value['type'] is String => PluginUiDescriptor(
+        type: value['type'] as String,
+        data: value.map((key, value) => MapEntry(key.toString(), value)),
+      ),
+      _ => null,
+    };
+    if (mounted) setState(() => _descriptor = descriptor);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_descriptor == null) return const SizedBox.shrink();
+    return PluginUiRenderer(descriptor: _descriptor!, onCallback: _buildItem);
   }
 }
 
@@ -877,10 +937,8 @@ class ChatListCard extends HookConsumerWidget {
                 final summaries = chatSummaries.asData?.value ?? {};
                 final sortedRooms = List<SnChatRoom>.from(rooms)
                   ..sort((a, b) {
-                    final aTime =
-                        summaries[a.id]?.lastMessage?.createdAt;
-                    final bTime =
-                        summaries[b.id]?.lastMessage?.createdAt;
+                    final aTime = summaries[a.id]?.lastMessage?.createdAt;
+                    final bTime = summaries[b.id]?.lastMessage?.createdAt;
                     if (aTime == null && bTime == null) return 0;
                     if (aTime == null) return 1;
                     if (bTime == null) return -1;

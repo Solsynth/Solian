@@ -14,6 +14,12 @@ enum PluginPermission {
   /// Return UI descriptors for rendering.
   uiRender,
 
+  /// Make unauthenticated requests to arbitrary internet hosts.
+  networkInternet,
+
+  /// Make requests to the configured Solar Network server as the signed-in user.
+  solarNetworkApi,
+
   /// Read posts.
   sdkPostsRead,
 
