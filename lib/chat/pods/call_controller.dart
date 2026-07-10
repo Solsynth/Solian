@@ -242,15 +242,10 @@ class CallController {
     _isManualDisconnect = false;
     _reconnectGraceTimer?.cancel();
 
-    if (_room != null) {
-      _isManualDisconnect = true;
-      await _room!.disconnect();
-      await _room!.dispose();
-      _isManualDisconnect = false;
-      _room = null;
-      _localParticipant = null;
-      _participants = [];
-    }
+    // A disconnected Room still owns its WebRTC audio resources.  Reusing the
+    // controller for the next CallKit call without disposing it can leave the
+    // next local audio track connected to the previous audio unit.
+    await _disposeCurrentRoom();
     try {
       await _performConnection(
         room,
@@ -686,8 +681,7 @@ class CallController {
     _cachedEndpoint = null;
     _cachedToken = null;
     if (_room != null) {
-      _isManualDisconnect = true;
-      await _room!.disconnect();
+      await _disposeCurrentRoom();
       _state = state.copyWith(
         isConnected: false,
         isReconnecting: false,
@@ -696,8 +690,30 @@ class CallController {
         isScreenSharing: false,
         reconnectAttempt: 0,
       );
-      _isManualDisconnect = false;
       WakelockPlus.disable();
+    }
+  }
+
+  Future<void> _disposeCurrentRoom() async {
+    final room = _room;
+    if (room == null) return;
+
+    _isManualDisconnect = true;
+    room.removeListener(_onConnectionStateChange);
+    _roomListener?.dispose();
+    _roomListener = null;
+    try {
+      if (!room.isDisposed) {
+        await room.disconnect();
+        await room.dispose();
+      }
+    } finally {
+      _room = null;
+      _localParticipant = null;
+      _participants = [];
+      _participantInfoByIdentity.clear();
+      participantsVolumes = {};
+      _isManualDisconnect = false;
     }
   }
 

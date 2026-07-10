@@ -197,6 +197,7 @@ import flutter_callkit_incoming
     
     func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
         print("[CallKit] onAccept: \(call.uuid)")
+        prepareCallKitAudioSession("incoming call accepted")
         storeAcceptedCall(call)
         action.fulfill()
     }
@@ -234,15 +235,20 @@ import flutter_callkit_incoming
         }
     }
 
-    private func prepareOutgoingCallAudioSession() {
+    private func prepareCallKitAudioSession(_ reason: String) {
         // CallKit activates the session after the CXStartCallAction is fulfilled.
-        // The category must already support recording at that point; otherwise an
-        // in-app call starts from the app's ambient session and WebRTC's manual
-        // audio unit remains silent even after CallKit becomes active.
-        configureCallAudioSession("outgoing call before report")
+        // The category must already support recording at that point. Reset this
+        // for every transaction: after a prior call CallKit deactivates the
+        // WebRTC audio unit, and a subsequent call otherwise has no input.
+        callKitAudioSessionActive = false
+        configureCallAudioSession(reason)
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.useManualAudio = true
         rtcSession.isAudioEnabled = false
+    }
+
+    private func prepareOutgoingCallAudioSession() {
+        prepareCallKitAudioSession("outgoing call before report")
     }
 
     private func prepareInAppLiveKitAudioSession() {
@@ -375,6 +381,9 @@ import flutter_callkit_incoming
             let objData = handleObj.getDecryptHandle()
             let nameCaller = objData["nameCaller"] as? String ?? ""
             let handle = objData["handle"] as? String ?? ""
+            guard !handle.isEmpty else {
+                return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+            }
             let roomId = handle
             let data = flutter_callkit_incoming.Data(
                 id: UUID().uuidString.lowercased(),
@@ -384,7 +393,12 @@ import flutter_callkit_incoming
             )
             data.extra = ["room_id": roomId]
             data.configureAudioSession = false
-            SwiftFlutterCallkitIncomingPlugin.sharedInstance?.startCall(data, fromPushKit: true)
+            prepareCallKitAudioSession("Phone recents callback")
+            // This is a local CallKit transaction opened from Phone recents,
+            // not a PushKit-delivered incoming call. Keeping it out of the
+            // plugin's PushKit branch ensures end/connected events use this
+            // transaction's UUID.
+            SwiftFlutterCallkitIncomingPlugin.sharedInstance?.startCall(data, fromPushKit: false)
             storeCallbackCall([
                 "id": data.uuid,
                 "nameCaller": nameCaller,
@@ -393,6 +407,7 @@ import flutter_callkit_incoming
                 "extra": ["room_id": roomId],
                 "type": isVideo ? 1 : 0,
             ])
+            return true
         }
 
         return super.application(application, continue: userActivity, restorationHandler: restorationHandler)

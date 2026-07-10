@@ -157,9 +157,17 @@ class AudioCallButton extends HookConsumerWidget {
         }
 
         if (!kIsWeb && Platform.isIOS) {
+          // A user-initiated join is an outgoing system call too.  Starting
+          // CallKit before connecting LiveKit gives iOS ownership of the audio
+          // session and puts the call in Phone's recents/call UI.
           await ref
               .read(nativeCallBridgeProvider.notifier)
-              .prepareInAppLiveKitAudioSession();
+              .startOutgoingCall(
+                roomId: room.id,
+                callerName: room.name?.trim().isNotEmpty == true
+                    ? room.name!.trim()
+                    : 'Voice Call',
+              );
         }
 
         // Open call screen with camera setting
@@ -251,7 +259,12 @@ class AudioCallButton extends HookConsumerWidget {
             if (!kIsWeb && Platform.isIOS) {
               await ref
                   .read(nativeCallBridgeProvider.notifier)
-                  .prepareInAppLiveKitAudioSession();
+                  .startOutgoingCall(
+                    roomId: room.id,
+                    callerName: room.name?.trim().isNotEmpty == true
+                        ? room.name!.trim()
+                        : 'Voice Call',
+                  );
             }
 
             await openCallScreen(
