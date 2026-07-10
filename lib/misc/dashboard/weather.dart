@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:open_meteo/open_meteo.dart';
@@ -310,6 +312,15 @@ class WeatherLocationException implements Exception {
 
 Future<({double latitude, double longitude, String label})>
 _resolveLocation() async {
+  try {
+    return await _resolveDeviceLocation();
+  } on WeatherLocationException {
+    return _resolveIpLocation();
+  }
+}
+
+Future<({double latitude, double longitude, String label})>
+_resolveDeviceLocation() async {
   final serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
     throw WeatherLocationException('weatherLocationDisabled');
@@ -335,6 +346,51 @@ _resolveLocation() async {
     longitude: position.longitude,
     label: label,
   );
+}
+
+Future<({double latitude, double longitude, String label})>
+_resolveIpLocation() async {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: kNetworkServerDefault,
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 8),
+      headers: const {'User-Agent': 'Solian/Island'},
+    ),
+  );
+
+  try {
+    final response = await dio.get<Map<String, dynamic>>('/passport/ip-check');
+    final data = response.data;
+    if (data == null) {
+      throw StateError('weatherIpLocationEmpty');
+    }
+
+    final geo = data['geo'] as Map<String, dynamic>?;
+    if (geo == null) {
+      throw StateError('weatherIpLocationMissingGeo');
+    }
+
+    final latitude = (geo['latitude'] as num?)?.toDouble();
+    final longitude = (geo['longitude'] as num?)?.toDouble();
+    if (latitude == null || longitude == null) {
+      throw StateError('weatherIpLocationMissingCoordinates');
+    }
+
+    final parts = [
+      geo['city']?.toString().trim(),
+      geo['subdivision']?.toString().trim(),
+      geo['country']?.toString().trim(),
+    ].whereType<String>().where((e) => e.isNotEmpty).toList();
+
+    final label = parts.isNotEmpty
+        ? parts.join(', ')
+        : '${latitude.toStringAsFixed(2)}°, ${longitude.toStringAsFixed(2)}°';
+
+    return (latitude: latitude, longitude: longitude, label: label);
+  } finally {
+    dio.close(force: true);
+  }
 }
 
 Future<String> _resolvePlaceName(double latitude, double longitude) async {
