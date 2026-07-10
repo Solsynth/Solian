@@ -299,7 +299,7 @@ msix_config:
   publisher_display_name: Solsynth
   publisher: CN=8B500F48-CBAA-4C83-83B2-7BB79FE401EE
   identity_name: LittleSheep.Solian
-  msix_version: 0.0.0.0
+  msix_version: 3.9.0.0
   logo_path: buildtools\icon-padded.png
   output_directory: build\msix
   trim_logo: true
