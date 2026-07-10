@@ -830,7 +830,8 @@ class AccountProfileContent extends HookConsumerWidget {
           final accountBoard = isCurrentUser
               ? ref.watch(myAccountBoardProvider).asData?.value ??
                     AccountBoard.defaultBoard()
-              : AccountBoard.defaultBoard();
+              : ref.watch(accountBoardProvider(name)).asData?.value ??
+                    AccountBoard.defaultBoard();
 
           final showActions = user.value != null && !isCurrentUser;
 

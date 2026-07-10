@@ -246,6 +246,16 @@ final myAccountBoardProvider = FutureProvider<List<AccountBoardItem>>((
   return parseAccountBoardItems(list);
 });
 
+final accountBoardProvider = FutureProvider.family<List<AccountBoardItem>, String>((
+  ref,
+  uname,
+) async {
+  final dio = ref.watch(apiClientProvider);
+  final response = await dio.get('/passport/accounts/$uname/board');
+  final list = response.data as List<dynamic>;
+  return parseAccountBoardItems(list);
+});
+
 String? _payloadStringValue(Map<String, dynamic> payload, String key) {
   final value = payload[key];
   if (value is String) return value;
