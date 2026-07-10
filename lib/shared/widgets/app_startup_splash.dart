@@ -10,7 +10,7 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/plugins/plugin_manager.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/shared/widgets/app_startup_progress.dart';
 import 'package:styled_widget/styled_widget.dart';
 

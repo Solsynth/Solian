@@ -1,5 +1,4 @@
-import 'package:island/plugins/plugin_manager.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 
 bool _isInitialized = false;
 

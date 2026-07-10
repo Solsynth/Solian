@@ -3,16 +3,17 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:island/core/config.dart';
-import 'package:island/plugins/apis/plugin_api.dart';
-import 'package:island/plugins/bridge/js_bridge.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
-import 'package:island/plugins/plugin_manager.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _log = Logger('PluginNetworkApi');
 
-/// Provides permission-gated internet and Solar Network requests to plugins.
+/// Host-specific API: permission-gated internet and Solar Network requests.
+///
+/// Lives in the Island app because it depends on the Solar Network server URL
+/// and authenticated [Dio] client. The foundation package does not know about
+/// Solar Network.
 ///
 /// Requests are asynchronous. Results are delivered to a named JavaScript
 /// callback, and the signed-in token is only ever attached by the host.
@@ -27,6 +28,28 @@ class PluginNetworkApi extends PluginApi {
     PluginPermission.networkInternet,
     PluginPermission.solarNetworkApi,
   };
+
+  @override
+  String jsBindingsFor(Set<PluginPermission> granted) {
+    final buf = StringBuffer();
+    if (granted.contains(PluginPermission.networkInternet)) {
+      buf.writeln('''
+var internet = {};
+internet.request = function(method, url, options, callback) {
+  sendMessage("api:internet:request", JSON.stringify({method: method, url: url, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));
+};
+''');
+    }
+    if (granted.contains(PluginPermission.solarNetworkApi)) {
+      buf.writeln('''
+var solar = {};
+solar.request = function(method, path, options, callback) {
+  sendMessage("api:solar:request", JSON.stringify({method: method, url: path, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));
+};
+''');
+    }
+    return buf.toString();
+  }
 
   @override
   void register(JsRuntime runtime) {

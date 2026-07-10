@@ -27,7 +27,7 @@ import "package:island/accounts/account_pod.dart";
 import "package:island/accounts/screens/profile.dart";
 import "package:logging/logging.dart";
 import "package:island/shared/widgets/alert.dart";
-import "package:island/plugins/plugin_hooks.dart";
+import "package:island_plugin_foundation/island_plugin_foundation.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import 'package:solar_network_sdk/solar_network_sdk.dart';

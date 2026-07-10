@@ -3,8 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/plugins/plugin_manager.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -36,11 +35,9 @@ class PluginManagerContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = useMemoized(() => PluginManager());
-    final refreshKey = useState(0);
-    final plugins = useMemoized(() => manager.plugins, [refreshKey.value]);
-
-    void refresh() => refreshKey.value++;
+    final controller = useMemoized(() => PluginController.instance);
+    useListenable(controller);
+    final plugins = controller.plugins;
 
     if (plugins.isEmpty) {
       return Center(
@@ -71,14 +68,13 @@ class PluginManagerContent extends HookConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 FilledButton.tonalIcon(
-                  onPressed: () => _openEditor(context, manager, refresh),
+                  onPressed: () => _openEditor(context, controller),
                   icon: const Icon(Symbols.add, size: 18),
                   label: Text('newPlugin'.tr()),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
-                  onPressed: () =>
-                      _installFromFolder(context, manager, refresh),
+                  onPressed: () => _installFromFolder(context, controller),
                   icon: const Icon(Symbols.folder_open, size: 18),
                   label: Text('fromFolder'.tr()),
                 ),
@@ -107,21 +103,20 @@ class PluginManagerContent extends HookConsumerWidget {
               ),
               IconButton(
                 onPressed: () async {
-                  await manager.reload();
-                  refresh();
+                  await controller.reload();
                 },
                 icon: const Icon(Symbols.refresh, size: 20),
                 tooltip: 'reloadPlugins'.tr(),
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
-                onPressed: () => _installFromFolder(context, manager, refresh),
+                onPressed: () => _installFromFolder(context, controller),
                 icon: const Icon(Symbols.folder_open, size: 20),
                 tooltip: 'installFromFolder'.tr(),
                 visualDensity: VisualDensity.compact,
               ),
               FilledButton.tonalIcon(
-                onPressed: () => _openEditor(context, manager, refresh),
+                onPressed: () => _openEditor(context, controller),
                 icon: const Icon(Symbols.add, size: 18),
                 label: Text('new'.tr()),
                 style: FilledButton.styleFrom(
@@ -144,12 +139,11 @@ class PluginManagerContent extends HookConsumerWidget {
                 instance: entry.value,
                 onToggle: (enabled) async {
                   if (enabled) {
-                    await manager.enablePlugin(entry.key);
-                    await manager.loadPlugin(entry.key);
+                    await controller.enablePlugin(entry.key);
+                    await controller.loadPlugin(entry.key);
                   } else {
-                    manager.disablePlugin(entry.key);
+                    controller.disablePlugin(entry.key);
                   }
-                  refresh();
                 },
                 onUninstall: () async {
                   final confirm = await showConfirmAlert(
@@ -161,8 +155,7 @@ class PluginManagerContent extends HookConsumerWidget {
                     isDanger: true,
                   );
                   if (confirm) {
-                    await manager.uninstallPlugin(entry.key);
-                    refresh();
+                    await controller.uninstallPlugin(entry.key);
                   }
                 },
               );
@@ -175,16 +168,12 @@ class PluginManagerContent extends HookConsumerWidget {
 
   // -- Editor sheet ----------------------------------------------------------
 
-  void _openEditor(
-    BuildContext context,
-    PluginManager manager,
-    VoidCallback onDone,
-  ) {
+  void _openEditor(BuildContext context, PluginController controller) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => _PluginEditorSheet(manager: manager, onSaved: onDone),
+      builder: (_) => _PluginEditorSheet(controller: controller),
     );
   }
 
@@ -192,28 +181,22 @@ class PluginManagerContent extends HookConsumerWidget {
 
   Future<void> _installFromFolder(
     BuildContext context,
-    PluginManager manager,
-    VoidCallback onDone,
+    PluginController controller,
   ) async {
     final result = await FilePicker.getDirectoryPath(
       dialogTitle: 'selectPluginFolder'.tr(),
     );
     if (result == null) return;
 
-    final installed = await manager.installFromFolder(result);
-    if (installed) {
-      onDone();
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('pluginInstalled'.tr())));
-      }
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('invalidPluginFolder'.tr())));
-      }
+    final installed = await controller.installFromFolder(result);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            installed ? 'pluginInstalled'.tr() : 'invalidPluginFolder'.tr(),
+          ),
+        ),
+      );
     }
   }
 }
@@ -399,10 +382,9 @@ class _PluginTile extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _PluginEditorSheet extends HookConsumerWidget {
-  final PluginManager manager;
-  final VoidCallback onSaved;
+  final PluginController controller;
 
-  const _PluginEditorSheet({required this.manager, required this.onSaved});
+  const _PluginEditorSheet({required this.controller});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -425,8 +407,8 @@ class _PluginEditorSheet extends HookConsumerWidget {
                   isError.value = false;
 
                   try {
-                    await manager.initialize();
-                    final instance = manager.installInlinePlugin(
+                    await controller.initialize();
+                    final instance = controller.installInlinePlugin(
                       name: nameController.text,
                       source: codeController.text,
                       permissions: PluginPermission.values,
@@ -435,7 +417,6 @@ class _PluginEditorSheet extends HookConsumerWidget {
                     if (instance.state == PluginState.active) {
                       output.value = 'pluginLoadedSuccessfully'.tr();
                       isError.value = false;
-                      onSaved();
                     } else {
                       output.value = instance.lastError ?? 'unknownError'.tr();
                       isError.value = true;

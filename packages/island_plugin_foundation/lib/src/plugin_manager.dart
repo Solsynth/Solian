@@ -1,20 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
+import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
 import 'package:logging/logging.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:island/plugins/bridge/js_bridge.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
-import 'package:island/plugins/apis/plugin_api.dart';
-import 'package:island/plugins/apis/hooks_api.dart';
-import 'package:island/plugins/apis/commands_api.dart';
-import 'package:island/plugins/apis/events_api.dart';
-import 'package:island/plugins/apis/dashboard_api.dart';
-import 'package:island/plugins/background_runner.dart';
 
 final _log = Logger('PluginManager');
 
@@ -39,6 +34,9 @@ class PluginInstance {
 }
 
 /// Manages plugin discovery, loading, lifecycle, and sandbox enforcement.
+///
+/// Host apps register domain-specific [PluginApi]s (dashboard, network, notify,
+/// …) via [registerApi]. Prefer [PluginController] for UI-facing state.
 class PluginManager {
   static final PluginManager _instance = PluginManager._();
   factory PluginManager() => _instance;
@@ -47,11 +45,17 @@ class PluginManager {
   final JsBridge _bridge = JsBridge.instance;
   final Map<String, PluginInstance> _plugins = {};
   final Map<String, PluginApi> _apis = {};
+  final List<void Function()> _listeners = [];
   bool _initialized = false;
   int _inlineCounter = 0;
 
+  /// Optional asset prefix for bundled scripts (default: `assets/scripts/`).
+  String bundledScriptsPrefix = 'assets/scripts/';
+
+  /// Optional subdirectory name under the app support dir (default: `plugins`).
+  String pluginsDirectoryName = 'plugins';
+
   /// The plugin ID of the currently loading plugin (set during registration).
-  /// Used by API callbacks to identify which plugin is registering.
   String? _activePluginId;
 
   /// Get the currently active plugin ID (public accessor for API callbacks).
@@ -59,6 +63,28 @@ class PluginManager {
 
   /// All loaded plugin instances.
   Map<String, PluginInstance> get plugins => Map.unmodifiable(_plugins);
+
+  /// Whether [initialize] has completed.
+  bool get isInitialized => _initialized;
+
+  /// Registered API namespaces.
+  Map<String, PluginApi> get apis => Map.unmodifiable(_apis);
+
+  /// Subscribe to plugin state changes (load/unload/enable/disable/install).
+  void addListener(void Function() listener) => _listeners.add(listener);
+
+  /// Remove a previously added listener.
+  void removeListener(void Function() listener) => _listeners.remove(listener);
+
+  void _notifyListeners() {
+    for (final listener in List.of(_listeners)) {
+      try {
+        listener();
+      } catch (e) {
+        _log.warning('PluginManager listener failed: $e');
+      }
+    }
+  }
 
   /// Register an API bridge that plugins can access based on permissions.
   void registerApi(String namespace, PluginApi api) {
@@ -93,25 +119,25 @@ class PluginManager {
     }
   }
 
-  /// Initialize the plugin manager and load all plugins.
+  /// Initialize the plugin manager and discover plugins (does not load them).
   Future<void> initialize() async {
     if (_initialized) return;
 
-    // Discover and load plugins from all sources
     await _discoverPlugins();
     await _restoreStartupSafeguards();
 
     _initialized = true;
     _log.info('Plugin manager initialized with ${_plugins.length} plugins');
+    _notifyListeners();
   }
 
-  /// Discover plugins from local filesystem and bundled assets.
   Future<void> _discoverPlugins() async {
-    // 1. Load from app plugins directory
     if (!kIsWeb) {
       try {
         final appDir = await getApplicationSupportDirectory();
-        final pluginsDir = Directory(path.join(appDir.path, 'plugins'));
+        final pluginsDir = Directory(
+          path.join(appDir.path, pluginsDirectoryName),
+        );
         if (await pluginsDir.exists()) {
           await _discoverFromDirectory(pluginsDir);
         }
@@ -120,7 +146,6 @@ class PluginManager {
       }
     }
 
-    // 2. Load bundled init scripts from assets
     try {
       await _loadBundledScripts();
     } catch (e) {
@@ -128,7 +153,6 @@ class PluginManager {
     }
   }
 
-  /// Scan a directory for plugin subdirectories containing manifest.json.
   Future<void> _discoverFromDirectory(Directory dir) async {
     await for (final entity in dir.list()) {
       if (entity is! Directory) continue;
@@ -150,9 +174,6 @@ class PluginManager {
     }
   }
 
-  /// Quarantine a plugin whose previous load was interrupted by an app crash.
-  /// The marker is written before executing plugin code and only cleared after
-  /// successful activation, so the next launch can avoid loading it again.
   Future<void> _restoreStartupSafeguards() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -227,6 +248,7 @@ class PluginManager {
     } catch (e) {
       _log.warning('Failed to persist plugin quarantine: $e');
     }
+    _notifyListeners();
   }
 
   Future<void> _removeStartupDisabled(String pluginId) async {
@@ -243,7 +265,7 @@ class PluginManager {
     }
   }
 
-  /// Load bundled JavaScript scripts from assets/scripts/.
+  /// Load bundled JavaScript scripts from [bundledScriptsPrefix].
   Future<void> _loadBundledScripts() async {
     try {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -251,7 +273,7 @@ class PluginManager {
       final scripts =
           allAssets
               .where(
-                (a) => a.startsWith('assets/scripts/') && a.endsWith('.js'),
+                (a) => a.startsWith(bundledScriptsPrefix) && a.endsWith('.js'),
               )
               .toList()
             ..sort();
@@ -285,14 +307,11 @@ class PluginManager {
     try {
       await _markPluginLoadPending(pluginId);
 
-      // Create a dedicated JS runtime for this plugin
       final runtimeName = 'plugin:$pluginId';
       instance.runtime = _bridge.createRuntime(runtimeName);
 
-      // Register sandboxed APIs based on permissions
       _registerPluginApis(instance);
 
-      // Execute the plugin entry point
       final entryPath = path.join(
         instance.directoryPath,
         instance.manifest.entry,
@@ -319,12 +338,12 @@ class PluginManager {
         return false;
       }
 
-      // Call on_load() if defined
       _callPluginHook(instance, 'on_load');
 
       instance.state = PluginState.active;
       await _clearPluginLoadPending(pluginId);
       _log.info('Plugin activated: $pluginId');
+      _notifyListeners();
       return true;
     } catch (e) {
       await _quarantinePlugin(instance, e.toString());
@@ -343,18 +362,16 @@ class PluginManager {
       _callPluginHook(instance, 'on_unload');
     } catch (_) {}
 
-    // Clean up registered hooks, commands, and events
-    getApi<HooksApi>()?.clearHooks(pluginId);
-    getApi<CommandsApi>()?.clearCommands(pluginId);
-    getApi<EventsApi>()?.clearHandlers(pluginId);
-    getApi<DashboardApi>()?.clearItems(pluginId);
+    for (final api in _apis.values) {
+      api.onPluginUnload(pluginId);
+    }
 
-    // Dispose the JS runtime via bridge (single point of disposal)
     _bridge.disposeRuntime('plugin:$pluginId');
     instance.runtime = null;
     instance.state = PluginState.discovered;
     instance.lastError = null;
     _log.info('Plugin unloaded: $pluginId');
+    _notifyListeners();
   }
 
   /// Disable a plugin (prevents loading until re-enabled).
@@ -364,6 +381,7 @@ class PluginManager {
 
     unloadPlugin(pluginId);
     instance.state = PluginState.disabled;
+    _notifyListeners();
   }
 
   /// Re-enable a plugin that was disabled manually or by the startup safeguard.
@@ -375,6 +393,7 @@ class PluginManager {
     instance.state = PluginState.discovered;
     instance.lastError = null;
     await _removeStartupDisabled(pluginId);
+    _notifyListeners();
   }
 
   /// Load all discovered plugins.
@@ -393,7 +412,6 @@ class PluginManager {
   /// Re-discover plugins from all sources and load them.
   /// Returns the number of newly discovered plugins.
   Future<int> reload() async {
-    // Safely unload all active plugins first to avoid JSContext crashes.
     for (final id in _plugins.keys.toList()) {
       unloadPlugin(id);
     }
@@ -403,11 +421,11 @@ class PluginManager {
     await initialize();
     await loadAll();
     _log.info('Reloaded plugins: ${_plugins.length} total');
+    _notifyListeners();
     return _plugins.length;
   }
 
   /// Install a plugin from an arbitrary local folder path.
-  /// Validates that the folder contains a manifest.json.
   Future<bool> installFromFolder(String folderPath) async {
     final dir = Directory(folderPath);
     if (!await dir.exists()) {
@@ -437,15 +455,15 @@ class PluginManager {
       final json = jsonDecode(await manifestFile.readAsString());
       final manifest = PluginManifest.fromJson(json as Map<String, dynamic>);
 
-      // If already installed, unload the old one first
       if (_plugins.containsKey(manifest.id)) {
         _log.info('Plugin already installed, replacing: ${manifest.id}');
         uninstallPlugin(manifest.id);
       }
 
-      // Copy to plugins directory
       final appDir = await getApplicationSupportDirectory();
-      final destDir = Directory(path.join(appDir.path, 'plugins', manifest.id));
+      final destDir = Directory(
+        path.join(appDir.path, pluginsDirectoryName, manifest.id),
+      );
 
       if (await destDir.exists()) {
         await destDir.delete(recursive: true);
@@ -461,7 +479,6 @@ class PluginManager {
         }
       }
 
-      // Register the plugin
       _plugins[manifest.id] = PluginInstance(
         manifest: manifest,
         directoryPath: destDir.path,
@@ -469,6 +486,7 @@ class PluginManager {
       );
 
       _log.info('Installed plugin: ${manifest.id}');
+      _notifyListeners();
       return true;
     } catch (e) {
       _log.severe('Failed to install plugin: $e');
@@ -495,10 +513,10 @@ class PluginManager {
     _plugins.remove(pluginId);
     await _removeStartupDisabled(pluginId);
     _log.info('Uninstalled plugin: $pluginId');
+    _notifyListeners();
   }
 
   /// Install a plugin from an inline JavaScript source string.
-  /// Creates a temporary plugin with a generated ID.
   PluginInstance installInlinePlugin({
     required String name,
     required String source,
@@ -520,12 +538,10 @@ class PluginManager {
     );
     _plugins[pluginId] = instance;
 
-    // Create runtime and register APIs
     final runtimeName = 'plugin:$pluginId';
     instance.runtime = _bridge.createRuntime(runtimeName);
     _registerPluginApis(instance);
 
-    // Execute inline source
     _activePluginId = pluginId;
     final result = instance.runtime!.execWithOutput(
       source,
@@ -543,6 +559,7 @@ class PluginManager {
       _log.severe('Inline plugin failed: $pluginId - ${instance.lastError}');
     }
 
+    _notifyListeners();
     return instance;
   }
 
@@ -552,230 +569,48 @@ class PluginManager {
     if (runtime == null) return;
     final perms = instance.manifest.permissions.toSet();
 
-    // Set the active plugin ID so API callbacks can identify the plugin
     _activePluginId = instance.manifest.id;
 
     for (final entry in _apis.entries) {
       final api = entry.value;
 
-      // Check if this API requires any permission
       if (api.requiredPermissions.isEmpty ||
           api.requiredPermissions.any(perms.contains)) {
         api.register(runtime);
       }
     }
 
-    // Create namespace objects so JS code can call e.g. commands.register_command()
-    _createApiNamespaces(instance);
-
-    // Register the plugin's own metadata
+    _createApiNamespaces(instance, perms);
     _registerPluginMetadata(instance);
 
     _activePluginId = null;
   }
 
-  /// Create JavaScript namespace objects for each registered API.
-  /// After this, plugin code can use `commands.register_command(...)` etc.
-  void _createApiNamespaces(PluginInstance instance) {
+  /// Create JavaScript namespace objects from each registered API's bindings.
+  void _createApiNamespaces(
+    PluginInstance instance,
+    Set<PluginPermission> perms,
+  ) {
     final runtime = instance.runtime;
     if (runtime == null) return;
 
-    // Build JS code that creates namespace objects with wrapper functions.
-    // sendMessage channels are the bridge; this creates ergonomic JS wrappers.
     final buf = StringBuffer();
-
-    buf.writeln('var hooks = {};');
-    buf.writeln('hooks.before_post_create = function(handler) {');
-    buf.writeln(
-      '  sendMessage("api:hooks:before_post_create", JSON.stringify({handler: handler.name || handler.toString()}));',
-    );
-    buf.writeln('};');
-    buf.writeln('hooks.before_message_send = function(handler) {');
-    buf.writeln(
-      '  sendMessage("api:hooks:before_message_send", JSON.stringify({handler: handler.name || handler.toString()}));',
-    );
-    buf.writeln('};');
-    buf.writeln('hooks.before_post_display = function(handler) {');
-    buf.writeln(
-      '  sendMessage("api:hooks:before_post_display", JSON.stringify({handler: handler.name || handler.toString()}));',
-    );
-    buf.writeln('};');
-    buf.writeln('hooks.before_message_display = function(handler) {');
-    buf.writeln(
-      '  sendMessage("api:hooks:before_message_display", JSON.stringify({handler: handler.name || handler.toString()}));',
-    );
-    buf.writeln('};');
-
-    buf.writeln('var commands = {};');
-    buf.writeln(
-      'commands.register_command = function(name, description, handler, icon) {',
-    );
-    buf.writeln(
-      '  sendMessage("api:commands:register_command", JSON.stringify({name: name, description: description, handler: handler, icon: icon || null}));',
-    );
-    buf.writeln('};');
-
-    buf.writeln('var events = {};');
-    buf.writeln('events.subscribe = function(eventName, handler) {');
-    buf.writeln(
-      '  sendMessage("api:events:subscribe", JSON.stringify({event: eventName, handler: handler}));',
-    );
-    buf.writeln('};');
-    buf.writeln('events.list_events = function() {');
-    buf.writeln('  return sendMessage("api:events:list_events", "[]");');
-    buf.writeln('};');
-
-    buf.writeln('function notify(title, body) {');
-    buf.writeln(
-      '  sendMessage("api:notify", JSON.stringify({title: title, body: body}));',
-    );
-    buf.writeln('}');
-    buf.writeln('function showAlert(message, title) {');
-    buf.writeln(
-      '  sendMessage("api:alert:show_alert", JSON.stringify({message: message, title: title || "Info"}));',
-    );
-    buf.writeln('}');
-    buf.writeln('function showError(message) {');
-    buf.writeln(
-      '  sendMessage("api:alert:show_error", JSON.stringify({message: message}));',
-    );
-    buf.writeln('}');
-    buf.writeln('function showConfirm(message, title) {');
-    buf.writeln(
-      '  sendMessage("api:alert:show_confirm", JSON.stringify({message: message, title: title || "Confirm"}));',
-    );
-    buf.writeln('}');
-
-    buf.writeln('var ui = {};');
-    buf.writeln('ui.card = function(title, body, actions) {');
-    buf.writeln(
-      '  var result = sendMessage("api:ui:card", JSON.stringify({title: title, body: body, actions: actions || []}));',
-    );
-    buf.writeln('  return result;');
-    buf.writeln('};');
-    buf.writeln('ui.list_items = function(items) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:list_items", JSON.stringify({items: items}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.button = function(label, callback) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:button", JSON.stringify({label: label, callback: callback || null}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.text = function(content) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:text", JSON.stringify({content: content}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.section = function(title, children) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:section", JSON.stringify({title: title, children: children || []}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.divider = function() {');
-    buf.writeln('  return sendMessage("api:ui:divider", "{}");');
-    buf.writeln('};');
-    buf.writeln(
-      'ui.register_dashboard_item = function(id, title, handler, icon) {',
-    );
-    buf.writeln(
-      '  sendMessage("api:ui:register_dashboard_item", JSON.stringify({id: id, title: title, handler: handler, icon: icon || null}));',
-    );
-    buf.writeln('};');
-
-    buf.writeln('ui.page = function(title, child) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:page", JSON.stringify({title: title, child: child}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.row = function(children) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:row", JSON.stringify({children: children || []}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.column = function(children) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:column", JSON.stringify({children: children || []}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.spacing = function(size) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:spacing", JSON.stringify({size: size}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.icon = function(name, size) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:icon", JSON.stringify({name: name, size: size}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.link = function(label, url) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:link", JSON.stringify({label: label, url: url}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.input = function(label, hint, callback) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:input", JSON.stringify({label: label, hint: hint, callback: callback}));',
-    );
-    buf.writeln('};');
-
-    buf.writeln('ui.cloud_file = function(id, fit) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:cloud_file", JSON.stringify({id: id, fit: fit}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.image = function(url, fit) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:image", JSON.stringify({url: url, fit: fit}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.audio = function(url, filename, autoplay) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:audio", JSON.stringify({url: url, filename: filename, autoplay: autoplay}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.video = function(url, aspectRatio, autoplay) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:video", JSON.stringify({url: url, aspectRatio: aspectRatio, autoplay: autoplay}));',
-    );
-    buf.writeln('};');
-    buf.writeln('ui.plugin_asset = function(path, kind, fit) {');
-    buf.writeln(
-      '  return sendMessage("api:ui:plugin_asset", JSON.stringify({path: path, kind: kind, fit: fit}));',
-    );
-    buf.writeln('};');
-
-    buf.writeln('var internet = {};');
-    buf.writeln(
-      'internet.request = function(method, url, options, callback) {',
-    );
-    buf.writeln(
-      '  sendMessage("api:internet:request", JSON.stringify({method: method, url: url, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));',
-    );
-    buf.writeln('};');
-    buf.writeln('var solar = {};');
-    buf.writeln('solar.request = function(method, path, options, callback) {');
-    buf.writeln(
-      '  sendMessage("api:solar:request", JSON.stringify({method: method, url: path, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));',
-    );
-    buf.writeln('};');
-
-    buf.writeln('var tasks = {};');
-    buf.writeln('tasks.schedule = function(intervalSeconds, handler) {');
-    buf.writeln(
-      '  sendMessage("api:tasks:schedule", JSON.stringify({interval: intervalSeconds, handler: handler}));',
-    );
-    buf.writeln('};');
+    for (final api in _apis.values) {
+      if (api.requiredPermissions.isEmpty ||
+          api.requiredPermissions.any(perms.contains)) {
+        buf.write(api.jsBindingsFor(perms));
+      }
+    }
 
     final code = buf.toString();
+    if (code.isEmpty) return;
+
     final ok = runtime.exec(code, filename: '<api_namespaces>');
     if (!ok) {
       _log.warning('Failed to create API namespaces');
     }
   }
 
-  /// Register plugin metadata as read-only globals in the runtime.
   void _registerPluginMetadata(PluginInstance instance) {
     final runtime = instance.runtime;
     if (runtime == null) return;
@@ -783,12 +618,10 @@ class PluginManager {
     runtime.setGlobal('__plugin_id__', instance.manifest.id);
   }
 
-  /// Call a named hook function in a plugin's runtime, if it exists.
   void _callPluginHook(PluginInstance instance, String hookName) {
     final runtime = instance.runtime;
     if (runtime == null) return;
 
-    // Use bracket notation so names with dots (e.g. "on_message.received") work.
     final escaped = _jsStringLiteral(hookName);
     runtime.exec(
       'if (typeof globalThis[$escaped] === "function") { globalThis[$escaped](); }',
@@ -806,11 +639,9 @@ class PluginManager {
         continue;
       }
 
-      // Fire lifecycle hook (e.g. on_message.received)
       _callPluginHook(instance, 'on_$eventName');
 
       if (data != null) {
-        // Call handle_<event> with data argument — use bracket notation for dotted names
         final handlerName = 'handle_$eventName';
         final runtime = instance.runtime;
         if (runtime != null) {
@@ -825,7 +656,6 @@ class PluginManager {
     }
   }
 
-  /// Escape a string for use as a JavaScript string literal.
   String _jsStringLiteral(String s) {
     return "'${s.replaceAll("\\", "\\\\").replaceAll("'", "\\'").replaceAll("\n", "\\n").replaceAll("\r", "\\r")}'";
   }
@@ -836,20 +666,17 @@ class PluginManager {
       unloadPlugin(id);
     }
     _plugins.clear();
+    for (final api in _apis.values) {
+      api.reset();
+    }
     _apis.clear();
     _initialized = false;
     _inlineCounter = 0;
     _activePluginId = null;
 
-    // Clear static state on API classes
-    HooksApi.reset();
-    CommandsApi.reset();
-    EventsApi.reset();
-    BackgroundTaskApi.reset();
-
-    // Dispose all JS runtimes
     _bridge.disposeAll();
 
     _log.info('PluginManager disposed');
+    _notifyListeners();
   }
 }

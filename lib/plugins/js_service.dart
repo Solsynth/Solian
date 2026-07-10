@@ -1,2 +1,2 @@
-export 'plugin_manager.dart';
-export 'models/plugin_manifest.dart';
+export 'js_service_stub.dart'
+    if (dart.library.io) 'js_service_native.dart';

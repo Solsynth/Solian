@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
+import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/src/plugin_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:island/plugins/bridge/js_bridge.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
-import 'package:island/plugins/apis/plugin_api.dart';
-import 'package:island/plugins/plugin_manager.dart';
 
 final _log = Logger('BackgroundRunner');
 
@@ -28,7 +29,7 @@ class PluginBackgroundTask {
 /// Exposes background task scheduling to JavaScript plugins.
 ///
 /// Provides:
-/// - `tasks.schedule(interval_seconds, handler_name)` - schedule a periodic task
+/// - `tasks.schedule(interval_seconds, handler_name)` — schedule a periodic task
 class BackgroundTaskApi extends PluginApi {
   final List<PluginBackgroundTask> _tasks = [];
 
@@ -39,9 +40,18 @@ class BackgroundTaskApi extends PluginApi {
       {PluginPermission.tasksSchedule};
 
   @override
-  void register(JsRuntime runtime) {
-    _activeInstance = this;
+  String jsBindingsFor(Set<PluginPermission> granted) {
+    if (!granted.contains(PluginPermission.tasksSchedule)) return '';
+    return '''
+var tasks = {};
+tasks.schedule = function(intervalSeconds, handler) {
+  sendMessage("api:tasks:schedule", JSON.stringify({interval: intervalSeconds, handler: handler}));
+};
+''';
+  }
 
+  @override
+  void register(JsRuntime runtime) {
     runtime.onMessage('api:tasks:schedule', (args) {
       try {
         final data = args is String ? jsonDecode(args) : args;
@@ -63,22 +73,18 @@ class BackgroundTaskApi extends PluginApi {
           _executeTask(task);
         });
 
-        _activeInstance?._tasks.add(task);
-        _log.info('Plugin $pluginId scheduled task: $handlerName every ${intervalSeconds}s');
+        _tasks.add(task);
+        _log.info(
+          'Plugin $pluginId scheduled task: $handlerName every ${intervalSeconds}s',
+        );
       } catch (e) {
         _log.warning('Failed to schedule task: $e');
       }
     });
   }
 
-  static BackgroundTaskApi? _activeInstance;
-
-  static void reset() {
-    _activeInstance = null;
-  }
-
   static void _executeTask(PluginBackgroundTask task) {
-    if (task.running) return; // Skip if previous run still going
+    if (task.running) return;
     task.running = true;
 
     try {
@@ -87,11 +93,12 @@ class BackgroundTaskApi extends PluginApi {
       final runtime = instance?.runtime;
 
       if (runtime == null) {
-        _log.warning('Task handler ${task.handlerName}: no runtime for plugin ${task.pluginId}');
+        _log.warning(
+          'Task handler ${task.handlerName}: no runtime for plugin ${task.pluginId}',
+        );
         return;
       }
 
-      // Execute with a timeout
       final completer = Completer<void>();
       final timer = Timer(const Duration(seconds: 30), () {
         if (!completer.isCompleted) {
@@ -117,6 +124,11 @@ class BackgroundTaskApi extends PluginApi {
     }
   }
 
+  @override
+  void onPluginUnload(String pluginId) {
+    cancelTasks(pluginId);
+  }
+
   /// Cancel all tasks for a specific plugin.
   void cancelTasks(String pluginId) {
     final toRemove = _tasks.where((t) => t.pluginId == pluginId).toList();
@@ -134,9 +146,8 @@ class BackgroundTaskApi extends PluginApi {
     _tasks.clear();
   }
 
-  /// Dispose and clean up.
-  void dispose() {
+  @override
+  void reset() {
     cancelAll();
-    _activeInstance = null;
   }
 }

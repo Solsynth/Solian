@@ -1,9 +1,10 @@
 import 'dart:convert';
+
+import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
+import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/src/plugin_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:island/plugins/bridge/js_bridge.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
-import 'package:island/plugins/apis/plugin_api.dart';
-import 'package:island/plugins/plugin_manager.dart';
 
 final _log = Logger('CommandsApi');
 
@@ -27,7 +28,7 @@ class PluginCommand {
 /// Exposes command registration to JavaScript plugins.
 ///
 /// Provides:
-/// - `commands.register_command(name, description, handler, icon=None)` - register a command
+/// - `commands.register_command(name, description, handler, icon=None)`
 class CommandsApi extends PluginApi {
   final List<PluginCommand> _commands = [];
 
@@ -39,9 +40,18 @@ class CommandsApi extends PluginApi {
       {PluginPermission.commandsRegister};
 
   @override
-  void register(JsRuntime runtime) {
-    _activeInstance = this;
+  String jsBindingsFor(Set<PluginPermission> granted) {
+    if (!granted.contains(PluginPermission.commandsRegister)) return '';
+    return '''
+var commands = {};
+commands.register_command = function(name, description, handler, icon) {
+  sendMessage("api:commands:register_command", JSON.stringify({name: name, description: description, handler: handler, icon: icon || null}));
+};
+''';
+  }
 
+  @override
+  void register(JsRuntime runtime) {
     runtime.onMessage('api:commands:register_command', (args) {
       try {
         final data = args is String ? jsonDecode(args) : args;
@@ -54,13 +64,15 @@ class CommandsApi extends PluginApi {
 
         final pluginId = PluginManager.activePluginId ?? 'unknown';
 
-        _activeInstance?._commands.add(PluginCommand(
-          pluginId: pluginId,
-          name: name,
-          description: description,
-          handlerName: handler,
-          icon: icon,
-        ));
+        _commands.add(
+          PluginCommand(
+            pluginId: pluginId,
+            name: name,
+            description: description,
+            handlerName: handler,
+            icon: icon,
+          ),
+        );
 
         _log.info('Plugin $pluginId registered command: $name -> $handler');
       } catch (e) {
@@ -69,21 +81,19 @@ class CommandsApi extends PluginApi {
     });
   }
 
-  static CommandsApi? _activeInstance;
-
-  static void reset() {
-    _activeInstance = null;
-  }
-
   /// Execute a plugin command. Returns the result from the handler.
   Object? executeCommand(PluginCommand command, JsRuntime runtime) {
     try {
-      final result = runtime.callFunction(command.handlerName);
-      return result;
+      return runtime.callFunction(command.handlerName);
     } catch (e) {
       _log.warning('Command ${command.name} failed: $e');
       return null;
     }
+  }
+
+  @override
+  void onPluginUnload(String pluginId) {
+    clearCommands(pluginId);
   }
 
   /// Clear commands for a specific plugin.
@@ -94,5 +104,10 @@ class CommandsApi extends PluginApi {
   /// Clear all commands.
   void clearAll() {
     _commands.clear();
+  }
+
+  @override
+  void reset() {
+    clearAll();
   }
 }

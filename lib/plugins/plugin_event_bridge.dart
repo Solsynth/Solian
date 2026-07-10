@@ -1,14 +1,14 @@
 import 'dart:async';
-import 'package:logging/logging.dart';
+
 import 'package:island/core/services/event_bus.dart' as app;
-import 'package:island/plugins/plugin_manager.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
+import 'package:logging/logging.dart';
 
 final _log = Logger('PluginEventBridge');
 
 /// Bridges the app's event bus to the plugin system.
 ///
-/// Listens to app events and forwards them to plugins that have subscribed.
+/// Host-specific: depends on Island's [app.eventBus] event types.
 class PluginEventBridge {
   static final PluginEventBridge _instance = PluginEventBridge._();
   factory PluginEventBridge() => _instance;
@@ -80,11 +80,11 @@ class PluginEventBridge {
     );
   }
 
-  /// Forward an event to all subscribed plugins.
   void _dispatch(String eventName, [Map<String, dynamic>? data]) {
     final manager = PluginManager();
-    final hasActive = manager.plugins.values
-        .any((p) => p.state == PluginState.active);
+    final hasActive = manager.plugins.values.any(
+      (p) => p.state == PluginState.active,
+    );
 
     if (!hasActive) return;
 
@@ -101,6 +101,5 @@ class PluginEventBridge {
     _log.info('Plugin event bridge deactivated');
   }
 
-  /// Whether the bridge is currently active.
   bool get isActive => _active;
 }

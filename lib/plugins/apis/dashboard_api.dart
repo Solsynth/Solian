@@ -1,9 +1,6 @@
 import 'dart:convert';
 
-import 'package:island/plugins/apis/plugin_api.dart';
-import 'package:island/plugins/bridge/js_bridge.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
-import 'package:island/plugins/plugin_manager.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('DashboardApi');
@@ -28,7 +25,10 @@ class PluginDashboardItem {
   String get layoutId => 'plugin:$pluginId:$id';
 }
 
-/// Lets plugins register descriptor-based items for the dashboard.
+/// Host-specific API: plugins register descriptor-based dashboard items.
+///
+/// Lives in the Island app (not the foundation package) because it is tied to
+/// the Solian dashboard layout system.
 class DashboardApi extends PluginApi {
   final List<PluginDashboardItem> _items = [];
 
@@ -43,6 +43,18 @@ class DashboardApi extends PluginApi {
 
   @override
   Set<PluginPermission> get requiredPermissions => {PluginPermission.uiRender};
+
+  @override
+  String jsBindingsFor(Set<PluginPermission> granted) {
+    if (!granted.contains(PluginPermission.uiRender)) return '';
+    // Extend the `ui` object created by foundation UiApi (or create it).
+    return '''
+var ui = ui || {};
+ui.register_dashboard_item = function(id, title, handler, icon) {
+  sendMessage("api:ui:register_dashboard_item", JSON.stringify({id: id, title: title, handler: handler, icon: icon || null}));
+};
+''';
+  }
 
   @override
   void register(JsRuntime runtime) {
@@ -81,6 +93,16 @@ class DashboardApi extends PluginApi {
     });
   }
 
+  @override
+  void onPluginUnload(String pluginId) {
+    clearItems(pluginId);
+  }
+
   void clearItems(String pluginId) =>
       _items.removeWhere((item) => item.pluginId == pluginId);
+
+  @override
+  void reset() {
+    _items.clear();
+  }
 }

@@ -36,6 +36,8 @@ dependencies:
     path: packages/solar_network_sdk
   island_ui_foundation:
     path: packages/island_ui_foundation
+  island_plugin_foundation:
+    path: packages/island_plugin_foundation
   island_desktop_presence:
     path: packages/island_desktop_presence
 

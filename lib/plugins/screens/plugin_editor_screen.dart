@@ -2,8 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/plugins/plugin_manager.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 /// Standalone plugin editor screen.

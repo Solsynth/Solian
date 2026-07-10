@@ -209,26 +209,31 @@ void main(List<String> args) async {
 
     try {
       Logger.root.info("[Plugin] Initializing plugin system...");
-      final manager = PluginManager();
       // Clear stale state from previous hot restart
-      manager.dispose();
-      manager.registerApi('hooks', HooksApi());
-      manager.registerApi('events', EventsApi());
-      manager.registerApi('commands', CommandsApi());
-      manager.registerApi('notify', NotifyApi());
-      manager.registerApi('ui', UiApi());
-      manager.registerApi('dashboard', DashboardApi());
+      PluginController.resetInstance();
+      PluginManager().dispose();
+
+      final controller = PluginController.instance;
+      // Foundation APIs
+      controller.registerApi('hooks', HooksApi());
+      controller.registerApi('events', EventsApi());
+      controller.registerApi('commands', CommandsApi());
+      controller.registerApi('ui', UiApi());
+      controller.registerApi('tasks', BackgroundTaskApi());
+      // Host-specific APIs (dashboard, Solar Network, notify UI)
+      controller.registerApi('notify', NotifyApi());
+      controller.registerApi('dashboard', DashboardApi());
       final pluginNetworkScope = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
-      manager.registerApi(
+      controller.registerApi(
         'network',
         PluginNetworkApi(prefs, pluginNetworkScope.read(apiClientProvider)),
       );
-      await manager.initialize();
+      await controller.initialize();
       PluginEventBridge().activate();
       Logger.root.info(
-        "[Plugin] Plugin system ready with ${manager.plugins.length} plugins",
+        "[Plugin] Plugin system ready with ${controller.plugins.length} plugins",
       );
     } catch (err) {
       Logger.root.severe("[Plugin] Failed to initialize plugin system...", err);

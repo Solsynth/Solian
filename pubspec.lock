@@ -1652,6 +1652,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  island_plugin_foundation:
+    dependency: "direct main"
+    description:
+      path: "packages/island_plugin_foundation"
+      relative: true
+    source: path
+    version: "1.0.0"
   island_ui_foundation:
     dependency: "direct main"
     description:

@@ -38,9 +38,8 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/misc/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';
 import 'package:island/plugins/apis/dashboard_api.dart';
-import 'package:island/plugins/apis/ui_api.dart';
-import 'package:island/plugins/plugin_manager.dart';
 import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()

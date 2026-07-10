@@ -1,15 +1,16 @@
 import 'dart:convert';
+
+import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
+import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/src/plugin_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:island/plugins/bridge/js_bridge.dart';
-import 'package:island/plugins/models/plugin_manifest.dart';
-import 'package:island/plugins/apis/plugin_api.dart';
-import 'package:island/plugins/plugin_manager.dart';
 
 final _log = Logger('UiApi');
 
 /// A UI descriptor returned by a plugin.
 ///
-/// Plugins return structured data (JSON-like maps) that Dart renders as widgets.
+/// Plugins return structured data (JSON-like maps) that the host renders as widgets.
 class PluginUiDescriptor {
   final String type;
   final Map<String, dynamic> data;
@@ -19,17 +20,74 @@ class PluginUiDescriptor {
 
 /// Exposes UI building functions to JavaScript plugins.
 ///
-/// Provides:
-/// - `ui.card(title, body, actions=[])` - render a card
-/// - `ui.list(items)` - render a list
-/// - `ui.button(label, callback)` - create a button descriptor
-/// - `ui.text(content)` - create a text descriptor
-/// - `ui.section(title, children)` - create a section
-/// - `ui.page(title, child)` - create a full-screen page descriptor
-/// - `ui.row(children)`, `ui.column(children)` - compose elements
+/// Descriptor builders only — host apps render them (and may register extra UI
+/// channels such as dashboard items as separate [PluginApi]s).
 class UiApi extends PluginApi {
   @override
   Set<PluginPermission> get requiredPermissions => {PluginPermission.uiRender};
+
+  @override
+  String jsBindingsFor(Set<PluginPermission> granted) {
+    if (!granted.contains(PluginPermission.uiRender)) return '';
+    return '''
+var ui = ui || {};
+ui.card = function(title, body, actions) {
+  var result = sendMessage("api:ui:card", JSON.stringify({title: title, body: body, actions: actions || []}));
+  return result;
+};
+ui.list_items = function(items) {
+  return sendMessage("api:ui:list_items", JSON.stringify({items: items}));
+};
+ui.button = function(label, callback) {
+  return sendMessage("api:ui:button", JSON.stringify({label: label, callback: callback || null}));
+};
+ui.text = function(content) {
+  return sendMessage("api:ui:text", JSON.stringify({content: content}));
+};
+ui.section = function(title, children) {
+  return sendMessage("api:ui:section", JSON.stringify({title: title, children: children || []}));
+};
+ui.divider = function() {
+  return sendMessage("api:ui:divider", "{}");
+};
+ui.page = function(title, child) {
+  return sendMessage("api:ui:page", JSON.stringify({title: title, child: child}));
+};
+ui.row = function(children) {
+  return sendMessage("api:ui:row", JSON.stringify({children: children || []}));
+};
+ui.column = function(children) {
+  return sendMessage("api:ui:column", JSON.stringify({children: children || []}));
+};
+ui.spacing = function(size) {
+  return sendMessage("api:ui:spacing", JSON.stringify({size: size}));
+};
+ui.icon = function(name, size) {
+  return sendMessage("api:ui:icon", JSON.stringify({name: name, size: size}));
+};
+ui.link = function(label, url) {
+  return sendMessage("api:ui:link", JSON.stringify({label: label, url: url}));
+};
+ui.input = function(label, hint, callback) {
+  return sendMessage("api:ui:input", JSON.stringify({label: label, hint: hint, callback: callback}));
+};
+ui.cloud_file = function(id, fit) {
+  return sendMessage("api:ui:cloud_file", JSON.stringify({id: id, fit: fit}));
+};
+ui.image = function(url, fit) {
+  return sendMessage("api:ui:image", JSON.stringify({url: url, fit: fit}));
+};
+ui.audio = function(url, filename, autoplay) {
+  return sendMessage("api:ui:audio", JSON.stringify({url: url, filename: filename, autoplay: autoplay}));
+};
+ui.video = function(url, aspectRatio, autoplay) {
+  return sendMessage("api:ui:video", JSON.stringify({url: url, aspectRatio: aspectRatio, autoplay: autoplay}));
+};
+ui.plugin_asset = function(path, kind, fit) {
+  return sendMessage("api:ui:plugin_asset", JSON.stringify({path: path, kind: kind, fit: fit}));
+};
+''';
+  }
 
   @override
   void register(JsRuntime runtime) {

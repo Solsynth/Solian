@@ -1,15 +1,13 @@
-export 'bridge/js_bridge.dart';
-export 'models/plugin_manifest.dart';
-export 'plugin_manager.dart';
-export 'plugin_event_bridge.dart';
-export 'plugin_hooks.dart';
-export 'background_runner.dart';
-export 'apis/plugin_api.dart';
-export 'apis/events_api.dart';
-export 'apis/commands_api.dart';
-export 'apis/hooks_api.dart';
-export 'apis/notify_api.dart';
-export 'apis/ui_api.dart';
+/// Island plugin system — host integration + foundation re-exports.
+///
+/// Core runtime lives in `package:island_plugin_foundation`. Host-only APIs
+/// (dashboard, Solar Network network, notify UI, app event bridge) stay here.
+library;
+
+export 'package:island_plugin_foundation/island_plugin_foundation.dart';
+
 export 'apis/dashboard_api.dart';
 export 'apis/network_api.dart';
+export 'apis/notify_api.dart';
+export 'plugin_event_bridge.dart';
 export 'widgets/plugin_ui_bridge.dart';

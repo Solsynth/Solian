@@ -7,7 +7,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/plugins/apis/dashboard_api.dart';
-import 'package:island/plugins/plugin_manager.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class DashboardCustomizationSheet extends HookConsumerWidget {

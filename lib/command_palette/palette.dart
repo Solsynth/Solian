@@ -23,10 +23,8 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
-import 'package:island/plugins/apis/commands_api.dart';
-import 'package:island/plugins/apis/ui_api.dart';
-import 'package:island/plugins/plugin_manager.dart';
 import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
