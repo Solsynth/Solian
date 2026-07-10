@@ -363,6 +363,8 @@ class _DashboardGridWide extends HookConsumerWidget {
                     );
                   },
                 ),
+              // Match the top spacer so content can settle with the same breathing room.
+              SliverToBoxAdapter(child: SizedBox(height: topSpacerHeight)),
             ],
           ),
         ),
