@@ -19,6 +19,16 @@ Widget contextMenuPreviewBuilder(BuildContext context, Widget child) {
   return Material(color: Theme.of(context).colorScheme.surface, child: child);
 }
 
+/// `captureFromLongWidget` mounts its widget in a detached tree. Re-expose the
+/// caller's Riverpod container so screenshot-only widgets can still read app
+/// state (server URL, badges, settings, and so on).
+Widget _withProviderScope(BuildContext context, Widget child) {
+  return UncontrolledProviderScope(
+    container: ProviderScope.containerOf(context),
+    child: child,
+  );
+}
+
 /// Shares a post as a screenshot image
 Future<void> sharePostAsScreenshot(
   BuildContext context,
@@ -33,16 +43,19 @@ Future<void> sharePostAsScreenshot(
   showLoadingModal(context);
   await screenshotController
       .captureFromLongWidget(
-        MediaQuery(
-          data: MediaQuery.of(context),
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 520,
-              child: PostItemScreenshot(
-                item: post,
-                isFullPost: true,
-                thread: thread,
+        _withProviderScope(
+          context,
+          MediaQuery(
+            data: MediaQuery.of(context),
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 520,
+                child: PostItemScreenshot(
+                  item: post,
+                  isFullPost: true,
+                  thread: thread,
+                ),
               ),
             ),
           ),
@@ -93,13 +106,16 @@ Future<void> shareCheckInAsScreenshot(
   showLoadingModal(context);
   await screenshotController
       .captureFromLongWidget(
-        MediaQuery(
-          data: MediaQuery.of(context),
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 400,
-              child: CheckInResultScreenshot(user: user, result: result),
+        _withProviderScope(
+          context,
+          MediaQuery(
+            data: MediaQuery.of(context),
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 400,
+                child: CheckInResultScreenshot(user: user, result: result),
+              ),
             ),
           ),
         ),
@@ -149,17 +165,20 @@ Future<void> shareCalendarEventAsScreenshot(
   showLoadingModal(context);
   await screenshotController
       .captureFromLongWidget(
-        MediaQuery(
-          data: MediaQuery.of(context),
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 400,
-              child: CalendarEventScreenshot(
-                event: event,
-                displayStartTime: displayStartTime,
-                displayEndTime: displayEndTime,
-                selectedOccurrenceIndex: selectedOccurrenceIndex,
+        _withProviderScope(
+          context,
+          MediaQuery(
+            data: MediaQuery.of(context),
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 400,
+                child: CalendarEventScreenshot(
+                  event: event,
+                  displayStartTime: displayStartTime,
+                  displayEndTime: displayEndTime,
+                  selectedOccurrenceIndex: selectedOccurrenceIndex,
+                ),
               ),
             ),
           ),
