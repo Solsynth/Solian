@@ -220,8 +220,9 @@ void main(List<String> args) async {
       controller.registerApi('commands', CommandsApi());
       controller.registerApi('ui', UiApi());
       controller.registerApi('tasks', BackgroundTaskApi());
-      // Host-specific APIs (dashboard, Solar Network, notify UI)
+      // Host-specific APIs (dashboard, Solar Network, notify UI, icons)
       controller.registerApi('notify', NotifyApi());
+      controller.registerApi('icons', IconsApi());
       controller.registerApi('dashboard', DashboardApi());
       final pluginNetworkScope = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],

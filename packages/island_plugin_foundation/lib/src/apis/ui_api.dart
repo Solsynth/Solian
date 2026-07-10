@@ -62,8 +62,14 @@ ui.column = function(children) {
 ui.spacing = function(size) {
   return sendMessage("api:ui:spacing", JSON.stringify({size: size}));
 };
-ui.icon = function(name, size) {
-  return sendMessage("api:ui:icon", JSON.stringify({name: name, size: size}));
+ui.icon = function(name, size, style, font) {
+  return sendMessage("api:ui:icon", JSON.stringify({
+    name: name,
+    size: size,
+    style: style || null,
+    font: font || null,
+    pluginId: (typeof __plugin_id__ !== "undefined") ? __plugin_id__ : null
+  }));
 };
 ui.link = function(label, url) {
   return sendMessage("api:ui:link", JSON.stringify({label: label, url: url}));
@@ -233,6 +239,10 @@ ui.plugin_asset = function(path, kind, fit) {
           'type': 'icon',
           'name': data['name']?.toString() ?? 'extension',
           'size': (data['size'] as num?)?.toDouble() ?? 20,
+          'style': data['style']?.toString(),
+          'font': data['font']?.toString(),
+          'pluginId':
+              data['pluginId']?.toString() ?? PluginManager.activePluginId,
         });
       } catch (e) {
         _log.warning('ui.icon error: $e');

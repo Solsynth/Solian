@@ -7,6 +7,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/plugins/apis/dashboard_api.dart';
+import 'package:island/plugins/icons/plugin_icon_font_registry.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -70,7 +71,11 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
             const <PluginDashboardItem>[]) {
       metadata[item.layoutId] = {
         'name': item.title,
-        'icon': Symbols.extension,
+        'icon': PluginIconFontRegistry.resolve(
+          name: item.icon,
+          pluginId: item.pluginId,
+          orElse: Symbols.extension,
+        ),
         'description': item.pluginId,
       };
     }

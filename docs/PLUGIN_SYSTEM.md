@@ -153,6 +153,7 @@ Plugins must declare which APIs they intend to use in `manifest.json`. The sandb
 | `solarNetworkApi` | `solar.*` | Island host |
 | `notify` | `notify()`, `showAlert`, … | Island host |
 | `tasksSchedule` | `tasks.*` | Foundation |
+| *(none)* | `icons.*` (Material Symbols lookup) | Island host |
 | `sdkPostsRead` | *(future)* Read posts | — |
 | `sdkPostsCreate` | *(future)* Create posts | — |
 | `sdkChatRead` | *(future)* Read messages | — |
@@ -352,7 +353,7 @@ A horizontal divider line.
 #### Layout and page elements
 
 The UI API also supports `ui.page(title, child)`, `ui.row(children)`,
-`ui.column(children)`, `ui.spacing(size)`, `ui.icon(name, size)`,
+`ui.column(children)`, `ui.spacing(size)`, `ui.icon(name, size, style?)`,
 `ui.link(label, url)`, `ui.input(label, hint, callback)`,
 `ui.cloud_file(file_id, fit)`, `ui.image(url, fit)`,
 `ui.audio(url, filename, autoplay)`, and `ui.video(url, aspect_ratio, autoplay)`.
@@ -360,6 +361,16 @@ Cloud files use the app's authenticated Drive client and are rendered through
 the same media-aware surface used by the Drive UI. A page returned
 from a command opens as a separate full-screen plugin page. Input callbacks
 receive the submitted text as their first argument after the callback name.
+
+`ui.icon(name, size, style?, font?)` resolves names programmatically:
+
+- **Material Symbols** when `font` is omitted — snake_case names such as
+  `dashboard`, `chat`, `settings`. Optional `style`: `outlined` (default),
+  `rounded`, or `sharp` (or name suffixes like `dashboard_rounded`).
+- **Plugin font** when `font` is set (after `icons.register_font`), or via
+  shorthand `fontId:iconName` (e.g. `brand:logo`).
+
+Use `icons.search` / `icons.exists` to discover valid names.
 
 `ui.plugin_asset(path, kind, fit)` renders a file shipped inside the plugin.
 The path is always relative to the plugin folder and is validated by the host;
@@ -423,6 +434,118 @@ ui.register_dashboard_item(
 
 Dashboard callbacks run in the same plugin sandbox. Return another UI
 descriptor from an action callback to replace the visible item.
+
+---
+
+### `icons`
+
+> Host API (Island). Always available.
+
+Two sources:
+
+1. **Material Symbols** (~4k names) — default when no custom font is set  
+2. **Plugin-owned icon fonts** — TTF/OTF + name→codepoint map under the plugin folder
+
+Lookup is programmatic (unicode / glyph map), not a fixed switch. Custom fonts
+are sandboxed to the calling plugin (paths cannot escape the plugin directory).
+
+#### Material Symbols
+
+##### `icons.exists(name, font?)`
+
+```javascript
+if (icons.exists("dashboard")) {
+  return ui.icon("dashboard", 28);
+}
+```
+
+##### `icons.lookup(name, style?, font?)`
+
+Returns `{name, style, codePoint, found}` (Material) or
+`{name, font, pluginId, codePoint, fontFamily, loaded, found}` (custom).
+
+```javascript
+var meta = icons.lookup("chat_bubble", "rounded");
+```
+
+##### `icons.search(query, limit?, font?)`
+
+```javascript
+var hits = icons.search("notif", 10);
+// ["notifications", "notification_add", ...]
+```
+
+##### `icons.count(font?)`
+
+Without `font`, total Material map entries. With `font`, glyph count of that
+registered plugin font.
+
+#### Plugin icon fonts
+
+Ship a font and a glyph map inside the plugin:
+
+```
+my_plugin/
+  manifest.json
+  main.js
+  assets/
+    fonts/
+      MyIcons.ttf
+      my_icons.json    # optional external map
+```
+
+Glyph map JSON (names → code points as numbers or hex strings):
+
+```json
+{
+  "logo": 57345,
+  "badge": "0xe002",
+  "star": 0xe003
+}
+```
+
+##### `icons.register_font(id, fontPath, glyphs)`
+
+`glyphs` may be an inline object **or** a relative path to a JSON asset.
+Font path must be `.ttf` / `.otf` / `.ttc` under the plugin folder.
+
+```javascript
+function on_load() {
+  var result = icons.register_font(
+    "brand",
+    "assets/fonts/MyIcons.ttf",
+    {
+      logo: 0xe001,
+      badge: 0xe002,
+    }
+  );
+  // or: icons.register_font("brand", "assets/fonts/MyIcons.ttf", "assets/fonts/my_icons.json");
+  if (!result.ok) {
+    showError(result.error);
+    return;
+  }
+}
+
+function showBrand() {
+  // Explicit font argument
+  return ui.icon("logo", 32, null, "brand");
+  // Or "font:name" shorthand (also works for command/dashboard icon strings)
+  // return ui.icon("brand:logo", 32);
+}
+
+commands.register_command("brand", "Show brand icon", "showBrand", "brand:logo");
+```
+
+##### `icons.fonts()`
+
+Lists fonts registered by **this** plugin:
+
+```javascript
+// [{ id, fontFamily, glyphCount, loaded, error }]
+icons.fonts();
+```
+
+Fonts are cleared automatically when the plugin unloads.
 
 ---
 
@@ -628,6 +751,10 @@ Check the app's log viewer (Cmd/Ctrl+K → "Log Viewer") for plugin-related log 
   launch. Re-enable them manually in Settings → Plugins after reviewing the
   plugin or its error message.
 - Web builds compile, but JS execution is a no-op stub (`flutter_js` needs FFI).
+- **Material Symbols by name:** Flutter’s icon tree-shaker only keeps glyphs
+  referenced by compile-time constant `IconData`s. Full dynamic lookup in
+  release builds needs `--no-tree-shake-icons` (e.g.
+  `flutter build apk --no-tree-shake-icons`). Debug builds are unaffected.
 
 ## Reusing the foundation in another app
 

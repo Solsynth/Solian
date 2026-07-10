@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/plugins/icons/plugin_icon_font_registry.dart';
 import 'package:island/shared/widgets/content/audio.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/shared/widgets/content/video.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -81,7 +82,12 @@ class PluginUiRenderer extends StatelessWidget {
         return SizedBox(height: (desc.data['size'] as num?)?.toDouble() ?? 8);
       case 'icon':
         return Icon(
-          _iconForName(desc.data['name']?.toString()),
+          PluginIconFontRegistry.resolve(
+            name: desc.data['name']?.toString(),
+            style: desc.data['style']?.toString(),
+            font: desc.data['font']?.toString(),
+            pluginId: desc.data['pluginId']?.toString(),
+          ),
           size: (desc.data['size'] as num?)?.toDouble() ?? 20,
         );
       case 'link':
@@ -198,19 +204,6 @@ class PluginUiRenderer extends StatelessWidget {
     } catch (_) {
       return null;
     }
-  }
-
-  static IconData _iconForName(String? name) {
-    return switch (name) {
-      'check' => Icons.check,
-      'close' => Icons.close,
-      'warning' => Icons.warning_amber,
-      'info' => Icons.info_outline,
-      'settings' => Icons.settings,
-      'open_in_new' => Icons.open_in_new,
-      'dashboard' => Icons.dashboard_outlined,
-      _ => Icons.extension_outlined,
-    };
   }
 
   static BoxFit? _boxFit(String? value) {

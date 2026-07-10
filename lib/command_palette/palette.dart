@@ -23,6 +23,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
+import 'package:island/plugins/icons/plugin_icon_font_registry.dart';
 import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -198,7 +199,11 @@ class CommandPaletteWidget extends HookConsumerWidget {
                 (cmd) => SpecialAction(
                   name: '/${cmd.name}',
                   description: cmd.description,
-                  icon: Symbols.extension,
+                  icon: PluginIconFontRegistry.resolve(
+                    name: cmd.icon,
+                    pluginId: cmd.pluginId,
+                    orElse: Symbols.extension,
+                  ),
                   searchableAliases: [cmd.name],
                   action: () {
                     final runtime =
