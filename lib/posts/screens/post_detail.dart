@@ -191,6 +191,22 @@ Future<void> showPostDetailAttentionModal(String id) async {
   );
 }
 
+void showPostCollectionAttentionModal(
+  SnPost post,
+  SnPostCollection collection,
+) {
+  showAttentionModal(
+    id: 'post-collection:${post.id}:${collection.slug}',
+    replaceIfExists: true,
+    barrierDismissible: true,
+    builder: (_, dismiss) => _PublicCollectionSheet(
+      post: post,
+      collection: collection,
+      onDismiss: dismiss,
+    ),
+  );
+}
+
 bool openPostDetailAttentionModalForUri(Uri url) {
   final postId = extractInternalPostIdFromUri(url);
   if (postId == null) return false;
@@ -596,11 +612,12 @@ class PostCollectionNavigation extends HookConsumerWidget {
       children: [
         GestureDetector(
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              builder: (context) => _PublicCollectionBrowserSheet(post: post),
+            showAttentionModal(
+              id: 'post-collection-browser:${post.id}',
+              replaceIfExists: true,
+              barrierDismissible: true,
+              builder: (_, dismiss) =>
+                  _PublicCollectionBrowserSheet(post: post, onDismiss: dismiss),
             );
           },
           child: Text('postCollectionsOfHint').tr().fontSize(12).opacity(0.7),
@@ -621,14 +638,19 @@ class PostCollectionNavigation extends HookConsumerWidget {
 
 class _PublicCollectionBrowserSheet extends StatelessWidget {
   final SnPost post;
+  final VoidCallback onDismiss;
 
-  const _PublicCollectionBrowserSheet({required this.post});
+  const _PublicCollectionBrowserSheet({
+    required this.post,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
     final collections = post.publisherCollections;
-    return SheetScaffold(
+    return AttentionModalScaffold(
       titleText: 'postCollections'.tr(),
+      onDismiss: onDismiss,
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: collections.length,
@@ -639,13 +661,7 @@ class _PublicCollectionBrowserSheet extends StatelessWidget {
             post: post,
             collection: collection,
             onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                useRootNavigator: true,
-                builder: (context) =>
-                    _PublicCollectionSheet(post: post, collection: collection),
-              );
+              showPostCollectionAttentionModal(post, collection);
             },
           );
         },
@@ -746,8 +762,13 @@ class _PublicCollectionBrowserCard extends StatelessWidget {
 class _PublicCollectionSheet extends ConsumerWidget {
   final SnPost post;
   final SnPostCollection collection;
+  final VoidCallback onDismiss;
 
-  const _PublicCollectionSheet({required this.post, required this.collection});
+  const _PublicCollectionSheet({
+    required this.post,
+    required this.collection,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -772,8 +793,9 @@ class _PublicCollectionSheet extends ConsumerWidget {
       ],
     );
 
-    return SheetScaffold(
+    return AttentionModalScaffold(
       titleText: title,
+      onDismiss: onDismiss,
       child: ListView(
         padding: const EdgeInsets.only(bottom: 16),
         children: [
@@ -807,14 +829,9 @@ class _PublicCollectionSheet extends ConsumerWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                useRootNavigator: true,
-                                builder: (context) => _PublicCollectionSheet(
-                                  post: post,
-                                  collection: collection,
-                                ),
+                              showPostCollectionAttentionModal(
+                                post,
+                                collection,
                               );
                             },
                             child: Text(title, style: titleStyle),
@@ -946,13 +963,7 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              builder: (context) =>
-                  _PublicCollectionSheet(post: post, collection: collection),
-            );
+            showPostCollectionAttentionModal(post, collection);
           },
         ),
         const Gap(8),

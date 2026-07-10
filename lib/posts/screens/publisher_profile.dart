@@ -19,6 +19,7 @@ import 'package:island/core/network.dart';
 import 'package:island/posts/widgets/compose/filters/post_filter.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
+import 'package:island/posts/widgets/publisher_collection_info.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -1012,13 +1013,14 @@ class _PublisherCollectionCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (_) => _PublisherCollectionSheet(
+          showAttentionModal(
+            id: 'publisher-collection:$pubName:${collection.slug}',
+            replaceIfExists: true,
+            barrierDismissible: true,
+            builder: (_, dismiss) => _PublisherCollectionSheet(
               pubName: pubName,
               collection: collection,
+              onDismiss: dismiss,
             ),
           );
         },
@@ -1100,10 +1102,12 @@ class _PublisherCollectionCard extends StatelessWidget {
 class _PublisherCollectionSheet extends ConsumerWidget {
   final String pubName;
   final SnPostCollection collection;
+  final VoidCallback onDismiss;
 
   const _PublisherCollectionSheet({
     required this.pubName,
     required this.collection,
+    required this.onDismiss,
   });
 
   @override
@@ -1111,122 +1115,118 @@ class _PublisherCollectionSheet extends ConsumerWidget {
     final posts = ref.watch(
       publisherCollectionPostsProvider((pubName, collection.slug)),
     );
-    final theme = Theme.of(context);
+    final publisher = ref.watch(publisherProvider(pubName));
     final title = collection.name?.isNotEmpty == true
         ? collection.name!
         : collection.slug;
 
+    final postsContent = posts.when(
+      data: (result) {
+        if (result.items.isEmpty) {
+          return SizedBox(
+            height: 180,
+            child: Center(child: Text('dataEmpty').tr()),
+          );
+        }
+
+        return Column(
+          children: [
+            for (final post in result.items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: InkWell(
+                    onTap: () {
+                      onDismiss();
+                      context.router.push(PostDetailRoute(id: post.id));
+                    },
+                    child: PostItem(
+                      item: post,
+                      isFullPost: false,
+                      isEmbedReply: false,
+                      isCompact: true,
+                      hideAttachments: true,
+                      isTextSelectable: false,
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => ResponseErrorWidget(
+        error: error,
+        onRetry: () => ref.invalidate(
+          publisherCollectionPostsProvider((pubName, collection.slug)),
+        ),
+      ),
+    );
+
+    final publisherInfo = publisher.when(
+      data: (data) => PublisherCollectionPublisherInfo(data: data),
+      loading: () => const SizedBox(
+        height: 120,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+
     return AttentionModalScaffold(
       titleText: title,
-      onDismiss: () => Navigator.of(context).pop(),
-      child: ListView(
-        padding: const EdgeInsets.only(bottom: 16),
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 7,
-            child: Stack(
-              fit: StackFit.expand,
+      onDismiss: onDismiss,
+      maxWidth: 1100,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final useWideLayout =
+              isWideScreen(context) && constraints.maxWidth >= 900;
+
+          if (!useWideLayout) {
+            return ListView(
+              padding: const EdgeInsets.only(bottom: 16),
               children: [
-                if (collection.background != null)
-                  CloudFileWidget(
-                    item: collection.background!,
-                    fit: BoxFit.cover,
-                  )
-                else
-                  Container(color: theme.colorScheme.surfaceContainerHighest),
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                PublisherCollectionHeader(collection: collection, title: title),
+                const Gap(16),
+                publisherInfo,
+                const Gap(16),
+                postsContent,
+              ],
+            );
+          }
+
+          return SizedBox(
+            height: constraints.maxHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 4, 16),
+                    children: [postsContent],
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  flex: 3,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(0, 12, 12, 16),
                     children: [
-                      ProfilePictureWidget(
-                        file: collection.icon,
-                        radius: 28,
-                        fallbackIcon: Symbols.collections,
+                      PublisherCollectionHeader(
+                        collection: collection,
+                        title: title,
                       ),
                       const Gap(12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              title,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            if (collection.description?.isNotEmpty ?? false)
-                              Text(
-                                collection.description!,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white70,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                      publisherInfo,
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-          const Gap(16),
-          posts.when(
-            data: (result) {
-              if (result.items.isEmpty) {
-                return SizedBox(
-                  height: 180,
-                  child: Center(child: Text('dataEmpty').tr()),
-                );
-              }
-
-              return Column(
-                children: [
-                  for (final post in result.items)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                        bottom: 8,
-                      ),
-                      child: Card(
-                        margin: EdgeInsets.zero,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            context.router.push(PostDetailRoute(id: post.id));
-                          },
-                          child: PostItem(
-                            item: post,
-                            isFullPost: false,
-                            isEmbedReply: false,
-                            isCompact: true,
-                            hideAttachments: true,
-                            isTextSelectable: false,
-                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => ResponseErrorWidget(
-              error: error,
-              onRetry: () => ref.invalidate(
-                publisherCollectionPostsProvider((pubName, collection.slug)),
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
