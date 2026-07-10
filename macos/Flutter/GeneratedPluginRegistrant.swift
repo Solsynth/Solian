@@ -25,6 +25,7 @@ import flutter_secure_storage_darwin
 import flutter_timezone
 import flutter_webrtc
 import gal
+import geocoding_darwin
 import geolocator_apple
 import in_app_purchase_storekit
 import in_app_review
@@ -77,6 +78,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FlutterTimezonePlugin.register(with: registry.registrar(forPlugin: "FlutterTimezonePlugin"))
   FlutterWebRTCPlugin.register(with: registry.registrar(forPlugin: "FlutterWebRTCPlugin"))
   GalPlugin.register(with: registry.registrar(forPlugin: "GalPlugin"))
+  GeocodingDarwinPlugin.register(with: registry.registrar(forPlugin: "GeocodingDarwinPlugin"))
   GeolocatorPlugin.register(with: registry.registrar(forPlugin: "GeolocatorPlugin"))
   InAppPurchasePlugin.register(with: registry.registrar(forPlugin: "InAppPurchasePlugin"))
   InAppReviewPlugin.register(with: registry.registrar(forPlugin: "InAppReviewPlugin"))

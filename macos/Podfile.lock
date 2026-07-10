@@ -95,6 +95,9 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
+  - geocoding_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
@@ -203,7 +206,7 @@ PODS:
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - Sentry/HybridSDK (8.58.3)
-  - sentry_flutter (9.22.0):
+  - sentry_flutter (9.24.0):
     - Flutter
     - FlutterMacOS
     - Sentry/HybridSDK (= 8.58.3)
@@ -254,6 +257,7 @@ DEPENDENCIES:
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
+  - geocoding_darwin (from `Flutter/ephemeral/.symlinks/plugins/geocoding_darwin/darwin`)
   - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin`)
   - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `Flutter/ephemeral/.symlinks/plugins/in_app_review/macos`)
@@ -346,6 +350,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gal:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
+  geocoding_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/geocoding_darwin/darwin
   geolocator_apple:
     :path: Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin
   in_app_purchase_storekit:
@@ -435,6 +441,7 @@ SPEC CHECKSUMS:
   flutter_webrtc: f1fb1a00c6080461bb2bc6caa5b93d07ddb68466
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gal: baecd024ebfd13c441269ca7404792a7152fde89
+  geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   GoogleAppMeasurement: a6d37949071d456e9147dac6789c4342e0e7a8c5
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
@@ -462,7 +469,7 @@ SPEC CHECKSUMS:
   record_macos: 2e43c16b84ce188b8137754ee648322a2dcdf7fa
   screen_retriever_macos: c5508cc3c66ff0d4db650480cf0ab691e220d933
   Sentry: 108fdbb76299c4189af12246bf0308c09c278922
-  sentry_flutter: fbb8a76a5a009ce7ba7bde295ee6b50b11916851
+  sentry_flutter: 8528594bf73819ef3f40c2e218e93554fc2719e6
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
