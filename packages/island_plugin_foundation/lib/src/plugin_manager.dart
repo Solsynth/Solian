@@ -425,7 +425,21 @@ class PluginManager {
     return _plugins.length;
   }
 
+  /// Absolute path of the on-disk plugins directory
+  /// (`{appSupport}/plugins`). Creates it if missing.
+  Future<String> resolvePluginsDirectoryPath() async {
+    final appDir = await getApplicationSupportDirectory();
+    final dir = Directory(path.join(appDir.path, pluginsDirectoryName));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir.path;
+  }
+
   /// Install a plugin from an arbitrary local folder path.
+  ///
+  /// Always **copies** the folder into [resolvePluginsDirectoryPath] under the
+  /// plugin id so the source can be removed afterward.
   Future<bool> installFromFolder(String folderPath) async {
     final dir = Directory(folderPath);
     if (!await dir.exists()) {
@@ -440,7 +454,7 @@ class PluginManager {
     return installPlugin(folderPath);
   }
 
-  /// Install a plugin from a directory (copies to plugins dir).
+  /// Install a plugin from a directory (copies into the app plugins dir).
   Future<bool> installPlugin(String sourceDirPath) async {
     if (kIsWeb) return false;
 
@@ -455,27 +469,44 @@ class PluginManager {
       final json = jsonDecode(await manifestFile.readAsString());
       final manifest = PluginManifest.fromJson(json as Map<String, dynamic>);
 
-      if (_plugins.containsKey(manifest.id)) {
-        _log.info('Plugin already installed, replacing: ${manifest.id}');
-        uninstallPlugin(manifest.id);
-      }
-
       final appDir = await getApplicationSupportDirectory();
       final destDir = Directory(
         path.join(appDir.path, pluginsDirectoryName, manifest.id),
       );
 
-      if (await destDir.exists()) {
-        await destDir.delete(recursive: true);
-      }
-      await destDir.create(recursive: true);
+      // Normalize paths so we can detect "already installed here".
+      String normalize(String p) =>
+          path.normalize(Directory(p).absolute.path);
 
-      await for (final entity in sourceDir.list(recursive: true)) {
-        if (entity is File) {
-          final relativePath = path.relative(entity.path, from: sourceDirPath);
-          final destFile = File(path.join(destDir.path, relativePath));
-          await destFile.parent.create(recursive: true);
-          await entity.copy(destFile.path);
+      final sourceAbs = normalize(sourceDirPath);
+      final destAbs = normalize(destDir.path);
+      final alreadyInPlace = sourceAbs == destAbs;
+
+      if (_plugins.containsKey(manifest.id) || await destDir.exists()) {
+        if (!alreadyInPlace) {
+          _log.info('Plugin already installed, replacing: ${manifest.id}');
+          await uninstallPlugin(manifest.id);
+        } else {
+          // Same folder — just unload so we can re-register without deleting.
+          unloadPlugin(manifest.id);
+          _plugins.remove(manifest.id);
+        }
+      }
+
+      if (!alreadyInPlace) {
+        if (await destDir.exists()) {
+          await destDir.delete(recursive: true);
+        }
+        await destDir.create(recursive: true);
+
+        await for (final entity in sourceDir.list(recursive: true)) {
+          if (entity is File) {
+            final relativePath =
+                path.relative(entity.path, from: sourceDirPath);
+            final destFile = File(path.join(destDir.path, relativePath));
+            await destFile.parent.create(recursive: true);
+            await entity.copy(destFile.path);
+          }
         }
       }
 
@@ -485,7 +516,11 @@ class PluginManager {
         state: PluginState.discovered,
       );
 
-      _log.info('Installed plugin: ${manifest.id}');
+      _log.info(
+        alreadyInPlace
+            ? 'Registered plugin already in place: ${manifest.id}'
+            : 'Installed plugin (copied): ${manifest.id} → ${destDir.path}',
+      );
       _notifyListeners();
       return true;
     } catch (e) {

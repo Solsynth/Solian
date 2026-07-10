@@ -88,6 +88,11 @@ class PluginController extends ChangeNotifier {
 
   Future<int> reload() => manager.reload();
 
+  /// On-disk plugins directory (`{appSupport}/plugins`). Created if missing.
+  Future<String> resolvePluginsDirectoryPath() =>
+      manager.resolvePluginsDirectoryPath();
+
+  /// Install by **copying** [folderPath] into the app plugins directory.
   Future<bool> installFromFolder(String folderPath) =>
       manager.installFromFolder(folderPath);
 

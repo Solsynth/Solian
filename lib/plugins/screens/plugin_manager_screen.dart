@@ -1,13 +1,25 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island_plugin_foundation/island_plugin_foundation.dart';
+import 'package:island/plugins/models/plugin_install_preview.dart';
+import 'package:island/plugins/screens/plugin_marketplace_tab.dart';
+import 'package:island/plugins/widgets/plugin_install_preview_sheet.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path/path.dart' as p;
+
+bool get _isDesktopPluginHost =>
+    !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
 // ---------------------------------------------------------------------------
 // Standalone route screen (thin wrapper)
@@ -37,6 +49,43 @@ class PluginManagerContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = useMemoized(() => PluginController.instance);
     useListenable(controller);
+
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TabBar(
+            tabs: [
+              Tab(text: 'pluginInstalledTab'.tr()),
+              Tab(text: 'marketplace'.tr()),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _InstalledPluginsTab(controller: controller),
+                const PluginMarketplaceTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Installed plugins tab
+// ---------------------------------------------------------------------------
+
+class _InstalledPluginsTab extends StatelessWidget {
+  final PluginController controller;
+
+  const _InstalledPluginsTab({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     final plugins = controller.plugins;
 
     if (plugins.isEmpty) {
@@ -64,20 +113,27 @@ class PluginManagerContent extends HookConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
               children: [
                 FilledButton.tonalIcon(
                   onPressed: () => _openEditor(context, controller),
                   icon: const Icon(Symbols.add, size: 18),
                   label: Text('newPlugin'.tr()),
                 ),
-                const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () => _installFromFolder(context, controller),
                   icon: const Icon(Symbols.folder_open, size: 18),
                   label: Text('fromFolder'.tr()),
                 ),
+                if (_isDesktopPluginHost)
+                  OutlinedButton.icon(
+                    onPressed: () => _openPluginsFolder(context, controller),
+                    icon: const Icon(Symbols.folder_copy, size: 18),
+                    label: Text('openPluginsFolder'.tr()),
+                  ),
               ],
             ),
           ],
@@ -109,6 +165,13 @@ class PluginManagerContent extends HookConsumerWidget {
                 tooltip: 'reloadPlugins'.tr(),
                 visualDensity: VisualDensity.compact,
               ),
+              if (_isDesktopPluginHost)
+                IconButton(
+                  onPressed: () => _openPluginsFolder(context, controller),
+                  icon: const Icon(Symbols.folder_copy, size: 20),
+                  tooltip: 'openPluginsFolder'.tr(),
+                  visualDensity: VisualDensity.compact,
+                ),
               IconButton(
                 onPressed: () => _installFromFolder(context, controller),
                 icon: const Icon(Symbols.folder_open, size: 20),
@@ -177,7 +240,35 @@ class PluginManagerContent extends HookConsumerWidget {
     );
   }
 
-  // -- Install from folder ---------------------------------------------------
+  // -- Open plugins directory (desktop) --------------------------------------
+
+  Future<void> _openPluginsFolder(
+    BuildContext context,
+    PluginController controller,
+  ) async {
+    if (!_isDesktopPluginHost) return;
+    try {
+      final dirPath = await controller.resolvePluginsDirectoryPath();
+      final result = await OpenFile.open(dirPath);
+      if (result.type != ResultType.done && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'openPluginsFolderFailed'.tr(
+                namedArgs: {'path': dirPath},
+              ),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showErrorAlert(e);
+      }
+    }
+  }
+
+  // -- Install from folder (preview → copy into app plugins dir) -------------
 
   Future<void> _installFromFolder(
     BuildContext context,
@@ -188,15 +279,67 @@ class PluginManagerContent extends HookConsumerWidget {
     );
     if (result == null) return;
 
-    final installed = await controller.installFromFolder(result);
-    if (context.mounted) {
+    final manifest = await _readManifest(result);
+    if (!context.mounted) return;
+    if (manifest == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            installed ? 'pluginInstalled'.tr() : 'invalidPluginFolder'.tr(),
-          ),
-        ),
+        SnackBar(content: Text('invalidPluginFolder'.tr())),
       );
+      return;
+    }
+
+    final preview = PluginInstallPreview.fromManifestWithController(
+      manifest,
+      controller,
+      sourceHint: result,
+    );
+    final confirmed = await showPluginInstallPreviewSheet(
+      context,
+      preview: preview,
+    );
+    if (!confirmed || !context.mounted) return;
+
+    // Copy into `{appSupport}/plugins/{id}/` (override on upgrade / ack'd
+    // conflict), then enable + load.
+    final installed = await controller.installFromFolder(result);
+    if (installed && controller.plugins.containsKey(manifest.id)) {
+      await controller.enablePlugin(manifest.id);
+      await controller.loadPlugin(manifest.id);
+    }
+
+    if (context.mounted) {
+      final message = !installed
+          ? 'invalidPluginFolder'.tr()
+          : switch (preview.conflict) {
+              PluginInstallConflict.upgrade => 'pluginMarketplaceUpdated'.tr(
+                namedArgs: {
+                  'name': manifest.name,
+                  'version': manifest.version,
+                },
+              ),
+              PluginInstallConflict.sameVersion ||
+              PluginInstallConflict.downgrade ||
+              PluginInstallConflict.unknown =>
+                'pluginInstallReplaced'.tr(
+                  namedArgs: {'name': manifest.name},
+                ),
+              PluginInstallConflict.none => 'pluginInstalled'.tr(),
+            };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
+  Future<PluginManifest?> _readManifest(String folderPath) async {
+    try {
+      final file = File(p.join(folderPath, 'manifest.json'));
+      if (!await file.exists()) return null;
+      final json = jsonDecode(await file.readAsString());
+      if (json is! Map) return null;
+      return PluginManifest.fromJson(Map<String, dynamic>.from(json));
+    } catch (_) {
+      return null;
     }
   }
 }
