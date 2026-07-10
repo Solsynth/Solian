@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:open_meteo/open_meteo.dart';
@@ -310,12 +310,18 @@ class WeatherLocationException implements Exception {
   String toString() => messageKey;
 }
 
-Future<({double latitude, double longitude, String label})>
-_resolveLocation() async {
+Future<({double latitude, double longitude, String label})> _resolveLocation(
+  Dio apiClient,
+) async {
   try {
     return await _resolveDeviceLocation();
-  } on WeatherLocationException {
-    return _resolveIpLocation();
+  } catch (error, stackTrace) {
+    // Device GPS may fail for many reasons (permission, timeout, platform).
+    // Always fall back to IP-based approx location so weather can still load.
+    debugPrint(
+      'Weather device location failed, trying IP: $error\n$stackTrace',
+    );
+    return _resolveIpLocation(apiClient);
   }
 }
 
@@ -348,11 +354,50 @@ _resolveDeviceLocation() async {
   );
 }
 
+/// Approximate location from the caller's public IP.
+///
+/// Prefer Solar Network's public MaxMind lookup via [apiClient]; if that is
+/// unavailable (older server, outage), fall back to a free public geo endpoint.
+Future<({double latitude, double longitude, String label})> _resolveIpLocation(
+  Dio apiClient,
+) async {
+  Object? lastError;
+
+  try {
+    return await _resolveIpLocationFromSolarNetwork(apiClient);
+  } catch (error) {
+    lastError = error;
+    debugPrint('Weather Solar Network IP geo failed: $error');
+  }
+
+  try {
+    return await _resolveIpLocationFromPublicApi();
+  } catch (error) {
+    lastError = error;
+    debugPrint('Weather public IP geo failed: $error');
+  }
+
+  throw StateError('weatherIpLocationEmpty: $lastError');
+}
+
+/// Solar Network public route — no auth required.
+/// (`/passport/ip-check` remains admin-only diagnostics.)
 Future<({double latitude, double longitude, String label})>
-_resolveIpLocation() async {
+_resolveIpLocationFromSolarNetwork(Dio apiClient) async {
+  final response = await apiClient.get('/passport/ip-check/geo');
+  final data = response.data;
+  if (data is! Map) {
+    throw StateError('weatherIpLocationEmpty');
+  }
+
+  return _locationFromGeoMap(Map<String, dynamic>.from(data));
+}
+
+/// Last-resort public IP geolocation (no API key).
+Future<({double latitude, double longitude, String label})>
+_resolveIpLocationFromPublicApi() async {
   final dio = Dio(
     BaseOptions(
-      baseUrl: kNetworkServerDefault,
       connectTimeout: const Duration(seconds: 8),
       receiveTimeout: const Duration(seconds: 8),
       headers: const {'User-Agent': 'Solian/Island'},
@@ -360,27 +405,25 @@ _resolveIpLocation() async {
   );
 
   try {
-    final response = await dio.get<Map<String, dynamic>>('/passport/ip-check');
+    // geojs returns latitude/longitude as strings.
+    final response = await dio.get<Map<String, dynamic>>(
+      'https://get.geojs.io/v1/ip/geo.json',
+    );
     final data = response.data;
     if (data == null) {
       throw StateError('weatherIpLocationEmpty');
     }
 
-    final geo = data['geo'] as Map<String, dynamic>?;
-    if (geo == null) {
-      throw StateError('weatherIpLocationMissingGeo');
-    }
-
-    final latitude = (geo['latitude'] as num?)?.toDouble();
-    final longitude = (geo['longitude'] as num?)?.toDouble();
+    final latitude = double.tryParse(data['latitude']?.toString() ?? '');
+    final longitude = double.tryParse(data['longitude']?.toString() ?? '');
     if (latitude == null || longitude == null) {
       throw StateError('weatherIpLocationMissingCoordinates');
     }
 
     final parts = [
-      geo['city']?.toString().trim(),
-      geo['subdivision']?.toString().trim(),
-      geo['country']?.toString().trim(),
+      data['city']?.toString().trim(),
+      data['region']?.toString().trim(),
+      data['country']?.toString().trim(),
     ].whereType<String>().where((e) => e.isNotEmpty).toList();
 
     final label = parts.isNotEmpty
@@ -391,6 +434,28 @@ _resolveIpLocation() async {
   } finally {
     dio.close(force: true);
   }
+}
+
+({double latitude, double longitude, String label}) _locationFromGeoMap(
+  Map<String, dynamic> data,
+) {
+  final latitude = (data['latitude'] as num?)?.toDouble();
+  final longitude = (data['longitude'] as num?)?.toDouble();
+  if (latitude == null || longitude == null) {
+    throw StateError('weatherIpLocationMissingCoordinates');
+  }
+
+  final parts = [
+    data['city']?.toString().trim(),
+    data['subdivision']?.toString().trim(),
+    data['country']?.toString().trim(),
+  ].whereType<String>().where((e) => e.isNotEmpty).toList();
+
+  final label = parts.isNotEmpty
+      ? parts.join(', ')
+      : '${latitude.toStringAsFixed(2)}°, ${longitude.toStringAsFixed(2)}°';
+
+  return (latitude: latitude, longitude: longitude, label: label);
 }
 
 Future<String> _resolvePlaceName(double latitude, double longitude) async {
@@ -439,8 +504,8 @@ DateTime? _seriesDateTime(Map<DateTime, num> series, DateTime key) {
   return null;
 }
 
-Future<WeatherSnapshot> fetchWeatherSnapshot() async {
-  final location = await _resolveLocation();
+Future<WeatherSnapshot> fetchWeatherSnapshot(Dio apiClient) async {
+  final location = await _resolveLocation(apiClient);
 
   final weather = WeatherApi(
     userAgent: 'Solian/Island (https://solsynth.dev)',
@@ -619,7 +684,8 @@ Future<WeatherSnapshot> fetchWeatherSnapshot() async {
 final weatherSnapshotProvider = FutureProvider.autoDispose<WeatherSnapshot>((
   ref,
 ) async {
-  return fetchWeatherSnapshot();
+  final apiClient = ref.watch(apiClientProvider);
+  return fetchWeatherSnapshot(apiClient);
 });
 
 // ---------------------------------------------------------------------------
