@@ -19,7 +19,7 @@ sealed class PostListQuery with _$PostListQuery {
     List<String>? tags,
     bool? pinned,
     @Default(false) bool shuffle,
-    @Default(false) bool? includeReplies,
+    @Default(false) bool includeReplies,
     bool? mediaOnly,
     String? queryTerm,
     String? searchEngine,
@@ -61,9 +61,7 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
   @override
   FutureOr<PaginationState<SnPost>> build() async {
-    currentFilter = config.initialFilter.copyWith(
-      includeReplies: config.initialFilter.includeReplies ?? false,
-    );
+    currentFilter = config.initialFilter;
 
     // Listen to real-time post update events
     _postUpdateSubscription = eventBus.on<PostUpdateEvent>().listen((event) {
@@ -139,7 +137,7 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
         final queryParams = {
           'offset': fetchedCount,
           'take': pageSize,
-          'replies': currentFilter.includeReplies ?? false,
+          'replies': currentFilter.includeReplies,
           'orderDesc': currentFilter.orderDesc,
           if (currentFilter.shuffle) 'shuffle': currentFilter.shuffle,
           'pub': publisherName,
@@ -195,7 +193,7 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
       final queryParams = {
         'offset': fetchedCount,
         'take': pageSize,
-        'replies': currentFilter.includeReplies ?? false,
+        'replies': currentFilter.includeReplies,
         'orderDesc': currentFilter.orderDesc,
         if (currentFilter.shuffle) 'shuffle': currentFilter.shuffle,
         if (currentFilter.pubName != null) 'pub': currentFilter.pubName,

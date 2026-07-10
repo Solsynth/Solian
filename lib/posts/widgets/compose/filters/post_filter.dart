@@ -31,7 +31,7 @@ class PostFilterWidget extends HookConsumerWidget {
         initialQuery.periodEnd != null ||
         initialQuery.order != null;
 
-    final includeReplies = useState<bool?>(initialQuery.includeReplies);
+    final includeReplies = useState<bool>(initialQuery.includeReplies);
     final mediaOnly = useState<bool>(initialQuery.mediaOnly ?? false);
     final queryTerm = useState<String?>(initialQuery.queryTerm);
     final searchEngine = useState<String?>(initialQuery.searchEngine);
@@ -159,18 +159,12 @@ class PostFilterWidget extends HookConsumerWidget {
                     _FilterChipButton(
                       icon: Symbols.reply,
                       label: 'reply'.tr(),
-                      stateIcon: switch (includeReplies.value) {
-                        true => Symbols.check_circle,
-                        false => Symbols.remove_circle,
-                        null => Symbols.radio_button_unchecked,
-                      },
-                      emphasized: includeReplies.value != null,
+                      stateIcon: includeReplies.value
+                          ? Symbols.check_circle
+                          : Symbols.remove_circle,
+                      emphasized: includeReplies.value,
                       onTap: () {
-                        includeReplies.value = switch (includeReplies.value) {
-                          false => true,
-                          true => null,
-                          null => false,
-                        };
+                        includeReplies.value = !includeReplies.value;
                         updateQuery();
                       },
                     ),
