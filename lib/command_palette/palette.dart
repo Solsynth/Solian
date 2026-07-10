@@ -214,7 +214,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
                         runtime,
                       );
                       if (result != null) {
-                        _showCommandResult(context, result, runtime: runtime);
+                        _showCommandResult(ref, result, runtime: runtime);
                       }
                     }
                   },
@@ -458,7 +458,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
   }
 
   void _showCommandResult(
-    BuildContext context,
+    WidgetRef ref,
     Object result, {
     required dynamic runtime,
   }) {
@@ -471,9 +471,19 @@ class CommandPaletteWidget extends HookConsumerWidget {
           )
         : null;
     if (descriptor != null) {
+      // The palette is rendered as a DesktopWindowFrame overlay (sibling of
+      // the app content), so its BuildContext is not under a Navigator.
+      // Always show results via the root router navigator.
+      final navigatorContext =
+          ref.read(routerProvider).navigatorKey.currentContext;
+      if (navigatorContext == null || !navigatorContext.mounted) {
+        return;
+      }
+
       PluginUiDescriptor currentDescriptor = descriptor;
       showDialog<void>(
-        context: context,
+        context: navigatorContext,
+        useRootNavigator: true,
         builder: (_) => StatefulBuilder(
           builder: (dialogContext, setDialogState) => Dialog.fullscreen(
             child: PluginUiRenderer(
