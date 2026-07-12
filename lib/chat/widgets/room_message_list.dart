@@ -9,6 +9,7 @@ import 'package:island/chat/widgets/online_avatar_badge.dart';
 import 'package:island/core/config.dart';
 import 'package:island/data/message.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -34,6 +35,56 @@ class RoomMessageList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final displayMessages = <LocalChatMessage>[];
+    for (final message in messages) {
+      final hookResult = PluginHooks().runBeforeMessageDisplay(
+        message.toRemoteMessage().toJson(),
+      );
+      if (hookResult.cancelled) continue;
+
+      try {
+        final remote = SnChatMessage.fromJson(hookResult.data!);
+        var transformed = LocalChatMessage.fromRemoteMessage(
+          remote,
+          message.status,
+          clientMessageId: message.clientMessageId,
+          nonce: message.nonce,
+        );
+        transformed.data.addAll(message.data);
+        transformed.localAttachments = message.localAttachments;
+        if (message.isDeleted != null || message.deletedAt != null) {
+          transformed = LocalChatMessage(
+            id: transformed.id,
+            roomId: transformed.roomId,
+            senderId: transformed.senderId,
+            sender: transformed.sender,
+            data: transformed.data,
+            createdAt: transformed.createdAt,
+            clientMessageId: transformed.clientMessageId,
+            nonce: transformed.nonce,
+            status: transformed.status,
+            content: transformed.content,
+            isDeleted: message.isDeleted,
+            updatedAt: transformed.updatedAt,
+            deletedAt: message.deletedAt,
+            type: transformed.type,
+            meta: transformed.meta,
+            membersMentioned: transformed.membersMentioned,
+            editedAt: transformed.editedAt,
+            attachments: transformed.attachments,
+            reactions: transformed.reactions,
+            repliedMessageId: transformed.repliedMessageId,
+            forwardedMessageId: transformed.forwardedMessageId,
+            localAttachments: message.localAttachments,
+          );
+        }
+        displayMessages.add(transformed);
+      } catch (_) {
+        // Invalid plugin output must not prevent the original message rendering.
+        displayMessages.add(message);
+      }
+    }
+
     final displayStyle = ref.watch(
       appSettingsProvider.select((settings) => settings.messageDisplayStyle),
     );
@@ -54,12 +105,12 @@ class RoomMessageList extends HookConsumerWidget {
     const messageKeyPrefix = 'message-';
     final addedMessageCount = previousMessageCount.value == null
         ? 0
-        : messages.length - previousMessageCount.value!;
+        : displayMessages.length - previousMessageCount.value!;
     final skipBatchMessageAnimations =
         addedMessageCount >= _animationBatchThreshold;
 
     useEffect(() {
-      if (!skipInitialLoadMessageAnimations.value || messages.isEmpty) {
+      if (!skipInitialLoadMessageAnimations.value || displayMessages.isEmpty) {
         return null;
       }
 
@@ -70,12 +121,12 @@ class RoomMessageList extends HookConsumerWidget {
       });
 
       return null;
-    }, [messages.length, skipInitialLoadMessageAnimations.value]);
+    }, [displayMessages.length, skipInitialLoadMessageAnimations.value]);
 
     useEffect(() {
-      previousMessageCount.value = messages.length;
+      previousMessageCount.value = displayMessages.length;
       return null;
-    }, [messages.length]);
+    }, [displayMessages.length]);
 
     final useColumnDisplay = displayStyle == 'column';
     final useBubbleDisplay = displayStyle != 'compact' && !useColumnDisplay;
@@ -83,19 +134,19 @@ class RoomMessageList extends HookConsumerWidget {
 
     final messageIndexById = useMemoized(() {
       return {
-        for (var i = 0; i < messages.length; i++)
-          messages[i].clientMessageId ?? messages[i].id: i,
+        for (var i = 0; i < displayMessages.length; i++)
+          displayMessages[i].clientMessageId ?? displayMessages[i].id: i,
       };
-    }, [messages]);
+    }, [displayMessages]);
 
     final listWidget = SuperListView.builder(
       listController: chatStateNotifier.listController,
       controller: chatStateNotifier.scrollController,
       reverse: true,
       padding: const EdgeInsets.only(top: 8),
-      itemCount: messages.length,
+      itemCount: displayMessages.length,
       findChildIndexCallback: (key) {
-        if (messages.isEmpty) return null;
+        if (displayMessages.isEmpty) return null;
 
         if (key is! ValueKey<String>) return null;
 
@@ -108,12 +159,12 @@ class RoomMessageList extends HookConsumerWidget {
       },
       extentEstimation: (_, _) => 40,
       itemBuilder: (context, index) {
-        final message = messages[index];
+        final message = displayMessages[index];
 
-        final nextMessage = index < messages.length - 1
-            ? messages[index + 1]
+        final nextMessage = index < displayMessages.length - 1
+            ? displayMessages[index + 1]
             : null;
-        final previousMessage = index > 0 ? messages[index - 1] : null;
+        final previousMessage = index > 0 ? displayMessages[index - 1] : null;
         bool isSameSenderGroup(LocalChatMessage? other) {
           return other != null &&
               other.senderId == message.senderId &&
@@ -129,8 +180,8 @@ class RoomMessageList extends HookConsumerWidget {
 
         final groupedMessages = <LocalChatMessage>[message];
         if (useStickyGroupedDisplay) {
-          for (var i = index + 1; i < messages.length; i++) {
-            final groupedMessage = messages[i];
+          for (var i = index + 1; i < displayMessages.length; i++) {
+            final groupedMessage = displayMessages[i];
             if (groupedMessage.senderId != message.senderId ||
                 groupedMessage.createdAt
                         .difference(groupedMessages.last.createdAt)

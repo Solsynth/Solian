@@ -29,6 +29,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
@@ -532,6 +533,14 @@ class PostItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hookResult = PluginHooks().runBeforePostDisplay(this.item.toJson());
+    SnPost displayItem = this.item;
+    try {
+      displayItem = SnPost.fromJson(hookResult.data!);
+    } catch (_) {
+      // Invalid plugin output must not prevent the original post rendering.
+    }
+    final item = displayItem;
     final renderingPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
@@ -546,6 +555,8 @@ class PostItem extends HookConsumerWidget {
 
     final translating = useState(false);
     final translatedText = useState<String?>(null);
+
+    if (hookResult.cancelled) return const SizedBox.shrink();
 
     Future<void> translate() async {
       if (!isTranslatable) return;
