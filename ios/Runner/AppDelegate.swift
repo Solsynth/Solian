@@ -567,7 +567,7 @@ import flutter_callkit_incoming
             }
             let recipientImage = recipientPictureUrl
                 .flatMap { URL(string: $0) }
-                .map { INImage(url: $0) }
+                .flatMap { INImage(url: $0) }
             recipients = [
                 INPerson(
                     personHandle: handle,

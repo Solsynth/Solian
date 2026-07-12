@@ -45,6 +45,9 @@ target 'Runner' do
   end
 
   target 'SolianNotificationService' do
+    pod 'Kingfisher', '~> 8.0'
+    pod 'KingfisherWebP'
+
     inherit! :search_paths
   end
 end

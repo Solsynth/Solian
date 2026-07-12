@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Fail this script if any subcommand fails.
+set -e
+
+# The default execution directory is ios/ci_scripts/. Move to the repository root.
+cd "$CI_PRIMARY_REPOSITORY_PATH"
+
+echo "=== Installing Flutter SDK ==="
+# Clone the stable Flutter SDK from Git into the home folder
+git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+export PATH="$PATH:$HOME/flutter/bin"
+
+# Pre-cache iOS artifacts and fetch dependencies
+flutter precache --ios
+flutter pub get
+
+echo "=== Installing CocoaPods ==="
+# Disable homebrew auto-updates to save CI time
+HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+
+# Install iOS pods
+echo "=== Running Pod Install ==="
+cd ios
+pod install --repo-update
+
+# Return to root and generate configurations
+cd "$CI_PRIMARY_REPOSITORY_PATH"
+flutter build ios --config-only
+
+echo "=== Script finished successfully ==="
+exit 0
