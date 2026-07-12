@@ -90,7 +90,7 @@ PODS:
     - FlutterMacOS
   - flutter_webrtc (1.4.0):
     - FlutterMacOS
-    - WebRTC-SDK (= 144.7559.01)
+    - WebRTC-SDK (= 144.7559.09)
   - FlutterMacOS (1.0.0)
   - gal (1.0.0):
     - Flutter
@@ -165,10 +165,10 @@ PODS:
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
-  - livekit_client (2.8.1):
+  - livekit_client (2.9.0-dev.0):
     - flutter_webrtc
     - FlutterMacOS
-    - WebRTC-SDK (= 144.7559.01)
+    - WebRTC-SDK (= 144.7559.09)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -231,7 +231,7 @@ PODS:
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
-  - WebRTC-SDK (144.7559.01)
+  - WebRTC-SDK (144.7559.09)
   - window_manager (0.5.0):
     - FlutterMacOS
 
@@ -438,7 +438,7 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 1fc7ffb10a83d6a2eeeeddb152d43f1944b0aad0
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
-  flutter_webrtc: f1fb1a00c6080461bb2bc6caa5b93d07ddb68466
+  flutter_webrtc: fec3dc9284a1f6d21ec2caa91c90bb4c1824eb04
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
@@ -451,7 +451,7 @@ SPEC CHECKSUMS:
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
   island_desktop_presence: 2360e0ca57129a334b22a67b4ba876861f680ba7
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
-  livekit_client: 327ec886ef09de0f2d790f7b47c02ebb6fcd3c58
+  livekit_client: 7cfa33c2667eda086fdb194ceeaeb7ed268ca319
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
@@ -479,7 +479,7 @@ SPEC CHECKSUMS:
   ua_client_hints: bb84da85d9d5d605d40598b3c1ae3bfd2598e201
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
-  WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
+  WebRTC-SDK: e6006119cd730d6315d875e4a421b6cc8bb88833
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
 PODFILE CHECKSUM: bac2186806ea901d391c664c7bfc8ccce0ee7cb7

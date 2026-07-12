@@ -697,10 +697,7 @@ class AccountProfileScreen extends HookConsumerWidget {
 class AccountProfileContent extends HookConsumerWidget {
   final String name;
 
-  const AccountProfileContent({
-    super.key,
-    required this.name,
-  });
+  const AccountProfileContent({super.key, required this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -807,7 +804,9 @@ class AccountProfileContent extends HookConsumerWidget {
         ref.read(boardWidgetAppsProvider.future),
       ];
       if (account.value != null) {
-        futures.add(ref.read(accountPublishersProvider(account.value!.id).future));
+        futures.add(
+          ref.read(accountPublishersProvider(account.value!.id).future),
+        );
       }
       if (user.value != null) {
         futures.add(ref.read(accountDirectChatProvider(name).future));
@@ -827,11 +826,12 @@ class AccountProfileContent extends HookConsumerWidget {
             accountPublishersProvider(data.id),
           );
           final theme = Theme.of(context);
-          final accountBoard = isCurrentUser
-              ? ref.watch(myAccountBoardProvider).asData?.value ??
-                    AccountBoard.defaultBoard()
-              : ref.watch(accountBoardProvider(name)).asData?.value ??
-                    AccountBoard.defaultBoard();
+          final savedBoard = isCurrentUser
+              ? ref.watch(myAccountBoardProvider).asData?.value
+              : ref.watch(accountBoardProvider(name)).asData?.value;
+          final accountBoard = savedBoard?.isNotEmpty == true
+              ? savedBoard!
+              : AccountBoard.defaultBoard();
 
           final showActions = user.value != null && !isCurrentUser;
 

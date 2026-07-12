@@ -15,6 +15,7 @@ import 'package:island/accounts/event_calendar.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/text.dart';
+import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -246,15 +247,13 @@ final myAccountBoardProvider = FutureProvider<List<AccountBoardItem>>((
   return parseAccountBoardItems(list);
 });
 
-final accountBoardProvider = FutureProvider.family<List<AccountBoardItem>, String>((
-  ref,
-  uname,
-) async {
-  final dio = ref.watch(apiClientProvider);
-  final response = await dio.get('/passport/accounts/$uname/board');
-  final list = response.data as List<dynamic>;
-  return parseAccountBoardItems(list);
-});
+final accountBoardProvider =
+    FutureProvider.family<List<AccountBoardItem>, String>((ref, uname) async {
+      final dio = ref.watch(apiClientProvider);
+      final response = await dio.get('/passport/accounts/$uname/board');
+      final list = response.data as List<dynamic>;
+      return parseAccountBoardItems(list);
+    });
 
 String? _payloadStringValue(Map<String, dynamic> payload, String key) {
   final value = payload[key];
@@ -273,6 +272,14 @@ List<String> _payloadFileIds(Map<String, dynamic> payload) {
   }
   return [if (payload['file_id'] is String) payload['file_id'] as String];
 }
+
+final _boardImageFilesProvider = FutureProvider.autoDispose
+    .family<List<SnCloudFile>, String>((ref, fileIdsKey) async {
+      return ref
+          .watch(solarNetworkClientProvider)
+          .drive
+          .getFiles(fileIdsKey.split(','));
+    });
 
 bool _isRemoteImageUri(String? value) {
   if (value == null || value.isEmpty) return false;
@@ -584,18 +591,34 @@ class AccountBoard extends StatelessWidget {
           ),
           'image' => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: _payloadFileIds(payload)
-                .map(
-                  (id) => ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CloudImageWidget(fileId: id),
-                  ),
-                )
-                .toList(),
+            children: [_ImageBoardWidget(fileIds: _payloadFileIds(payload))],
           ),
           _ => _UnknownWidget(keyLabel: widgetKey),
         },
       ),
+    );
+  }
+}
+
+class _ImageBoardWidget extends ConsumerWidget {
+  final List<String> fileIds;
+
+  const _ImageBoardWidget({required this.fileIds});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (fileIds.isEmpty) return const SizedBox.shrink();
+
+    final files = ref.watch(_boardImageFilesProvider(fileIds.join(',')));
+
+    return files.when(
+      data: (files) => CloudFileList(
+        files: files,
+        maxWidth: double.infinity,
+        borderRadius: 12,
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

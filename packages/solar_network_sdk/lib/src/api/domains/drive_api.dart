@@ -78,6 +78,17 @@ class DriveApi extends BaseApi {
     ).then((r) => SnCloudFile.fromJson(r.data));
   }
 
+  /// Returns readable cloud files for [fileIds], preserving the requested order.
+  Future<List<SnCloudFile>> getFiles(List<String> fileIds) async {
+    if (fileIds.isEmpty) return [];
+
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/meta',
+      queryParameters: {'ids': fileIds.join(',')},
+    );
+    return parseList(response, SnCloudFile.fromJson);
+  }
+
   /// Returns all cloud files sharing the same underlying storage object.
   Future<List<SnCloudFile>> getFileReferences(String fileId) async {
     final response = await get<List<dynamic>>(
