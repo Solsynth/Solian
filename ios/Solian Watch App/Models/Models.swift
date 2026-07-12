@@ -71,13 +71,17 @@ struct SnPost: Codable, Identifiable {
     let awardedScore: Int?
     let pinMode: Int?
     let threadedPostId: String?
+    let threadedPost: SnPostReference?
     let repliedPostId: String?
+    let repliedPost: SnPostReference?
     let forwardedPostId: String?
+    let forwardedPost: SnPostReference?
     let realmId: String?
     let realm: SnRealm?
     let publisherId: String?
     let publisher: SnPublisher?
     let actorid: String?
+    let actor: SnActivityPubActor?
     let fediverseUri: String?
     let fediverseType: Int?
     let isCached: Bool?
@@ -87,14 +91,20 @@ struct SnPost: Codable, Identifiable {
     let reactionsMade: [String: Bool]?
     let reactions: [AnyCodable]?
     let tags: [SnPostTag]?
+    let categories: [SnPostCategory]?
+    let collections: [AnyCodable]?
+    let publisherCollections: [SnPostCollection]?
     let featuredRecords: [AnyCodable]?
     let createdAt: Date?
     let updatedAt: Date?
     let deletedAt: Date?
     let repliedGone: Bool?
     let forwardedGone: Bool?
+    let isTruncated: Bool?
     let boostedBy: SnActivityPubActor?
     let boostedAt: Date?
+    let sponsored: Bool?
+    let isBookmarked: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id, title, description, language, editedAt, draftedAt, publishedAt, visibility
@@ -108,13 +118,17 @@ struct SnPost: Codable, Identifiable {
         case awardedScore = "awarded_score"
         case pinMode = "pin_mode"
         case threadedPostId = "threaded_post_id"
+        case threadedPost = "threaded_post"
         case repliedPostId = "replied_post_id"
+        case repliedPost = "replied_post"
         case forwardedPostId = "forwarded_post_id"
+        case forwardedPost = "forwarded_post"
         case realmId = "realm_id"
         case realm
         case publisherId = "publisher_id"
         case publisher
         case actorid = "actor_id"
+        case actor
         case fediverseUri = "fediverse_uri"
         case fediverseType = "fediverse_type"
         case isCached = "is_cached"
@@ -122,15 +136,19 @@ struct SnPost: Codable, Identifiable {
         case attachments
         case reactionsCount = "reactions_count"
         case reactionsMade = "reactions_made"
-        case reactions, tags
+        case reactions, tags, categories, collections
+        case publisherCollections = "publisher_collections"
         case featuredRecords = "featured_records"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
         case repliedGone = "replied_gone"
         case forwardedGone = "forwarded_gone"
+        case isTruncated = "is_truncated"
         case boostedBy = "boosted_by"
         case boostedAt = "boosted_at"
+        case sponsored
+        case isBookmarked = "is_bookmarked"
     }
 }
 
@@ -143,6 +161,19 @@ struct SnPostEmbedView: Codable {
         case uri
         case aspectRatio = "aspect_ratio"
         case renderer
+    }
+}
+
+struct SnPostReference: Codable, Identifiable {
+    let id: String
+    let title: String?
+    let content: String?
+    let publisher: SnPublisher?
+    let createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, content, publisher
+        case createdAt = "created_at"
     }
 }
 
@@ -287,8 +318,11 @@ struct SnPublisher: Codable, Identifiable {
     let deletedAt: Date?
     let realmId: String?
     let verification: SnVerificationMark?
-    let followRequiresApproval: Bool
-    let postsRequireFollow: Bool
+    let isShadowbanned: Bool
+    let isGatekept: Bool
+    let isModerateSubscription: Bool
+    let rating: Double
+    let ratingLevel: Int
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -305,8 +339,11 @@ struct SnPublisher: Codable, Identifiable {
         case deletedAt = "deleted_at"
         case realmId = "realm_id"
         case verification
-        case followRequiresApproval = "follow_requires_approval"
-        case postsRequireFollow = "posts_require_follow"
+        case isShadowbanned = "is_shadowbanned"
+        case isGatekept = "is_gatekept"
+        case isModerateSubscription = "is_moderate_subscription"
+        case rating
+        case ratingLevel = "rating_level"
     }
     
     init(from decoder: Decoder) throws {
@@ -325,8 +362,11 @@ struct SnPublisher: Codable, Identifiable {
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
         realmId = try container.decodeIfPresent(String.self, forKey: .realmId)
         verification = try container.decodeIfPresent(SnVerificationMark.self, forKey: .verification)
-        followRequiresApproval = try container.decodeIfPresent(Bool.self, forKey: .followRequiresApproval) ?? false
-        postsRequireFollow = try container.decodeIfPresent(Bool.self, forKey: .postsRequireFollow) ?? false
+        isShadowbanned = try container.decodeIfPresent(Bool.self, forKey: .isShadowbanned) ?? false
+        isGatekept = try container.decodeIfPresent(Bool.self, forKey: .isGatekept) ?? false
+        isModerateSubscription = try container.decodeIfPresent(Bool.self, forKey: .isModerateSubscription) ?? false
+        rating = try container.decodeIfPresent(Double.self, forKey: .rating) ?? 100
+        ratingLevel = try container.decodeIfPresent(Int.self, forKey: .ratingLevel) ?? 0
     }
 }
 
@@ -390,6 +430,33 @@ struct SnPostTag: Codable, Identifiable {
     let id: String
     let slug: String
     let name: String?
+}
+
+struct SnPostCategory: Codable, Identifiable {
+    let id: String
+    let slug: String
+    let name: String?
+    let usage: Int?
+}
+
+struct SnPostCollection: Codable, Identifiable {
+    let id: String
+    let slug: String
+    let name: String?
+    let description: String?
+    let publisherId: String
+    let publisher: SnPublisher?
+    let background: SnCloudFile?
+    let icon: SnCloudFile?
+    let createdAt: Date?
+    let updatedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, name, description, publisher, background, icon
+        case publisherId = "publisher_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
 }
 
 struct SnWebArticle: Codable, Identifiable {

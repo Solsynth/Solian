@@ -20,24 +20,12 @@ struct CheckInTip: Codable {
     }
 }
 
-struct CheckInAccount: Codable {
-    let id: String
-    let nick: String?
-    let profile: CheckInProfile?
-}
-
-struct CheckInProfile: Codable {
-    let picture: String?
-}
-
 struct CheckInResult: Codable {
     let id: String
     let level: Int
-    let rewardPoints: Int
-    let rewardExperience: Int
     let tips: [CheckInTip]
+    let fortuneReport: CheckInFortuneReport?
     let accountId: String
-    let account: CheckInAccount?
     let createdAt: String
     let updatedAt: String
     let deletedAt: String?
@@ -45,11 +33,9 @@ struct CheckInResult: Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case level
-        case rewardPoints = "reward_points"
-        case rewardExperience = "reward_experience"
         case tips
+        case fortuneReport = "fortune_report"
         case accountId = "account_id"
-        case account
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
@@ -66,6 +52,38 @@ struct CheckInResult: Codable {
         // Fallback for timestamps without fractional seconds
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: createdAt)
+    }
+}
+
+struct CheckInFortuneReport: Codable {
+    let version: Int
+    let poem: String
+    let summary: String
+    let summaryDetail: String?
+    let wish: String
+    let love: String
+    let study: String
+    let career: String
+    let health: String
+    let lostItem: String
+    let luckyColor: String
+    let luckyDirection: String
+    let luckyTime: String
+    let luckyItem: String
+    let luckyAction: String
+    let avoidAction: String
+    let ritual: String
+
+    enum CodingKeys: String, CodingKey {
+        case version, poem, summary, wish, love, study, career, health, ritual
+        case summaryDetail = "summary_detail"
+        case lostItem = "lost_item"
+        case luckyColor = "lucky_color"
+        case luckyDirection = "lucky_direction"
+        case luckyTime = "lucky_time"
+        case luckyItem = "lucky_item"
+        case luckyAction = "lucky_action"
+        case avoidAction = "avoid_action"
     }
 }
 
@@ -109,57 +127,7 @@ class NotableDayService {
     private let networkService = WidgetNetworkService()
     
     func fetchRecentNotableDay() async throws -> NotableDay? {
-        print("[WidgetKit] [NotableDayService] Fetching recent notable day...")
-        do {
-            let result: [NotableDay]? = try await networkService.makeRequest(path: "/passport/notable/me/recent")
-            print("[WidgetKit] [NotableDayService] Result: \(String(describing: result))")
-            
-            guard let result = result else {
-                print("[WidgetKit] [NotableDayService] Result is nil")
-                return nil
-            }
-            
-            print("[WidgetKit] [NotableDayService] Result count: \(result.count)")
-            
-            guard result.isEmpty == false else {
-                print("[WidgetKit] [NotableDayService] No notable days found")
-                return nil
-            }
-            
-            let firstDay = result.first!
-            print("[WidgetKit] [NotableDayService] First notable day: \(firstDay.localName), date: \(firstDay.date)")
-            
-            return firstDay
-        } catch let decodingError as DecodingError {
-            print("[WidgetKit] [NotableDayService] Decoding error, trying as single object...")
-            print("[WidgetKit] [NotableDayService] Error: \(decodingError.localizedDescription)")
-            
-            switch decodingError {
-            case .typeMismatch(let type, let context):
-                print("[WidgetKit] [NotableDayService] Type mismatch: expected \(type), context: \(context.debugDescription)")
-            case .valueNotFound(let type, let context):
-                print("[WidgetKit] [NotableDayService] Value not found: type \(type), context: \(context.debugDescription)")
-            case .keyNotFound(let key, let context):
-                print("[WidgetKit] [NotableDayService] Key not found: \(key), context: \(context.debugDescription)")
-            case .dataCorrupted(let context):
-                print("[WidgetKit] [NotableDayService] Data corrupted: \(context.debugDescription)")
-            @unknown default:
-                print("[WidgetKit] [NotableDayService] Unknown decoding error")
-            }
-            
-            do {
-                let singleResult: NotableDay? = try await networkService.makeRequest(path: "/passport/notable/me/recent")
-                print("[WidgetKit] [NotableDayService] Single object decode succeeded: \(singleResult?.localName ?? "nil")")
-                return singleResult
-            } catch {
-                print("[WidgetKit] [NotableDayService] Single object decode also failed: \(error.localizedDescription)")
-                throw decodingError
-            }
-        } catch {
-            print("[WidgetKit] [NotableDayService] Error fetching notable day: \(error.localizedDescription)")
-            print("[WidgetKit] [NotableDayService] Error type: \(type(of: error))")
-            throw error
-        }
+        try await networkService.makeRequest(path: "/passport/notable/me/recent")
     }
 }
 
@@ -447,6 +415,11 @@ struct CheckInWidgetEntryView: View {
                             }
                         }
                     }
+                } else if let summary = result.fortuneReport?.summary, !summary.isEmpty {
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 } else if !isAccessory && family != .systemSmall {
                     Text("No fortune today")
                         .font(.caption)
@@ -658,15 +631,13 @@ struct SolianCheckInWidget: Widget {
         result: CheckInResult(
             id: "test-id",
             level: 2,
-            rewardPoints: 10,
-            rewardExperience: 100,
             tips: [
                 CheckInTip(isPositive: true, title: "Good Luck", content: "Great day"),
                 CheckInTip(isPositive: true, title: "Creative", content: "Inspiration"),
                 CheckInTip(isPositive: false, title: "Shopping", content: "Expensive")
             ],
+            fortuneReport: nil,
             accountId: "account-id",
-            account: nil,
             createdAt: ISO8601DateFormatter().string(from: Date()),
             updatedAt: ISO8601DateFormatter().string(from: Date()),
             deletedAt: nil
@@ -693,14 +664,12 @@ struct SolianCheckInWidget: Widget {
         result: CheckInResult(
             id: "test-id",
             level: 4,
-            rewardPoints: 50,
-            rewardExperience: 500,
             tips: [
                 CheckInTip(isPositive: true, title: "Lucky", content: "Great fortune"),
                 CheckInTip(isPositive: true, title: "Success", content: "Opportunity")
             ],
+            fortuneReport: nil,
             accountId: "account-id",
-            account: nil,
             createdAt: ISO8601DateFormatter().string(from: Date()),
             updatedAt: ISO8601DateFormatter().string(from: Date()),
             deletedAt: nil
