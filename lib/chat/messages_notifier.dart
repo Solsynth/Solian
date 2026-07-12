@@ -1384,6 +1384,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           IosShareSuggestionsService.instance.donateChatRoom(
             room,
             currentUserId: currentUserId,
+            serverUrl: ref.read(serverUrlProvider),
           ),
         );
       }

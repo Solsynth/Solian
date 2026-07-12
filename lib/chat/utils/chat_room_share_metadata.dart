@@ -25,6 +25,38 @@ String? getDirectChatCounterpartNick(SnChatRoom room, String? currentUserId) {
   return null;
 }
 
+String? getDirectChatCounterpartFirstName(
+  SnChatRoom room,
+  String? currentUserId,
+) {
+  if (room.type != 1) return null;
+  final members = room.members ?? const <SnChatMember>[];
+  final others = members.where((member) => member.accountId != currentUserId);
+  for (final member in others) {
+    final firstName = member.account.profile.firstName.trim();
+    if (firstName.isNotEmpty) return firstName;
+  }
+  return null;
+}
+
+String? getDirectChatCounterpartPictureUrl(
+  SnChatRoom room,
+  String? currentUserId,
+  String serverUrl,
+) {
+  if (room.type != 1) return null;
+  final members = room.members ?? const <SnChatMember>[];
+  final others = members.where((member) => member.accountId != currentUserId);
+  for (final member in others) {
+    final picture = member.account.profile.picture;
+    if (picture == null) continue;
+    final storageUrl = picture.storageUrl?.trim();
+    if (storageUrl != null && storageUrl.isNotEmpty) return storageUrl;
+    return '${serverUrl.replaceFirst(RegExp(r'/+$'), '')}/drive/files/${picture.id}';
+  }
+  return null;
+}
+
 String getChatRoomSuggestionDisplayName(
   SnChatRoom room,
   String? currentUserId,

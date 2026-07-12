@@ -109,6 +109,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         await IosShareSuggestionsService.instance.donateChatRoom(
           room,
           currentUserId: currentUserId,
+          serverUrl: ref.read(serverUrlProvider),
         );
         donatedRoomId.value = room.id;
       });

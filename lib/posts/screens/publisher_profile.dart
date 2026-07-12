@@ -841,15 +841,6 @@ final publisherCollectionsProvider = FutureProvider.autoDispose
       return client.sphere.listPublisherCollections(pubName);
     });
 
-final publisherCollectionPostsProvider = FutureProvider.autoDispose
-    .family<PaginatedResult<SnPost>, (String, String)>((ref, args) async {
-      final client = ref.watch(solarNetworkClientProvider);
-      return client.sphere.listPublisherCollectionPosts(
-        publisherName: args.$1,
-        slug: args.$2,
-      );
-    });
-
 class _PublisherTabBar extends StatelessWidget {
   const _PublisherTabBar();
 
@@ -1075,8 +1066,8 @@ class _PublisherCollectionCard extends StatelessWidget {
             id: 'publisher-collection:$pubName:${collection.slug}',
             replaceIfExists: true,
             barrierDismissible: true,
-            builder: (_, dismiss) => _PublisherCollectionSheet(
-              pubName: pubName,
+            builder: (_, dismiss) => PublisherCollectionDetailSheet(
+              publisherName: pubName,
               collection: collection,
               onDismiss: dismiss,
             ),
@@ -1152,133 +1143,6 @@ class _PublisherCollectionCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PublisherCollectionSheet extends ConsumerWidget {
-  final String pubName;
-  final SnPostCollection collection;
-  final VoidCallback onDismiss;
-
-  const _PublisherCollectionSheet({
-    required this.pubName,
-    required this.collection,
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final posts = ref.watch(
-      publisherCollectionPostsProvider((pubName, collection.slug)),
-    );
-    final publisher = ref.watch(publisherProvider(pubName));
-    final title = collection.name?.isNotEmpty == true
-        ? collection.name!
-        : collection.slug;
-
-    final postsContent = posts.when(
-      data: (result) {
-        if (result.items.isEmpty) {
-          return SizedBox(
-            height: 180,
-            child: Center(child: Text('dataEmpty').tr()),
-          );
-        }
-
-        return Column(
-          children: [
-            for (final post in result.items)
-              Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: PostActionableItem(
-                  onTap: () {
-                    onDismiss();
-                    context.router.push(PostDetailRoute(id: post.id));
-                  },
-                  borderRadius: 8,
-                  item: post,
-                  isFullPost: false,
-                  isEmbedReply: false,
-                  isCompact: true,
-                  hideAttachments: true,
-                ),
-              ),
-          ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => ResponseErrorWidget(
-        error: error,
-        onRetry: () => ref.invalidate(
-          publisherCollectionPostsProvider((pubName, collection.slug)),
-        ),
-      ),
-    );
-
-    final publisherInfo = publisher.when(
-      data: (data) => PublisherCollectionPublisherInfo(data: data),
-      loading: () => const SizedBox(
-        height: 120,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, _) => const SizedBox.shrink(),
-    );
-
-    return AttentionModalScaffold(
-      titleText: title,
-      onDismiss: onDismiss,
-      maxWidth: 1100,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final useWideLayout =
-              isWideScreen(context) && constraints.maxWidth >= 900;
-
-          if (!useWideLayout) {
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-              children: [
-                PublisherCollectionHeader(collection: collection, title: title),
-                const Gap(16),
-                publisherInfo,
-                const Gap(16),
-                postsContent,
-              ],
-            );
-          }
-
-          return SizedBox(
-            height: constraints.maxHeight,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 4, 16),
-                    children: [postsContent],
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  flex: 3,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(0, 12, 12, 16),
-                    children: [
-                      PublisherCollectionHeader(
-                        collection: collection,
-                        title: title,
-                      ),
-                      const Gap(12),
-                      publisherInfo,
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }
