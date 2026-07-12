@@ -43,7 +43,9 @@ class RoomMessageList extends HookConsumerWidget {
       if (hookResult.cancelled) continue;
 
       try {
-        final remote = SnChatMessage.fromJson(hookResult.data!);
+        final messageData = message.toRemoteMessage().toJson()
+          ..addAll(hookResult.data!);
+        final remote = SnChatMessage.fromJson(messageData);
         var transformed = LocalChatMessage.fromRemoteMessage(
           remote,
           message.status,

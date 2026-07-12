@@ -536,7 +536,8 @@ class PostItem extends HookConsumerWidget {
     final hookResult = PluginHooks().runBeforePostDisplay(this.item.toJson());
     SnPost displayItem = this.item;
     try {
-      displayItem = SnPost.fromJson(hookResult.data!);
+      final postData = this.item.toJson()..addAll(hookResult.data!);
+      displayItem = SnPost.fromJson(postData);
     } catch (_) {
       // Invalid plugin output must not prevent the original post rendering.
     }
