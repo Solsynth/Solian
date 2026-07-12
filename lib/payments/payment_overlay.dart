@@ -584,6 +584,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   @override
   Widget build(BuildContext context) {
+    final hasAppId = widget.orderInfo?.app?.id.isNotEmpty == true;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -595,9 +597,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildContextInfoCard(),
+                    if (hasAppId) _buildContextInfoCard(),
                     if (widget.orderInfo?.items.isNotEmpty ?? false) ...[
-                      const Gap(16),
+                      if (hasAppId) const Gap(16),
                       _buildItemsCard(),
                     ],
                     const Gap(16),

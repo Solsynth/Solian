@@ -13,6 +13,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/auth/models/authorize_client_info.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/deeplink_service.dart';
@@ -1581,10 +1582,22 @@ Future<void> _checkAndShowDeviceApproval(
     showLoadingModal(context);
     final client = ref.read(solarNetworkClientProvider);
     final resp = await client.dio.get(
-      '/padlock/auth/open/device/code/$userCode',
+      '/padlock/auth/open/device/code/${Uri.encodeComponent(userCode)}',
+    );
+    final data = Map<String, dynamic>.from(resp.data as Map);
+    final clientId =
+        data['clientId'] as String? ?? data['client_id'] as String?;
+    if (clientId == null || clientId.isEmpty) {
+      throw StateError('Invalid device code');
+    }
+    final clientInfoResp = await client.dio.get(
+      '/padlock/auth/open/authorize',
+      queryParameters: {'client_id': clientId},
+    );
+    final clientInfo = AuthorizeClientInfo.fromJson(
+      Map<String, dynamic>.from(clientInfoResp.data as Map),
     );
     if (context.mounted) hideLoadingModal(context);
-    final data = Map<String, dynamic>.from(resp.data as Map);
     if (!context.mounted) return;
     await showModalBottomSheet(
       context: context,
@@ -1592,8 +1605,7 @@ Future<void> _checkAndShowDeviceApproval(
       useRootNavigator: true,
       builder: (context) => _DeviceAuthApprovalSheet(
         userCode: userCode,
-        clientId: data['client_id'] as String? ?? 'unknownClient'.tr(),
-        scopes: (data['scopes'] as List?)?.cast<String>() ?? const [],
+        clientInfo: clientInfo,
         status: data['status'] as String? ?? 'pending',
         expiresAt: data['expires_at'] != null
             ? DateTime.parse(data['expires_at'] as String)
@@ -1640,15 +1652,13 @@ class _DeviceAuthSection extends HookConsumerWidget {
 
 class _DeviceAuthApprovalSheet extends HookConsumerWidget {
   final String userCode;
-  final String clientId;
-  final List<String> scopes;
+  final AuthorizeClientInfo clientInfo;
   final String status;
   final DateTime? expiresAt;
 
   const _DeviceAuthApprovalSheet({
     required this.userCode,
-    required this.clientId,
-    required this.scopes,
+    required this.clientInfo,
     required this.status,
     this.expiresAt,
   });
@@ -1656,6 +1666,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final picture = clientInfo.picture;
     final isBusy = useState(false);
     final remaining = useState<int?>(null);
     final resolved = useState<String?>(status);
@@ -1683,7 +1694,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         await client.dio.post(
-          '/padlock/auth/open/device/code/$userCode/${approve ? 'approve' : 'decline'}',
+          '/padlock/auth/open/device/code/${Uri.encodeComponent(userCode)}/${approve ? 'approve' : 'decline'}',
         );
         resolved.value = approve ? 'approved' : 'declined';
         if (!context.mounted) return;
@@ -1728,9 +1739,24 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                                 color: theme.colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(
-                                Symbols.devices,
-                                color: theme.colorScheme.onPrimaryContainer,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: picture != null
+                                    ? Image(
+                                        image: CloudImageWidget.provider(
+                                          file: picture,
+                                          serverUrl: ref.watch(
+                                            serverUrlProvider,
+                                          ),
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Icon(
+                                        Symbols.extension,
+                                        color: theme
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -1739,7 +1765,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    clientId,
+                                    clientInfo.clientName,
                                     style: theme.textTheme.titleMedium
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
@@ -1758,11 +1784,30 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      if (scopes.isNotEmpty) ...[
+                      if (clientInfo.homeUri != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            clientInfo.homeUri!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      if (clientInfo.description != null) ...[
+                        Text(
+                          clientInfo.description!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (clientInfo.scopes.isNotEmpty) ...[
                         _DetailRow(
                           icon: Symbols.shield,
                           label: 'accountQrDeviceAuthScopes'.tr(),
-                          value: scopes.join(', '),
+                          value: clientInfo.scopes.join(', '),
                         ),
                       ],
                       _DetailRow(
