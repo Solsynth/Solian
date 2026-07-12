@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/activity_presence.dart';
+import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/activity/activity_rpc.dart';
 import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/fortune_graph.dart';
@@ -255,6 +256,43 @@ final accountBoardProvider =
       return parseAccountBoardItems(list);
     });
 
+class PublicAccountConnection {
+  final String provider;
+  final String providedIdentifier;
+  final String? url;
+
+  const PublicAccountConnection({
+    required this.provider,
+    required this.providedIdentifier,
+    this.url,
+  });
+
+  factory PublicAccountConnection.fromJson(Map<String, dynamic> json) {
+    return PublicAccountConnection(
+      provider: json['provider'] as String,
+      providedIdentifier: json['provided_identifier'] as String,
+      url: json['url'] as String?,
+    );
+  }
+}
+
+final publicAccountConnectionsProvider =
+    FutureProvider.family<List<PublicAccountConnection>, String>((
+      ref,
+      uname,
+    ) async {
+      final dio = ref.watch(apiClientProvider);
+      final response = await dio.get('/passport/accounts/$uname/connections');
+      final list = response.data as List<dynamic>;
+      return list
+          .map(
+            (connection) => PublicAccountConnection.fromJson(
+              Map<String, dynamic>.from(connection as Map),
+            ),
+          )
+          .toList();
+    });
+
 String? _payloadStringValue(Map<String, dynamic> payload, String key) {
   final value = payload[key];
   if (value is String) return value;
@@ -449,25 +487,30 @@ class AccountBoard extends StatelessWidget {
       AccountBoardItem(
         order: 5,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'publishers',
+        widgetKey: 'connections',
       ),
       AccountBoardItem(
         order: 6,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'notable_days',
+        widgetKey: 'publishers',
       ),
       AccountBoardItem(
         order: 7,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'verification',
+        widgetKey: 'notable_days',
       ),
       AccountBoardItem(
         order: 8,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'links',
+        widgetKey: 'verification',
       ),
       AccountBoardItem(
         order: 9,
+        kind: BoardWidgetKind.prebuilt,
+        widgetKey: 'links',
+      ),
+      AccountBoardItem(
+        order: 10,
         kind: BoardWidgetKind.prebuilt,
         widgetKey: 'fortune',
       ),
@@ -580,6 +623,7 @@ class AccountBoard extends StatelessWidget {
             verification: account.profile.verification,
           ),
           'contacts' => _ContactsBoardWidget(contacts: account.contacts),
+          'connections' => _ConnectionsBoardWidget(uname: uname),
           'publishers' => _PublishersBoardWidget(publishers: publishers),
           'fortune' => _FortuneBoardWidget(
             uname: uname,
@@ -615,6 +659,7 @@ class _ImageBoardWidget extends ConsumerWidget {
       data: (files) => CloudFileList(
         files: files,
         maxWidth: double.infinity,
+        maxHeight: double.infinity,
         borderRadius: 12,
       ),
       loading: () => const SizedBox.shrink(),
@@ -1404,6 +1449,130 @@ class _BoardContactTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ConnectionsBoardWidget extends ConsumerWidget {
+  final String uname;
+
+  const _ConnectionsBoardWidget({required this.uname});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final connections = ref.watch(publicAccountConnectionsProvider(uname));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Symbols.link, size: 18, color: theme.colorScheme.primary),
+            const Gap(8),
+            Text(
+              'accountConnections'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        connections.when(
+          data: (connections) => connections.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'descriptionNone'.tr(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    spacing: 8,
+                    children: connections
+                        .map(
+                          (connection) =>
+                              _BoardConnectionTile(connection: connection),
+                        )
+                        .toList(),
+                  ),
+                ),
+          loading: () => const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: LinearProgressIndicator(),
+          ),
+          error: (_, _) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class _BoardConnectionTile extends StatelessWidget {
+  final PublicAccountConnection connection;
+
+  const _BoardConnectionTile({required this.connection});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final url = connection.url?.trim();
+    final hasUrl = url?.isNotEmpty ?? false;
+
+    final child = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          getProviderIcon(
+            connection.provider,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  getLocalizedProviderName(connection.provider),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  hasUrl ? url! : connection.providedIdentifier,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (hasUrl)
+            Icon(
+              Symbols.arrow_outward,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+        ],
+      ),
+    );
+
+    if (!hasUrl) return child;
+    return InkWell(
+      onTap: () => launchUrlString(url!),
+      borderRadius: BorderRadius.circular(8),
+      child: child,
     );
   }
 }

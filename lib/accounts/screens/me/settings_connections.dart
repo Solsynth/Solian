@@ -97,6 +97,38 @@ class AccountConnectionSheet extends HookConsumerWidget {
       }
     }
 
+    Future<void> makeConnectionPublic() async {
+      try {
+        showLoadingModal(context);
+        final client = ref.read(apiClientProvider);
+        await client.post(
+          '/padlock/connections/${connection.id}/visibility',
+          data: {'is_public': true},
+        );
+        if (context.mounted) Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> makeConnectionPrivate() async {
+      try {
+        showLoadingModal(context);
+        final client = ref.read(apiClientProvider);
+        await client.post(
+          '/padlock/connections/${connection.id}/visibility',
+          data: {'is_public': false},
+        );
+        if (context.mounted) Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
     return SheetScaffold(
       titleText: 'accountConnections'.tr(),
       child: SingleChildScrollView(
@@ -136,9 +168,37 @@ class AccountConnectionSheet extends HookConsumerWidget {
                   connection.lastUsedAt.formatSystem(),
                   style: Theme.of(context).textTheme.bodySmall,
                 ).opacity(0.85),
+                const Gap(10),
+                Badge(
+                  label: Text(
+                    connection.isPublic
+                        ? 'accountConnectionPublic'.tr()
+                        : 'accountConnectionPrivate'.tr(),
+                  ),
+                  textColor: connection.isPublic
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurface,
+                  backgroundColor: connection.isPublic
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
               ],
             ).padding(all: 20),
             const Divider(height: 1),
+            if (!connection.isPublic)
+              ListTile(
+                leading: const Icon(Symbols.public),
+                title: Text('accountConnectionMakePublic').tr(),
+                onTap: makeConnectionPublic,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              ),
+            if (connection.isPublic)
+              ListTile(
+                leading: const Icon(Symbols.visibility_off),
+                title: Text('accountConnectionMakePrivate').tr(),
+                onTap: makeConnectionPrivate,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              ),
             ListTile(
               leading: const Icon(Symbols.delete),
               title: Text('accountConnectionDelete').tr(),

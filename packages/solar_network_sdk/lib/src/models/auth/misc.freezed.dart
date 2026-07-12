@@ -830,7 +830,7 @@ as Map<String, dynamic>?,
 /// @nodoc
 mixin _$SnAccountConnection {
 
- String get id; String get accountId; String get provider; String get providedIdentifier; Map<String, dynamic> get meta; DateTime get lastUsedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get accountId; String get provider; String get providedIdentifier; bool get isPublic; Map<String, dynamic> get meta; DateTime get lastUsedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnAccountConnection
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -843,16 +843,16 @@ $SnAccountConnectionCopyWith<SnAccountConnection> get copyWith => _$SnAccountCon
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountConnection&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.providedIdentifier, providedIdentifier) || other.providedIdentifier == providedIdentifier)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountConnection&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.providedIdentifier, providedIdentifier) || other.providedIdentifier == providedIdentifier)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,provider,providedIdentifier,const DeepCollectionEquality().hash(meta),lastUsedAt,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,accountId,provider,providedIdentifier,isPublic,const DeepCollectionEquality().hash(meta),lastUsedAt,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccountConnection(id: $id, accountId: $accountId, provider: $provider, providedIdentifier: $providedIdentifier, meta: $meta, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountConnection(id: $id, accountId: $accountId, provider: $provider, providedIdentifier: $providedIdentifier, isPublic: $isPublic, meta: $meta, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -863,7 +863,7 @@ abstract mixin class $SnAccountConnectionCopyWith<$Res>  {
   factory $SnAccountConnectionCopyWith(SnAccountConnection value, $Res Function(SnAccountConnection) _then) = _$SnAccountConnectionCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, String provider, String providedIdentifier, Map<String, dynamic> meta, DateTime lastUsedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String accountId, String provider, String providedIdentifier, bool isPublic, Map<String, dynamic> meta, DateTime lastUsedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -880,13 +880,14 @@ class _$SnAccountConnectionCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountConnection
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? provider = null,Object? providedIdentifier = null,Object? meta = null,Object? lastUsedAt = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? provider = null,Object? providedIdentifier = null,Object? isPublic = null,Object? meta = null,Object? lastUsedAt = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,providedIdentifier: null == providedIdentifier ? _self.providedIdentifier : providedIdentifier // ignore: cast_nullable_to_non_nullable
-as String,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as String,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
+as bool,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,lastUsedAt: null == lastUsedAt ? _self.lastUsedAt : lastUsedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -973,10 +974,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String provider,  String providedIdentifier,  Map<String, dynamic> meta,  DateTime lastUsedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String provider,  String providedIdentifier,  bool isPublic,  Map<String, dynamic> meta,  DateTime lastUsedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountConnection() when $default != null:
-return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier,_that.meta,_that.lastUsedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier,_that.isPublic,_that.meta,_that.lastUsedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -994,10 +995,10 @@ return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String provider,  String providedIdentifier,  Map<String, dynamic> meta,  DateTime lastUsedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String provider,  String providedIdentifier,  bool isPublic,  Map<String, dynamic> meta,  DateTime lastUsedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountConnection():
-return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier,_that.meta,_that.lastUsedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier,_that.isPublic,_that.meta,_that.lastUsedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1011,10 +1012,10 @@ return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String provider,  String providedIdentifier,  Map<String, dynamic> meta,  DateTime lastUsedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String provider,  String providedIdentifier,  bool isPublic,  Map<String, dynamic> meta,  DateTime lastUsedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountConnection() when $default != null:
-return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier,_that.meta,_that.lastUsedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier,_that.isPublic,_that.meta,_that.lastUsedAt,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1026,13 +1027,14 @@ return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier
 @JsonSerializable()
 
 class _SnAccountConnection implements SnAccountConnection {
-  const _SnAccountConnection({required this.id, required this.accountId, required this.provider, required this.providedIdentifier, final  Map<String, dynamic> meta = const {}, required this.lastUsedAt, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnAccountConnection({required this.id, required this.accountId, required this.provider, required this.providedIdentifier, this.isPublic = false, final  Map<String, dynamic> meta = const {}, required this.lastUsedAt, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnAccountConnection.fromJson(Map<String, dynamic> json) => _$SnAccountConnectionFromJson(json);
 
 @override final  String id;
 @override final  String accountId;
 @override final  String provider;
 @override final  String providedIdentifier;
+@override@JsonKey() final  bool isPublic;
  final  Map<String, dynamic> _meta;
 @override@JsonKey() Map<String, dynamic> get meta {
   if (_meta is EqualUnmodifiableMapView) return _meta;
@@ -1058,16 +1060,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountConnection&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.providedIdentifier, providedIdentifier) || other.providedIdentifier == providedIdentifier)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountConnection&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.providedIdentifier, providedIdentifier) || other.providedIdentifier == providedIdentifier)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,provider,providedIdentifier,const DeepCollectionEquality().hash(_meta),lastUsedAt,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,accountId,provider,providedIdentifier,isPublic,const DeepCollectionEquality().hash(_meta),lastUsedAt,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnAccountConnection(id: $id, accountId: $accountId, provider: $provider, providedIdentifier: $providedIdentifier, meta: $meta, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnAccountConnection(id: $id, accountId: $accountId, provider: $provider, providedIdentifier: $providedIdentifier, isPublic: $isPublic, meta: $meta, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1078,7 +1080,7 @@ abstract mixin class _$SnAccountConnectionCopyWith<$Res> implements $SnAccountCo
   factory _$SnAccountConnectionCopyWith(_SnAccountConnection value, $Res Function(_SnAccountConnection) _then) = __$SnAccountConnectionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, String provider, String providedIdentifier, Map<String, dynamic> meta, DateTime lastUsedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String accountId, String provider, String providedIdentifier, bool isPublic, Map<String, dynamic> meta, DateTime lastUsedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1095,13 +1097,14 @@ class __$SnAccountConnectionCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountConnection
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? provider = null,Object? providedIdentifier = null,Object? meta = null,Object? lastUsedAt = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? provider = null,Object? providedIdentifier = null,Object? isPublic = null,Object? meta = null,Object? lastUsedAt = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnAccountConnection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,providedIdentifier: null == providedIdentifier ? _self.providedIdentifier : providedIdentifier // ignore: cast_nullable_to_non_nullable
-as String,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as String,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
+as bool,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,lastUsedAt: null == lastUsedAt ? _self.lastUsedAt : lastUsedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

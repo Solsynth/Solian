@@ -132,6 +132,7 @@ class BoardEditorState extends _$BoardEditorState {
         'leveling': true,
         'social_credits': true,
         'contacts': true,
+        'connections': true,
         'publishers': true,
         'notable_days': true,
         'verification': true,
@@ -144,6 +145,7 @@ class BoardEditorState extends _$BoardEditorState {
         'p_leveling',
         'p_social_credits',
         'p_contacts',
+        'p_connections',
         'p_publishers',
         'p_notable_days',
         'p_verification',
@@ -182,19 +184,10 @@ class BoardEditorState extends _$BoardEditorState {
     state = (newPrebuilt, newCustom, newOrder);
   }
 
-  void toggle(String key) {
+  void togglePrebuilt(String key) {
     final newPrebuilt = Map<String, bool>.from(state.$1)
-      ..[key] = !state.$1[key]!;
+      ..[key] = !(state.$1[key] ?? false);
     state = (newPrebuilt, state.$2, state.$3);
-  }
-
-  void removePrebuilt(String key) {
-    final newPrebuilt = Map<String, bool>.from(state.$1)..remove(key);
-    state = (
-      newPrebuilt,
-      state.$2,
-      state.$3.where((item) => item != 'p_$key').toList(),
-    );
   }
 
   void addCustom(AccountBoardItem item) {
@@ -250,6 +243,7 @@ class BoardEditorState extends _$BoardEditorState {
         'leveling': true,
         'social_credits': true,
         'contacts': true,
+        'connections': true,
         'publishers': true,
         'notable_days': true,
         'verification': true,
@@ -262,6 +256,7 @@ class BoardEditorState extends _$BoardEditorState {
         'p_leveling',
         'p_social_credits',
         'p_contacts',
+        'p_connections',
         'p_publishers',
         'p_notable_days',
         'p_verification',
@@ -280,6 +275,7 @@ class BoardEditorState extends _$BoardEditorState {
         'leveling': false,
         'social_credits': false,
         'contacts': false,
+        'connections': false,
         'publishers': false,
         'notable_days': false,
         'verification': false,
@@ -343,6 +339,13 @@ class BoardEditorState extends _$BoardEditorState {
         }
       }
 
+      for (final entry in defaultPrebuilt.entries) {
+        if (!orderedPrebuilt.containsKey(entry.key)) {
+          orderedPrebuilt[entry.key] = false;
+          normalizedOrder.add('p_${entry.key}');
+        }
+      }
+
       state = (orderedPrebuilt, custom, normalizedOrder);
     } catch (_) {}
   }
@@ -374,6 +377,11 @@ class _PrebuiltWidgetMeta {
       Symbols.contact_phone,
       'contactMethod',
       'contactsBoardDescription',
+    ),
+    'connections': _WidgetInfo(
+      Symbols.link,
+      'accountConnections',
+      'accountConnectionsDescription',
     ),
     'publishers': _WidgetInfo(
       Symbols.smart_toy,
@@ -546,7 +554,6 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     final boardState = ref.watch(boardEditorStateProvider);
     final notifier = ref.read(boardEditorStateProvider.notifier);
 
-    final allPrebuiltKeys = boardState.$1.keys.toList();
     final enabledKeys = boardState.$1.entries
         .where((e) => e.value)
         .map((e) => e.key)
@@ -588,7 +595,6 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                 theme,
                 item.prebuiltKey!,
                 boardState.$1,
-                allPrebuiltKeys,
                 enabledKeys,
                 notifier,
                 index,
@@ -722,7 +728,6 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     ThemeData theme,
     String key,
     Map<String, bool> prebuiltState,
-    List<String> allPrebuiltKeys,
     List<String> enabledKeys,
     BoardEditorState notifier,
     int index,
@@ -809,11 +814,9 @@ class AccountBoardEditScreen extends HookConsumerWidget {
                 ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Symbols.delete, size: 18),
-              color: theme.colorScheme.error,
-              tooltip: 'delete'.tr(),
-              onPressed: () => notifier.removePrebuilt(key),
+            Switch(
+              value: isEnabled,
+              onChanged: (_) => notifier.togglePrebuilt(key),
             ),
           ],
         ),

@@ -50,6 +50,7 @@ sealed class SnAccountConnection with _$SnAccountConnection {
     required String accountId,
     required String provider,
     required String providedIdentifier,
+    @Default(false) bool isPublic,
     @Default({}) Map<String, dynamic> meta,
     required DateTime lastUsedAt,
     required DateTime createdAt,
