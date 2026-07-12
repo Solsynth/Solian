@@ -62,45 +62,52 @@ class NotificationOverlay<T extends OverlayNotificationItem>
 
     final itemWidth = isDesktop ? 420.0 : MediaQuery.sizeOf(context).width;
 
+    // Own Stack so Positioned works whether this widget sits under a parent
+    // Stack or is used as a loose child (e.g. Overlay entry / SizedBox).
     if (isDesktop) {
-      return Positioned(
-        top: topOffset,
-        left: 0,
-        right: 0,
-        child: Align(
-          alignment: Alignment.topRight,
-          child: MouseRegion(
-            opaque: false,
-            hitTestBehavior: HitTestBehavior.deferToChild,
-            onEnter: (_) => isPaused.value = true,
-            onExit: (_) => isPaused.value = false,
-            child: SizedBox(
-              width: itemWidth,
-              child: Material(
-                color: Colors.transparent,
-                child: Column(
-                  spacing: 8,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: items.asMap().entries.map((entry) {
-                    final item = entry.value;
-                    return AnimatedNotificationItem<T>(
-                      key: Key(item.id),
-                      item: item,
-                      itemBuilder: itemBuilder,
-                      isDesktop: true,
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      pauseAutoDismiss: isPaused.value,
-                      onDismiss: () => onDismiss(item),
-                      onRemove: () => onRemove(item),
-                    );
-                  }).toList(),
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            top: topOffset,
+            left: 0,
+            right: 0,
+            child: Align(
+              alignment: Alignment.topRight,
+              child: MouseRegion(
+                opaque: false,
+                hitTestBehavior: HitTestBehavior.deferToChild,
+                onEnter: (_) => isPaused.value = true,
+                onExit: (_) => isPaused.value = false,
+                child: SizedBox(
+                  width: itemWidth,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Column(
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: items.asMap().entries.map((entry) {
+                        final item = entry.value;
+                        return AnimatedNotificationItem<T>(
+                          key: Key(item.id),
+                          item: item,
+                          itemBuilder: itemBuilder,
+                          isDesktop: true,
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          pauseAutoDismiss: isPaused.value,
+                          onDismiss: () => onDismiss(item),
+                          onRemove: () => onRemove(item),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       );
     } else {
       final visibleItems = items.take(kNarrowNotificationVisibleLimit).toList();
@@ -108,87 +115,94 @@ class NotificationOverlay<T extends OverlayNotificationItem>
       const double overlap = 20.0;
       final calculatedHeight = overlap * (visibleItems.length - 1) + 120.0;
 
-      return Positioned(
-        top: topOffset,
-        left: 0,
-        right: 0,
-        child: MouseRegion(
-          opaque: false,
-          hitTestBehavior: HitTestBehavior.deferToChild,
-          onEnter: (_) => isPaused.value = true,
-          onExit: (_) => isPaused.value = false,
-          child: Material(
-            color: Colors.transparent,
-            child: SizedBox(
-              height: calculatedHeight + (heldCount > 0 ? 28 : 0),
-              child: Stack(
-                alignment: Alignment.topCenter,
-                clipBehavior: Clip.none,
-                children: [
-                  ...visibleItems.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    return AnimatedPositioned(
-                      key: ValueKey(item.id),
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
-                      top: index * overlap + (heldCount > 0 ? 28 / 2 : 0),
-                      left: 16,
-                      right: 16,
-                      child: AnimatedNotificationItem<T>(
-                        item: item,
-                        itemBuilder: itemBuilder,
-                        isDesktop: false,
-                        showStackSeparation: index > 0,
-                        pauseAutoDismiss: isPaused.value,
-                        onDismiss: () => onDismiss(item),
-                        onRemove: () => onRemove(item),
-                      ),
-                    );
-                  }),
-                  Positioned(
-                    top: 0,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 240),
-                      reverseDuration: const Duration(milliseconds: 180),
-                      switchInCurve: Curves.easeOutBack,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: ScaleTransition(
-                            scale: Tween<double>(
-                              begin: 0.88,
-                              end: 1,
-                            ).animate(animation),
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, -0.2),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
-                            ),
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            top: topOffset,
+            left: 0,
+            right: 0,
+            child: MouseRegion(
+              opaque: false,
+              hitTestBehavior: HitTestBehavior.deferToChild,
+              onEnter: (_) => isPaused.value = true,
+              onExit: (_) => isPaused.value = false,
+              child: Material(
+                color: Colors.transparent,
+                child: SizedBox(
+                  height: calculatedHeight + (heldCount > 0 ? 28 : 0),
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    clipBehavior: Clip.none,
+                    children: [
+                      ...visibleItems.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        return AnimatedPositioned(
+                          key: ValueKey(item.id),
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          top: index * overlap + (heldCount > 0 ? 28 / 2 : 0),
+                          left: 16,
+                          right: 16,
+                          child: AnimatedNotificationItem<T>(
+                            item: item,
+                            itemBuilder: itemBuilder,
+                            isDesktop: false,
+                            showStackSeparation: index > 0,
+                            pauseAutoDismiss: isPaused.value,
+                            onDismiss: () => onDismiss(item),
+                            onRemove: () => onRemove(item),
                           ),
                         );
-                      },
-                      child: heldCount > 0
-                          ? _HeldNotificationBadge(
-                              key: ValueKey(heldCount),
-                              count: heldCount,
-                              onTap: () {
-                                for (final item in items) {
-                                  onDismiss(item);
-                                }
-                              },
-                            )
-                          : const SizedBox.shrink(key: ValueKey('empty-badge')),
-                    ),
+                      }),
+                      Positioned(
+                        top: 0,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 240),
+                          reverseDuration: const Duration(milliseconds: 180),
+                          switchInCurve: Curves.easeOutBack,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: ScaleTransition(
+                                scale: Tween<double>(
+                                  begin: 0.88,
+                                  end: 1,
+                                ).animate(animation),
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0, -0.2),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                          child: heldCount > 0
+                              ? _HeldNotificationBadge(
+                                  key: ValueKey(heldCount),
+                                  count: heldCount,
+                                  onTap: () {
+                                    for (final item in items) {
+                                      onDismiss(item);
+                                    }
+                                  },
+                                )
+                              : const SizedBox.shrink(
+                                  key: ValueKey('empty-badge'),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ).width(itemWidth).alignment(Alignment.topCenter),
             ),
-          ).width(itemWidth).alignment(Alignment.topCenter),
-        ),
+          ),
+        ],
       );
     }
   }

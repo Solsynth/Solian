@@ -153,6 +153,10 @@ void _maybeVibrateOnShow({required bool noVibrate}) {
 }
 
 void _ensureSnackBarOverlay() {
+  // Drop stale entries after Overlay rebuild/hot restart so we re-insert.
+  if (_snackBarOverlay != null && !_snackBarOverlay!.mounted) {
+    _snackBarOverlay = null;
+  }
   if (_snackBarOverlay != null) return;
 
   final overlayKey = IslandUIFoundation.overlayKey;
@@ -168,6 +172,7 @@ void _ensureSnackBarOverlay() {
         if (items.isEmpty) {
           return const SizedBox.shrink();
         }
+        // Overlay theater acts like a Stack; host uses Positioned.
         return _SnackBarOverlayHost(items: items);
       },
     ),
@@ -273,6 +278,8 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
                   : safeBottom + _kMobileBottomNavClearance));
     final overlap = wideScreen ? 20.0 : 18.0;
 
+    // Wrap Positioned in an expanding Stack so this host is safe as an
+    // OverlayEntry root (theater) *or* under a non-Stack parent.
     if (wideScreen) {
       final visibleItems = widget.items.reversed
           .take(kSnackBarVisibleLimit)
@@ -282,63 +289,68 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
       final heldCount = widget.items.length - visibleItems.length;
       final calculatedHeight = overlap * (visibleItems.length - 1) + 88.0;
 
-      return Positioned(
-        left: 0,
-        right: 0,
-        bottom: bottomOffset,
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: MouseRegion(
-            opaque: false,
-            hitTestBehavior: HitTestBehavior.deferToChild,
-            onEnter: (_) => setState(() => _isPaused = true),
-            onExit: (_) => setState(() => _isPaused = false),
-            child: SizedBox(
-              width: kFloatingSnackBarWidth,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Material(
-                  color: Colors.transparent,
-                  child: SizedBox(
-                    height: calculatedHeight + (heldCount > 0 ? 28 : 0),
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      clipBehavior: Clip.none,
-                      children: [
-                        ...visibleItems.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final item = entry.value;
-                          return AnimatedPositioned(
-                            key: ValueKey(item.id),
-                            duration: _kSnackBarAnimationDuration,
-                            curve: Curves.easeOutCubic,
-                            left: 0,
-                            right: 0,
-                            bottom: index * overlap,
-                            child: _AnimatedSnackBarItem(
-                              item: item,
-                              stackIndex: index,
-                              showStackSeparation:
-                                  index < visibleItems.length - 1,
-                              pauseAutoDismiss: _isPaused,
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: bottomOffset,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: MouseRegion(
+                opaque: false,
+                hitTestBehavior: HitTestBehavior.deferToChild,
+                onEnter: (_) => setState(() => _isPaused = true),
+                onExit: (_) => setState(() => _isPaused = false),
+                child: SizedBox(
+                  width: kFloatingSnackBarWidth,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: SizedBox(
+                        height: calculatedHeight + (heldCount > 0 ? 28 : 0),
+                        child: Stack(
+                          alignment: Alignment.bottomCenter,
+                          clipBehavior: Clip.none,
+                          children: [
+                            ...visibleItems.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final item = entry.value;
+                              return AnimatedPositioned(
+                                key: ValueKey(item.id),
+                                duration: _kSnackBarAnimationDuration,
+                                curve: Curves.easeOutCubic,
+                                left: 0,
+                                right: 0,
+                                bottom: index * overlap,
+                                child: _AnimatedSnackBarItem(
+                                  item: item,
+                                  stackIndex: index,
+                                  showStackSeparation:
+                                      index < visibleItems.length - 1,
+                                  pauseAutoDismiss: _isPaused,
+                                ),
+                              );
+                            }),
+                            Positioned(
+                              bottom: 0,
+                              child: _AnimatedHeldSnackBarBadge(
+                                count: heldCount,
+                                onTap: _dismissAllSnackBars,
+                              ),
                             ),
-                          );
-                        }),
-                        Positioned(
-                          bottom: 0,
-                          child: _AnimatedHeldSnackBarBadge(
-                            count: heldCount,
-                            onTap: _dismissAllSnackBars,
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       );
     }
 
@@ -350,53 +362,58 @@ class _SnackBarOverlayHostState extends State<_SnackBarOverlayHost> {
     final heldCount = widget.items.length - visibleItems.length;
     final calculatedHeight = overlap * (visibleItems.length - 1) + 88.0;
 
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: bottomOffset,
-      child: MouseRegion(
-        opaque: false,
-        hitTestBehavior: HitTestBehavior.deferToChild,
-        onEnter: (_) => setState(() => _isPaused = true),
-        onExit: (_) => setState(() => _isPaused = false),
-        child: Material(
-          color: Colors.transparent,
-          child: SizedBox(
-            height: calculatedHeight + (heldCount > 0 ? 28 : 0),
-            child: Stack(
-              alignment: Alignment.bottomCenter,
-              clipBehavior: Clip.none,
-              children: [
-                ...visibleItems.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  return AnimatedPositioned(
-                    key: ValueKey(item.id),
-                    duration: _kSnackBarAnimationDuration,
-                    curve: Curves.easeOutCubic,
-                    left: horizontalPadding,
-                    right: horizontalPadding,
-                    bottom: index * overlap,
-                    child: _AnimatedSnackBarItem(
-                      item: item,
-                      stackIndex: index,
-                      showStackSeparation: index < visibleItems.length - 1,
-                      pauseAutoDismiss: _isPaused,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: bottomOffset,
+          child: MouseRegion(
+            opaque: false,
+            hitTestBehavior: HitTestBehavior.deferToChild,
+            onEnter: (_) => setState(() => _isPaused = true),
+            onExit: (_) => setState(() => _isPaused = false),
+            child: Material(
+              color: Colors.transparent,
+              child: SizedBox(
+                height: calculatedHeight + (heldCount > 0 ? 28 : 0),
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  clipBehavior: Clip.none,
+                  children: [
+                    ...visibleItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      return AnimatedPositioned(
+                        key: ValueKey(item.id),
+                        duration: _kSnackBarAnimationDuration,
+                        curve: Curves.easeOutCubic,
+                        left: horizontalPadding,
+                        right: horizontalPadding,
+                        bottom: index * overlap,
+                        child: _AnimatedSnackBarItem(
+                          item: item,
+                          stackIndex: index,
+                          showStackSeparation: index < visibleItems.length - 1,
+                          pauseAutoDismiss: _isPaused,
+                        ),
+                      );
+                    }),
+                    Positioned(
+                      bottom: 0,
+                      child: _AnimatedHeldSnackBarBadge(
+                        count: heldCount,
+                        onTap: _dismissAllSnackBars,
+                      ),
                     ),
-                  );
-                }),
-                Positioned(
-                  bottom: 0,
-                  child: _AnimatedHeldSnackBarBadge(
-                    count: heldCount,
-                    onTap: _dismissAllSnackBars,
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ).alignment(Alignment.bottomCenter),
           ),
-        ).alignment(Alignment.bottomCenter),
-      ),
+        ),
+      ],
     );
   }
 
