@@ -552,18 +552,30 @@ import flutter_callkit_incoming
         let isDirect = arguments["isDirect"] as? Bool ?? false
         let recipientAccountName = arguments["recipientAccountName"] as? String
         let recipientNick = arguments["recipientNick"] as? String
+        let recipientFirstName = arguments["recipientFirstName"] as? String
+        let recipientPictureUrl = arguments["recipientPictureUrl"] as? String
         
         let recipients: [INPerson]?
         if isDirect, let recipientIdentifier = (recipientAccountName?.isEmpty == false ? recipientAccountName : recipientNick), !recipientIdentifier.isEmpty {
             let handle = INPersonHandle(value: recipientIdentifier, type: .unknown)
             var components = PersonNameComponents()
-            components.nickname = recipientNick ?? recipientIdentifier
+            let recipientDisplayName = recipientFirstName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let recipientDisplayName, !recipientDisplayName.isEmpty {
+                components.givenName = recipientDisplayName
+            } else {
+                components.nickname = recipientNick ?? recipientIdentifier
+            }
+            let recipientImage = recipientPictureUrl
+                .flatMap { URL(string: $0) }
+                .map { INImage(url: $0) }
             recipients = [
                 INPerson(
                     personHandle: handle,
                     nameComponents: components,
-                    displayName: recipientNick ?? recipientIdentifier,
-                    image: nil,
+                    displayName: recipientDisplayName?.isEmpty == false
+                        ? recipientDisplayName!
+                        : (recipientNick ?? recipientIdentifier),
+                    image: recipientImage,
                     contactIdentifier: nil,
                     customIdentifier: recipientAccountName ?? recipientIdentifier
                 )
