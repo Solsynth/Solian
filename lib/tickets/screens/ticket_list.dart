@@ -53,7 +53,9 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
     final isAdmin = user?.isSuperuser == true;
     _ticketsFuture = ref
         .read(ticketServiceProvider)
-        .getTickets(isAdmin: isAdmin && _showAllTickets);
+        // The SDK's `isAdmin` flag selects the `/tickets` endpoint when false
+        // and `/tickets/me` when true. Regular users must always use `/me`.
+        .getTickets(isAdmin: !isAdmin || !_showAllTickets);
   }
 
   void _toggleShowAllTickets() {
@@ -70,6 +72,12 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<SnAccount?>>(userInfoProvider, (_, next) {
+      if (next.hasValue && mounted) {
+        _loadTickets();
+        setState(() {});
+      }
+    });
     final userAsync = ref.watch(userInfoProvider);
     final isAdmin = userAsync.value?.isSuperuser == true;
 
