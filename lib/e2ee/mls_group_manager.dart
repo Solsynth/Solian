@@ -87,7 +87,7 @@ class MlsGroupManager {
 
   Future<Map<String, String>> _getMlsHeaders() async {
     final deviceId = await _identityManager.getOrCreateDeviceId();
-    return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
+    return {'X-Device-Id': ?deviceId};
   }
 
   Future<bool> _notifyGroupJoined({

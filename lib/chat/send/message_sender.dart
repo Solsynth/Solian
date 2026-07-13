@@ -841,9 +841,7 @@ class MessageSender {
       .read(websocketStateProvider)
       .maybeWhen(connected: () => true, orElse: () => false);
 
-  Options? get _mlsOptions => _e2eeService?.isE2eeRoom == true
-      ? Options(headers: {'X-Client-Ability': 'chat.mls.v2'})
-      : null;
+  Options? get _mlsOptions => null;
 
   // ── Placeholder Message Methods ──────────────────────────────────────────
 

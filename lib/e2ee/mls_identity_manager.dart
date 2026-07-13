@@ -52,7 +52,7 @@ class MlsIdentityManager {
 
   Future<Map<String, String>> getMlsHeaders() async {
     final deviceId = await getOrCreateDeviceId();
-    return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
+    return {'X-Device-Id': ?deviceId};
   }
 
   Future<String?> getOrCreateDeviceId() async {

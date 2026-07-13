@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -972,7 +971,6 @@ class _ChatMemberListSheet extends HookConsumerWidget {
             final padlockClient = ref.read(padlockApiClientProvider);
             final readyResponse = await padlockClient.get(
               '/e2ee/mls/users/${result.id}/ready',
-              options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
             );
             final isReady = readyResponse.data['is_ready'] as bool? ?? false;
 

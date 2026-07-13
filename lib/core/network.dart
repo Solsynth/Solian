@@ -124,8 +124,6 @@ final userAgentProvider = FutureProvider<String>((ref) async {
   return 'Solian/${packageInfo.version}+${packageInfo.buildNumber} ($platformInfo)';
 });
 
-const String _chatE2eeCapability = 'chat-e2ee-v1';
-const String _chatMlsCapability = 'chat.mls.v2';
 const Duration _tokenExpirySkew = Duration(seconds: 30);
 const Duration _tokenRefreshInterval = Duration(minutes: 5);
 
@@ -392,7 +390,6 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Client-Ability': [_chatE2eeCapability, _chatMlsCapability].join(','),
       },
     ),
   );
@@ -413,10 +410,6 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
             final userAgent = ref.read(userAgentProvider);
             if (userAgent.value != null) {
               options.headers['User-Agent'] = userAgent.value;
-            }
-
-            if (options.path.startsWith('/e2ee/mls')) {
-              options.headers['X-Client-Ability'] = _chatMlsCapability;
             }
 
             return handler.next(options);
@@ -516,7 +509,6 @@ final apiClientProvider = Provider<Dio>((ref) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Client-Ability': [_chatE2eeCapability].join(','),
       },
     ),
   );

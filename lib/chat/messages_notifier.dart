@@ -348,8 +348,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Options? _mlsWriteOptions() {
-    if (!_isE2eeRoom) return null;
-    return Options(headers: {'X-Client-Ability': 'chat.mls.v2'});
+    return null;
   }
 
   E2eeMessageService get _e2eeService => E2eeMessageService(
