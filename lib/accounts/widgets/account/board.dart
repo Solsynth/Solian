@@ -487,30 +487,25 @@ class AccountBoard extends StatelessWidget {
       AccountBoardItem(
         order: 5,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'connections',
+        widgetKey: 'publishers',
       ),
       AccountBoardItem(
         order: 6,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'publishers',
+        widgetKey: 'notable_days',
       ),
       AccountBoardItem(
         order: 7,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'notable_days',
+        widgetKey: 'verification',
       ),
       AccountBoardItem(
         order: 8,
         kind: BoardWidgetKind.prebuilt,
-        widgetKey: 'verification',
-      ),
-      AccountBoardItem(
-        order: 9,
-        kind: BoardWidgetKind.prebuilt,
         widgetKey: 'links',
       ),
       AccountBoardItem(
-        order: 10,
+        order: 9,
         kind: BoardWidgetKind.prebuilt,
         widgetKey: 'fortune',
       ),
@@ -602,6 +597,7 @@ class AccountBoard extends StatelessWidget {
           ),
           'links' => _LinksBoardWidget(
             links: account.profile.links,
+            uname: uname,
             showIcons: payload['show_icons'] as bool? ?? true,
           ),
           'notable_days' => _NotableDaysBoardWidget(
@@ -845,15 +841,21 @@ class _BioBoardWidget extends StatelessWidget {
   }
 }
 
-class _LinksBoardWidget extends StatelessWidget {
+class _LinksBoardWidget extends ConsumerWidget {
   final List<ProfileLink> links;
+  final String uname;
   final bool showIcons;
 
-  const _LinksBoardWidget({required this.links, this.showIcons = true});
+  const _LinksBoardWidget({
+    required this.links,
+    required this.uname,
+    this.showIcons = true,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final connections = ref.watch(publicAccountConnectionsProvider(uname));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -870,29 +872,84 @@ class _LinksBoardWidget extends StatelessWidget {
             ),
           ],
         ),
-        if (links.isNotEmpty) ...[
-          const Gap(12),
-          Column(
-            spacing: 8,
-            children: links
-                .map(
-                  (link) => _LinkTile(
-                    name: link.name.capitalizeEachWord(),
-                    url: link.url,
-                    showIcon: showIcons,
+        connections.when(
+          data: (accountConnections) {
+            final children = <Widget>[
+              ...links.map(
+                (link) => _LinkTile(
+                  name: link.name.capitalizeEachWord(),
+                  url: link.url,
+                  showIcon: showIcons,
+                ),
+              ),
+              ...accountConnections.map(
+                (connection) => _BoardConnectionTile(connection: connection),
+              ),
+            ];
+
+            if (children.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'linksEmpty'.tr(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Column(spacing: 8, children: children),
+            );
+          },
+          loading: () => links.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: LinearProgressIndicator(),
+                )
+              : Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    spacing: 8,
+                    children: links
+                        .map(
+                          (link) => _LinkTile(
+                            name: link.name.capitalizeEachWord(),
+                            url: link.url,
+                            showIcon: showIcons,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+          error: (_, _) => links.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'linksEmpty'.tr(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 )
-                .toList(),
-          ),
-        ] else ...[
-          const Gap(8),
-          Text(
-            'linksEmpty'.tr(),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+              : Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    spacing: 8,
+                    children: links
+                        .map(
+                          (link) => _LinkTile(
+                            name: link.name.capitalizeEachWord(),
+                            url: link.url,
+                            showIcon: showIcons,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+        ),
       ],
     );
   }
