@@ -64,7 +64,8 @@ class AuthFactorSheet extends HookConsumerWidget {
     }
 
     Future<void> enableFactor() async {
-      final needsVerification = factor.type != 5 && factor.type != 8;
+      final needsVerification =
+          factor.type != 5 && factor.type != 7 && factor.type != 8;
       String? verificationCode;
 
       if (needsVerification) {
@@ -291,7 +292,9 @@ class AuthFactorSheet extends HookConsumerWidget {
 }
 
 class AuthFactorNewSheet extends ConsumerStatefulWidget {
-  const AuthFactorNewSheet({super.key});
+  final int? initialType;
+
+  const AuthFactorNewSheet({super.key, this.initialType});
 
   @override
   ConsumerState<AuthFactorNewSheet> createState() => _AuthFactorNewSheetState();
@@ -301,11 +304,19 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
   int _selectedType = 0;
   final _secretController = TextEditingController();
   final _pinController = TextEditingController();
+  final _passkeyLabelController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedType = widget.initialType ?? 0;
+  }
 
   @override
   void dispose() {
     _secretController.dispose();
     _pinController.dispose();
+    _passkeyLabelController.dispose();
     super.dispose();
   }
 
@@ -313,7 +324,7 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
     try {
       showLoadingModal(context);
       final client = ref.read(solarNetworkClientProvider);
-      SnAuthFactor factor;
+      SnAuthFactor? factor;
 
       if (_selectedType == 7) {
         final passkeyAuthenticator = PasskeyAuthenticator(
@@ -328,6 +339,16 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
             showErrorAlert('passkeyNotSupported'.tr());
           }
           return;
+        }
+
+        final hasPasskeyFactor =
+            ref
+                .read(authFactorsProvider)
+                .value
+                ?.any((factor) => factor.type == 7) ??
+            false;
+        if (!hasPasskeyFactor) {
+          await client.auth.createFactor(type: _selectedType, secret: null);
         }
 
         final serverUrl = ref.read(serverUrlProvider);
@@ -390,12 +411,18 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
 
         final credential = await passkeyAuthenticator.register(request);
 
-        factor = await client.auth.completePasskeyRegistration(
+        await client.auth.completePasskeyRegistration(
           deviceId: deviceId,
-          deviceName: deviceName,
+          label: _passkeyLabelController.text.trim().isEmpty
+              ? deviceName
+              : _passkeyLabelController.text.trim(),
           attestationObject: credential.attestationObject,
           clientDataJson: credential.clientDataJSON,
         );
+        if (!mounted) return;
+        hideLoadingModal(context);
+        Navigator.pop(context, true);
+        return;
       } else {
         factor = await client.auth.createFactor(
           type: _selectedType,
@@ -409,23 +436,25 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
 
       if (!mounted) return;
       hideLoadingModal(context);
-      if (factor.type == 3) {
+      final createdFactor = factor;
+      if (createdFactor.type == 3) {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          builder: (context) => AuthFactorNewAdditonalSheet(factor: factor),
+          builder: (context) =>
+              AuthFactorNewAdditonalSheet(factor: createdFactor),
         ).then((_) {
           if (mounted) {
             showSnackBar('contactMethodVerificationNeeded'.tr());
           }
           if (mounted) Navigator.pop(context, true);
         });
-      } else if (factor.type == 5) {
+      } else if (createdFactor.type == 5) {
         if (mounted) {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (ctx) => RecoveryCodeCreatedSheet(factor: factor),
+            builder: (ctx) => RecoveryCodeCreatedSheet(factor: createdFactor),
           ).then((_) {
             if (mounted) Navigator.pop(context, true);
           });
@@ -467,6 +496,7 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
     );
 
     final hasntDuplicate =
+        _selectedType == 7 ||
         authFactorsAsync.value?.any((e) => e.type == _selectedType) != true;
     final canAddFactor =
         (hasRecoveryCode || _selectedType == 5) && hasntDuplicate;
@@ -590,6 +620,16 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                   ),
                   keyboardType: TextInputType.number,
                   maxLength: 6,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ).padding(top: 16)
+              else if (_selectedType == 7)
+                TextField(
+                  controller: _passkeyLabelController,
+                  decoration: InputDecoration(
+                    labelText: 'name'.tr(),
+                    hintText: 'authFactorPasskey'.tr(),
+                  ),
                   onTapOutside: (_) =>
                       FocusManager.instance.primaryFocus?.unfocus(),
                 ).padding(top: 16),

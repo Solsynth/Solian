@@ -43,6 +43,27 @@ sealed class SnAuthFactor with _$SnAuthFactor {
       _$SnAuthFactorFromJson(json);
 }
 
+class SnPasskey {
+  final String id;
+  final String label;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const SnPasskey({
+    required this.id,
+    required this.label,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory SnPasskey.fromJson(Map<String, dynamic> json) => SnPasskey(
+    id: json['id'] as String,
+    label: json['label'] as String,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    updatedAt: DateTime.parse(json['updated_at'] as String),
+  );
+}
+
 @freezed
 sealed class SnAccountConnection with _$SnAccountConnection {
   const factory SnAccountConnection({

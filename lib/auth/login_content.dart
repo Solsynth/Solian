@@ -366,7 +366,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
         final result = await client.auth.completePasskeyAuthentication(
           challengeId: challenge.id,
-          factorId: factor!.id,
           credentialId: credential.id,
           clientDataJson: credential.clientDataJSON,
           authenticatorData: credential.authenticatorData,
@@ -1040,6 +1039,48 @@ class _LoginLookupScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> performDiscoverablePasskeyLogin() async {
+      isBusy.value = true;
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        final options = await client.auth
+            .startDiscoverablePasskeyAuthentication(
+              deviceId: await getUdid(),
+              deviceName: await getDeviceName(),
+              platform: _currentPlatformCode(),
+            );
+        final authenticator = PasskeyAuthenticator(debugMode: kDebugMode);
+        final credential = await authenticator.authenticate(
+          AuthenticateRequestType(
+            challenge: options['challenge'] as String,
+            relyingPartyId: options['rp_id'] as String,
+            allowCredentials: const [],
+            userVerification:
+                options['user_verification'] as String? ?? 'preferred',
+            mediation: MediationType.Optional,
+            preferImmediatelyAvailableCredentials: false,
+          ),
+        );
+        final challenge = await client.auth
+            .completeDiscoverablePasskeyAuthentication(
+              challengeId: options['auth_challenge_id'] as String,
+              credentialId: credential.id,
+              clientDataJson: credential.clientDataJSON,
+              authenticatorData: credential.authenticatorData,
+              signature: credential.signature,
+              userHandle: credential.userHandle.isEmpty
+                  ? null
+                  : credential.userHandle,
+            );
+        if (!context.mounted) return;
+        await exchangeAuthCodeForToken(context, ref, code: challenge.id);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
     Future<void> withOidc(String provider) async {
       waitingForOidc.value = true;
       final serverUrl = ref.watch(serverUrlProvider);
@@ -1124,6 +1165,16 @@ class _LoginLookupScreen extends HookConsumerWidget {
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
               tooltip: 'qrCode'.tr(),
+            ),
+            IconButton.filledTonal(
+              onPressed: isBusy.value ? null : performDiscoverablePasskeyLogin,
+              padding: EdgeInsets.zero,
+              icon: Icon(
+                Symbols.fingerprint,
+                size: 16,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+              tooltip: 'authFactorPasskey'.tr(),
             ),
             if (!kIsWeb) ...[
               IconButton.filledTonal(

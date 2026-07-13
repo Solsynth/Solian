@@ -238,9 +238,9 @@ class AuthApi extends BaseApi {
   /// [attestationObject] - The attestation object from the authenticator.
   /// [clientDataJson] - The client data JSON from the authenticator.
   /// Returns the created factor.
-  Future<SnAuthFactor> completePasskeyRegistration({
+  Future<SnPasskey> completePasskeyRegistration({
     required String deviceId,
-    required String? deviceName,
+    required String label,
     required String attestationObject,
     required String clientDataJson,
   }) async {
@@ -248,12 +248,32 @@ class AuthApi extends BaseApi {
       '$_basePath/factors/passkey/complete',
       data: {
         'device_id': deviceId,
-        'device_name': deviceName,
+        'label': label,
         'attestation_object': attestationObject,
         'client_data_json': clientDataJson,
       },
     );
-    return SnAuthFactor.fromJson(response.data!);
+    return SnPasskey.fromJson(response.data!);
+  }
+
+  Future<List<SnPasskey>> getPasskeys() async {
+    final response = await get<List<dynamic>>('$_basePath/factors/passkey');
+    return parseList(response, SnPasskey.fromJson);
+  }
+
+  Future<SnPasskey> updatePasskey({
+    required String passkeyId,
+    required String label,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/factors/passkey/$passkeyId',
+      data: {'label': label},
+    );
+    return SnPasskey.fromJson(response.data!);
+  }
+
+  Future<void> deletePasskey(String passkeyId) async {
+    await delete('$_basePath/factors/passkey/$passkeyId');
   }
 
   /// Starts a passkey authentication challenge for a login attempt.
@@ -269,7 +289,6 @@ class AuthApi extends BaseApi {
   /// Completes a passkey authentication challenge.
   Future<SnAuthChallenge> completePasskeyAuthentication({
     required String challengeId,
-    required String factorId,
     required String credentialId,
     required String clientDataJson,
     required String authenticatorData,
@@ -279,7 +298,43 @@ class AuthApi extends BaseApi {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/auth/challenge/$challengeId/passkey/complete',
       data: {
-        'factor_id': factorId,
+        'credential_id': credentialId,
+        'client_data_json': clientDataJson,
+        'authenticator_data': authenticatorData,
+        'signature': signature,
+        'user_handle': userHandle,
+      },
+    );
+    return SnAuthChallenge.fromJson(response.data!);
+  }
+
+  Future<Map<String, dynamic>> startDiscoverablePasskeyAuthentication({
+    required String deviceId,
+    required String deviceName,
+    required int platform,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/auth/passkey/start',
+      data: {
+        'device_id': deviceId,
+        'device_name': deviceName,
+        'platform': platform,
+      },
+    );
+    return response.data!;
+  }
+
+  Future<SnAuthChallenge> completeDiscoverablePasskeyAuthentication({
+    required String challengeId,
+    required String credentialId,
+    required String clientDataJson,
+    required String authenticatorData,
+    required String signature,
+    String? userHandle,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/auth/passkey/$challengeId/complete',
+      data: {
         'credential_id': credentialId,
         'client_data_json': clientDataJson,
         'authenticator_data': authenticatorData,
