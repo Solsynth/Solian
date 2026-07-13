@@ -318,8 +318,8 @@ class MessageItem extends HookConsumerWidget {
               ? DismissDirection.horizontal
               : DismissDirection.none,
           dismissThresholds: const {
-            DismissDirection.startToEnd: 0.22,
-            DismissDirection.endToStart: 0.22,
+            DismissDirection.startToEnd: 0.35,
+            DismissDirection.endToStart: 0.35,
           },
           resizeDuration: null,
           movementDuration: const Duration(milliseconds: 120),
