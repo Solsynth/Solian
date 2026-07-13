@@ -68,7 +68,7 @@ class MlsMessageHandler {
   final MlsIdentityManager _identityManager;
   final Dio _padlockClient;
 
-  bool _isRecoveringEpoch = false;
+  final Set<String> _groupsRecoveringEpoch = <String>{};
 
   MlsMessageHandler({
     required MlsGroupManager groupManager,
@@ -251,7 +251,7 @@ class MlsMessageHandler {
     }
 
     // Skip decryption if epoch recovery is already in progress
-    if (_isRecoveringEpoch) {
+    if (_groupsRecoveringEpoch.contains(mlsGroupId)) {
       _mlsLog(
         'Skipping decrypt: epoch recovery already in progress for $mlsGroupId',
       );
@@ -388,7 +388,7 @@ class MlsMessageHandler {
           );
 
           // Set recovery flag to prevent duplicate triggers from concurrent decryptions
-          _isRecoveringEpoch = true;
+          _groupsRecoveringEpoch.add(mlsGroupId);
 
           // Epoch mismatch detected - try to recover by fetching pending messages
           // This may bring in the missing Commit that will advance our epoch
@@ -402,6 +402,7 @@ class MlsMessageHandler {
               messageEpoch,
             );
             if (epochRecovered) {
+              _groupsRecoveringEpoch.remove(mlsGroupId);
               // Try processing queued messages
               await _processPendingMessages(mlsGroupId);
             }
@@ -422,7 +423,7 @@ class MlsMessageHandler {
               _mlsLogWarn(
                 'Deserialization error during recovery for $mlsGroupId: $errorStr',
               );
-              _isRecoveringEpoch = false;
+              _groupsRecoveringEpoch.remove(mlsGroupId);
               eventBus.fire(MlsRecoveryFailedEvent(mlsGroupId: mlsGroupId));
               return null;
             }
@@ -437,6 +438,7 @@ class MlsMessageHandler {
             );
             if (joinedExternally) {
               _mlsLog('External join successful, retrying decryption');
+              _groupsRecoveringEpoch.remove(mlsGroupId);
               await _processPendingMessages(mlsGroupId);
               eventBus.fire(
                 MlsExternalJoinCompletedEvent(
@@ -461,7 +463,7 @@ class MlsMessageHandler {
                 _mlsLogWarn(
                   'External join failed due to deserialization error for $mlsGroupId',
                 );
-                _isRecoveringEpoch = false;
+                _groupsRecoveringEpoch.remove(mlsGroupId);
                 eventBus.fire(MlsRecoveryFailedEvent(mlsGroupId: mlsGroupId));
                 return null;
               }
@@ -476,7 +478,7 @@ class MlsMessageHandler {
           }
 
           // Reset recovery flag after all recovery attempts complete
-          _isRecoveringEpoch = false;
+          _groupsRecoveringEpoch.remove(mlsGroupId);
 
           // Return null since we queued this message for later processing
           return null;
@@ -536,12 +538,12 @@ class MlsMessageHandler {
             // Still update epoch even if ratchet tree fails
             await _groupManager.handleEpochChanged(mlsGroupId, newEpoch);
           }
-          return null;
+          return const {'_mls_control_processed': true};
 
         case ProcessedMessageType.proposal:
           _mlsLog('Processed proposal for room $mlsGroupId');
           // Proposals don't change the epoch until committed
-          return null;
+          return const {'_mls_control_processed': true};
       }
     } catch (e) {
       // Final catch for any remaining errors
@@ -553,6 +555,7 @@ class MlsMessageHandler {
         return null;
       }
       _mlsLogError('Failed to decrypt message for room $mlsGroupId: $e');
+      _groupsRecoveringEpoch.remove(mlsGroupId);
       return null;
     }
   }
@@ -672,6 +675,7 @@ class MlsMessageHandler {
           continue;
         }
 
+        var processed = false;
         try {
           final ciphertextBytes = base64Decode(ciphertext);
           final engineService = await MlsEngineService.getInstance();
@@ -685,6 +689,7 @@ class MlsMessageHandler {
 
           if (result.messageType == ProcessedMessageType.stagedCommit) {
             processedCommit = true;
+            processed = true;
             final newEpoch = result.epoch.toInt();
             _mlsLog(
               'Processed commit during epoch recovery: epoch advanced to $newEpoch',
@@ -703,6 +708,8 @@ class MlsMessageHandler {
               'last_commit_at': DateTime.now().toIso8601String(),
               'updated_at': DateTime.now().toIso8601String(),
             });
+          } else if (result.messageType == ProcessedMessageType.proposal) {
+            processed = true;
           }
         } catch (e) {
           _mlsLogWarn(
@@ -710,8 +717,9 @@ class MlsMessageHandler {
           );
         }
 
-        // Ack the envelope after processing
-        await ackEnvelope(envelopeId, deviceId);
+        if (processed) {
+          await ackEnvelope(envelopeId, deviceId);
+        }
       }
 
       // 3. Check if we caught up
@@ -758,11 +766,14 @@ class MlsMessageHandler {
         );
         if (result != null) {
           results.add(result);
+        } else {
+          mlsPendingMessageQueue.enqueue(pending);
         }
       } catch (e) {
         _mlsLogWarn(
           'Failed to process queued message ${pending.messageId}: $e',
         );
+        mlsPendingMessageQueue.enqueue(pending);
       }
     }
 

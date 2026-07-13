@@ -813,7 +813,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         final headerBytes = base64Decode(headerStr);
         final headerJson = utf8.decode(headerBytes);
         final header = jsonDecode(headerJson) as Map<String, dynamic>;
-        final senderDeviceId = header['deviceId']?.toString();
+        final senderDeviceId =
+            header['device_id']?.toString() ?? header['deviceId']?.toString();
 
         if (senderDeviceId != null) {
           final currentDeviceId = await ref

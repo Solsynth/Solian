@@ -368,16 +368,29 @@ class MlsIdentityManager {
 
   Future<bool> checkAndRefillKeyPackages() async {
     final status = await getKeyPackageStatus();
-    if (status == null || !status.needsMoreKps) {
+    if (status == null) return false;
+
+    final currentDeviceId = await getOrCreateDeviceId();
+    var currentDeviceStatuses = status.devicesNeedingKps
+        .where((device) => device['device_id']?.toString() == currentDeviceId)
+        .toList();
+
+    // Before the first upload Padlock has no device row to report in its
+    // shortage list. Seed that device exactly once from the local state.
+    if (currentDeviceStatuses.isEmpty &&
+        await _storage.getKeyPackageCount() == 0) {
+      currentDeviceStatuses = [
+        {'device_id': currentDeviceId, 'available_count': 0},
+      ];
+    }
+    if (currentDeviceStatuses.isEmpty) {
       _mlsLog('Key packages sufficient, no refill needed');
       return true;
     }
 
-    _mlsLog(
-      'Refilling key packages for ${status.devicesNeedingKps.length} device(s)',
-    );
+    _mlsLog('Refilling key packages for the current device');
 
-    for (final device in status.devicesNeedingKps) {
+    for (final device in currentDeviceStatuses) {
       final deviceId = device['device_id'] as String?;
       final availableCount = device['available_count'] as int? ?? 0;
       final neededCount = _minKeyPackagesRequired - availableCount;

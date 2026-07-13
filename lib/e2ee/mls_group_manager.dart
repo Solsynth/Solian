@@ -76,15 +76,28 @@ class MlsGroupManager {
        _apiClient = apiClient,
        _identityManager = identityManager;
 
+  String? _resolveRoomId(String mlsGroupId, String? roomId) {
+    if (roomId != null && roomId.isNotEmpty) return roomId;
+    const prefix = 'room:';
+    if (mlsGroupId.startsWith(prefix)) {
+      return mlsGroupId.substring(prefix.length);
+    }
+    return null;
+  }
+
   Future<Map<String, String>> _getMlsHeaders() async {
     final deviceId = await _identityManager.getOrCreateDeviceId();
     return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
   }
 
-  Future<void> _notifyGroupJoined({
-    required String roomId,
+  Future<bool> _notifyGroupJoined({
+    required String? roomId,
     required int epoch,
   }) async {
+    if (roomId == null) {
+      _mlsLogWarn('Cannot notify group join: chat room ID is unknown');
+      return false;
+    }
     try {
       final deviceId = await _identityManager.getOrCreateDeviceId();
       await _apiClient.post(
@@ -92,8 +105,10 @@ class MlsGroupManager {
         data: {'mls_device_id': deviceId, 'epoch': epoch},
       );
       _mlsLog('Notified server of group join for room $roomId (epoch: $epoch)');
+      return true;
     } catch (e) {
       _mlsLogWarn('Failed to notify group joined for room $roomId: $e');
+      return false;
     }
   }
 
@@ -141,8 +156,10 @@ class MlsGroupManager {
       );
     }
 
-    _mlsLog('ensureGroupAvailable: group not found, bootstrapping...');
-    await bootstrapGroup(mlsGroupId, roomId: mlsGroupId, force: true);
+    _mlsLog(
+      'ensureGroupAvailable: group not found, checking bootstrap owner...',
+    );
+    await bootstrapGroup(mlsGroupId, roomId: null, force: false);
 
     try {
       final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
@@ -207,15 +224,35 @@ class MlsGroupManager {
           );
           if (isActive) {
             final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+            final membershipReady = await _notifyGroupJoined(
+              roomId: _resolveRoomId(mlsGroupId, roomId),
+              epoch: epoch.toInt(),
+            );
+            if (!membershipReady) {
+              throw StateError(
+                'MLS group is active locally but device membership could not '
+                'be registered with the delivery service.',
+              );
+            }
+            if (!await uploadGroupInfo(mlsGroupId)) {
+              throw StateError(
+                'Local MLS state could not publish GroupInfo at its current epoch.',
+              );
+            }
             _mlsLogInfo(
               'Group already exists and active for room $mlsGroupId (epoch: ${epoch.toInt()})',
             );
             return existingState;
           } else {
-            _mlsLog('Group stored but not active in engine, will recreate');
+            throw StateError(
+              'MLS group state exists but is not active. A Welcome or '
+              'authorized external join is required; refusing to fork the '
+              'existing group.',
+            );
           }
         } catch (e) {
-          _mlsLogWarn('Failed to verify group, will recreate: $e');
+          _mlsLogWarn('Failed to restore stored MLS group: $e');
+          rethrow;
         }
       }
 
@@ -235,6 +272,36 @@ class MlsGroupManager {
 
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
       final signerPublicKey = await _identityManager.getSignerPublicKey();
+      final deviceId = await _identityManager.getOrCreateDeviceId();
+      if (deviceId == null) {
+        throw StateError('Cannot bootstrap MLS group without a device ID.');
+      }
+
+      // Reserve bootstrap ownership before creating local cryptographic state.
+      // Replaying this request is safe, but a different device must wait for a
+      // Welcome instead of independently creating a group with the same ID.
+      final bootstrapResponse = await _padlockClient.post(
+        '/e2ee/mls/groups/$mlsGroupId/bootstrap',
+        data: {
+          'epoch': 0,
+          'state_version': 1,
+          'meta': {'bootstrap_device_id': deviceId},
+        },
+        options: Options(headers: await _getMlsHeaders()),
+      );
+      final serverState = Map<String, dynamic>.from(
+        bootstrapResponse.data as Map? ?? const <String, dynamic>{},
+      );
+      final serverMeta = serverState['meta'] is Map
+          ? Map<String, dynamic>.from(serverState['meta'] as Map)
+          : const <String, dynamic>{};
+      final bootstrapDeviceId = serverMeta['bootstrap_device_id']?.toString();
+      if (!force && bootstrapDeviceId != deviceId) {
+        throw StateError(
+          'MLS group is already bootstrapped by another device. Waiting for '
+          'a Welcome instead of creating divergent group state.',
+        );
+      }
 
       final config = MlsGroupConfig.defaultConfig(
         ciphersuite: defaultCiphersuite,
@@ -246,7 +313,7 @@ class MlsGroupManager {
       await engine.createGroup(
         config: config,
         signerBytes: signerBytes,
-        credentialIdentity: utf8.encode(mlsGroupId),
+        credentialIdentity: utf8.encode(deviceId),
         signerPublicKey: signerPublicKey,
         groupId: groupIdBytes,
       );
@@ -274,33 +341,24 @@ class MlsGroupManager {
         'updated_at': DateTime.now().toIso8601String(),
       });
 
-      // Call server to bootstrap the group
-      try {
-        await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/bootstrap',
-          data: {
-            'chat_room_id': mlsGroupId,
-            'group_id': mlsGroupId,
-            'epoch': epoch.toInt(),
-            'state_version': 1,
-          },
-          options: Options(headers: await _getMlsHeaders()),
-        );
-        _mlsLog('Server bootstrap called for room $mlsGroupId');
-      } catch (e) {
-        _mlsLogWarn('Failed to call server bootstrap: $e');
-      }
-
       _mlsLogInfo(
         'MLS group bootstrapped for room $mlsGroupId with epoch ${epoch.toInt()}',
       );
 
       _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'bootstrap');
 
-      await _notifyGroupJoined(
-        roomId: roomId ?? mlsGroupId,
+      final membershipReady = await _notifyGroupJoined(
+        roomId: _resolveRoomId(mlsGroupId, roomId),
         epoch: epoch.toInt(),
       );
+      if (!membershipReady) {
+        throw StateError(
+          'MLS group was created, but device membership registration failed.',
+        );
+      }
+      if (!await uploadGroupInfo(mlsGroupId)) {
+        throw StateError('Failed to publish initial MLS GroupInfo.');
+      }
 
       if (invitedMembers != null && invitedMembers.isNotEmpty) {
         await addMembersAndFanoutWelcome(
@@ -325,6 +383,24 @@ class MlsGroupManager {
     try {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
+      final expectedGroupIdBytes = utf8.encode(mlsGroupId);
+
+      // A Welcome may be redelivered when joining succeeded but the membership
+      // acknowledgement failed. Finish that idempotent server step without
+      // trying to consume the single-use Welcome again.
+      if (await engine.groupIsActive(groupIdBytes: expectedGroupIdBytes)) {
+        final epoch = await engine.groupEpoch(
+          groupIdBytes: expectedGroupIdBytes,
+        );
+        final membershipReady = await _notifyGroupJoined(
+          roomId: _resolveRoomId(mlsGroupId, roomId),
+          epoch: epoch.toInt(),
+        );
+        if (!membershipReady) {
+          throw StateError('Failed to register joined MLS device membership.');
+        }
+        return await getGroupState(mlsGroupId);
+      }
 
       // Use identity manager for clean signer access
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
@@ -354,10 +430,13 @@ class MlsGroupManager {
 
       _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'welcome_join');
 
-      await _notifyGroupJoined(
-        roomId: roomId ?? mlsGroupId,
+      final membershipReady = await _notifyGroupJoined(
+        roomId: _resolveRoomId(mlsGroupId, roomId),
         epoch: epoch.toInt(),
       );
+      if (!membershipReady) {
+        throw StateError('Failed to register joined MLS device membership.');
+      }
 
       return await getGroupState(mlsGroupId);
     } catch (e) {
@@ -430,20 +509,6 @@ class MlsGroupManager {
       final engine = engineService.engine;
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
       final groupIdBytes = utf8.encode(mlsGroupId);
-      final myAccountId = await _identityManager.getCurrentAccountId();
-
-      // 0. Get existing group members BEFORE adding new ones
-      // This is critical for epoch sync - existing members MUST receive the Commit
-      final existingMembers = await _getGroupMembersForFanout(
-        mlsGroupId,
-        chatRoomId: chatRoomId,
-        excludeAccountIds: memberAccountIds,
-        myAccountId: myAccountId,
-      );
-      _mlsLog(
-        'Found ${existingMembers.length} existing members to notify of group change',
-      );
-
       // 1. Fetch KeyPackages for each member
       final List<Uint8List> keyPackages = [];
       final addedDeviceIdsByAccount = <String, List<String>>{};
@@ -471,7 +536,10 @@ class MlsGroupManager {
         return null;
       }
 
-      // 2. Add members to MLS group — this produces a commit + welcome
+      final previousEpoch = await getCurrentEpoch(mlsGroupId);
+
+      // 2. Add members to MLS group — this produces a pending commit + welcome.
+      // OpenMLS does not advance the sender until mergePendingCommit is called.
       _mlsLog(
         'Adding ${keyPackages.length} key packages to group room $mlsGroupId...',
       );
@@ -481,34 +549,19 @@ class MlsGroupManager {
         keyPackagesBytes: keyPackages,
       );
 
-      final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
-      final previousEpoch = await getCurrentEpoch(mlsGroupId);
-      _logEpochTransition(
-        mlsGroupId,
-        previousEpoch,
-        epoch.toInt(),
-        'member_add(${keyPackages.length})',
-      );
-      await saveGroupState(mlsGroupId, {
-        'group_id': mlsGroupId,
-        'epoch': epoch.toInt(),
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-        'last_member_add_at': DateTime.now().toIso8601String(),
-      });
-
-      _mlsLogInfo(
-        'Added ${keyPackages.length} members to group room $mlsGroupId (epoch: ${epoch.toInt()})',
-      );
+      final expectedEpoch = previousEpoch + 1;
+      final commitMessageId = _generateNonce();
 
       // 3. CRITICAL: Fan out Commit to ALL existing members
       // This is required for epoch synchronization - without it, existing members
       // will have stale epoch and cannot decrypt new messages
       if (addResult.commit.isNotEmpty) {
-        _mlsLog(
-          'Fanout commit to ${existingMembers.length} existing members...',
+        await _fanoutCommitToExistingMembers(
+          mlsGroupId,
+          addResult.commit,
+          epoch: expectedEpoch,
+          clientMessageId: commitMessageId,
         );
-        await _fanoutCommitToExistingMembers(mlsGroupId, addResult.commit);
         _mlsLogInfo('Commit fanout completed');
       } else {
         _mlsLogWarn(
@@ -523,6 +576,39 @@ class MlsGroupManager {
           addResult.welcome,
           addedDeviceIdsByAccount,
         );
+
+        // The Commit and Welcome are now durably accepted by the delivery
+        // service. Advance the sender to the exact epoch carried by them.
+        await engine.mergePendingCommit(groupIdBytes: groupIdBytes);
+        final mergedEpoch = (await engine.groupEpoch(
+          groupIdBytes: groupIdBytes,
+        )).toInt();
+        if (mergedEpoch != expectedEpoch) {
+          throw StateError(
+            'MLS pending commit merged to epoch $mergedEpoch; '
+            'expected $expectedEpoch.',
+          );
+        }
+
+        _logEpochTransition(
+          mlsGroupId,
+          previousEpoch,
+          mergedEpoch,
+          'member_add(${keyPackages.length})',
+        );
+        await saveGroupState(mlsGroupId, {
+          ...?await getGroupState(mlsGroupId),
+          'group_id': mlsGroupId,
+          'epoch': mergedEpoch,
+          'updated_at': DateTime.now().toIso8601String(),
+          'last_member_add_at': DateTime.now().toIso8601String(),
+        });
+        await uploadGroupInfo(mlsGroupId);
+
+        _mlsLogInfo(
+          'Added ${keyPackages.length} members to group room '
+          '$mlsGroupId (epoch: $mergedEpoch)',
+        );
         return addResult.welcome;
       }
 
@@ -533,36 +619,6 @@ class MlsGroupManager {
       );
       rethrow;
     }
-  }
-
-  /// Get list of existing group members for Commit fanout.
-  /// Excludes the members being added and the current user.
-  Future<List<String>> _getGroupMembersForFanout(
-    String mlsGroupId, {
-    String? chatRoomId,
-    required List<String> excludeAccountIds,
-    String? myAccountId,
-  }) async {
-    // Get members from chat room API
-    // This should match MLS group members for properly synced rooms
-    if (chatRoomId != null) {
-      try {
-        final roomMembers = await _fetchAllChatRoomMembers(chatRoomId);
-        final filtered = roomMembers
-            .where((id) => id != myAccountId && !excludeAccountIds.contains(id))
-            .toList();
-        _mlsLog(
-          'Using ${filtered.length} chat room members for fanout (excluding ${excludeAccountIds.length} new + self)',
-        );
-        return filtered;
-      } catch (e) {
-        _mlsLogWarn('Failed to fetch chat room members: $e');
-      }
-    }
-
-    // Last resort: return empty list (commit fanout will be skipped)
-    _mlsLogWarn('Could not determine existing members for fanout');
-    return [];
   }
 
   /// Send welcome bytes to the server for distribution to invited members.
@@ -630,18 +686,18 @@ class MlsGroupManager {
   /// for distribution to all existing members.
   Future<void> _fanoutCommitToExistingMembers(
     String mlsGroupId,
-    Uint8List commitBytes,
-  ) async {
-    final newEpoch = await getCurrentEpoch(mlsGroupId);
+    Uint8List commitBytes, {
+    required int epoch,
+    required String clientMessageId,
+  }) async {
     final commitBase64 = base64Encode(commitBytes);
-    final clientMessageId = _generateNonce();
 
     final header = base64Encode(
       utf8.encode(
         jsonEncode({
           'v': 1,
           'type': 2, // MlsCommit
-          'epoch': newEpoch,
+          'epoch': epoch,
           'scheme': 'chat.mls.v2',
         }),
       ),
@@ -651,11 +707,14 @@ class MlsGroupManager {
       await _padlockClient.post(
         '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
         data: {
-          'epoch': newEpoch,
+          'epoch': epoch,
           'ciphertext': commitBase64,
           'header': header,
           'client_message_id': clientMessageId,
-          'meta': {'reason': 'member_add'},
+          'meta': {
+            'reason': 'member_add',
+            'client_message_id': clientMessageId,
+          },
         },
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -873,6 +932,7 @@ class MlsGroupManager {
         data: {
           'group_info': base64Encode(groupInfo),
           'ratchet_tree': base64Encode(ratchetTree),
+          'epoch': epoch.toInt(),
         },
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -913,7 +973,7 @@ class MlsGroupManager {
 
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
       final signerPublicKey = await _identityManager.getSignerPublicKey();
-      final identity = await _identityManager.getCredential();
+      final identity = await _identityManager.getOrCreateDeviceId();
 
       if (identity == null) {
         _mlsLogWarn('No identity available for external join');
@@ -939,10 +999,30 @@ class MlsGroupManager {
       }
 
       final groupIdBytes = joinResult.groupId;
+      final currentEpoch = int.tryParse(data['epoch']?.toString() ?? '');
+      if (currentEpoch == null) {
+        _mlsLogWarn('Missing epoch in GroupInfo response');
+        return false;
+      }
+      final expectedEpoch = currentEpoch + 1;
+
+      // An external Commit is also pending local state. Distribute it before
+      // merging so a network failure cannot silently advance only this client.
+      await _fanoutCommitToExistingMembers(
+        mlsGroupId,
+        externalCommitBytes,
+        epoch: expectedEpoch,
+        clientMessageId: _generateNonce(),
+      );
 
       await engine.mergePendingCommit(groupIdBytes: groupIdBytes);
-
       final newEpoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+      if (newEpoch.toInt() != expectedEpoch) {
+        throw StateError(
+          'External Commit merged to epoch ${newEpoch.toInt()}; '
+          'expected $expectedEpoch.',
+        );
+      }
 
       await saveGroupState(mlsGroupId, {
         'group_id': mlsGroupId,
@@ -954,15 +1034,15 @@ class MlsGroupManager {
 
       _mlsLogInfo('External join successful, new epoch: $newEpoch');
 
-      // Fanout
-      await _fanoutCommitToExistingMembers(mlsGroupId, externalCommitBytes);
-
       await uploadGroupInfo(mlsGroupId);
 
-      await _notifyGroupJoined(
-        roomId: roomId ?? mlsGroupId,
+      final membershipReady = await _notifyGroupJoined(
+        roomId: _resolveRoomId(mlsGroupId, roomId),
         epoch: newEpoch.toInt(),
       );
+      if (!membershipReady) {
+        throw StateError('Failed to register externally joined MLS device.');
+      }
 
       return true;
     } catch (e, stack) {

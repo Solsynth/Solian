@@ -72,6 +72,10 @@ class MlsEngineService {
     String dbPath;
     if (kIsWeb) {
       dbPath = 'mls_db';
+      _engine = await MlsEngine.create(
+        dbPath: dbPath,
+        encryptionKey: encryptionKey,
+      );
     } else {
       final appSupportDir = await getApplicationSupportDirectory();
       final dbDir = Directory(appSupportDir.path);
@@ -92,10 +96,13 @@ class MlsEngineService {
           if (e.toString().contains('file is not a database') ||
               e.toString().contains('wrong key') ||
               e.toString().contains('not a database')) {
+            final backupPath =
+                '$dbPath.unreadable.${DateTime.now().toUtc().millisecondsSinceEpoch}';
             Logger.root.warning(
-              'Corrupted MLS database, deleting and recreating...',
+              'MLS database cannot be opened; preserving it at $backupPath '
+              'before creating a recovery database.',
             );
-            await dbFile.delete();
+            await dbFile.rename(backupPath);
             _engine = await MlsEngine.create(
               dbPath: dbPath,
               encryptionKey: encryptionKey,

@@ -68,21 +68,14 @@ class MlsClient {
     final deviceId = await _identityManager.getOrCreateDeviceId();
     _mlsLog('MLS Client initialized with deviceId: $deviceId');
 
-    // Upload a KeyPackage if we have none stored (first launch or after rotation)
-    final kpCount = await _identityManager.getKeyPackageUploadCount();
-    if (kpCount < 3) {
-      try {
-        final toUpload = 3 - kpCount;
-        for (var i = 0; i < toUpload; i++) {
-          final kp = await _identityManager.generateKeyPackage();
-          final kpBase64 = base64Encode(kp.keyPackageBytes);
-          await _identityManager.uploadKeyPackage(kpBase64);
-        }
-        _mlsLog('Uploaded $toUpload KeyPackage(s) to padlock service');
-      } catch (e) {
-        _mlsLogWarn('Failed to upload KeyPackage during init: $e');
-        // Non-fatal: MLS operations will still work for existing groups
-      }
+    // The server is authoritative for unconsumed KeyPackages. A local upload
+    // count never decreases when another client consumes a package, so using it
+    // here can permanently leave a device without initial keying material.
+    try {
+      await _identityManager.checkAndRefillKeyPackages();
+    } catch (e) {
+      _mlsLogWarn('Failed to refill KeyPackages during init: $e');
+      // Non-fatal: MLS operations will still work for existing groups.
     }
 
     // Fetch and process pending E2EE envelopes (Welcome, Commit, Proposal)
@@ -108,6 +101,7 @@ class MlsClient {
           continue;
         }
 
+        var processed = false;
         try {
           if (envelopeType == MlsEnvelopeType.welcome.value) {
             final welcomeBytes = base64Decode(ciphertext);
@@ -116,26 +110,37 @@ class MlsClient {
               welcomeBytes: welcomeBytes,
             );
             if (result != null) {
+              processed = true;
               _mlsLog(
                 'Processed welcome envelope $envelopeId for group $mlsGroupId',
               );
             }
           } else if (envelopeType == MlsEnvelopeType.commit.value ||
               envelopeType == MlsEnvelopeType.proposal.value) {
-            await decryptMessage(
+            final result = await decryptMessage(
               messageId: envelopeId,
               mlsGroupId: mlsGroupId,
               ciphertext: ciphertext,
               encryptionHeader: envelope['header']?.toString(),
               encryptionScheme: 'chat.mls.v2',
             );
+            processed = result?['_mls_control_processed'] == true;
+          } else {
+            _mlsLogWarn(
+              'Leaving unsupported envelope $envelopeId unacknowledged '
+              '(type: $envelopeType)',
+            );
           }
         } catch (e) {
           _mlsLogWarn('Failed to process envelope $envelopeId: $e');
         }
 
-        // Ack envelope to remove from server
-        await ackEnvelope(envelopeId, deviceId);
+        // MLS handshake messages are ordered state transitions. Only remove an
+        // envelope after it was applied successfully; transient failures must be
+        // retried or later messages can never be decrypted.
+        if (processed) {
+          await ackEnvelope(envelopeId, deviceId);
+        }
       }
     } catch (e) {
       _mlsLogWarn('Failed to fetch pending envelopes: $e');

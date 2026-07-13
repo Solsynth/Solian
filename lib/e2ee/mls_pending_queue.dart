@@ -33,6 +33,9 @@ class MlsPendingMessageQueue {
       message.mlsGroupId,
       () => Queue<PendingMlsMessage>(),
     );
+    if (groupQueue.any((pending) => pending.messageId == message.messageId)) {
+      return;
+    }
     groupQueue.add(message);
     _mlsLog(
       'Enqueued pending message ${message.messageId} for group ${message.mlsGroupId}, queue size: ${groupQueue.length}',
