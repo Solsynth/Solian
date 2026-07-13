@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/auth/auth_form_widgets.dart';
 import 'package:island/auth/login.dart';
 import 'package:island/accounts/screens/punishment_user_sheet.dart';
 import 'package:island/core/config.dart';
@@ -27,7 +28,6 @@ import 'package:passkeys/types.dart';
 import 'package:pinput/pinput.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -58,6 +58,61 @@ int _currentPlatformCode() {
     TargetPlatform.linux => 6,
     _ => 0,
   };
+}
+
+/// NFC physical passport login is only available on mobile (iOS / Android).
+bool get _supportsPhysicalPassportLogin {
+  if (kIsWeb) return false;
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.iOS || TargetPlatform.android => true,
+    _ => false,
+  };
+}
+
+/// Drops factors that cannot / should not be completed via the factor picker.
+///
+/// - Physical passport (6): NFC only on mobile.
+/// - Passkey (7): offered separately as discoverable passkey on the lookup step.
+List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
+  return factors.where((factor) {
+    if (factor.type == 7) return false; // passkey — use alt-methods entry instead
+    if (factor.type == 6) return _supportsPhysicalPassportLogin;
+    return true;
+  }).toList();
+}
+
+/// Compact chip showing how many trust points a factor contributes.
+class _FactorTrustChip extends StatelessWidget {
+  final int trustworthy;
+
+  const _FactorTrustChip({required this.trustworthy});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Chip(
+      avatar: Icon(
+        Symbols.shield_person,
+        size: 16,
+        color: scheme.onSecondaryContainer,
+      ),
+      label: Text(
+        'authFactorTrustworthy'.tr(args: ['$trustworthy']),
+      ),
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: EdgeInsets.zero,
+      labelPadding: const EdgeInsets.only(right: 8),
+      backgroundColor: scheme.secondaryContainer,
+      side: BorderSide.none,
+      labelStyle: theme.textTheme.labelSmall?.copyWith(
+        color: scheme.onSecondaryContainer,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
 }
 
 class _QrLoginChallenge {
@@ -230,22 +285,16 @@ class _LoginCheckScreen extends HookConsumerWidget {
     }, [challenge?.id, challenge?.stepRemain]);
 
     if (factor == null) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      return AuthFormColumn(
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: CircleAvatar(
-              radius: 26,
-              child: const Icon(Symbols.asterisk, size: 28),
-            ).padding(bottom: 8),
+          AuthFormHeader(
+            icon: Symbols.asterisk,
+            title: 'loginInProgress'.tr(),
           ),
-          Text(
-            'loginInProgress'.tr(),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-          ).padding(left: 4, bottom: 16),
-          const Gap(16),
-          CircularProgressIndicator().alignment(Alignment.centerLeft),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: CircularProgressIndicator(),
+          ),
         ],
       );
     }
@@ -277,7 +326,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
     }
 
     Future<void> scanNfcTag() async {
-      if (factor?.type != 6) return;
+      if (factor?.type != 6 || !_supportsPhysicalPassportLogin) return;
 
       isScanning.value = true;
       scanError.value = null;
@@ -389,28 +438,42 @@ class _LoginCheckScreen extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.asterisk, size: 28),
-          ).padding(bottom: 8),
-        ),
-        Text(
-          'loginEnterPassword'.tr(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).padding(left: 4, bottom: 16),
-        if (factor!.type == 6) ...[
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final defaultPinTheme = PinTheme(
+      width: 48,
+      height: 56,
+      textStyle: theme.textTheme.titleLarge?.copyWith(color: scheme.onSurface),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outline),
+      ),
+    );
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.primary, width: 2),
+      ),
+    );
+
+    final Widget credentialInput;
+    if (factor!.type == 6) {
+      credentialInput = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: kAuthGap,
+        children: [
           FilledButton.tonalIcon(
             onPressed: isBusy.value || isScanning.value ? null : scanNfcTag,
             icon: isScanning.value
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: scheme.onSecondaryContainer,
+                    ),
                   )
                 : const Icon(Symbols.nfc),
             label: Text(
@@ -419,96 +482,94 @@ class _LoginCheckScreen extends HookConsumerWidget {
                   : 'physicalPassportScanToAuthenticate'.tr(),
             ),
           ),
-          if (scanError.value != null) ...[
-            const Gap(12),
-            Card(
-              elevation: 0,
-              color: Theme.of(context).colorScheme.errorContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.error,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                      size: 20,
-                    ),
-                    const Gap(8),
-                    Expanded(
-                      child: Text(
-                        scanError.value!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ),
-                  ],
+          if (scanError.value != null)
+            AuthErrorBanner(message: scanError.value!),
+        ],
+      );
+    } else if (factor!.type == 7) {
+      credentialInput = FilledButton.icon(
+        onPressed: isBusy.value ? null : () => performPasskeyAuth(),
+        icon: isBusy.value
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: scheme.onPrimary,
                 ),
+              )
+            : const Icon(Symbols.fingerprint),
+        label: Text('passkeyAuthenticate'.tr()),
+      );
+    } else if ([0].contains(factor!.type)) {
+      credentialInput = TextField(
+        autocorrect: false,
+        enableSuggestions: false,
+        controller: passwordController,
+        obscureText: true,
+        autofillHints: [
+          factor!.type == 0
+              ? AutofillHints.password
+              : AutofillHints.oneTimeCode,
+        ],
+        decoration: InputDecoration(
+          labelText: 'password'.tr(),
+          prefixIcon: const Icon(Symbols.password),
+        ),
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
+      );
+    } else {
+      credentialInput = Pinput(
+        showCursor: true,
+        length: 6,
+        obscureText: false,
+        defaultPinTheme: defaultPinTheme,
+        focusedPinTheme: focusedPinTheme,
+        submittedPinTheme: focusedPinTheme,
+        onSubmitted: (value) {
+          passwordController.text = value;
+          performCheckTicket();
+        },
+        onChanged: (value) => passwordController.text = value,
+        onCompleted: (value) {
+          passwordController.text = value;
+          performCheckTicket();
+        },
+      );
+    }
+
+    return AuthFormColumn(
+      children: [
+        AuthFormHeader(
+          icon: Symbols.asterisk,
+          title: 'loginEnterPassword'.tr(),
+        ),
+        credentialInput,
+        AuthSectionCard(
+          children: [
+            ListTile(
+              leading: Icon(
+                kFactorTypes[factor!.type]?.$3 ?? Symbols.question_mark,
+                color: scheme.primary,
               ),
+              title: Text(kFactorTypes[factor!.type]?.$1 ?? 'unknown').tr(),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
+                  const Gap(6),
+                  _FactorTrustChip(trustworthy: factor!.trustworthy),
+                ],
+              ),
+              isThreeLine: true,
             ),
           ],
-        ] else if (factor!.type == 7) ...[
-          FilledButton.tonalIcon(
-            onPressed: isBusy.value ? null : () => performPasskeyAuth(),
-            icon: isBusy.value
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Symbols.fingerprint),
-            label: Text('passkeyAuthenticate'.tr()),
-          ),
-        ] else if ([0].contains(factor!.type))
-          TextField(
-            autocorrect: false,
-            enableSuggestions: false,
-            controller: passwordController,
-            obscureText: true,
-            autofillHints: [
-              factor!.type == 0
-                  ? AutofillHints.password
-                  : AutofillHints.oneTimeCode,
-            ],
-            decoration: InputDecoration(labelText: 'password'.tr()),
-            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
-          ).padding(horizontal: 7)
-        else
-          Pinput(
-            showCursor: false,
-            length: 6,
-            obscureText: false,
-            onSubmitted: (value) {
-              passwordController.text = value;
-              performCheckTicket();
-            },
-            onChanged: (value) => passwordController.text = value,
-          ),
-        const Gap(12),
-        ListTile(
-          leading: Icon(
-            kFactorTypes[factor!.type]?.$3 ?? Symbols.question_mark,
-          ),
-          title: Text(kFactorTypes[factor!.type]?.$1 ?? 'unknown').tr(),
-          subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
         ),
-        const Gap(12),
         if (factor!.type != 6 && factor!.type != 7)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: isBusy.value ? null : () => performCheckTicket(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('next').tr(),
-                    const Icon(Symbols.chevron_right),
-                  ],
-                ),
-              ),
-            ],
+          AuthFormActions(
+            isBusy: isBusy.value,
+            onNext: performCheckTicket,
           ),
       ],
     );
@@ -527,87 +588,71 @@ class LoginContent extends HookConsumerWidget {
     final factors = useState<List<SnAuthFactor>>([]);
     final factorPicked = useState<SnAuthFactor?>(null);
 
-    return Theme(
-      data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
-      child: Column(
-        children: [
-          if (isBusy.value)
-            LinearProgressIndicator(
-              minHeight: 4,
-              borderRadius: BorderRadius.zero,
-              trackGap: 0,
-              stopIndicatorRadius: 0,
-            )
-          else if (currentTicket.value != null)
-            LinearProgressIndicator(
-              minHeight: 4,
-              borderRadius: BorderRadius.zero,
-              trackGap: 0,
-              stopIndicatorRadius: 0,
-              value:
-                  1 -
-                  (currentTicket.value!.stepRemain /
-                      currentTicket.value!.stepTotal),
-            )
-          else
-            const Gap(4),
-          Expanded(
-            child: SingleChildScrollView(
-              child: PageTransitionSwitcher(
-                transitionBuilder:
-                    (
-                      Widget child,
-                      Animation<double> primaryAnimation,
-                      Animation<double> secondaryAnimation,
-                    ) {
-                      return SharedAxisTransition(
-                        animation: primaryAnimation,
-                        secondaryAnimation: secondaryAnimation,
-                        transitionType: SharedAxisTransitionType.horizontal,
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: 380),
-                          child: child,
-                        ),
-                      );
-                    },
-                child: switch (period.value % 3) {
-                  1 => _LoginPickerScreen(
-                    key: const ValueKey(1),
-                    challenge: currentTicket.value,
-                    factors: factors.value,
-                    onChallenge: (SnAuthChallenge? p0) =>
-                        currentTicket.value = p0,
-                    onPickFactor: (SnAuthFactor p0) => factorPicked.value = p0,
-                    onNext: () => period.value++,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                  2 => _LoginCheckScreen(
-                    key: const ValueKey(2),
-                    challenge: currentTicket.value,
-                    factor: factorPicked.value,
-                    onChallenge: (SnAuthChallenge? p0) =>
-                        currentTicket.value = p0,
-                    onNext: () => period.value = 1,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                  _ => _LoginLookupScreen(
-                    key: const ValueKey(0),
-                    ticket: currentTicket.value,
-                    onChallenge: (SnAuthChallenge? p0) =>
-                        currentTicket.value = p0,
-                    onFactor: (List<SnAuthFactor>? p0) =>
-                        factors.value = p0 ?? [],
-                    onNext: () => period.value++,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                },
-              ).padding(all: 24),
-            ).center(),
-          ),
+    final stepProgress = currentTicket.value == null
+        ? null
+        : 1 -
+            (currentTicket.value!.stepRemain / currentTicket.value!.stepTotal);
 
-          const Gap(4),
-        ],
-      ),
+    return Column(
+      children: [
+        if (isBusy.value)
+          const LinearProgressIndicator(minHeight: 4)
+        else if (stepProgress != null)
+          LinearProgressIndicator(minHeight: 4, value: stepProgress)
+        else
+          const SizedBox(height: 4),
+        Expanded(
+          child: AuthFormShell(
+            child: PageTransitionSwitcher(
+              transitionBuilder:
+                  (
+                    Widget child,
+                    Animation<double> primaryAnimation,
+                    Animation<double> secondaryAnimation,
+                  ) {
+                    return SharedAxisTransition(
+                      animation: primaryAnimation,
+                      secondaryAnimation: secondaryAnimation,
+                      transitionType: SharedAxisTransitionType.horizontal,
+                      fillColor: Colors.transparent,
+                      child: child,
+                    );
+                  },
+              child: switch (period.value % 3) {
+                1 => _LoginPickerScreen(
+                  key: const ValueKey(1),
+                  challenge: currentTicket.value,
+                  factors: factors.value,
+                  onChallenge: (SnAuthChallenge? p0) =>
+                      currentTicket.value = p0,
+                  onPickFactor: (SnAuthFactor p0) => factorPicked.value = p0,
+                  onNext: () => period.value++,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+                2 => _LoginCheckScreen(
+                  key: const ValueKey(2),
+                  challenge: currentTicket.value,
+                  factor: factorPicked.value,
+                  onChallenge: (SnAuthChallenge? p0) =>
+                      currentTicket.value = p0,
+                  onNext: () => period.value = 1,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+                _ => _LoginLookupScreen(
+                  key: const ValueKey(0),
+                  ticket: currentTicket.value,
+                  onChallenge: (SnAuthChallenge? p0) =>
+                      currentTicket.value = p0,
+                  onFactor: (List<SnAuthFactor>? p0) =>
+                      factors.value = p0 ?? [],
+                  onNext: () => period.value++,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -649,10 +694,6 @@ class _LoginPickerScreen extends HookConsumerWidget {
       return null;
     }, [challenge]);
 
-    final unfocusColor = Theme.of(
-      context,
-    ).colorScheme.onSurface.withAlpha((255 * 0.75).round());
-
     void performGetFactorCode() async {
       if (factorPicked.value == null) return;
 
@@ -681,69 +722,53 @@ class _LoginPickerScreen extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      key: const ValueKey<int>(1),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return AuthFormColumn(
+      columnKey: const ValueKey<int>(1),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.lock, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.lock,
+          title: 'loginPickFactor'.tr(),
+          subtitle: 'loginMultiFactor'.plural(challenge!.stepRemain),
         ),
-        Text(
-          'loginPickFactor'.tr(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).padding(left: 4),
-        const Gap(8),
-        Card(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            children:
-                factors
-                    ?.map(
-                      (x) => CheckboxListTile(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                        ),
-                        secondary: Icon(
-                          kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
-                        ),
-                        title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
-                        enabled: !challenge!.blacklistFactors.contains(x.id),
-                        value: factorPicked.value == x,
-                        onChanged: (value) {
-                          if (value == true) {
-                            factorPicked.value = x;
-                          }
-                        },
+        AuthSectionCard(
+          children:
+              _filterLoginFactors(factors ?? const [])
+                  .map(
+                    (x) => RadioListTile<SnAuthFactor>(
+                      value: x,
+                      groupValue: factorPicked.value,
+                      onChanged: challenge!.blacklistFactors.contains(x.id)
+                          ? null
+                          : (value) {
+                              if (value != null) factorPicked.value = value;
+                            },
+                      secondary: Icon(
+                        kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
+                        color: scheme.primary,
                       ),
-                    )
-                    .toList() ??
-                List.empty(),
-          ),
+                      title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            kFactorTypes[x.type]?.$2 ?? 'unknown',
+                          ).tr(),
+                          const Gap(6),
+                          _FactorTrustChip(trustworthy: x.trustworthy),
+                        ],
+                      ),
+                      isThreeLine: true,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  )
+                  .toList(),
         ),
-        const Gap(8),
-        Text(
-          'loginMultiFactor'.plural(challenge!.stepRemain),
-          style: TextStyle(color: unfocusColor, fontSize: 13),
-        ).padding(horizontal: 16),
-        const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => performGetFactorCode(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next'.tr()),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
-            ),
-          ],
+        AuthFormActions(
+          isBusy: isBusy.value || factorPicked.value == null,
+          onNext: performGetFactorCode,
         ),
       ],
     );
@@ -816,7 +841,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
                 onPressed: () => Navigator.of(dialogContext).pop(false),
                 child: Text('cancel'.tr()),
               ),
-              TextButton(
+              FilledButton(
                 onPressed: isRecovering.value
                     ? null
                     : () async {
@@ -915,8 +940,10 @@ class _LoginLookupScreen extends HookConsumerWidget {
             '/padlock/auth/challenge/${challenge.id}/factors',
           );
           onFactor(
-            List<SnAuthFactor>.from(
-              factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
+            _filterLoginFactors(
+              (factorResp.data as List).map(
+                (ele) => SnAuthFactor.fromJson(ele),
+              ),
             ),
           );
           onNext();
@@ -980,8 +1007,10 @@ class _LoginLookupScreen extends HookConsumerWidget {
           '/padlock/auth/challenge/${result.id}/factors',
         );
         onFactor(
-          List<SnAuthFactor>.from(
-            factorResp.data.map((ele) => SnAuthFactor.fromJson(ele)),
+          _filterLoginFactors(
+            (factorResp.data as List).map(
+              (ele) => SnAuthFactor.fromJson(ele),
+            ),
           ),
         );
         onNext();
@@ -1112,20 +1141,15 @@ class _LoginLookupScreen extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final scheme = Theme.of(context).colorScheme;
+    final methodIconColor = scheme.onSecondaryContainer;
+
+    return AuthFormColumn(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.login, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.login,
+          title: 'loginGreeting'.tr(),
         ),
-        Text(
-          'loginGreeting'.tr(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).padding(left: 4, bottom: 16),
         TextField(
           autocorrect: false,
           enableSuggestions: false,
@@ -1134,22 +1158,20 @@ class _LoginLookupScreen extends HookConsumerWidget {
           decoration: InputDecoration(
             labelText: 'username'.tr(),
             helperText: 'usernameLookupHint'.tr(),
+            prefixIcon: const Icon(Symbols.person),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
-        ).padding(horizontal: 7),
-        Row(
-          spacing: 6,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text("loginOr").tr().fontSize(11).opacity(0.85),
-            const Gap(8),
-            Spacer(),
-            IconButton.filledTonal(
+        ),
+        AuthAltMethodsRow(
+          label: 'loginOr'.tr(),
+          children: [
+            AuthMethodIconButton(
               onPressed: () => showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 useRootNavigator: true,
+                showDragHandle: true,
                 builder: (sheetContext) => _QrLoginSheet(
                   onLoginSuccess: () {
                     if (Navigator.canPop(sheetContext)) {
@@ -1158,135 +1180,102 @@ class _LoginLookupScreen extends HookConsumerWidget {
                   },
                 ),
               ),
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                Symbols.qr_code_2,
-                size: 16,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+              icon: Icon(Symbols.qr_code_2, size: 18, color: methodIconColor),
               tooltip: 'qrCode'.tr(),
             ),
-            IconButton.filledTonal(
+            AuthMethodIconButton(
               onPressed: isBusy.value ? null : performDiscoverablePasskeyLogin,
-              padding: EdgeInsets.zero,
               icon: Icon(
                 Symbols.fingerprint,
-                size: 16,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                size: 18,
+                color: methodIconColor,
               ),
               tooltip: 'authFactorPasskey'.tr(),
             ),
             if (!kIsWeb) ...[
-              IconButton.filledTonal(
+              AuthMethodIconButton(
                 onPressed: () => withOidc('github'),
-                padding: EdgeInsets.zero,
                 icon: getProviderIcon(
-                  "github",
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  'github',
+                  size: 18,
+                  color: methodIconColor,
                 ),
                 tooltip: 'GitHub',
               ),
-              IconButton.filledTonal(
+              AuthMethodIconButton(
                 onPressed: () => withOidc('google'),
-                padding: EdgeInsets.zero,
                 icon: getProviderIcon(
-                  "google",
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  'google',
+                  size: 18,
+                  color: methodIconColor,
                 ),
                 tooltip: 'Google',
               ),
-              IconButton.filledTonal(
+              AuthMethodIconButton(
                 onPressed: withApple,
-                padding: EdgeInsets.zero,
                 icon: getProviderIcon(
-                  "apple",
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  'apple',
+                  size: 18,
+                  color: methodIconColor,
                 ),
                 tooltip: 'Apple Account',
               ),
             ],
           ],
-        ).padding(horizontal: 8, vertical: 8),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: isBusy.value ? null : () => performNewTicket(),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [Text('next').tr(), const Icon(Symbols.chevron_right)],
-            ),
-          ),
         ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: isBusy.value ? null : () => requestResetPassword(),
-            style: TextButton.styleFrom(foregroundColor: Colors.grey),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 4,
-              children: [
-                Text('forgotPassword'.tr()),
-                const Icon(Symbols.key_off),
-              ],
-            ),
-          ).padding(left: 12),
+        AuthFormActions(
+          isBusy: isBusy.value,
+          onNext: performNewTicket,
         ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: isBusy.value
-                ? null
-                : () => _showRecoveryCodeDialog(context, ref),
-            style: TextButton.styleFrom(foregroundColor: Colors.grey),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 4,
-              children: [Text('useRecoveryCode'.tr()), const Icon(Symbols.key)],
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: kAuthGapSm,
+          children: [
+            AuthSecondaryAction(
+              enabled: !isBusy.value,
+              onPressed: requestResetPassword,
+              label: 'forgotPassword'.tr(),
+              icon: Symbols.key_off,
             ),
-          ).padding(left: 12),
-        ),
-        const Gap(12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: StyledWidget(
-            Container(
-              constraints: const BoxConstraints(maxWidth: 290),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'termAcceptNextWithAgree'.tr(),
-                    textAlign: TextAlign.end,
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withAlpha((255 * 0.75).round()),
-                    ),
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('termAcceptLink'.tr()),
-                          const Gap(4),
-                          const Icon(Symbols.launch, size: 14),
-                        ],
+            AuthSecondaryAction(
+              enabled: !isBusy.value,
+              onPressed: () => _showRecoveryCodeDialog(context, ref),
+              label: 'useRecoveryCode'.tr(),
+              icon: Symbols.key,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  spacing: kAuthGapSm,
+                  children: [
+                    Text(
+                      'termAcceptNextWithAgree'.tr(),
+                      textAlign: TextAlign.end,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
                       ),
-                      onTap: () {
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
                         launchUrlString('https://solsynth.dev/terms');
                       },
+                      icon: const Icon(Symbols.launch, size: 16),
+                      label: Text('termAcceptLink'.tr()),
+                      iconAlignment: IconAlignment.end,
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ).padding(horizontal: 16),
+          ],
         ),
       ],
     );
@@ -1450,62 +1439,69 @@ class _QrLoginSheet extends HookConsumerWidget {
             ),
             const Gap(24),
             Center(
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: SizedBox(
-                  width: 240,
-                  height: 240,
-                  child: switch ((challenge.value, isLoading.value)) {
-                    (null, true) => const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
-                    (final current?, _) => QrImageView(
-                      data: current.qrData,
-                      version: QrVersions.auto,
-                      size: 240,
-                      errorCorrectionLevel: QrErrorCorrectLevel.H,
-                      eyeStyle: QrEyeStyle(
-                        eyeShape: QrEyeShape.circle,
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+              child: Material(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(28),
+                clipBehavior: Clip.antiAlias,
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: SizedBox(
+                    width: 240,
+                    height: 240,
+                    child: switch ((challenge.value, isLoading.value)) {
+                      (null, true) => const Center(
+                        child: CircularProgressIndicator(),
                       ),
-                      dataModuleStyle: QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape.circle,
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      (final current?, _) => ColoredBox(
+                        color: theme.colorScheme.surface,
+                        child: QrImageView(
+                          data: current.qrData,
+                          version: QrVersions.auto,
+                          size: 240,
+                          errorCorrectionLevel: QrErrorCorrectLevel.H,
+                          eyeStyle: QrEyeStyle(
+                            eyeShape: QrEyeShape.circle,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          dataModuleStyle: QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.circle,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          backgroundColor: theme.colorScheme.surface,
+                        ),
                       ),
-                      backgroundColor: theme.colorScheme.surface,
-                    ),
-                    _ => Icon(
-                      Symbols.qr_code_2,
-                      size: 48,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  },
+                      _ => Icon(
+                        Symbols.qr_code_2,
+                        size: 48,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    },
+                  ),
                 ),
               ),
             ),
             const Gap(20),
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                Chip(
+                  avatar: Icon(
+                    switch (status.value) {
+                      1 => Symbols.qr_code_scanner,
+                      2 => Symbols.check_circle,
+                      3 => Symbols.cancel,
+                      _ => Symbols.hourglass_empty,
+                    },
+                    size: 18,
+                    color: _statusForeground(context, status.value),
                   ),
-                  decoration: BoxDecoration(
-                    color: _statusBackground(context, status.value),
-                    borderRadius: BorderRadius.circular(999),
+                  label: Text(_statusLabel(status.value)),
+                  backgroundColor: _statusBackground(context, status.value),
+                  labelStyle: theme.textTheme.labelMedium?.copyWith(
+                    color: _statusForeground(context, status.value),
+                    fontWeight: FontWeight.w600,
                   ),
-                  child: Text(
-                    _statusLabel(status.value),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: _statusForeground(context, status.value),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  side: BorderSide.none,
+                  visualDensity: VisualDensity.compact,
                 ),
                 const Spacer(),
                 Text(
@@ -1530,10 +1526,13 @@ class _QrLoginSheet extends HookConsumerWidget {
                     ? null
                     : generateQrChallenge,
                 icon: isLoading.value
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
                       )
                     : const Icon(Symbols.refresh),
                 label: Text('loginQrCodeRefresh'.tr()),

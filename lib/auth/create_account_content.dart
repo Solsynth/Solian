@@ -17,9 +17,9 @@ import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/auth/auth_form_widgets.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -67,29 +67,32 @@ class _BulletPoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: 6),
-            child: Container(
-              width: 6.0,
-              height: 6.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withAlpha((255 * 0.6).round()),
-              ),
+            padding: const EdgeInsets.only(top: 8),
+            child: Icon(
+              Symbols.circle,
+              size: 8,
+              fill: 1,
+              color: scheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(width: 8.0),
+          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: children,
+            child: DefaultTextStyle.merge(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children,
+              ),
             ),
           ),
         ],
@@ -155,98 +158,77 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      key: const ValueKey<int>(0),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final methodIconColor = Theme.of(context).colorScheme.onSecondaryContainer;
+
+    return AuthFormColumn(
+      columnKey: const ValueKey<int>(0),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.mail, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.mail,
+          title: 'createAccount'.tr(),
         ),
-        Text(
-          'createAccount',
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).tr().padding(left: 4, bottom: 16),
         TextField(
           controller: emailController,
           autocorrect: false,
           enableSuggestions: false,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
-          decoration: InputDecoration(labelText: 'email'.tr()),
-          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-          onSubmitted: isBusy.value ? null : (_) => performNext(),
-        ).padding(horizontal: 7),
-        const Gap(12),
-        TextField(
-          controller: affiliationSpellController,
-          autocorrect: false,
           decoration: InputDecoration(
-            labelText: 'affiliationSpell'.tr(),
-            helperText: 'affiliationSpellHint'.tr(),
+            labelText: 'email'.tr(),
+            prefixIcon: const Icon(Symbols.mail),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
-        ).padding(horizontal: 7),
+        ),
+        TextField(
+          controller: affiliationSpellController,
+          autocorrect: false,
+          textInputAction: TextInputAction.done,
+          decoration: InputDecoration(
+            labelText: 'affiliationSpell'.tr(),
+            helperText: 'affiliationSpellHint'.tr(),
+            prefixIcon: const Icon(Symbols.auto_awesome),
+          ),
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+          onSubmitted: isBusy.value ? null : (_) => performNext(),
+        ),
         if (!kIsWeb)
-          Row(
-            spacing: 6,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text("orCreateWith").tr().fontSize(11).opacity(0.85),
-              const Gap(8),
-              Spacer(),
-              IconButton.filledTonal(
+          AuthAltMethodsRow(
+            label: 'orCreateWith'.tr(),
+            children: [
+              AuthMethodIconButton(
                 onPressed: () => onOidc('github'),
-                padding: EdgeInsets.zero,
                 icon: getProviderIcon(
-                  "github",
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  'github',
+                  size: 18,
+                  color: methodIconColor,
                 ),
                 tooltip: 'GitHub',
               ),
-              IconButton.filledTonal(
+              AuthMethodIconButton(
                 onPressed: () => onOidc('google'),
-                padding: EdgeInsets.zero,
                 icon: getProviderIcon(
-                  "google",
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  'google',
+                  size: 18,
+                  color: methodIconColor,
                 ),
                 tooltip: 'Google',
               ),
-              IconButton.filledTonal(
+              AuthMethodIconButton(
                 onPressed: () => onOidc('apple'),
-                padding: EdgeInsets.zero,
                 icon: getProviderIcon(
-                  "apple",
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  'apple',
+                  size: 18,
+                  color: methodIconColor,
                 ),
                 tooltip: 'Apple Account',
               ),
             ],
-          ).padding(horizontal: 8, top: 12)
-        else
-          const Gap(12),
-        const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => performNext(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
-            ),
-          ],
+          ),
+        AuthFormActions(
+          isBusy: isBusy.value,
+          onNext: performNext,
         ),
       ],
     );
@@ -286,54 +268,32 @@ class _CreateAccountPasswordScreen extends HookConsumerWidget {
       onNext();
     }
 
-    return Column(
-      key: const ValueKey<int>(1),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AuthFormColumn(
+      columnKey: const ValueKey<int>(1),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.password, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.password,
+          title: 'password'.tr(),
         ),
-        Text(
-          'password',
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).tr().padding(left: 4, bottom: 16),
         TextField(
           controller: passwordController,
           obscureText: true,
           autocorrect: false,
           enableSuggestions: false,
-          autofillHints: const [AutofillHints.password],
-          decoration: InputDecoration(labelText: 'password'.tr()),
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.newPassword],
+          decoration: InputDecoration(
+            labelText: 'password'.tr(),
+            prefixIcon: const Icon(Symbols.password),
+          ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
-        ).padding(horizontal: 7),
-        const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => onBack(),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
-              ),
-            ),
-            TextButton(
-              onPressed: isBusy.value ? null : () => performNext(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
-            ),
-          ],
+        ),
+        AuthFormActions(
+          showBack: true,
+          isBusy: isBusy.value,
+          onBack: onBack,
+          onNext: performNext,
         ),
       ],
     );
@@ -392,65 +352,47 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      key: const ValueKey<int>(2),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AuthFormColumn(
+      columnKey: const ValueKey<int>(2),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.person, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.person,
+          title: 'createAccountProfile'.tr(),
         ),
-        Text(
-          'createAccountProfile'.tr(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).padding(left: 4, bottom: 16),
         TextField(
           controller: usernameController,
           autocorrect: false,
           enableSuggestions: false,
-          autofillHints: const [AutofillHints.username],
+          textInputAction: TextInputAction.next,
+          autofillHints: const [
+            AutofillHints.username,
+            AutofillHints.newUsername,
+          ],
           decoration: InputDecoration(
             labelText: 'username'.tr(),
             helperText: 'usernameCannotChangeHint'.tr(),
+            prefixIcon: const Icon(Symbols.alternate_email),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
-        ).padding(horizontal: 7),
-        const Gap(12),
+        ),
         TextField(
           controller: nicknameController,
           autocorrect: false,
-          autofillHints: const [AutofillHints.nickname],
-          decoration: InputDecoration(labelText: 'nickname'.tr()),
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.nickname, AutofillHints.name],
+          decoration: InputDecoration(
+            labelText: 'nickname'.tr(),
+            prefixIcon: const Icon(Symbols.badge),
+          ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
-        ).padding(horizontal: 7),
-        const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => onBack(),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
-              ),
-            ),
-            TextButton(
-              onPressed: isBusy.value ? null : () => performNext(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
-            ),
-          ],
+        ),
+        AuthFormActions(
+          showBack: true,
+          isBusy: isBusy.value,
+          onBack: onBack,
+          onNext: performNext,
         ),
       ],
     );
@@ -488,97 +430,66 @@ class _CreateAccountTermsScreen extends HookConsumerWidget {
       onNext();
     }
 
-    final unfocusColor = Theme.of(
-      context,
-    ).colorScheme.onSurface.withAlpha((255 * 0.75).round());
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-    return Column(
-      key: const ValueKey<int>(3),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AuthFormColumn(
+      columnKey: const ValueKey<int>(3),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.description, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.description,
+          title: 'createAccountToS'.tr(),
         ),
-        Text(
-          'createAccountToS'.tr(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).padding(left: 4, bottom: 16),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'createAccountNotice',
-                style: TextStyle(
-                  color: unfocusColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ).tr(),
-              _BulletPoint(
-                children: [
-                  Text(
-                    'termAcceptNextWithAgree'.tr(),
-                    style: TextStyle(color: unfocusColor),
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        launchUrlString('https://solsynth.dev/terms');
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('termAcceptLink').tr(),
-                          const Gap(4),
-                          const Icon(Symbols.launch, size: 14),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              _BulletPoint(children: [Text('createAccountConfirmEmail'.tr())]),
-              _BulletPoint(children: [Text('createAccountNoAltAccounts'.tr())]),
-            ],
-          ).width(double.infinity).padding(horizontal: 16, vertical: 12),
-        ),
-        const Gap(12),
-        CheckboxListTile(
-          value: termsAccepted.value,
-          onChanged: (value) {
-            termsAccepted.value = value ?? false;
-          },
-          title: Text('createAccountAgreeTerms').tr(),
-        ),
-        const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        AuthSectionCard(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => onBack(),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
+            Text(
+              'createAccountNotice'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            TextButton(
-              onPressed: isBusy.value ? null : () => performNext(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
+            const Gap(kAuthGapSm),
+            _BulletPoint(
+              children: [
+                Text('termAcceptNextWithAgree'.tr()),
+                TextButton.icon(
+                  onPressed: () {
+                    launchUrlString('https://solsynth.dev/terms');
+                  },
+                  icon: const Icon(Symbols.launch, size: 16),
+                  label: Text('termAcceptLink'.tr()),
+                  iconAlignment: IconAlignment.end,
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+            _BulletPoint(children: [Text('createAccountConfirmEmail'.tr())]),
+            _BulletPoint(children: [Text('createAccountNoAltAccounts'.tr())]),
+          ],
+        ),
+        AuthSectionCard(
+          children: [
+            CheckboxListTile(
+              value: termsAccepted.value,
+              onChanged: (value) {
+                termsAccepted.value = value ?? false;
+              },
+              title: Text('createAccountAgreeTerms'.tr()),
+              controlAffinity: ListTileControlAffinity.leading,
             ),
           ],
+        ),
+        AuthFormActions(
+          showBack: true,
+          isBusy: isBusy.value || !termsAccepted.value,
+          onBack: onBack,
+          onNext: performNext,
         ),
       ],
     );
@@ -697,52 +608,22 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
       }
     }
 
-    return Column(
-      key: const ValueKey<int>(4),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return AuthFormColumn(
+      columnKey: const ValueKey<int>(4),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CircleAvatar(
-            radius: 26,
-            child: const Icon(Symbols.check_circle, size: 28),
-          ).padding(bottom: 8),
+        AuthFormHeader(
+          icon: Symbols.check_circle,
+          title: 'createAccountAlmostThere'.tr(),
+          subtitle: 'createAccountAlmostThereHint'.tr(),
         ),
-        Text(
-          'createAccountAlmostThere'.tr(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-        ).padding(left: 4, bottom: 16),
-        Text(
-          'createAccountAlmostThereHint'.tr(),
-          style: TextStyle(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withAlpha((255 * 0.75).round()),
-          ),
-        ).padding(horizontal: 4),
-        const Gap(24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => onBack(),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [const Icon(Symbols.chevron_left), Text('back').tr()],
-              ),
-            ),
-            TextButton(
-              onPressed: isBusy.value ? null : () => performAction(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('createAccount').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
-              ),
-            ),
-          ],
+        AuthFormActions(
+          showBack: true,
+          isBusy: isBusy.value,
+          onBack: onBack,
+          onNext: performAction,
+          nextLabel: 'createAccount'.tr(),
+          nextIcon: Symbols.person_add,
+          nextIconAlignment: IconAlignment.start,
         ),
       ],
     );
@@ -844,93 +725,79 @@ class CreateAccountContent extends HookConsumerWidget {
       }
     }
 
-    return Theme(
-      data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
-      child: Column(
-        children: [
-          if (isBusy.value)
-            LinearProgressIndicator(
-              minHeight: 4,
-              borderRadius: BorderRadius.zero,
-              trackGap: 0,
-              stopIndicatorRadius: 0,
-            )
-          else
-            LinearProgressIndicator(
-              minHeight: 4,
-              borderRadius: BorderRadius.zero,
-              trackGap: 0,
-              stopIndicatorRadius: 0,
-              value: period.value / 5,
-            ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: PageTransitionSwitcher(
-                transitionBuilder:
-                    (
-                      Widget child,
-                      Animation<double> primaryAnimation,
-                      Animation<double> secondaryAnimation,
-                    ) {
-                      return SharedAxisTransition(
-                        animation: primaryAnimation,
-                        secondaryAnimation: secondaryAnimation,
-                        transitionType: SharedAxisTransitionType.horizontal,
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: 380),
-                          child: child,
-                        ),
-                      );
-                    },
-                child: switch (period.value % 5) {
-                  1 => _CreateAccountPasswordScreen(
-                    key: const ValueKey(1),
-                    passwordController: passwordController,
-                    onNext: () => period.value++,
-                    onBack: () => period.value--,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                  2 => _CreateAccountProfileScreen(
-                    key: const ValueKey(2),
-                    usernameController: usernameController,
-                    nicknameController: nicknameController,
-                    isOidcFlow: onboardingToken.value != null,
-                    onNext: () => period.value++,
-                    onBack: () => period.value--,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                  3 => _CreateAccountTermsScreen(
-                    key: const ValueKey(3),
-                    onNext: () => period.value++,
-                    onBack: () => period.value--,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                  4 => _CreateAccountCompleteScreen(
-                    key: const ValueKey(4),
-                    emailController: emailController,
-                    passwordController: passwordController,
-                    usernameController: usernameController,
-                    nicknameController: nicknameController,
-                    affiliationSpellController: affiliationSpellController,
-                    onboardingToken: onboardingToken.value,
-                    onBack: () => period.value--,
-                    onBusy: (value) => isBusy.value = value,
-                  ),
-                  _ => _CreateAccountEmailScreen(
-                    key: const ValueKey(0),
-                    emailController: emailController,
-                    affiliationSpellController: affiliationSpellController,
-                    onNext: () => period.value++,
-                    onBusy: (value) => isBusy.value = value,
-                    onOidc: withOidc,
-                  ),
-                },
-              ).padding(all: 24),
-            ).center(),
+    return Column(
+      children: [
+        if (isBusy.value)
+          const LinearProgressIndicator(minHeight: 4)
+        else
+          LinearProgressIndicator(
+            minHeight: 4,
+            value: period.value / 5,
           ),
-          const Gap(4),
-        ],
-      ),
+        Expanded(
+          child: AuthFormShell(
+            child: PageTransitionSwitcher(
+              transitionBuilder:
+                  (
+                    Widget child,
+                    Animation<double> primaryAnimation,
+                    Animation<double> secondaryAnimation,
+                  ) {
+                    return SharedAxisTransition(
+                      animation: primaryAnimation,
+                      secondaryAnimation: secondaryAnimation,
+                      transitionType: SharedAxisTransitionType.horizontal,
+                      fillColor: Colors.transparent,
+                      child: child,
+                    );
+                  },
+              child: switch (period.value % 5) {
+                1 => _CreateAccountPasswordScreen(
+                  key: const ValueKey(1),
+                  passwordController: passwordController,
+                  onNext: () => period.value++,
+                  onBack: () => period.value--,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+                2 => _CreateAccountProfileScreen(
+                  key: const ValueKey(2),
+                  usernameController: usernameController,
+                  nicknameController: nicknameController,
+                  isOidcFlow: onboardingToken.value != null,
+                  onNext: () => period.value++,
+                  onBack: () => period.value--,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+                3 => _CreateAccountTermsScreen(
+                  key: const ValueKey(3),
+                  onNext: () => period.value++,
+                  onBack: () => period.value--,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+                4 => _CreateAccountCompleteScreen(
+                  key: const ValueKey(4),
+                  emailController: emailController,
+                  passwordController: passwordController,
+                  usernameController: usernameController,
+                  nicknameController: nicknameController,
+                  affiliationSpellController: affiliationSpellController,
+                  onboardingToken: onboardingToken.value,
+                  onBack: () => period.value--,
+                  onBusy: (value) => isBusy.value = value,
+                ),
+                _ => _CreateAccountEmailScreen(
+                  key: const ValueKey(0),
+                  emailController: emailController,
+                  affiliationSpellController: affiliationSpellController,
+                  onNext: () => period.value++,
+                  onBusy: (value) => isBusy.value = value,
+                  onOidc: withOidc,
+                ),
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -940,46 +807,60 @@ class _PostCreateModal extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 280),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('🎉').fontSize(32),
-            Text(
-              'postCreateAccountTitle'.tr(),
-              textAlign: TextAlign.center,
-            ).fontSize(17),
-            const Gap(18),
-            Text('postCreateAccountNext').tr().fontSize(19).bold(),
-            const Gap(4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 6,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('\u2022'),
-                Expanded(child: Text('postCreateAccountNext1').tr()),
+                Icon(
+                  Symbols.celebration,
+                  size: 48,
+                  color: scheme.primary,
+                ),
+                const Gap(16),
+                Text(
+                  'postCreateAccountTitle'.tr(),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Gap(20),
+                Text(
+                  'postCreateAccountNext'.tr(),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Gap(8),
+                _BulletPoint(
+                  children: [Text('postCreateAccountNext1'.tr())],
+                ),
+                _BulletPoint(
+                  children: [Text('postCreateAccountNext2'.tr())],
+                ),
+                const Gap(24),
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.router.replace(LoginRoute());
+                  },
+                  icon: const Icon(Symbols.login),
+                  label: Text('login'.tr()),
+                ),
               ],
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 6,
-              children: [
-                Text('\u2022'),
-                Expanded(child: Text('postCreateAccountNext2').tr()),
-              ],
-            ),
-            const Gap(6),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.replace(LoginRoute());
-              },
-              child: Text('login'.tr()),
-            ),
-          ],
+          ),
         ),
       ),
     );
