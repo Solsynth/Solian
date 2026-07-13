@@ -4242,5 +4242,9 @@
   "ownedTagsEmptyHint": "创建新标签或认领未拥有的标签后会显示在这里。",
   "releasePostTag": "释放标签",
   "releasePostTagHint": "释放 {} 的所有权？其他人可以再次认领。保护状态也会被清除。",
-  "postTagReleased": "已释放标签所有权"
+  "postTagReleased": "已释放标签所有权",
+  "protectPostTag": "保护标签",
+  "unprotectPostTag": "取消保护",
+  "postTagProtected": "标签已受保护",
+  "postTagUnprotected": "标签已取消保护"
 }

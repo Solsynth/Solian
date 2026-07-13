@@ -3906,5 +3906,9 @@
   "ownedTagsEmptyHint": "Crea una etiqueta o reclama una sin dueño para verla aquí.",
   "releasePostTag": "Liberar etiqueta",
   "releasePostTagHint": "¿Liberar la propiedad de {}? Cualquiera podrá reclamarla de nuevo. También se quitará la protección.",
-  "postTagReleased": "Propiedad de la etiqueta liberada"
+  "postTagReleased": "Propiedad de la etiqueta liberada",
+  "protectPostTag": "Proteger etiqueta",
+  "unprotectPostTag": "Quitar protección",
+  "postTagProtected": "La etiqueta ahora está protegida",
+  "postTagUnprotected": "La etiqueta ya no está protegida"
 }

@@ -4152,5 +4152,9 @@
   "ownedTagsEmptyHint": "建立新標籤或認領未擁有的標籤後會顯示在這裡。",
   "releasePostTag": "釋放標籤",
   "releasePostTagHint": "釋放 {} 的所有權？其他人可以再次認領。保護狀態也會被清除。",
-  "postTagReleased": "已釋放標籤所有權"
+  "postTagReleased": "已釋放標籤所有權",
+  "protectPostTag": "保護標籤",
+  "unprotectPostTag": "取消保護",
+  "postTagProtected": "標籤已受保護",
+  "postTagUnprotected": "標籤已取消保護"
 }

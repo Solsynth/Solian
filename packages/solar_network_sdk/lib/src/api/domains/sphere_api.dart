@@ -902,6 +902,26 @@ class SphereApi extends BaseApi {
     return SnPostTag.fromJson(response.data!);
   }
 
+  /// Enables or disables protection on an owned tag (publisher-level).
+  ///
+  /// Enabling consumes one protected-tag quota slot.
+  ///
+  /// [slug] - The tag slug.
+  /// [isProtected] - Whether the tag should be protected.
+  /// [publisherName] - Owning publisher name.
+  Future<SnPostTag> setTagProtection({
+    required String slug,
+    required bool isProtected,
+    String? publisherName,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/posts/tags/$slug/protect',
+      queryParameters: {'pub': ?publisherName},
+      data: {'is_protected': isProtected},
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
   /// Gets the protected-tag quota and owned tags for a publisher.
   ///
   /// [publisherName] - Publisher name to check quota for.
@@ -936,6 +956,8 @@ class SphereApi extends BaseApi {
   }
 
   /// Toggles protected status on a tag (admin only).
+  ///
+  /// Prefer [setTagProtection] for publisher-owned tags.
   ///
   /// [slug] - The tag slug.
   /// [isProtected] - Whether the tag should be protected.

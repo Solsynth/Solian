@@ -123,6 +123,16 @@ Future<void> _claimTag(
   }
 }
 
+SnPublisher? _ownedPublisher(
+  List<SnPublisher> publishers,
+  SnPostTag tag,
+) {
+  for (final p in publishers) {
+    if (p.id == tag.ownerPublisherId) return p;
+  }
+  return null;
+}
+
 Future<void> _releaseTag(
   BuildContext context,
   WidgetRef ref, {
@@ -131,13 +141,7 @@ Future<void> _releaseTag(
   final publishers = await ref.read(publishersManagedProvider.future);
   if (!context.mounted) return;
 
-  SnPublisher? owner;
-  for (final p in publishers) {
-    if (p.id == tag.ownerPublisherId) {
-      owner = p;
-      break;
-    }
-  }
+  final owner = _ownedPublisher(publishers, tag);
   if (owner == null) {
     showErrorAlert('postTagEditForbidden'.tr());
     return;
@@ -160,6 +164,42 @@ Future<void> _releaseTag(
     ref.invalidate(postTagProvider(tag.slug));
     if (context.mounted) {
       showSnackBar('postTagReleased'.tr());
+    }
+  } catch (err) {
+    showErrorAlert(err);
+  } finally {
+    if (context.mounted) hideLoadingModal(context);
+  }
+}
+
+Future<void> _setTagProtection(
+  BuildContext context,
+  WidgetRef ref, {
+  required SnPostTag tag,
+  required bool isProtected,
+}) async {
+  final publishers = await ref.read(publishersManagedProvider.future);
+  if (!context.mounted) return;
+
+  final owner = _ownedPublisher(publishers, tag);
+  if (owner == null) {
+    showErrorAlert('postTagEditForbidden'.tr());
+    return;
+  }
+
+  try {
+    showLoadingModal(context);
+    final client = ref.read(solarNetworkClientProvider);
+    await client.sphere.setTagProtection(
+      slug: tag.slug,
+      isProtected: isProtected,
+      publisherName: owner.name,
+    );
+    ref.invalidate(postTagProvider(tag.slug));
+    if (context.mounted) {
+      showSnackBar(
+        isProtected ? 'postTagProtected'.tr() : 'postTagUnprotected'.tr(),
+      );
     }
   } catch (err) {
     showErrorAlert(err);
@@ -356,9 +396,11 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
         !isCategory &&
         postTag?.value?.ownerPublisherId != null &&
         managedPublishers.any((p) => p.id == postTag!.value!.ownerPublisherId);
+    // Publisher-level claim: logged-in user with at least one managed publisher.
     final canClaimTag =
         !isCategory &&
         user.value != null &&
+        managedPublishers.isNotEmpty &&
         postTag?.value?.isUnclaimed == true;
 
     return AppScaffold(
@@ -374,20 +416,47 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                 switch (action) {
                   case 'edit':
                     _editTag(context, ref, tag: tag);
+                  case 'protect':
+                    _setTagProtection(
+                      context,
+                      ref,
+                      tag: tag,
+                      isProtected: true,
+                    );
+                  case 'unprotect':
+                    _setTagProtection(
+                      context,
+                      ref,
+                      tag: tag,
+                      isProtected: false,
+                    );
                   case 'release':
                     _releaseTag(context, ref, tag: tag);
                 }
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Text('editPostTag'.tr()),
-                ),
-                PopupMenuItem(
-                  value: 'release',
-                  child: Text('releasePostTag'.tr()),
-                ),
-              ],
+              itemBuilder: (context) {
+                final tag = postTag?.value;
+                return [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text('editPostTag'.tr()),
+                  ),
+                  if (tag?.isProtected == true)
+                    PopupMenuItem(
+                      value: 'unprotect',
+                      child: Text('unprotectPostTag'.tr()),
+                    )
+                  else
+                    PopupMenuItem(
+                      value: 'protect',
+                      child: Text('protectPostTag'.tr()),
+                    ),
+                  PopupMenuItem(
+                    value: 'release',
+                    child: Text('releasePostTag'.tr()),
+                  ),
+                ];
+              },
             ),
           const Gap(8),
         ],

@@ -91,6 +91,34 @@ Future<void> _releaseOwnedTag(
   }
 }
 
+Future<void> _setOwnedTagProtection(
+  BuildContext context,
+  WidgetRef ref, {
+  required String pubName,
+  required String slug,
+  required bool isProtected,
+}) async {
+  try {
+    showLoadingModal(context);
+    final client = ref.read(solarNetworkClientProvider);
+    await client.sphere.setTagProtection(
+      slug: slug,
+      isProtected: isProtected,
+      publisherName: pubName,
+    );
+    ref.invalidate(publisherTagQuotaProvider(pubName));
+    if (context.mounted) {
+      showSnackBar(
+        isProtected ? 'postTagProtected'.tr() : 'postTagUnprotected'.tr(),
+      );
+    }
+  } catch (err) {
+    showErrorAlert(err);
+  } finally {
+    if (context.mounted) hideLoadingModal(context);
+  }
+}
+
 Future<void> _editOwnedTag(
   BuildContext context,
   WidgetRef ref, {
@@ -484,6 +512,22 @@ class CreatorTagManageScreen extends HookConsumerWidget {
                                       pubName: pubName,
                                       slug: record.slug,
                                     );
+                                  case 'protect':
+                                    await _setOwnedTagProtection(
+                                      context,
+                                      ref,
+                                      pubName: pubName,
+                                      slug: record.slug,
+                                      isProtected: true,
+                                    );
+                                  case 'unprotect':
+                                    await _setOwnedTagProtection(
+                                      context,
+                                      ref,
+                                      pubName: pubName,
+                                      slug: record.slug,
+                                      isProtected: false,
+                                    );
                                 }
                               },
                               itemBuilder: (context) => [
@@ -495,6 +539,16 @@ class CreatorTagManageScreen extends HookConsumerWidget {
                                   value: 'edit',
                                   child: Text('editPostTag'.tr()),
                                 ),
+                                if (records[i].isProtected)
+                                  PopupMenuItem(
+                                    value: 'unprotect',
+                                    child: Text('unprotectPostTag'.tr()),
+                                  )
+                                else
+                                  PopupMenuItem(
+                                    value: 'protect',
+                                    child: Text('protectPostTag'.tr()),
+                                  ),
                                 PopupMenuItem(
                                   value: 'release',
                                   child: Text('releasePostTag'.tr()),

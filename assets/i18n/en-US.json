@@ -4214,5 +4214,9 @@
   "ownedTagsEmptyHint": "Create a new tag or claim an unowned one to see it here.",
   "releasePostTag": "Release tag",
   "releasePostTagHint": "Release ownership of {}? Anyone will be able to claim it again. Protection will also be cleared.",
-  "postTagReleased": "Tag ownership released"
+  "postTagReleased": "Tag ownership released",
+  "protectPostTag": "Protect tag",
+  "unprotectPostTag": "Unprotect tag",
+  "postTagProtected": "Tag is now protected",
+  "postTagUnprotected": "Tag is no longer protected"
 }
