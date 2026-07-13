@@ -570,7 +570,6 @@ class RealtimeMessageHandler {
     final updateRemote = updateEvent.toRemoteMessage();
     final isLinkPreviewUpdate = updateEvent.type == 'messages.sync.links';
     final isPlaceholderFinalize = updateEvent.type == 'messages.sync.finalize';
-    final isSilentSync = isLinkPreviewUpdate || isPlaceholderFinalize;
     final mergedMeta =
         isPlaceholderFinalize
               ? Map<String, dynamic>.of(updateRemote.meta)
@@ -587,14 +586,28 @@ class RealtimeMessageHandler {
       existing.toRemoteMessage().copyWith(
         content: isLinkPreviewUpdate ? existing.content : updateRemote.content,
         attachments: updateRemote.attachments,
-        membersMentioned: updateRemote.membersMentioned,
-        repliedMessageId: updateRemote.repliedMessageId,
-        forwardedMessageId: updateRemote.forwardedMessageId,
+        // Sync events may omit message relationships. Keep the target's
+        // existing values instead of treating an omitted field as a removal.
+        membersMentioned: updateRemote.membersMentioned.isEmpty
+            ? existing.membersMentioned
+            : updateRemote.membersMentioned,
+        repliedMessageId:
+            updateRemote.repliedMessageId ?? existing.repliedMessageId,
+        forwardedMessageId:
+            updateRemote.forwardedMessageId ?? existing.forwardedMessageId,
         id: existing.id,
         createdAt: existing.createdAt,
         meta: mergedMeta,
         type: isPlaceholderFinalize ? 'text' : existing.type,
-        editedAt: isSilentSync ? existing.editedAt : updateEvent.createdAt,
+        // A finalize event can be either a placeholder completion or an edit.
+        // Only the latter carries EditedAt; retaining the target timestamp for
+        // placeholder completions avoids adding a false edited indicator.
+        editedAt: isLinkPreviewUpdate
+            ? existing.editedAt
+            : updateEvent.editedAt ??
+                  (isPlaceholderFinalize
+                      ? existing.editedAt
+                      : updateEvent.createdAt),
       ),
       existing.status,
     );
