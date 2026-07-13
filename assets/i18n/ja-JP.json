@@ -1016,6 +1016,8 @@
   "leaveChatRoomHint": "このチャットルームから退出してもよろしいですか？",
   "leaveRealm": "レルムを退出",
   "leaveRealmHint": "このレルムから退出してもよろしいですか？",
+  "leavePublisher": "パブリッシャーを退出",
+  "leavePublisherHint": "このパブリッシャーから退出してもよろしいですか？退出するとコンテンツを管理できなくなります。",
   "levelProgress": "レベル進行度",
   "leveling": "レベル",
   "levelingDescription": "あなたのレベル進行状況と履歴を確認します。",

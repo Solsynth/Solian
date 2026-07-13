@@ -1824,6 +1824,8 @@
   "leaveChatRoomHint": "Are you sure to leave this chat room?",
   "leaveRealm": "Leave Realm",
   "leaveRealmHint": "Are you sure to leave this realm?",
+  "leavePublisher": "Leave Publisher",
+  "leavePublisherHint": "Are you sure you want to leave this publisher? You will lose access to manage its content.",
   "levelProgress": "Level Progress",
   "leveling": "Leveling",
   "levelingDescription": "See your leveling progress and history.",

@@ -639,6 +639,27 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       });
     }
 
+    void leavePublisher() {
+      final name = currentPublisher.value?.name;
+      if (name == null) return;
+      showConfirmAlert(
+        'leavePublisherHint'.tr(),
+        'leavePublisher'.tr(),
+        isDanger: true,
+      ).then((confirm) async {
+        if (confirm != true) return;
+        try {
+          final client = ref.read(apiClientProvider);
+          await client.delete('/sphere/publishers/$name/members/me');
+          ref.invalidate(publishersManagedProvider);
+          ref.invalidate(publisherIdentityProvider(name));
+          currentPublisher.value = null;
+        } catch (err) {
+          showErrorAlert(err);
+        }
+      });
+    }
+
     final List<DropdownItem<SnPublisher?>> publishersMenu = publishers.when(
       data: (data) =>
           data
@@ -696,6 +717,14 @@ class CreatorHubContentWidget extends HookConsumerWidget {
     final publisherFeatures = ref.watch(
       publisherFeaturesProvider(currentPublisher.value?.name),
     );
+
+    final publisherIdentity = currentPublisher.value != null
+        ? ref.watch(publisherIdentityProvider(currentPublisher.value!.name))
+        : null;
+    // Only treat as owner once membership is loaded; avoid flashing Leave for owners.
+    final membershipRole = publisherIdentity?.asData?.value?.role;
+    final isOwner = membershipRole != null && membershipRole >= 100;
+    final canLeave = membershipRole != null && membershipRole < 100;
 
     Widget buildNavigationWidget() {
       final leftItems = [
@@ -904,16 +933,28 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             );
           },
         ),
-        ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
+        if (isOwner)
+          ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            ),
+            minTileHeight: 48,
+            title: Text('deletePublisher').tr(),
+            trailing: Icon(Symbols.chevron_right),
+            leading: const Icon(Symbols.delete),
+            onTap: deletePublisher,
+          )
+        else if (canLeave)
+          ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            ),
+            minTileHeight: 48,
+            title: Text('leavePublisher').tr(),
+            trailing: Icon(Symbols.chevron_right),
+            leading: const Icon(Symbols.logout),
+            onTap: leavePublisher,
           ),
-          minTileHeight: 48,
-          title: Text('deletePublisher').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.delete),
-          onTap: deletePublisher,
-        ),
       ];
 
       return Card(

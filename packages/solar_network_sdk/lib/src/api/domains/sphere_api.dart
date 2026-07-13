@@ -600,6 +600,15 @@ class SphereApi extends BaseApi {
     await delete('$_basePath/publishers/$username');
   }
 
+  /// Leaves a publisher (removes the current user as a member).
+  ///
+  /// Cannot be used by the owner; transfer ownership first if needed.
+  ///
+  /// [username] - The publisher username.
+  Future<void> leavePublisher(String username) async {
+    await delete('$_basePath/publishers/$username/members/me');
+  }
+
   /// Gets posts by a publisher.
   ///
   /// [username] - The publisher username.

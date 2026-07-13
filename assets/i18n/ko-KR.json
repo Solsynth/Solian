@@ -1176,6 +1176,8 @@
   "leaveChatRoomHint": "이 채팅방을 나가시겠습니까?",
   "leaveRealm": "레얼름 나가기",
   "leaveRealmHint": "이 레얼름을 나가시겠습니까?",
+  "leavePublisher": "퍼블리셔 나가기",
+  "leavePublisherHint": "이 퍼블리셔를 나가시겠습니까? 나가면 콘텐츠를 관리할 수 없게 됩니다.",
   "levelProgress": "레벨 진행 상황",
   "leveling": "레벨링",
   "levelingDescription": "레벨링 진행 상황과 이력을 확인하세요.",

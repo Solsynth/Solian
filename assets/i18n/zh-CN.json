@@ -1824,6 +1824,8 @@
   "leaveChatRoomHint": "确定要离开此聊天室吗？",
   "leaveRealm": "离开领域",
   "leaveRealmHint": "确定要离开此领域吗？",
+  "leavePublisher": "离开发布者",
+  "leavePublisherHint": "确定要离开此发布者吗？离开后你将无法再管理其内容。",
   "levelProgress": "等级进度",
   "leveling": "等级",
   "levelingDescription": "查看您的升级进度和历史记录。",

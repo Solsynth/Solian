@@ -948,6 +948,8 @@
   "leaveChatRoomHint": "君確要辭此談席否？",
   "leaveRealm": "辭離界域",
   "leaveRealmHint": "君確要辭此界域否？",
+  "leavePublisher": "辭離發布者",
+  "leavePublisherHint": "君確要辭此發布者否？辭後則無復理其帖文。",
   "levelProgress": "品階進境",
   "leveling": "晉階",
   "levelingDescription": "覽君晉階之進與史",

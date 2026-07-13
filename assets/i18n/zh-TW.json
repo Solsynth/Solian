@@ -1742,6 +1742,8 @@
   "leaveChatRoomHint": "確定要離開此聊天室嗎？",
   "leaveRealm": "離開領域",
   "leaveRealmHint": "確定要離開此領域嗎？",
+  "leavePublisher": "離開發佈者",
+  "leavePublisherHint": "確定要離開此發佈者嗎？離開後你將無法再管理其內容。",
   "levelProgress": "等級進度",
   "leveling": "等級",
   "levelingDescription": "檢視您的升級進度和歷史記錄。",
