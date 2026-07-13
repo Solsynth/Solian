@@ -3894,5 +3894,8 @@
   "tagOwnedByPublisher": "소유자: {}",
   "ownedTags": "소유 태그",
   "ownedTagsEmpty": "소유한 태그가 없습니다",
-  "ownedTagsEmptyHint": "새 태그를 만들거나 미소유 태그를 가져오면 여기에 표시됩니다."
+  "ownedTagsEmptyHint": "새 태그를 만들거나 미소유 태그를 가져오면 여기에 표시됩니다.",
+  "releasePostTag": "태그 소유 해제",
+  "releasePostTagHint": "{} 소유권을 해제할까요? 다른 사람이 다시 소유할 수 있습니다. 보호 상태도 해제됩니다.",
+  "postTagReleased": "태그 소유권이 해제되었습니다"
 }

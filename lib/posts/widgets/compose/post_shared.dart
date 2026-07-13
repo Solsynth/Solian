@@ -1886,7 +1886,16 @@ class PostBody extends ConsumerWidget {
                         );
                       }
                     : null,
-                child: Text('#${tag.name ?? tag.slug}'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (tag.isProtected) ...[
+                      const Icon(Symbols.lock, size: 14),
+                      const Gap(2),
+                    ],
+                    Text('#${tag.name ?? tag.slug}'),
+                  ],
+                ),
               ),
             if (!isFullPost && item.tags.length > 3)
               Text('+${item.tags.length - 3}').opacity(0.6),

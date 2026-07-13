@@ -218,6 +218,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
+                        leading: suggestion.isProtected
+                            ? const Icon(Symbols.lock, size: 20)
+                            : const Icon(Symbols.label, size: 20),
                         title: Text('#${suggestion.slug}'),
                         subtitle: Text('${suggestion.usage} posts'),
                         dense: true,

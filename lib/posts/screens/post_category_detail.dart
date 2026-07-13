@@ -123,6 +123,51 @@ Future<void> _claimTag(
   }
 }
 
+Future<void> _releaseTag(
+  BuildContext context,
+  WidgetRef ref, {
+  required SnPostTag tag,
+}) async {
+  final publishers = await ref.read(publishersManagedProvider.future);
+  if (!context.mounted) return;
+
+  SnPublisher? owner;
+  for (final p in publishers) {
+    if (p.id == tag.ownerPublisherId) {
+      owner = p;
+      break;
+    }
+  }
+  if (owner == null) {
+    showErrorAlert('postTagEditForbidden'.tr());
+    return;
+  }
+
+  final confirm = await showConfirmAlert(
+    'releasePostTagHint'.tr(args: ['#${tag.slug}']),
+    'releasePostTag'.tr(),
+    isDanger: true,
+  );
+  if (confirm != true || !context.mounted) return;
+
+  try {
+    showLoadingModal(context);
+    final client = ref.read(solarNetworkClientProvider);
+    await client.sphere.releaseTag(
+      slug: tag.slug,
+      publisherName: owner.name,
+    );
+    ref.invalidate(postTagProvider(tag.slug));
+    if (context.mounted) {
+      showSnackBar('postTagReleased'.tr());
+    }
+  } catch (err) {
+    showErrorAlert(err);
+  } finally {
+    if (context.mounted) hideLoadingModal(context);
+  }
+}
+
 Future<void> _editTag(
   BuildContext context,
   WidgetRef ref, {
@@ -269,9 +314,9 @@ Widget _statusChip({
   return Chip(
     avatar: Icon(icon, size: 16, color: onChip),
     label: Text(label),
-    labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
-      color: onChip,
-    ),
+    labelStyle: Theme.of(
+      context,
+    ).textTheme.labelMedium?.copyWith(color: onChip),
     backgroundColor: chipColor,
     side: BorderSide.none,
     visualDensity: VisualDensity.compact,
@@ -310,9 +355,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
     final ownsTag =
         !isCategory &&
         postTag?.value?.ownerPublisherId != null &&
-        managedPublishers.any(
-          (p) => p.id == postTag!.value!.ownerPublisherId,
-        );
+        managedPublishers.any((p) => p.id == postTag!.value!.ownerPublisherId);
     final canClaimTag =
         !isCategory &&
         user.value != null &&
@@ -324,15 +367,29 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
         title: Text(postFilterTitle),
         actions: [
           if (ownsTag)
-            IconButton(
-              tooltip: 'editPostTag'.tr(),
-              onPressed: () {
+            PopupMenuButton<String>(
+              onSelected: (action) {
                 final tag = postTag?.value;
                 if (tag == null) return;
-                _editTag(context, ref, tag: tag);
+                switch (action) {
+                  case 'edit':
+                    _editTag(context, ref, tag: tag);
+                  case 'release':
+                    _releaseTag(context, ref, tag: tag);
+                }
               },
-              icon: const Icon(Symbols.edit),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Text('editPostTag'.tr()),
+                ),
+                PopupMenuItem(
+                  value: 'release',
+                  child: Text('releasePostTag'.tr()),
+                ),
+              ],
             ),
+          const Gap(8),
         ],
       ),
       body: Expanded(
@@ -388,6 +445,7 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                           tag: tag,
                           subscriptionStatus: subscriptionStatus,
                           canClaim: canClaimTag,
+                          ownsTag: ownsTag,
                           onSubscribe: () => _subscribeToCategoryOrTag(
                             ref,
                             slug: slug,
@@ -399,6 +457,8 @@ class PostCategoryDetailScreen extends HookConsumerWidget {
                             isCategory: false,
                           ),
                           onClaim: () => _claimTag(context, ref, slug: slug),
+                          onRelease: () =>
+                              _releaseTag(context, ref, tag: tag),
                         ),
                         error: (error, _) => ResponseErrorWidget(
                           error: error,
@@ -430,17 +490,21 @@ class _TagDetailCard extends StatelessWidget {
   final SnPostTag tag;
   final AsyncValue<SnCategorySubscription?> subscriptionStatus;
   final bool canClaim;
+  final bool ownsTag;
   final Future<void> Function() onSubscribe;
   final Future<void> Function() onUnsubscribe;
   final Future<void> Function() onClaim;
+  final Future<void> Function() onRelease;
 
   const _TagDetailCard({
     required this.tag,
     required this.subscriptionStatus,
     required this.canClaim,
+    required this.ownsTag,
     required this.onSubscribe,
     required this.onUnsubscribe,
     required this.onClaim,
+    required this.onRelease,
   });
 
   @override
@@ -488,19 +552,13 @@ class _TagDetailCard extends StatelessWidget {
             if (tag.isEvent)
               _statusChip(
                 context: context,
-                icon: tag.isEventExpired
-                    ? Symbols.event_busy
-                    : Symbols.event,
+                icon: tag.isEventExpired ? Symbols.event_busy : Symbols.event,
                 label: tag.isEventExpired
                     ? 'tagEventExpired'.tr()
                     : tag.eventEndsAt != null
-                    ? 'tagEventEnds'.tr(
-                        args: [tag.eventEndsAt!.formatSystem()],
-                      )
+                    ? 'tagEventEnds'.tr(args: [tag.eventEndsAt!.formatSystem()])
                     : 'tagEvent'.tr(),
-                color: tag.isEventExpired
-                    ? scheme.errorContainer
-                    : null,
+                color: tag.isEventExpired ? scheme.errorContainer : null,
               ),
           ],
         ),
@@ -567,10 +625,7 @@ class _TagDetailCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
-                    Symbols.chevron_right,
-                    color: scheme.onSurfaceVariant,
-                  ),
+                  Icon(Symbols.chevron_right, color: scheme.onSurfaceVariant),
                 ],
               ),
             ),
@@ -588,6 +643,20 @@ class _TagDetailCard extends StatelessWidget {
             },
             icon: const Icon(Symbols.flag),
             label: Text('claimPostTag'.tr()),
+          ),
+          const Gap(8),
+        ],
+        if (ownsTag) ...[
+          OutlinedButton.icon(
+            onPressed: () async {
+              try {
+                await onRelease();
+              } catch (err) {
+                showErrorAlert(err);
+              }
+            },
+            icon: const Icon(Symbols.lock_open),
+            label: Text('releasePostTag'.tr()),
           ),
           const Gap(8),
         ],

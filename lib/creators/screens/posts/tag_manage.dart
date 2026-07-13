@@ -63,6 +63,34 @@ Future<void> _showClaimTagSheet(
   }
 }
 
+Future<void> _releaseOwnedTag(
+  BuildContext context,
+  WidgetRef ref, {
+  required String pubName,
+  required String slug,
+}) async {
+  final confirm = await showConfirmAlert(
+    'releasePostTagHint'.tr(args: ['#$slug']),
+    'releasePostTag'.tr(),
+    isDanger: true,
+  );
+  if (confirm != true || !context.mounted) return;
+
+  try {
+    showLoadingModal(context);
+    final client = ref.read(solarNetworkClientProvider);
+    await client.sphere.releaseTag(slug: slug, publisherName: pubName);
+    ref.invalidate(publisherTagQuotaProvider(pubName));
+    if (context.mounted) {
+      showSnackBar('postTagReleased'.tr());
+    }
+  } catch (err) {
+    showErrorAlert(err);
+  } finally {
+    if (context.mounted) hideLoadingModal(context);
+  }
+}
+
 Future<void> _editOwnedTag(
   BuildContext context,
   WidgetRef ref, {
@@ -184,10 +212,7 @@ Future<void> _openTagForManage(
       if (confirm != true || !context.mounted) return;
       try {
         showLoadingModal(context);
-        await client.sphere.claimTag(
-          slug: tag.slug,
-          publisherName: pubName,
-        );
+        await client.sphere.claimTag(slug: tag.slug, publisherName: pubName);
         ref.invalidate(publisherTagQuotaProvider(pubName));
         if (context.mounted) showSnackBar('postTagClaimed'.tr());
       } catch (err) {
@@ -230,8 +255,7 @@ class CreatorTagManageScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'claimPostTag'.tr(),
-            onPressed: () =>
-                _showClaimTagSheet(context, ref, pubName: pubName),
+            onPressed: () => _showClaimTagSheet(context, ref, pubName: pubName),
             icon: const Icon(Symbols.flag),
           ),
           IconButton(
@@ -239,6 +263,7 @@ class CreatorTagManageScreen extends HookConsumerWidget {
             onPressed: () => _showManageBySlugSheet(context, ref),
             icon: const Icon(Symbols.search),
           ),
+          const Gap(8),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -418,7 +443,64 @@ class CreatorTagManageScreen extends HookConsumerWidget {
                                 records[i].description?.isNotEmpty == true ||
                                 records[i].isProtected ||
                                 records[i].isEvent,
-                            trailing: const Icon(Symbols.chevron_right),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (action) async {
+                                final record = records[i];
+                                switch (action) {
+                                  case 'open':
+                                    context.router.push(
+                                      PostCategoryDetailRoute(
+                                        slug: record.slug,
+                                        isCategory: false,
+                                      ),
+                                    );
+                                  case 'edit':
+                                    try {
+                                      showLoadingModal(context);
+                                      final client = ref.read(
+                                        solarNetworkClientProvider,
+                                      );
+                                      final tag = await client.sphere.getTag(
+                                        record.slug,
+                                      );
+                                      if (!context.mounted) return;
+                                      hideLoadingModal(context);
+                                      await _editOwnedTag(
+                                        context,
+                                        ref,
+                                        pubName: pubName,
+                                        tag: tag,
+                                      );
+                                    } catch (err) {
+                                      if (context.mounted) {
+                                        hideLoadingModal(context);
+                                      }
+                                      showErrorAlert(err);
+                                    }
+                                  case 'release':
+                                    await _releaseOwnedTag(
+                                      context,
+                                      ref,
+                                      pubName: pubName,
+                                      slug: record.slug,
+                                    );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'open',
+                                  child: Text('open'.tr()),
+                                ),
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('editPostTag'.tr()),
+                                ),
+                                PopupMenuItem(
+                                  value: 'release',
+                                  child: Text('releasePostTag'.tr()),
+                                ),
+                              ],
+                            ),
                             onTap: () {
                               context.router.push(
                                 PostCategoryDetailRoute(
@@ -426,29 +508,6 @@ class CreatorTagManageScreen extends HookConsumerWidget {
                                   isCategory: false,
                                 ),
                               );
-                            },
-                            onLongPress: () async {
-                              try {
-                                showLoadingModal(context);
-                                final client =
-                                    ref.read(solarNetworkClientProvider);
-                                final tag = await client.sphere.getTag(
-                                  records[i].slug,
-                                );
-                                if (!context.mounted) return;
-                                hideLoadingModal(context);
-                                await _editOwnedTag(
-                                  context,
-                                  ref,
-                                  pubName: pubName,
-                                  tag: tag,
-                                );
-                              } catch (err) {
-                                if (context.mounted) {
-                                  hideLoadingModal(context);
-                                }
-                                showErrorAlert(err);
-                              }
                             },
                           ),
                         ],
@@ -473,11 +532,8 @@ class CreatorTagManageScreen extends HookConsumerWidget {
                         title: Text('createPostTag'.tr()),
                         subtitle: Text('createPostTagHint'.tr()),
                         trailing: const Icon(Symbols.chevron_right),
-                        onTap: () => _showCreateTagSheet(
-                          context,
-                          ref,
-                          pubName: pubName,
-                        ),
+                        onTap: () =>
+                            _showCreateTagSheet(context, ref, pubName: pubName),
                       ),
                       const Divider(height: 1),
                       ListTile(
@@ -485,11 +541,8 @@ class CreatorTagManageScreen extends HookConsumerWidget {
                         title: Text('claimPostTag'.tr()),
                         subtitle: Text('claimPostTagHint'.tr()),
                         trailing: const Icon(Symbols.chevron_right),
-                        onTap: () => _showClaimTagSheet(
-                          context,
-                          ref,
-                          pubName: pubName,
-                        ),
+                        onTap: () =>
+                            _showClaimTagSheet(context, ref, pubName: pubName),
                       ),
                       const Divider(height: 1),
                       ListTile(
@@ -510,8 +563,7 @@ class CreatorTagManageScreen extends HookConsumerWidget {
         error: (error, _) => Center(
           child: ResponseErrorWidget(
             error: error,
-            onRetry: () =>
-                ref.invalidate(publisherTagQuotaProvider(pubName)),
+            onRetry: () => ref.invalidate(publisherTagQuotaProvider(pubName)),
           ),
         ),
       ),

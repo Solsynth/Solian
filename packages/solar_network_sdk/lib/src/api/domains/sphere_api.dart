@@ -885,6 +885,23 @@ class SphereApi extends BaseApi {
     return SnPostTag.fromJson(response.data!);
   }
 
+  /// Releases ownership of a tag owned by the publisher.
+  ///
+  /// Clears protection if set. Requires manager role on the owning publisher.
+  ///
+  /// [slug] - The tag slug to release.
+  /// [publisherName] - Owning publisher name.
+  Future<SnPostTag> releaseTag({
+    required String slug,
+    String? publisherName,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/posts/tags/$slug/release',
+      queryParameters: {'pub': ?publisherName},
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
   /// Gets the protected-tag quota and owned tags for a publisher.
   ///
   /// [publisherName] - Publisher name to check quota for.

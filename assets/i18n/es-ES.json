@@ -3903,5 +3903,8 @@
   "tagOwnedByPublisher": "Propietario: {}",
   "ownedTags": "Etiquetas propias",
   "ownedTagsEmpty": "Aún no hay etiquetas propias",
-  "ownedTagsEmptyHint": "Crea una etiqueta o reclama una sin dueño para verla aquí."
+  "ownedTagsEmptyHint": "Crea una etiqueta o reclama una sin dueño para verla aquí.",
+  "releasePostTag": "Liberar etiqueta",
+  "releasePostTagHint": "¿Liberar la propiedad de {}? Cualquiera podrá reclamarla de nuevo. También se quitará la protección.",
+  "postTagReleased": "Propiedad de la etiqueta liberada"
 }

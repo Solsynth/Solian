@@ -157,7 +157,19 @@ class CreatorPostCardTile extends StatelessWidget {
                           if (post.tags.isNotEmpty) ...[
                             const Icon(Symbols.label, size: 16),
                             for (final tag in post.tags.take(4))
-                              Text('#${tag.name ?? tag.slug}', style: TextStyle(fontSize: 13)),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (tag.isProtected) ...[
+                                    const Icon(Symbols.lock, size: 12),
+                                    const Gap(2),
+                                  ],
+                                  Text(
+                                    '#${tag.name ?? tag.slug}',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ],
+                              ),
                             if (post.tags.length > 4) Text('+${post.tags.length - 4}', style: TextStyle(fontSize: 13)),
                           ],
                           if (post.categories.isNotEmpty) ...[

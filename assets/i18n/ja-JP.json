@@ -3903,5 +3903,8 @@
   "tagOwnedByPublisher": "所有者: {}",
   "ownedTags": "所有タグ",
   "ownedTagsEmpty": "所有タグはまだありません",
-  "ownedTagsEmptyHint": "タグを作成するか未所有のタグを取得するとここに表示されます。"
+  "ownedTagsEmptyHint": "タグを作成するか未所有のタグを取得するとここに表示されます。",
+  "releasePostTag": "タグを解放",
+  "releasePostTagHint": "{} の所有権を解放しますか？他の人が再び取得できます。保護状態も解除されます。",
+  "postTagReleased": "タグの所有権を解放しました"
 }

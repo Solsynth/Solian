@@ -4211,5 +4211,8 @@
   "tagOwnedByPublisher": "Owned by {}",
   "ownedTags": "Owned tags",
   "ownedTagsEmpty": "No owned tags yet",
-  "ownedTagsEmptyHint": "Create a new tag or claim an unowned one to see it here."
+  "ownedTagsEmptyHint": "Create a new tag or claim an unowned one to see it here.",
+  "releasePostTag": "Release tag",
+  "releasePostTagHint": "Release ownership of {}? Anyone will be able to claim it again. Protection will also be cleared.",
+  "postTagReleased": "Tag ownership released"
 }

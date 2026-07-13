@@ -775,7 +775,12 @@ class _PostDetailSheet extends StatelessWidget {
                   children: [
                     Text('Tags:', style: theme.textTheme.labelSmall),
                     for (final tag in post.tags)
-                      Chip(label: Text(tag.name ?? tag.slug)),
+                      Chip(
+                        avatar: tag.isProtected
+                            ? const Icon(Symbols.lock, size: 16)
+                            : null,
+                        label: Text(tag.name ?? tag.slug),
+                      ),
                   ],
                 ),
               if (post.categories.isNotEmpty) ...[
