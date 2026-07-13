@@ -613,9 +613,9 @@ Map<String, dynamic> _$SnNotificationPreferenceToJson(
 };
 
 const _$SnNotificationPreferenceLevelEnumMap = {
-  SnNotificationPreferenceLevel.normal: 'normal',
-  SnNotificationPreferenceLevel.silent: 'silent',
-  SnNotificationPreferenceLevel.reject: 'reject',
+  SnNotificationPreferenceLevel.normal: 0,
+  SnNotificationPreferenceLevel.silent: 1,
+  SnNotificationPreferenceLevel.reject: 2,
 };
 
 _SnNotificationTopic _$SnNotificationTopicFromJson(Map<String, dynamic> json) =>

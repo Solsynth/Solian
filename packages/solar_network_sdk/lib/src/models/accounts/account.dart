@@ -418,6 +418,7 @@ sealed class SnFriendOverviewItem with _$SnFriendOverviewItem {
       _$SnFriendOverviewItemFromJson(json);
 }
 
+@JsonEnum(valueField: 'value')
 enum SnNotificationPreferenceLevel {
   normal(0),
   silent(1),
