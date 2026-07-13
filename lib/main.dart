@@ -26,7 +26,6 @@ import 'package:island/route.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:island/plugins/plugin.dart';
@@ -46,6 +45,7 @@ import 'package:island/chat/widgets/call_window.dart';
 
 final List<LogRecord> _earlyLogs = [];
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+var _firebaseIsReady = false;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -158,18 +158,33 @@ void main(List<String> args) async {
         await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform,
         );
+        _firebaseIsReady = true;
+      }
+      Logger.root.info("[SplashScreen] Firebase is ready!");
+    } catch (err, stackTrace) {
+      Logger.root.severe(
+        "[SplashScreen] Failed to initialize Firebase.",
+        err,
+        stackTrace,
+      );
+    }
+
+    if (_firebaseIsReady) {
+      try {
         FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler,
         );
+      } catch (err, stackTrace) {
+        Logger.root.severe(
+          "[SplashScreen] Failed to register Firebase Messaging.",
+          err,
+          stackTrace,
+        );
       }
+    }
 
-      if (!kIsWeb && Platform.isAndroid) {
-        await NativeCallBackgroundBridge.ensureInitialized();
-      }
-
-      Logger.root.info("[SplashScreen] Firebase is ready!");
-    } catch (err) {
-      showErrorAlert(err);
+    if (!kIsWeb && Platform.isAndroid) {
+      await NativeCallBackgroundBridge.ensureInitialized();
     }
 
     try {
@@ -432,7 +447,8 @@ class IslandApp extends HookConsumerWidget {
         HttpOverrides.global = overrides;
       });
 
-      if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
+      if (!_firebaseIsReady ||
+          (!kIsWeb && (Platform.isLinux || Platform.isWindows))) {
         return null;
       }
 
@@ -486,10 +502,11 @@ class IslandApp extends HookConsumerWidget {
       routerConfig: router.config(
         navigatorObservers: () {
           return [
-            if (kIsWeb ||
-                Platform.isAndroid ||
-                Platform.isIOS ||
-                Platform.isMacOS)
+            if (_firebaseIsReady &&
+                (kIsWeb ||
+                    Platform.isAndroid ||
+                    Platform.isIOS ||
+                    Platform.isMacOS))
               FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
           ];
         },

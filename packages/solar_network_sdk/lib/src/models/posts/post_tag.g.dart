@@ -12,6 +12,9 @@ _SnPostTag _$SnPostTagFromJson(Map<String, dynamic> json) => _SnPostTag(
   name: json['name'] as String?,
   description: json['description'] as String?,
   ownerPublisherId: json['owner_publisher_id'] as String?,
+  ownerPublisher: json['owner_publisher'] == null
+      ? null
+      : SnPublisher.fromJson(json['owner_publisher'] as Map<String, dynamic>),
   isProtected: json['is_protected'] as bool? ?? false,
   isEvent: json['is_event'] as bool? ?? false,
   eventEndsAt: json['event_ends_at'] == null
@@ -34,6 +37,7 @@ Map<String, dynamic> _$SnPostTagToJson(_SnPostTag instance) =>
       'name': instance.name,
       'description': instance.description,
       'owner_publisher_id': instance.ownerPublisherId,
+      'owner_publisher': instance.ownerPublisher?.toJson(),
       'is_protected': instance.isProtected,
       'is_event': instance.isEvent,
       'event_ends_at': instance.eventEndsAt?.toIso8601String(),

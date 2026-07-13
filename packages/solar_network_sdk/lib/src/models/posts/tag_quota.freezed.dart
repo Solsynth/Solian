@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnProtectedTagRecord {
 
- String get id; String get slug; String? get name;
+ String get id; String get slug; String? get name; String? get description;@JsonKey(name: 'is_protected') bool get isProtected;@JsonKey(name: 'is_event') bool get isEvent;@JsonKey(name: 'event_ends_at') DateTime? get eventEndsAt;
 /// Create a copy of SnProtectedTagRecord
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnProtectedTagRecordCopyWith<SnProtectedTagRecord> get copyWith => _$SnProtecte
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnProtectedTagRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnProtectedTagRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.isProtected, isProtected) || other.isProtected == isProtected)&&(identical(other.isEvent, isEvent) || other.isEvent == isEvent)&&(identical(other.eventEndsAt, eventEndsAt) || other.eventEndsAt == eventEndsAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,isProtected,isEvent,eventEndsAt);
 
 @override
 String toString() {
-  return 'SnProtectedTagRecord(id: $id, slug: $slug, name: $name)';
+  return 'SnProtectedTagRecord(id: $id, slug: $slug, name: $name, description: $description, isProtected: $isProtected, isEvent: $isEvent, eventEndsAt: $eventEndsAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnProtectedTagRecordCopyWith<$Res>  {
   factory $SnProtectedTagRecordCopyWith(SnProtectedTagRecord value, $Res Function(SnProtectedTagRecord) _then) = _$SnProtectedTagRecordCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String? name
+ String id, String slug, String? name, String? description,@JsonKey(name: 'is_protected') bool isProtected,@JsonKey(name: 'is_event') bool isEvent,@JsonKey(name: 'event_ends_at') DateTime? eventEndsAt
 });
 
 
@@ -65,12 +65,16 @@ class _$SnProtectedTagRecordCopyWithImpl<$Res>
 
 /// Create a copy of SnProtectedTagRecord
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,isProtected: null == isProtected ? _self.isProtected : isProtected // ignore: cast_nullable_to_non_nullable
+as bool,isEvent: null == isEvent ? _self.isEvent : isEvent // ignore: cast_nullable_to_non_nullable
+as bool,eventEndsAt: freezed == eventEndsAt ? _self.eventEndsAt : eventEndsAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -152,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnProtectedTagRecord() when $default != null:
-return $default(_that.id,_that.slug,_that.name);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.isProtected,_that.isEvent,_that.eventEndsAt);case _:
   return orElse();
 
 }
@@ -173,10 +177,10 @@ return $default(_that.id,_that.slug,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnProtectedTagRecord():
-return $default(_that.id,_that.slug,_that.name);}
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.isProtected,_that.isEvent,_that.eventEndsAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -190,10 +194,10 @@ return $default(_that.id,_that.slug,_that.name);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnProtectedTagRecord() when $default != null:
-return $default(_that.id,_that.slug,_that.name);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.isProtected,_that.isEvent,_that.eventEndsAt);case _:
   return null;
 
 }
@@ -205,12 +209,16 @@ return $default(_that.id,_that.slug,_that.name);case _:
 @JsonSerializable()
 
 class _SnProtectedTagRecord implements SnProtectedTagRecord {
-  const _SnProtectedTagRecord({required this.id, required this.slug, this.name});
+  const _SnProtectedTagRecord({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'is_protected') this.isProtected = false, @JsonKey(name: 'is_event') this.isEvent = false, @JsonKey(name: 'event_ends_at') this.eventEndsAt});
   factory _SnProtectedTagRecord.fromJson(Map<String, dynamic> json) => _$SnProtectedTagRecordFromJson(json);
 
 @override final  String id;
 @override final  String slug;
 @override final  String? name;
+@override final  String? description;
+@override@JsonKey(name: 'is_protected') final  bool isProtected;
+@override@JsonKey(name: 'is_event') final  bool isEvent;
+@override@JsonKey(name: 'event_ends_at') final  DateTime? eventEndsAt;
 
 /// Create a copy of SnProtectedTagRecord
 /// with the given fields replaced by the non-null parameter values.
@@ -225,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnProtectedTagRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnProtectedTagRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.isProtected, isProtected) || other.isProtected == isProtected)&&(identical(other.isEvent, isEvent) || other.isEvent == isEvent)&&(identical(other.eventEndsAt, eventEndsAt) || other.eventEndsAt == eventEndsAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,isProtected,isEvent,eventEndsAt);
 
 @override
 String toString() {
-  return 'SnProtectedTagRecord(id: $id, slug: $slug, name: $name)';
+  return 'SnProtectedTagRecord(id: $id, slug: $slug, name: $name, description: $description, isProtected: $isProtected, isEvent: $isEvent, eventEndsAt: $eventEndsAt)';
 }
 
 
@@ -245,7 +253,7 @@ abstract mixin class _$SnProtectedTagRecordCopyWith<$Res> implements $SnProtecte
   factory _$SnProtectedTagRecordCopyWith(_SnProtectedTagRecord value, $Res Function(_SnProtectedTagRecord) _then) = __$SnProtectedTagRecordCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String? name
+ String id, String slug, String? name, String? description,@JsonKey(name: 'is_protected') bool isProtected,@JsonKey(name: 'is_event') bool isEvent,@JsonKey(name: 'event_ends_at') DateTime? eventEndsAt
 });
 
 
@@ -262,12 +270,16 @@ class __$SnProtectedTagRecordCopyWithImpl<$Res>
 
 /// Create a copy of SnProtectedTagRecord
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,}) {
   return _then(_SnProtectedTagRecord(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,isProtected: null == isProtected ? _self.isProtected : isProtected // ignore: cast_nullable_to_non_nullable
+as bool,isEvent: null == isEvent ? _self.isEvent : isEvent // ignore: cast_nullable_to_non_nullable
+as bool,eventEndsAt: freezed == eventEndsAt ? _self.eventEndsAt : eventEndsAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

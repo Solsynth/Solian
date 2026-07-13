@@ -786,6 +786,20 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             );
           },
         ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('publisherTags'.tr()),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.label),
+          onTap: () {
+            context.router.push(
+              CreatorTagManageRoute(pubName: currentPublisher.value!.name),
+            );
+          },
+        ),
       ];
 
       final rightItems = [

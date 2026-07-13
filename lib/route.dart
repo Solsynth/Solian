@@ -179,6 +179,10 @@ class AppRouter extends RootStackRouter {
               page: CreatorDomainManageRoute.page,
               path: ':pubName/domains',
             ),
+            AutoRoute(
+              page: CreatorTagManageRoute.page,
+              path: ':pubName/tags',
+            ),
           ],
         ),
 

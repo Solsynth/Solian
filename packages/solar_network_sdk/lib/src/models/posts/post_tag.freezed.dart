@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPostTag {
 
- String get id; String get slug; String? get name; String? get description;@JsonKey(name: 'owner_publisher_id') String? get ownerPublisherId;@JsonKey(name: 'is_protected') bool get isProtected;@JsonKey(name: 'is_event') bool get isEvent;@JsonKey(name: 'event_ends_at') DateTime? get eventEndsAt;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'updated_at') DateTime get updatedAt; List<SnPost> get posts; int get usage;
+ String get id; String get slug; String? get name; String? get description;@JsonKey(name: 'owner_publisher_id') String? get ownerPublisherId;@JsonKey(name: 'owner_publisher') SnPublisher? get ownerPublisher;@JsonKey(name: 'is_protected') bool get isProtected;@JsonKey(name: 'is_event') bool get isEvent;@JsonKey(name: 'event_ends_at') DateTime? get eventEndsAt;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'updated_at') DateTime get updatedAt; List<SnPost> get posts; int get usage;
 /// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPostTagCopyWith<SnPostTag> get copyWith => _$SnPostTagCopyWithImpl<SnPostTag>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.ownerPublisherId, ownerPublisherId) || other.ownerPublisherId == ownerPublisherId)&&(identical(other.isProtected, isProtected) || other.isProtected == isProtected)&&(identical(other.isEvent, isEvent) || other.isEvent == isEvent)&&(identical(other.eventEndsAt, eventEndsAt) || other.eventEndsAt == eventEndsAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.posts, posts)&&(identical(other.usage, usage) || other.usage == usage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.ownerPublisherId, ownerPublisherId) || other.ownerPublisherId == ownerPublisherId)&&(identical(other.ownerPublisher, ownerPublisher) || other.ownerPublisher == ownerPublisher)&&(identical(other.isProtected, isProtected) || other.isProtected == isProtected)&&(identical(other.isEvent, isEvent) || other.isEvent == isEvent)&&(identical(other.eventEndsAt, eventEndsAt) || other.eventEndsAt == eventEndsAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.posts, posts)&&(identical(other.usage, usage) || other.usage == usage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,ownerPublisherId,isProtected,isEvent,eventEndsAt,createdAt,updatedAt,const DeepCollectionEquality().hash(posts),usage);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,ownerPublisherId,ownerPublisher,isProtected,isEvent,eventEndsAt,createdAt,updatedAt,const DeepCollectionEquality().hash(posts),usage);
 
 @override
 String toString() {
-  return 'SnPostTag(id: $id, slug: $slug, name: $name, description: $description, ownerPublisherId: $ownerPublisherId, isProtected: $isProtected, isEvent: $isEvent, eventEndsAt: $eventEndsAt, createdAt: $createdAt, updatedAt: $updatedAt, posts: $posts, usage: $usage)';
+  return 'SnPostTag(id: $id, slug: $slug, name: $name, description: $description, ownerPublisherId: $ownerPublisherId, ownerPublisher: $ownerPublisher, isProtected: $isProtected, isEvent: $isEvent, eventEndsAt: $eventEndsAt, createdAt: $createdAt, updatedAt: $updatedAt, posts: $posts, usage: $usage)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $SnPostTagCopyWith<$Res>  {
   factory $SnPostTagCopyWith(SnPostTag value, $Res Function(SnPostTag) _then) = _$SnPostTagCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String? name, String? description,@JsonKey(name: 'owner_publisher_id') String? ownerPublisherId,@JsonKey(name: 'is_protected') bool isProtected,@JsonKey(name: 'is_event') bool isEvent,@JsonKey(name: 'event_ends_at') DateTime? eventEndsAt,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime updatedAt, List<SnPost> posts, int usage
+ String id, String slug, String? name, String? description,@JsonKey(name: 'owner_publisher_id') String? ownerPublisherId,@JsonKey(name: 'owner_publisher') SnPublisher? ownerPublisher,@JsonKey(name: 'is_protected') bool isProtected,@JsonKey(name: 'is_event') bool isEvent,@JsonKey(name: 'event_ends_at') DateTime? eventEndsAt,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime updatedAt, List<SnPost> posts, int usage
 });
 
 
-
+$SnPublisherCopyWith<$Res>? get ownerPublisher;
 
 }
 /// @nodoc
@@ -65,14 +65,15 @@ class _$SnPostTagCopyWithImpl<$Res>
 
 /// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? ownerPublisherId = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? posts = null,Object? usage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? ownerPublisherId = freezed,Object? ownerPublisher = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? posts = null,Object? usage = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,ownerPublisherId: freezed == ownerPublisherId ? _self.ownerPublisherId : ownerPublisherId // ignore: cast_nullable_to_non_nullable
-as String?,isProtected: null == isProtected ? _self.isProtected : isProtected // ignore: cast_nullable_to_non_nullable
+as String?,ownerPublisher: freezed == ownerPublisher ? _self.ownerPublisher : ownerPublisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher?,isProtected: null == isProtected ? _self.isProtected : isProtected // ignore: cast_nullable_to_non_nullable
 as bool,isEvent: null == isEvent ? _self.isEvent : isEvent // ignore: cast_nullable_to_non_nullable
 as bool,eventEndsAt: freezed == eventEndsAt ? _self.eventEndsAt : eventEndsAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -82,7 +83,19 @@ as List<SnPost>,usage: null == usage ? _self.usage : usage // ignore: cast_nulla
 as int,
   ));
 }
+/// Create a copy of SnPostTag
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherCopyWith<$Res>? get ownerPublisher {
+    if (_self.ownerPublisher == null) {
+    return null;
+  }
 
+  return $SnPublisherCopyWith<$Res>(_self.ownerPublisher!, (value) {
+    return _then(_self.copyWith(ownerPublisher: value));
+  });
+}
 }
 
 
@@ -161,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'owner_publisher_id')  String? ownerPublisherId, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  List<SnPost> posts,  int usage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'owner_publisher_id')  String? ownerPublisherId, @JsonKey(name: 'owner_publisher')  SnPublisher? ownerPublisher, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  List<SnPost> posts,  int usage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPostTag() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPublisherId,_that.isProtected,_that.isEvent,_that.eventEndsAt,_that.createdAt,_that.updatedAt,_that.posts,_that.usage);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPublisherId,_that.ownerPublisher,_that.isProtected,_that.isEvent,_that.eventEndsAt,_that.createdAt,_that.updatedAt,_that.posts,_that.usage);case _:
   return orElse();
 
 }
@@ -182,10 +195,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPubl
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'owner_publisher_id')  String? ownerPublisherId, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  List<SnPost> posts,  int usage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'owner_publisher_id')  String? ownerPublisherId, @JsonKey(name: 'owner_publisher')  SnPublisher? ownerPublisher, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  List<SnPost> posts,  int usage)  $default,) {final _that = this;
 switch (_that) {
 case _SnPostTag():
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPublisherId,_that.isProtected,_that.isEvent,_that.eventEndsAt,_that.createdAt,_that.updatedAt,_that.posts,_that.usage);}
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPublisherId,_that.ownerPublisher,_that.isProtected,_that.isEvent,_that.eventEndsAt,_that.createdAt,_that.updatedAt,_that.posts,_that.usage);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -199,10 +212,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPubl
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'owner_publisher_id')  String? ownerPublisherId, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  List<SnPost> posts,  int usage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'owner_publisher_id')  String? ownerPublisherId, @JsonKey(name: 'owner_publisher')  SnPublisher? ownerPublisher, @JsonKey(name: 'is_protected')  bool isProtected, @JsonKey(name: 'is_event')  bool isEvent, @JsonKey(name: 'event_ends_at')  DateTime? eventEndsAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  List<SnPost> posts,  int usage)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPostTag() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPublisherId,_that.isProtected,_that.isEvent,_that.eventEndsAt,_that.createdAt,_that.updatedAt,_that.posts,_that.usage);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPublisherId,_that.ownerPublisher,_that.isProtected,_that.isEvent,_that.eventEndsAt,_that.createdAt,_that.updatedAt,_that.posts,_that.usage);case _:
   return null;
 
 }
@@ -213,8 +226,8 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPubl
 /// @nodoc
 @JsonSerializable()
 
-class _SnPostTag implements SnPostTag {
-  const _SnPostTag({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'owner_publisher_id') this.ownerPublisherId, @JsonKey(name: 'is_protected') this.isProtected = false, @JsonKey(name: 'is_event') this.isEvent = false, @JsonKey(name: 'event_ends_at') this.eventEndsAt, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt, final  List<SnPost> posts = const [], this.usage = 0}): _posts = posts;
+class _SnPostTag extends SnPostTag {
+  const _SnPostTag({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'owner_publisher_id') this.ownerPublisherId, @JsonKey(name: 'owner_publisher') this.ownerPublisher, @JsonKey(name: 'is_protected') this.isProtected = false, @JsonKey(name: 'is_event') this.isEvent = false, @JsonKey(name: 'event_ends_at') this.eventEndsAt, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt, final  List<SnPost> posts = const [], this.usage = 0}): _posts = posts,super._();
   factory _SnPostTag.fromJson(Map<String, dynamic> json) => _$SnPostTagFromJson(json);
 
 @override final  String id;
@@ -222,6 +235,7 @@ class _SnPostTag implements SnPostTag {
 @override final  String? name;
 @override final  String? description;
 @override@JsonKey(name: 'owner_publisher_id') final  String? ownerPublisherId;
+@override@JsonKey(name: 'owner_publisher') final  SnPublisher? ownerPublisher;
 @override@JsonKey(name: 'is_protected') final  bool isProtected;
 @override@JsonKey(name: 'is_event') final  bool isEvent;
 @override@JsonKey(name: 'event_ends_at') final  DateTime? eventEndsAt;
@@ -249,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.ownerPublisherId, ownerPublisherId) || other.ownerPublisherId == ownerPublisherId)&&(identical(other.isProtected, isProtected) || other.isProtected == isProtected)&&(identical(other.isEvent, isEvent) || other.isEvent == isEvent)&&(identical(other.eventEndsAt, eventEndsAt) || other.eventEndsAt == eventEndsAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._posts, _posts)&&(identical(other.usage, usage) || other.usage == usage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostTag&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.ownerPublisherId, ownerPublisherId) || other.ownerPublisherId == ownerPublisherId)&&(identical(other.ownerPublisher, ownerPublisher) || other.ownerPublisher == ownerPublisher)&&(identical(other.isProtected, isProtected) || other.isProtected == isProtected)&&(identical(other.isEvent, isEvent) || other.isEvent == isEvent)&&(identical(other.eventEndsAt, eventEndsAt) || other.eventEndsAt == eventEndsAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._posts, _posts)&&(identical(other.usage, usage) || other.usage == usage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,ownerPublisherId,isProtected,isEvent,eventEndsAt,createdAt,updatedAt,const DeepCollectionEquality().hash(_posts),usage);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,ownerPublisherId,ownerPublisher,isProtected,isEvent,eventEndsAt,createdAt,updatedAt,const DeepCollectionEquality().hash(_posts),usage);
 
 @override
 String toString() {
-  return 'SnPostTag(id: $id, slug: $slug, name: $name, description: $description, ownerPublisherId: $ownerPublisherId, isProtected: $isProtected, isEvent: $isEvent, eventEndsAt: $eventEndsAt, createdAt: $createdAt, updatedAt: $updatedAt, posts: $posts, usage: $usage)';
+  return 'SnPostTag(id: $id, slug: $slug, name: $name, description: $description, ownerPublisherId: $ownerPublisherId, ownerPublisher: $ownerPublisher, isProtected: $isProtected, isEvent: $isEvent, eventEndsAt: $eventEndsAt, createdAt: $createdAt, updatedAt: $updatedAt, posts: $posts, usage: $usage)';
 }
 
 
@@ -269,11 +283,11 @@ abstract mixin class _$SnPostTagCopyWith<$Res> implements $SnPostTagCopyWith<$Re
   factory _$SnPostTagCopyWith(_SnPostTag value, $Res Function(_SnPostTag) _then) = __$SnPostTagCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String? name, String? description,@JsonKey(name: 'owner_publisher_id') String? ownerPublisherId,@JsonKey(name: 'is_protected') bool isProtected,@JsonKey(name: 'is_event') bool isEvent,@JsonKey(name: 'event_ends_at') DateTime? eventEndsAt,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime updatedAt, List<SnPost> posts, int usage
+ String id, String slug, String? name, String? description,@JsonKey(name: 'owner_publisher_id') String? ownerPublisherId,@JsonKey(name: 'owner_publisher') SnPublisher? ownerPublisher,@JsonKey(name: 'is_protected') bool isProtected,@JsonKey(name: 'is_event') bool isEvent,@JsonKey(name: 'event_ends_at') DateTime? eventEndsAt,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime updatedAt, List<SnPost> posts, int usage
 });
 
 
-
+@override $SnPublisherCopyWith<$Res>? get ownerPublisher;
 
 }
 /// @nodoc
@@ -286,14 +300,15 @@ class __$SnPostTagCopyWithImpl<$Res>
 
 /// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? ownerPublisherId = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? posts = null,Object? usage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? ownerPublisherId = freezed,Object? ownerPublisher = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? posts = null,Object? usage = null,}) {
   return _then(_SnPostTag(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,ownerPublisherId: freezed == ownerPublisherId ? _self.ownerPublisherId : ownerPublisherId // ignore: cast_nullable_to_non_nullable
-as String?,isProtected: null == isProtected ? _self.isProtected : isProtected // ignore: cast_nullable_to_non_nullable
+as String?,ownerPublisher: freezed == ownerPublisher ? _self.ownerPublisher : ownerPublisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher?,isProtected: null == isProtected ? _self.isProtected : isProtected // ignore: cast_nullable_to_non_nullable
 as bool,isEvent: null == isEvent ? _self.isEvent : isEvent // ignore: cast_nullable_to_non_nullable
 as bool,eventEndsAt: freezed == eventEndsAt ? _self.eventEndsAt : eventEndsAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -304,7 +319,19 @@ as int,
   ));
 }
 
+/// Create a copy of SnPostTag
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherCopyWith<$Res>? get ownerPublisher {
+    if (_self.ownerPublisher == null) {
+    return null;
+  }
 
+  return $SnPublisherCopyWith<$Res>(_self.ownerPublisher!, (value) {
+    return _then(_self.copyWith(ownerPublisher: value));
+  });
+}
 }
 
 // dart format on

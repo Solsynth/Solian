@@ -885,16 +885,15 @@ class SphereApi extends BaseApi {
     return SnPostTag.fromJson(response.data!);
   }
 
-  /// Gets the protected tag quota for a publisher.
+  /// Gets the protected-tag quota and owned tags for a publisher.
   ///
-  /// [slug] - The tag slug.
   /// [publisherName] - Publisher name to check quota for.
+  /// Prefer this over the legacy `/{slug}/quota` path; slug is not required.
   Future<SnTagQuota> getProtectedTagQuota({
-    required String slug,
     String? publisherName,
   }) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/posts/tags/$slug/quota',
+      '$_basePath/posts/tags/quota',
       queryParameters: {'pub': ?publisherName},
     );
     return SnTagQuota.fromJson(response.data!);

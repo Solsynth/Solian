@@ -138,7 +138,7 @@ final class PostTagProvider
   }
 }
 
-String _$postTagHash() => r'a3744795d38f11d104ffcb4d289c655c62adcbb2';
+String _$postTagHash() => r'fa337421ae0326806dbd75e89fd2385b8ce7895c';
 
 final class PostTagFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPostTag>, String> {
@@ -217,7 +217,7 @@ final class PostCategorySubscriptionProvider
 }
 
 String _$postCategorySubscriptionHash() =>
-    r'a733eb108957e35696aef18361dd0f71392955da';
+    r'94a3d750093738b1dd74feac72f9d8b1abfa01f4';
 
 final class PostCategorySubscriptionFamily extends $Family
     with

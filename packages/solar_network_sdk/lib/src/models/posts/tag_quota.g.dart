@@ -12,6 +12,12 @@ _SnProtectedTagRecord _$SnProtectedTagRecordFromJson(
   id: json['id'] as String,
   slug: json['slug'] as String,
   name: json['name'] as String?,
+  description: json['description'] as String?,
+  isProtected: json['is_protected'] as bool? ?? false,
+  isEvent: json['is_event'] as bool? ?? false,
+  eventEndsAt: json['event_ends_at'] == null
+      ? null
+      : DateTime.parse(json['event_ends_at'] as String),
 );
 
 Map<String, dynamic> _$SnProtectedTagRecordToJson(
@@ -20,6 +26,10 @@ Map<String, dynamic> _$SnProtectedTagRecordToJson(
   'id': instance.id,
   'slug': instance.slug,
   'name': instance.name,
+  'description': instance.description,
+  'is_protected': instance.isProtected,
+  'is_event': instance.isEvent,
+  'event_ends_at': instance.eventEndsAt?.toIso8601String(),
 };
 
 _SnTagQuota _$SnTagQuotaFromJson(Map<String, dynamic> json) => _SnTagQuota(

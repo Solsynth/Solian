@@ -50,7 +50,7 @@ final class BoardEditorStateProvider
   }
 }
 
-String _$boardEditorStateHash() => r'a903e07ea90bcb1117ef47113d8bc0e348dfe8b4';
+String _$boardEditorStateHash() => r'8ad9cde82271a2132427ef4f6f8ea0c3eeb22fa3';
 
 abstract class _$BoardEditorState
     extends

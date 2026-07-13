@@ -3,13 +3,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'tag_quota.freezed.dart';
 part 'tag_quota.g.dart';
 
-/// Represents a protected tag in the quota response.
+/// Represents an owned tag row in the publisher tag quota response.
 @freezed
 sealed class SnProtectedTagRecord with _$SnProtectedTagRecord {
   const factory SnProtectedTagRecord({
     required String id,
     required String slug,
     String? name,
+    String? description,
+    @JsonKey(name: 'is_protected') @Default(false) bool isProtected,
+    @JsonKey(name: 'is_event') @Default(false) bool isEvent,
+    @JsonKey(name: 'event_ends_at') DateTime? eventEndsAt,
   }) = _SnProtectedTagRecord;
 
   factory SnProtectedTagRecord.fromJson(Map<String, dynamic> json) =>
