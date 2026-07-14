@@ -82,7 +82,7 @@ jobs:
       - run: flutter build linux --no-tree-shake-icons --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
       - name: Build quickjs bridge plugin
         run: |
-          cmake -B build_qjs -S third_party/quickjs_c_bridge/linux/ -DCMAKE_BUILD_TYPE=Release
+          cmake -B build_qjs -S linux/third_party/quickjs_c_bridge/linux/ -DCMAKE_BUILD_TYPE=Release
           cmake --build build_qjs
           cp build_qjs/libquickjs_c_bridge_plugin.so build/linux/x64/release/bundle/lib/
           rm -rf build_qjs
