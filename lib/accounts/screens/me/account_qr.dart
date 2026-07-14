@@ -1590,13 +1590,7 @@ Future<void> _checkAndShowDeviceApproval(
     if (clientId == null || clientId.isEmpty) {
       throw StateError('Invalid device code');
     }
-    final clientInfoResp = await client.dio.get(
-      '/padlock/auth/open/authorize',
-      queryParameters: {'client_id': clientId},
-    );
-    final clientInfo = AuthorizeClientInfo.fromJson(
-      Map<String, dynamic>.from(clientInfoResp.data as Map),
-    );
+    final clientInfo = AuthorizeClientInfo.fromJson(data);
     if (context.mounted) hideLoadingModal(context);
     if (!context.mounted) return;
     await showModalBottomSheet(

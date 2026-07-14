@@ -212,8 +212,9 @@ class MessageSender {
     await _repository.saveMessage(pending);
     onPending?.call(pending);
 
+    late List<SnCloudFile> cloudAttachments;
     try {
-      final cloudAttachments = await _uploadAttachments(
+      cloudAttachments = await _uploadAttachments(
         attachments: attachments,
         pendingMessageId: pending.id,
         onProgress: (messageId, progress) {
@@ -242,6 +243,37 @@ class MessageSender {
 
       return SendResult.success(sent);
     } catch (e, stackTrace) {
+      if (e is TimeoutException) {
+        // The server may have committed the finalization but its WebSocket
+        // acknowledgement was lost. The files are already uploaded and the
+        // final payload is known locally, so finish the timeline optimistically
+        // instead of reverting the message to a failed placeholder.
+        _logger.warning(
+          '[placeholder:${pending.id}] Finalize acknowledgement timed out; '
+          'marking the message finalized locally',
+        );
+        final finalizedJson = pending.toRemoteMessage().toJson()
+          ..['type'] = 'text'
+          ..['content'] = content
+          ..['attachments'] = cloudAttachments
+              .map((attachment) => attachment.toJson())
+              .toList();
+        final meta = Map<String, dynamic>.from(pending.meta)
+          ..remove('placeholder_kind')
+          ..remove('placeholder_content')
+          ..remove('placeholder_progress')
+          ..remove('placeholder_expires_at');
+        finalizedJson['meta'] = meta;
+
+        final finalized = LocalChatMessage.fromRemoteMessage(
+          SnChatMessage.fromJson(finalizedJson),
+          MessageStatus.sent,
+        );
+        _pendingCache.remove(pending.id);
+        await _repository.saveMessage(finalized);
+        return SendResult.success(finalized);
+      }
+
       _logger.severe(
         '[placeholder:${pending.id}] Placeholder send failed',
         e,
