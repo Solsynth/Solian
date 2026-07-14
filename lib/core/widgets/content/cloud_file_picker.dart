@@ -18,6 +18,10 @@ class CloudFilePicker extends HookConsumerWidget {
   final bool allowMultiple;
   final Set<UniversalFileType> allowedTypes;
   final String? usage;
+
+  /// When true, single-image picks skip the crop editor (preserves animated GIFs/WebPs).
+  final bool skipCrop;
+
   const CloudFilePicker({
     super.key,
     this.allowMultiple = false,
@@ -27,6 +31,7 @@ class CloudFilePicker extends HookConsumerWidget {
       UniversalFileType.file,
     },
     this.usage,
+    this.skipCrop = false,
   });
 
   @override
@@ -137,7 +142,7 @@ class CloudFilePicker extends HookConsumerWidget {
 
       final newFiles = <UniversalFile>[];
       for (final xfile in results) {
-        final editedImage = !allowMultiple
+        final editedImage = !allowMultiple && !skipCrop
             ? await cropImage(context, image: xfile, replacePath: false)
             : xfile;
         if (editedImage == null) continue;

@@ -627,7 +627,7 @@ class MessageItem extends HookConsumerWidget {
             ),
           ),
         ),
-        if (isHovered.value && !isMobile)
+        if (isHovered.value && !isMobile && !isSelectionMode)
           Positioned(
             top: 4,
             right: 8,

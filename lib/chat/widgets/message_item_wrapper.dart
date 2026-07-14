@@ -62,54 +62,76 @@ class MessageItemWrapper extends HookConsumerWidget {
   }) {
     final stableMessageKey = message.clientMessageId ?? message.id;
     final isCurrentUser = identity?.id == message.senderId;
+    final colorScheme = Theme.of(context).colorScheme;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final animDuration = reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 200);
 
-    return GestureDetector(
-      child: Container(
+    final messageItem = MessageItem(
+      key: ValueKey('item-$stableMessageKey'),
+      message: message,
+      isCurrentUser: isCurrentUser,
+      onAction: isSelectionMode
+          ? null
+          : (action) => onMessageAction(action, message),
+      onJump: onJump,
+      progress: progress,
+      showAvatar: isLastInGroup,
+      showBubbleAvatar: showBubbleAvatar,
+      showColumnAvatar: showColumnAvatar,
+      isSelectionMode: isSelectionMode,
+      isSelected: isSelected,
+      onToggleSelection: toggleMessageSelection,
+      onEnterSelectionMode: () {
+        if (!isSelectionMode) toggleSelectionMode();
+      },
+    );
+
+    return AnimatedContainer(
+      duration: animDuration,
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
         color: isSelected
-            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-            : null,
-        child: Stack(
-          children: [
-            MessageItem(
-              // If animation is disabled, we might want to pass a key to maintain state?
-              // But here we are inside the wrapper.
-              key: ValueKey('item-$stableMessageKey'),
-              message: message,
-              isCurrentUser: isCurrentUser,
-              onAction: isSelectionMode
-                  ? null
-                  : (action) => onMessageAction(action, message),
-              onJump: onJump,
-              progress: progress,
-              showAvatar: isLastInGroup,
-              showBubbleAvatar: showBubbleAvatar,
-              showColumnAvatar: showColumnAvatar,
-              isSelectionMode: isSelectionMode,
-              isSelected: isSelected,
-              onToggleSelection: toggleMessageSelection,
-              onEnterSelectionMode: () {
-                if (!isSelectionMode) toggleSelectionMode();
-              },
-            ),
-            if (isSelected)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.check,
-                    size: 12,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
+            ? colorScheme.primary.withValues(alpha: 0.10)
+            : colorScheme.surface.withValues(alpha: 0),
+        border: Border(
+          left: BorderSide(
+            color: isSelected ? colorScheme.primary : Colors.transparent,
+            width: 3,
+          ),
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: isSelectionMode
+              ? () => toggleMessageSelection(message.id)
+              : null,
+          splashColor: colorScheme.primary.withValues(alpha: 0.08),
+          highlightColor: colorScheme.primary.withValues(alpha: 0.04),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AnimatedSize(
+                duration: animDuration,
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.centerLeft,
+                child: isSelectionMode
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 10, right: 2),
+                        child: _SelectionIndicator(isSelected: isSelected),
+                      )
+                    : const SizedBox(width: 0, height: 28),
+              ),
+              Expanded(
+                child: IgnorePointer(
+                  ignoring: isSelectionMode,
+                  child: messageItem,
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -234,6 +256,64 @@ class MessageItemWrapper extends HookConsumerWidget {
         ),
       ),
       child: child,
+    );
+  }
+}
+
+class _SelectionIndicator extends StatelessWidget {
+  final bool isSelected;
+
+  const _SelectionIndicator({required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    return AnimatedContainer(
+      duration: reduceMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isSelected ? colorScheme.primary : Colors.transparent,
+        border: Border.all(
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.outline.withValues(alpha: 0.7),
+          width: 2,
+        ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.28),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ]
+            : null,
+      ),
+      child: AnimatedScale(
+        scale: isSelected ? 1 : 0.6,
+        duration: reduceMotion
+            ? Duration.zero
+            : const Duration(milliseconds: 160),
+        curve: Curves.easeOutBack,
+        child: AnimatedOpacity(
+          opacity: isSelected ? 1 : 0,
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 120),
+          child: Icon(
+            Icons.check_rounded,
+            size: 14,
+            color: colorScheme.onPrimary,
+          ),
+        ),
+      ),
     );
   }
 }

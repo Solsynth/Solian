@@ -225,6 +225,7 @@ class StickerPackForm extends HookConsumerWidget {
                         builder: (context) => CloudFilePicker(
                           allowedTypes: {UniversalFileType.image},
                           usage: 'sticker',
+                          skipCrop: true,
                         ),
                       ).then((value) {
                         if (value == null) return;

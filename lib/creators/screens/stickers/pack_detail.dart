@@ -601,7 +601,11 @@ class StickerForm extends HookConsumerWidget {
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
-                  builder: (context) => CloudFilePicker(allowedTypes: {UniversalFileType.image}, usage: 'sticker'),
+                  builder: (context) => CloudFilePicker(
+                    allowedTypes: {UniversalFileType.image},
+                    usage: 'sticker',
+                    skipCrop: true,
+                  ),
                 ).then((value) {
                   if (value == null) return;
                   final files = value is List ? value.cast<SnCloudFile>() : [value];

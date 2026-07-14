@@ -816,38 +816,56 @@ class ChatRoomScreen extends HookConsumerWidget {
       children: [
         AppScaffold(
           appBar: AppBar(
-            leading: const AutoLeadingButton(),
+            leading: isSelectionMode
+                ? IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: 'exitSelectionMode'.tr(),
+                    onPressed: chatStateNotifier.exitSelectionMode,
+                  )
+                : const AutoLeadingButton(),
             automaticallyImplyLeading: false,
-            title: chatRoom.when(
-              data: (room) =>
-                  RoomAppBar(room: room!, onlineStatus: onlineCount.value),
-              loading: () => const Text('Loading...'),
-              error: (err, _) => ResponseErrorWidget(
-                error: err,
-                onRetry: () => messagesNotifier.loadInitial(),
-              ),
-            ),
-            actions: [
-              chatRoom.when(
-                data: (data) => AudioCallButton(room: data!),
-                error: (_, _) => const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () async {
-                  final result = await context.router.push(
-                    ChatDetailRoute(id: id),
-                  );
-                  if (result is SearchMessagesResult &&
-                      messages.value != null) {
-                    final messageId = result.messageId;
-                    jumpAndRevealMessage(messageId);
-                  }
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
+            title: isSelectionMode
+                ? Text(
+                    selectedMessageIds.isEmpty
+                        ? 'chatSelectMessages'.tr()
+                        : 'selectedCount'.tr(
+                            args: [selectedMessageIds.length.toString()],
+                          ),
+                  )
+                : chatRoom.when(
+                    data: (room) => RoomAppBar(
+                      room: room!,
+                      onlineStatus: onlineCount.value,
+                    ),
+                    loading: () => const Text('Loading...'),
+                    error: (err, _) => ResponseErrorWidget(
+                      error: err,
+                      onRetry: () => messagesNotifier.loadInitial(),
+                    ),
+                  ),
+            actions: isSelectionMode
+                ? const [SizedBox(width: 8)]
+                : [
+                    chatRoom.when(
+                      data: (data) => AudioCallButton(room: data!),
+                      error: (_, _) => const SizedBox.shrink(),
+                      loading: () => const SizedBox.shrink(),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.more_vert),
+                      onPressed: () async {
+                        final result = await context.router.push(
+                          ChatDetailRoute(id: id),
+                        );
+                        if (result is SearchMessagesResult &&
+                            messages.value != null) {
+                          final messageId = result.messageId;
+                          jumpAndRevealMessage(messageId);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                  ],
           ),
           body: Column(
             children: [
@@ -1097,109 +1115,147 @@ class ChatRoomScreen extends HookConsumerWidget {
                   ],
                 ),
               ),
-              if (!isSelectionMode)
-                chatRoom.when(
-                  data: (room) => room != null
-                      ? Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Consumer(
-                            builder: (context, ref, _) {
-                              final inputState = ref.watch(
-                                chatRoomStateProvider(id).select(
-                                  (state) => (
-                                    attachments: state.attachments,
-                                    attachmentProgress:
-                                        state.attachmentProgress,
-                                    editingTo: state.messageEditingTo,
-                                    replyingTo: state.messageReplyingTo,
-                                    forwardingTo: state.messageForwardingTo,
-                                    embeds: state.embeds,
-                                  ),
-                                ),
-                              );
-
-                              return ChatInput(
-                                key: inputKey,
-                                messageController:
-                                    chatStateNotifier.messageController,
-                                chatRoom: room,
-                                onSend: chatStateNotifier.sendMessage,
-                                onClear: () {
-                                  if (inputState.editingTo != null) {
-                                    chatStateNotifier.clearAttachmentsOnly();
-                                  }
-                                  chatStateNotifier.setEditingTo(null);
-                                  chatStateNotifier.setReplyingTo(null);
-                                  chatStateNotifier.setForwardingTo(null);
-                                  chatStateNotifier.clearInput();
-                                },
-                                messageEditingTo: inputState.editingTo,
-                                messageReplyingTo: inputState.replyingTo,
-                                messageForwardingTo: inputState.forwardingTo,
-                                embeds: inputState.embeds,
-                                onEmbedsChanged: chatStateNotifier.setEmbeds,
-                                isMessageListScrolling:
-                                    !isAtLatestMessages.value,
-                                onPickFile: (isPhoto) {
-                                  if (isPhoto) {
-                                    chatStateNotifier.pickPhotos();
-                                  } else {
-                                    chatStateNotifier.pickVideos();
-                                  }
-                                },
-                                onPickAudio: chatStateNotifier.pickAudio,
-                                onPickGeneralFile: chatStateNotifier.pickFiles,
-                                onLinkAttachment: () =>
-                                    chatStateNotifier.linkAttachment(context),
-                                attachments: inputState.attachments,
-                                onUploadAttachment: uploadAttachment,
-                                onDeleteAttachment: (index) async {
-                                  final attachment =
-                                      inputState.attachments[index];
-                                  if (attachment.isOnCloud &&
-                                      !attachment.isLink) {
-                                    final client = ref.read(apiClientProvider);
-                                    await client.delete(
-                                      '/fs/files/${attachment.data.id}',
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.08),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: isSelectionMode
+                    ? RoomSelectionMode(
+                        key: const ValueKey('selection-bar'),
+                        visible: true,
+                        selectedCount: selectedMessageIds.length,
+                        onClose: chatStateNotifier.exitSelectionMode,
+                        onAIThink: openThinkingSheet,
+                        onRedirect: openRedirectSheet,
+                      )
+                    : chatRoom.when(
+                        data: (room) => room != null
+                            ? Align(
+                                key: const ValueKey('chat-input'),
+                                alignment: Alignment.bottomCenter,
+                                child: Consumer(
+                                  builder: (context, ref, _) {
+                                    final inputState = ref.watch(
+                                      chatRoomStateProvider(id).select(
+                                        (state) => (
+                                          attachments: state.attachments,
+                                          attachmentProgress:
+                                              state.attachmentProgress,
+                                          editingTo: state.messageEditingTo,
+                                          replyingTo: state.messageReplyingTo,
+                                          forwardingTo:
+                                              state.messageForwardingTo,
+                                          embeds: state.embeds,
+                                        ),
+                                      ),
                                     );
-                                  }
-                                  final clone = List.of(inputState.attachments);
-                                  clone.removeAt(index);
-                                  chatStateNotifier.updateAttachments(clone);
-                                },
-                                onMoveAttachment: (idx, delta) {
-                                  if (idx + delta < 0 ||
-                                      idx + delta >=
-                                          inputState.attachments.length) {
-                                    return;
-                                  }
-                                  final clone = List.of(inputState.attachments);
-                                  clone.insert(
-                                    idx + delta,
-                                    clone.removeAt(idx),
-                                  );
-                                  chatStateNotifier.updateAttachments(clone);
-                                },
-                                onAttachmentsChanged:
-                                    chatStateNotifier.updateAttachments,
-                                attachmentProgress:
-                                    inputState.attachmentProgress,
-                              );
-                            },
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                  loading: () => const SizedBox.shrink(),
-                ),
-              if (isSelectionMode)
-                RoomSelectionMode(
-                  visible: isSelectionMode,
-                  selectedCount: selectedMessageIds.length,
-                  onClose: chatStateNotifier.exitSelectionMode,
-                  onAIThink: openThinkingSheet,
-                  onRedirect: openRedirectSheet,
-                ),
+
+                                    return ChatInput(
+                                      key: inputKey,
+                                      messageController:
+                                          chatStateNotifier.messageController,
+                                      chatRoom: room,
+                                      onSend: chatStateNotifier.sendMessage,
+                                      onClear: () {
+                                        if (inputState.editingTo != null) {
+                                          chatStateNotifier
+                                              .clearAttachmentsOnly();
+                                        }
+                                        chatStateNotifier.setEditingTo(null);
+                                        chatStateNotifier.setReplyingTo(null);
+                                        chatStateNotifier.setForwardingTo(
+                                          null,
+                                        );
+                                        chatStateNotifier.clearInput();
+                                      },
+                                      messageEditingTo: inputState.editingTo,
+                                      messageReplyingTo: inputState.replyingTo,
+                                      messageForwardingTo:
+                                          inputState.forwardingTo,
+                                      embeds: inputState.embeds,
+                                      onEmbedsChanged:
+                                          chatStateNotifier.setEmbeds,
+                                      isMessageListScrolling:
+                                          !isAtLatestMessages.value,
+                                      onPickFile: (isPhoto) {
+                                        if (isPhoto) {
+                                          chatStateNotifier.pickPhotos();
+                                        } else {
+                                          chatStateNotifier.pickVideos();
+                                        }
+                                      },
+                                      onPickAudio: chatStateNotifier.pickAudio,
+                                      onPickGeneralFile:
+                                          chatStateNotifier.pickFiles,
+                                      onLinkAttachment: () => chatStateNotifier
+                                          .linkAttachment(context),
+                                      attachments: inputState.attachments,
+                                      onUploadAttachment: uploadAttachment,
+                                      onDeleteAttachment: (index) async {
+                                        final attachment =
+                                            inputState.attachments[index];
+                                        if (attachment.isOnCloud &&
+                                            !attachment.isLink) {
+                                          final client = ref.read(
+                                            apiClientProvider,
+                                          );
+                                          await client.delete(
+                                            '/fs/files/${attachment.data.id}',
+                                          );
+                                        }
+                                        final clone = List.of(
+                                          inputState.attachments,
+                                        );
+                                        clone.removeAt(index);
+                                        chatStateNotifier.updateAttachments(
+                                          clone,
+                                        );
+                                      },
+                                      onMoveAttachment: (idx, delta) {
+                                        if (idx + delta < 0 ||
+                                            idx + delta >=
+                                                inputState.attachments.length) {
+                                          return;
+                                        }
+                                        final clone = List.of(
+                                          inputState.attachments,
+                                        );
+                                        clone.insert(
+                                          idx + delta,
+                                          clone.removeAt(idx),
+                                        );
+                                        chatStateNotifier.updateAttachments(
+                                          clone,
+                                        );
+                                      },
+                                      onAttachmentsChanged:
+                                          chatStateNotifier.updateAttachments,
+                                      attachmentProgress:
+                                          inputState.attachmentProgress,
+                                    );
+                                  },
+                                ),
+                              )
+                            : const SizedBox.shrink(key: ValueKey('no-input')),
+                        error: (_, _) =>
+                            const SizedBox.shrink(key: ValueKey('input-error')),
+                        loading: () => const SizedBox.shrink(
+                          key: ValueKey('input-loading'),
+                        ),
+                      ),
+              ),
             ],
           ),
         ),
