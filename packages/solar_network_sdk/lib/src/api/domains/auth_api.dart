@@ -208,26 +208,25 @@ class AuthApi extends BaseApi {
   // Passkey endpoints
   // ==========================================
 
+  /// Gets the canonical WebAuthn relying-party configuration.
+  Future<Map<String, dynamic>> getWebAuthnConfiguration() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/auth/webauthn/config',
+    );
+    return response.data!;
+  }
+
   /// Starts a passkey registration by generating a challenge.
   ///
   /// [deviceId] - The device identifier.
-  /// [rpId] - The relying party ID (domain).
-  /// [rpName] - The relying party name.
   /// Returns challenge and WebAuthn options.
   Future<Map<String, dynamic>> startPasskeyRegistration({
     required String deviceId,
     required String deviceName,
-    required String rpId,
-    required String rpName,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/factors/passkey/start',
-      data: {
-        'device_id': deviceId,
-        'device_name': deviceName,
-        'rp_id': rpId,
-        'rp_name': rpName,
-      },
+      data: {'device_id': deviceId, 'device_name': deviceName},
     );
     return response.data!;
   }

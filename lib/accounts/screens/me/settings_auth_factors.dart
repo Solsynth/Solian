@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
@@ -489,20 +488,19 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
           await client.auth.createFactor(type: _selectedType, secret: null);
         }
 
-        final serverUrl = ref.read(serverUrlProvider);
-        final rpId = Uri.parse(serverUrl).host;
-        final rpName = 'Solar Network';
         final deviceId = await getUdid();
         final deviceName = await getDeviceName();
+        final webAuthnConfig = await client.auth.getWebAuthnConfiguration();
 
         final challengeResponse = await client.auth.startPasskeyRegistration(
           deviceId: deviceId,
           deviceName: deviceName,
-          rpId: rpId,
-          rpName: rpName,
         );
 
         final serverOptions = challengeResponse;
+        if (serverOptions['rp_id'] != webAuthnConfig['rp_id']) {
+          throw StateError('WebAuthn relying party configuration changed.');
+        }
         final authSelection =
             serverOptions['authenticator_selection'] as Map<String, dynamic>?;
 
