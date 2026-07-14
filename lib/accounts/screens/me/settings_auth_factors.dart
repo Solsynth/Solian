@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/config.dart';
@@ -26,6 +27,102 @@ class AuthFactorSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final passkeys = useState<List<SnPasskey>>([]);
+    final passkeysLoading = useState(false);
+
+    Future<void> loadPasskeys() async {
+      if (factor.type != 7) return;
+      passkeysLoading.value = true;
+      try {
+        passkeys.value = await ref
+            .read(solarNetworkClientProvider)
+            .auth
+            .getPasskeys();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        passkeysLoading.value = false;
+      }
+    }
+
+    useEffect(() {
+      if (factor.type == 7) Future.microtask(loadPasskeys);
+      return null;
+    }, [factor.id]);
+
+    Future<void> addPasskey() async {
+      final created = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => const AuthFactorNewSheet(initialType: 7),
+      );
+      if (created == true) await loadPasskeys();
+    }
+
+    Future<void> renamePasskey(SnPasskey passkey) async {
+      final controller = TextEditingController(text: passkey.label);
+      final label = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('rename'.tr()),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(labelText: 'name'.tr()),
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('cancel'.tr()),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: Text('confirm'.tr()),
+            ),
+          ],
+        ),
+      );
+      controller.dispose();
+      if (label == null || label.trim().isEmpty) return;
+      if (!context.mounted) return;
+
+      try {
+        showLoadingModal(context);
+        await ref
+            .read(solarNetworkClientProvider)
+            .auth
+            .updatePasskey(passkeyId: passkey.id, label: label.trim());
+        await loadPasskeys();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> deletePasskey(SnPasskey passkey) async {
+      final confirmed = await showConfirmAlert(
+        'authFactorDeleteHint'.tr(),
+        'authFactorDelete'.tr(),
+        isDanger: true,
+      );
+      if (!confirmed || !context.mounted) return;
+
+      try {
+        showLoadingModal(context);
+        await ref
+            .read(solarNetworkClientProvider)
+            .auth
+            .deletePasskey(passkey.id);
+        await loadPasskeys();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
     Future<void> deleteFactor() async {
       final confirm = await showConfirmAlert(
         'authFactorDeleteHint'.tr(),
@@ -158,8 +255,7 @@ class AuthFactorSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'authFactor'.tr(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: ListView(
         children: [
           Card(
             margin: const EdgeInsets.all(16),
@@ -258,6 +354,48 @@ class AuthFactorSheet extends HookConsumerWidget {
               ),
             ),
           ),
+          if (factor.type == 7) ...[
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Symbols.add),
+              title: Text('authFactorNew').tr(),
+              onTap: factor.enabledAt == null ? null : addPasskey,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+            if (passkeysLoading.value)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else
+              for (final passkey in passkeys.value)
+                ListTile(
+                  leading: const Icon(Symbols.fingerprint),
+                  title: Text(passkey.label),
+                  subtitle: Text(passkey.createdAt.toLocal().toString()),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Symbols.edit),
+                        tooltip: 'rename'.tr(),
+                        onPressed: () => renamePasskey(passkey),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Symbols.delete,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        tooltip: 'authFactorDelete'.tr(),
+                        onPressed: () => deletePasskey(passkey),
+                      ),
+                    ],
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+          ],
           const Divider(height: 1),
           if (factor.enabledAt != null)
             ListTile(
