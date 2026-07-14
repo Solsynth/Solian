@@ -133,9 +133,10 @@ class RealtimeMessageHandler {
   void _handleWebSocketPacket(WebSocketPacket packet) {
     switch (packet.type) {
       case 'messages.new':
-        // The websocket only emits generic message packets here. Message
-        // mutations such as update/delete/reaction are encoded in the parsed
-        // SnChatMessage.type, not in WebSocketPacket.type.
+      case 'messages.update':
+        // The packet indicates delivery; the parsed message type identifies
+        // the concrete mutation. Placeholder finalization is broadcast as a
+        // `messages.update` packet containing `messages.sync.finalize`.
         final message = _parseMessage(packet.data);
         final roomSequence = _extractRoomSequence(packet.data);
         if (message == null || message.chatRoomId != _roomId) break;
@@ -609,7 +610,11 @@ class RealtimeMessageHandler {
                       ? existing.editedAt
                       : updateEvent.createdAt),
       ),
-      existing.status,
+      // A room-wide finalize event is authoritative: the server has already
+      // converted the placeholder. Keep ordinary update events at their
+      // current delivery status, but do not leave a finalized placeholder
+      // pending while the sender waits for its device-specific acknowledgement.
+      isPlaceholderFinalize ? MessageStatus.sent : existing.status,
     );
   }
 

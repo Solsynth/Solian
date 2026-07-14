@@ -516,6 +516,14 @@ class MessagesNotifier extends _$MessagesNotifier {
       onMessageUpdate: (message, roomSequence) {
         final messageWithSequence = _applyRoomSequence(message, roomSequence);
         _observeRoomSequence(roomSequence, message.createdAt);
+        if (messageWithSequence.status == MessageStatus.sent &&
+            messageWithSequence.type != 'placeholder') {
+          _pendingMessages.remove(messageWithSequence.id);
+          _pendingCache.remove(messageWithSequence.id);
+          ref
+              .read(chatRoomStateProvider(roomId).notifier)
+              .updateAttachmentProgress(messageWithSequence.id, null);
+        }
         final list = [..._currentMessages];
         final index = list.indexWhere((m) => m.id == messageWithSequence.id);
         if (index >= 0) {
@@ -1363,11 +1371,26 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       if (!result.success || result.message == null) {
         if (pendingMessageId != null) {
+          ref
+              .read(chatRoomStateProvider(roomId).notifier)
+              .updateAttachmentProgress(pendingMessageId!, null);
           final pending = _pendingMessages[pendingMessageId!];
           if (pending != null) {
             pending.status = MessageStatus.failed;
             _replaceMessage(pending.id, pending);
           }
+
+          // A room-wide messages.sync.finalize can arrive before (or instead
+          // of) the device-specific acknowledgement awaited by MessageSender.
+          // In that case the message has already been finalized by the
+          // server; do not turn it back into a failed placeholder.
+          final finalized = _currentMessages.any(
+            (message) =>
+                message.id == pendingMessageId &&
+                message.status == MessageStatus.sent &&
+                message.type != 'placeholder',
+          );
+          if (finalized) return;
         }
         showErrorAlert(result.error ?? 'Failed to send message');
         return;

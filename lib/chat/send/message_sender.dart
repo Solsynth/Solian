@@ -780,17 +780,41 @@ class MessageSender {
     final completer = Completer<SnChatMessage>();
     StreamSubscription? subscription;
 
-    subscription = ws.dataStream
-        .where((pkt) => pkt.type == 'messages.placeholder.finalize')
-        .map((pkt) => pkt.data)
-        .where((data) => data is Map<String, dynamic>)
-        .cast<Map<String, dynamic>>()
-        .listen((data) {
-          final message = _parseMessage(data);
-          if (message == null || message.id != messageId) return;
-          subscription?.cancel();
-          completer.complete(message);
-        });
+    subscription = ws.dataStream.listen((packet) {
+      final data = packet.data;
+      if (data == null) return;
+
+      final message = _parseMessage(data);
+      if (message == null) return;
+
+      if (packet.type == 'messages.placeholder.finalize' &&
+          message.id == messageId) {
+        subscription?.cancel();
+        completer.complete(message);
+        return;
+      }
+
+      // The server also broadcasts the authoritative completion as a normal
+      // message-update packet. It can arrive before the device-specific
+      // confirmation above, so treat it as a successful finalize as well.
+      if (packet.type != 'messages.update' ||
+          message.type != 'messages.sync.finalize' ||
+          message.meta['message_id']?.toString() != messageId) {
+        return;
+      }
+
+      final finalizedData = Map<String, dynamic>.from(data)
+        ..['id'] = messageId
+        ..['type'] = 'text';
+      final meta = Map<String, dynamic>.from(message.meta)
+        ..remove('message_id');
+      finalizedData['meta'] = meta;
+
+      final finalized = _parseMessage(finalizedData);
+      if (finalized == null) return;
+      subscription?.cancel();
+      completer.complete(finalized);
+    });
 
     Future.delayed(const Duration(seconds: 12), () {
       if (completer.isCompleted) return;
