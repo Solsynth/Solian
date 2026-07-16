@@ -304,6 +304,19 @@ class ChatRoomScreen extends HookConsumerWidget {
       return null;
     }, [id]);
 
+    // A global sync is also started from the room list and reconnect flows.
+    // Refresh this room from its local cache once its rows have been committed,
+    // so a long sync does not leave the open conversation visually stale.
+    useEffect(() {
+      final sub = eventBus.on<ChatMessagesSyncedEvent>().listen((event) {
+        if (!event.roomIds.contains(id)) return;
+        Future.microtask(() async {
+          await messagesNotifier.loadInitial(forceRemoteRefresh: false);
+        });
+      });
+      return sub.cancel;
+    }, [id, messagesNotifier]);
+
     useEffect(() {
       Future.microtask(() {
         ref.invalidate(chatOnlineCountProvider(id));
@@ -1175,9 +1188,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                         }
                                         chatStateNotifier.setEditingTo(null);
                                         chatStateNotifier.setReplyingTo(null);
-                                        chatStateNotifier.setForwardingTo(
-                                          null,
-                                        );
+                                        chatStateNotifier.setForwardingTo(null);
                                         chatStateNotifier.clearInput();
                                       },
                                       messageEditingTo: inputState.editingTo,

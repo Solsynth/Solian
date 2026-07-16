@@ -65,6 +65,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Set<int> _queuedMissingRoomSequences = <int>{};
   final Set<int> _inFlightMissingRoomSequences = <int>{};
   Future<void>? _missingSequenceSyncOperation;
+  Timer? _missingSequenceRetryTimer;
 
   /// Track the last offset fetched from API to prevent overlapping fetches
   /// This is separate from DB offset since we fetch in larger batches (_fetchBatchSize)
@@ -279,6 +280,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         index++;
       }
 
+      var failed = false;
       try {
         final response = await _apiClient.post(
           '/messager/chat/$roomId/sync',
@@ -292,6 +294,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           response.data as Map<String, dynamic>,
         );
       } catch (err, stackTrace) {
+        failed = true;
         Logger.root.info(
           'Failed to recover missing room sequences for room $roomId',
           err,
@@ -299,8 +302,30 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
       } finally {
         _inFlightMissingRoomSequences.removeAll(batch);
+        if (failed) {
+          // Do not silently drop a gap when a request is interrupted. Leave it
+          // queued for the next reconnect/poll/realtime recovery attempt.
+          _queuedMissingRoomSequences.addAll(batch);
+        }
+      }
+
+      // Avoid a tight retry loop while the network is unavailable, while still
+      // retrying an interrupted recovery when no later realtime event arrives.
+      if (failed) {
+        _scheduleMissingSequenceRetry();
+        return;
       }
     }
+  }
+
+  void _scheduleMissingSequenceRetry() {
+    if (_missingSequenceRetryTimer?.isActive == true) return;
+
+    _missingSequenceRetryTimer = Timer(const Duration(seconds: 3), () {
+      _missingSequenceRetryTimer = null;
+      if (!ref.mounted || _queuedMissingRoomSequences.isEmpty) return;
+      unawaited(_syncMissingRoomSequences(DateTime.now()));
+    });
   }
 
   Future<void> _applySyncedMissingSequenceMessages(
@@ -558,6 +583,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       disposed = true;
       _weakInternetPollTimer?.cancel();
       _weakInternetPollTimer = null;
+      _missingSequenceRetryTimer?.cancel();
+      _missingSequenceRetryTimer = null;
       _realtime.stopListening();
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();

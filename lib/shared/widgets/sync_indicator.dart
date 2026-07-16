@@ -12,6 +12,7 @@ class ChatSyncIndicator extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryState = ref.watch(chatSummaryProvider).isLoading;
     final syncingState = ref.watch(chatSyncingProvider);
+    final syncHint = ref.watch(chatSyncHintProvider);
     final isLoading = summaryState || syncingState;
 
     final controller = useAnimationController(
@@ -48,9 +49,24 @@ class ChatSyncIndicator extends HookConsumerWidget {
           ),
         );
       },
-      child: LinearProgressIndicator(
-        minHeight: barHeight,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LinearProgressIndicator(
+            minHeight: barHeight,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+          ),
+          if (syncingState && syncHint != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+              child: Text(
+                syncHint,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

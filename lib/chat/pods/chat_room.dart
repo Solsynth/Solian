@@ -68,6 +68,8 @@ class FlashingMessagesNotifier extends Notifier<Map<String, int>> {
 }
 
 const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
+const String _chatSyncCursorMessageIdStoreKey =
+    'chat_messages_sync_cursor_message_id';
 const String _chatRoomSyncCursorStoreKey = 'chat_rooms_sync_cursor_ms';
 const String _chatRoomEncryptionModePrefix = 'chat_room_encryption_mode_';
 
@@ -908,6 +910,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final currentUserId = ref.read(userInfoProvider).value?.id;
 
       final savedCursor = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
+      final savedCursorMessageId = prefs.getString(
+        _chatSyncCursorMessageIdStoreKey,
+      );
       final dbLatestCursor = await _getLatestMessageTimestamp(db);
       if (savedCursor <= 0 && dbLatestCursor <= 0) {
         Logger.root.info(
@@ -918,9 +923,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final currentSyncTimestamp = (savedCursor > 0 && dbLatestCursor > 0)
           ? (savedCursor < dbLatestCursor ? savedCursor : dbLatestCursor)
           : (savedCursor > 0 ? savedCursor : dbLatestCursor);
+      final currentSyncMessageId = currentSyncTimestamp == savedCursor
+          ? savedCursorMessageId
+          : null;
 
       Logger.root.info(
-        'Global sync with cursor: $currentSyncTimestamp (saved=$savedCursor, dbLatest=$dbLatestCursor)',
+        'Global sync with cursor: $currentSyncTimestamp/$currentSyncMessageId (saved=$savedCursor, dbLatest=$dbLatestCursor)',
       );
 
       // Eager sync: after one full pass, run one additional pass from the
@@ -928,12 +936,13 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       var totalSynced = 0;
       final updatedRoomIds = <String>{};
       var syncCursor = currentSyncTimestamp;
+      String? syncCursorMessageId = currentSyncMessageId;
       var eagerRound = 0;
 
       while (eagerRound < 2) {
         var roundSynced = 0;
-        var roundMaxSeenTimestamp = syncCursor;
         var pagingCursor = syncCursor;
+        String? pagingCursorMessageId = syncCursorMessageId;
         var pagesProcessed = 0;
 
         while (true) {
@@ -948,7 +957,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           // Call the global sync endpoint
           final resp = await client.post(
             '/messager/chat/sync',
-            data: {'last_sync_timestamp': pagingCursor},
+            data: {
+              'last_sync_timestamp': pagingCursor,
+              if (pagingCursorMessageId case final String messageId)
+                'last_sync_message_id': messageId,
+            },
           );
           final body = resp.data as Map<String, dynamic>;
           final rawMessages = (body['messages'] as List?) ?? const [];
@@ -972,7 +985,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           };
           final skippedCount = rawMessages.length - messages.length;
           final nextPagingCursor = currentTimestamp.millisecondsSinceEpoch;
-          final hasCursorProgress = nextPagingCursor > pagingCursor;
+          final nextPagingMessageId =
+              body['current_message_id']?.toString() ??
+              body['currentMessageId']?.toString();
+          final hasCursorProgress =
+              nextPagingCursor > pagingCursor ||
+              (nextPagingCursor == pagingCursor &&
+                  nextPagingMessageId != null &&
+                  nextPagingMessageId != pagingCursorMessageId);
 
           Logger.root.info(
             'Global sync round ${eagerRound + 1} received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
@@ -1020,10 +1040,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             );
             updatedRoomIds.add(msg.chatRoomId);
             roundSynced += 1;
-            final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-            if (createdAtMs > roundMaxSeenTimestamp) {
-              roundMaxSeenTimestamp = createdAtMs;
-            }
           }
 
           if (normalMessages.isNotEmpty) {
@@ -1034,20 +1050,38 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             }
           }
 
+          // Sync event rows are append-only records. Save them together before
+          // applying their target mutations, rather than opening one database
+          // transaction for every edit or delete in a large catch-up.
+          final eventRows = <LocalChatMessage>[
+            ...updateMessages
+                .where((message) => message.type == 'messages.update')
+                .map(
+                  (message) => LocalChatMessage.fromRemoteMessage(
+                    message,
+                    MessageStatus.sent,
+                  ),
+                ),
+            ...deleteMessages.map(
+              (message) => LocalChatMessage.fromRemoteMessage(
+                message,
+                MessageStatus.sent,
+              ),
+            ),
+          ];
+          if (eventRows.isNotEmpty) {
+            try {
+              await db.saveMessagesWithSenders(eventRows);
+            } catch (e) {
+              Logger.root.info('Error bulk-saving sync event rows: $e');
+            }
+          }
+
           for (final msg in updateMessages) {
             try {
-              if (msg.type == 'messages.update') {
-                await db.saveMessageWithSender(
-                  LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
-                );
-              }
               await _applyMessageUpdateToTarget(db, msg);
               updatedRoomIds.add(msg.chatRoomId);
               roundSynced += 1;
-              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-              if (createdAtMs > roundMaxSeenTimestamp) {
-                roundMaxSeenTimestamp = createdAtMs;
-              }
             } catch (e) {
               Logger.root.info('Error applying message update from sync: $e');
             }
@@ -1055,17 +1089,10 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
           for (final msg in deleteMessages) {
             try {
-              await db.saveMessageWithSender(
-                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
-              );
               final targetId = msg.meta['message_id']?.toString() ?? msg.id;
               await _markMessageAsDeleted(db, targetId, msg.chatRoomId);
               updatedRoomIds.add(msg.chatRoomId);
               roundSynced += 1;
-              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-              if (createdAtMs > roundMaxSeenTimestamp) {
-                roundMaxSeenTimestamp = createdAtMs;
-              }
             } catch (e) {
               Logger.root.info('Error applying message delete from sync: $e');
             }
@@ -1079,10 +1106,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               );
               updatedRoomIds.add(msg.chatRoomId);
               roundSynced += 1;
-              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
-              if (createdAtMs > roundMaxSeenTimestamp) {
-                roundMaxSeenTimestamp = createdAtMs;
-              }
             } catch (e) {
               Logger.root.info('Error saving reaction from global sync: $e');
             }
@@ -1093,6 +1116,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           if (rawMessages.isEmpty) {
             if (hasCursorProgress) {
               pagingCursor = nextPagingCursor;
+              pagingCursorMessageId = nextPagingMessageId;
             }
             break;
           }
@@ -1101,8 +1125,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           // contains data. Do not rely solely on total_count semantics.
           if (hasCursorProgress) {
             pagingCursor = nextPagingCursor;
+            pagingCursorMessageId = nextPagingMessageId;
             Logger.root.info(
-              'Continuing sync round ${eagerRound + 1} with cursor: $pagingCursor (pageRaw=${rawMessages.length}, pageValid=${messages.length}, totalHint=$totalMessages)',
+              'Continuing sync round ${eagerRound + 1} with cursor: $pagingCursor/$pagingCursorMessageId (pageRaw=${rawMessages.length}, pageValid=${messages.length}, totalHint=$totalMessages)',
             );
             await Future<void>.delayed(Duration.zero);
             continue;
@@ -1114,10 +1139,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           break;
         }
 
-        syncCursor = [
-          roundMaxSeenTimestamp,
-          pagingCursor,
-        ].reduce((a, b) => a > b ? a : b);
+        syncCursor = pagingCursor;
+        syncCursorMessageId = pagingCursorMessageId;
 
         // Stop eager pass if no new messages were synced in this round.
         if (roundSynced == 0) break;
@@ -1128,6 +1151,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       // We use max(server cursor, latest created_at seen) for monotonic progress.
       final nextCursor = syncCursor;
       await prefs.setInt(_chatSyncCursorStoreKey, nextCursor);
+      if (syncCursorMessageId != null) {
+        await prefs.setString(
+          _chatSyncCursorMessageIdStoreKey,
+          syncCursorMessageId,
+        );
+      } else {
+        await prefs.remove(_chatSyncCursorMessageIdStoreKey);
+      }
 
       Logger.root.info(
         'Global sync complete: $totalSynced messages saved (nextCursor=$nextCursor)',
