@@ -1,0 +1,5 @@
+/sqlite3.wasm
+  Content-Type: application/wasm
+
+/drift_worker.dart.js
+  Content-Type: application/javascript; charset=utf-8
