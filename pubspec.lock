@@ -545,6 +545,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  drift:
+    dependency: "direct main"
+    description:
+      name: drift
+      sha256: "84688491040b0ceb26575709a84d701c84ad4df4d8aff020adf6d85f155fb0dd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.34.2"
+  drift_flutter:
+    dependency: "direct main"
+    description:
+      name: drift_flutter
+      sha256: "91acf4bee7c3c84467cba46455aa70e5292a3b889f4582645d74f2e5a8c106f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
   dropdown_button2:
     dependency: "direct main"
     description:
@@ -3181,6 +3197,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+  sqlcipher_flutter_libs:
+    dependency: transitive
+    description:
+      name: sqlcipher_flutter_libs
+      sha256: "38d62d659d2fb8739bf25a42c9a350d1fdd6c29a5a61f13a946778ec75d27929"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0+eol"
+  sqlite3:
+    dependency: transitive
+    description:
+      name: sqlite3
+      sha256: "61c7930bebf32c552ac5808c91bf33802e66711c9216090d3b5579c9f862e80c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.0"
+  sqlite3_flutter_libs:
+    dependency: transitive
+    description:
+      name: sqlite3_flutter_libs
+      sha256: "3ed7553eee7bb368f8950f58ba29f634e06e813c029aff6a0d60862b96de8454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.0+eol"
   stack_trace:
     dependency: transitive
     description:

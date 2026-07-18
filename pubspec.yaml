@@ -89,6 +89,9 @@ dependencies:
   firebase_core: 4.10.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2951.0
+  drift: ^2.34.2
+  drift_flutter: ^0.3.1
+  # Retained only while existing on-device stores are migrated to Drift.
   objectbox: ^6.0.0-preview.1
   objectbox_flutter_libs: ^6.0.0-preview.1
   path: ^1.9.1
@@ -210,6 +213,7 @@ dev_dependencies:
   freezed: ^3.2.5
   json_serializable: ^6.13.0
   riverpod_generator: ^4.0.3
+  # Retained while lib/objectbox.g.dart is used by the data migration.
   objectbox_generator: ^6.0.0-preview.1
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
@@ -313,7 +317,7 @@ msix_config:
 dependency_overrides:
   # super_context_menu 0.9.1 pins device_info_plus <12 but livekit_client needs >=12; override to unblock
   device_info_plus: ^12.3.0
-  # open_meteo pins flat_buffers ^23; objectbox requires 25.9.23
+  # open_meteo pins flat_buffers ^23.
   flat_buffers: 25.9.23
   # protocol_handler_windows needs local patches for compile issues
   protocol_handler_windows:

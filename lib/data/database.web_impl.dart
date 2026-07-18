@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:island/data/message.dart';
 import 'package:island/stickers/models/sticker.dart';
@@ -14,6 +15,102 @@ class AppDatabase {
   final Map<String, SnRealm> _webRealmStore = {};
   final Map<String, List<SnChatGroup>> _webChatGroupStore = {};
   final Map<String, SnSticker> _webStickerLookupStore = {};
+  final Map<String, LocalChatMessage> _webMessageStore = {};
+
+  /// Serialization boundary shared with the native Drift adapter.
+  ///
+  /// Web keeps this implementation in memory, while native persists exactly
+  /// the same application contract through Drift.
+  Map<String, dynamic> exportState() => {
+    'drafts': _webDraftStore.map((id, post) => MapEntry(id, post.toJson())),
+    'secrets': Map<String, String>.from(_webKvStore),
+    'rooms': _webChatRoomStore.map((id, room) => MapEntry(id, room.toJson())),
+    'members': _webChatMemberStore.map(
+      (id, member) => MapEntry(id, member.toJson()),
+    ),
+    'realms': _webRealmStore.map((id, realm) => MapEntry(id, realm.toJson())),
+    'groups': _webChatGroupStore.map(
+      (accountId, groups) =>
+          MapEntry(accountId, groups.map((group) => group.toJson()).toList()),
+    ),
+    'stickers': _webStickerLookupStore.map(
+      (identifier, sticker) => MapEntry(identifier, sticker.toJson()),
+    ),
+    'relationships': _webRelationshipStore.map(
+      (id, relationship) => MapEntry(id, relationship.toJson()),
+    ),
+    'messages': _webMessageStore.map(
+      (id, message) => MapEntry(id, _messageToJson(message)),
+    ),
+  };
+
+  void restoreState(Map<String, dynamic> state) {
+    reset();
+    _restoreObjects<SnPost>(state['drafts'], _webDraftStore, SnPost.fromJson);
+    final secrets = state['secrets'];
+    if (secrets is Map) {
+      _webKvStore.addAll(
+        secrets.map((key, value) => MapEntry(key.toString(), value.toString())),
+      );
+    }
+    _restoreObjects<SnChatRoom>(
+      state['rooms'],
+      _webChatRoomStore,
+      SnChatRoom.fromJson,
+    );
+    _restoreObjects<SnChatMember>(
+      state['members'],
+      _webChatMemberStore,
+      SnChatMember.fromJson,
+    );
+    _restoreObjects<SnRealm>(state['realms'], _webRealmStore, SnRealm.fromJson);
+    _restoreObjects<SnSticker>(
+      state['stickers'],
+      _webStickerLookupStore,
+      SnSticker.fromJson,
+    );
+    _restoreObjects<SnRelationship>(
+      state['relationships'],
+      _webRelationshipStore,
+      SnRelationship.fromJson,
+    );
+    _restoreObjects<LocalChatMessage>(
+      state['messages'],
+      _webMessageStore,
+      _messageFromJson,
+    );
+    final groups = state['groups'];
+    if (groups is Map) {
+      for (final entry in groups.entries) {
+        final value = entry.value;
+        if (value is! List) continue;
+        _webChatGroupStore[entry.key.toString()] = value
+            .whereType<Map>()
+            .map(
+              (item) => SnChatGroup.fromJson(Map<String, dynamic>.from(item)),
+            )
+            .toList();
+      }
+    }
+  }
+
+  void _restoreObjects<T>(
+    dynamic value,
+    Map<String, T> target,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    if (value is! Map) return;
+    for (final entry in value.entries) {
+      if (entry.value is! Map) continue;
+      try {
+        target[entry.key.toString()] = fromJson(
+          Map<String, dynamic>.from(entry.value as Map),
+        );
+      } catch (_) {
+        // A corrupt cache record should never prevent the app from syncing.
+      }
+    }
+  }
 
   Future<void> close() async {}
 
@@ -26,11 +123,12 @@ class AppDatabase {
     _webRelationshipStore.clear();
     _webChatGroupStore.clear();
     _webStickerLookupStore.clear();
+    _webMessageStore.clear();
   }
 
   Future<Map<String, int>> getDatabaseStats() async {
     return {
-      'messages': 0,
+      'messages': _webMessageStore.length,
       'chatRooms': _webChatRoomStore.length,
       'chatMembers': _webChatMemberStore.length,
       'realms': _webRealmStore.length,
@@ -42,42 +140,163 @@ class AppDatabase {
 
   Future<T> transaction<T>(Future<T> Function() action) async => action();
 
-  Future<int> getLatestMessageTimestamp() async => 0;
+  Future<int> getLatestMessageTimestamp() async => _webMessageStore.values
+      .map((message) => message.createdAt.millisecondsSinceEpoch)
+      .fold<int>(0, (latest, value) => value > latest ? value : latest);
 
   Future<int> countMessagesNewerThan(String roomId, DateTime createdAt) async =>
-      0;
+      _webMessageStore.values
+          .where(
+            (message) =>
+                message.roomId == roomId &&
+                message.createdAt.isAfter(createdAt),
+          )
+          .length;
 
   Future<List<LocalChatMessage>> getMessagesForRoom(
     String roomId, {
     int offset = 0,
     int limit = 20,
-  }) async => const [];
+  }) async {
+    final messages =
+        _webMessageStore.values
+            .where((message) => message.roomId == roomId)
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return messages.skip(offset).take(limit).toList();
+  }
 
-  Future<LocalChatMessage?> getMessageById(String id) async => null;
+  Future<LocalChatMessage?> getMessageById(String id) async =>
+      _webMessageStore[id];
 
-  Future<int> saveMessage(LocalChatMessage message) async => 1;
+  Future<int> saveMessage(LocalChatMessage message) async {
+    _webMessageStore[message.id] = message;
+    return 1;
+  }
 
-  Future<int> updateMessageStatus(String id, MessageStatus status) async => 1;
+  Future<int> updateMessageStatus(String id, MessageStatus status) async {
+    final message = _webMessageStore[id];
+    if (message == null) return 0;
+    message.status = status;
+    return 1;
+  }
 
-  Future<int> deleteMessage(String id) async => 1;
+  Future<int> deleteMessage(String id) async =>
+      _webMessageStore.remove(id) == null ? 0 : 1;
 
-  Future<int> deleteMessagesForRoom(String roomId) async => 0;
+  Future<int> deleteMessagesForRoom(String roomId) async {
+    final ids = _webMessageStore.values
+        .where((message) => message.roomId == roomId)
+        .map((message) => message.id)
+        .toList();
+    for (final id in ids) {
+      _webMessageStore.remove(id);
+    }
+    return ids.length;
+  }
 
-  Future<int> getTotalMessagesForRoom(String roomId) async => 0;
+  Future<int> getTotalMessagesForRoom(String roomId) async => _webMessageStore
+      .values
+      .where((message) => message.roomId == roomId)
+      .length;
 
-  Future<Map<String, int>> getChatRoomMessageStats() async => {};
+  Future<Map<String, int>> getChatRoomMessageStats() async {
+    final stats = <String, int>{};
+    for (final message in _webMessageStore.values) {
+      stats[message.roomId] = (stats[message.roomId] ?? 0) + 1;
+    }
+    return stats;
+  }
 
   Future<List<LocalChatMessage>> searchMessages(
     String roomId,
     String query, {
     bool? withAttachments,
     Future<SnAccount?> Function(String accountId)? fetchAccount,
-  }) async => const [];
+  }) async {
+    final lower = query.toLowerCase();
+    return _webMessageStore.values.where((message) {
+      if (message.roomId != roomId) return false;
+      if (withAttachments == true && message.attachments.isEmpty) return false;
+      return query.isEmpty ||
+          (message.content ?? '').toLowerCase().contains(lower) ||
+          message.type.toLowerCase().contains(lower) ||
+          jsonEncode(message.meta).toLowerCase().contains(lower);
+    }).toList();
+  }
 
-  Future<int> saveMessageWithSender(LocalChatMessage message) async => 1;
+  Future<int> saveMessageWithSender(LocalChatMessage message) =>
+      saveMessage(message);
 
-  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async =>
-      messages.length;
+  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async {
+    for (final message in messages) {
+      await saveMessage(message);
+    }
+    return messages.length;
+  }
+
+  Map<String, dynamic> _messageToJson(LocalChatMessage message) => {
+    'id': message.id,
+    'roomId': message.roomId,
+    'senderId': message.senderId,
+    'sender': message.sender?.toJson(),
+    'data': message.data,
+    'createdAt': message.createdAt.toIso8601String(),
+    'clientMessageId': message.clientMessageId,
+    'nonce': message.nonce,
+    'status': message.status.index,
+    'content': message.content,
+    'isDeleted': message.isDeleted,
+    'updatedAt': message.updatedAt?.toIso8601String(),
+    'deletedAt': message.deletedAt?.toIso8601String(),
+    'type': message.type,
+    'meta': message.meta,
+    'membersMentioned': message.membersMentioned,
+    'editedAt': message.editedAt?.toIso8601String(),
+    'attachments': message.attachments,
+    'reactions': message.reactions,
+    'repliedMessageId': message.repliedMessageId,
+    'forwardedMessageId': message.forwardedMessageId,
+  };
+
+  LocalChatMessage _messageFromJson(Map<String, dynamic> json) {
+    DateTime? date(String key) =>
+        json[key] == null ? null : DateTime.tryParse(json[key].toString());
+    final senderJson = json['sender'];
+    return LocalChatMessage(
+      id: json['id'].toString(),
+      roomId: json['roomId'].toString(),
+      senderId: json['senderId'].toString(),
+      sender: senderJson is Map
+          ? SnChatMember.fromJson(Map<String, dynamic>.from(senderJson))
+          : null,
+      data: Map<String, dynamic>.from(json['data'] as Map? ?? const {}),
+      createdAt: DateTime.parse(json['createdAt'].toString()),
+      clientMessageId: json['clientMessageId']?.toString(),
+      nonce: json['nonce']?.toString(),
+      status: MessageStatus.values[json['status'] as int? ?? 0],
+      content: json['content']?.toString(),
+      isDeleted: json['isDeleted'] as bool?,
+      updatedAt: date('updatedAt'),
+      deletedAt: date('deletedAt'),
+      type: json['type']?.toString() ?? 'text',
+      meta: Map<String, dynamic>.from(json['meta'] as Map? ?? const {}),
+      membersMentioned: List<String>.from(
+        json['membersMentioned'] as List? ?? const [],
+      ),
+      editedAt: date('editedAt'),
+      attachments: (json['attachments'] as List? ?? const [])
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList(),
+      reactions: (json['reactions'] as List? ?? const [])
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList(),
+      repliedMessageId: json['repliedMessageId']?.toString(),
+      forwardedMessageId: json['forwardedMessageId']?.toString(),
+    );
+  }
 
   Future<void> saveChatRooms(
     List<SnChatRoom> rooms, {

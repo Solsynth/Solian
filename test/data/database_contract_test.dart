@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:island/data/database.dart' as native;
 import 'package:island/data/database.web_impl.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -36,6 +39,8 @@ SnChatGroup chatGroup(String id, int order, List<String> roomIds) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AppDatabase contract', () {
     test(
       'room refresh preserves local pinning and override removes stale rooms',
@@ -97,5 +102,18 @@ void main() {
 
       expect(result, 'complete');
     });
+  });
+
+  test('native adapter persists rooms through Drift', () async {
+    final directory = await Directory.systemTemp.createTemp('island-drift-');
+    addTearDown(() => directory.delete(recursive: true));
+
+    final first = native.AppDatabase.native(Future.value(directory.path));
+    await first.saveChatRooms([room('persisted')]);
+    await first.close();
+
+    final reopened = native.AppDatabase.native(Future.value(directory.path));
+    expect((await reopened.getChatRoomById('persisted'))?.id, 'persisted');
+    await reopened.close();
   });
 }
