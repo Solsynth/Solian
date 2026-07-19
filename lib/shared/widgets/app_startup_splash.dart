@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/server_compatibility.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
@@ -46,16 +47,23 @@ class StartupSplashScreen extends HookConsumerWidget {
       required String stageLabel,
       required ValueNotifier<String?> subtitle,
     }) async {
+      Object? lastError;
+      StackTrace? lastStackTrace;
       for (var idx = 0; idx < retryTimeouts.length; idx++) {
         final timeout = retryTimeouts[idx];
         try {
           await action(timeout);
           return;
-        } catch (e, _) {
+        } catch (e, stackTrace) {
+          lastError = e;
+          lastStackTrace = stackTrace;
           subtitle.value = 'startupRetryFailed'.tr(
             args: [stageLabel, '${idx + 1}', '${retryTimeouts.length}'],
           );
         }
+      }
+      if (lastError != null && lastStackTrace != null) {
+        Error.throwWithStackTrace(lastError, lastStackTrace);
       }
     }
 
@@ -65,16 +73,17 @@ class StartupSplashScreen extends HookConsumerWidget {
     final stages = useMemoized(
       () => <_BootstrapStage>[
         _BootstrapStage(
-          label: 'startupStageHealthCheck'.tr(),
+          label: 'startupStageCompatibilityCheck'.tr(),
           isCritical: true,
+          blocksStartupOnFailure: true,
           action: () async {
             await runWithTimeoutRetries(
-              stageLabel: 'startupStageHealthCheck'.tr(),
+              stageLabel: 'startupStageCompatibilityCheck'.tr(),
               subtitle: subtitle,
               action: (timeout) async {
                 final apiClient = ref.read(solarNetworkClientProvider);
                 final response = await apiClient.dio.get(
-                  '/health',
+                  '/meta',
                   options: Options(
                     validateStatus: (_) => true,
                     connectTimeout: timeout,
@@ -82,13 +91,22 @@ class StartupSplashScreen extends HookConsumerWidget {
                     receiveTimeout: timeout,
                   ),
                 );
-                final code = response.statusCode ?? 0;
-                if (code != 200) {
+                if (response.statusCode != 200 || response.data is! Map) {
                   throw DioException(
                     requestOptions: response.requestOptions,
                     response: response,
-                    error: 'Health check failed with status $code',
+                    error:
+                        'Metadata check failed with status ${response.statusCode}',
                   );
+                }
+                final metadata = Map<String, dynamic>.from(
+                  response.data as Map,
+                );
+                final compatibility = ServerCompatibility.fromMetadata(
+                  metadata,
+                );
+                if (!compatibility.isCompatible) {
+                  throw ServerIncompatibleException(compatibility);
                 }
               },
             );
@@ -222,7 +240,16 @@ class StartupSplashScreen extends HookConsumerWidget {
               subtitle.value = 'startupSkippedStage'.tr(args: [stage.label]);
             }
           }
-        } catch (_) {
+        } catch (error) {
+          if (stage.blocksStartupOnFailure) {
+            isBusy.value = false;
+            isErrored.value = true;
+            isDismissable.value = false;
+            subtitle.value = error is ServerIncompatibleException
+                ? 'startupServerIncompatible'.tr()
+                : 'startupServerCompatibilityCheckFailed'.tr();
+            return;
+          }
           final warning = 'startupStageFailedAfterRetries'.tr(
             args: [stage.label],
           );
@@ -562,11 +589,19 @@ class _StageInfo extends StatelessWidget {
 class _BootstrapStage {
   final String label;
   final bool isCritical;
+  final bool blocksStartupOnFailure;
   final Future<void> Function() action;
 
   const _BootstrapStage({
     required this.label,
     required this.isCritical,
+    this.blocksStartupOnFailure = false,
     required this.action,
   });
+}
+
+class ServerIncompatibleException implements Exception {
+  final ServerCompatibility compatibility;
+
+  const ServerIncompatibleException(this.compatibility);
 }
