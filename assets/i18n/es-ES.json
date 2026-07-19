@@ -3926,5 +3926,7 @@
   "showFilters": "Show filters",
   "hideFilters": "Hide filters",
   "driveIndexedEntryDescription": "Browse folders, upload files, and manage your Solar Network cloud storage.",
-  "driveUnindexedEntryDescription": "Review service attachments and move them into your organized cloud folders."
+  "driveUnindexedEntryDescription": "Review service attachments and move them into your organized cloud folders.",
+  "copyFileId": "Copiar ID del archivo",
+  "fileIdCopied": "ID del archivo copiado"
 }

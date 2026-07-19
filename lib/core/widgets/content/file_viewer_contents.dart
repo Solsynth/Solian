@@ -16,6 +16,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/core/widgets/content/image_control_overlay.dart';
+import 'package:island/core/widgets/content/image_quality_loading.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
@@ -61,8 +62,14 @@ class TextFileContent extends HookConsumerWidget {
 class ImageFileContent extends HookConsumerWidget {
   final SnCloudFile item;
   final String uri;
+  final double bottomInset;
 
-  const ImageFileContent({required this.item, required this.uri, super.key});
+  const ImageFileContent({
+    required this.item,
+    required this.uri,
+    this.bottomInset = 0,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,6 +79,18 @@ class ImageFileContent extends HookConsumerWidget {
     final hasExifData = ExifInfoOverlay.precheck(item);
     final showOriginal = useState(false);
     final showExif = useState(hasExifData);
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    final serverUrl = ref.watch(serverUrlProvider);
+    final imageProvider = CloudImageWidget.provider(
+      file: item,
+      serverUrl: serverUrl,
+      original: showOriginal.value,
+    );
+    final qualityLoad = useImageQualityLoad(
+      provider: imageProvider,
+      showOriginal: showOriginal.value,
+      reloadToken: item.id,
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) => Stack(
@@ -95,22 +114,36 @@ class ImageFileContent extends HookConsumerWidget {
                 }
               },
               child: PhotoView(
-                backgroundDecoration: BoxDecoration(color: Colors.transparent),
-                controller: photoViewController,
-                imageProvider: CloudImageWidget.provider(
-                  file: item,
-                  serverUrl: ref.watch(serverUrlProvider),
-                  original: showOriginal.value,
+                backgroundDecoration: const BoxDecoration(
+                  color: Colors.transparent,
                 ),
+                controller: photoViewController,
+                imageProvider: imageProvider,
                 customSize: Size(constraints.maxWidth, constraints.maxHeight),
                 basePosition: Alignment.center,
                 filterQuality: FilterQuality.high,
+                minScale: PhotoViewComputedScale.contained * 0.9,
+                maxScale: PhotoViewComputedScale.covered * 3,
+                initialScale: PhotoViewComputedScale.contained,
+                gaplessPlayback: true,
               ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: ImageQualityProgressBar(
+              isLoading: qualityLoad.isLoading,
+              progress: qualityLoad.progress,
+              loadingOriginal: showOriginal.value,
+              // Body already sits below the app bar / status area.
+              avoidTopSafeArea: false,
             ),
           ),
           if (showExif.value)
             Positioned(
-              bottom: MediaQuery.of(context).padding.bottom + 60,
+              bottom: safeBottom + 68 + bottomInset,
               left: 16,
               right: 16,
               child: ExifInfoOverlay(item: item),
@@ -119,7 +152,9 @@ class ImageFileContent extends HookConsumerWidget {
             photoViewController: photoViewController,
             rotation: rotation,
             showOriginal: showOriginal.value,
+            isQualityLoading: qualityLoad.isLoading,
             onToggleQuality: () {
+              qualityLoad.beginLoad();
               showOriginal.value = !showOriginal.value;
             },
             showExifInfo: showExif.value,
@@ -127,6 +162,7 @@ class ImageFileContent extends HookConsumerWidget {
               showExif.value = !showExif.value;
             },
             hasExifData: hasExifData,
+            bottomOffset: bottomInset,
           ),
         ],
       ),
@@ -137,20 +173,51 @@ class ImageFileContent extends HookConsumerWidget {
 class VideoFileContent extends HookConsumerWidget {
   final SnCloudFile item;
   final String uri;
+  final double bottomInset;
 
-  const VideoFileContent({required this.item, required this.uri, super.key});
+  const VideoFileContent({
+    required this.item,
+    required this.uri,
+    this.bottomInset = 0,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var ratio = item.ratio;
-    if (ratio == 0) ratio = 16 / 9;
+    if (ratio == 0 || ratio == null) ratio = 16 / 9;
 
-    return Center(
-      child: UniversalVideo(
-        uri: uri,
-        autoplay: true,
-        aspectRatio: ratio ?? 16 / 9,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = math.max(
+          160.0,
+          constraints.maxHeight - bottomInset - 24,
+        );
+        final availableWidth = constraints.maxWidth - 32;
+        final widthByHeight = availableHeight * ratio!;
+        final heightByWidth = availableWidth / ratio;
+        final useWidthBound = heightByWidth <= availableHeight;
+        final videoWidth = useWidthBound ? availableWidth : widthByHeight;
+        final videoHeight = useWidthBound ? heightByWidth : availableHeight;
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset > 0 ? 8 : 0),
+          child: Center(
+            child: SizedBox(
+              width: videoWidth.clamp(120.0, availableWidth),
+              height: videoHeight.clamp(120.0, availableHeight),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: UniversalVideo(
+                  uri: uri,
+                  autoplay: true,
+                  aspectRatio: ratio,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

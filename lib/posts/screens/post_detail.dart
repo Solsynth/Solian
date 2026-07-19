@@ -1300,22 +1300,21 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
     final user = ref.watch(userInfoProvider);
     final pageController = usePageController();
     final focusedIndex = useState(0);
-    final imageFiles = useMemoized(
-      () => post.attachments.where((file) => file.mimeType.startsWith('image')),
+    final mediaFiles = useMemoized(
+      () => post.attachments.where(isLightboxMedia).toList(),
       [post.attachments],
     );
 
     void openMediaAt(int index) {
       final file = post.attachments[index];
-      if (file.mimeType.startsWith('image')) {
-        final viewableFiles = imageFiles.toList();
-        final viewableIndex = viewableFiles.indexWhere(
+      if (isLightboxMedia(file)) {
+        final viewableIndex = mediaFiles.indexWhere(
           (item) => item.id == file.id,
         );
         if (viewableIndex != -1) {
           context.pushTransparentRoute(
             CloudFileLightbox(
-              items: viewableFiles,
+              items: mediaFiles,
               initialIndex: viewableIndex,
               heroTag: 'post-detail-media-${post.id}-${file.id}',
               sourcePost: post,

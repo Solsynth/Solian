@@ -3917,5 +3917,7 @@
   "showFilters": "Show filters",
   "hideFilters": "Hide filters",
   "driveIndexedEntryDescription": "Browse folders, upload files, and manage your Solar Network cloud storage.",
-  "driveUnindexedEntryDescription": "Review service attachments and move them into your organized cloud folders."
+  "driveUnindexedEntryDescription": "Review service attachments and move them into your organized cloud folders.",
+  "copyFileId": "파일 ID 복사",
+  "fileIdCopied": "파일 ID가 복사됨"
 }

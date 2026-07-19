@@ -118,12 +118,10 @@ class CloudFileActionsSheet extends ConsumerWidget {
             ),
           _ActionTile(
             icon: Symbols.content_copy,
-            title: 'copyLink'.tr(),
+            title: 'copyFileId'.tr(),
             onTap: () {
-              Clipboard.setData(
-                ClipboardData(text: item.storageUrl ?? item.id),
-              );
-              showSnackBar('linkCopied'.tr());
+              Clipboard.setData(ClipboardData(text: item.id));
+              showSnackBar('fileIdCopied'.tr());
               Navigator.pop(context);
             },
           ),

@@ -196,22 +196,21 @@ class _PostDetailMediaCarousel extends HookConsumerWidget {
     final currentIsAudio = currentFile.mimeType.startsWith('audio');
     final currentIsVideo = currentFile.mimeType.startsWith('video');
     final ratio = (currentFile.ratio?.toDouble() ?? 1.0).clamp(0.5, 2.5);
-    final imageFiles = useMemoized(
-      () => post.attachments.where((file) => file.mimeType.startsWith('image')),
+    final mediaFiles = useMemoized(
+      () => post.attachments.where(isLightboxMedia).toList(),
       [post.attachments],
     );
 
     void openMediaAt(int index) {
       final file = post.attachments[index];
-      if (file.mimeType.startsWith('image')) {
-        final viewableFiles = imageFiles.toList();
-        final viewableIndex = viewableFiles.indexWhere(
+      if (isLightboxMedia(file)) {
+        final viewableIndex = mediaFiles.indexWhere(
           (item) => item.id == file.id,
         );
         if (viewableIndex != -1) {
           context.pushTransparentRoute(
             CloudFileLightbox(
-              items: viewableFiles,
+              items: mediaFiles,
               initialIndex: viewableIndex,
               heroTag: _heroTag(file.id),
               sourcePost: post,

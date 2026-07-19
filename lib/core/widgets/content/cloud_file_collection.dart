@@ -140,7 +140,7 @@ class CloudFileList extends HookConsumerWidget {
     final viewableFiles = files
         .asMap()
         .entries
-        .where((e) => e.value.mimeType.startsWith('image') == true)
+        .where((e) => isLightboxMedia(e.value))
         .toList();
     final viewableIndex = viewableFiles.indexWhere((e) => e.key == index);
     if (viewableIndex == -1) return;
@@ -192,7 +192,7 @@ class CloudFileList extends HookConsumerWidget {
             disableZoomIn: disableZoomIn,
             sourcePost: sourcePost,
             onTap: () {
-              if (isImage) {
+              if (isLightboxMedia(file)) {
                 _openLightbox(context, i);
                 return;
               }
@@ -274,9 +274,7 @@ class CloudFileList extends HookConsumerWidget {
                                 disableZoomIn: disableZoomIn,
                                 sourcePost: sourcePost,
                                 onTap: () {
-                                  if (filesToShow[i].mimeType.startsWith(
-                                    'image',
-                                  )) {
+                                  if (isLightboxMedia(filesToShow[i])) {
                                     openLightbox(i);
                                     return;
                                   }
@@ -338,7 +336,9 @@ class CloudFileList extends HookConsumerWidget {
     if (files.length == 1) {
       final isImage = files.first.mimeType.startsWith('image');
       final isAudio = files.first.mimeType.startsWith('audio');
-      final opensInDetail = !isImage && !files.first.isFolder;
+      final opensInLightbox = isLightboxMedia(files.first);
+      final opensInDetail =
+          !opensInLightbox && !files.first.isFolder;
       final ratio = files.first.ratio as num?;
       final widgetItem = ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
@@ -360,7 +360,7 @@ class CloudFileList extends HookConsumerWidget {
               );
               return;
             }
-            if (isImage) {
+            if (opensInLightbox) {
               openLightbox(0);
               return;
             }
@@ -388,9 +388,11 @@ class CloudFileList extends HookConsumerWidget {
       );
     }
 
-    final allImages = !files.any((e) => !e.mimeType.startsWith('image'));
+    // Use the compact carousel when every attachment is lightbox-viewable
+    // (images and/or videos). Mixed with other types falls back below.
+    final allLightboxMedia = files.every(isLightboxMedia);
 
-    if (allImages) {
+    if (allLightboxMedia) {
       return ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
         child: AspectRatio(
@@ -448,8 +450,7 @@ class CloudFileList extends HookConsumerWidget {
                       );
                       return;
                     }
-                    final isImage = files[index].mimeType.startsWith('image');
-                    if (isImage) {
+                    if (isLightboxMedia(files[index])) {
                       openLightbox(index);
                       return;
                     }
@@ -486,7 +487,7 @@ class CloudFileList extends HookConsumerWidget {
                         disableZoomIn: disableZoomIn,
                         sourcePost: sourcePost,
                         onTap: () {
-                          if (files[index].mimeType.startsWith('image')) {
+                          if (isLightboxMedia(files[index])) {
                             openLightbox(index);
                             return;
                           }
