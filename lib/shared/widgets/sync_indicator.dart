@@ -8,15 +8,18 @@ import 'package:island/chat/pods/chat_summary.dart';
 class ChatSyncIndicator extends HookConsumerWidget {
   const ChatSyncIndicator({super.key});
 
+  static const double _barHeight = 3.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summaryState = ref.watch(chatSummaryProvider).isLoading;
-    final syncingState = ref.watch(chatSyncingProvider);
+    final summaryLoading = ref.watch(chatSummaryProvider).isLoading;
+    final isSyncing = ref.watch(chatSyncingProvider);
     final syncHint = ref.watch(chatSyncHintProvider);
-    final isLoading = summaryState || syncingState;
+    final isLoading = summaryLoading || isSyncing;
+    final showHint = isSyncing && syncHint != null && syncHint.isNotEmpty;
 
     final controller = useAnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 280),
     );
 
     useEffect(() {
@@ -32,8 +35,16 @@ class ChatSyncIndicator extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    const barHeight = 4.0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      height: 1.2,
+    );
 
+    // Animate the full chrome (bar + optional hint) so the label isn't
+    // clipped by a height factor sized only for the progress track.
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -42,31 +53,55 @@ class ChatSyncIndicator extends HookConsumerWidget {
           child: Align(
             alignment: Alignment.topCenter,
             heightFactor: t,
-            child: Transform.translate(
-              offset: Offset(0, (t - 1) * barHeight),
+            child: Opacity(
+              opacity: t.clamp(0.0, 1.0),
               child: child,
             ),
           ),
         );
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LinearProgressIndicator(
-            minHeight: barHeight,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          ),
-          if (syncingState && syncHint != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-              child: Text(
-                syncHint,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+      child: ColoredBox(
+        color: colorScheme.surfaceContainerLowest.withOpacity(0.92),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LinearProgressIndicator(
+              minHeight: _barHeight,
+              backgroundColor: colorScheme.surfaceContainer,
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: showHint
+                    ? Padding(
+                        key: ValueKey(syncHint),
+                        padding: const EdgeInsets.fromLTRB(16, 5, 16, 6),
+                        child: Text(
+                          syncHint,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: labelStyle,
+                        ),
+                      )
+                    : const SizedBox(
+                        key: ValueKey('sync-hint-hidden'),
+                        width: double.infinity,
+                      ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

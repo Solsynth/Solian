@@ -9,12 +9,16 @@ class DraggableOverlaySheet extends StatefulWidget {
   final List<double>? snapHeights;
   final bool useBottomSafeAreaWhenExpanded;
   final bool useBottomSafeAreaWhenCollapsed;
+  /// When true, [body] is inset from the bottom by the sheet's visible height
+  /// so content lays out above the overlay instead of under it.
+  final bool padBody;
   final Duration animationDuration;
   final Curve animationCurve;
   final Color? backgroundColor;
   final Border? border;
   final BorderRadiusGeometry borderRadius;
   final Widget? handle;
+  /// Reports the logical sheet height (without safe-area inset).
   final ValueChanged<double>? onHeightChanged;
 
   const DraggableOverlaySheet({
@@ -27,6 +31,7 @@ class DraggableOverlaySheet extends StatefulWidget {
     this.snapHeights,
     this.useBottomSafeAreaWhenExpanded = true,
     this.useBottomSafeAreaWhenCollapsed = false,
+    this.padBody = false,
     this.animationDuration = const Duration(milliseconds: 180),
     this.animationCurve = Curves.easeOutCubic,
     this.backgroundColor,
@@ -65,13 +70,25 @@ class _DraggableOverlaySheetState extends State<DraggableOverlaySheet> {
   bool get _isCollapsed => _height <= widget.minHeight + 4;
 
   List<double> get _snapHeights {
-    final configured = widget.snapHeights ?? <double>[
-      widget.minHeight,
-      widget.initialHeight,
-      widget.maxHeight,
-    ];
+    final configured = widget.snapHeights ??
+        <double>[
+          widget.minHeight,
+          widget.initialHeight,
+          widget.maxHeight,
+        ];
     final points = configured.map(_clamp).toSet().toList()..sort();
     return points;
+  }
+
+  bool _applyBottomSafeArea(double height) {
+    final collapsed = height <= widget.minHeight + 4;
+    return !collapsed
+        ? widget.useBottomSafeAreaWhenExpanded
+        : widget.useBottomSafeAreaWhenCollapsed;
+  }
+
+  double _sheetExtent(double height, double bottomInset) {
+    return height + (_applyBottomSafeArea(height) ? bottomInset : 0);
   }
 
   void _setHeight(double value) {
@@ -97,14 +114,28 @@ class _DraggableOverlaySheetState extends State<DraggableOverlaySheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final applyBottomSafeArea =
-        !_isCollapsed
-            ? widget.useBottomSafeAreaWhenExpanded
-            : widget.useBottomSafeAreaWhenCollapsed;
+    final applyBottomSafeArea = _applyBottomSafeArea(_height);
+    final sheetExtent = _sheetExtent(_height, bottomInset);
+
+    Widget body = widget.body;
+    if (widget.padBody) {
+      // Content lays out above the sheet; strip bottom safe padding so
+      // children don't double-count home-indicator space already in the sheet.
+      body = AnimatedPadding(
+        duration: widget.animationDuration,
+        curve: widget.animationCurve,
+        padding: EdgeInsets.only(bottom: sheetExtent),
+        child: MediaQuery.removePadding(
+          context: context,
+          removeBottom: true,
+          child: body,
+        ),
+      );
+    }
 
     return Stack(
       children: [
-        Positioned.fill(child: widget.body),
+        Positioned.fill(child: body),
         Positioned(
           left: 0,
           right: 0,
@@ -112,7 +143,7 @@ class _DraggableOverlaySheetState extends State<DraggableOverlaySheet> {
           child: AnimatedContainer(
             duration: widget.animationDuration,
             curve: widget.animationCurve,
-            height: _height + (applyBottomSafeArea ? bottomInset : 0),
+            height: sheetExtent,
             decoration: BoxDecoration(
               color: widget.backgroundColor ?? theme.colorScheme.surface,
               borderRadius: widget.borderRadius,

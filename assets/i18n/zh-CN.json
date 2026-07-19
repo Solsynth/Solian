@@ -4268,5 +4268,11 @@
   "driveIndexedEntryDescription": "浏览文件夹、上传文件，并管理你的 Solar Network 云存储。",
   "driveUnindexedEntryDescription": "查看服务附件，并将它们整理到云盘文件夹中。",
   "copyFileId": "复制文件 ID",
-  "fileIdCopied": "已复制文件 ID"
+  "fileIdCopied": "已复制文件 ID",
+  "chatGlobalSearchHint": "全局搜索能力有限。请使用高级筛选更清晰地描述目标，以获得更准确的结果。",
+  "chatSearchCloud": "云端",
+  "chatSearchLocal": "本地",
+  "chatSyncHistory": "正在同步聊天记录...",
+  "chatSyncHistoryProgress": "正在同步历史：已同步 {} 条（第 {} 轮）",
+  "chatSyncComplete": "同步完成：{} 条消息"
 }
