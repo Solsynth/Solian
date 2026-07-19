@@ -50,8 +50,8 @@ class _EmptyResponseAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(
     RequestOptions _,
-    Stream<Uint8List>? __,
-    Future<void>? ___,
+    Stream<Uint8List>? _,
+    Future<void>? _,
   ) async => ResponseBody.fromString(
     '[]',
     200,

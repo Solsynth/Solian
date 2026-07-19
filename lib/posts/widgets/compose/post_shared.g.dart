@@ -92,7 +92,7 @@ abstract class _$RepliesNotifier extends $Notifier<RepliesState> {
   RepliesState build(String parentId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<RepliesState, RepliesState>;
     final element =
         ref.element
@@ -102,7 +102,7 @@ abstract class _$RepliesNotifier extends $Notifier<RepliesState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 

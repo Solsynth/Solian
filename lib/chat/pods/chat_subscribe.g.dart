@@ -94,7 +94,7 @@ abstract class _$ChatSubscribeNotifier
   List<ChatActivityStatus> build(String roomId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<List<ChatActivityStatus>, List<ChatActivityStatus>>;
     final element =
@@ -105,6 +105,6 @@ abstract class _$ChatSubscribeNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

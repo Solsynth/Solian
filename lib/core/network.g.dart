@@ -48,7 +48,7 @@ abstract class _$NetworkStatusNotifier extends $Notifier<NetworkStatus> {
   NetworkStatus build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<NetworkStatus, NetworkStatus>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$NetworkStatusNotifier extends $Notifier<NetworkStatus> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

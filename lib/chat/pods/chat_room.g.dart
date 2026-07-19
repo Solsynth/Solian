@@ -37,7 +37,7 @@ final class ChatGlobalSyncNotifierProvider
 }
 
 String _$chatGlobalSyncNotifierHash() =>
-    r'bf8b7af02eb5e0b876180b9cb1a1d95b29f94c42';
+    r'92d16f1089a1bf9b3783f5ac1ac9e0bf2bed0b56';
 
 /// Global chat sync notifier that syncs messages from all chat rooms
 
@@ -45,7 +45,7 @@ abstract class _$ChatGlobalSyncNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
@@ -55,7 +55,7 @@ abstract class _$ChatGlobalSyncNotifier extends $AsyncNotifier<void> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -91,7 +91,7 @@ abstract class _$ChatRoomJoinedNotifier
   Stream<List<SnChatRoom>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<List<SnChatRoom>>, List<SnChatRoom>>;
     final element =
@@ -102,7 +102,7 @@ abstract class _$ChatRoomJoinedNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -181,7 +181,7 @@ abstract class _$ChatRoomNotifier extends $AsyncNotifier<SnChatRoom?> {
   FutureOr<SnChatRoom?> build(String? identifier);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<SnChatRoom?>, SnChatRoom?>;
     final element =
         ref.element
@@ -191,7 +191,7 @@ abstract class _$ChatRoomNotifier extends $AsyncNotifier<SnChatRoom?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -273,7 +273,7 @@ abstract class _$ChatRoomIdentityNotifier
   FutureOr<SnChatMember?> build(String? identifier);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<SnChatMember?>, SnChatMember?>;
     final element =
         ref.element
@@ -283,7 +283,7 @@ abstract class _$ChatRoomIdentityNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 

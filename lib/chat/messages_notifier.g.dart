@@ -50,7 +50,7 @@ final class MessagesNotifierProvider
   }
 }
 
-String _$messagesNotifierHash() => r'5b21887a35187fbd6c58c1dc0845f6da3ab7c2ce';
+String _$messagesNotifierHash() => r'67e217bbe118802bc1d1be799f2f008f63c0f781';
 
 final class MessagesNotifierFamily extends $Family
     with
@@ -85,7 +85,7 @@ abstract class _$MessagesNotifier
   FutureOr<List<LocalChatMessage>> build(String roomId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<LocalChatMessage>>, List<LocalChatMessage>>;
@@ -100,6 +100,6 @@ abstract class _$MessagesNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

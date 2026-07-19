@@ -40,7 +40,7 @@ abstract class _$ChatAccountStatus
   FutureOr<SnChatAccountStatus?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<SnChatAccountStatus?>, SnChatAccountStatus?>;
@@ -55,6 +55,6 @@ abstract class _$ChatAccountStatus
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

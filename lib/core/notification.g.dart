@@ -47,7 +47,7 @@ abstract class _$NotificationState extends $Notifier<List<NotificationItem>> {
   List<NotificationItem> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<List<NotificationItem>, List<NotificationItem>>;
     final element =
@@ -58,6 +58,6 @@ abstract class _$NotificationState extends $Notifier<List<NotificationItem>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

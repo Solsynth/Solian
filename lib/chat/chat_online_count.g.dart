@@ -88,7 +88,7 @@ abstract class _$ChatOnlineCountNotifier
   FutureOr<SnChatOnlineStatus> build(String chatroomId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<SnChatOnlineStatus>, SnChatOnlineStatus>;
     final element =
@@ -99,6 +99,6 @@ abstract class _$ChatOnlineCountNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
