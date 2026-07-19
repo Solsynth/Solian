@@ -14,12 +14,14 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/core/utils/format.dart';
 import 'package:island/drive/file_permissions.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -95,6 +97,8 @@ class FileDetailScreen extends HookConsumerWidget {
     }
 
     final file = currentItem;
+    final isMedia =
+        file.mimeType.startsWith('image') || file.mimeType.startsWith('video');
     final showOwnerBar =
         file.accountId.isNotEmpty && file.accountId != currentUser?.id;
     final hasContextPanel = sourcePost != null || showOwnerBar;
@@ -104,7 +108,7 @@ class FileDetailScreen extends HookConsumerWidget {
         mediaQuery.padding.top -
         mediaQuery.padding.bottom -
         kToolbarHeight;
-    final collapsedPanelHeight = hasContextPanel ? 26.0 : 0.0;
+    final collapsedPanelHeight = hasContextPanel ? 24.0 : 0.0;
     final minPanelHeight = collapsedPanelHeight;
     final maxPanelHeight = hasContextPanel
         ? (availableHeight * 0.45).clamp(180.0, 420.0)
@@ -156,16 +160,33 @@ class FileDetailScreen extends HookConsumerWidget {
           isNoBackground: true,
           appBar: AppBar(
             elevation: 0,
+            toolbarHeight: isMedia ? 64 : kToolbarHeight,
             backgroundColor: Colors.transparent,
             foregroundColor: Colors.white,
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(context).pop(),
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+            flexibleSpace: isMedia
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.55),
+                          Colors.black.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  )
+                : null,
+            leading: Center(
+              child: MediaIconButton(
+                icon: Icons.close,
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Close',
+              ),
             ),
-            title: Text(
-              file.name.isEmpty ? 'File Details' : file.name,
-              style: const TextStyle(color: Colors.white),
-            ),
+            titleSpacing: 8,
+            title: _FileTitle(file: file, isMedia: isMedia),
             actions: _buildAppBarActions(context, ref, file, showInfoSheet),
           ),
           body: LayoutBuilder(
@@ -244,47 +265,54 @@ class FileDetailScreen extends HookConsumerWidget {
       case 'image':
         if (!kIsWeb) {
           actions.add(
-            IconButton(
-              icon: const Icon(Icons.save_alt, color: Colors.white),
-              onPressed: () => ref
-                  .read(driveFileDownloaderProvider)
-                  .saveToGallery(
-                    item,
-                    useDownloadsFolder:
-                        HardwareKeyboard.instance.isShiftPressed,
-                  ),
+            Center(
+              child: MediaIconButton(
+                icon: Icons.save_alt,
+                tooltip: 'Save',
+                onPressed: () => ref
+                    .read(driveFileDownloaderProvider)
+                    .saveToGallery(
+                      item,
+                      useDownloadsFolder:
+                          HardwareKeyboard.instance.isShiftPressed,
+                    ),
+              ),
             ),
           );
         }
-        // HD/SD toggle will be handled in the image content overlay
         break;
       default:
         if (!kIsWeb) {
           actions.add(
-            IconButton(
-              icon: const Icon(Icons.save_alt, color: Colors.white),
-              onPressed: () => ref
-                  .read(driveFileDownloaderProvider)
-                  .downloadWithProgress(
-                    item,
-                    useDownloadsFolder:
-                        HardwareKeyboard.instance.isShiftPressed,
-                  ),
+            Center(
+              child: MediaIconButton(
+                icon: Icons.save_alt,
+                tooltip: 'Download',
+                onPressed: () => ref
+                    .read(driveFileDownloaderProvider)
+                    .downloadWithProgress(
+                      item,
+                      useDownloadsFolder:
+                          HardwareKeyboard.instance.isShiftPressed,
+                    ),
+              ),
             ),
           );
         }
         break;
     }
 
-    // Always add info button
+    actions.add(const Gap(6));
     actions.add(
-      IconButton(
-        icon: const Icon(Icons.info_outline, color: Colors.white),
-        onPressed: showInfoSheet,
+      Center(
+        child: MediaIconButton(
+          icon: Icons.info_outline,
+          tooltip: 'Info',
+          onPressed: showInfoSheet,
+        ),
       ),
     );
-
-    actions.add(const Gap(8));
+    actions.add(const Gap(10));
 
     return actions;
   }
@@ -293,13 +321,22 @@ class FileDetailScreen extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String serverUrl,
-    SnCloudFile item,
-  ) {
+    SnCloudFile item, {
+    double bottomInset = 0,
+  }) {
     final uri = '$serverUrl/drive/files/${item.id}';
 
     Widget content = switch (item.mimeType.split('/').firstOrNull) {
-      'image' => ImageFileContent(item: item, uri: uri),
-      'video' => VideoFileContent(item: item, uri: uri),
+      'image' => ImageFileContent(
+        item: item,
+        uri: uri,
+        bottomInset: bottomInset,
+      ),
+      'video' => VideoFileContent(
+        item: item,
+        uri: uri,
+        bottomInset: bottomInset,
+      ),
       'audio' => AudioFileContent(item: item, uri: uri),
       _ when item.mimeType.startsWith('text/') == true => TextFileContent(
         uri: uri,
@@ -328,36 +365,58 @@ class FileDetailScreen extends HookConsumerWidget {
     required ValueChanged<double> onPanelHeightChanged,
   }) {
     final hasContextPanel = sourcePost != null || showOwnerBar;
-    final content = _buildContent(context, ref, serverUrl, item);
+    // Sheet pads the body itself; media controls use the reduced height.
+    final content = _buildContent(
+      context,
+      ref,
+      serverUrl,
+      item,
+      bottomInset: 0,
+    );
     if (!hasContextPanel) return content;
+
+    final theme = Theme.of(context);
 
     return DraggableOverlaySheet(
       body: content,
+      padBody: true,
       minHeight: minPanelHeight,
       initialHeight: panelHeight,
       maxHeight: maxPanelHeight,
       snapHeights: snapPoints,
-      backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.96),
+      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.98),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      border: Border(
+        top: BorderSide(
+          color: theme.colorScheme.outline.withValues(alpha: 0.16),
+        ),
+      ),
       onHeightChanged: onPanelHeightChanged,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (sourcePost != null)
-              PostItem(
-                item: sourcePost!,
-                padding: EdgeInsets.zero,
-                isCompact: true,
-                hideAttachments: true,
-                isEmbedReply: false,
-                isShowReference: false,
-                isTextSelectable: false,
-                isTranslatable: false,
-              ),
-            if (sourcePost != null && showOwnerBar) const Gap(12),
-            if (showOwnerBar) _buildOwnerBar(context, ref, item.accountId),
-          ],
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (sourcePost != null)
+                  PostItem(
+                    item: sourcePost!,
+                    padding: EdgeInsets.zero,
+                    isCompact: true,
+                    hideAttachments: true,
+                    isEmbedReply: false,
+                    isShowReference: false,
+                    isTextSelectable: false,
+                    isTranslatable: false,
+                  ),
+                if (sourcePost != null && showOwnerBar) const Gap(12),
+                if (showOwnerBar) _buildOwnerBar(context, ref, item.accountId),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -388,8 +447,8 @@ class FileDetailScreen extends HookConsumerWidget {
                     ),
             ),
             BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-              child: Container(color: Colors.black38),
+              filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+              child: Container(color: Colors.black.withValues(alpha: 0.45)),
             ),
           ],
         ),
@@ -407,21 +466,21 @@ class FileDetailScreen extends HookConsumerWidget {
       data: (account) => Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           onTap: () =>
               context.router.push(AccountProfileRoute(name: account.name)),
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.18),
+                color: theme.colorScheme.outline.withValues(alpha: 0.14),
               ),
             ),
             child: Row(
               children: [
-                ProfilePictureWidget(file: account.profile.picture, radius: 18),
+                ProfilePictureWidget(file: account.profile.picture, radius: 16),
                 const Gap(10),
                 Expanded(
                   child: Column(
@@ -430,10 +489,11 @@ class FileDetailScreen extends HookConsumerWidget {
                     children: [
                       Text(
                         'Original uploader',
-                        style: theme.textTheme.labelMedium?.copyWith(
+                        style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      const Gap(1),
                       AccountName(
                         account: account,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -444,11 +504,10 @@ class FileDetailScreen extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                const Gap(8),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 14,
-                  color: Colors.grey,
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
@@ -459,17 +518,20 @@ class FileDetailScreen extends HookConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.18),
+            color: theme.colorScheme.outline.withValues(alpha: 0.14),
           ),
         ),
         child: Row(
           children: [
-            const SizedBox(
-              width: 36,
-              height: 36,
-              child: CircularProgressIndicator(strokeWidth: 2),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: theme.colorScheme.primary,
+              ),
             ),
             const Gap(12),
             Text('Loading uploader...', style: theme.textTheme.bodyMedium),
@@ -477,6 +539,50 @@ class FileDetailScreen extends HookConsumerWidget {
         ),
       ),
       error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _FileTitle extends StatelessWidget {
+  final SnCloudFile file;
+  final bool isMedia;
+
+  const _FileTitle({required this.file, required this.isMedia});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = file.name.isEmpty ? 'File Details' : file.name;
+    final meta = <String>[
+      if (file.mimeType.isNotEmpty) file.mimeType,
+      if (file.size > 0) formatFileSize(file.size),
+    ].join(' · ');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isMedia ? 16 : 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        if (meta.isNotEmpty)
+          Text(
+            meta,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.72),
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+      ],
     );
   }
 }

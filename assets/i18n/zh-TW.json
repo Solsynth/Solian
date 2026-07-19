@@ -4172,5 +4172,7 @@
   "showFilters": "顯示篩選",
   "hideFilters": "隱藏篩選",
   "driveIndexedEntryDescription": "瀏覽資料夾、上傳檔案，並管理你的 Solar Network 雲端儲存空間。",
-  "driveUnindexedEntryDescription": "檢視服務附件，並將它們整理到雲端資料夾中。"
+  "driveUnindexedEntryDescription": "檢視服務附件，並將它們整理到雲端資料夾中。",
+  "copyFileId": "複製檔案 ID",
+  "fileIdCopied": "已複製檔案 ID"
 }

@@ -1395,16 +1395,27 @@ class ThoughtItem extends StatelessWidget {
         final file = entry.value;
         return InkWell(
           onTap: () {
-            final isImage = file.mimeType.startsWith('image') == true;
-            if (isImage) {
-              context.pushTransparentRoute(
-                CloudFileLightbox(
-                  items: files,
-                  initialIndex: entry.key,
-                  heroTag: 'cloud-file-thought-${file.id}',
-                ),
+            if (isLightboxMedia(file)) {
+              final viewable = files
+                  .asMap()
+                  .entries
+                  .where((e) => isLightboxMedia(e.value))
+                  .toList();
+              final viewableIndex = viewable.indexWhere(
+                (e) => e.key == entry.key,
               );
-            } else if (file is SnCloudFile) {
+              if (viewableIndex != -1) {
+                context.pushTransparentRoute(
+                  CloudFileLightbox(
+                    items: viewable.map((e) => e.value).toList(),
+                    initialIndex: viewableIndex,
+                    heroTag: 'cloud-file-thought-${file.id}',
+                  ),
+                );
+                return;
+              }
+            }
+            if (file is SnCloudFile) {
               context.router.push(
                 FileDetailRoute(
                   id: file.id,

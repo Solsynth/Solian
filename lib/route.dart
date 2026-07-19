@@ -92,6 +92,8 @@ class AppRouter extends RootStackRouter {
           children: [
             // Default child route -> Chat list
             AutoRoute(page: ChatListRoute.page, path: '', initial: true),
+            // Search locally cached messages across every joined chat room.
+            AutoRoute(page: SearchAllMessagesRoute.page, path: 'search'),
             // Chat room
             AutoRoute(page: ChatRoomRoute.page, path: ':id'),
             // Chat room detail

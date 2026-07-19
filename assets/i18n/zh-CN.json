@@ -4266,5 +4266,7 @@
   "showFilters": "显示筛选",
   "hideFilters": "隐藏筛选",
   "driveIndexedEntryDescription": "浏览文件夹、上传文件，并管理你的 Solar Network 云存储。",
-  "driveUnindexedEntryDescription": "查看服务附件，并将它们整理到云盘文件夹中。"
+  "driveUnindexedEntryDescription": "查看服务附件，并将它们整理到云盘文件夹中。",
+  "copyFileId": "复制文件 ID",
+  "fileIdCopied": "已复制文件 ID"
 }
