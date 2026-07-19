@@ -32,6 +32,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/discovery/widgets/discovery_profile_sheet.dart';
 import 'package:island/discovery/widgets/friend_presence_widgets.dart';
+import 'package:island/discovery/widgets/subscribed_publishers_strip.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
@@ -751,7 +752,14 @@ class ExploreScreen extends HookConsumerWidget {
     return ExtendedRefreshIndicator(
       leadingEdgeInset: sliverRefreshInset,
       hoverRefreshLabel: 'refresh'.tr(),
-      onRefresh: usePostList ? () async {} : notifier.refresh,
+      onRefresh: () async {
+        await ref
+            .read(publishersSubscriptionsLiveProvider.notifier)
+            .refresh();
+        if (!usePostList) {
+          await notifier.refresh();
+        }
+      },
       child: CustomScrollView(
         slivers: [
           _buildExploreSliverAppBar(
@@ -771,6 +779,19 @@ class ExploreScreen extends HookConsumerWidget {
             exploreSettings: exploreSettings,
             appSettingsNotifier: appSettingsNotifier,
             isWide: false,
+          ),
+          SliverSubscribedPublishersStrip(
+            selectedPublisherNames: selectedPublishers.value,
+            onSelectedPublishersChanged: (names) {
+              applyPublisherStripSelection(
+                names: names,
+                selectedPublishers: selectedPublishers,
+                selectedCategories: selectedCategoryIds,
+                selectedTags: selectedTagIds,
+                exploreSettings: exploreSettings,
+                appSettingsNotifier: appSettingsNotifier,
+              );
+            },
           ),
           if (usePostList) ...[
             _buildPostList(
@@ -860,6 +881,9 @@ class ExploreScreen extends HookConsumerWidget {
         leadingEdgeInset: sliverRefreshInset,
         hoverRefreshLabel: 'refresh'.tr(),
         onRefresh: () async {
+          await ref
+              .read(publishersSubscriptionsLiveProvider.notifier)
+              .refresh();
           if (notifier != null) {
             await notifier.refresh();
           }
@@ -883,6 +907,19 @@ class ExploreScreen extends HookConsumerWidget {
               exploreSettings: exploreSettings,
               appSettingsNotifier: appSettingsNotifier,
               isWide: true,
+            ),
+            SliverSubscribedPublishersStrip(
+              selectedPublisherNames: selectedPublishers.value,
+              onSelectedPublishersChanged: (names) {
+                applyPublisherStripSelection(
+                  names: names,
+                  selectedPublishers: selectedPublishers,
+                  selectedCategories: selectedCategories,
+                  selectedTags: selectedTags,
+                  exploreSettings: exploreSettings,
+                  appSettingsNotifier: appSettingsNotifier,
+                );
+              },
             ),
             if (usePostList) ...[
               _buildPostList(

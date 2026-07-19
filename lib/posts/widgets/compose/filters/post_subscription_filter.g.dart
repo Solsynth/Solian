@@ -49,7 +49,7 @@ final class PublishersSubscriptionsProvider
 }
 
 String _$publishersSubscriptionsHash() =>
-    r'5cbc7ef904132cfe3b5e30b46d0d27fd3d604d4b';
+    r'ba2a2842ddbb2c9c580e34bf8d4b2af80ce01f1e';
 
 @ProviderFor(categoriesSubscriptions)
 final categoriesSubscriptionsProvider = CategoriesSubscriptionsProvider._();
@@ -91,7 +91,7 @@ final class CategoriesSubscriptionsProvider
 }
 
 String _$categoriesSubscriptionsHash() =>
-    r'31303e3ff0df36b07a5b29e797aae16f0cec5ca8';
+    r'ffff8f4c51f286bcc34b41ad1f111da76b57d616';
 
 @ProviderFor(publisherSubscriptionReadStatus)
 final publisherSubscriptionReadStatusProvider =
@@ -100,11 +100,13 @@ final publisherSubscriptionReadStatusProvider =
 final class PublisherSubscriptionReadStatusProvider
     extends
         $FunctionalProvider<
-          AsyncValue<DateTime?>,
-          DateTime?,
-          FutureOr<DateTime?>
+          AsyncValue<PublisherSubscriptionReadStatus?>,
+          PublisherSubscriptionReadStatus?,
+          FutureOr<PublisherSubscriptionReadStatus?>
         >
-    with $FutureModifier<DateTime?>, $FutureProvider<DateTime?> {
+    with
+        $FutureModifier<PublisherSubscriptionReadStatus?>,
+        $FutureProvider<PublisherSubscriptionReadStatus?> {
   PublisherSubscriptionReadStatusProvider._({
     required PublisherSubscriptionReadStatusFamily super.from,
     required String super.argument,
@@ -128,11 +130,12 @@ final class PublisherSubscriptionReadStatusProvider
 
   @$internal
   @override
-  $FutureProviderElement<DateTime?> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<PublisherSubscriptionReadStatus?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<DateTime?> create(Ref ref) {
+  FutureOr<PublisherSubscriptionReadStatus?> create(Ref ref) {
     final argument = this.argument as String;
     return publisherSubscriptionReadStatus(ref, argument);
   }
@@ -150,10 +153,14 @@ final class PublisherSubscriptionReadStatusProvider
 }
 
 String _$publisherSubscriptionReadStatusHash() =>
-    r'a9a7771f74b02f77a2466ea4eb5cd4e8b0731a35';
+    r'69290abe2e25aa73458ccd19f94512fbd5da6443';
 
 final class PublisherSubscriptionReadStatusFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<DateTime?>, String> {
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<PublisherSubscriptionReadStatus?>,
+          String
+        > {
   PublisherSubscriptionReadStatusFamily._()
     : super(
         retry: null,
