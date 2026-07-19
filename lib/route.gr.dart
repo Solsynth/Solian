@@ -2363,6 +2363,22 @@ class RelationshipRoute extends _i73.PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [_i58.SearchAllMessagesScreen]
+class SearchAllMessagesRoute extends _i73.PageRouteInfo<void> {
+  const SearchAllMessagesRoute({List<_i73.PageRouteInfo>? children})
+    : super(SearchAllMessagesRoute.name, initialChildren: children);
+
+  static const String name = 'SearchAllMessagesRoute';
+
+  static _i73.PageInfo page = _i73.PageInfo(
+    name,
+    builder: (data) {
+      return const _i58.SearchAllMessagesScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [_i58.SearchMessagesScreen]
 class SearchMessagesRoute extends _i73.PageRouteInfo<SearchMessagesRouteArgs> {
   SearchMessagesRoute({

@@ -109,6 +109,15 @@ class AppDatabase {
       fetchAccount: fetchAccount,
     ),
   );
+  Future<List<LocalChatMessage>> searchMessagesAcrossRooms(
+    String query, {
+    bool? withAttachments,
+  }) => _read(
+    () => _memory.searchMessagesAcrossRooms(
+      query,
+      withAttachments: withAttachments,
+    ),
+  );
   Future<int> saveMessageWithSender(LocalChatMessage message) =>
       _write(() => _memory.saveMessageWithSender(message));
   Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) =>

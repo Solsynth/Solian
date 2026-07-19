@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/database.dart';
@@ -895,7 +896,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   Future<void> _syncAllMessagesImpl() async {
     Logger.root.info('Starting global chat sync...');
-    ref.read(chatSyncHintProvider.notifier).set('Syncing chat history...');
+    ref.read(chatSyncHintProvider.notifier).set('chatSyncHistory'.tr());
 
     Future.microtask(() {
       if (ref.mounted) {
@@ -1000,7 +1001,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           ref
               .read(chatSyncHintProvider.notifier)
               .set(
-                'Syncing history: ${roundSynced + messages.length} in round ${eagerRound + 1}',
+                'chatSyncHistoryProgress'.tr(
+                  args: [
+                    '${roundSynced + messages.length}',
+                    '${eagerRound + 1}',
+                  ],
+                ),
               );
 
           // Save normal messages in one write transaction to avoid UI jank.
@@ -1165,7 +1171,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       );
       ref
           .read(chatSyncHintProvider.notifier)
-          .set('Sync complete: $totalSynced messages');
+          .set(
+            'chatSyncComplete'.tr(args: ['$totalSynced']),
+          );
       if (updatedRoomIds.isNotEmpty) {
         eventBus.fire(ChatMessagesSyncedEvent(roomIds: updatedRoomIds));
       }

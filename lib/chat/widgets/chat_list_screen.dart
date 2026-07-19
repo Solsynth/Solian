@@ -498,11 +498,7 @@ class _PinnedScrollArrowButton extends StatelessWidget {
               child: SizedBox(
                 width: 32,
                 height: 32,
-                child: Icon(
-                  icon,
-                  color: colorScheme.onSurface,
-                  size: 18,
-                ),
+                child: Icon(icon, color: colorScheme.onSurface, size: 18),
               ),
             ),
           ),
@@ -723,10 +719,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
                               ?.pushNotificationsMaySendForUnsubscribedRooms ==
                           false)
                         Material(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .errorContainer
-                              .withOpacity(0.35),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.errorContainer.withOpacity(0.35),
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                             child: Row(
@@ -762,9 +757,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                             .textTheme
                                             .bodySmall
                                             ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
                                               height: 1.25,
                                             ),
                                       ),
@@ -778,10 +773,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
                       // Always show pinned chats in horizontal scrollable section
                       if (pinnedItems.isNotEmpty)
                         Material(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerLow
-                              .withOpacity(0.65),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerLow.withOpacity(0.65),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             mainAxisSize: MainAxisSize.min,
@@ -848,10 +842,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
                               Divider(
                                 height: 1,
                                 thickness: 1,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outlineVariant
-                                    .withOpacity(0.45),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.outlineVariant.withOpacity(0.45),
                               ),
                             ],
                           ),
@@ -1962,6 +1955,20 @@ class ChatListWidget extends HookConsumerWidget {
                             ),
                           ],
                         ).padding(horizontal: 8),
+                        ListTile(
+                          dense: true,
+                          tileColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh.withOpacity(0.5),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                          ),
+                          leading: const Icon(Symbols.search),
+                          title: const Text('searchMessages').tr(),
+                          onTap: () => context.router.push(
+                            const SearchAllMessagesRoute(),
+                          ),
+                        ),
                         const Divider(height: 1),
                         Expanded(
                           child: ChatListBodyWidget(
@@ -2083,13 +2090,28 @@ class ChatListWidget extends HookConsumerWidget {
       ),
       body: userInfo.value == null
           ? const ResponseUnauthorizedWidget()
-          : ChatListBodyWidget(
-              isFloating: false,
-              tabController: tabController,
-              selectedTab: selectedTab,
-              chatGroups: chatGroups,
-              onChatGroupsChanged: refreshChatGroups,
-              accountId: accountId,
+          : Column(
+              children: [
+                ListTile(
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  leading: const Icon(Symbols.search),
+                  title: const Text('searchMessages').tr(),
+                  onTap: () =>
+                      context.router.push(const SearchAllMessagesRoute()),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ChatListBodyWidget(
+                    isFloating: false,
+                    tabController: tabController,
+                    selectedTab: selectedTab,
+                    chatGroups: chatGroups,
+                    onChatGroupsChanged: refreshChatGroups,
+                    accountId: accountId,
+                  ),
+                ),
+              ],
             ),
     );
   }

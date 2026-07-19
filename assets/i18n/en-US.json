@@ -4240,5 +4240,11 @@
   "driveIndexedEntryDescription": "Browse folders, upload files, and manage your Solar Network cloud storage.",
   "driveUnindexedEntryDescription": "Review service attachments and move them into your organized cloud folders.",
   "copyFileId": "Copy File ID",
-  "fileIdCopied": "File ID copied"
+  "fileIdCopied": "File ID copied",
+  "chatGlobalSearchHint": "Global search has limited ability. Use advanced filters to describe your objective more clearly to find accurate results.",
+  "chatSearchCloud": "Cloud",
+  "chatSearchLocal": "Local",
+  "chatSyncHistory": "Syncing chat history...",
+  "chatSyncHistoryProgress": "Syncing history: {} in round {}",
+  "chatSyncComplete": "Sync complete: {} messages"
 }

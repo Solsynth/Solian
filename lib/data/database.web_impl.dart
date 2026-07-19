@@ -225,6 +225,22 @@ class AppDatabase {
     }).toList();
   }
 
+  /// Searches every locally cached chat room, newest messages first.
+  Future<List<LocalChatMessage>> searchMessagesAcrossRooms(
+    String query, {
+    bool? withAttachments,
+  }) async {
+    final lower = query.toLowerCase();
+    final messages = _webMessageStore.values.where((message) {
+      if (withAttachments == true && message.attachments.isEmpty) return false;
+      return query.isEmpty ||
+          (message.content ?? '').toLowerCase().contains(lower) ||
+          message.type.toLowerCase().contains(lower) ||
+          jsonEncode(message.meta).toLowerCase().contains(lower);
+    }).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return messages;
+  }
+
   Future<int> saveMessageWithSender(LocalChatMessage message) =>
       saveMessage(message);
 
