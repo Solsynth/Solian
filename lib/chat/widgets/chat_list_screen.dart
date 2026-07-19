@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -216,9 +219,11 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final summary = ref
         .watch(chatSummaryProvider)
         .whenData((summaries) => summaries[room.id]);
+    final hasUnread = (summary.value?.unreadCount ?? 0) > 0;
 
     final userInfo = ref.watch(userInfoProvider);
     final validMembers = _getValidMembers(room, userInfo.value);
@@ -264,74 +269,246 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
       accountId: accountId,
       chatGroups: chatGroups,
       onChatGroupsChanged: onChatGroupsChanged,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 64,
-          margin: const EdgeInsets.only(right: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (isActive)
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: theme.colorScheme.primary,
-                            width: 2.5,
-                          ),
-                        ),
-                      ),
-                    ChatRoomAvatar(
-                      room: room,
-                      isDirect: isDirect,
-                      summary: summary,
-                      validMembers: validMembers,
-                      radius: 22,
-                    ),
-                    if (isOnline)
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            width: 64,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      if (isActive)
+                        Container(
+                          width: 48,
+                          height: 48,
                           decoration: BoxDecoration(
-                            color: Colors.green,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: theme.colorScheme.surface,
+                              color: colorScheme.primary,
                               width: 2,
                             ),
                           ),
                         ),
+                      ChatRoomAvatar(
+                        room: room,
+                        isDirect: isDirect,
+                        summary: summary,
+                        validMembers: validMembers,
+                        radius: isActive ? 20 : 22,
                       ),
-                  ],
+                      if (isOnline)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 11,
+                            height: 11,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF34C759),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.surface,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const Gap(4),
-              Text(
-                titleText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w500,
+                const Gap(4),
+                Text(
+                  titleText,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: hasUnread || isActive
+                        ? FontWeight.w600
+                        : FontWeight.w500,
+                    color: isActive
+                        ? colorScheme.primary
+                        : colorScheme.onSurface.withOpacity(
+                            hasUnread ? 0.95 : 0.78,
+                          ),
+                    height: 1.1,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ).center();
+    );
+  }
+}
+
+/// Horizontal list with desktop hover chevrons (same idea as cloud file gallery).
+class _HoverHorizontalScrollList extends HookWidget {
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final EdgeInsetsGeometry padding;
+  final double separatorWidth;
+
+  const _HoverHorizontalScrollList({
+    required this.itemCount,
+    required this.itemBuilder,
+    this.padding = EdgeInsets.zero,
+    this.separatorWidth = 2,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useScrollController();
+    final isHovered = useState(false);
+    final canScrollLeft = useState(false);
+    final canScrollRight = useState(false);
+
+    void updateScrollState() {
+      if (!controller.hasClients) {
+        canScrollLeft.value = false;
+        canScrollRight.value = false;
+        return;
+      }
+      final position = controller.position;
+      canScrollLeft.value = position.pixels > 0.5;
+      canScrollRight.value = position.pixels < position.maxScrollExtent - 0.5;
+    }
+
+    useEffect(() {
+      void listener() => updateScrollState();
+      controller.addListener(listener);
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateScrollState());
+      return () => controller.removeListener(listener);
+    }, [controller, itemCount, padding, separatorWidth]);
+
+    Future<void> scrollBy(double direction) async {
+      if (!controller.hasClients) return;
+      final position = controller.position;
+      final delta = math.max(position.viewportDimension * 0.75, 180.0);
+      final target = (position.pixels + delta * direction).clamp(
+        0.0,
+        position.maxScrollExtent,
+      );
+      await controller.animateTo(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    }
+
+    final scrollBehavior = ScrollConfiguration.of(context).copyWith(
+      dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.trackpad},
+    );
+
+    return MouseRegion(
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ScrollConfiguration(
+              behavior: scrollBehavior,
+              child: ListView.separated(
+                controller: controller,
+                scrollDirection: Axis.horizontal,
+                padding: padding,
+                itemCount: itemCount,
+                separatorBuilder: (_, _) => SizedBox(width: separatorWidth),
+                itemBuilder: itemBuilder,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 6,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _PinnedScrollArrowButton(
+                icon: Symbols.chevron_left,
+                isVisible: isHovered.value && canScrollLeft.value,
+                hiddenOffset: const Offset(-0.4, 0),
+                onTap: () => scrollBy(-1),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 6,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _PinnedScrollArrowButton(
+                icon: Symbols.chevron_right,
+                isVisible: isHovered.value && canScrollRight.value,
+                hiddenOffset: const Offset(0.4, 0),
+                onTap: () => scrollBy(1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PinnedScrollArrowButton extends StatelessWidget {
+  final IconData icon;
+  final bool isVisible;
+  final Offset hiddenOffset;
+  final VoidCallback onTap;
+
+  const _PinnedScrollArrowButton({
+    required this.icon,
+    required this.isVisible,
+    required this.hiddenOffset,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return IgnorePointer(
+      ignoring: !isVisible,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        offset: isVisible ? Offset.zero : hiddenOffset,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          opacity: isVisible ? 1 : 0,
+          child: Material(
+            color: colorScheme.surface.withOpacity(0.92),
+            elevation: 2,
+            shadowColor: Colors.black26,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              customBorder: const CircleBorder(),
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: Icon(
+                  icon,
+                  color: colorScheme.onSurface,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -487,6 +664,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 () => _getOnlineFriendIds(friendsOverview),
                 [friendsOverview.value],
               );
+              // Pinned strip is quick access only; rooms still appear in the main list.
               final pinnedItems = useMemoized(() {
                 final seen = <String>{};
                 final pinned = <SnChatRoom>[];
@@ -504,23 +682,13 @@ class ChatListBodyWidget extends HookConsumerWidget {
                 }
                 return pinned;
               }, [filteredItems, onlineFriendIds]);
-              final pinnedIds = useMemoized(
-                () => pinnedItems.map((e) => e.id).toSet(),
-                [pinnedItems],
-              );
-              final unpinnedItems = useMemoized(
-                () => filteredItems
-                    .where((item) => !pinnedIds.contains(item.id))
-                    .toList(),
-                [filteredItems, pinnedIds],
-              );
               final groupedSections = useMemoized(
                 () => _buildGroupedChatSections(
-                  unpinnedItems,
+                  filteredItems,
                   chatGroups,
                   summariesData,
                 ),
-                [unpinnedItems, chatGroups, summariesData],
+                [filteredItems, chatGroups, summariesData],
               );
 
               return RefreshIndicator(
@@ -554,85 +722,193 @@ class ChatListBodyWidget extends HookConsumerWidget {
                               .value
                               ?.pushNotificationsMaySendForUnsubscribedRooms ==
                           false)
-                        ListTile(
-                          leading: Icon(
-                            Symbols.notifications_off,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          title: Text(
-                            'Limited Notifications',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontWeight: FontWeight.w500,
+                        Material(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .errorContainer
+                              .withOpacity(0.35),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Symbols.notifications_off,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Limited Notifications',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.error,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Push notifications are disabled for unsubscribed rooms',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                              height: 1.25,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          subtitle: Text(
-                            'Push notifications are disabled for unsubscribed rooms',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                              fontSize: 12,
-                            ),
-                          ),
-                          dense: true,
-                          tileColor: Theme.of(
-                            context,
-                          ).colorScheme.errorContainer.withOpacity(0.3),
                         ),
                       // Always show pinned chats in horizontal scrollable section
                       if (pinnedItems.isNotEmpty)
                         Material(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHigh.withOpacity(0.8),
-                          child: SizedBox(
-                            height: 88,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 8,
-                              ),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: pinnedItems.length,
-                              itemBuilder: (context, index) {
-                                final room = pinnedItems[index];
-                                return _PinnedChatRoomTile(
-                                  room: room,
-                                  isActive: activeChatId == room.id,
-                                  isDirect: room.type == 1,
-                                  onTap: () {
-                                    ref.read(chatSummaryProvider.future).then((
-                                      summary,
-                                    ) {
-                                      if ((summary[room.id]?.unreadCount ?? 0) >
-                                          0) {
-                                        ref
-                                            .read(chatSummaryProvider.notifier)
-                                            .clearUnreadCount(room.id);
-                                      }
-                                    });
-                                    if (isWideScreen(context)) {
-                                      context.router.navigate(
-                                        ChatRoomRoute(id: room.id),
-                                      );
-                                    } else {
-                                      context.router.push(
-                                        ChatRoomRoute(id: room.id),
-                                      );
-                                    }
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerLow
+                              .withOpacity(0.65),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Height: 8 top + 48 avatar + 4 gap + ~14 label + 6 bottom
+                              SizedBox(
+                                height: 80,
+                                child: _HoverHorizontalScrollList(
+                                  // Left inset 6 + tile centers avatar in 64 → avatar at ~14,
+                                  // matching ChatRoomListTile horizontal padding.
+                                  padding: const EdgeInsets.fromLTRB(
+                                    6,
+                                    8,
+                                    6,
+                                    6,
+                                  ),
+                                  itemCount: pinnedItems.length,
+                                  separatorWidth: 2,
+                                  itemBuilder: (context, index) {
+                                    final room = pinnedItems[index];
+                                    return Align(
+                                      alignment: Alignment.topCenter,
+                                      child: _PinnedChatRoomTile(
+                                        room: room,
+                                        isActive: activeChatId == room.id,
+                                        isDirect: room.type == 1,
+                                        onTap: () {
+                                          ref
+                                              .read(chatSummaryProvider.future)
+                                              .then((summary) {
+                                                if ((summary[room.id]
+                                                            ?.unreadCount ??
+                                                        0) >
+                                                    0) {
+                                                  ref
+                                                      .read(
+                                                        chatSummaryProvider
+                                                            .notifier,
+                                                      )
+                                                      .clearUnreadCount(
+                                                        room.id,
+                                                      );
+                                                }
+                                              });
+                                          if (isWideScreen(context)) {
+                                            context.router.navigate(
+                                              ChatRoomRoute(id: room.id),
+                                            );
+                                          } else {
+                                            context.router.push(
+                                              ChatRoomRoute(id: room.id),
+                                            );
+                                          }
+                                        },
+                                        chatGroups: chatGroups,
+                                        onChatGroupsChanged:
+                                            onChatGroupsChanged,
+                                        accountId: accountId,
+                                      ),
+                                    );
                                   },
-                                  chatGroups: chatGroups,
-                                  onChatGroupsChanged: onChatGroupsChanged,
-                                  accountId: accountId,
-                                );
-                              },
-                            ),
+                                ),
+                              ),
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant
+                                    .withOpacity(0.45),
+                              ),
+                            ],
                           ),
                         ),
                       Expanded(
                         child: Builder(
                           builder: (context) {
+                            final theme = Theme.of(context);
+                            final colorScheme = theme.colorScheme;
+
+                            Widget buildSectionHeader({
+                              required Widget leading,
+                              required String title,
+                              required int totalUnread,
+                            }) {
+                              return Row(
+                                children: [
+                                  leading,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: -0.1,
+                                          ),
+                                    ),
+                                  ),
+                                  if (totalUnread > 0)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.primary,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        totalUnread > 99
+                                            ? '99+'
+                                            : totalUnread.toString(),
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: colorScheme.onPrimary,
+                                              fontWeight: FontWeight.w700,
+                                              height: 1.1,
+                                            ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            }
+
                             if (settings.groupedChatList &&
                                 selectedTabValue == 0) {
                               final children = <Widget>[];
@@ -648,57 +924,63 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                     chatGroupColorFromHex(
                                       section.group.color,
                                     ) ??
-                                    Theme.of(context).colorScheme.primary;
+                                    colorScheme.primary;
 
                                 children.add(
-                                  ExpansionTile(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withOpacity(0.5),
-                                    collapsedBackgroundColor:
-                                        Colors.transparent,
-                                    title: Row(
+                                  Theme(
+                                    data: theme.copyWith(
+                                      dividerColor: Colors.transparent,
+                                    ),
+                                    child: ExpansionTile(
+                                      backgroundColor: colorScheme
+                                          .surfaceContainerHighest
+                                          .withOpacity(0.28),
+                                      collapsedBackgroundColor:
+                                          Colors.transparent,
+                                      collapsedShape:
+                                          const RoundedRectangleBorder(),
+                                      shape: const RoundedRectangleBorder(),
+                                      tilePadding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 2,
+                                      ),
+                                      childrenPadding: EdgeInsets.zero,
+                                      title: buildSectionHeader(
+                                        leading: CircleAvatar(
+                                          radius: 15,
+                                          backgroundColor: groupColor
+                                              .withOpacity(0.14),
+                                          foregroundColor: groupColor,
+                                          child: buildChatGroupIconWidget(
+                                            section.group.icon,
+                                            color: groupColor,
+                                          ),
+                                        ),
+                                        title: section.group.name,
+                                        totalUnread: totalUnread,
+                                      ),
                                       children: [
-                                        Expanded(
-                                          child: Text(section.group.name),
-                                        ),
-                                        Badge(
-                                          isLabelVisible: totalUnread > 0,
-                                          label: Text(totalUnread.toString()),
-                                          backgroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                          textColor: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                        ),
+                                        for (final room in rooms)
+                                          buildRoomTile(room),
+                                        if (rooms.isEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              52,
+                                              4,
+                                              16,
+                                              12,
+                                            ),
+                                            child: Text(
+                                              'No rooms assigned yet',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                          ),
                                       ],
                                     ),
-                                    leading: CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: groupColor.withOpacity(
-                                        0.16,
-                                      ),
-                                      foregroundColor: groupColor,
-                                      child: buildChatGroupIconWidget(
-                                        section.group.icon,
-                                        color: groupColor,
-                                      ),
-                                    ),
-                                    tilePadding: const EdgeInsets.only(
-                                      left: 20,
-                                      right: 24,
-                                    ),
-                                    children: [
-                                      for (final room in rooms)
-                                        buildRoomTile(room),
-                                      if (rooms.isEmpty)
-                                        const ListTile(
-                                          dense: true,
-                                          title: Text('No rooms assigned yet'),
-                                        ),
-                                    ],
                                   ),
                                 );
                               }
@@ -715,45 +997,65 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                 );
 
                                 children.add(
-                                  ExpansionTile(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withOpacity(0.5),
-                                    collapsedBackgroundColor:
-                                        Colors.transparent,
-                                    title: Row(
-                                      children: [
-                                        Expanded(child: Text(realmName)),
-                                        Badge(
-                                          isLabelVisible: totalUnread > 0,
-                                          label: Text(totalUnread.toString()),
-                                          backgroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                          textColor: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
+                                  Theme(
+                                    data: theme.copyWith(
+                                      dividerColor: Colors.transparent,
+                                    ),
+                                    child: ExpansionTile(
+                                      backgroundColor: colorScheme
+                                          .surfaceContainerHighest
+                                          .withOpacity(0.28),
+                                      collapsedBackgroundColor:
+                                          Colors.transparent,
+                                      collapsedShape:
+                                          const RoundedRectangleBorder(),
+                                      shape: const RoundedRectangleBorder(),
+                                      tilePadding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 2,
+                                      ),
+                                      childrenPadding: EdgeInsets.zero,
+                                      title: buildSectionHeader(
+                                        leading: ProfilePictureWidget(
+                                          file: realm?.picture,
+                                          radius: 15,
                                         ),
+                                        title: realmName,
+                                        totalUnread: totalUnread,
+                                      ),
+                                      children: [
+                                        for (final room in rooms)
+                                          buildRoomTile(room),
                                       ],
                                     ),
-                                    leading: ProfilePictureWidget(
-                                      file: realm?.picture,
-                                      radius: 16,
-                                    ),
-                                    tilePadding: const EdgeInsets.only(
-                                      left: 20,
-                                      right: 24,
-                                    ),
-                                    children: [
-                                      for (final room in rooms)
-                                        buildRoomTile(room),
-                                    ],
                                   ),
                                 );
                               }
 
                               if (groupedSections.ungroupedRooms.isNotEmpty) {
+                                if (children.isNotEmpty) {
+                                  children.add(
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        12,
+                                        16,
+                                        4,
+                                      ),
+                                      child: Text(
+                                        'Other chats',
+                                        style: theme.textTheme.labelMedium
+                                            ?.copyWith(
+                                              color: colorScheme
+                                                  .onSurfaceVariant
+                                                  .withOpacity(0.8),
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.2,
+                                            ),
+                                      ),
+                                    ),
+                                  );
+                                }
                                 children.addAll(
                                   groupedSections.ungroupedRooms.map(
                                     buildRoomTile,
@@ -762,15 +1064,15 @@ class ChatListBodyWidget extends HookConsumerWidget {
                               }
 
                               return ListView(
-                                padding: EdgeInsets.only(bottom: 96),
+                                padding: const EdgeInsets.only(bottom: 96),
                                 children: children,
                               );
                             } else {
                               return SuperListView.builder(
-                                padding: EdgeInsets.only(bottom: 96),
-                                itemCount: unpinnedItems.length,
+                                padding: const EdgeInsets.only(bottom: 96),
+                                itemCount: filteredItems.length,
                                 itemBuilder: (context, index) {
-                                  final item = unpinnedItems[index];
+                                  final item = filteredItems[index];
                                   return buildRoomTile(item);
                                 },
                               );

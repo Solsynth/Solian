@@ -185,10 +185,7 @@ class DriveFilterBar extends HookConsumerWidget {
     void resetFilters() {
       extensionController.clear();
       onChanged(
-        DriveFileFilters(
-          order: filters.order,
-          orderDesc: filters.orderDesc,
-        ),
+        DriveFileFilters(order: filters.order, orderDesc: filters.orderDesc),
       );
     }
 
@@ -476,12 +473,8 @@ class DriveFilterBar extends HookConsumerWidget {
                             labelText: 'driveFilterExtension'.tr(),
                             hintText: 'png, pdf, zip…',
                             isDense: true,
-                            prefixIcon: const Icon(
-                              Symbols.extension,
-                              size: 18,
-                            ),
-                            suffixIcon:
-                                (filters.extension?.isNotEmpty ?? false)
+                            prefixIcon: const Icon(Symbols.extension, size: 18),
+                            suffixIcon: (filters.extension?.isNotEmpty ?? false)
                                 ? IconButton(
                                     visualDensity: const VisualDensity(
                                       horizontal: -4,
@@ -618,15 +611,31 @@ class _KindFilterChip extends StatelessWidget {
       null => 'all'.tr(),
     };
 
-    return PopupMenuButton<bool?>(
+    // PopupMenuButton considers a null result a dismissed menu and does not
+    // call onSelected, so use an explicit option for the unfiltered state.
+    return PopupMenuButton<_KindFilterOption>(
       enabled: enabled,
-      initialValue: isFolder,
+      initialValue: switch (isFolder) {
+        true => _KindFilterOption.folders,
+        false => _KindFilterOption.files,
+        null => _KindFilterOption.all,
+      },
       tooltip: 'type'.tr(),
-      onSelected: onSelected,
+      onSelected: (option) => onSelected(switch (option) {
+        _KindFilterOption.all => null,
+        _KindFilterOption.folders => true,
+        _KindFilterOption.files => false,
+      }),
       itemBuilder: (context) => [
-        PopupMenuItem(value: null, child: Text('all'.tr())),
-        PopupMenuItem(value: true, child: Text('folder'.tr())),
-        PopupMenuItem(value: false, child: Text('files'.tr())),
+        PopupMenuItem(value: _KindFilterOption.all, child: Text('all'.tr())),
+        PopupMenuItem(
+          value: _KindFilterOption.folders,
+          child: Text('folder'.tr()),
+        ),
+        PopupMenuItem(
+          value: _KindFilterOption.files,
+          child: Text('files'.tr()),
+        ),
       ],
       child: Material(
         color: isFolder != null
@@ -671,6 +680,8 @@ class _KindFilterChip extends StatelessWidget {
   }
 }
 
+enum _KindFilterOption { all, folders, files }
+
 class _MediaKindChip extends StatelessWidget {
   final DriveMediaKind? value;
   final bool enabled;
@@ -695,27 +706,42 @@ class _MediaKindChip extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final active = value != null;
 
-    return PopupMenuButton<DriveMediaKind?>(
+    return PopupMenuButton<_MediaKindFilterOption>(
       enabled: enabled,
-      initialValue: value,
+      initialValue: switch (value) {
+        DriveMediaKind.image => _MediaKindFilterOption.image,
+        DriveMediaKind.video => _MediaKindFilterOption.video,
+        DriveMediaKind.audio => _MediaKindFilterOption.audio,
+        DriveMediaKind.document => _MediaKindFilterOption.document,
+        null => _MediaKindFilterOption.all,
+      },
       tooltip: 'mimeType'.tr(),
-      onSelected: onSelected,
+      onSelected: (option) => onSelected(switch (option) {
+        _MediaKindFilterOption.all => null,
+        _MediaKindFilterOption.image => DriveMediaKind.image,
+        _MediaKindFilterOption.video => DriveMediaKind.video,
+        _MediaKindFilterOption.audio => DriveMediaKind.audio,
+        _MediaKindFilterOption.document => DriveMediaKind.document,
+      }),
       itemBuilder: (context) => [
-        PopupMenuItem(value: null, child: Text('all'.tr())),
         PopupMenuItem(
-          value: DriveMediaKind.image,
+          value: _MediaKindFilterOption.all,
+          child: Text('all'.tr()),
+        ),
+        PopupMenuItem(
+          value: _MediaKindFilterOption.image,
           child: Text('driveFilterImages'.tr()),
         ),
         PopupMenuItem(
-          value: DriveMediaKind.video,
+          value: _MediaKindFilterOption.video,
           child: Text('driveFilterVideos'.tr()),
         ),
         PopupMenuItem(
-          value: DriveMediaKind.audio,
+          value: _MediaKindFilterOption.audio,
           child: Text('driveFilterAudio'.tr()),
         ),
         PopupMenuItem(
-          value: DriveMediaKind.document,
+          value: _MediaKindFilterOption.document,
           child: Text('driveFilterDocuments'.tr()),
         ),
       ],
@@ -762,6 +788,8 @@ class _MediaKindChip extends StatelessWidget {
   }
 }
 
+enum _MediaKindFilterOption { all, image, video, audio, document }
+
 class _PoolFilterChip extends StatelessWidget {
   final List<SnFilePool> pools;
   final SnFilePool? selected;
@@ -780,15 +808,28 @@ class _PoolFilterChip extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final active = selected != null;
 
-    return PopupMenuButton<SnFilePool?>(
+    return PopupMenuButton<_PoolFilterOption>(
       enabled: enabled,
-      initialValue: selected,
+      initialValue: _PoolFilterOption(selected?.id),
       tooltip: 'filterByPool'.tr(),
-      onSelected: onSelected,
+      onSelected: (option) => onSelected(
+        option.poolId == null
+            ? null
+            : pools.cast<SnFilePool?>().firstWhere(
+                (pool) => pool?.id == option.poolId,
+                orElse: () => null,
+              ),
+      ),
       itemBuilder: (context) => [
-        PopupMenuItem(value: null, child: Text('all'.tr())),
+        PopupMenuItem(
+          value: const _PoolFilterOption(null),
+          child: Text('all'.tr()),
+        ),
         ...pools.map(
-          (pool) => PopupMenuItem(value: pool, child: Text(pool.name)),
+          (pool) => PopupMenuItem(
+            value: _PoolFilterOption(pool.id),
+            child: Text(pool.name),
+          ),
         ),
       ],
       child: Material(
@@ -837,6 +878,20 @@ class _PoolFilterChip extends StatelessWidget {
       ),
     );
   }
+}
+
+@immutable
+class _PoolFilterOption {
+  final String? poolId;
+
+  const _PoolFilterOption(this.poolId);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _PoolFilterOption && other.poolId == poolId;
+
+  @override
+  int get hashCode => poolId.hashCode;
 }
 
 class _DateFieldButton extends StatelessWidget {

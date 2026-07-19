@@ -93,6 +93,8 @@ class ChatRoomSubtitle extends HookConsumerWidget {
   final List<SnChatMember> validMembers;
   final AsyncValue<SnChatSummary?> summary;
   final Widget? subtitle;
+  final bool showTimestamp;
+  final bool emphasizeUnread;
 
   const ChatRoomSubtitle({
     super.key,
@@ -101,259 +103,243 @@ class ChatRoomSubtitle extends HookConsumerWidget {
     required this.validMembers,
     required this.summary,
     this.subtitle,
+    this.showTimestamp = true,
+    this.emphasizeUnread = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final baseUrl = ref.watch(serverUrlProvider);
     final currentUserId = ref.watch(userInfoProvider).value?.id;
 
     if (subtitle != null) return subtitle!;
 
+    final mutedStyle = theme.textTheme.bodySmall?.copyWith(
+      color: colorScheme.onSurfaceVariant.withOpacity(
+        emphasizeUnread ? 0.95 : 0.78,
+      ),
+      fontWeight: emphasizeUnread ? FontWeight.w500 : FontWeight.w400,
+      height: 1.25,
+    );
+    final hintStyle = mutedStyle?.copyWith(
+      fontStyle: FontStyle.italic,
+      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+      fontWeight: FontWeight.w400,
+    );
+    final senderStyle = mutedStyle?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: colorScheme.onSurface.withOpacity(emphasizeUnread ? 0.88 : 0.72),
+    );
+
+    Widget fallbackDescription() {
+      if (isDirect && room.description == null) {
+        return Text(
+          validMembers.map((e) => '@${e.account.name}').join(', '),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: mutedStyle,
+        );
+      }
+      return Text(
+        room.description ?? 'descriptionNone'.tr(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: mutedStyle,
+      );
+    }
+
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 220),
       layoutBuilder: (currentChild, previousChildren) => Stack(
         alignment: Alignment.centerLeft,
         children: [...previousChildren, ?currentChild],
       ),
       child: summary.when(
-        data: (data) => Container(
-          key: const ValueKey('data'),
-          child: data == null
-              ? isDirect && room.description == null
-                    ? Text(
-                        validMembers
-                            .map((e) => '@${e.account.name}')
-                            .join(', '),
+        data: (data) {
+          if (data == null || data.lastMessage == null) {
+            return Container(
+              key: const ValueKey('empty'),
+              child: fallbackDescription(),
+            );
+          }
+
+          final lastMessage = data.lastMessage!;
+          final isMentioned =
+              currentUserId != null &&
+              lastMessage.membersMentioned.contains(currentUserId);
+          final senderNick = lastMessage.sender.account.nick;
+          final resolved = resolveE2eeDisplayContentForMessage(lastMessage);
+          final textContent = resolved.content?.trim() ?? '';
+          final hasText = textContent.isNotEmpty;
+          final attachmentCount = lastMessage.attachments.length;
+          final hasAttachments = attachmentCount > 0;
+          final attachmentLabel = attachmentCount == 1
+              ? 'Attachment'
+              : '$attachmentCount attachments';
+
+          String? reactionPreview() {
+            if (lastMessage.type != 'messages.reaction.added' &&
+                lastMessage.type != 'messages.reaction.removed') {
+              return null;
+            }
+            final symbol =
+                lastMessage.meta['symbol']?.toString() ??
+                (lastMessage.meta['reaction'] is Map
+                    ? (lastMessage.meta['reaction'] as Map)['symbol']
+                          ?.toString()
+                    : null);
+            final isAdded = lastMessage.type == 'messages.reaction.added';
+            if (symbol == null || symbol.isEmpty) {
+              return isAdded ? 'Added a reaction' : 'Removed a reaction';
+            }
+            return isAdded
+                ? 'Reacted with $symbol'
+                : 'Removed reaction $symbol';
+          }
+
+          Widget buildMessagePreview() {
+            if (lastMessage.meta['redirect'] is Map) {
+              try {
+                final redirectData = SnRedirectData.fromJson(
+                  Map<String, dynamic>.from(
+                    lastMessage.meta['redirect'] as Map,
+                  ),
+                );
+                return Text(
+                  'chatRedirectedHistoryFrom'.tr(
+                    args: [redirectData.sourceRoomName],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: hintStyle,
+                );
+              } catch (_) {
+                return Text(
+                  'Forwarded a message',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: hintStyle,
+                );
+              }
+            }
+
+            final stickerMatch = RegExp(
+              r'^:([-\w]*\+[-\w]*):$',
+            ).firstMatch(textContent);
+            final stickerPlaceholder = stickerMatch?.group(1);
+            final isStickerOnly =
+                stickerPlaceholder != null && stickerPlaceholder.isNotEmpty;
+
+            if (isStickerOnly) {
+              final stickerUri =
+                  '$baseUrl/sphere/stickers/lookup/$stickerPlaceholder/open';
+              return Row(
+                children: [
+                  UniversalImage(
+                    uri: stickerUri,
+                    width: 16,
+                    height: 16,
+                    fit: BoxFit.contain,
+                    noCacheOptimization: true,
+                  ),
+                  if (hasAttachments) ...[
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        attachmentLabel,
                         maxLines: 1,
-                      )
-                    : Text(
-                        room.description ?? 'descriptionNone'.tr(),
-                        maxLines: 1,
-                      )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (data.lastMessage == null)
-                      Text(
-                        room.description ?? 'descriptionNone'.tr(),
-                        maxLines: 1,
-                      )
-                    else
-                      Row(
-                        spacing: 4,
-                        children: [
-                          Badge(
-                            label: Text(data.lastMessage!.sender.account.nick),
-                            textColor: Theme.of(context).colorScheme.onPrimary,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                          ),
-                          Expanded(
-                            child: Builder(
-                              builder: (context) {
-                                final lastMessage = data.lastMessage!;
-                                final resolved =
-                                    resolveE2eeDisplayContentForMessage(
-                                      lastMessage,
-                                    );
-                                final baseStyle = Theme.of(
-                                  context,
-                                ).textTheme.bodySmall;
-                                final hintStyle = baseStyle?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                  color: baseStyle.color?.withOpacity(0.8),
-                                );
-
-                                Text buildHint(String text) => Text(
-                                  text,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: hintStyle,
-                                );
-
-                                final textContent =
-                                    resolved.content?.trim() ?? '';
-                                final hasText = textContent.isNotEmpty;
-                                final attachmentCount =
-                                    lastMessage.attachments.length;
-                                final hasAttachments = attachmentCount > 0;
-
-                                // Redirect message preview
-                                if (lastMessage.meta['redirect'] is Map) {
-                                  try {
-                                    final redirectData =
-                                        SnRedirectData.fromJson(
-                                          Map<String, dynamic>.from(
-                                            lastMessage.meta['redirect'] as Map,
-                                          ),
-                                        );
-                                    return Text(
-                                      'chatRedirectedHistoryFrom'.tr(
-                                        args: [redirectData.sourceRoomName],
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: hintStyle,
-                                    );
-                                  } catch (_) {
-                                    return buildHint('Forwarded a message');
-                                  }
-                                }
-
-                                final stickerMatch = RegExp(
-                                  r'^:([-\w]*\+[-\w]*):$',
-                                ).firstMatch(textContent);
-                                final stickerPlaceholder = stickerMatch?.group(
-                                  1,
-                                );
-                                final isStickerOnly =
-                                    stickerPlaceholder != null &&
-                                    stickerPlaceholder.isNotEmpty;
-                                final attachmentLabel = attachmentCount == 1
-                                    ? 'Attachment'
-                                    : '$attachmentCount attachments';
-                                String? reactionPreview() {
-                                  if (lastMessage.type !=
-                                          'messages.reaction.added' &&
-                                      lastMessage.type !=
-                                          'messages.reaction.removed') {
-                                    return null;
-                                  }
-                                  final symbol =
-                                      lastMessage.meta['symbol']?.toString() ??
-                                      (lastMessage.meta['reaction'] is Map
-                                          ? (lastMessage.meta['reaction']
-                                                    as Map)['symbol']
-                                                ?.toString()
-                                          : null);
-                                  final isAdded =
-                                      lastMessage.type ==
-                                      'messages.reaction.added';
-                                  if (symbol == null || symbol.isEmpty) {
-                                    return isAdded
-                                        ? 'Added a reaction'
-                                        : 'Removed a reaction';
-                                  }
-                                  return isAdded
-                                      ? 'Reacted with $symbol'
-                                      : 'Removed reaction $symbol';
-                                }
-
-                                if (isStickerOnly && hasAttachments) {
-                                  final stickerUri =
-                                      '$baseUrl/sphere/stickers/lookup/$stickerPlaceholder/open';
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      UniversalImage(
-                                        uri: stickerUri,
-                                        width: 18,
-                                        height: 18,
-                                        fit: BoxFit.contain,
-                                        noCacheOptimization: true,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: Text(
-                                          attachmentLabel,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: hintStyle,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }
-
-                                if (isStickerOnly) {
-                                  final stickerUri =
-                                      '$baseUrl/sphere/stickers/lookup/$stickerPlaceholder/open';
-                                  return Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: UniversalImage(
-                                      uri: stickerUri,
-                                      width: 18,
-                                      height: 18,
-                                      fit: BoxFit.contain,
-                                      noCacheOptimization: true,
-                                    ),
-                                  );
-                                }
-
-                                if (hasText && hasAttachments) {
-                                  return Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(text: textContent),
-                                        TextSpan(
-                                          text: '  $attachmentLabel',
-                                          style: hintStyle,
-                                        ),
-                                      ],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: baseStyle,
-                                  );
-                                }
-
-                                if (hasAttachments) {
-                                  return buildHint(attachmentLabel);
-                                }
-
-                                final preview = hasText
-                                    ? textContent
-                                    : resolved.decryptFailed
-                                    ? 'Unable to decrypt message'
-                                    : resolved.emptyAfterDecrypt
-                                    ? 'Encrypted message'
-                                    : reactionPreview() ?? 'No message preview';
-
-                                if (!hasText) {
-                                  return buildHint(preview);
-                                }
-
-                                return Text(
-                                  preview,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: baseStyle,
-                                );
-                              },
-                            ),
-                          ),
-                          if (currentUserId != null &&
-                              data.lastMessage!.membersMentioned.contains(
-                                currentUserId,
-                              ))
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Icon(
-                                Icons.alternate_email,
-                                size: 14,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.9),
-                              ),
-                            ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              RelativeTime(
-                                context,
-                              ).format(data.lastMessage!.createdAt),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                        ],
+                        overflow: TextOverflow.ellipsis,
+                        style: hintStyle,
                       ),
+                    ),
+                  ],
+                ],
+              );
+            }
+
+            if (hasText && hasAttachments) {
+              return Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: textContent),
+                    TextSpan(text: '  $attachmentLabel', style: hintStyle),
                   ],
                 ),
-        ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: mutedStyle,
+              );
+            }
+
+            if (hasAttachments) {
+              return Text(
+                attachmentLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: hintStyle,
+              );
+            }
+
+            final preview = hasText
+                ? textContent
+                : resolved.decryptFailed
+                ? 'Unable to decrypt message'
+                : resolved.emptyAfterDecrypt
+                ? 'Encrypted message'
+                : reactionPreview() ?? 'No message preview';
+
+            return Text(
+              preview,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: hasText ? mutedStyle : hintStyle,
+            );
+          }
+
+          return Container(
+            key: const ValueKey('data'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 108),
+                        child: Text(
+                          '$senderNick: ',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: senderStyle,
+                        ),
+                      ),
+                      Expanded(child: buildMessagePreview()),
+                    ],
+                  ),
+                ),
+                if (isMentioned) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.alternate_email,
+                    size: 14,
+                    color: colorScheme.primary,
+                  ),
+                ],
+                if (showTimestamp) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    RelativeTime(context).format(lastMessage.createdAt),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
         loading: () => Container(
           key: const ValueKey('loading'),
           child: Builder(
@@ -369,20 +355,13 @@ class ChatRoomSubtitle extends HookConsumerWidget {
               }
               return Skeletonizer(
                 enabled: true,
-                child: Text(buffer.toString()),
+                child: Text(buffer.toString(), style: mutedStyle),
               );
             },
           ),
         ),
-        error: (_, _) => Container(
-          key: const ValueKey('error'),
-          child: isDirect && room.description == null
-              ? Text(
-                  validMembers.map((e) => '@${e.account.name}').join(', '),
-                  maxLines: 1,
-                )
-              : Text(room.description ?? 'descriptionNone'.tr(), maxLines: 1),
-        ),
+        error: (_, _) =>
+            Container(key: const ValueKey('error'), child: fallbackDescription()),
       ),
     );
   }
