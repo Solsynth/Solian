@@ -2245,7 +2245,7 @@ class _StorageSettingsSection extends HookConsumerWidget {
         diskSpace.value = space;
       });
       getApplicationSupportDirectory().then((dir) {
-        databasePath.value = '${dir.path}/objectbox';
+        databasePath.value = '${dir.path}/drift';
         calculateDatabaseSize().then((size) {
           databaseSize.value = size;
         });

@@ -1,35 +1,36 @@
 import 'dart:async';
 import 'package:island/data/database.web_impl.dart' as memory;
 import 'package:island/data/drift_store.dart';
-import 'package:island/data/legacy_objectbox_cleanup.dart';
+import 'package:island/data/legacy_database_cleanup.dart';
 import 'package:island/data/message.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// Native AppDatabase implementation backed by Drift.
+/// App database implementation backed by Drift on every supported platform.
 ///
 /// The app continues to use the established [AppDatabase] API while Drift owns
-/// durable storage. This deliberately starts from an empty store; old ObjectBox
-/// caches are removed through the existing Storage Settings reset action and
-/// then rebuilt by normal sync.
+/// durable storage. This deliberately starts from an empty store; legacy data
+/// can be removed through the existing Storage Settings reset action and then
+/// rebuilt by normal sync.
 class AppDatabase {
-  AppDatabase.native(this._legacyDirectoryPath)
-    : _store = _legacyDirectoryPath.then(DriftStore.new);
+  AppDatabase.native(
+    Future<String?> directoryPath, {
+    Future<String?>? legacyDirectoryPath,
+  }) : _legacyDirectoryPath = legacyDirectoryPath ?? Future.value(null),
+       _store = directoryPath.then(DriftStore.new);
 
   AppDatabase.web()
     : _legacyDirectoryPath = Future<String?>.value(null),
-      _store = null;
+      _store = Future.value(DriftStore(null));
 
   final Future<String?> _legacyDirectoryPath;
-  final Future<DriftStore>? _store;
+  final Future<DriftStore> _store;
   final memory.AppDatabase _memory = memory.AppDatabase.web();
   Future<void>? _restoreOperation;
 
   Future<void> _ensureReady() {
-    final storeFuture = _store;
-    if (storeFuture == null) return Future.value();
     return _restoreOperation ??= () async {
-      final store = await storeFuture;
+      final store = await _store;
       final state = await store.readSnapshot();
       if (state != null) _memory.restoreState(state);
     }();
@@ -44,25 +45,25 @@ class AppDatabase {
     await _ensureReady();
     final result = await action();
     final store = await _store;
-    await store?.writeSnapshot(_memory.exportState());
+    await store.writeSnapshot(_memory.exportState());
     return result;
   }
 
   Future<void> close() async {
-    await (await _store)?.close();
+    await (await _store).close();
   }
 
   Future<void> reset() async {
     await _write(() async {
       await _memory.reset();
-      await (await _store)?.clear();
+      await (await _store).clear();
     });
 
-    // The Storage Settings reset is the explicit opt-in cleanup path for the
-    // retired ObjectBox store. Drift is reopened through a new provider after
-    // resetDatabase invalidates this instance.
-    await (await _store)?.close();
-    await removeLegacyObjectBoxFiles(await _legacyDirectoryPath);
+    // Reset is the explicit opt-in cleanup path for the retired database
+    // directory. Drift is reopened through a new provider after resetDatabase
+    // invalidates this instance.
+    await (await _store).close();
+    await removeLegacyDatabaseFiles(await _legacyDirectoryPath);
   }
 
   Future<Map<String, int>> getDatabaseStats() =>
