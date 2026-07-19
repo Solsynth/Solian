@@ -552,6 +552,15 @@ class ChatDetailScreen extends HookConsumerWidget {
   }
 }
 
+enum _ChatRoomAction {
+  edit,
+  enableMls,
+  resetMls,
+  uploadGroupInfo,
+  delete,
+  leave,
+}
+
 class _ChatRoomActionMenu extends HookConsumerWidget {
   final String id;
 
@@ -569,23 +578,110 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
         isManagable && (chatRoom.value?.encryptionMode ?? 0) == 0;
     final hasMls = !canEnableMls;
 
-    return PopupMenuButton(
+    Future<void> handleAction(_ChatRoomAction action) async {
+      switch (action) {
+        case _ChatRoomAction.edit:
+          final value = await showModalBottomSheet(
+            context: context,
+            useRootNavigator: true,
+            isScrollControlled: true,
+            builder: (context) => EditChatScreen(id: id),
+          );
+          if (value != null) {
+            ref.read(chatMemberListProvider(id).notifier).refresh();
+          }
+        case _ChatRoomAction.enableMls:
+          final confirmed = await showConfirmAlert(
+            'Enable MLS encryption for this chat room? This cannot be undone.',
+            'Enable MLS',
+          );
+          if (!confirmed) return;
+          try {
+            final client = ref.read(apiClientProvider);
+            await client.post('/messager/chat/$id/mls/enable');
+            ref.invalidate(chatRoomProvider(id));
+            ref.invalidate(chatRoomJoinedProvider);
+            if (context.mounted) showSnackBar('MLS enabled successfully.');
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        case _ChatRoomAction.resetMls:
+          final confirmed = await showConfirmAlert(
+            'Reset E2EE encryption for this chat room? All members will need to re-join.',
+            'Reset E2EE',
+          );
+          if (!confirmed) return;
+          final mlsGroupId = chatRoom.value?.mlsGroupId;
+          if (mlsGroupId == null) {
+            if (context.mounted) showErrorAlert('Room has no MLS group ID');
+            return;
+          }
+          try {
+            final mlsClient = ref.read(mlsClientProvider);
+            final currentAccountId = chatIdentity.value?.accountId;
+            if (currentAccountId == null) {
+              if (context.mounted) {
+                showErrorAlert('Unable to get current account ID');
+              }
+              return;
+            }
+            await mlsClient.resetAndRebootstrapGroup(
+              roomId: id,
+              mlsGroupId: mlsGroupId,
+              creatorAccountId: currentAccountId,
+            );
+            ref.invalidate(chatRoomProvider(id));
+            if (context.mounted) showSnackBar('E2EE reset successfully.');
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        case _ChatRoomAction.uploadGroupInfo:
+          final mlsGroupId = chatRoom.value?.mlsGroupId;
+          if (mlsGroupId == null) {
+            if (context.mounted) showErrorAlert('Room has no MLS group ID');
+            return;
+          }
+          try {
+            final mlsClient = ref.read(mlsClientProvider);
+            await mlsClient.groupManager.uploadGroupInfo(mlsGroupId);
+            ref.invalidate(chatRoomMlsReadinessProvider(id));
+            if (context.mounted) {
+              showSnackBar('Group info uploaded successfully.');
+            }
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        case _ChatRoomAction.delete:
+          final confirmed = await showConfirmAlert(
+            'deleteChatRoomHint'.tr(),
+            'deleteChatRoom'.tr(),
+            isDanger: true,
+          );
+          if (!confirmed) return;
+          final client = ref.read(apiClientProvider);
+          await client.delete('/messager/chat/$id');
+          ref.invalidate(chatRoomJoinedProvider);
+          if (context.mounted) context.pop();
+        case _ChatRoomAction.leave:
+          final confirmed = await showConfirmAlert(
+            'leaveChatRoomHint'.tr(),
+            'leaveChatRoom'.tr(),
+          );
+          if (!confirmed) return;
+          final client = ref.read(apiClientProvider);
+          await client.delete('/messager/chat/$id/members/me');
+          ref.invalidate(chatRoomJoinedProvider);
+          if (context.mounted) context.pop();
+      }
+    }
+
+    return PopupMenuButton<_ChatRoomAction>(
       icon: const Icon(Icons.more_vert),
+      onSelected: handleAction,
       itemBuilder: (context) => [
         if (isManagable)
           PopupMenuItem(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                useRootNavigator: true,
-                isScrollControlled: true,
-                builder: (context) => EditChatScreen(id: id),
-              ).then((value) {
-                if (value != null) {
-                  ref.read(chatMemberListProvider(id).notifier).refresh();
-                }
-              });
-            },
+            value: _ChatRoomAction.edit,
             child: Row(
               children: [
                 Icon(
@@ -599,25 +695,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
           ),
         if (canEnableMls)
           PopupMenuItem(
-            onTap: () async {
-              final confirmed = await showConfirmAlert(
-                'Enable MLS encryption for this chat room? This cannot be undone.',
-                'Enable MLS',
-              );
-              if (!confirmed) return;
-
-              try {
-                final client = ref.watch(apiClientProvider);
-                await client.post('/messager/chat/$id/mls/enable');
-                ref.invalidate(chatRoomProvider(id));
-                ref.invalidate(chatRoomJoinedProvider);
-                if (context.mounted) {
-                  showSnackBar('MLS enabled successfully.');
-                }
-              } catch (err) {
-                showErrorAlert(err);
-              }
-            },
+            value: _ChatRoomAction.enableMls,
             child: Row(
               children: [
                 Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
@@ -628,43 +706,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
           ),
         if (hasMls)
           PopupMenuItem(
-            onTap: () async {
-              final confirmed = await showConfirmAlert(
-                'Reset E2EE encryption for this chat room? All members will need to re-join.',
-                'Reset E2EE',
-              );
-              if (!confirmed) return;
-
-              final mlsGroupId = chatRoom.value?.mlsGroupId;
-              if (mlsGroupId == null) {
-                if (context.mounted) {
-                  showErrorAlert('Room has no MLS group ID');
-                }
-                return;
-              }
-
-              try {
-                final mlsClient = ref.read(mlsClientProvider);
-                final currentAccountId = chatIdentity.value?.accountId;
-                if (currentAccountId == null) {
-                  if (context.mounted) {
-                    showErrorAlert('Unable to get current account ID');
-                  }
-                  return;
-                }
-                await mlsClient.resetAndRebootstrapGroup(
-                  roomId: id,
-                  mlsGroupId: mlsGroupId,
-                  creatorAccountId: currentAccountId,
-                );
-                ref.invalidate(chatRoomProvider(id));
-                if (context.mounted) {
-                  showSnackBar('E2EE reset successfully.');
-                }
-              } catch (err) {
-                showErrorAlert(err);
-              }
-            },
+            value: _ChatRoomAction.resetMls,
             child: Row(
               children: [
                 Icon(
@@ -678,26 +720,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
           ),
         if (hasMls)
           PopupMenuItem(
-            onTap: () async {
-              final mlsGroupId = chatRoom.value?.mlsGroupId;
-              if (mlsGroupId == null) {
-                if (context.mounted) {
-                  showErrorAlert('Room has no MLS group ID');
-                }
-                return;
-              }
-
-              try {
-                final mlsClient = ref.read(mlsClientProvider);
-                await mlsClient.groupManager.uploadGroupInfo(mlsGroupId);
-                ref.invalidate(chatRoomMlsReadinessProvider(id));
-                if (context.mounted) {
-                  showSnackBar('Group info uploaded successfully.');
-                }
-              } catch (err) {
-                showErrorAlert(err);
-              }
-            },
+            value: _ChatRoomAction.uploadGroupInfo,
             child: Row(
               children: [
                 Icon(
@@ -711,6 +734,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
           ),
         if (isManagable)
           PopupMenuItem(
+            value: _ChatRoomAction.delete,
             child: Row(
               children: [
                 const Icon(Icons.delete, color: Colors.red),
@@ -721,25 +745,10 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                 ).tr(),
               ],
             ),
-            onTap: () {
-              showConfirmAlert(
-                'deleteChatRoomHint'.tr(),
-                'deleteChatRoom'.tr(),
-                isDanger: true,
-              ).then((confirm) async {
-                if (confirm) {
-                  final client = ref.watch(apiClientProvider);
-                  await client.delete('/messager/chat/$id');
-                  ref.invalidate(chatRoomJoinedProvider);
-                  if (context.mounted) {
-                    context.pop();
-                  }
-                }
-              });
-            },
           )
         else
           PopupMenuItem(
+            value: _ChatRoomAction.leave,
             child: Row(
               children: [
                 Icon(
@@ -753,21 +762,6 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                 ).tr(),
               ],
             ),
-            onTap: () {
-              showConfirmAlert(
-                'leaveChatRoomHint'.tr(),
-                'leaveChatRoom'.tr(),
-              ).then((confirm) async {
-                if (confirm) {
-                  final client = ref.watch(apiClientProvider);
-                  await client.delete('/messager/chat/$id/members/me');
-                  ref.invalidate(chatRoomJoinedProvider);
-                  if (context.mounted) {
-                    context.pop();
-                  }
-                }
-              });
-            },
           ),
       ],
     );
