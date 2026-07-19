@@ -26,6 +26,8 @@ import 'package:collection/collection.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 OverlayEntry? _callOverlayEntry;
+bool _callOverlayInsertionScheduled = false;
+SnChatRoom? _pendingCallOverlayRoom;
 final ProviderContainer _overlayContainer = ProviderContainer();
 
 // Track if the full-screen CallScreen is active to prevent overlay from showing
@@ -156,21 +158,48 @@ void showCallOverlay(SnChatRoom room) {
     return;
   }
 
-  final state = _overlayContainer.read(_callOverlayStateProvider);
-  _overlayContainer.read(_callOverlayStateProvider.notifier).setRoom(room);
+  _pendingCallOverlayRoom = room;
+  if (_callOverlayInsertionScheduled) return;
+  _callOverlayInsertionScheduled = true;
 
-  _callOverlayEntry = OverlayEntry(
-    builder: (context) => _CallOverlayPanel(
-      initialPosition: state.position,
-      initialSize: state.size,
-      initialExpanded: state.isExpanded,
-      initialRoom: room,
-    ),
-  );
-  globalOverlay.currentState?.insert(_callOverlayEntry!);
+  // This can be called from provider listeners as a pointer event is being
+  // handled. Insert at the start of the next frame so layout completes before
+  // the overlay is hit-tested.
+  WidgetsBinding.instance.scheduleFrameCallback((_) {
+    _callOverlayInsertionScheduled = false;
+    final pendingRoom = _pendingCallOverlayRoom;
+    _pendingCallOverlayRoom = null;
+    if (pendingRoom == null || _isCallScreenActive) return;
+
+    if (_callOverlayEntry != null) {
+      _overlayContainer
+          .read(_callOverlayStateProvider.notifier)
+          .setRoom(pendingRoom);
+      _callOverlayEntry?.markNeedsBuild();
+      return;
+    }
+
+    final overlay = globalOverlay.currentState;
+    if (overlay == null) return;
+
+    final state = _overlayContainer.read(_callOverlayStateProvider);
+    _overlayContainer
+        .read(_callOverlayStateProvider.notifier)
+        .setRoom(pendingRoom);
+    _callOverlayEntry = OverlayEntry(
+      builder: (context) => _CallOverlayPanel(
+        initialPosition: state.position,
+        initialSize: state.size,
+        initialExpanded: state.isExpanded,
+        initialRoom: pendingRoom,
+      ),
+    );
+    overlay.insert(_callOverlayEntry!);
+  });
 }
 
 void hideCallOverlay() {
+  _pendingCallOverlayRoom = null;
   _callOverlayEntry?.remove();
   _callOverlayEntry = null;
 }

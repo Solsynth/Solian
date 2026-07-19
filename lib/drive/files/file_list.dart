@@ -43,49 +43,6 @@ class _DriveFileTab {
   const _DriveFileTab({required this.id, required this.mode, this.file});
 }
 
-class _DriveAdvancedSearchSummary {
-  final String? usage;
-  final String? applicationType;
-
-  const _DriveAdvancedSearchSummary({
-    required this.usage,
-    required this.applicationType,
-  });
-}
-
-_DriveAdvancedSearchSummary _parseDriveAdvancedSearchSummary(String? input) {
-  if (input == null || input.trim().isEmpty) {
-    return const _DriveAdvancedSearchSummary(
-      usage: null,
-      applicationType: null,
-    );
-  }
-
-  String? usage;
-  String? applicationType;
-  for (final term in input.trim().split(RegExp(r'\s+'))) {
-    final separatorIndex = term.indexOf(':');
-    if (separatorIndex <= 0 || separatorIndex == term.length - 1) continue;
-
-    final key = term.substring(0, separatorIndex);
-    final value = term.substring(separatorIndex + 1);
-    switch (key) {
-      case 'usage':
-        usage = value;
-        break;
-      case 'applicationType':
-      case 'application_type':
-        applicationType = value;
-        break;
-    }
-  }
-
-  return _DriveAdvancedSearchSummary(
-    usage: usage,
-    applicationType: applicationType,
-  );
-}
-
 @RoutePage()
 class FileListScreen extends HookConsumerWidget {
   const FileListScreen({super.key});
@@ -98,6 +55,7 @@ class FileListScreen extends HookConsumerWidget {
     final tabs = useState<List<_DriveFileTab>>([]);
     final activeTabId = useState<String?>(null);
     final showSidebar = useState<bool>(false);
+    final showFilters = useState(true);
     final dragging = useState(false);
     final searchDebounceTimer = useRef<Timer?>(null);
 
@@ -140,7 +98,11 @@ class FileListScreen extends HookConsumerWidget {
       pathStates[id] = ValueNotifier('/');
       modeStates[id] = ValueNotifier(mode);
       poolStates[id] = ValueNotifier(null);
-      viewModeStates[id] = ValueNotifier(FileListViewMode.list);
+      viewModeStates[id] = ValueNotifier(
+        mode == FileListMode.normal
+            ? FileListViewMode.columns
+            : FileListViewMode.list,
+      );
       selectionModeStates[id] = ValueNotifier(false);
       selectedFileIdsStates[id] = ValueNotifier(<String>{});
       visibleFileIdsStates[id] = ValueNotifier(<String>{});
@@ -185,7 +147,7 @@ class FileListScreen extends HookConsumerWidget {
       pathStates[id] = ValueNotifier(normalizedPath);
       modeStates[id] = ValueNotifier(FileListMode.normal);
       poolStates[id] = ValueNotifier(null);
-      viewModeStates[id] = ValueNotifier(FileListViewMode.list);
+      viewModeStates[id] = ValueNotifier(FileListViewMode.columns);
       selectionModeStates[id] = ValueNotifier(false);
       selectedFileIdsStates[id] = ValueNotifier(<String>{});
       visibleFileIdsStates[id] = ValueNotifier(<String>{});
@@ -241,7 +203,7 @@ class FileListScreen extends HookConsumerWidget {
       visibleFileIdsStates.remove(tabId)?.dispose();
       recycledStates.remove(tabId)?.dispose();
       queryStates.remove(tabId)?.dispose();
-      ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+      invalidateIndexedDriveViews(ref, tabId);
       ref.invalidate(unindexedFileListFamilyProvider(tabId));
 
       if (activeTabId.value != tabId) return;
@@ -332,7 +294,6 @@ class FileListScreen extends HookConsumerWidget {
     );
     final recycledValue = useValueListenable(recycled ?? fallbackRecycled);
     final queryValue = useValueListenable(query ?? fallbackQuery);
-    final parsedSearch = _parseDriveAdvancedSearchSummary(queryValue);
     final searchController = useTextEditingController(text: queryValue ?? '');
     final indexedListState = activeTab == null
         ? null
@@ -431,6 +392,13 @@ class FileListScreen extends HookConsumerWidget {
                     onAddIndexedTab: () => createTab(FileListMode.normal),
                     onAddUnindexedTab: () => createTab(FileListMode.unindexed),
                   ),
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withOpacity(0.55),
+                  ),
                   Expanded(
                     child: PageTransitionSwitcher(
                       reverse: false,
@@ -487,6 +455,7 @@ class FileListScreen extends HookConsumerWidget {
                               quota: quota,
                               currentPath: currentPath,
                               selectedPool: selectedPool,
+                              showFilters: showFilters.value,
                               onOpenFolderInNewTab: openFolderTab,
                               onPickAndUpload: () => _pickAndUploadFile(
                                 ref,
@@ -543,16 +512,19 @@ class FileListScreen extends HookConsumerWidget {
                       if (visibleFileIds == null || selectedFileIds == null) {
                         return;
                       }
-                      if (visibleFileIdsValue
+                      if (visibleFileIdsValue.isEmpty) return;
+                      final allSelected = visibleFileIdsValue
                           .difference(selectedFileIdsValue)
-                          .isEmpty) {
-                        selectedFileIds.value = Set<String>.from(
-                          selectedFileIds.value,
-                        )..removeAll(visibleFileIdsValue);
+                          .isEmpty;
+                      if (allSelected) {
+                        selectedFileIds.value = selectedFileIdsValue.difference(
+                          visibleFileIdsValue,
+                        );
                       } else {
-                        selectedFileIds.value = Set<String>.from(
-                          selectedFileIds.value,
-                        )..addAll(visibleFileIdsValue);
+                        selectedFileIds.value = {
+                          ...selectedFileIdsValue,
+                          ...visibleFileIdsValue,
+                        };
                       }
                     },
                     onDownload: selectedFileIdsValue.isEmpty
@@ -593,15 +565,15 @@ class FileListScreen extends HookConsumerWidget {
                               selectedFileIds?.value = <String>{};
                               visibleFileIds?.value = <String>{};
                               isSelectionMode?.value = false;
-                              ref.invalidate(
-                                modeValue == FileListMode.normal
-                                    ? indexedCloudFileListFamilyProvider(
-                                        activeTab!.id,
-                                      )
-                                    : unindexedFileListFamilyProvider(
-                                        activeTab!.id,
-                                      ),
-                              );
+                              if (modeValue == FileListMode.normal) {
+                                invalidateIndexedDriveViews(ref, activeTab!.id);
+                              } else {
+                                ref.invalidate(
+                                  unindexedFileListFamilyProvider(
+                                    activeTab!.id,
+                                  ),
+                                );
+                              }
                               showSnackBar(
                                 'deletedFilesCount'.tr(
                                   args: [count.toString()],
@@ -622,7 +594,6 @@ class FileListScreen extends HookConsumerWidget {
                     totalMatches: activeTab?.file == null
                         ? activeTotalCount
                         : null,
-                    advancedSearch: parsedSearch,
                     onTapDetails: () => _showUsageSheet(context, usage, quota),
                   ),
           ],
@@ -731,6 +702,19 @@ class FileListScreen extends HookConsumerWidget {
           ),
         ),
         actions: [
+          // Filter panel toggle (file browser tabs only)
+          IconButton(
+            icon: Icon(
+              showFilters.value ? Symbols.filter_list_off : Symbols.filter_list,
+            ),
+            onPressed: activeTab == null || activeTab.file != null
+                ? null
+                : () => showFilters.value = !showFilters.value,
+            tooltip: showFilters.value
+                ? 'hideFilters'.tr()
+                : 'showFilters'.tr(),
+          ),
+
           // Selection mode toggle
           IconButton(
             icon: Icon(
@@ -946,7 +930,7 @@ class FileListScreen extends HookConsumerWidget {
       });
     }
 
-    ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+    invalidateIndexedDriveViews(ref, tabId);
   }
 
   Future<void> _uploadDroppedFiles(
@@ -996,7 +980,7 @@ class FileListScreen extends HookConsumerWidget {
       completer.future
           .then((uploadedFile) {
             if (uploadedFile != null) {
-              ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+              invalidateIndexedDriveViews(ref, tabId);
             }
           })
           .catchError((error) {
@@ -1078,7 +1062,7 @@ class FileListScreen extends HookConsumerWidget {
                     if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
                     }
-                    ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+                    invalidateIndexedDriveViews(ref, tabId);
                     showSnackBar('folderCreated'.tr());
                   } catch (e) {
                     if (context.mounted) {
@@ -1121,9 +1105,7 @@ class FileListScreen extends HookConsumerWidget {
                         if (dialogContext.mounted) {
                           Navigator.of(dialogContext).pop();
                         }
-                        ref.invalidate(
-                          indexedCloudFileListFamilyProvider(tabId),
-                        );
+                        invalidateIndexedDriveViews(ref, tabId);
                         showSnackBar('folderCreated'.tr());
                       } catch (e) {
                         if (context.mounted) {
@@ -1255,9 +1237,8 @@ class _DriveTabStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: colorScheme.surfaceContainerLow.withOpacity(0.8),
+      color: Colors.transparent,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -1492,112 +1473,174 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: Card(
-          margin: const EdgeInsets.all(24),
-          child: Padding(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 560;
+        return Center(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Symbols.tabs, size: 56, color: colorScheme.primary),
-                const Gap(16),
-                Text(
-                  'driveWorkspaceEmptyTitle'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const Gap(8),
-                Text(
-                  'driveWorkspaceEmptyDescription'.tr(),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withOpacity(0.55),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Icon(
+                      Symbols.cloud_done,
+                      size: 36,
+                      color: colorScheme.primary,
+                    ),
                   ),
-                ),
-                const Gap(24),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    SizedBox(
-                      width: 180,
-                      height: 82,
-                      child: InkWell(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                        onTap: onOpenIndexed,
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          color: colorScheme.surfaceContainer,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Symbols.cloud,
-                                  size: 24,
-                                  color: colorScheme.primary,
-                                ),
-                                const Gap(8),
-                                Text(
-                                  'driveIndexedEntryLabel'.tr(),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
+                  const Gap(20),
+                  Text(
+                    'driveWorkspaceEmptyTitle'.tr(),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Gap(8),
+                  Text(
+                    'driveWorkspaceEmptyDescription'.tr(),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.45,
+                    ),
+                  ),
+                  const Gap(28),
+                  if (isCompact) ...[
+                    _DriveEntryCard(
+                      icon: Symbols.cloud,
+                      title: 'driveIndexedEntryLabel'.tr(),
+                      description: 'driveIndexedEntryDescription'.tr(),
+                      onTap: onOpenIndexed,
+                    ),
+                    const Gap(12),
+                    _DriveEntryCard(
+                      icon: Symbols.inventory_2,
+                      title: 'driveUnindexedEntryLabel'.tr(),
+                      description: 'driveUnindexedEntryDescription'.tr(),
+                      onTap: onOpenUnindexed,
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _DriveEntryCard(
+                            icon: Symbols.cloud,
+                            title: 'driveIndexedEntryLabel'.tr(),
+                            description: 'driveIndexedEntryDescription'.tr(),
+                            onTap: onOpenIndexed,
                           ),
                         ),
+                        const Gap(16),
+                        Expanded(
+                          child: _DriveEntryCard(
+                            icon: Symbols.inventory_2,
+                            title: 'driveUnindexedEntryLabel'.tr(),
+                            description:
+                                'driveUnindexedEntryDescription'.tr(),
+                            onTap: onOpenUnindexed,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DriveEntryCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const _DriveEntryCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withOpacity(0.55),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 22, color: colorScheme.primary),
+              ),
+              const Gap(14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(
-                      width: 180,
-                      height: 82,
-                      child: InkWell(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                        onTap: onOpenUnindexed,
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          color: colorScheme.surfaceContainer,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Symbols.inventory_2,
-                                  size: 24,
-                                  color: colorScheme.primary,
-                                ),
-                                const Gap(8),
-                                Text(
-                                  'driveUnindexedEntryLabel'.tr(),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                    const Gap(4),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.35,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              const Gap(8),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Icon(
+                  Symbols.chevron_right,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1609,14 +1652,12 @@ class _DriveStorageStatusBar extends StatelessWidget {
   final Map<String, dynamic>? usage;
   final Map<String, dynamic>? quota;
   final int? totalMatches;
-  final _DriveAdvancedSearchSummary advancedSearch;
   final VoidCallback onTapDetails;
 
   const _DriveStorageStatusBar({
     required this.usage,
     required this.quota,
     required this.totalMatches,
-    required this.advancedSearch,
     required this.onTapDetails,
   });
 
@@ -1632,8 +1673,6 @@ class _DriveStorageStatusBar extends StatelessWidget {
     final ratio = totalBytes > 0
         ? (usedBytes / totalBytes).clamp(0.0, 1.0)
         : 0.0;
-    final hasAdvancedSearch =
-        advancedSearch.usage != null || advancedSearch.applicationType != null;
 
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -1667,40 +1706,17 @@ class _DriveStorageStatusBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (!isCompact && totalMatches != null) ...[
+                if (!isCompact && totalMatches != null)
                   Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$totalMatches ${'matches'.tr()}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        if (hasAdvancedSearch) ...[
-                          const Gap(4),
-                          Tooltip(
-                            message: [
-                              if (advancedSearch.usage != null)
-                                'usage: ${advancedSearch.usage}',
-                              if (advancedSearch.applicationType != null)
-                                'applicationType: ${advancedSearch.applicationType}',
-                            ].join('\n'),
-                            child: Icon(
-                              Symbols.info,
-                              size: 16,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ],
+                    child: Text(
+                      'matches'.plural(totalMatches ?? 0),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                  ),
-                ] else
+                  )
+                else
                   const Spacer(),
                 Text(
                   '${formatFileSize(usedBytes)} / ${formatFileSize(totalBytes)}',

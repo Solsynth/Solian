@@ -158,16 +158,22 @@ Future<T?> showOverlayDialog<T>({
   final completer = Completer<T?>();
   final key = GlobalKey<_FadeOverlayState>();
   late OverlayEntry entry;
+  var inserted = false;
+  var closed = false;
 
   void close(T? result) async {
-    if (completer.isCompleted) return;
+    if (closed) return;
+    closed = true;
 
-    final state = key.currentState;
-    if (state != null) {
-      await state.animateOut();
+    if (inserted) {
+      final state = key.currentState;
+      if (state != null) {
+        await state.animateOut();
+      }
+
+      entry.remove();
     }
 
-    entry.remove();
     _activeOverlayDialogs.remove(close);
     completer.complete(result);
   }
@@ -209,7 +215,23 @@ Future<T?> showOverlayDialog<T>({
   );
 
   _activeOverlayDialogs.add(() => close(null));
-  globalOverlay.currentState?.insert(entry);
+  // Overlay insertion changes the render tree. Scheduling it for the next
+  // frame lets layout complete before Flutter performs another pointer hit
+  // test (for example, after dismissing a popup menu).
+  WidgetsBinding.instance.scheduleFrameCallback((_) {
+    if (closed) return;
+
+    final overlay = globalOverlay.currentState;
+    if (overlay == null) {
+      closed = true;
+      _activeOverlayDialogs.remove(close);
+      completer.complete(null);
+      return;
+    }
+
+    overlay.insert(entry);
+    inserted = true;
+  });
   return completer.future;
 }
 
