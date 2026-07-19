@@ -303,10 +303,31 @@ class _DataSavingPlaceholder extends StatelessWidget {
   }
 }
 
+/// Layout density for [CloudVideoWidget] overlays based on available space.
+enum _VideoOverlayDensity {
+  /// Thumbnail / multi-attachment cell: play only.
+  compact,
+
+  /// Small card: play + duration chip.
+  medium,
+
+  /// Full preview: meta + filename.
+  full,
+}
+
 class CloudVideoWidget extends HookConsumerWidget {
   final IDisplayableCloudFile item;
   final SnPost? sourcePost;
   const CloudVideoWidget({super.key, required this.item, this.sourcePost});
+
+  /// Below this min side: hide all text overlays (play icon only).
+  static const double _compactMaxSide = 120;
+
+  /// Below this height: hide filename & secondary meta; keep duration.
+  static const double _mediumMaxHeight = 180;
+
+  /// Below this width: drop bitrate / resolution even in medium+.
+  static const double _narrowMaxWidth = 200;
 
   Duration? _parseDuration(Map<String, dynamic> formatMeta) {
     final rawDuration = formatMeta['duration'];
@@ -344,11 +365,41 @@ class CloudVideoWidget extends HookConsumerWidget {
     return '$parsedWidth×$parsedHeight';
   }
 
+  _VideoOverlayDensity _densityFor(BoxConstraints constraints) {
+    final maxW = constraints.maxWidth;
+    final maxH = constraints.maxHeight;
+    final minSide = math.min(
+      maxW.isFinite ? maxW : double.infinity,
+      maxH.isFinite ? maxH : double.infinity,
+    );
+
+    if (!minSide.isFinite || minSide <= _compactMaxSide) {
+      return _VideoOverlayDensity.compact;
+    }
+    if (!maxH.isFinite || maxH <= _mediumMaxHeight) {
+      return _VideoOverlayDensity.medium;
+    }
+    return _VideoOverlayDensity.full;
+  }
+
+  TextStyle _videoMetaStyle({double fontSize = 14}) => TextStyle(
+    color: Colors.white,
+    fontSize: fontSize,
+    shadows: const [
+      BoxShadow(
+        color: Colors.black54,
+        offset: Offset(1, 1),
+        spreadRadius: 8,
+        blurRadius: 8,
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
-    final rootMeta = Map<String, dynamic>.from(item.fileMeta as Map);
+    final rootMeta = Map<String, dynamic>.from(item.fileMeta as Map? ?? {});
     final mediaMeta = rootMeta['media'] is Map
         ? Map<String, dynamic>.from(rootMeta['media'] as Map)
         : <String, dynamic>{};
@@ -360,101 +411,57 @@ class CloudVideoWidget extends HookConsumerWidget {
     final resolution = _formatResolution(rootMeta);
 
     return GestureDetector(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          UniversalImage(uri: '$uri?thumbnail=true'),
-          Positioned.fill(
-            child: Center(
-              child: const Icon(
-                Symbols.play_arrow,
-                fill: 1,
-                size: 32,
-                color: Colors.white,
-                shadows: [
-                  BoxShadow(
-                    color: Colors.black54,
-                    offset: Offset(1, 1),
-                    spreadRadius: 8,
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Theme.of(context).colorScheme.surface.withOpacity(0.85),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    if (resolution != null)
-                      Text(
-                        resolution,
-                        style: TextStyle(
-                          color: Colors.white,
-                          shadows: [
-                            BoxShadow(
-                              color: Colors.black54,
-                              offset: Offset(1, 1),
-                              spreadRadius: 8,
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (duration != null)
-                      Text(
-                        duration.formatDuration(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          shadows: [
-                            BoxShadow(
-                              color: Colors.black54,
-                              offset: Offset(1, 1),
-                              spreadRadius: 8,
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (bitrate != null)
-                      Text(bitrate, style: _videoMetaStyle()),
-                  ],
-                ),
-                Text(
-                  item.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+      onTap: () {
+        context.router.push(
+          FileDetailRoute(id: item.id, sourcePost: sourcePost),
+        );
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final density = _densityFor(constraints);
+          final isNarrow =
+              !constraints.maxWidth.isFinite ||
+              constraints.maxWidth <= _narrowMaxWidth;
+          final playSize = switch (density) {
+            _VideoOverlayDensity.compact => 22.0,
+            _VideoOverlayDensity.medium => 28.0,
+            _VideoOverlayDensity.full => 32.0,
+          };
+          final showGradient = density != _VideoOverlayDensity.compact;
+          final showDuration =
+              duration != null && density != _VideoOverlayDensity.compact;
+          final showResolution =
+              resolution != null &&
+              density == _VideoOverlayDensity.full &&
+              !isNarrow;
+          final showBitrate =
+              bitrate != null &&
+              density == _VideoOverlayDensity.full &&
+              !isNarrow;
+          final showFilename = density == _VideoOverlayDensity.full;
+          final gradientHeight = switch (density) {
+            _VideoOverlayDensity.compact => 0.0,
+            _VideoOverlayDensity.medium => 48.0,
+            _VideoOverlayDensity.full => 100.0,
+          };
+          final hPad = density == _VideoOverlayDensity.full ? 16.0 : 8.0;
+          final bPad = density == _VideoOverlayDensity.full ? 12.0 : 6.0;
+          final metaFontSize = density == _VideoOverlayDensity.medium
+              ? 11.0
+              : 14.0;
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              UniversalImage(uri: '$uri?thumbnail=true'),
+              Positioned.fill(
+                child: Center(
+                  child: Icon(
+                    Symbols.play_arrow,
+                    fill: 1,
+                    size: playSize,
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
+                    shadows: const [
                       BoxShadow(
                         color: Colors.black54,
                         offset: Offset(1, 1),
@@ -464,30 +471,90 @@ class CloudVideoWidget extends HookConsumerWidget {
                     ],
                   ),
                 ),
-              ],
-            ).padding(horizontal: 16, bottom: 12),
-          ),
-        ],
+              ),
+              if (showGradient)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: Container(
+                      height: gradientHeight,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Theme.of(
+                              context,
+                            ).colorScheme.surface.withOpacity(0.85),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (showDuration || showResolution || showBitrate || showFilename)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (showDuration || showResolution || showBitrate)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 2,
+                          children: [
+                            if (showResolution)
+                              Text(
+                                resolution,
+                                style: _videoMetaStyle(fontSize: metaFontSize),
+                              ),
+                            if (showDuration)
+                              Text(
+                                duration.formatDuration(),
+                                style: _videoMetaStyle(fontSize: metaFontSize),
+                              ),
+                            if (showBitrate)
+                              Text(
+                                bitrate,
+                                style: _videoMetaStyle(fontSize: metaFontSize),
+                              ),
+                          ],
+                        ),
+                      if (showFilename)
+                        Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: metaFontSize,
+                            shadows: const [
+                              BoxShadow(
+                                color: Colors.black54,
+                                offset: Offset(1, 1),
+                                spreadRadius: 8,
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ).padding(horizontal: hPad, bottom: bPad),
+                ),
+            ],
+          );
+        },
       ),
-      onTap: () {
-        context.router.push(
-          FileDetailRoute(id: item.id, sourcePost: sourcePost),
-        );
-      },
     );
   }
-
-  TextStyle _videoMetaStyle() => const TextStyle(
-    color: Colors.white,
-    shadows: [
-      BoxShadow(
-        color: Colors.black54,
-        offset: Offset(1, 1),
-        spreadRadius: 8,
-        blurRadius: 8,
-      ),
-    ],
-  );
 }
 
 class CloudImageWidget extends ConsumerWidget {
