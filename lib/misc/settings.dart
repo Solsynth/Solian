@@ -38,6 +38,8 @@ import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/plugins/screens/plugin_manager_screen.dart';
 import 'package:island/route.gr.dart';
 
+const EdgeInsets _kSettingsTilePadding = EdgeInsets.only(left: 24, right: 16);
+
 @RoutePage()
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
@@ -89,7 +91,7 @@ class SettingsScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    final selectedCategoryIdx = useState(0);
+    final selectedCategoryId = useState('Appearance');
     final searchQuery = useState('');
     final searchController = useTextEditingController();
     final searchFocusNode = useFocusNode();
@@ -98,10 +100,22 @@ class SettingsScreen extends HookConsumerWidget {
 
     bool matchesQuery(_SettingCategory category, String query) {
       if (query.isEmpty) return true;
-      final q = query.toLowerCase();
-      return category.title.toLowerCase().contains(q) ||
-          category.getLocalizedTitle(context).toLowerCase().contains(q) ||
-          category.searchTerms.any((term) => term.toLowerCase().contains(q));
+      final q = query.toLowerCase().trim();
+      if (q.isEmpty) return true;
+
+      bool hit(String value) => value.toLowerCase().contains(q);
+
+      if (hit(category.title) || hit(category.getLocalizedTitle(context))) {
+        return true;
+      }
+
+      for (final term in category.searchTerms) {
+        if (hit(term)) return true;
+        // Allow i18n keys in searchTerms so localized labels are searchable.
+        final translated = term.tr();
+        if (translated != term && hit(translated)) return true;
+      }
+      return false;
     }
 
     categories.add(
@@ -111,9 +125,15 @@ class SettingsScreen extends HookConsumerWidget {
         localizedTitleKey: 'settingsAppearance',
         searchTerms: [
           'theme',
+          'theme mode',
+          'dark mode',
+          'light mode',
           'color scheme',
+          'seed color',
+          'custom colors',
           'opacity',
           'card background',
+          'transparent app bar',
           'display language',
           'locale',
           'system language',
@@ -121,12 +141,31 @@ class SettingsScreen extends HookConsumerWidget {
           'custom fonts',
           'typeface',
           'font family',
+          'link preview',
+          'link collapse',
+          'background image',
+          'wallpaper',
+          'generate color',
+          'settingsDisplayLanguage',
+          'settingsThemeMode',
+          'settingsColorScheme',
+          'settingsCustomColors',
+          'settingsCardBackgroundOpacity',
+          'settingsWindowOpacity',
+          'settingsCustomFonts',
+          'settingsLinkCollapseMode',
+          'settingsTransparentAppBar',
+          'settingsBackgroundImage',
+          'settingsBackgroundImageEnable',
+          'settingsBackgroundImageClear',
+          'settingsBackgroundGenerateColor',
+          'seedColor',
         ],
         children: [
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsDisplayLanguage').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.translate),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<Locale?>(
@@ -167,7 +206,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsThemeMode').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.dark_mode),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
@@ -201,19 +240,10 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-            child: Text(
-              'settingsColorScheme'.tr(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          const _SettingsSubheader('settingsColorScheme'),
           ListTile(
             title: Text('seedColor').tr(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            contentPadding: _kSettingsTilePadding,
             trailing: GestureDetector(
               onTap: () {
                 showDialog(
@@ -494,7 +524,7 @@ class SettingsScreen extends HookConsumerWidget {
             isThreeLine: true,
             minLeadingWidth: 48,
             title: Text('settingsCardBackgroundOpacity').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.opacity),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -529,7 +559,7 @@ class SettingsScreen extends HookConsumerWidget {
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsWindowOpacity').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.opacity),
               isThreeLine: true,
               subtitle: Padding(
@@ -566,7 +596,7 @@ class SettingsScreen extends HookConsumerWidget {
             isThreeLine: true,
             minLeadingWidth: 48,
             title: Text('settingsCustomFonts').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.font_download),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -598,6 +628,172 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsLinkCollapseMode').tr(),
+            contentPadding: _kSettingsTilePadding,
+            leading: const Icon(Symbols.unfold_more),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'expand',
+                    child: Text(
+                      'settingsLinkCollapseModeExpand',
+                    ).tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'collapse',
+                    child: Text(
+                      'settingsLinkCollapseModeCollapse',
+                    ).tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.linkCollapseMode,
+                ),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setLinkCollapseMode(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 24),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsTransparentAppBar').tr(),
+            contentPadding: _kSettingsTilePadding,
+            leading: const Icon(Symbols.blur_on),
+            trailing: Switch(
+              value: settings.appBarTransparent,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setAppBarTransparent(value);
+              },
+            ),
+          ),
+          if (!kIsWeb && docBasepath.value != null) ...[
+            const _SettingsSubheader('settingsCategoryBackground'),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsBackgroundImage').tr(),
+              contentPadding: _kSettingsTilePadding,
+              leading: const Icon(Symbols.image),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () async {
+                final imagePicker = ref.read(imagePickerProvider);
+                final image = await imagePicker.pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (image == null) return;
+
+                await File(
+                  image.path,
+                ).copy('${docBasepath.value}/$kAppBackgroundImagePath');
+                prefs.setBool(kAppBackgroundStoreKey, true);
+                ref.invalidate(backgroundImageFileProvider);
+                if (context.mounted) {
+                  showSnackBar('settingsApplied'.tr());
+                }
+              },
+            ),
+            FutureBuilder<bool>(
+              future: File(
+                '${docBasepath.value}/$kAppBackgroundImagePath',
+              ).exists(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || !snapshot.data!) {
+                  return const SizedBox.shrink();
+                }
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      minLeadingWidth: 48,
+                      title: Text('settingsBackgroundImageEnable').tr(),
+                      contentPadding: _kSettingsTilePadding,
+                      leading: const Icon(Symbols.hide_image),
+                      trailing: Switch(
+                        value: settings.showBackgroundImage,
+                        onChanged: (value) {
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .setShowBackgroundImage(value);
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      minLeadingWidth: 48,
+                      title: Text('settingsBackgroundImageClear').tr(),
+                      contentPadding: _kSettingsTilePadding,
+                      leading: const Icon(Symbols.texture),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        File(
+                          '${docBasepath.value}/$kAppBackgroundImagePath',
+                        ).deleteSync();
+                        prefs.remove(kAppBackgroundStoreKey);
+                        ref.invalidate(backgroundImageFileProvider);
+                        if (context.mounted) {
+                          showSnackBar('settingsApplied'.tr());
+                        }
+                      },
+                    ),
+                    ListTile(
+                      minLeadingWidth: 48,
+                      title: Text('settingsBackgroundGenerateColor').tr(),
+                      contentPadding: _kSettingsTilePadding,
+                      leading: const Icon(Symbols.format_color_fill),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () async {
+                        showLoadingModal(context);
+                        final colors =
+                            await ColorExtractionService.getColorsFromImage(
+                              FileImage(
+                                File(
+                                  '${docBasepath.value}/$kAppBackgroundImagePath',
+                                ),
+                              ),
+                            );
+                        if (colors.isEmpty) {
+                          if (context.mounted) hideLoadingModal(context);
+                          showErrorAlert(
+                            'Unable to calculate the dominant color of the background image.',
+                          );
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        final colorScheme = ColorScheme.fromSeed(
+                          seedColor: colors.first,
+                        );
+                        final color = colorScheme.primary;
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .setAppColorScheme(color.value);
+                        if (context.mounted) {
+                          hideLoadingModal(context);
+                          showSnackBar('settingsApplied'.tr());
+                        }
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -609,24 +805,31 @@ class SettingsScreen extends HookConsumerWidget {
         localizedTitleKey: 'settingsCategoryChat',
         searchTerms: [
           'message style',
+          'bubble',
+          'compact',
           'attachments',
-          'link collapse',
+          'attachment preview',
           'enter to send',
           'grouped chat list',
           'chat event messages',
-          'sound effects',
-          'festival features',
-          'haptic feedback',
-          'friend status',
-          'shake detection',
-          'shake to open',
-          'shake gesture',
+          'call window',
+          'separate window',
+          'desktop call window',
+          'voice call',
+          'settingsMessageDisplayStyle',
+          'settingsAttachmentsListStyle',
+          'settingsAttachmentsStyle',
+          'settingsEnterToSend',
+          'settingsGroupedChatList',
+          'settingsShowChatEventMessages',
+          'settingsDesktopUseSeparateCallWindow',
+          'settingsCalls',
         ],
         children: [
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsMessageDisplayStyle').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.chat),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
@@ -673,7 +876,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsAttachmentsListStyle').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.attachment),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
@@ -714,7 +917,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsAttachmentsStyle').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.image),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
@@ -754,52 +957,11 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           ListTile(
             minLeadingWidth: 48,
-            title: Text('settingsLinkCollapseMode').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.unfold_more),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton2<String>(
-                isExpanded: true,
-                items: [
-                  DropdownItem<String>(
-                    value: 'expand',
-                    child: Text(
-                      'settingsLinkCollapseModeExpand',
-                    ).tr().fontSize(14),
-                  ),
-                  DropdownItem<String>(
-                    value: 'collapse',
-                    child: Text(
-                      'settingsLinkCollapseModeCollapse',
-                    ).tr().fontSize(14),
-                  ),
-                ],
-                valueListenable: ValueNotifier<String>(
-                  settings.linkCollapseMode,
-                ),
-                onChanged: (String? value) {
-                  if (value != null) {
-                    ref
-                        .read(appSettingsProvider.notifier)
-                        .setLinkCollapseMode(value);
-                    showSnackBar('settingsApplied'.tr());
-                  }
-                },
-                buttonStyleData: const ButtonStyleData(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                  height: 40,
-                  width: 140,
-                ),
-              ),
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
             title: Text('settingsEnterToSend').tr(),
             subtitle: isDesktop
                 ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
                 : null,
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.send),
             trailing: Switch(
               value: settings.enterToSend,
@@ -811,7 +973,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsGroupedChatList').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.chat),
             trailing: Switch(
               value: settings.groupedChatList,
@@ -826,7 +988,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: const Text('settingsShowChatEventMessages').tr(),
             subtitle: const Text('showChatEventsMessagesHelper').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.info),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
@@ -862,20 +1024,58 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-            child: Text(
-              'settingsCategoryNotifications'.tr(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
+          if (isDesktop) ...[
+            const Divider(height: 24),
+            const _SettingsSubheader('settingsCalls'),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDesktopUseSeparateCallWindow').tr(),
+              subtitle: Text(
+                'settingsDesktopUseSeparateCallWindowHelper'.tr(),
+              ),
+              contentPadding: _kSettingsTilePadding,
+              leading: const Icon(Symbols.open_in_new),
+              trailing: Switch(
+                value: ref.watch(desktopUseSeparateCallWindowProvider),
+                onChanged: (value) {
+                  ref
+                      .read(desktopUseSeparateCallWindowProvider.notifier)
+                      .setEnabled(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
               ),
             ),
-          ),
+          ],
+        ],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.notifications,
+        title: 'Notifications',
+        localizedTitleKey: 'settingsCategoryNotifications',
+        searchTerms: [
+          'sound effects',
+          'festival features',
+          'haptic feedback',
+          'vibration',
+          'friend status',
+          'desktop notification',
+          'shake detection',
+          'shake to open',
+          'shake gesture',
+          'settingsSoundEffects',
+          'settingsFestivalFeatures',
+          'settingsNotifyWithHaptic',
+          'settingsShakeDetection',
+          'settingsFriendStatusDesktopNotification',
+        ],
+        children: [
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsSoundEffects').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.volume_up),
             trailing: Switch(
               value: settings.soundEffects,
@@ -887,7 +1087,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsFestivalFeatures').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.celebration),
             trailing: Switch(
               value: settings.festivalFeatures,
@@ -901,7 +1101,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsNotifyWithHaptic').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.vibration),
             trailing: Switch(
               value: settings.notifyWithHaptic,
@@ -917,7 +1117,7 @@ class SettingsScreen extends HookConsumerWidget {
               minLeadingWidth: 48,
               title: Text('settingsShakeDetection').tr(),
               subtitle: Text('settingsShakeDetectionHelper').tr().fontSize(12),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.vibration),
               trailing: Switch(
                 value: ref.watch(shakeDetectionEnabledProvider),
@@ -936,7 +1136,7 @@ class SettingsScreen extends HookConsumerWidget {
               subtitle: Text(
                 'settingsFriendStatusDesktopNotificationHelper'.tr(),
               ).fontSize(12),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.notifications_active),
               trailing: Switch(
                 value: settings.friendStatusDesktopNotification,
@@ -955,7 +1155,7 @@ class SettingsScreen extends HookConsumerWidget {
       categories.add(
         _SettingCategory(
           icon: Symbols.desktop_windows,
-          title: 'Desktop Presence',
+          title: 'Desktop',
           localizedTitleKey: 'settingsCategoryDesktopPresence',
           searchTerms: [
             'idle status',
@@ -964,57 +1164,25 @@ class SettingsScreen extends HookConsumerWidget {
             'activity status',
             'music status',
             'media status',
-            'call window',
-            'separate window',
-            'desktop call window',
-            'disable presence',
-            'turn off presence',
+            'rpc server',
+            'discord rpc',
+            'nowplaying-cli',
+            'fixed manual id',
+            'settingsIdleStatus',
+            'settingsNowPlaying',
+            'settingsRpcServer',
+            'settingsDesktopIdleStatusEnabled',
+            'settingsDesktopNowPlayingEnabled',
+            'settingsDesktopRpcServerEnabled',
+            'settingsNowPlayingReuseFixedManualId',
           ],
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: Text(
-                'settingsCalls'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsDesktopUseSeparateCallWindow').tr(),
-              subtitle: Text(
-                'settingsDesktopUseSeparateCallWindowHelper'.tr(),
-              ),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.open_in_new),
-              trailing: Switch(
-                value: ref.watch(desktopUseSeparateCallWindowProvider),
-                onChanged: (value) {
-                  ref
-                      .read(desktopUseSeparateCallWindowProvider.notifier)
-                      .setEnabled(value);
-                  showSnackBar('settingsApplied'.tr());
-                },
-              ),
-            ),
-            const Divider(height: 24),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: Text(
-                'settingsIdleStatus'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+            const _SettingsSubheader('settingsIdleStatus'),
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsDesktopIdleStatusEnabled').tr(),
               subtitle: Text('settingsDesktopIdleStatusEnabledHelper').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.schedule),
               trailing: Switch(
                 value: ref.watch(desktopIdleStatusEnabledProvider),
@@ -1028,21 +1196,12 @@ class SettingsScreen extends HookConsumerWidget {
             ),
             _DesktopIdleStatusPreview(),
             const Divider(height: 24),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: Text(
-                'settingsNowPlaying'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+            const _SettingsSubheader('settingsNowPlaying'),
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsDesktopNowPlayingEnabled').tr(),
               subtitle: Text('settingsDesktopNowPlayingEnabledHelper').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.music_note),
               trailing: Switch(
                 value: ref.watch(desktopNowPlayingEnabledProvider),
@@ -1079,7 +1238,7 @@ class SettingsScreen extends HookConsumerWidget {
                         error: (error, _) => 'Failed to check: $error',
                       ),
                     ).fontSize(12),
-                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    contentPadding: _kSettingsTilePadding,
                     leading: const Icon(Symbols.music_note),
                     trailing: const Icon(Symbols.chevron_right),
                     isThreeLine: true,
@@ -1099,7 +1258,7 @@ class SettingsScreen extends HookConsumerWidget {
                     subtitle: Text(
                       'settingsNowPlayingReuseFixedManualIdHelper',
                     ).tr().fontSize(12),
-                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    contentPadding: _kSettingsTilePadding,
                     leading: const Icon(Symbols.music_note),
                     trailing: Switch(
                       value: reuseFixedManualId,
@@ -1118,21 +1277,12 @@ class SettingsScreen extends HookConsumerWidget {
             ],
             _DesktopNowPlayingPreview(),
             const Divider(height: 24),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: Text(
-                'settingsRpcServer'.tr(),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+            const _SettingsSubheader('settingsRpcServer'),
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsDesktopRpcServerEnabled').tr(),
               subtitle: Text('settingsDesktopRpcServerEnabledHelper').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.dns),
               trailing: Switch(
                 value: ref.watch(desktopRpcServerEnabledProvider),
@@ -1150,157 +1300,45 @@ class SettingsScreen extends HookConsumerWidget {
 
     categories.add(
       _SettingCategory(
-        icon: Symbols.image,
-        title: 'Background',
-        localizedTitleKey: 'settingsCategoryBackground',
-        searchTerms: ['background image', 'wallpaper', 'generate color'],
-        children: [
-          if (!kIsWeb && docBasepath.value != null) ...[
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsBackgroundImage').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.image),
-              trailing: const Icon(Symbols.chevron_right),
-              onTap: () async {
-                final imagePicker = ref.read(imagePickerProvider);
-                final image = await imagePicker.pickImage(
-                  source: ImageSource.gallery,
-                );
-                if (image == null) return;
-
-                await File(
-                  image.path,
-                ).copy('${docBasepath.value}/$kAppBackgroundImagePath');
-                prefs.setBool(kAppBackgroundStoreKey, true);
-                ref.invalidate(backgroundImageFileProvider);
-                if (context.mounted) {
-                  showSnackBar('settingsApplied'.tr());
-                }
-              },
-            ),
-            FutureBuilder<bool>(
-              future: File(
-                '${docBasepath.value}/$kAppBackgroundImagePath',
-              ).exists(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!) {
-                  return const SizedBox.shrink();
-                }
-
-                return ListTile(
-                  minLeadingWidth: 48,
-                  title: Text('settingsBackgroundImageEnable').tr(),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  leading: const Icon(Symbols.hide_image),
-                  trailing: Switch(
-                    value: settings.showBackgroundImage,
-                    onChanged: (value) {
-                      ref
-                          .read(appSettingsProvider.notifier)
-                          .setShowBackgroundImage(value);
-                    },
-                  ),
-                );
-              },
-            ),
-            FutureBuilder<bool>(
-              future: File(
-                '${docBasepath.value}/$kAppBackgroundImagePath',
-              ).exists(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!) {
-                  return const SizedBox.shrink();
-                }
-
-                return ListTile(
-                  minLeadingWidth: 48,
-                  title: Text('settingsBackgroundImageClear').tr(),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  leading: const Icon(Symbols.texture),
-                  trailing: const Icon(Symbols.chevron_right),
-                  onTap: () {
-                    File(
-                      '${docBasepath.value}/$kAppBackgroundImagePath',
-                    ).deleteSync();
-                    prefs.remove(kAppBackgroundStoreKey);
-                    ref.invalidate(backgroundImageFileProvider);
-                    if (context.mounted) {
-                      showSnackBar('settingsApplied'.tr());
-                    }
-                  },
-                );
-              },
-            ),
-            FutureBuilder(
-              future: File(
-                '${docBasepath.value}/$kAppBackgroundImagePath',
-              ).exists(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!) {
-                  return const SizedBox.shrink();
-                }
-
-                return ListTile(
-                  minLeadingWidth: 48,
-                  title: Text('settingsBackgroundGenerateColor').tr(),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  leading: const Icon(Symbols.format_color_fill),
-                  trailing: const Icon(Symbols.chevron_right),
-                  onTap: () async {
-                    showLoadingModal(context);
-                    final colors =
-                        await ColorExtractionService.getColorsFromImage(
-                          FileImage(
-                            File(
-                              '${docBasepath.value}/$kAppBackgroundImagePath',
-                            ),
-                          ),
-                        );
-                    if (colors.isEmpty) {
-                      if (context.mounted) hideLoadingModal(context);
-                      showErrorAlert(
-                        'Unable to calculate the dominant color of the background image.',
-                      );
-                      return;
-                    }
-                    if (!context.mounted) return;
-                    final colorScheme = ColorScheme.fromSeed(
-                      seedColor: colors.first,
-                    );
-                    final color =
-                        MediaQuery.of(context).platformBrightness ==
-                            Brightness.dark
-                        ? colorScheme.primary
-                        : colorScheme.primary;
-                    ref
-                        .read(appSettingsProvider.notifier)
-                        .setAppColorScheme(color.value);
-                    if (context.mounted) {
-                      hideLoadingModal(context);
-                      showSnackBar('settingsApplied'.tr());
-                    }
-                  },
-                );
-              },
-            ),
-          ],
-        ],
-      ),
-    );
-
-    categories.add(
-      _SettingCategory(
         icon: Symbols.link,
         title: 'Connection',
         localizedTitleKey: 'settingsCategoryConnection',
-        searchTerms: ['server url', 'media proxy', 'default pool'],
+        searchTerms: [
+          'server url',
+          'media proxy',
+          'default pool',
+          'ip override',
+          'dns override',
+          'mixed domains',
+          'override entries',
+          'speed test',
+          'cloudflare',
+          'connectivity',
+          'self check',
+          'health check',
+          'connection status',
+          'network status',
+          'data saving',
+          'weak connection',
+          'periodic sync',
+          'chat recovery',
+          'settingsServerUrl',
+          'settingsMediaProxy',
+          'settingsIpOverride',
+          'settingsIpOverrideDomains',
+          'settingsIpOverrideEntries',
+          'cfIpSpeedTest',
+          'connectivitySelfCheck',
+          'settingsDefaultPool',
+          'settingsConnectionStatus',
+          'settingsDataSavingMode',
+        ],
         children: [
           ListTile(
             isThreeLine: true,
             minLeadingWidth: 48,
             title: Text('settingsServerUrl').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.link),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -1339,7 +1377,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: Text('settingsMediaProxy').tr(),
             subtitle: Text('settingsMediaProxyHelper'.tr()),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.speed),
             trailing: Switch(
               value: settings.mediaProxyEnabled,
@@ -1350,6 +1388,37 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsDataSavingMode').tr(),
+            contentPadding: _kSettingsTilePadding,
+            leading: const Icon(Symbols.data_saver_on_rounded),
+            trailing: Switch(
+              value: settings.dataSavingMode,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setDataSavingMode(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: const Text('Weak connection mode'),
+            subtitle: const Text(
+              'Periodically runs timestamp-based chat sync while the room is open.',
+            ),
+            contentPadding: _kSettingsTilePadding,
+            leading: const Icon(Symbols.network_check),
+            trailing: Switch(
+              value: settings.weakConnectionMode,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setWeakConnectionMode(value);
+              },
+            ),
+          ),
+          const Divider(height: 24),
+          const _SettingsSubheader('settingsIpOverride'),
           Builder(
             builder: (context) {
               final ipOverrideMode = ref.watch(ipOverrideModeProvider);
@@ -1361,7 +1430,7 @@ class SettingsScreen extends HookConsumerWidget {
                     args: [_ipOverrideModeLabel(ipOverrideMode)],
                   ),
                 ),
-                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                contentPadding: _kSettingsTilePadding,
                 leading: const Icon(Symbols.dns),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
@@ -1386,7 +1455,7 @@ class SettingsScreen extends HookConsumerWidget {
                       ? domains.join(', ')
                       : 'settingsIpOverrideDomainsHelper'.tr(),
                 ),
-                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                contentPadding: _kSettingsTilePadding,
                 leading: const Icon(Symbols.edit),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
@@ -1412,7 +1481,7 @@ class SettingsScreen extends HookConsumerWidget {
                             .join(', ')
                       : 'settingsIpOverrideEntriesEmpty'.tr(),
                 ),
-                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                contentPadding: _kSettingsTilePadding,
                 leading: const Icon(Symbols.edit),
                 trailing: const Icon(Symbols.chevron_right),
                 onTap: () {
@@ -1425,7 +1494,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: Text('cfIpSpeedTest').tr(),
             subtitle: Text('cfIpSpeedTestSubtitle').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.speed),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
@@ -1436,7 +1505,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: Text('connectivitySelfCheck').tr(),
             subtitle: Text('connectivitySelfCheckSubtitle').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.health_and_safety),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
@@ -1461,7 +1530,7 @@ class SettingsScreen extends HookConsumerWidget {
                   isThreeLine: true,
                   minLeadingWidth: 48,
                   title: Text('settingsDefaultPool').tr(),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  contentPadding: _kSettingsTilePadding,
                   leading: const Icon(Symbols.cloud),
                   subtitle: Text(
                     'settingsDefaultPoolHelper'.tr(),
@@ -1518,7 +1587,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsConnectionStatus'.tr()),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.wifi),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
@@ -1539,63 +1608,24 @@ class SettingsScreen extends HookConsumerWidget {
         title: 'General',
         localizedTitleKey: 'settingsCategoryGeneral',
         searchTerms: [
-          'transparent app bar',
-          'data saving',
-          'weak connection',
-          'periodic sync',
-          'chat recovery',
           'disable animation',
+          'reduce motion',
+          'developer mode',
+          'debug',
           'default screen',
+          'home screen',
+          'startup',
           'search engine',
+          'web search',
+          'settingsDisableAnimation',
+          'settingsDefaultScreen',
+          'settingsDashSearchEngine',
         ],
         children: [
           ListTile(
             minLeadingWidth: 48,
-            title: Text('settingsTransparentAppBar').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.blur_on),
-            trailing: Switch(
-              value: settings.appBarTransparent,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setAppBarTransparent(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsDataSavingMode').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.data_saver_on_rounded),
-            trailing: Switch(
-              value: settings.dataSavingMode,
-              onChanged: (value) {
-                ref.read(appSettingsProvider.notifier).setDataSavingMode(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: const Text('Weak connection mode'),
-            subtitle: const Text(
-              'Periodically runs timestamp-based chat sync while the room is open.',
-            ),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.network_check),
-            trailing: Switch(
-              value: settings.weakConnectionMode,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setWeakConnectionMode(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
             title: Text('settingsDisableAnimation').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.animation),
             trailing: Switch(
               value: settings.disableAnimation,
@@ -1610,7 +1640,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: Text('Developer mode').tr(),
             subtitle: Text('Enable debug tools and developer features'),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.developer_mode),
             trailing: Switch(
               value: ref.watch(developerModeProvider),
@@ -1626,7 +1656,7 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsDefaultScreen').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.home),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
@@ -1672,7 +1702,7 @@ class SettingsScreen extends HookConsumerWidget {
             isThreeLine: true,
             minLeadingWidth: 48,
             title: Text('settingsDashSearchEngine').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.search),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -1715,7 +1745,16 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.storage,
         title: 'Storage',
         localizedTitleKey: 'settingsStorage',
-        searchTerms: ['cache', 'disk space'],
+        searchTerms: [
+          'cache',
+          'disk space',
+          'database',
+          'clear cache',
+          'reset database',
+          'storage used',
+          'settingsClearCache',
+          'settingsChatRoomStorage',
+        ],
         children: [_StorageSettingsSection()],
       ),
     );
@@ -1725,23 +1764,24 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.update,
         title: 'Update',
         localizedTitleKey: 'settingsUpdate',
-        searchTerms: ['release', 'version', 'force update', 'cleanup'],
+        searchTerms: [
+          'release',
+          'version',
+          'force update',
+          'cleanup',
+          'github',
+          'check for updates',
+          'settingsCheckForUpdates',
+          'settingsGithubLatestVersion',
+          'settingsCleanPreviousUpdates',
+        ],
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
-            child: Text(
-              'settingsCheckForUpdatesSection'.tr(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          const _SettingsSubheader('settingsCheckForUpdatesSection'),
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsCheckForUpdates').tr(),
             subtitle: Text('settingsCheckForUpdatesHelper').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.update),
             trailing: IconButton(
               icon: const Icon(Symbols.refresh),
@@ -1764,7 +1804,7 @@ class SettingsScreen extends HookConsumerWidget {
                 : Text(
                     '${'settingsGithubLatestVersionValue'.tr()}: ${latestRelease.data?.tagName ?? '-'}',
                   ),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.cloud_download),
             trailing: const Icon(Symbols.chevron_right),
             onTap: latestRelease.data == null
@@ -1780,7 +1820,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: Text('settingsCleanPreviousUpdates').tr(),
             subtitle: Text('settingsCleanPreviousUpdatesHelper').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.cleaning_services),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () async {
@@ -1812,6 +1852,7 @@ class SettingsScreen extends HookConsumerWidget {
           'hooks',
           'commands',
           'events',
+          'settingsManagePlugins',
         ],
         embedInWide: isWide,
         wideContent: (context) => const PluginManagerContent(),
@@ -1820,7 +1861,7 @@ class SettingsScreen extends HookConsumerWidget {
             minLeadingWidth: 48,
             title: Text('settingsManagePlugins').tr(),
             subtitle: Text('settingsManagePluginsDescription').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.extension),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
@@ -1845,7 +1886,15 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.info,
         title: 'About',
         localizedTitleKey: 'about',
-        searchTerms: ['version', 'license', 'developer', 'privacy', 'terms'],
+        searchTerms: [
+          'version',
+          'license',
+          'developer',
+          'privacy',
+          'terms',
+          'open source',
+          'credits',
+        ],
         embedInWide: isWide,
         wideContent: (context) => const AboutContent(),
         children: const [],
@@ -1855,50 +1904,76 @@ class SettingsScreen extends HookConsumerWidget {
     Widget buildSettingsList(
       BoxConstraints constraints,
       List<_SettingCategory> visibleCategories,
-      int selectedIdx,
+      _SettingCategory selectedCategory,
     ) {
-      final selectedCategory = visibleCategories[selectedIdx];
+      void selectCategory(_SettingCategory category) {
+        selectedCategoryId.value = category.title;
+      }
 
       if (isWide) {
+        final colorScheme = Theme.of(context).colorScheme;
         return SizedBox(
           height: constraints.maxHeight,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Flexible(
-                flex: 1,
+              SizedBox(
+                width: 240,
                 child: Material(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (var i = 0; i < visibleCategories.length; i++)
-                          () {
-                            final category = visibleCategories[i];
-                            return ListTile(
-                              selected: selectedIdx == i,
-                              selectedTileColor: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer.withOpacity(0.3),
-                              leading: Icon(category.icon),
-                              title: Text(category.getLocalizedTitle(context)),
-                              onTap: () => selectedCategoryIdx.value = i,
-                            );
-                          }(),
-                      ],
-                    ),
-                  ).alignment(Alignment.topCenter),
+                  color: colorScheme.surfaceContainerLow,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                    itemCount: visibleCategories.length,
+                    itemBuilder: (context, i) {
+                      final category = visibleCategories[i];
+                      final selected =
+                          selectedCategory.title == category.title;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: ListTile(
+                          selected: selected,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          selectedTileColor:
+                              colorScheme.primaryContainer.withOpacity(0.45),
+                          leading: Icon(
+                            category.icon,
+                            color: selected
+                                ? colorScheme.onPrimaryContainer
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          title: Text(
+                            category.getLocalizedTitle(context),
+                            style: TextStyle(
+                              fontWeight: selected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: selected
+                                  ? colorScheme.onPrimaryContainer
+                                  : colorScheme.onSurface,
+                            ),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          onTap: () => selectCategory(category),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
-              Flexible(
-                flex: 2,
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: colorScheme.outlineVariant.withOpacity(0.4),
+              ),
+              Expanded(
                 child:
                     selectedCategory.embedInWide &&
                         selectedCategory.wideContent != null
                     ? selectedCategory.wideContent!(context)
                     : SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 24),
                         child: _SettingsSection(
                           title: selectedCategory.title,
                           localizedTitleKey: selectedCategory.localizedTitleKey,
@@ -1912,48 +1987,67 @@ class SettingsScreen extends HookConsumerWidget {
       }
 
       // Narrow layout with category dropdown
+      final colorScheme = Theme.of(context).colorScheme;
       return Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Category dropdown selector
-          DropdownButtonHideUnderline(
-            child: DropdownButton2<int>(
-              isExpanded: true,
-              valueListenable: ValueNotifier<int>(selectedIdx),
-              items: visibleCategories.asMap().entries.map((entry) {
-                final index = entry.key;
-                final category = entry.value;
-                return DropdownItem<int>(
-                  value: index,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Icon(category.icon, size: 20),
-                        const SizedBox(width: 12),
-                        Text(
-                          category.getLocalizedTitle(context),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
-                    ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Material(
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.55),
+              borderRadius: BorderRadius.circular(12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton2<String>(
+                  isExpanded: true,
+                  valueListenable: ValueNotifier<String>(
+                    selectedCategory.title,
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  selectedCategoryIdx.value = value;
-                }
-              },
-              buttonStyleData: const ButtonStyleData(padding: EdgeInsets.zero),
-              dropdownStyleData: const DropdownStyleData(),
+                  items: visibleCategories.map((category) {
+                    return DropdownItem<String>(
+                      value: category.title,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Row(
+                          children: [
+                            Icon(category.icon, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                category.getLocalizedTitle(context),
+                                style: const TextStyle(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    final match = visibleCategories.firstWhereOrNull(
+                      (c) => c.title == value,
+                    );
+                    if (match != null) selectCategory(match);
+                  },
+                  buttonStyleData: const ButtonStyleData(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    height: 48,
+                  ),
+                  dropdownStyleData: DropdownStyleData(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    maxHeight: 360,
+                  ),
+                ),
+              ),
             ),
           ),
-          // Selected category content
-          Flexible(
+          Expanded(
             child: selectedCategory.wideContent != null
                 ? selectedCategory.wideContent!(context)
                 : SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 24),
                     child: _SettingsSection(
                       title: selectedCategory.title,
                       localizedTitleKey: selectedCategory.localizedTitleKey,
@@ -1971,10 +2065,24 @@ class SettingsScreen extends HookConsumerWidget {
         title: SearchBar(
           controller: searchController,
           focusNode: searchFocusNode,
-          constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
+          constraints: const BoxConstraints(maxWidth: 420, minHeight: 40),
           hintText: 'searchSettings'.tr(),
-          hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
-          textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          hintStyle: WidgetStatePropertyAll(
+            TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(
+              0.55,
+            ),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
           onTapOutside: (_) => searchFocusNode.unfocus(),
           trailing: [
             if (searchQuery.value.isNotEmpty)
@@ -1997,7 +2105,7 @@ class SettingsScreen extends HookConsumerWidget {
           leading: Icon(
             Symbols.search,
             size: 20,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         leading: const AutoLeadingButton(),
@@ -2009,56 +2117,50 @@ class SettingsScreen extends HookConsumerWidget {
               .where((category) => matchesQuery(category, searchQuery.value))
               .toList();
 
-          if (filteredCategories.isNotEmpty &&
-              selectedCategoryIdx.value >= filteredCategories.length) {
-            selectedCategoryIdx.value = 0;
-          }
-
           if (filteredCategories.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Symbols.search_off,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'searchSettingsNoResults'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.search_off,
+                      size: 56,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'searchSettingsNoResults'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
-          if (isWide) {
-            return SingleChildScrollView(
-              padding: EdgeInsets.zero,
-              child: buildSettingsList(
-                constraints,
-                filteredCategories,
-                selectedCategoryIdx.value.clamp(
-                  0,
-                  filteredCategories.length - 1,
-                ),
-              ),
-            );
-          } else {
-            return SizedBox(
-              height: constraints.maxHeight,
-              child: buildSettingsList(
-                constraints,
-                filteredCategories,
-                selectedCategoryIdx.value.clamp(
-                  0,
-                  filteredCategories.length - 1,
-                ),
-              ),
-            );
+          final selectedCategory =
+              filteredCategories.firstWhereOrNull(
+                (c) => c.title == selectedCategoryId.value,
+              ) ??
+              filteredCategories.first;
+
+          if (selectedCategoryId.value != selectedCategory.title) {
+            // Keep selection valid when search filters remove the prior category.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (selectedCategoryId.value != selectedCategory.title) {
+                selectedCategoryId.value = selectedCategory.title;
+              }
+            });
           }
+
+          return buildSettingsList(
+            constraints,
+            filteredCategories,
+            selectedCategory,
+          );
         },
       ),
     );
@@ -2107,22 +2209,44 @@ class _SettingsSection extends StatelessWidget {
     final displayTitle = localizedTitleKey != null
         ? localizedTitleKey!.tr()
         : title;
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
           child: Text(
             displayTitle,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
             ),
           ),
         ),
         ...children,
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+class _SettingsSubheader extends StatelessWidget {
+  final String titleKey;
+
+  const _SettingsSubheader(this.titleKey);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
+      child: Text(
+        titleKey.tr(),
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
@@ -2402,7 +2526,7 @@ class _StorageSettingsSection extends HookConsumerWidget {
           minLeadingWidth: 48,
           title: Text('settingsChatRoomStorage').tr(),
           subtitle: Text('settingsChatRoomStorageHelper').tr(),
-          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          contentPadding: _kSettingsTilePadding,
           leading: const Icon(Symbols.storage),
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
@@ -3207,7 +3331,7 @@ class _DesktopIdleStatusPreview extends HookConsumerWidget {
     return ListTile(
       minLeadingWidth: 48,
       title: Text('settingsDesktopIdleStatusPreview'.tr()),
-      contentPadding: const EdgeInsets.only(left: 24, right: 17),
+      contentPadding: _kSettingsTilePadding,
       leading: const Icon(Symbols.preview),
       subtitle: loading.value
           ? Text('settingsDesktopIdleStatusPreviewLoading'.tr())
@@ -3252,7 +3376,7 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
           return ListTile(
             minLeadingWidth: 48,
             title: Text('settingsNowPlayingPreview'.tr()),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.music_off),
             subtitle: Text('settingsNowPlayingPreviewEmpty'.tr()),
           );
@@ -3271,7 +3395,7 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsNowPlayingPreview'.tr()),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.music_note),
               subtitle: Text(
                 event.state == ExternalNowPlayingState.playing
@@ -3531,7 +3655,7 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsNowPlayingPreview'.tr()),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const SizedBox(
               width: 24,
               height: 24,
@@ -3656,7 +3780,7 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsNowPlayingPreview'.tr()),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.error),
             subtitle: Text('settingsNowPlayingPreviewError'.tr()),
           ),
@@ -3795,7 +3919,7 @@ class _DesktopRpcServerPreview extends HookConsumerWidget {
         ListTile(
           minLeadingWidth: 48,
           title: Text('settingsRpcServerStatus'.tr()),
-          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          contentPadding: _kSettingsTilePadding,
           leading: Icon(
             serverState.status == 'Server running'
                 ? Symbols.check_circle
@@ -3848,7 +3972,7 @@ class _DesktopRpcServerPreview extends HookConsumerWidget {
               args: [serverState.recentPackets.length.toString()],
             ),
           ),
-          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          contentPadding: _kSettingsTilePadding,
           leading: const Icon(Symbols.swap_horiz),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
