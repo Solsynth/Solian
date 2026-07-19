@@ -56,13 +56,17 @@ class RealmListScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: const Text('realms').tr(),
+        leading: IconButton(
+          icon: const Icon(Symbols.menu),
+          onPressed: () {
+            rootScaffoldKey.currentState?.openDrawer();
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(isCardMode ? Symbols.view_list : Symbols.grid_view),
             tooltip:
-                (isCardMode
-                        ? 'realmSwitchToListView'
-                        : 'realmSwitchToCardView')
+                (isCardMode ? 'realmSwitchToListView' : 'realmSwitchToCardView')
                     .tr(),
             onPressed: () {
               ref
