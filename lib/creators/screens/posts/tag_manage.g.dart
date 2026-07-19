@@ -8,16 +8,12 @@ part of 'tag_manage.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Protected-tag quota for a publisher.
-///
-/// The backend path requires a slug segment but ignores it; any placeholder works.
+/// Protected-tag quota and owned tags for a publisher.
 
 @ProviderFor(publisherTagQuota)
 final publisherTagQuotaProvider = PublisherTagQuotaFamily._();
 
-/// Protected-tag quota for a publisher.
-///
-/// The backend path requires a slug segment but ignores it; any placeholder works.
+/// Protected-tag quota and owned tags for a publisher.
 
 final class PublisherTagQuotaProvider
     extends
@@ -27,9 +23,7 @@ final class PublisherTagQuotaProvider
           FutureOr<SnTagQuota>
         >
     with $FutureModifier<SnTagQuota>, $FutureProvider<SnTagQuota> {
-  /// Protected-tag quota for a publisher.
-  ///
-  /// The backend path requires a slug segment but ignores it; any placeholder works.
+  /// Protected-tag quota and owned tags for a publisher.
   PublisherTagQuotaProvider._({
     required PublisherTagQuotaFamily super.from,
     required String super.argument,
@@ -73,11 +67,9 @@ final class PublisherTagQuotaProvider
   }
 }
 
-String _$publisherTagQuotaHash() => r'5870c082e442a60026d4d768db55fd2414c21877';
+String _$publisherTagQuotaHash() => r'd54cac8f76e035c2897fbf23ed95e125960a783a';
 
-/// Protected-tag quota for a publisher.
-///
-/// The backend path requires a slug segment but ignores it; any placeholder works.
+/// Protected-tag quota and owned tags for a publisher.
 
 final class PublisherTagQuotaFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnTagQuota>, String> {
@@ -90,9 +82,7 @@ final class PublisherTagQuotaFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Protected-tag quota for a publisher.
-  ///
-  /// The backend path requires a slug segment but ignores it; any placeholder works.
+  /// Protected-tag quota and owned tags for a publisher.
 
   PublisherTagQuotaProvider call(String pubName) =>
       PublisherTagQuotaProvider._(argument: pubName, from: this);

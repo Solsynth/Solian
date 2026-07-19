@@ -48,7 +48,7 @@ abstract class _$TourStatusNotifier extends $Notifier<Map<String, bool>> {
   Map<String, bool> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Map<String, bool>, Map<String, bool>>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$TourStatusNotifier extends $Notifier<Map<String, bool>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

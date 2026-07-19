@@ -58,7 +58,7 @@ abstract class _$BoardEditorState
   (Map<String, bool>, List<AccountBoardItem>, List<String>) build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
@@ -76,6 +76,6 @@ abstract class _$BoardEditorState
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

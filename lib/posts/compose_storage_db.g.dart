@@ -48,7 +48,7 @@ abstract class _$ComposeStorageNotifier extends $Notifier<Map<String, SnPost>> {
   Map<String, SnPost> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Map<String, SnPost>, Map<String, SnPost>>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$ComposeStorageNotifier extends $Notifier<Map<String, SnPost>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

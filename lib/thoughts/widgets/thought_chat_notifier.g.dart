@@ -93,7 +93,7 @@ abstract class _$ThoughtChatNotifier extends $Notifier<ThoughtChatState> {
   ThoughtChatState build(ThoughtChatArgs args);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ThoughtChatState, ThoughtChatState>;
     final element =
         ref.element
@@ -103,6 +103,6 @@ abstract class _$ThoughtChatNotifier extends $Notifier<ThoughtChatState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

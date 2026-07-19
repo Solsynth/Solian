@@ -40,7 +40,7 @@ abstract class _$ChatUnreadCountNotifier extends $AsyncNotifier<int> {
   FutureOr<int> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<int>, int>;
     final element =
         ref.element
@@ -50,7 +50,7 @@ abstract class _$ChatUnreadCountNotifier extends $AsyncNotifier<int> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -85,7 +85,7 @@ abstract class _$ChatSummary
   FutureOr<Map<String, SnChatSummary>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
@@ -103,6 +103,6 @@ abstract class _$ChatSummary
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

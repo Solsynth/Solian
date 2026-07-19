@@ -56,7 +56,7 @@ abstract class _$CallNotifier extends $Notifier<CallState> {
   CallState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<CallState, CallState>;
     final element =
         ref.element
@@ -66,6 +66,6 @@ abstract class _$CallNotifier extends $Notifier<CallState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

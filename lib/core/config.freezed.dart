@@ -1467,11 +1467,7 @@ as List<String>,
 /// @nodoc
 mixin _$AppSettings implements DiagnosticableTreeMixin {
 
- bool get dataSavingMode; bool get weakConnectionMode; bool get soundEffects; bool get festivalFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; bool get notifyWithHaptic; String? get customFonts; int? get appColorScheme;// The color stored via the int type
- ThemeColors? get customColors; Size? get windowSize;// The window size for desktop platforms
- double get windowOpacity;// The window opacity for desktop platforms
- double get cardTransparency;// The card background opacity
- String? get defaultPoolId; String get messageDisplayStyle; String get attachmentsListStyle; String get attachmentPreviewMode; String get linkCollapseMode; String? get themeMode; bool get disableAnimation; bool get groupedChatList; String? get firstLaunchAt; bool get askedReview; String? get dashSearchEngine; String? get defaultScreen; String get realmDisplayMode; String get chatEventMessageMode; bool get showChatSystemMessages; DashboardConfig? get dashboardConfig; ExploreSettings get exploreSettings; bool get mediaProxyEnabled; bool get friendStatusDesktopNotification;
+ bool get dataSavingMode; bool get weakConnectionMode; bool get soundEffects; bool get festivalFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; bool get notifyWithHaptic; String? get customFonts; int? get appColorScheme; ThemeColors? get customColors; Size? get windowSize; double get windowOpacity; double get cardTransparency; String? get defaultPoolId; String get messageDisplayStyle; String get attachmentsListStyle; String get attachmentPreviewMode; String get linkCollapseMode; String? get themeMode; bool get disableAnimation; bool get groupedChatList; String? get firstLaunchAt; bool get askedReview; String? get dashSearchEngine; String? get defaultScreen; String get realmDisplayMode; String get chatEventMessageMode; bool get showChatSystemMessages; DashboardConfig? get dashboardConfig; ExploreSettings get exploreSettings; bool get mediaProxyEnabled; bool get friendStatusDesktopNotification;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1741,14 +1737,10 @@ class _AppSettings with DiagnosticableTreeMixin implements AppSettings {
 @override final  bool notifyWithHaptic;
 @override final  String? customFonts;
 @override final  int? appColorScheme;
-// The color stored via the int type
 @override final  ThemeColors? customColors;
 @override final  Size? windowSize;
-// The window size for desktop platforms
 @override final  double windowOpacity;
-// The window opacity for desktop platforms
 @override final  double cardTransparency;
-// The card background opacity
 @override final  String? defaultPoolId;
 @override final  String messageDisplayStyle;
 @override final  String attachmentsListStyle;
