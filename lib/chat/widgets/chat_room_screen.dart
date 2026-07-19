@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
+import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:island/chat/pods/chat_room_state.dart';
@@ -422,15 +423,18 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [messagesNotifier]);
 
     useEffect(() {
-      final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
       return () {
         Future.microtask(() {
-          if (currentSubscribed == id) {
+          // The subscription is established asynchronously, so read the current
+          // value during disposal instead of capturing its initial (often null)
+          // value when this screen is first built.
+          if (ref.read(currentSubscribedChatIdProvider) == id) {
             ref.read(currentSubscribedChatIdProvider.notifier).set(null);
           }
+          ref.read(foregroundChatRoomIdsProvider.notifier).remove(id);
         });
       };
-    }, []);
+    }, [id]);
 
     // Auto-fill check when message count changes
     final scrollControllerRef = useRef(chatStateNotifier.scrollController);
