@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'survey.dart';
@@ -9,6 +9,7 @@ part of 'survey.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnSurveyWithStatsCopyWithImpl<$Res>
 /// Create a copy of SnSurveyWithStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? userAnswer = freezed,Object? stats = null,Object? id = null,Object? questions = null,Object? title = freezed,Object? description = freezed,Object? endedAt = freezed,Object? publisherId = null,Object? publisher = freezed,Object? status = null,Object? publishedAt = freezed,Object? notifySubscribers = null,Object? isAnonymous = null,Object? attachments = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSurveyWithStats(
 userAnswer: freezed == userAnswer ? _self.userAnswer : userAnswer // ignore: cast_nullable_to_non_nullable
 as SnSurveyAnswer?,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -243,7 +244,7 @@ return $default(_that.userAnswer,_that.stats,_that.id,_that.questions,_that.titl
 @JsonSerializable()
 
 class _SnSurveyWithStats implements SnSurveyWithStats {
-  const _SnSurveyWithStats({required this.userAnswer, final  Map<String, dynamic> stats = const {}, required this.id, required final  List<SnSurveyQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.status, this.publishedAt, this.notifySubscribers = false, this.isAnonymous = false, final  List<SnCloudFileReference> attachments = const [], required this.createdAt, required this.updatedAt, this.deletedAt}): _stats = stats,_questions = questions,_attachments = attachments;
+  const _SnSurveyWithStats({required this.userAnswer,  Map<String, dynamic> stats = const {}, required this.id, required  List<SnSurveyQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.status, this.publishedAt, this.notifySubscribers = false, this.isAnonymous = false,  List<SnCloudFileReference> attachments = const [], required this.createdAt, required this.updatedAt, this.deletedAt}): _stats = stats,_questions = questions,_attachments = attachments;
   factory _SnSurveyWithStats.fromJson(Map<String, dynamic> json) => _$SnSurveyWithStatsFromJson(json);
 
 @override final  SnSurveyAnswer? userAnswer;
@@ -386,8 +387,7 @@ $SnPublisherCopyWith<$Res>? get publisher {
 /// @nodoc
 mixin _$SnSurvey {
 
- String get id; List<SnSurveyQuestion> get questions; String? get title; String? get description; DateTime? get endedAt; String get publisherId; SnPublisher? get publisher; SnSurveyStatus get status; DateTime? get publishedAt; bool get notifySubscribers; bool get isAnonymous; List<SnCloudFileReference> get attachments;// ModelBase fields
- DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; List<SnSurveyQuestion> get questions; String? get title; String? get description; DateTime? get endedAt; String get publisherId; SnPublisher? get publisher; SnSurveyStatus get status; DateTime? get publishedAt; bool get notifySubscribers; bool get isAnonymous; List<SnCloudFileReference> get attachments; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -438,7 +438,7 @@ class _$SnSurveyCopyWithImpl<$Res>
 /// Create a copy of SnSurvey
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? questions = null,Object? title = freezed,Object? description = freezed,Object? endedAt = freezed,Object? publisherId = null,Object? publisher = freezed,Object? status = null,Object? publishedAt = freezed,Object? notifySubscribers = null,Object? isAnonymous = null,Object? attachments = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSurvey(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,questions: null == questions ? _self.questions : questions // ignore: cast_nullable_to_non_nullable
 as List<SnSurveyQuestion>,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -601,7 +601,7 @@ return $default(_that.id,_that.questions,_that.title,_that.description,_that.end
 @JsonSerializable()
 
 class _SnSurvey implements SnSurvey {
-  const _SnSurvey({required this.id, required final  List<SnSurveyQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.status, this.publishedAt, this.notifySubscribers = false, this.isAnonymous = false, final  List<SnCloudFileReference> attachments = const [], required this.createdAt, required this.updatedAt, this.deletedAt}): _questions = questions,_attachments = attachments;
+  const _SnSurvey({required this.id, required  List<SnSurveyQuestion> questions, this.title, this.description, this.endedAt, required this.publisherId, this.publisher, required this.status, this.publishedAt, this.notifySubscribers = false, this.isAnonymous = false,  List<SnCloudFileReference> attachments = const [], required this.createdAt, required this.updatedAt, this.deletedAt}): _questions = questions,_attachments = attachments;
   factory _SnSurvey.fromJson(Map<String, dynamic> json) => _$SnSurveyFromJson(json);
 
 @override final  String id;
@@ -628,7 +628,6 @@ class _SnSurvey implements SnSurvey {
   return EqualUnmodifiableListView(_attachments);
 }
 
-// ModelBase fields
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -774,7 +773,7 @@ class _$SnSurveyQuestionCopyWithImpl<$Res>
 /// Create a copy of SnSurveyQuestion
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? options = freezed,Object? title = null,Object? description = freezed,Object? order = null,Object? isRequired = null,Object? maxSelections = freezed,Object? maxLength = freezed,Object? minValue = freezed,Object? maxValue = freezed,Object? attachments = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnSurveyQuestion(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as SnSurveyQuestionType,options: freezed == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
@@ -922,7 +921,7 @@ return $default(_that.id,_that.type,_that.options,_that.title,_that.description,
 @JsonSerializable()
 
 class _SnSurveyQuestion implements SnSurveyQuestion {
-  const _SnSurveyQuestion({required this.id, required this.type, final  List<SnSurveyOption>? options, required this.title, this.description, required this.order, required this.isRequired, this.maxSelections, this.maxLength, this.minValue, this.maxValue, final  List<SnCloudFileReference> attachments = const []}): _options = options,_attachments = attachments;
+  const _SnSurveyQuestion({required this.id, required this.type,  List<SnSurveyOption>? options, required this.title, this.description, required this.order, required this.isRequired, this.maxSelections, this.maxLength, this.minValue, this.maxValue,  List<SnCloudFileReference> attachments = const []}): _options = options,_attachments = attachments;
   factory _SnSurveyQuestion.fromJson(Map<String, dynamic> json) => _$SnSurveyQuestionFromJson(json);
 
 @override final  String id;
@@ -1078,7 +1077,7 @@ class _$SnSurveyOptionCopyWithImpl<$Res>
 /// Create a copy of SnSurveyOption
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? description = freezed,Object? order = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnSurveyOption(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -1344,7 +1343,7 @@ class _$SnSurveyAnswerCopyWithImpl<$Res>
 /// Create a copy of SnSurveyAnswer
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? answer = null,Object? accountId = null,Object? surveyId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? account = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSurveyAnswer(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,answer: null == answer ? _self.answer : answer // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -1500,7 +1499,7 @@ return $default(_that.id,_that.answer,_that.accountId,_that.surveyId,_that.creat
 @JsonSerializable()
 
 class _SnSurveyAnswer implements SnSurveyAnswer {
-  const _SnSurveyAnswer({required this.id, required final  Map<String, dynamic> answer, required this.accountId, required this.surveyId, required this.createdAt, required this.updatedAt, required this.deletedAt, this.account}): _answer = answer;
+  const _SnSurveyAnswer({required this.id, required  Map<String, dynamic> answer, required this.accountId, required this.surveyId, required this.createdAt, required this.updatedAt, required this.deletedAt, this.account}): _answer = answer;
   factory _SnSurveyAnswer.fromJson(Map<String, dynamic> json) => _$SnSurveyAnswerFromJson(json);
 
 @override final  String id;
@@ -1652,7 +1651,7 @@ class _$SnSurveySubscriptionCopyWithImpl<$Res>
 /// Create a copy of SnSurveySubscription
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? surveyId = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSurveySubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,surveyId: null == surveyId ? _self.surveyId : surveyId // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable

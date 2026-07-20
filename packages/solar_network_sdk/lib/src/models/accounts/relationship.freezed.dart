@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'relationship.dart';
@@ -9,14 +9,14 @@ part of 'relationship.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$SnRelationship {
 
- DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get accountId;// Usually the account was not included in the response
- SnAccount? get account; String get relatedId; SnAccount? get related; DateTime? get expiredAt; int get status; String? get alias; int? get degradeToStatus;
+ DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get accountId; SnAccount? get account; String get relatedId; SnAccount? get related; DateTime? get expiredAt; int get status; String? get alias; int? get degradeToStatus;
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -67,7 +67,7 @@ class _$SnRelationshipCopyWithImpl<$Res>
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,Object? alias = freezed,Object? degradeToStatus = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnRelationship(
 createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -245,7 +245,6 @@ class _SnRelationship implements SnRelationship {
 @override final  DateTime? updatedAt;
 @override final  DateTime? deletedAt;
 @override final  String accountId;
-// Usually the account was not included in the response
 @override final  SnAccount? account;
 @override final  String relatedId;
 @override final  SnAccount? related;

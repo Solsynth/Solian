@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'activitypub.dart';
@@ -9,12 +9,14 @@ part of 'activitypub.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$SnActivityPubInstance {
 
+/// Synthetic remote instances may omit id (Guid.Empty / null).
  String get id; String get domain; String? get name; String? get description; String? get software; String? get version; String? get iconUrl; String? get thumbnailUrl; String? get contactEmail; String? get contactAccountUsername; int? get activeUsers; bool get isBlocked; bool get isSilenced; String? get blockReason; Map<String, dynamic>? get metadata; DateTime? get lastFetchedAt; DateTime? get lastActivityAt; DateTime? get metadataFetchedAt;
 /// Create a copy of SnActivityPubInstance
 /// with the given fields replaced by the non-null parameter values.
@@ -66,7 +68,7 @@ class _$SnActivityPubInstanceCopyWithImpl<$Res>
 /// Create a copy of SnActivityPubInstance
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? domain = null,Object? name = freezed,Object? description = freezed,Object? software = freezed,Object? version = freezed,Object? iconUrl = freezed,Object? thumbnailUrl = freezed,Object? contactEmail = freezed,Object? contactAccountUsername = freezed,Object? activeUsers = freezed,Object? isBlocked = null,Object? isSilenced = null,Object? blockReason = freezed,Object? metadata = freezed,Object? lastFetchedAt = freezed,Object? lastActivityAt = freezed,Object? metadataFetchedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnActivityPubInstance(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,domain: null == domain ? _self.domain : domain // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -220,11 +222,12 @@ return $default(_that.id,_that.domain,_that.name,_that.description,_that.softwar
 @JsonSerializable()
 
 class _SnActivityPubInstance implements SnActivityPubInstance {
-  const _SnActivityPubInstance({required this.id, required this.domain, this.name, this.description, this.software, this.version, this.iconUrl, this.thumbnailUrl, this.contactEmail, this.contactAccountUsername, this.activeUsers, this.isBlocked = false, this.isSilenced = false, this.blockReason, final  Map<String, dynamic>? metadata, this.lastFetchedAt, this.lastActivityAt, this.metadataFetchedAt}): _metadata = metadata;
+  const _SnActivityPubInstance({this.id = '', this.domain = 'unknown', this.name, this.description, this.software, this.version, this.iconUrl, this.thumbnailUrl, this.contactEmail, this.contactAccountUsername, this.activeUsers, this.isBlocked = false, this.isSilenced = false, this.blockReason,  Map<String, dynamic>? metadata, this.lastFetchedAt, this.lastActivityAt, this.metadataFetchedAt}): _metadata = metadata;
   factory _SnActivityPubInstance.fromJson(Map<String, dynamic> json) => _$SnActivityPubInstanceFromJson(json);
 
-@override final  String id;
-@override final  String domain;
+/// Synthetic remote instances may omit id (Guid.Empty / null).
+@override@JsonKey() final  String id;
+@override@JsonKey() final  String domain;
 @override final  String? name;
 @override final  String? description;
 @override final  String? software;
@@ -382,7 +385,7 @@ class _$SnActivityPubUserCopyWithImpl<$Res>
 /// Create a copy of SnActivityPubUser
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? actorUri = null,Object? username = null,Object? displayName = null,Object? bio = null,Object? avatarUrl = null,Object? followedAt = null,Object? isLocal = null,Object? instanceDomain = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnActivityPubUser(
 actorUri: null == actorUri ? _self.actorUri : actorUri // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -609,7 +612,10 @@ as String,
 /// @nodoc
 mixin _$SnActivityPubActor {
 
- String get id; String get uri; String get type; String get fullHandle; String? get displayName; String get username; String? get bio; String? get inboxUri; String? get outboxUri; String? get followersUri; String? get followingUri; String? get featuredUri; String? get avatarUrl; String? get headerUrl; String? get publicKeyId; String? get publicKey; bool get isBot; bool get isLocked; bool get isDiscoverable; Map<String, dynamic>? get endpoints; Map<String, dynamic>? get publicKeyData; Map<String, dynamic>? get metadata; DateTime? get lastFetchedAt; DateTime? get lastActivityAt; SnActivityPubInstance get instance; String get instanceId; bool? get isFollowing; int? get followersCount; int? get followingCount; int? get totalPostCount; String? get webUrl; List<SnPost>? get recentPosts;
+/// Remote outbox reconstructions may send empty Guid.
+ String get id; String get uri; String get type;/// Computed server-side; tolerate missing values on partial payloads.
+ String get fullHandle; String? get displayName; String get username; String? get bio; String? get inboxUri; String? get outboxUri; String? get followersUri; String? get followingUri; String? get featuredUri; String? get avatarUrl; String? get headerUrl; String? get publicKeyId; String? get publicKey; bool get isBot; bool get isLocked; bool get isDiscoverable; Map<String, dynamic>? get endpoints; Map<String, dynamic>? get publicKeyData; Map<String, dynamic>? get metadata; DateTime? get lastFetchedAt; DateTime? get lastActivityAt;/// Nested instance is incomplete on some remote outbox posts.
+ SnActivityPubInstance get instance; String get instanceId; bool? get isFollowing; int? get followersCount; int? get followingCount; int? get totalPostCount; String? get webUrl; List<SnPost>? get recentPosts;
 /// Create a copy of SnActivityPubActor
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -660,7 +666,7 @@ class _$SnActivityPubActorCopyWithImpl<$Res>
 /// Create a copy of SnActivityPubActor
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? uri = null,Object? type = null,Object? fullHandle = null,Object? displayName = freezed,Object? username = null,Object? bio = freezed,Object? inboxUri = freezed,Object? outboxUri = freezed,Object? followersUri = freezed,Object? followingUri = freezed,Object? featuredUri = freezed,Object? avatarUrl = freezed,Object? headerUrl = freezed,Object? publicKeyId = freezed,Object? publicKey = freezed,Object? isBot = null,Object? isLocked = null,Object? isDiscoverable = null,Object? endpoints = freezed,Object? publicKeyData = freezed,Object? metadata = freezed,Object? lastFetchedAt = freezed,Object? lastActivityAt = freezed,Object? instance = null,Object? instanceId = null,Object? isFollowing = freezed,Object? followersCount = freezed,Object? followingCount = freezed,Object? totalPostCount = freezed,Object? webUrl = freezed,Object? recentPosts = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnActivityPubActor(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,uri: null == uri ? _self.uri : uri // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -837,15 +843,17 @@ return $default(_that.id,_that.uri,_that.type,_that.fullHandle,_that.displayName
 @JsonSerializable()
 
 class _SnActivityPubActor implements SnActivityPubActor {
-  const _SnActivityPubActor({required this.id, required this.uri, this.type = 'Person', required this.fullHandle, this.displayName, required this.username, this.bio, this.inboxUri, this.outboxUri, this.followersUri, this.followingUri, this.featuredUri, this.avatarUrl, this.headerUrl, this.publicKeyId, this.publicKey, this.isBot = false, this.isLocked = false, this.isDiscoverable = true, final  Map<String, dynamic>? endpoints, final  Map<String, dynamic>? publicKeyData, final  Map<String, dynamic>? metadata, this.lastFetchedAt, this.lastActivityAt, required this.instance, required this.instanceId, this.isFollowing, this.followersCount, this.followingCount, this.totalPostCount, this.webUrl, final  List<SnPost>? recentPosts}): _endpoints = endpoints,_publicKeyData = publicKeyData,_metadata = metadata,_recentPosts = recentPosts;
+  const _SnActivityPubActor({this.id = '', this.uri = '', this.type = 'Person', this.fullHandle = '', this.displayName, this.username = '', this.bio, this.inboxUri, this.outboxUri, this.followersUri, this.followingUri, this.featuredUri, this.avatarUrl, this.headerUrl, this.publicKeyId, this.publicKey, this.isBot = false, this.isLocked = false, this.isDiscoverable = true,  Map<String, dynamic>? endpoints,  Map<String, dynamic>? publicKeyData,  Map<String, dynamic>? metadata, this.lastFetchedAt, this.lastActivityAt, this.instance = const SnActivityPubInstance(), this.instanceId = '', this.isFollowing, this.followersCount, this.followingCount, this.totalPostCount, this.webUrl,  List<SnPost>? recentPosts}): _endpoints = endpoints,_publicKeyData = publicKeyData,_metadata = metadata,_recentPosts = recentPosts;
   factory _SnActivityPubActor.fromJson(Map<String, dynamic> json) => _$SnActivityPubActorFromJson(json);
 
-@override final  String id;
-@override final  String uri;
+/// Remote outbox reconstructions may send empty Guid.
+@override@JsonKey() final  String id;
+@override@JsonKey() final  String uri;
 @override@JsonKey() final  String type;
-@override final  String fullHandle;
+/// Computed server-side; tolerate missing values on partial payloads.
+@override@JsonKey() final  String fullHandle;
 @override final  String? displayName;
-@override final  String username;
+@override@JsonKey() final  String username;
 @override final  String? bio;
 @override final  String? inboxUri;
 @override final  String? outboxUri;
@@ -888,8 +896,9 @@ class _SnActivityPubActor implements SnActivityPubActor {
 
 @override final  DateTime? lastFetchedAt;
 @override final  DateTime? lastActivityAt;
-@override final  SnActivityPubInstance instance;
-@override final  String instanceId;
+/// Nested instance is incomplete on some remote outbox posts.
+@override@JsonKey() final  SnActivityPubInstance instance;
+@override@JsonKey() final  String instanceId;
 @override final  bool? isFollowing;
 @override final  int? followersCount;
 @override final  int? followingCount;
@@ -1060,7 +1069,7 @@ class _$SnActivityPubFollowResponseCopyWithImpl<$Res>
 /// Create a copy of SnActivityPubFollowResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? success = null,Object? message = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnActivityPubFollowResponse(
 success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,
@@ -1320,7 +1329,7 @@ class _$SnActorStatusResponseCopyWithImpl<$Res>
 /// Create a copy of SnActorStatusResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? followerCount = null,Object? actor = freezed,Object? actorUri = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnActorStatusResponse(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,followerCount: null == followerCount ? _self.followerCount : followerCount // ignore: cast_nullable_to_non_nullable
 as int,actor: freezed == actor ? _self.actor : actor // ignore: cast_nullable_to_non_nullable

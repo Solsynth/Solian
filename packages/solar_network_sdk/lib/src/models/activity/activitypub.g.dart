@@ -9,8 +9,8 @@ part of 'activitypub.dart';
 _SnActivityPubInstance _$SnActivityPubInstanceFromJson(
   Map<String, dynamic> json,
 ) => _SnActivityPubInstance(
-  id: json['id'] as String,
-  domain: json['domain'] as String,
+  id: json['id'] as String? ?? '',
+  domain: json['domain'] as String? ?? 'unknown',
   name: json['name'] as String?,
   description: json['description'] as String?,
   software: json['software'] as String?,
@@ -84,12 +84,12 @@ Map<String, dynamic> _$SnActivityPubUserToJson(_SnActivityPubUser instance) =>
 
 _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
     _SnActivityPubActor(
-      id: json['id'] as String,
-      uri: json['uri'] as String,
+      id: json['id'] as String? ?? '',
+      uri: json['uri'] as String? ?? '',
       type: json['type'] as String? ?? 'Person',
-      fullHandle: json['full_handle'] as String,
+      fullHandle: json['full_handle'] as String? ?? '',
       displayName: json['display_name'] as String?,
-      username: json['username'] as String,
+      username: json['username'] as String? ?? '',
       bio: json['bio'] as String?,
       inboxUri: json['inbox_uri'] as String?,
       outboxUri: json['outbox_uri'] as String?,
@@ -112,10 +112,12 @@ _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
       lastActivityAt: json['last_activity_at'] == null
           ? null
           : DateTime.parse(json['last_activity_at'] as String),
-      instance: SnActivityPubInstance.fromJson(
-        json['instance'] as Map<String, dynamic>,
-      ),
-      instanceId: json['instance_id'] as String,
+      instance: json['instance'] == null
+          ? const SnActivityPubInstance()
+          : SnActivityPubInstance.fromJson(
+              json['instance'] as Map<String, dynamic>,
+            ),
+      instanceId: json['instance_id'] as String? ?? '',
       isFollowing: json['is_following'] as bool?,
       followersCount: (json['followers_count'] as num?)?.toInt(),
       followingCount: (json['following_count'] as num?)?.toInt(),

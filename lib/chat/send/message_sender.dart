@@ -165,7 +165,12 @@ class MessageSender {
       // Remove pending and save sent message
       _pendingCache.remove(pending.id);
       await _repository.saveMessage(sent);
-      if (eventMessage != null) {
+      // Some servers return the edit event with the target message's ID. The
+      // target has just been persisted above, so writing that event as a
+      // separate timeline record would overwrite the edited message in the
+      // local database. This is only visible after the notifier is rebuilt:
+      // the event is then treated as a system message and can be filtered out.
+      if (eventMessage != null && eventMessage.id != sent.id) {
         await _repository.saveMessage(eventMessage);
       }
 
@@ -367,7 +372,8 @@ class MessageSender {
 
       _pendingCache.remove(pending.id);
       await _repository.saveMessage(sent);
-      if (eventMessage != null) {
+      // Do not allow a same-ID edit event to overwrite the edited target.
+      if (eventMessage != null && eventMessage.id != sent.id) {
         await _repository.saveMessage(eventMessage);
       }
 

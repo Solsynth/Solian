@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'drive_task.dart';
@@ -9,15 +9,14 @@ part of 'drive_task.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$DriveTask {
 
- String get id; String get taskId; String get fileName; String get contentType; int get fileSize; int get uploadedBytes; int get totalChunks; int get uploadedChunks; DriveTaskStatus get status; DateTime get createdAt; DateTime get updatedAt; String get type;// Task type (e.g., 'FileUpload')
- double? get transmissionProgress;// Local file upload progress (0.0-1.0)
- String? get errorMessage; String? get statusMessage; SnCloudFileReference? get result; String? get poolId; String? get bundleId; String? get encryptPassword; String? get expiredAt;
+ String get id; String get taskId; String get fileName; String get contentType; int get fileSize; int get uploadedBytes; int get totalChunks; int get uploadedChunks; DriveTaskStatus get status; DateTime get createdAt; DateTime get updatedAt; String get type; double? get transmissionProgress; String? get errorMessage; String? get statusMessage; SnCloudFileReference? get result; String? get poolId; String? get bundleId; String? get encryptPassword; String? get expiredAt;
 /// Create a copy of DriveTask
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -68,7 +67,7 @@ class _$DriveTaskCopyWithImpl<$Res>
 /// Create a copy of DriveTask
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? taskId = null,Object? fileName = null,Object? contentType = null,Object? fileSize = null,Object? uploadedBytes = null,Object? totalChunks = null,Object? uploadedChunks = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,Object? type = null,Object? transmissionProgress = freezed,Object? errorMessage = freezed,Object? statusMessage = freezed,Object? result = freezed,Object? poolId = freezed,Object? bundleId = freezed,Object? encryptPassword = freezed,Object? expiredAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(DriveTask(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,taskId: null == taskId ? _self.taskId : taskId // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
@@ -251,9 +250,7 @@ class _DriveTask extends DriveTask {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  String type;
-// Task type (e.g., 'FileUpload')
 @override final  double? transmissionProgress;
-// Local file upload progress (0.0-1.0)
 @override final  String? errorMessage;
 @override final  String? statusMessage;
 @override final  SnCloudFileReference? result;

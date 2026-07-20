@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'discovery.dart';
@@ -9,6 +9,7 @@ part of 'discovery.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnDiscoveryProfileCopyWithImpl<$Res>
 /// Create a copy of SnDiscoveryProfile
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? generatedAt = null,Object? interests = null,Object? suggestedPublishers = null,Object? suggestedAccounts = null,Object? suggestedRealms = null,Object? suppressed = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnDiscoveryProfile(
 generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,interests: null == interests ? _self.interests : interests // ignore: cast_nullable_to_non_nullable
 as List<SnDiscoveryInterest>,suggestedPublishers: null == suggestedPublishers ? _self.suggestedPublishers : suggestedPublishers // ignore: cast_nullable_to_non_nullable
@@ -208,7 +209,7 @@ return $default(_that.generatedAt,_that.interests,_that.suggestedPublishers,_tha
 
 @JsonSerializable()
 class _SnDiscoveryProfile implements SnDiscoveryProfile {
-  const _SnDiscoveryProfile({required this.generatedAt, required final  List<SnDiscoveryInterest> interests, required final  List<SnSuggestedData> suggestedPublishers, required final  List<SnSuggestedData> suggestedAccounts, required final  List<SnSuggestedData> suggestedRealms, required final  List<dynamic> suppressed}): _interests = interests,_suggestedPublishers = suggestedPublishers,_suggestedAccounts = suggestedAccounts,_suggestedRealms = suggestedRealms,_suppressed = suppressed;
+  const _SnDiscoveryProfile({required this.generatedAt, required  List<SnDiscoveryInterest> interests, required  List<SnSuggestedData> suggestedPublishers, required  List<SnSuggestedData> suggestedAccounts, required  List<SnSuggestedData> suggestedRealms, required  List<dynamic> suppressed}): _interests = interests,_suggestedPublishers = suggestedPublishers,_suggestedAccounts = suggestedAccounts,_suggestedRealms = suggestedRealms,_suppressed = suppressed;
   factory _SnDiscoveryProfile.fromJson(Map<String, dynamic> json) => _$SnDiscoveryProfileFromJson(json);
 
 @override final  DateTime generatedAt;
@@ -368,7 +369,7 @@ class _$SnDiscoveryInterestCopyWithImpl<$Res>
 /// Create a copy of SnDiscoveryInterest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? referenceId = null,Object? label = null,Object? score = null,Object? interactionCount = null,Object? lastInteractedAt = null,Object? lastSignalType = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnDiscoveryInterest(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as String,referenceId: null == referenceId ? _self.referenceId : referenceId // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -643,7 +644,7 @@ class _$SnSuggestedDataCopyWithImpl<$Res>
 /// Create a copy of SnSuggestedData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? referenceId = null,Object? label = null,Object? score = null,Object? reasons = null,Object? data = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSuggestedData(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as int,referenceId: null == referenceId ? _self.referenceId : referenceId // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -785,7 +786,7 @@ return $default(_that.kind,_that.referenceId,_that.label,_that.score,_that.reaso
 
 @JsonSerializable()
 class _SnSuggestedData implements SnSuggestedData {
-  const _SnSuggestedData({required this.kind, required this.referenceId, required this.label, required this.score, required final  List<String> reasons, required this.data}): _reasons = reasons;
+  const _SnSuggestedData({required this.kind, required this.referenceId, required this.label, required this.score, required  List<String> reasons, required this.data}): _reasons = reasons;
   factory _SnSuggestedData.fromJson(Map<String, dynamic> json) => _$SnSuggestedDataFromJson(json);
 
 @override final  int kind;

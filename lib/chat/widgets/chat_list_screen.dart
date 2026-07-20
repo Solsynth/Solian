@@ -14,6 +14,7 @@ import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/chat/pods/chat_account_status.dart';
+import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -1120,6 +1121,56 @@ class ChatScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isWide = isWideScreen(context);
+    final tabsRouter = AutoTabsRouter.of(context);
+
+    useEffect(() {
+      StackRouter? chatRouter;
+
+      void clearActiveChat() {
+        final activeChatId = ref.read(currentSubscribedChatIdProvider);
+        if (activeChatId == null) return;
+        ref.read(currentSubscribedChatIdProvider.notifier).set(null);
+        ref.read(foregroundChatRoomIdsProvider.notifier).remove(activeChatId);
+      }
+
+      void syncActiveChatWithRoute() {
+        final nextChatRouter = tabsRouter.stackRouterOfIndex(2);
+        if (nextChatRouter != chatRouter) {
+          chatRouter?.removeListener(syncActiveChatWithRoute);
+          chatRouter = nextChatRouter;
+          chatRouter?.addListener(syncActiveChatWithRoute);
+        }
+
+        // AutoTabsRouter keeps inactive tabs mounted, and the nested router
+        // changes when users leave a room with the back button. In both cases,
+        // only an actual ChatRoomRoute should have an active list highlight.
+        if (tabsRouter.activeIndex != 2) {
+          clearActiveChat();
+          return;
+        }
+
+        final route = chatRouter?.topRoute;
+        if (route?.name != ChatRoomRoute.name) {
+          clearActiveChat();
+          return;
+        }
+
+        final roomId = route?.pathParams.getString('id');
+        if (roomId == null || roomId.isEmpty) return;
+        ref.read(currentSubscribedChatIdProvider.notifier).set(roomId);
+        ref.read(foregroundChatRoomIdsProvider.notifier).add(roomId);
+      }
+
+      tabsRouter.addListener(syncActiveChatWithRoute);
+      syncActiveChatWithRoute();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) syncActiveChatWithRoute();
+      });
+      return () {
+        tabsRouter.removeListener(syncActiveChatWithRoute);
+        chatRouter?.removeListener(syncActiveChatWithRoute);
+      };
+    }, [tabsRouter]);
 
     return AppBackground(
       isRoot: true,

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'file_pool.dart';
@@ -9,6 +9,7 @@ part of 'file_pool.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnFilePoolCopyWithImpl<$Res>
 /// Create a copy of SnFilePool
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? storageConfig = freezed,Object? billingConfig = freezed,Object? policyConfig = freezed,Object? isHidden = freezed,Object? accountId = freezed,Object? resourceIdentifier = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnFilePool(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -214,7 +215,7 @@ return $default(_that.id,_that.name,_that.description,_that.storageConfig,_that.
 @JsonSerializable()
 
 class _SnFilePool implements SnFilePool {
-  const _SnFilePool({required this.id, required this.name, this.description, final  Map<String, dynamic>? storageConfig, final  Map<String, dynamic>? billingConfig, final  Map<String, dynamic>? policyConfig, this.isHidden, this.accountId, this.resourceIdentifier, this.createdAt, this.updatedAt, this.deletedAt}): _storageConfig = storageConfig,_billingConfig = billingConfig,_policyConfig = policyConfig;
+  const _SnFilePool({required this.id, required this.name, this.description,  Map<String, dynamic>? storageConfig,  Map<String, dynamic>? billingConfig,  Map<String, dynamic>? policyConfig, this.isHidden, this.accountId, this.resourceIdentifier, this.createdAt, this.updatedAt, this.deletedAt}): _storageConfig = storageConfig,_billingConfig = billingConfig,_policyConfig = policyConfig;
   factory _SnFilePool.fromJson(Map<String, dynamic> json) => _$SnFilePoolFromJson(json);
 
 @override final  String id;

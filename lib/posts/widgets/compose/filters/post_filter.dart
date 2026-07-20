@@ -11,6 +11,7 @@ class PostFilterWidget extends HookConsumerWidget {
   final PostListQuery initialQuery;
   final ValueChanged<PostListQuery> onQueryChanged;
   final bool hideSearch;
+  final bool showSearchAtTop;
 
   const PostFilterWidget({
     super.key,
@@ -18,6 +19,7 @@ class PostFilterWidget extends HookConsumerWidget {
     required this.initialQuery,
     required this.onQueryChanged,
     this.hideSearch = false,
+    this.showSearchAtTop = false,
   });
 
   @override
@@ -190,6 +192,35 @@ class PostFilterWidget extends HookConsumerWidget {
                     ),
                   ],
                 ),
+                if (!hideSearch && showSearchAtTop) ...[
+                  const Gap(8),
+                  TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      labelText: 'search'.tr(),
+                      hintText: 'searchPosts'.tr(),
+                      prefixIcon: const Icon(Symbols.search),
+                      suffixIcon: (queryTerm.value?.isNotEmpty ?? false)
+                          ? IconButton(
+                              visualDensity: const VisualDensity(
+                                horizontal: -4,
+                                vertical: -4,
+                              ),
+                              icon: const Icon(Symbols.close, size: 18),
+                              onPressed: () {
+                                searchController.clear();
+                                queryTerm.value = null;
+                                updateQuery();
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      queryTerm.value = value.isEmpty ? null : value;
+                      updateQuery();
+                    },
+                  ),
+                ],
                 const Gap(8),
                 Material(
                   color: colorScheme.surfaceContainerLow,
@@ -288,7 +319,7 @@ class PostFilterWidget extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (!hideSearch) ...[
+                          if (!hideSearch && !showSearchAtTop) ...[
                             TextField(
                               controller: searchController,
                               decoration: InputDecoration(

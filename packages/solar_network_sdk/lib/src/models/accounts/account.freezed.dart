@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'account.dart';
@@ -9,6 +9,7 @@ part of 'account.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnAccountCopyWithImpl<$Res>
 /// Create a copy of SnAccount
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nick = null,Object? language = null,Object? region = null,Object? isSuperuser = null,Object? automatedId = freezed,Object? profile = null,Object? perkSubscription = freezed,Object? badges = null,Object? contacts = null,Object? activatedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccount(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
@@ -238,7 +239,7 @@ return $default(_that.id,_that.name,_that.nick,_that.language,_that.region,_that
 @JsonSerializable()
 
 class _SnAccount extends SnAccount {
-  const _SnAccount({required this.id, required this.name, required this.nick, required this.language, this.region = "", required this.isSuperuser, required this.automatedId, required this.profile, required this.perkSubscription, final  List<SnAccountBadge> badges = const [], final  List<SnContactMethod> contacts = const [], required this.activatedAt, required this.createdAt, required this.updatedAt, required this.deletedAt}): _badges = badges,_contacts = contacts,super._();
+  const _SnAccount({required this.id, required this.name, required this.nick, required this.language, this.region = "", required this.isSuperuser, required this.automatedId, required this.profile, required this.perkSubscription,  List<SnAccountBadge> badges = const [],  List<SnContactMethod> contacts = const [], required this.activatedAt, required this.createdAt, required this.updatedAt, required this.deletedAt}): _badges = badges,_contacts = contacts,super._();
   factory _SnAccount.fromJson(Map<String, dynamic> json) => _$SnAccountFromJson(json);
 
 @override final  String id;
@@ -419,7 +420,7 @@ class _$ProfileLinkCopyWithImpl<$Res>
 /// Create a copy of ProfileLink
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? url = null,}) {
-  return _then(_self.copyWith(
+  return _then(ProfileLink(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,
@@ -679,7 +680,7 @@ class _$UsernameColorCopyWithImpl<$Res>
 /// Create a copy of UsernameColor
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? value = freezed,Object? direction = freezed,Object? colors = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UsernameColor(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,value: freezed == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
 as String?,direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
@@ -819,7 +820,7 @@ return $default(_that.type,_that.value,_that.direction,_that.colors);case _:
 @JsonSerializable()
 
 class _UsernameColor implements UsernameColor {
-  const _UsernameColor({this.type = 'plain', this.value, this.direction, final  List<String>? colors}): _colors = colors;
+  const _UsernameColor({this.type = 'plain', this.value, this.direction,  List<String>? colors}): _colors = colors;
   factory _UsernameColor.fromJson(Map<String, dynamic> json) => _$UsernameColorFromJson(json);
 
 @override@JsonKey() final  String type;
@@ -953,7 +954,7 @@ class _$SnAccountProfileCopyWithImpl<$Res>
 /// Create a copy of SnAccountProfile
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? gender = null,Object? pronouns = null,Object? location = null,Object? timeZone = null,Object? birthday = freezed,Object? links = null,Object? lastSeenAt = freezed,Object? activeBadge = freezed,Object? experience = null,Object? level = null,Object? socialCredits = null,Object? socialCreditsLevel = null,Object? levelingProgress = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? usernameColor = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountProfile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String,middleName: null == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
@@ -1174,7 +1175,7 @@ return $default(_that.id,_that.firstName,_that.middleName,_that.lastName,_that.b
 @JsonSerializable()
 
 class _SnAccountProfile implements SnAccountProfile {
-  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, @ProfileLinkConverter() final  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, this.socialCredits = 100, this.socialCreditsLevel = 0, required this.levelingProgress, required this.picture, required this.background, required this.verification, this.usernameColor, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
+  const _SnAccountProfile({required this.id, this.firstName = '', this.middleName = '', this.lastName = '', this.bio = '', this.gender = '', this.pronouns = '', this.location = '', this.timeZone = '', this.birthday, @ProfileLinkConverter()  List<ProfileLink> links = const [], this.lastSeenAt, this.activeBadge, required this.experience, required this.level, this.socialCredits = 100, this.socialCreditsLevel = 0, required this.levelingProgress, required this.picture, required this.background, required this.verification, this.usernameColor, required this.createdAt, required this.updatedAt, required this.deletedAt}): _links = links;
   factory _SnAccountProfile.fromJson(Map<String, dynamic> json) => _$SnAccountProfileFromJson(json);
 
 @override final  String id;
@@ -1408,7 +1409,7 @@ class _$SnAccountStatusCopyWithImpl<$Res>
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountStatus(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
 as int,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
@@ -1600,7 +1601,7 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 @JsonSerializable()
 
 class _SnAccountStatus implements SnAccountStatus {
-  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, this.isIdle = false, this.idleSince, required this.isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) this.type = SnAccountStatusType.defaultType, this.label = "", this.symbol, this.icon, this.background, required final  Map<String, dynamic>? meta, required this.clearedAt, this.appIdentifier, this.isAutomated = false, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, this.isIdle = false, this.idleSince, required this.isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) this.type = SnAccountStatusType.defaultType, this.label = "", this.symbol, this.icon, this.background, required  Map<String, dynamic>? meta, required this.clearedAt, this.appIdentifier, this.isAutomated = false, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnAccountStatus.fromJson(Map<String, dynamic> json) => _$SnAccountStatusFromJson(json);
 
 @override final  String id;
@@ -1802,7 +1803,7 @@ class _$SnAccountBadgeCopyWithImpl<$Res>
 /// Create a copy of SnAccountBadge
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? label = freezed,Object? caption = freezed,Object? meta = null,Object? expiredAt = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? activatedAt = freezed,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountBadge(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -1949,7 +1950,7 @@ return $default(_that.id,_that.type,_that.label,_that.caption,_that.meta,_that.e
 @JsonSerializable()
 
 class _SnAccountBadge implements SnAccountBadge {
-  const _SnAccountBadge({required this.id, required this.type, required this.label, required this.caption, required final  Map<String, dynamic> meta, required this.expiredAt, required this.accountId, required this.createdAt, required this.updatedAt, required this.activatedAt, required this.deletedAt}): _meta = meta;
+  const _SnAccountBadge({required this.id, required this.type, required this.label, required this.caption, required  Map<String, dynamic> meta, required this.expiredAt, required this.accountId, required this.createdAt, required this.updatedAt, required this.activatedAt, required this.deletedAt}): _meta = meta;
   factory _SnAccountBadge.fromJson(Map<String, dynamic> json) => _$SnAccountBadgeFromJson(json);
 
 @override final  String id;
@@ -2095,7 +2096,7 @@ class _$BadgeManifestSeriesCopyWithImpl<$Res>
 /// Create a copy of BadgeManifestSeries
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = freezed,Object? order = null,}) {
-  return _then(_self.copyWith(
+  return _then(BadgeManifestSeries(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
@@ -2358,7 +2359,7 @@ class _$BadgeManifestEntryCopyWithImpl<$Res>
 /// Create a copy of BadgeManifestEntry
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? achievementIdentifier = freezed,Object? label = freezed,Object? caption = freezed,Object? icon = freezed,Object? color = freezed,Object? iconUrl = freezed,Object? localizationKey = freezed,Object? category = freezed,Object? series = freezed,Object? hidden = null,}) {
-  return _then(_self.copyWith(
+  return _then(BadgeManifestEntry(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,achievementIdentifier: freezed == achievementIdentifier ? _self.achievementIdentifier : achievementIdentifier // ignore: cast_nullable_to_non_nullable
 as String?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -2669,7 +2670,7 @@ class _$SnContactMethodCopyWithImpl<$Res>
 /// Create a copy of SnContactMethod
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? verifiedAt = freezed,Object? isPrimary = null,Object? isPublic = null,Object? content = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnContactMethod(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,verifiedAt: freezed == verifiedAt ? _self.verifiedAt : verifiedAt // ignore: cast_nullable_to_non_nullable
@@ -2953,7 +2954,7 @@ class _$SnNotificationCopyWithImpl<$Res>
 /// Create a copy of SnNotification
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? id = null,Object? appId = freezed,Object? topic = null,Object? title = null,Object? subtitle = null,Object? body = null,Object? meta = null,Object? viewedAt = freezed,Object? accountId = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnNotification(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,appId: freezed == appId ? _self.appId : appId // ignore: cast_nullable_to_non_nullable
@@ -3099,7 +3100,7 @@ return $default(_that.createdAt,_that.id,_that.appId,_that.topic,_that.title,_th
 @JsonSerializable()
 
 class _SnNotification implements SnNotification {
-  const _SnNotification({required this.createdAt, required this.id, this.appId, required this.topic, required this.title, this.subtitle = '', @JsonKey(name: 'content') required this.body, final  Map<String, dynamic> meta = const {}, required this.viewedAt, required this.accountId}): _meta = meta;
+  const _SnNotification({required this.createdAt, required this.id, this.appId, required this.topic, required this.title, this.subtitle = '', @JsonKey(name: 'content') required this.body,  Map<String, dynamic> meta = const {}, required this.viewedAt, required this.accountId}): _meta = meta;
   factory _SnNotification.fromJson(Map<String, dynamic> json) => _$SnNotificationFromJson(json);
 
 @override final  DateTime createdAt;
@@ -3243,7 +3244,7 @@ class _$SnVerificationMarkCopyWithImpl<$Res>
 /// Create a copy of SnVerificationMark
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? title = freezed,Object? description = freezed,Object? verifiedBy = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnVerificationMark(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -3509,7 +3510,7 @@ class _$SnAccountProfileRefCopyWithImpl<$Res>
 /// Create a copy of SnAccountProfileRef
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? usernameColor = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountProfileRef(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String,middleName: null == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
@@ -3886,7 +3887,7 @@ class _$SnAccountReferenceCopyWithImpl<$Res>
 /// Create a copy of SnAccountReference
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nick = null,Object? profile = freezed,Object? badges = null,Object? automatedId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountReference(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
@@ -4040,7 +4041,7 @@ return $default(_that.id,_that.name,_that.nick,_that.profile,_that.badges,_that.
 @JsonSerializable()
 
 class _SnAccountReference extends SnAccountReference {
-  const _SnAccountReference({required this.id, required this.name, required this.nick, this.profile, final  List<SnAccountBadge> badges = const [], this.automatedId}): _badges = badges,super._();
+  const _SnAccountReference({required this.id, required this.name, required this.nick, this.profile,  List<SnAccountBadge> badges = const [], this.automatedId}): _badges = badges,super._();
   factory _SnAccountReference.fromJson(Map<String, dynamic> json) => _$SnAccountReferenceFromJson(json);
 
 @override final  String id;
@@ -4188,7 +4189,7 @@ class _$SnAuthDeviceCopyWithImpl<$Res>
 /// Create a copy of SnAuthDevice
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnAuthDevice(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
@@ -4470,7 +4471,7 @@ class _$SnAuthDeviceWithSessionCopyWithImpl<$Res>
 /// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnAuthDeviceWithSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
 as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
@@ -4614,7 +4615,7 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 @JsonSerializable()
 
 class _SnAuthDeviceWithSessione implements SnAuthDeviceWithSession {
-  const _SnAuthDeviceWithSessione({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required final  List<SnAuthSession> sessions, this.isCurrent = false}): _sessions = sessions;
+  const _SnAuthDeviceWithSessione({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required  List<SnAuthSession> sessions, this.isCurrent = false}): _sessions = sessions;
   factory _SnAuthDeviceWithSessione.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceWithSessioneFromJson(json);
 
 @override final  String id;
@@ -4754,7 +4755,7 @@ class _$SnExperienceRecordCopyWithImpl<$Res>
 /// Create a copy of SnExperienceRecord
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? delta = null,Object? reasonType = null,Object? reason = null,Object? bonusMultiplier = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnExperienceRecord(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,delta: null == delta ? _self.delta : delta // ignore: cast_nullable_to_non_nullable
 as int,reasonType: null == reasonType ? _self.reasonType : reasonType // ignore: cast_nullable_to_non_nullable
@@ -5032,7 +5033,7 @@ class _$SnSocialCreditRecordCopyWithImpl<$Res>
 /// Create a copy of SnSocialCreditRecord
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? delta = null,Object? reasonType = null,Object? reason = null,Object? expiredAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSocialCreditRecord(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,delta: null == delta ? _self.delta : delta // ignore: cast_nullable_to_non_nullable
 as double,reasonType: null == reasonType ? _self.reasonType : reasonType // ignore: cast_nullable_to_non_nullable
@@ -5310,7 +5311,7 @@ class _$SnFriendOverviewItemCopyWithImpl<$Res>
 /// Create a copy of SnFriendOverviewItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? account = null,Object? status = null,Object? activities = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnFriendOverviewItem(
 account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SnAccountStatus,activities: null == activities ? _self.activities : activities // ignore: cast_nullable_to_non_nullable
@@ -5467,7 +5468,7 @@ return $default(_that.account,_that.status,_that.activities);case _:
 @JsonSerializable()
 
 class _SnFriendOverviewItem implements SnFriendOverviewItem {
-  const _SnFriendOverviewItem({required this.account, required this.status, required final  List<SnPresenceActivity> activities}): _activities = activities;
+  const _SnFriendOverviewItem({required this.account, required this.status, required  List<SnPresenceActivity> activities}): _activities = activities;
   factory _SnFriendOverviewItem.fromJson(Map<String, dynamic> json) => _$SnFriendOverviewItemFromJson(json);
 
 @override final  SnAccount account;
@@ -5615,7 +5616,7 @@ class _$SnNotificationPreferenceCopyWithImpl<$Res>
 /// Create a copy of SnNotificationPreference
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? topic = null,Object? preference = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnNotificationPreference(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
@@ -5890,7 +5891,7 @@ class _$SnNotificationTopicCopyWithImpl<$Res>
 /// Create a copy of SnNotificationTopic
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? topic = null,Object? description = null,Object? isCustom = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnNotificationTopic(
 topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
@@ -6153,7 +6154,7 @@ class _$SnNotificationPushSubscriptionCopyWithImpl<$Res>
 /// Create a copy of SnNotificationPushSubscription
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? appId = freezed,Object? deviceId = null,Object? deviceToken = null,Object? deviceName = freezed,Object? provider = null,Object? isActivated = null,Object? lastUsedAt = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnNotificationPushSubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,appId: freezed == appId ? _self.appId : appId // ignore: cast_nullable_to_non_nullable

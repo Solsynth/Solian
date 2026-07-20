@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'activity.dart';
@@ -9,6 +9,7 @@ part of 'activity.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnNotableDayCopyWithImpl<$Res>
 /// Create a copy of SnNotableDay
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? countryCode = freezed,Object? localizableKey = freezed,Object? holidays = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnNotableDay(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
 as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
@@ -208,7 +209,7 @@ return $default(_that.date,_that.localName,_that.globalName,_that.countryCode,_t
 @JsonSerializable()
 
 class _SnNotableDay implements SnNotableDay {
-  const _SnNotableDay({required this.date, required this.localName, required this.globalName, required this.countryCode, required this.localizableKey, required final  List<int> holidays}): _holidays = holidays;
+  const _SnNotableDay({required this.date, required this.localName, required this.globalName, required this.countryCode, required this.localizableKey, required  List<int> holidays}): _holidays = holidays;
   factory _SnNotableDay.fromJson(Map<String, dynamic> json) => _$SnNotableDayFromJson(json);
 
 @override final  DateTime date;
@@ -344,7 +345,7 @@ class _$SnNotableDayDetailCopyWithImpl<$Res>
 /// Create a copy of SnNotableDayDetail
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? localName = null,Object? globalName = null,Object? localizableKey = freezed,Object? countryCode = freezed,Object? description = freezed,Object? meta = freezed,Object? occurrenceKey = freezed,Object? holidays = freezed,Object? tags = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnNotableDayDetail(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,localName: null == localName ? _self.localName : localName // ignore: cast_nullable_to_non_nullable
 as String,globalName: null == globalName ? _self.globalName : globalName // ignore: cast_nullable_to_non_nullable
@@ -490,7 +491,7 @@ return $default(_that.date,_that.localName,_that.globalName,_that.localizableKey
 @JsonSerializable()
 
 class _SnNotableDayDetail implements SnNotableDayDetail {
-  const _SnNotableDayDetail({required this.date, required this.localName, required this.globalName, this.localizableKey, this.countryCode, this.description, final  Map<String, dynamic>? meta, this.occurrenceKey, final  List<String>? holidays, final  List<String>? tags}): _meta = meta,_holidays = holidays,_tags = tags;
+  const _SnNotableDayDetail({required this.date, required this.localName, required this.globalName, this.localizableKey, this.countryCode, this.description,  Map<String, dynamic>? meta, this.occurrenceKey,  List<String>? holidays,  List<String>? tags}): _meta = meta,_holidays = holidays,_tags = tags;
   factory _SnNotableDayDetail.fromJson(Map<String, dynamic> json) => _$SnNotableDayDetailFromJson(json);
 
 @override final  DateTime date;
@@ -652,7 +653,7 @@ class _$SnTimelineEventCopyWithImpl<$Res>
 /// Create a copy of SnTimelineEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? resourceIdentifier = null,Object? data = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnTimelineEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,resourceIdentifier: null == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
@@ -927,7 +928,7 @@ class _$SnCheckInResultCopyWithImpl<$Res>
 /// Create a copy of SnCheckInResult
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? fortuneReport = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnCheckInResult(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
 as int,tips: null == tips ? _self.tips : tips // ignore: cast_nullable_to_non_nullable
@@ -1096,7 +1097,7 @@ return $default(_that.id,_that.level,_that.tips,_that.fortuneReport,_that.accoun
 @JsonSerializable()
 
 class _SnCheckInResult implements SnCheckInResult {
-  const _SnCheckInResult({required this.id, required this.level, required final  List<SnFortuneTip> tips, this.fortuneReport, required this.accountId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _tips = tips;
+  const _SnCheckInResult({required this.id, required this.level, required  List<SnFortuneTip> tips, this.fortuneReport, required this.accountId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _tips = tips;
   factory _SnCheckInResult.fromJson(Map<String, dynamic> json) => _$SnCheckInResultFromJson(json);
 
 @override final  String id;
@@ -1262,7 +1263,7 @@ class _$SnCheckInFortuneReportCopyWithImpl<$Res>
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = freezed,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnCheckInFortuneReport(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
@@ -1567,7 +1568,7 @@ class _$SnFortuneTipCopyWithImpl<$Res>
 /// Create a copy of SnFortuneTip
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? isPositive = null,Object? title = null,Object? content = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnFortuneTip(
 isPositive: null == isPositive ? _self.isPositive : isPositive // ignore: cast_nullable_to_non_nullable
 as bool,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
@@ -1830,7 +1831,7 @@ class _$SnRecurrencePatternCopyWithImpl<$Res>
 /// Create a copy of SnRecurrencePattern
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? frequency = null,Object? interval = null,Object? endDate = freezed,Object? occurrences = freezed,Object? daysOfWeek = freezed,Object? dayOfMonth = freezed,Object? monthOfYear = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnRecurrencePattern(
 frequency: null == frequency ? _self.frequency : frequency // ignore: cast_nullable_to_non_nullable
 as int,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
 as int,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
@@ -1973,7 +1974,7 @@ return $default(_that.frequency,_that.interval,_that.endDate,_that.occurrences,_
 @JsonSerializable()
 
 class _SnRecurrencePattern implements SnRecurrencePattern {
-  const _SnRecurrencePattern({required this.frequency, this.interval = 1, this.endDate, this.occurrences, final  List<String>? daysOfWeek, this.dayOfMonth, this.monthOfYear}): _daysOfWeek = daysOfWeek;
+  const _SnRecurrencePattern({required this.frequency, this.interval = 1, this.endDate, this.occurrences,  List<String>? daysOfWeek, this.dayOfMonth, this.monthOfYear}): _daysOfWeek = daysOfWeek;
   factory _SnRecurrencePattern.fromJson(Map<String, dynamic> json) => _$SnRecurrencePatternFromJson(json);
 
 @override final  int frequency;
@@ -2113,7 +2114,7 @@ class _$SnUserCalendarEventCopyWithImpl<$Res>
 /// Create a copy of SnUserCalendarEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? tags = null,Object? meta = freezed,Object? icon = freezed,Object? background = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnUserCalendarEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -2315,7 +2316,7 @@ return $default(_that.id,_that.title,_that.description,_that.location,_that.star
 @JsonSerializable()
 
 class _SnUserCalendarEvent implements SnUserCalendarEvent {
-  const _SnUserCalendarEvent({required this.id, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, this.visibility = SnEventVisibility.private, this.recurrence, final  List<String> tags = const [], final  Map<String, dynamic>? meta, this.icon, this.background, required this.accountId, this.account, required this.createdAt, required this.updatedAt, this.deletedAt}): _tags = tags,_meta = meta;
+  const _SnUserCalendarEvent({required this.id, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, this.visibility = SnEventVisibility.private, this.recurrence,  List<String> tags = const [],  Map<String, dynamic>? meta, this.icon, this.background, required this.accountId, this.account, required this.createdAt, required this.updatedAt, this.deletedAt}): _tags = tags,_meta = meta;
   factory _SnUserCalendarEvent.fromJson(Map<String, dynamic> json) => _$SnUserCalendarEventFromJson(json);
 
 @override final  String id;
@@ -2531,7 +2532,7 @@ class _$SnMergedCalendarEventCopyWithImpl<$Res>
 /// Create a copy of SnMergedCalendarEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? type = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? meta = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnMergedCalendarEvent(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -2676,7 +2677,7 @@ return $default(_that.id,_that.type,_that.title,_that.description,_that.location
 @JsonSerializable()
 
 class _SnMergedCalendarEvent implements SnMergedCalendarEvent {
-  const _SnMergedCalendarEvent({this.id, required this.type, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, final  Map<String, dynamic>? meta}): _meta = meta;
+  const _SnMergedCalendarEvent({this.id, required this.type, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false,  Map<String, dynamic>? meta}): _meta = meta;
   factory _SnMergedCalendarEvent.fromJson(Map<String, dynamic> json) => _$SnMergedCalendarEventFromJson(json);
 
 @override final  String? id;
@@ -2820,7 +2821,7 @@ class _$SnEventCalendarEntryCopyWithImpl<$Res>
 /// Create a copy of SnEventCalendarEntry
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,Object? userEvents = null,Object? notableDays = null,Object? mergedEvents = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnEventCalendarEntry(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
 as SnCheckInResult?,statuses: null == statuses ? _self.statuses : statuses // ignore: cast_nullable_to_non_nullable
@@ -2974,7 +2975,7 @@ return $default(_that.date,_that.checkInResult,_that.statuses,_that.userEvents,_
 @JsonSerializable()
 
 class _SnEventCalendarEntry implements SnEventCalendarEntry {
-  const _SnEventCalendarEntry({required this.date, this.checkInResult, final  List<SnAccountStatus> statuses = const [], final  List<SnUserCalendarEvent> userEvents = const [], final  List<SnNotableDay> notableDays = const [], final  List<SnMergedCalendarEvent>? mergedEvents}): _statuses = statuses,_userEvents = userEvents,_notableDays = notableDays,_mergedEvents = mergedEvents;
+  const _SnEventCalendarEntry({required this.date, this.checkInResult,  List<SnAccountStatus> statuses = const [],  List<SnUserCalendarEvent> userEvents = const [],  List<SnNotableDay> notableDays = const [],  List<SnMergedCalendarEvent>? mergedEvents}): _statuses = statuses,_userEvents = userEvents,_notableDays = notableDays,_mergedEvents = mergedEvents;
   factory _SnEventCalendarEntry.fromJson(Map<String, dynamic> json) => _$SnEventCalendarEntryFromJson(json);
 
 @override final  DateTime date;
@@ -3142,7 +3143,7 @@ class _$SnPresenceActivityCopyWithImpl<$Res>
 /// Create a copy of SnPresenceActivity
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? titleUrl = freezed,Object? subtitleUrl = freezed,Object? smallImage = freezed,Object? largeImage = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPresenceActivity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
@@ -3308,7 +3309,7 @@ return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_t
 @JsonSerializable()
 
 class _SnPresenceActivity implements SnPresenceActivity {
-  const _SnPresenceActivity({required this.id, required this.type, required this.manualId, required this.title, required this.subtitle, required this.caption, required this.titleUrl, required this.subtitleUrl, required this.smallImage, required this.largeImage, required final  Map<String, dynamic>? meta, required this.leaseMinutes, required this.leaseExpiresAt, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnPresenceActivity({required this.id, required this.type, required this.manualId, required this.title, required this.subtitle, required this.caption, required this.titleUrl, required this.subtitleUrl, required this.smallImage, required this.largeImage, required  Map<String, dynamic>? meta, required this.leaseMinutes, required this.leaseExpiresAt, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnPresenceActivity.fromJson(Map<String, dynamic> json) => _$SnPresenceActivityFromJson(json);
 
 @override final  String id;
@@ -3482,7 +3483,7 @@ class _$SnAccountTimelineItemCopyWithImpl<$Res>
 /// Create a copy of SnAccountTimelineItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? eventType = null,Object? activity = freezed,Object? status = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountTimelineItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
@@ -3799,7 +3800,7 @@ class _$SnEventCountdownItemCopyWithImpl<$Res>
 /// Create a copy of SnEventCountdownItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,Object? background = freezed,Object? icon = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnEventCountdownItem(
 eventId: freezed == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
 as String?,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -3974,7 +3975,7 @@ return $default(_that.eventId,_that.eventType,_that.title,_that.description,_tha
 @JsonSerializable()
 
 class _SnEventCountdownItem implements SnEventCountdownItem {
-  const _SnEventCountdownItem({this.eventId, required this.eventType, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, required this.daysRemaining, required this.hoursRemaining, required this.isOngoing, final  Map<String, dynamic>? meta, this.accountId, this.background, this.icon}): _meta = meta;
+  const _SnEventCountdownItem({this.eventId, required this.eventType, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, required this.daysRemaining, required this.hoursRemaining, required this.isOngoing,  Map<String, dynamic>? meta, this.accountId, this.background, this.icon}): _meta = meta;
   factory _SnEventCountdownItem.fromJson(Map<String, dynamic> json) => _$SnEventCountdownItemFromJson(json);
 
 @override final  String? eventId;

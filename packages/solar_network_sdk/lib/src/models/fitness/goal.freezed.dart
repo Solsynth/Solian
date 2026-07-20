@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'goal.dart';
@@ -9,6 +9,7 @@ part of 'goal.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnFitnessGoalCopyWithImpl<$Res>
 /// Create a copy of SnFitnessGoal
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? goalType = null,Object? title = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = null,Object? startDate = null,Object? endDate = freezed,Object? status = null,Object? notes = freezed,Object? createdAt = null,Object? updatedAt = null,Object? repeatType = freezed,Object? repeatInterval = freezed,Object? repeatCount = freezed,Object? currentRepetition = freezed,Object? parentGoalId = freezed,Object? visibility = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnFitnessGoal(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
@@ -389,7 +390,7 @@ class _$GoalStatsCopyWithImpl<$Res>
 /// Create a copy of GoalStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? activeCount = null,Object? completedCount = null,}) {
-  return _then(_self.copyWith(
+  return _then(GoalStats(
 activeCount: null == activeCount ? _self.activeCount : activeCount // ignore: cast_nullable_to_non_nullable
 as int,completedCount: null == completedCount ? _self.completedCount : completedCount // ignore: cast_nullable_to_non_nullable
 as int,
@@ -649,7 +650,7 @@ class _$CreateGoalRequestCopyWithImpl<$Res>
 /// Create a copy of CreateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? description = freezed,Object? targetValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = null,Object? endDate = freezed,Object? notes = freezed,Object? repeatType = freezed,Object? repeatInterval = freezed,Object? repeatCount = freezed,Object? visibility = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreateGoalRequest(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
 as FitnessGoalType,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
@@ -948,7 +949,7 @@ class _$UpdateGoalRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? status = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = freezed,Object? endDate = freezed,Object? notes = freezed,Object? visibility = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateGoalRequest(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
 as FitnessGoalType,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
@@ -1244,7 +1245,7 @@ class _$UpdateProgressRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateProgressRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? currentValue = null,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateProgressRequest(
 currentValue: null == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double,
   ));
@@ -1501,7 +1502,7 @@ class _$UpdateGoalStatusRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateGoalStatusRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? status = null,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateGoalStatusRequest(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as FitnessGoalStatus,
   ));

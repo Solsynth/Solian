@@ -956,10 +956,15 @@ class ChatRoomRoute extends _i73.PageRouteInfo<ChatRoomRouteArgs> {
   ChatRoomRoute({
     _i77.Key? key,
     required String id,
+    String? initialMessageId,
     List<_i73.PageRouteInfo>? children,
   }) : super(
          ChatRoomRoute.name,
-         args: ChatRoomRouteArgs(key: key, id: id),
+         args: ChatRoomRouteArgs(
+           key: key,
+           id: id,
+           initialMessageId: initialMessageId,
+         ),
          rawPathParams: {'id': id},
          initialChildren: children,
        );
@@ -973,32 +978,40 @@ class ChatRoomRoute extends _i73.PageRouteInfo<ChatRoomRouteArgs> {
       final args = data.argsAs<ChatRoomRouteArgs>(
         orElse: () => ChatRoomRouteArgs(id: pathParams.getString('id')),
       );
-      return _i22.ChatRoomScreen(key: args.key, id: args.id);
+      return _i22.ChatRoomScreen(
+        key: args.key,
+        id: args.id,
+        initialMessageId: args.initialMessageId,
+      );
     },
   );
 }
 
 class ChatRoomRouteArgs {
-  const ChatRoomRouteArgs({this.key, required this.id});
+  const ChatRoomRouteArgs({this.key, required this.id, this.initialMessageId});
 
   final _i77.Key? key;
 
   final String id;
 
+  final String? initialMessageId;
+
   @override
   String toString() {
-    return 'ChatRoomRouteArgs{key: $key, id: $id}';
+    return 'ChatRoomRouteArgs{key: $key, id: $id, initialMessageId: $initialMessageId}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ChatRoomRouteArgs) return false;
-    return key == other.key && id == other.id;
+    return key == other.key &&
+        id == other.id &&
+        initialMessageId == other.initialMessageId;
   }
 
   @override
-  int get hashCode => key.hashCode ^ id.hashCode;
+  int get hashCode => key.hashCode ^ id.hashCode ^ initialMessageId.hashCode;
 }
 
 /// generated route for

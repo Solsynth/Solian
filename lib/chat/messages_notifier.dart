@@ -918,7 +918,14 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   void _setGlobalSyncing(bool value) {
     if (!ref.mounted) return;
-    Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(value));
+    Future.microtask(() {
+      final notifier = ref.read(chatSyncingProvider.notifier);
+      if (value) {
+        notifier.begin();
+      } else {
+        notifier.end();
+      }
+    });
   }
 
   List<LocalChatMessage> _dedupeMessages(List<LocalChatMessage> messages) {
@@ -2037,6 +2044,67 @@ class MessagesNotifier extends _$MessagesNotifier {
         unawaited(loadInitial(forceRemoteRefresh: false));
       }
     }
+  }
+
+  /// Loads one batch from a deliberately unloaded range in a sparse message
+  /// timeline. A null result means the two loaded sections now meet.
+  Future<MessageLoadGap?> loadMessagesBetween(MessageLoadGap gap) async {
+    final newerMessage = await _repository.getLocalMessage(gap.newerMessageId);
+    final olderMessage = await _repository.getLocalMessage(gap.olderMessageId);
+    if (newerMessage == null || olderMessage == null) return gap;
+
+    final offset =
+        await _repository.countMessagesNewerThan(newerMessage.createdAt) + 1;
+    final page = await _syncService.loadMore(
+      currentCount: offset,
+      take: 100,
+      filter: const MessageFilter(),
+    );
+    if (page.isEmpty) return gap;
+
+    final currentIds = _currentMessages.map((message) => message.id).toSet();
+    final newMessages = page
+        .where((message) => currentIds.add(message.id))
+        .toList();
+    if (newMessages.isNotEmpty) {
+      await _updateStateSafely([..._currentMessages, ...newMessages]);
+    }
+
+    if (page.any((message) => message.id == gap.olderMessageId)) {
+      return null;
+    }
+
+    final bridgeMessages = page
+        .where(
+          (message) =>
+              message.id != gap.newerMessageId &&
+              message.createdAt.isBefore(newerMessage.createdAt) &&
+              message.createdAt.isAfter(olderMessage.createdAt),
+        )
+        .toList();
+    if (bridgeMessages.isEmpty) return gap;
+
+    return MessageLoadGap(
+      newerMessageId: bridgeMessages.last.id,
+      olderMessageId: gap.olderMessageId,
+    );
+  }
+
+  Future<bool> hasMessagesBetween(
+    String newerMessageId,
+    String olderMessageId,
+  ) async {
+    final newerMessage = await _repository.getLocalMessage(newerMessageId);
+    final olderMessage = await _repository.getLocalMessage(olderMessageId);
+    if (newerMessage == null || olderMessage == null) return false;
+
+    final newerCount = await _repository.countMessagesNewerThan(
+      newerMessage.createdAt,
+    );
+    final olderCount = await _repository.countMessagesNewerThan(
+      olderMessage.createdAt,
+    );
+    return olderCount - newerCount > 1;
   }
 
   bool _hasLink(LocalChatMessage message) {
