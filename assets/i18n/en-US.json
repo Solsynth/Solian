@@ -3495,8 +3495,10 @@
   "startupNoInternet": "No internet connection. Waiting to resume startup.",
   "startupPreviousStage": "Previous: {}",
   "startupRetryFailed": "{} retry {}/{} failed.",
+  "startupCheckForUpdates": "Check for updates",
   "startupServerCompatibilityCheckFailed": "Could not verify server compatibility. Tap to retry.",
   "startupServerIncompatible": "This server is not compatible with this version of Solian.",
+  "startupServerUpdateRequired": "This server requires a newer version of Solian.",
   "startupSkipOptional": "Skip optional stage",
   "startupSkippedStage": "Skipped optional stage: {}",
   "startupStageAudioAssets": "Preparing audio assets",
@@ -4262,5 +4264,18 @@
   "chatSearchLocal": "Local",
   "chatSyncHistory": "Syncing chat history...",
   "chatSyncHistoryProgress": "Syncing history: {} in round {}",
-  "chatSyncComplete": "Sync complete: {} messages"
+  "chatSyncComplete": "Sync complete: {} messages",
+  "taskWorking": "Working",
+  "taskCompletedJustNow": "Completed just now",
+  "taskFinishedJustNow": {
+    "one": "{} task finished just now",
+    "other": "{} tasks finished just now"
+  },
+  "taskMoreCount": "+{} more",
+  "taskNoTasks": "No tasks right now",
+  "taskFileTransmission": "File Transmission",
+  "taskDownloading": "Downloading",
+  "taskProcessing": "Processing",
+  "taskTotalCount": "{} total",
+  "taskChunksCount": "{current}/{total} chunks"
 }

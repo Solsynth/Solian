@@ -12,6 +12,7 @@ import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/server_capabilities.g.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/core/services/notify.dart' as local_notify;
 import 'package:island/drive/drive_service.dart';
@@ -32,6 +33,7 @@ import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/main.dart';
 import 'package:island/route.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/misc/widgets/server_capabilities_preview.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 
@@ -69,6 +71,22 @@ SnAccount _createTestAccount({
     updatedAt: DateTime.now(),
     deletedAt: null,
   );
+}
+
+void _showMockCapabilityConflict(WidgetRef ref) {
+  final navigatorContext =
+      ref.read(routerProvider).navigatorKey.currentContext;
+  if (navigatorContext == null || !navigatorContext.mounted) return;
+  final metadata = <String, dynamic>{
+    'api_revision': kSupportedServerApiRevision,
+    'minimum_revision': 0,
+    'incomplete': false,
+    'capabilities': {
+      for (final entry in kClientSupportedCapabilities.entries)
+        entry.key: {'enabled': entry.key != 'chat', 'revision': entry.value},
+    },
+  };
+  showServerCapabilitiesDetails(navigatorContext, metadata: metadata);
 }
 
 OverlayEntry? _debugOverlayEntry;
@@ -746,6 +764,11 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               builder: (context) => NetworkStatusSheet(),
             );
           },
+        ),
+        _DebugItem(
+          icon: Symbols.rule,
+          title: 'Mock conflicting server capabilities',
+          onTap: () => _showMockCapabilityConflict(ref),
         ),
         _DebugItem(
           icon: Symbols.terminal,
@@ -1496,6 +1519,14 @@ class DebugSheet extends HookConsumerWidget {
                   builder: (context) => NetworkStatusSheet(),
                 );
               },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.rule),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Mock conflicting server capabilities'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () => _showMockCapabilityConflict(ref),
             ),
             ListTile(
               minTileHeight: 48,
