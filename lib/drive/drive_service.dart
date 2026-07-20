@@ -1006,11 +1006,21 @@ class FileUploader {
     required List<Uint8List> chunks,
     required int startIndex,
     required int totalSize,
+    int completedBytes = 0,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
-    int bytesUploaded = 0;
+    var bytesUploaded = 0;
+    final bytesBeingUploaded = List<int>.filled(chunks.length, 0);
     final futures = <Future<void>>[];
     final semaphore = _ConcurrencyLimiter(driveChunkUploadConcurrency);
+
+    void reportProgress() {
+      final uploaded =
+          completedBytes +
+          bytesUploaded +
+          bytesBeingUploaded.fold(0, (sum, bytes) => sum + bytes);
+      onProgress?.call((uploaded / totalSize).clamp(0.0, 1.0), Duration.zero);
+    }
 
     for (int i = 0; i < chunks.length; i++) {
       final chunkIndex = startIndex + i;
@@ -1023,11 +1033,15 @@ class FileUploader {
             chunkIndex: chunkIndex,
             chunkData: chunk,
             onSendProgress: (sent, total) {
-              final overallProgress = (bytesUploaded + sent) / totalSize;
-              onProgress?.call(overallProgress, Duration.zero);
+              // Dio reports multipart bytes, including form-data overhead. Use
+              // the chunk length so the task represents file bytes only.
+              bytesBeingUploaded[i] = sent.clamp(0, chunk.length);
+              reportProgress();
             },
           );
+          bytesBeingUploaded[i] = 0;
           bytesUploaded += chunk.length;
+          reportProgress();
         }),
       );
     }
@@ -1187,11 +1201,8 @@ class FileUploader {
           chunks: batch,
           startIndex: batchStart,
           totalSize: totalSize,
-          onProgress: (progress, estimate) {
-            final overallProgress =
-                (bytesUploaded + (progress ?? 0) * totalSize) / totalSize;
-            onProgress?.call(overallProgress, estimate);
-          },
+          completedBytes: bytesUploaded,
+          onProgress: onProgress,
         );
         bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
       }
@@ -1221,11 +1232,8 @@ class FileUploader {
           chunks: batch,
           startIndex: batchStart,
           totalSize: totalSize,
-          onProgress: (progress, estimate) {
-            final overallProgress =
-                (bytesUploaded + (progress ?? 0) * totalSize) / totalSize;
-            onProgress?.call(overallProgress, estimate);
-          },
+          completedBytes: bytesUploaded,
+          onProgress: onProgress,
         );
         bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
       }
@@ -1514,11 +1522,21 @@ class FileUploader {
     String fileId, {
     String? parentId,
     bool? indexed,
+  }) {
+    return moveFiles([fileId], parentId: parentId, indexed: indexed);
+  }
+
+  /// Moves multiple files to a different folder or to root. Owner only.
+  Future<void> moveFiles(
+    List<String> fileIds, {
+    String? parentId,
+    bool? indexed,
   }) async {
+    if (fileIds.isEmpty) return;
     await _client.post(
       '/drive/files/move/batch',
       data: {
-        'file_ids': [fileId],
+        'file_ids': fileIds,
         'parent_id': ?parentId,
         'indexed': ?indexed,
       },

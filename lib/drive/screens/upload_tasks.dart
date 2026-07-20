@@ -6,8 +6,6 @@ import 'package:island/core/database.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
-import 'package:island/drive/services/drive_task_ws_handler.dart';
-import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class EnhancedFileUploader extends FileUploader {
@@ -215,7 +213,7 @@ class EnhancedFileUploader extends FileUploader {
     final chunkSize = createResponse['chunk_size'] as int;
     final chunksCount = createResponse['chunks_count'] as int;
 
-    // Create local task and store metadata for WS handler
+    // Local task progress is driven directly by Dio's send-progress callbacks.
     final taskId = tasks.addTask(
       title: fileName,
       type: AppTaskType.driveUpload,
@@ -229,20 +227,6 @@ class EnhancedFileUploader extends FileUploader {
         expiredAt: expiredAt,
       ).toMap(),
     );
-
-    Logger.root.info('[DriveUpload] Storing WS metadata for: $serverTaskId');
-    ref
-        .read(driveTaskWsHandlerProvider.notifier)
-        .storePendingUpload(
-          serverTaskId,
-          fileName: fileName,
-          contentType: contentType,
-          fileSize: totalSize,
-          totalChunks: chunksCount,
-          poolId: poolId,
-          encryptPassword: encryptPassword,
-          expiredAt: expiredAt,
-        );
 
     // Step 2: Upload chunks
     final chunkTimer = Stopwatch()..start();
