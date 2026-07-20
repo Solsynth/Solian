@@ -169,6 +169,7 @@ class ImageQualityProgressBar extends HookWidget {
         borderRadius: BorderRadius.zero,
         backgroundColor: Colors.white.withValues(alpha: 0.22),
         color: Colors.white,
+        stopIndicatorColor: Colors.transparent,
       ),
     );
 

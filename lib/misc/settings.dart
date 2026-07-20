@@ -24,6 +24,7 @@ import 'package:island/core/services/update_service.dart';
 import 'package:island/activity/activity_rpc.dart';
 import 'package:island/misc/connectivity_self_check_screen.dart';
 import 'package:island/misc/about_content.dart';
+import 'package:island/misc/widgets/server_capabilities_preview.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -1030,9 +1031,7 @@ class SettingsScreen extends HookConsumerWidget {
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsDesktopUseSeparateCallWindow').tr(),
-              subtitle: Text(
-                'settingsDesktopUseSeparateCallWindowHelper'.tr(),
-              ),
+              subtitle: Text('settingsDesktopUseSeparateCallWindowHelper'.tr()),
               contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.open_in_new),
               trailing: Switch(
@@ -1373,6 +1372,7 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
+          ServerCapabilitiesPreview(serverUrl: serverUrl),
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsMediaProxy').tr(),
@@ -1926,8 +1926,7 @@ class SettingsScreen extends HookConsumerWidget {
                     itemCount: visibleCategories.length,
                     itemBuilder: (context, i) {
                       final category = visibleCategories[i];
-                      final selected =
-                          selectedCategory.title == category.title;
+                      final selected = selectedCategory.title == category.title;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: ListTile(
@@ -1935,8 +1934,8 @@ class SettingsScreen extends HookConsumerWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          selectedTileColor:
-                              colorScheme.primaryContainer.withOpacity(0.45),
+                          selectedTileColor: colorScheme.primaryContainer
+                              .withOpacity(0.45),
                           leading: Icon(
                             category.icon,
                             color: selected
@@ -2065,7 +2064,7 @@ class SettingsScreen extends HookConsumerWidget {
         title: SearchBar(
           controller: searchController,
           focusNode: searchFocusNode,
-          constraints: const BoxConstraints(maxWidth: 420, minHeight: 40),
+          constraints: const BoxConstraints(maxWidth: 420, minHeight: 36),
           hintText: 'searchSettings'.tr(),
           hintStyle: WidgetStatePropertyAll(
             TextStyle(
@@ -2074,15 +2073,6 @@ class SettingsScreen extends HookConsumerWidget {
             ),
           ),
           textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14)),
-          elevation: const WidgetStatePropertyAll(0),
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(
-              0.55,
-            ),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
           onTapOutside: (_) => searchFocusNode.unfocus(),
           trailing: [
             if (searchQuery.value.isNotEmpty)

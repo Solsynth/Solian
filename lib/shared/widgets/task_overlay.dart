@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/utils/format.dart';
 import 'package:island/route.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
@@ -13,6 +14,82 @@ import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import 'task_overlay_state.dart';
+
+double taskOverlayHeight(bool isDesktop) => isDesktop ? 32 : 56;
+
+// --- Shared helpers ---
+
+IconData _taskStatusIcon(AppTask? task) {
+  if (task == null) return Symbols.sync;
+  return switch (task.status) {
+    AppTaskStatus.pending => Symbols.schedule,
+    AppTaskStatus.inProgress =>
+      task.type == AppTaskType.driveDownload
+          ? Symbols.download
+          : Symbols.upload,
+    AppTaskStatus.paused => Symbols.pause_circle,
+    AppTaskStatus.completed => Symbols.check_circle,
+    AppTaskStatus.failed => Symbols.error,
+    AppTaskStatus.cancelled => Symbols.cancel,
+    AppTaskStatus.expired => Symbols.timer_off,
+  };
+}
+
+Color _taskStatusColor(ColorScheme colorScheme, AppTask? task) {
+  if (task == null) return colorScheme.primary;
+  return switch (task.status) {
+    AppTaskStatus.completed => Colors.green,
+    AppTaskStatus.failed ||
+    AppTaskStatus.cancelled ||
+    AppTaskStatus.expired => colorScheme.error,
+    AppTaskStatus.paused => colorScheme.tertiary,
+    AppTaskStatus.pending => colorScheme.secondary,
+    AppTaskStatus.inProgress => colorScheme.primary,
+  };
+}
+
+Color _taskStatusFillColor(ColorScheme colorScheme, AppTask? task) {
+  if (task == null) return colorScheme.primary;
+  return switch (task.status) {
+    AppTaskStatus.completed => Colors.green,
+    AppTaskStatus.failed ||
+    AppTaskStatus.cancelled ||
+    AppTaskStatus.expired => Colors.red,
+    _ => colorScheme.primary,
+  };
+}
+
+/// Determinate progress for indicators. Returns 1 when finished/complete.
+double _taskIndicatorProgress(AppTask task) {
+  if (task.status == AppTaskStatus.completed || task.progress >= 1) {
+    return 1;
+  }
+  if (task.status == AppTaskStatus.pending) return 0;
+  return task.progress.clamp(0.0, 1.0);
+}
+
+String _taskStatusLabel(AppTaskStatus status) {
+  return switch (status) {
+    AppTaskStatus.pending => 'taskStatusPending'.tr(),
+    AppTaskStatus.inProgress => 'taskStatusInProgress'.tr(),
+    AppTaskStatus.paused => 'taskStatusPaused'.tr(),
+    AppTaskStatus.completed => 'taskStatusCompleted'.tr(),
+    AppTaskStatus.failed => 'taskStatusFailed'.tr(),
+    AppTaskStatus.cancelled => 'taskStatusCancelled'.tr(),
+    AppTaskStatus.expired => 'taskStatusExpired'.tr(),
+  };
+}
+
+String _taskTypeLabel(String type) {
+  return switch (type) {
+    AppTaskType.driveUpload => 'taskTypeDriveUpload'.tr(),
+    AppTaskType.driveDownload => 'taskTypeDriveDownload'.tr(),
+    AppTaskType.postPublish => 'taskTypePostPublish'.tr(),
+    _ => type,
+  };
+}
+
+// --- Overlay ---
 
 class TaskOverlay extends HookConsumerWidget {
   const TaskOverlay({super.key});
@@ -63,7 +140,6 @@ class TaskOverlay extends HookConsumerWidget {
         },
         child: _TaskOverlayBar(
           snapshot: snapshot,
-          allTasks: allTasks,
           height: overlayHeight,
           isDesktop: isDesktop,
         ),
@@ -158,13 +234,11 @@ class _TaskOverlayHostState extends ConsumerState<TaskOverlayHost> {
 
 class _TaskOverlayBar extends ConsumerWidget {
   final TaskOverlaySnapshot snapshot;
-  final List<AppTask> allTasks;
   final double height;
   final bool isDesktop;
 
   const _TaskOverlayBar({
     required this.snapshot,
-    required this.allTasks,
     required this.height,
     required this.isDesktop,
   });
@@ -183,8 +257,10 @@ class _TaskOverlayBar extends ConsumerWidget {
       snapshot.visibleTasks.length,
       completedCount,
     );
-    final fillColor = _statusFillColor(colorScheme, primaryTask);
+    final fillColor = _taskStatusFillColor(colorScheme, primaryTask);
     final trackColor = colorScheme.surfaceContainerHighest;
+    final label = '$title · $subtitle';
+    final progress = snapshot.progress.clamp(0.0, 1.0);
 
     return Material(
       color: Colors.transparent,
@@ -197,8 +273,6 @@ class _TaskOverlayBar extends ConsumerWidget {
             borderRadius: BorderRadius.zero,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final fillWidth =
-                    constraints.maxWidth * snapshot.progress.clamp(0, 1);
                 return Stack(
                   fit: StackFit.expand,
                   children: [
@@ -207,15 +281,19 @@ class _TaskOverlayBar extends ConsumerWidget {
                         color: trackColor,
                         border: Border(
                           top: BorderSide(
-                            color: colorScheme.outlineVariant.withOpacity(0.3),
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
                           ),
                           bottom: BorderSide(
-                            color: colorScheme.outlineVariant.withOpacity(0.5),
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.14),
+                            color: Colors.black.withValues(alpha: 0.14),
                             blurRadius: 22,
                             offset: const Offset(0, 10),
                           ),
@@ -227,7 +305,7 @@ class _TaskOverlayBar extends ConsumerWidget {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 240),
                         curve: Curves.easeOutCubic,
-                        width: fillWidth,
+                        width: constraints.maxWidth * progress,
                         decoration: BoxDecoration(
                           color: fillColor,
                           borderRadius: BorderRadius.zero,
@@ -238,19 +316,19 @@ class _TaskOverlayBar extends ConsumerWidget {
                       context,
                       theme,
                       color: Colors.white,
-                      text: '$title · $subtitle',
+                      text: label,
                     ),
                     ClipRect(
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        widthFactor: snapshot.progress.clamp(0, 1),
+                        widthFactor: progress,
                         child: SizedBox(
                           width: constraints.maxWidth,
                           child: _buildForeground(
                             context,
                             theme,
                             color: Colors.white,
-                            text: '$title · $subtitle',
+                            text: label,
                           ),
                         ),
                       ),
@@ -272,9 +350,8 @@ class _TaskOverlayBar extends ConsumerWidget {
     required String text,
   }) {
     return Padding(
-      padding: EdgeInsets.only(
-        left: _contentHorizontalPadding(context),
-        right: _contentHorizontalPadding(context),
+      padding: EdgeInsets.symmetric(
+        horizontal: _contentHorizontalPadding(context),
       ),
       child: Row(
         children: [
@@ -282,34 +359,27 @@ class _TaskOverlayBar extends ConsumerWidget {
             width: isDesktop ? 22 : 36,
             height: isDesktop ? 22 : 36,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.14),
+              color: Colors.black.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(isDesktop ? 7 : 12),
             ),
             child: Icon(
-              _statusIcon(snapshot.primaryTask),
+              _taskStatusIcon(snapshot.primaryTask),
               color: color,
               size: isDesktop ? 14 : 20,
             ),
           ),
           Gap(isDesktop ? 8 : 12),
           Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                    fontSize: isDesktop ? 13 : null,
-                    height: 1,
-                  ),
-                ),
-              ],
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontSize: isDesktop ? 13 : null,
+                height: 1,
+              ),
             ),
           ),
           Gap(isDesktop ? 8 : 12),
@@ -324,7 +394,7 @@ class _TaskOverlayBar extends ConsumerWidget {
           Gap(isDesktop ? 6 : 8),
           Icon(
             Symbols.expand_less,
-            color: color.withOpacity(0.9),
+            color: color.withValues(alpha: 0.9),
             size: isDesktop ? 14 : 18,
           ),
         ],
@@ -372,37 +442,7 @@ class _TaskOverlayBar extends ConsumerWidget {
     return otherCount > 0 ? '$label · +$otherCount more' : label;
   }
 
-  IconData _statusIcon(AppTask? task) {
-    if (task == null) return Symbols.sync;
-    return switch (task.status) {
-      AppTaskStatus.pending => Symbols.schedule,
-      AppTaskStatus.inProgress =>
-        task.type == AppTaskType.driveDownload
-            ? Symbols.download
-            : Symbols.upload,
-      AppTaskStatus.paused => Symbols.pause_circle,
-      AppTaskStatus.completed => Symbols.check_circle,
-      AppTaskStatus.failed => Symbols.error,
-      AppTaskStatus.cancelled => Symbols.cancel,
-      AppTaskStatus.expired => Symbols.timer_off,
-    };
-  }
-
-  Color _statusFillColor(ColorScheme colorScheme, AppTask? task) {
-    if (task == null) return colorScheme.primary;
-    return switch (task.status) {
-      AppTaskStatus.completed => Colors.green,
-      AppTaskStatus.failed ||
-      AppTaskStatus.cancelled ||
-      AppTaskStatus.expired => Colors.red,
-      _ => colorScheme.primary,
-    };
-  }
-
   void _showTaskSheet(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(tasksProvider.notifier);
-    final sortedTasks = [...allTasks]
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     final navigatorContext =
         ref.read(routerProvider).navigatorKey.currentContext ?? context;
 
@@ -411,58 +451,77 @@ class _TaskOverlayBar extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       useRootNavigator: true,
-      builder: (sheetContext) {
-        return SheetScaffold(
-          titleText: 'Tasks',
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Row(
-                  children: [
-                    Text(
-                      '${sortedTasks.length} total',
-                      style: Theme.of(sheetContext).textTheme.bodySmall,
-                    ),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: notifier.clearCompleted,
-                      icon: const Icon(Symbols.done_all, size: 18),
-                      label: const Text('Clear done'),
-                    ),
-                    const Gap(8),
-                    TextButton.icon(
-                      onPressed: notifier.clearAll,
-                      icon: const Icon(Symbols.delete_sweep, size: 18),
-                      label: const Text('Clear all'),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: sortedTasks.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No tasks right now',
-                          style: Theme.of(sheetContext).textTheme.bodyMedium,
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: sortedTasks.length,
-                        itemBuilder: (context, index) {
-                          return AppTaskTile(task: sortedTasks[index]);
-                        },
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (_) => const _TasksSheet(),
     );
   }
 }
 
-double taskOverlayHeight(bool isDesktop) => isDesktop ? 32 : 56;
+// --- Live tasks sheet (watches provider) ---
+
+class _TasksSheet extends ConsumerWidget {
+  const _TasksSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasks = ref.watch(tasksProvider);
+    final sortedTasks = [...tasks]
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final notifier = ref.read(tasksProvider.notifier);
+    final hasFinished = tasks.any((t) => t.isFinished);
+
+    return SheetScaffold(
+      titleText: 'Tasks',
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Row(
+              children: [
+                Text(
+                  '${sortedTasks.length} total',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: hasFinished ? notifier.clearCompleted : null,
+                  icon: const Icon(Symbols.done_all, size: 18),
+                  label: const Text('Clear done'),
+                ),
+                const Gap(8),
+                TextButton.icon(
+                  onPressed: sortedTasks.isEmpty ? null : notifier.clearAll,
+                  icon: const Icon(Symbols.delete_sweep, size: 18),
+                  label: const Text('Clear all'),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: sortedTasks.isEmpty
+                ? Center(
+                    child: Text(
+                      'No tasks right now',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: sortedTasks.length,
+                    itemBuilder: (context, index) {
+                      final task = sortedTasks[index];
+                      return AppTaskTile(
+                        key: ValueKey(task.id),
+                        task: task,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- Task tile ---
 
 class AppTaskTile extends StatefulWidget {
   final AppTask task;
@@ -471,20 +530,12 @@ class AppTaskTile extends StatefulWidget {
 
   @override
   State<AppTaskTile> createState() => _AppTaskTileState();
-
-  static double? _getTaskProgress(AppTask task) {
-    if (task.status == AppTaskStatus.completed || task.progress >= 1.0) {
-      return 1.0;
-    }
-    if (task.status == AppTaskStatus.inProgress) return null;
-    return task.progress;
-  }
 }
 
 class _AppTaskTileState extends State<AppTaskTile>
-    with TickerProviderStateMixin {
-  late AnimationController _rotationController;
-  late Animation<double> _rotationAnimation;
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _rotationController;
+  late final Animation<double> _rotationAnimation;
 
   @override
   void initState() {
@@ -506,24 +557,33 @@ class _AppTaskTileState extends State<AppTaskTile>
 
   @override
   Widget build(BuildContext context) {
+    final task = widget.task;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final progress = _taskIndicatorProgress(task);
+
     return ExpansionTile(
-      leading: _buildStatusIcon(context),
+      leading: Icon(
+        _taskStatusIcon(task),
+        size: 24,
+        color: _taskStatusColor(colorScheme, task),
+      ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.task.title.isEmpty ? 'untitled'.tr() : widget.task.title,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            task.title.isEmpty ? 'untitled'.tr() : task.title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
-            _getTaskTypeLabel(widget.task.type),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            _taskTypeLabel(task.type),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -537,11 +597,9 @@ class _AppTaskTileState extends State<AppTaskTile>
             child: Padding(
               padding: const EdgeInsets.all(2),
               child: CircularProgressIndicator(
-                value: AppTaskTile._getTaskProgress(widget.task),
+                value: progress,
                 strokeWidth: 2.5,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest,
+                backgroundColor: colorScheme.surfaceContainerHighest,
               ),
             ),
           ),
@@ -551,13 +609,14 @@ class _AppTaskTileState extends State<AppTaskTile>
             builder: (context, child) {
               return Transform.rotate(
                 angle: _rotationAnimation.value * math.pi,
-                child: Icon(
-                  Symbols.expand_more,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                child: child,
               );
             },
+            child: Icon(
+              Symbols.expand_more,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -572,70 +631,46 @@ class _AppTaskTileState extends State<AppTaskTile>
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-          child: _buildExpandedDetails(context),
+          child: _TaskDetailsCard(task: task),
         ),
       ],
     );
   }
+}
 
-  Widget _buildStatusIcon(BuildContext context) {
-    IconData icon;
-    Color color;
+class _TaskDetailsCard extends StatelessWidget {
+  final AppTask task;
 
-    switch (widget.task.status) {
-      case AppTaskStatus.pending:
-        icon = Symbols.schedule;
-        color = Theme.of(context).colorScheme.secondary;
-        break;
-      case AppTaskStatus.inProgress:
-        icon = widget.task.type == AppTaskType.driveDownload
-            ? Symbols.download
-            : Symbols.upload;
-        color = Theme.of(context).colorScheme.primary;
-        break;
-      case AppTaskStatus.paused:
-        icon = Symbols.pause_circle;
-        color = Theme.of(context).colorScheme.tertiary;
-        break;
-      case AppTaskStatus.completed:
-        icon = Symbols.check_circle;
-        color = Colors.green;
-        break;
-      case AppTaskStatus.failed:
-        icon = Symbols.error;
-        color = Theme.of(context).colorScheme.error;
-        break;
-      case AppTaskStatus.cancelled:
-        icon = Symbols.cancel;
-        color = Theme.of(context).colorScheme.error;
-        break;
-      case AppTaskStatus.expired:
-        icon = Symbols.timer_off;
-        color = Theme.of(context).colorScheme.error;
-        break;
-    }
+  const _TaskDetailsCard({required this.task});
 
-    return Icon(icon, size: 24, color: color);
-  }
-
-  Widget _buildExpandedDetails(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: switch (widget.task.type) {
-        AppTaskType.driveUpload => _buildDriveUploadDetails(context),
-        AppTaskType.driveDownload => _buildDriveDownloadDetails(context),
-        AppTaskType.postPublish => _buildPostPublishDetails(context),
-        _ => _buildGenericTaskDetails(context),
+      child: switch (task.type) {
+        AppTaskType.driveUpload => _DriveUploadDetails(task: task),
+        AppTaskType.driveDownload => _DriveDownloadDetails(task: task),
+        AppTaskType.postPublish => _PostPublishDetails(task: task),
+        _ => _GenericTaskDetails(task: task),
       },
     );
   }
+}
 
-  Widget _buildDriveUploadDetails(BuildContext context) {
-    final meta = widget.task.metadata;
+class _DriveUploadDetails extends StatelessWidget {
+  final AppTask task;
+
+  const _DriveUploadDetails({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final meta = task.metadata;
     final transmissionProgress =
         (meta?['transmissionProgress'] as num?)?.toDouble() ?? 0.0;
     final uploadedChunks = meta?['uploadedChunks'] as int? ?? 0;
@@ -645,287 +680,235 @@ class _AppTaskTileState extends State<AppTaskTile>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.task.statusMessage ?? 'Processing',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        _DetailSectionHeader(
+          label: task.statusMessage ?? 'Processing',
+          color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${(widget.task.progress * 100).toStringAsFixed(1)}%',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              '$uploadedChunks/$totalChunks chunks',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        _ProgressRow(
+          left: '${(task.progress * 100).toStringAsFixed(1)}%',
+          right: '$uploadedChunks/$totalChunks chunks',
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: AppTaskTile._getTaskProgress(widget.task),
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
+          value: _taskIndicatorProgress(task),
+          backgroundColor: colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
         ),
         const SizedBox(height: 8),
-        Text(
-          'File Transmission',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
+        _DetailSectionHeader(
+          label: 'File Transmission',
+          color: colorScheme.secondary,
         ),
         const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${(transmissionProgress * 100).toStringAsFixed(1)}%',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              '${_formatFileSize((transmissionProgress * fileSize).toInt())} / ${_formatFileSize(fileSize)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        _ProgressRow(
+          left: '${(transmissionProgress * 100).toStringAsFixed(1)}%',
+          right:
+              '${formatFileSize((transmissionProgress * fileSize).toInt())} / ${formatFileSize(fileSize)}',
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: transmissionProgress,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.secondary,
-          ),
+          value: transmissionProgress.clamp(0.0, 1.0),
+          backgroundColor: colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.secondary),
         ),
         const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _formatBytesPerSecond(widget.task),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        if (widget.task.errorMessage != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            widget.task.errorMessage!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
+        Text(
+          _formatBytesPerSecond(task),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
+        ),
+        if (task.errorMessage != null) ...[
+          const SizedBox(height: 4),
+          _ErrorText(message: task.errorMessage!),
         ],
       ],
     );
   }
 
-  Widget _buildDriveDownloadDetails(BuildContext context) {
-    final meta = widget.task.metadata;
+  String _formatBytesPerSecond(AppTask task) {
+    final meta = task.metadata;
+    final transmissionProgress =
+        (meta?['transmissionProgress'] as num?)?.toDouble() ?? 0.0;
+    final fileSize = meta?['fileSize'] as int? ?? 0;
+    final bytes = (transmissionProgress * fileSize).toInt();
+    if (bytes == 0) return '0 B/s';
+
+    final elapsedSeconds = DateTime.now().difference(task.createdAt).inSeconds;
+    if (elapsedSeconds <= 0) return '0 B/s';
+
+    return '${formatFileSize((bytes / elapsedSeconds).toInt())}/s';
+  }
+}
+
+class _DriveDownloadDetails extends StatelessWidget {
+  final AppTask task;
+
+  const _DriveDownloadDetails({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final meta = task.metadata;
     final totalBytes = meta?['totalBytes'] as int? ?? 0;
     final downloadedBytes = meta?['downloadedBytes'] as int? ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.task.statusMessage ?? 'Downloading',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        _DetailSectionHeader(
+          label: task.statusMessage ?? 'Downloading',
+          color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${(widget.task.progress * 100).toStringAsFixed(1)}%',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              '${_formatFileSize(downloadedBytes)} / ${_formatFileSize(totalBytes)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        _ProgressRow(
+          left: '${(task.progress * 100).toStringAsFixed(1)}%',
+          right:
+              '${formatFileSize(downloadedBytes)} / ${formatFileSize(totalBytes)}',
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: widget.task.progress,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
+          value: task.progress.clamp(0.0, 1.0),
+          backgroundColor: colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
         ),
-        if (widget.task.errorMessage != null) ...[
+        if (task.errorMessage != null) ...[
           const SizedBox(height: 4),
-          Text(
-            widget.task.errorMessage!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
+          _ErrorText(message: task.errorMessage!),
         ],
       ],
     );
   }
+}
 
-  Widget _buildPostPublishDetails(BuildContext context) {
+class _PostPublishDetails extends StatelessWidget {
+  final AppTask task;
+
+  const _PostPublishDetails({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.task.statusMessage ?? 'taskPostPublishPublishing'.tr(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        _DetailSectionHeader(
+          label: task.statusMessage ?? 'taskPostPublishPublishing'.tr(),
+          color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${(widget.task.progress * 100).toStringAsFixed(0)}%',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              _taskStatusLabel(widget.task.status),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        _ProgressRow(
+          left: '${(task.progress * 100).toStringAsFixed(0)}%',
+          right: _taskStatusLabel(task.status),
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: widget.task.progress,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
+          value: task.progress.clamp(0.0, 1.0),
+          backgroundColor: colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
         ),
-        if (widget.task.errorMessage != null) ...[
+        if (task.errorMessage != null) ...[
           const SizedBox(height: 4),
-          Text(
-            widget.task.errorMessage!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
+          _ErrorText(message: task.errorMessage!),
         ],
       ],
     );
   }
+}
 
-  Widget _buildGenericTaskDetails(BuildContext context) {
+class _GenericTaskDetails extends StatelessWidget {
+  final AppTask task;
+
+  const _GenericTaskDetails({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'taskProgress'.tr(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        _DetailSectionHeader(
+          label: 'taskProgress'.tr(),
+          color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${(widget.task.progress * 100).toStringAsFixed(1)}%',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              _taskStatusLabel(widget.task.status),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        _ProgressRow(
+          left: '${(task.progress * 100).toStringAsFixed(1)}%',
+          right: _taskStatusLabel(task.status),
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: widget.task.progress,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Theme.of(context).colorScheme.primary,
-          ),
+          value: task.progress.clamp(0.0, 1.0),
+          backgroundColor: colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
         ),
-        if (widget.task.errorMessage != null) ...[
+        if (task.errorMessage != null) ...[
           const SizedBox(height: 4),
-          Text(
-            widget.task.errorMessage!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
+          _ErrorText(message: task.errorMessage!),
         ],
       ],
     );
   }
+}
 
-  String _getTaskTypeLabel(String type) {
-    return switch (type) {
-      AppTaskType.driveUpload => 'taskTypeDriveUpload'.tr(),
-      AppTaskType.driveDownload => 'taskTypeDriveDownload'.tr(),
-      AppTaskType.postPublish => 'taskTypePostPublish'.tr(),
-      _ => type,
-    };
+class _DetailSectionHeader extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _DetailSectionHeader({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+    );
   }
+}
 
-  String _taskStatusLabel(AppTaskStatus status) {
-    return switch (status) {
-      AppTaskStatus.pending => 'taskStatusPending'.tr(),
-      AppTaskStatus.inProgress => 'taskStatusInProgress'.tr(),
-      AppTaskStatus.paused => 'taskStatusPaused'.tr(),
-      AppTaskStatus.completed => 'taskStatusCompleted'.tr(),
-      AppTaskStatus.failed => 'taskStatusFailed'.tr(),
-      AppTaskStatus.cancelled => 'taskStatusCancelled'.tr(),
-      AppTaskStatus.expired => 'taskStatusExpired'.tr(),
-    };
+class _ProgressRow extends StatelessWidget {
+  final String left;
+  final String right;
+
+  const _ProgressRow({required this.left, required this.right});
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          left,
+          style: style?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        Text(right, style: style),
+      ],
+    );
   }
+}
 
-  String _formatFileSize(num bytes) {
-    if (bytes >= 1073741824) {
-      return '${(bytes / 1073741824).toStringAsFixed(1)} GB';
-    } else if (bytes >= 1048576) {
-      return '${(bytes / 1048576).toStringAsFixed(1)} MB';
-    } else if (bytes >= 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    } else {
-      return '$bytes bytes';
-    }
-  }
+class _ErrorText extends StatelessWidget {
+  final String message;
 
-  String _formatBytesPerSecond(AppTask task) {
-    final meta = task.metadata;
-    final uploadedBytes =
-        (meta?['transmissionProgress'] as num?)?.toDouble() ?? 0.0;
-    final fileSize = meta?['fileSize'] as int? ?? 0;
-    final bytes = (uploadedBytes * fileSize).toInt();
-    if (bytes == 0) return '0 B/s';
+  const _ErrorText({required this.message});
 
-    final elapsedSeconds = DateTime.now().difference(task.createdAt).inSeconds;
-    if (elapsedSeconds == 0) return '0 B/s';
-
-    final bytesPerSecond = bytes / elapsedSeconds;
-    return '${_formatFileSize(bytesPerSecond.toInt())}/s';
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 }
