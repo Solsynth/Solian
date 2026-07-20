@@ -18,6 +18,7 @@ import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/chat/pods/chat_summary.dart';
+import 'package:island/chat/utils/chat_room_ordering.dart';
 import 'package:island/chat/widgets/chat_groups_manager.dart';
 import 'package:island/chat/widgets/chat_invites_sheet.dart';
 import 'package:island/chat/widgets/chat_room_form.dart';
@@ -43,31 +44,6 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-DateTime _chatRoomActivityAt(
-  SnChatRoom room,
-  Map<String, SnChatSummary> summaries,
-) {
-  return summaries[room.id]?.lastMessage?.createdAt ?? room.updatedAt;
-}
-
-List<SnChatRoom> _sortChatRoomsByActivity(
-  Iterable<SnChatRoom> rooms,
-  Map<String, SnChatSummary> summaries,
-) {
-  return rooms.toList()..sort((a, b) {
-    final activityComparison = _chatRoomActivityAt(
-      b,
-      summaries,
-    ).compareTo(_chatRoomActivityAt(a, summaries));
-    if (activityComparison != 0) return activityComparison;
-
-    final createdComparison = b.createdAt.compareTo(a.createdAt);
-    if (createdComparison != 0) return createdComparison;
-
-    return a.id.compareTo(b.id);
-  });
-}
 
 class _CustomChatGroupSection {
   const _CustomChatGroupSection({required this.group, required this.rooms});
@@ -544,7 +520,7 @@ _GroupedChatSections _buildGroupedChatSections(
     customGroups.add(
       _CustomChatGroupSection(
         group: group,
-        rooms: _sortChatRoomsByActivity(groupRooms, summaries),
+        rooms: sortChatRoomsByActivity(groupRooms, summaries),
       ),
     );
   }
@@ -643,7 +619,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
               final summariesData =
                   summaries.whenData((data) => data).value ?? {};
               final sortedItems = useMemoized(
-                () => _sortChatRoomsByActivity(items, summariesData),
+                () => sortChatRoomsByActivity(items, summariesData),
                 [items, summariesData],
               );
               final filteredItems = useMemoized(
@@ -1530,7 +1506,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       data: (items) {
         final selectedTabValue = selectedTab.value;
         final summariesData = summaries.whenData((data) => data).value ?? {};
-        final sortedItems = _sortChatRoomsByActivity(items, summariesData);
+        final sortedItems = sortChatRoomsByActivity(items, summariesData);
         final filteredItems = sortedItems
             .where(
               (item) =>

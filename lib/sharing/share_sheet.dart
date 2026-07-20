@@ -2,9 +2,13 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_summary.dart';
+import 'package:island/chat/utils/chat_room_ordering.dart';
+import 'package:island/chat/widgets/chat_room_picker_filter.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -200,7 +204,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
   @override
   void dispose() {
-    _presentationController.currentRequest.removeListener(_handleRequestUpdated);
+    _presentationController.currentRequest.removeListener(
+      _handleRequestUpdated,
+    );
     _messageController.dispose();
     super.dispose();
   }
@@ -710,9 +716,10 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
               },
               child: TweenAnimationBuilder<double>(
                 tween: Tween(
-                  end: _fileUploadProgress.values
-                        .expand((v) => v)
-                        .fold<double>(0.0, (a, b) => a + b) /
+                  end:
+                      _fileUploadProgress.values
+                          .expand((v) => v)
+                          .fold<double>(0.0, (a, b) => a + b) /
                       _fileUploadProgress.values
                           .expand((v) => v)
                           .length
@@ -738,7 +745,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   }
 }
 
-class _ChatRoomsList extends ConsumerWidget {
+class _ChatRoomsList extends HookConsumerWidget {
   final Function(SnChatRoom)? onChatSelected;
 
   const _ChatRoomsList({this.onChatSelected});
@@ -746,9 +753,24 @@ class _ChatRoomsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRooms = ref.watch(chatRoomJoinedProvider);
+    final summaries = ref.watch(chatSummaryProvider);
+    final filter = useState(ChatRoomPickerFilter.all);
+    final query = useState('');
 
     return chatRooms.when(
       data: (rooms) {
+        final summariesData = summaries.whenData((data) => data).value ?? {};
+        final filteredRooms = sortChatRoomsByActivity(rooms, summariesData)
+            .where(
+              (room) =>
+                  (filter.value == ChatRoomPickerFilter.all ||
+                      (filter.value == ChatRoomPickerFilter.direct &&
+                          room.type == 1) ||
+                      (filter.value == ChatRoomPickerFilter.group &&
+                          room.type != 1)) &&
+                  chatRoomMatchesSearch(room, query.value),
+            )
+            .toList();
         if (rooms.isEmpty) {
           return Container(
             height: 80,
@@ -767,22 +789,39 @@ class _ChatRoomsList extends ConsumerWidget {
           );
         }
 
-        return SizedBox(
-          height: 80,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: rooms.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final room = rooms[index];
-              return _ChatRoomOption(
-                room: room,
-                onTap: onChatSelected != null
-                    ? () => onChatSelected!(room)
-                    : null,
-              );
-            },
-          ),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ChatRoomPickerSearchBar(onChanged: (value) => query.value = value),
+            ChatRoomPickerFilterBar(
+              selected: filter.value,
+              onSelected: (value) => filter.value = value,
+            ),
+            if (filteredRooms.isEmpty)
+              SizedBox(
+                height: 80,
+                child: Center(child: Text('noChatRoomsAvailable'.tr())),
+              )
+            else
+              SizedBox(
+                height: 80,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: filteredRooms.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final room = filteredRooms[index];
+                    return _ChatRoomOption(
+                      room: room,
+                      onTap: onChatSelected != null
+                          ? () => onChatSelected!(room)
+                          : null,
+                    );
+                  },
+                ),
+              ),
+          ],
         );
       },
       loading: () => SizedBox(
