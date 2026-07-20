@@ -1,18 +1,13 @@
-/// The API revision implemented by this version of the app.
-///
-/// Bump this when the client starts depending on a newer server protocol.
-const kSupportedServerApiRevision = 1;
+import 'package:island/core/server_capabilities.g.dart';
 
 /// The capabilities required before the app can safely start its core flows.
 /// Optional product capabilities are deliberately not listed here.
-const kClientSupportedCapabilities = <String, int>{
-  'auth': 1,
-  'accounts': 1,
-  'chat': 1,
-  'posts': 1,
+const kRequiredServerCapabilities = <String>{
+  'auth',
+  'accounts',
+  'chat',
+  'posts',
 };
-
-final kRequiredServerCapabilities = kClientSupportedCapabilities.keys;
 
 enum ServerCompatibilityIssue {
   invalidMetadata,
