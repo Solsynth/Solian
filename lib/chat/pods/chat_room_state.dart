@@ -20,10 +20,12 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 class MessageLoadGap {
   final String newerMessageId;
   final String olderMessageId;
+  final bool isAutoManaged;
 
   const MessageLoadGap({
     required this.newerMessageId,
     required this.olderMessageId,
+    this.isAutoManaged = false,
   });
 }
 
@@ -185,9 +187,22 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
         _isLoadingMore = true;
         // Read fresh notifier each time to avoid using disposed instance
         final notifier = ref.read(messagesProvider(roomId).notifier);
-        notifier.loadMore().whenComplete(() {
-          _isLoadingMore = false;
-        });
+        final loadMore = state.messageLoadGap?.isAutoManaged == true
+            ? notifier.loadMoreBeforeOldest()
+            : notifier.loadMore();
+        loadMore
+            .then((_) async {
+              if (state.messageLoadGap == null ||
+                  state.messageLoadGap!.isAutoManaged) {
+                final gap = await notifier.compactForOlderScroll();
+                if (gap != null && ref.mounted) {
+                  updateMessageLoadGap(gap);
+                }
+              }
+            })
+            .whenComplete(() {
+              _isLoadingMore = false;
+            });
       }
     }
   }
