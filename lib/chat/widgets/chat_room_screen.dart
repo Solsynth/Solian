@@ -10,6 +10,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_summary.dart';
+import 'package:island/chat/utils/chat_room_ordering.dart';
+import 'package:island/chat/widgets/chat_room_picker_filter.dart';
 import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
@@ -1306,34 +1309,29 @@ class _RedirectRoomSelectorSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomsAsync = ref.watch(chatRoomJoinedProvider);
+    final summaries = ref.watch(chatSummaryProvider);
+    final filter = useState(ChatRoomPickerFilter.all);
+    final query = useState('');
 
     return SheetScaffold(
       titleText: 'chatRedirectSelectRoom'.tr(),
       child: roomsAsync.when(
         data: (rooms) {
-          final communityRooms = <SnChatRoom>[];
-          final directRooms = <SnChatRoom>[];
+          final summariesData = summaries.whenData((data) => data).value ?? {};
+          final filteredRooms = sortChatRoomsByActivity(rooms, summariesData)
+              .where(
+                (room) =>
+                    room.encryptionMode == 0 &&
+                    (filter.value == ChatRoomPickerFilter.all ||
+                        (filter.value == ChatRoomPickerFilter.direct &&
+                            room.type == 1) ||
+                        (filter.value == ChatRoomPickerFilter.group &&
+                            room.type != 1)) &&
+                    chatRoomMatchesSearch(room, query.value),
+              )
+              .toList();
 
-          for (final room in rooms) {
-            if (room.encryptionMode != 0) continue;
-            if (room.type == 1) {
-              directRooms.add(room);
-            } else {
-              communityRooms.add(room);
-            }
-          }
-
-          int byName(SnChatRoom a, SnChatRoom b) {
-            final aName = (a.name ?? '').toLowerCase();
-            final bName = (b.name ?? '').toLowerCase();
-            return aName.compareTo(bName);
-          }
-
-          communityRooms.sort(byName);
-          directRooms.sort(byName);
-
-          final hasAny = communityRooms.isNotEmpty || directRooms.isNotEmpty;
-          if (!hasAny) {
+          if (rooms.where((room) => room.encryptionMode == 0).isEmpty) {
             return Center(
               child: Text(
                 'noChatRoomsAvailable'.tr(),
@@ -1344,16 +1342,21 @@ class _RedirectRoomSelectorSheet extends HookConsumerWidget {
 
           return ListView(
             children: [
-              if (communityRooms.isNotEmpty)
+              ChatRoomPickerSearchBar(
+                onChanged: (value) => query.value = value,
+              ),
+              ChatRoomPickerFilterBar(
+                selected: filter.value,
+                onSelected: (value) => filter.value = value,
+              ),
+              if (filteredRooms.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(child: Text('noChatRoomsAvailable'.tr())),
+                )
+              else
                 _RedirectRoomGroup(
-                  title: 'chatTabGroup'.tr(),
-                  rooms: communityRooms,
-                  currentRoomId: currentRoomId,
-                ),
-              if (directRooms.isNotEmpty)
-                _RedirectRoomGroup(
-                  title: 'chatTabDirect'.tr(),
-                  rooms: directRooms,
+                  rooms: filteredRooms,
                   currentRoomId: currentRoomId,
                 ),
             ],
@@ -1378,30 +1381,16 @@ class _RedirectRoomSelectorSheet extends HookConsumerWidget {
 }
 
 class _RedirectRoomGroup extends StatelessWidget {
-  final String title;
   final List<SnChatRoom> rooms;
   final String currentRoomId;
 
-  const _RedirectRoomGroup({
-    required this.title,
-    required this.rooms,
-    required this.currentRoomId,
-  });
+  const _RedirectRoomGroup({required this.rooms, required this.currentRoomId});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
         for (final room in rooms)
           ChatRoomListTile(
             room: room,

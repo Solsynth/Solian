@@ -22,6 +22,14 @@ class AnimatedMessagesNotifier extends Notifier<Set<String>> {
 }
 
 class MessageItemWrapper extends HookConsumerWidget {
+  /// Horizontal space taken by the selection checkbox column in selection mode.
+  /// Keep in sync with [_SelectionIndicator] size + padding below.
+  static const double selectionGutterWidth =
+      _selectionPaddingLeft + _selectionIndicatorSize + _selectionPaddingRight;
+  static const double _selectionPaddingLeft = 10;
+  static const double _selectionIndicatorSize = 22;
+  static const double _selectionPaddingRight = 2;
+
   final LocalChatMessage message;
   final int index;
   final String roomId;
@@ -119,7 +127,10 @@ class MessageItemWrapper extends HookConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: isSelectionMode
                     ? Padding(
-                        padding: const EdgeInsets.only(left: 10, right: 2),
+                        padding: const EdgeInsets.only(
+                          left: MessageItemWrapper._selectionPaddingLeft,
+                          right: MessageItemWrapper._selectionPaddingRight,
+                        ),
                         child: _SelectionIndicator(isSelected: isSelected),
                       )
                     : const SizedBox(width: 0, height: 28),
@@ -275,8 +286,8 @@ class _SelectionIndicator extends StatelessWidget {
           ? Duration.zero
           : const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      width: 22,
-      height: 22,
+      width: MessageItemWrapper._selectionIndicatorSize,
+      height: MessageItemWrapper._selectionIndicatorSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isSelected ? colorScheme.primary : Colors.transparent,

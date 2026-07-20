@@ -138,6 +138,15 @@ class RoomMessageList extends HookConsumerWidget {
     final useColumnDisplay = displayStyle == 'column';
     final useBubbleDisplay = displayStyle != 'compact' && !useColumnDisplay;
     final useStickyGroupedDisplay = useBubbleDisplay || useColumnDisplay;
+    final isSelectionMode = ref.watch(
+      chatRoomStateProvider(roomId).select((state) => state.isSelectionMode),
+    );
+    // Group sticky avatars are positioned absolutely against the group stack.
+    // Selection mode inserts a checkbox gutter inside each row, so the avatar
+    // must shift by the same amount or it will sit on top of the checkmark.
+    final stickyAvatarLeft =
+        12.0 +
+        (isSelectionMode ? MessageItemWrapper.selectionGutterWidth : 0.0);
 
     final messageIndexById = useMemoized(() {
       return {
@@ -244,7 +253,7 @@ class RoomMessageList extends HookConsumerWidget {
                 roomId: roomId,
                 sender: message.toRemoteMessage().sender,
                 avatarSize: useColumnDisplay ? 24 : 32,
-                avatarLeft: 12,
+                avatarLeft: stickyAvatarLeft,
                 avatarTop: useColumnDisplay ? 8 : 9,
                 stickyEnabled: !disableAnimationSetting,
                 children: [
@@ -527,7 +536,11 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: widget.children,
         ),
-        Positioned(
+        AnimatedPositioned(
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
           left: widget.avatarLeft,
           top: 0,
           child: Transform.translate(
