@@ -272,7 +272,10 @@ class RoomMessageList extends HookConsumerWidget {
           children: [
             if (messageLoadGap?.newerMessageId == message.id)
               _MessageLoadGapMarker(
-                onTap: () => onLoadMessageGap(messageLoadGap!),
+                key: ValueKey(
+                  'message-gap-${messageLoadGap!.newerMessageId}-${messageLoadGap.olderMessageId}',
+                ),
+                onLoad: () => onLoadMessageGap(messageLoadGap),
               ),
             _LastReadMarker(visible: showLastReadMarker),
             messageContent,
@@ -285,18 +288,49 @@ class RoomMessageList extends HookConsumerWidget {
   }
 }
 
-class _MessageLoadGapMarker extends StatelessWidget {
-  final VoidCallback onTap;
+class _MessageLoadGapMarker extends StatefulWidget {
+  final Future<void> Function() onLoad;
 
-  const _MessageLoadGapMarker({required this.onTap});
+  const _MessageLoadGapMarker({super.key, required this.onLoad});
+
+  @override
+  State<_MessageLoadGapMarker> createState() => _MessageLoadGapMarkerState();
+}
+
+class _MessageLoadGapMarkerState extends State<_MessageLoadGapMarker> {
+  var _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    if (_isLoading || !mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      await widget.onLoad();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: TextButton.icon(
-        onPressed: onTap,
-        icon: const Icon(Icons.unfold_more, size: 18),
-        label: const Text('Messages skipped — tap to load'),
+        onPressed: _isLoading ? null : _load,
+        icon: _isLoading
+            ? const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.unfold_more, size: 18),
+        label: Text(
+          _isLoading ? 'Loading messages…' : 'Messages skipped — tap to load',
+        ),
       ),
     );
   }

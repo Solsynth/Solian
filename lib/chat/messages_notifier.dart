@@ -1210,7 +1210,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _lastApiFetchOffset = 0;
   }
 
-  Future<void> loadMore() async {
+  Future<void> loadMore({int? offset}) async {
     if (!_hasMore || state is AsyncLoading || _isLoadingMore) {
       Logger.root.info(
         'Skipping loadMore (hasMore=$_hasMore, isAsyncLoading=${state is AsyncLoading}, isLoadingMore=$_isLoadingMore)',
@@ -1220,15 +1220,18 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isLoadingMore = true;
     // Use the current displayed message count as offset for UI pagination
     // This is different from _lastApiFetchOffset which tracks API fetch progress
-    final offset = _currentMessages.length;
+    final displayOffset = offset ?? _currentMessages.length;
     Logger.root.info(
-      'Loading more messages (displayOffset=$offset, take=$_pageSize, lastApiOffset=$_lastApiFetchOffset)',
+      'Loading more messages (displayOffset=$displayOffset, take=$_pageSize, lastApiOffset=$_lastApiFetchOffset)',
     );
 
     _setGlobalSyncing(true);
 
     try {
-      final newMessages = await listMessages(offset: offset, take: _pageSize);
+      final newMessages = await listMessages(
+        offset: displayOffset,
+        take: _pageSize,
+      );
 
       _allRemoteMessagesFetched = _syncService.allRemoteFetched;
       _lastApiFetchOffset = _syncService.lastApiOffset;
@@ -1248,6 +1251,15 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Always reset global syncing state, regardless of disposal
       _setGlobalSyncing(false);
     }
+  }
+
+  Future<void> loadMoreBeforeOldest() async {
+    final oldestMessage = _currentMessages.lastOrNull;
+    if (oldestMessage == null) return loadMore();
+
+    final offset =
+        await _repository.countMessagesNewerThan(oldestMessage.createdAt) + 1;
+    return loadMore(offset: offset);
   }
 
   void _syncWeakInternetPolling(bool enabled) {
@@ -2087,6 +2099,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     return MessageLoadGap(
       newerMessageId: bridgeMessages.last.id,
       olderMessageId: gap.olderMessageId,
+      isAutoManaged: gap.isAutoManaged,
     );
   }
 
@@ -2105,6 +2118,33 @@ class MessagesNotifier extends _$MessagesNotifier {
       olderMessage.createdAt,
     );
     return olderCount - newerCount > 1;
+  }
+
+  /// Retains the newest and oldest visible sections while replacing the
+  /// distant middle with a reloadable gap. This keeps long history browsing
+  /// from retaining every previously visited message in memory.
+  Future<MessageLoadGap?> compactForOlderScroll({
+    int retainedMessagesPerSection = 100,
+  }) async {
+    final messages = _currentMessages;
+    final olderSectionStart = messages.length - retainedMessagesPerSection;
+    if (messages.length <= retainedMessagesPerSection * 2 + 1 ||
+        olderSectionStart <= retainedMessagesPerSection) {
+      return null;
+    }
+
+    final newerBoundary = messages[retainedMessagesPerSection - 1];
+    final olderBoundary = messages[olderSectionStart];
+    await _updateStateSafely([
+      ...messages.take(retainedMessagesPerSection),
+      ...messages.skip(olderSectionStart),
+    ]);
+
+    return MessageLoadGap(
+      newerMessageId: newerBoundary.id,
+      olderMessageId: olderBoundary.id,
+      isAutoManaged: true,
+    );
   }
 
   bool _hasLink(LocalChatMessage message) {
