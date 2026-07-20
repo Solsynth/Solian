@@ -39,6 +39,7 @@ class WindowScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showPalette = useState(false);
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
+    final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
 
     useEffect(() {
       if (!isDesktop) return null;
@@ -69,7 +70,6 @@ class WindowScaffold extends HookConsumerWidget {
 
     useEffect(() {
       ShakeDetector? detector;
-      final shakeEnabled = ref.read(shakeDetectionEnabledProvider);
       if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) && shakeEnabled) {
         detector = ShakeDetector.autoStart(
           onPhoneShake: (_) {
@@ -81,7 +81,7 @@ class WindowScaffold extends HookConsumerWidget {
       return () {
         detector?.stopListening();
       };
-    }, []);
+    }, [shakeEnabled]);
 
     final overlays = <Widget>[
       const _WebSocketIndicator(),

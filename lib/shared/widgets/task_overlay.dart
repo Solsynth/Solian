@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/services/drive_task_ws_handler.dart';
 import 'package:island/route.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
@@ -20,8 +19,6 @@ class TaskOverlay extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(driveTaskWsHandlerProvider);
-
     final allTasks = ref.watch(tasksProvider);
     final snapshot = buildTaskOverlaySnapshot(allTasks, now: DateTime.now());
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;

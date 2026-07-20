@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +37,96 @@ enum FileListMode { normal, unindexed }
 
 enum FileListViewMode { list, columns, waterfall }
 
+/// Payload for dragging indexed drive items between folders.
+class _DriveMoveDragData {
+  final List<String> fileIds;
+  final String primaryName;
+  final bool primaryIsFolder;
+
+  const _DriveMoveDragData({
+    required this.fileIds,
+    required this.primaryName,
+    this.primaryIsFolder = false,
+  });
+
+  int get count => fileIds.length;
+}
+
+_DriveMoveDragData _resolveMoveDragData({
+  required SnCloudFile file,
+  required Set<String> selectedIds,
+  required bool isSelectionMode,
+}) {
+  if (isSelectionMode &&
+      selectedIds.contains(file.id) &&
+      selectedIds.length > 1) {
+    return _DriveMoveDragData(
+      fileIds: selectedIds.toList(growable: false),
+      primaryName: file.name,
+      primaryIsFolder: file.isFolder,
+    );
+  }
+  return _DriveMoveDragData(
+    fileIds: [file.id],
+    primaryName: file.name,
+    primaryIsFolder: file.isFolder,
+  );
+}
+
+bool _preferLongPressDrag(BuildContext context) {
+  final platform = Theme.of(context).platform;
+  return platform == TargetPlatform.iOS || platform == TargetPlatform.android;
+}
+
+Future<void> _moveDriveItems({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String tabId,
+  required List<String> fileIds,
+  required String? parentId,
+}) async {
+  if (fileIds.isEmpty) return;
+
+  showLoadingModal(context);
+  try {
+    await ref
+        .read(driveFileUploaderProvider)
+        .moveFiles(fileIds, parentId: parentId, indexed: true);
+    invalidateIndexedDriveViews(ref, tabId);
+    showSnackBar('fileMoved'.tr());
+  } catch (_) {
+    showSnackBar('failedToMoveFile'.tr());
+  } finally {
+    if (context.mounted) {
+      hideLoadingModal(context);
+    }
+  }
+}
+
+Future<void> _moveDriveItemsToPath({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String tabId,
+  required List<String> fileIds,
+  required String path,
+}) async {
+  if (fileIds.isEmpty) return;
+  final uploader = ref.read(driveFileUploaderProvider);
+  String? parentId;
+  final normalized = path.trim().isEmpty ? '/' : path.trim();
+  if (normalized != '/') {
+    parentId = await uploader.resolveParentIdFromPath(path: normalized);
+  }
+  if (!context.mounted) return;
+  await _moveDriveItems(
+    context: context,
+    ref: ref,
+    tabId: tabId,
+    fileIds: fileIds,
+    parentId: parentId,
+  );
+}
+
 class FileListView extends HookConsumerWidget {
   final String tabId;
   final Map<String, dynamic>? usage;
@@ -56,7 +145,6 @@ class FileListView extends HookConsumerWidget {
   final ValueNotifier<FileListViewMode> viewMode;
   final ValueNotifier<bool> isSelectionMode;
   final ValueNotifier<String?> query;
-  final Future<void> Function(List<XFile> files)? onDropFiles;
 
   const FileListView({
     required this.tabId,
@@ -76,13 +164,11 @@ class FileListView extends HookConsumerWidget {
     required this.viewMode,
     required this.isSelectionMode,
     required this.query,
-    required this.onDropFiles,
     super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dragging = useState(false);
     final currentPathValue = useValueListenable(currentPath);
     final modeValue = useValueListenable(mode);
     final viewModeValue = useValueListenable(viewMode);
@@ -365,16 +451,21 @@ class FileListView extends HookConsumerWidget {
         ],
       );
     } else if (currentPathValue == '/') {
-      pathWidget = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Symbols.folder, size: 20),
-          const Gap(8),
-          Text(
-            'rootDirectory',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ).tr(),
-        ],
+      pathWidget = _wrapPathDropTarget(
+        context: context,
+        ref: ref,
+        path: '/',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Symbols.folder, size: 20),
+            const Gap(8),
+            Text(
+              'rootDirectory',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ).tr(),
+          ],
+        ),
       );
     } else {
       final pathParts = currentPathValue
@@ -383,20 +474,25 @@ class FileListView extends HookConsumerWidget {
           .toList();
       final breadcrumbs = <Widget>[];
 
-      // Add root
+      // Add root (drop target to move items back to root)
       breadcrumbs.add(
-        InkWell(
-          onTap: () => currentPath.value = '/',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Symbols.folder, size: 20),
-              const Gap(4),
-              const Text(
-                'Root',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ],
+        _wrapPathDropTarget(
+          context: context,
+          ref: ref,
+          path: '/',
+          child: InkWell(
+            onTap: () => currentPath.value = '/',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Symbols.folder, size: 20),
+                const Gap(4),
+                const Text(
+                  'Root',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -417,16 +513,21 @@ class FileListView extends HookConsumerWidget {
             ),
           );
         } else {
-          // Clickable parent directory
+          // Clickable parent directory (also accepts drops)
           breadcrumbs.add(
-            InkWell(
-              onTap: () => currentPath.value = path,
-              child: Text(
-                pathParts[i],
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+            _wrapPathDropTarget(
+              context: context,
+              ref: ref,
+              path: path,
+              child: InkWell(
+                onTap: () => currentPath.value = path,
+                child: Text(
+                  pathParts[i],
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
               ),
             ),
@@ -440,76 +541,59 @@ class FileListView extends HookConsumerWidget {
       );
     }
 
-    return DropTarget(
-      onDragDone: (details) async {
-        dragging.value = false;
-        if (details.files.isNotEmpty) {
-          await onDropFiles?.call(details.files);
-        }
-      },
-      onDragEntered: (details) {
-        dragging.value = true;
-      },
-      onDragExited: (details) {
-        dragging.value = false;
-      },
-      child: Container(
-        color: dragging.value
-            ? Theme.of(context).primaryColor.withOpacity(0.1)
-            : null,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Gap(10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Gap(10),
 
-            // Breadcrumbs and view switch at the top
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 16, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AbsorbPointer(
-                      absorbing: isRefreshing,
-                      child: pathWidget,
-                    ),
+        // Breadcrumbs and view switch at the top
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 16, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: AbsorbPointer(
+                  absorbing: isRefreshing,
+                  child: pathWidget,
+                ),
+              ),
+              const Gap(12),
+              SegmentedButton<FileListViewMode>(
+                segments: [
+                  ButtonSegment<FileListViewMode>(
+                    value: FileListViewMode.list,
+                    icon: const Icon(Symbols.list),
+                    tooltip: 'listView'.tr(),
                   ),
-                  const Gap(12),
-                  SegmentedButton<FileListViewMode>(
-                    segments: [
-                      ButtonSegment<FileListViewMode>(
-                        value: FileListViewMode.list,
-                        icon: const Icon(Symbols.list),
-                        tooltip: 'listView'.tr(),
-                      ),
-                      if (modeValue == FileListMode.normal)
-                        ButtonSegment<FileListViewMode>(
-                          value: FileListViewMode.columns,
-                          icon: const Icon(Symbols.view_column),
-                          tooltip: 'columnView'.tr(),
-                        ),
-                      ButtonSegment<FileListViewMode>(
-                        value: FileListViewMode.waterfall,
-                        icon: const Icon(Symbols.view_module),
-                        tooltip: 'waterfallView'.tr(),
-                      ),
-                    ],
-                    selected: {
-                      modeValue == FileListMode.unindexed &&
-                              viewModeValue == FileListViewMode.columns
-                          ? FileListViewMode.list
-                          : viewModeValue,
-                    },
-                    onSelectionChanged: (Set<FileListViewMode> newSelection) {
-                      viewMode.value = newSelection.first;
-                    },
-                    style: const ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  if (modeValue == FileListMode.normal)
+                    ButtonSegment<FileListViewMode>(
+                      value: FileListViewMode.columns,
+                      icon: const Icon(Symbols.view_column),
+                      tooltip: 'columnView'.tr(),
                     ),
+                  ButtonSegment<FileListViewMode>(
+                    value: FileListViewMode.waterfall,
+                    icon: const Icon(Symbols.view_module),
+                    tooltip: 'waterfallView'.tr(),
                   ),
                 ],
+                selected: {
+                  modeValue == FileListMode.unindexed &&
+                          viewModeValue == FileListViewMode.columns
+                      ? FileListViewMode.list
+                      : viewModeValue,
+                },
+                onSelectionChanged: (Set<FileListViewMode> newSelection) {
+                  viewMode.value = newSelection.first;
+                },
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
 
             AnimatedCrossFade(
               duration: const Duration(milliseconds: 220),
@@ -585,39 +669,37 @@ class FileListView extends HookConsumerWidget {
                 ),
               ),
             ),
-            Expanded(
-              child: useColumnBrowser
-                  ? _DriveColumnBrowser(
-                      tabId: tabId,
-                      currentPath: currentPath,
-                      selectedPool: selectedPool,
-                      filters: filters.value,
-                      query: queryValue,
-                      isSelectionMode: isSelectionMode,
-                      selectedFileIds: selectedIdsNotifier,
-                      currentVisibleFileIds: currentVisibleFileIds,
-                      onOpenFolderInNewTab: onOpenFolderInNewTab,
-                      onInspectFile: onInspectFile,
-                      onOpenFile: onOpenFile,
-                      onPickAndUpload: onPickAndUpload,
-                      onShowCreateFolder: onShowCreateFolder,
-                      toggleSelection: toggleSelectionWithLoadedChildren,
-                    )
-                  : CustomScrollView(
-                      slivers: [
-                        const SliverGap(20),
-                        bodyWidget!,
-                        const SliverGap(20),
-                      ],
-                    ).padding(
-                      horizontal: viewModeValue == FileListViewMode.waterfall
-                          ? 20
-                          : null,
-                    ),
-            ),
-          ],
+        Expanded(
+          child: useColumnBrowser
+              ? _DriveColumnBrowser(
+                  tabId: tabId,
+                  currentPath: currentPath,
+                  selectedPool: selectedPool,
+                  filters: filters.value,
+                  query: queryValue,
+                  isSelectionMode: isSelectionMode,
+                  selectedFileIds: selectedIdsNotifier,
+                  currentVisibleFileIds: currentVisibleFileIds,
+                  onOpenFolderInNewTab: onOpenFolderInNewTab,
+                  onInspectFile: onInspectFile,
+                  onOpenFile: onOpenFile,
+                  onPickAndUpload: onPickAndUpload,
+                  onShowCreateFolder: onShowCreateFolder,
+                  toggleSelection: toggleSelectionWithLoadedChildren,
+                )
+              : CustomScrollView(
+                  slivers: [
+                    const SliverGap(20),
+                    bodyWidget!,
+                    const SliverGap(20),
+                  ],
+                ).padding(
+                  horizontal: viewModeValue == FileListViewMode.waterfall
+                      ? 20
+                      : null,
+                ),
         ),
-      ),
+      ],
     );
   }
 
@@ -683,7 +765,7 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(fileItem.file.id),
+              selectedFileIds.value,
               () {
                 toggleSelection(selectedFileIds, fileItem.file);
               },
@@ -694,7 +776,7 @@ class FileListView extends HookConsumerWidget {
               currentPath,
               context,
               isSelectionMode: isSelectionMode.value,
-              isSelected: selectedFileIds.value.contains(folderItem.file.id),
+              selectedIds: selectedFileIds.value,
               onToggleSelection: () =>
                   toggleSelection(selectedFileIds, folderItem.file),
               onEnterSelection: () {
@@ -742,100 +824,119 @@ class FileListView extends HookConsumerWidget {
                 height: 1.15,
                 color: theme.colorScheme.onSurfaceVariant,
               );
-              return ContextMenuWidget(
-                previewBuilder: contextMenuPreviewBuilder,
-                menuProvider: (_) => _buildFolderMenu(context, ref, file),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 3,
-                  ),
-                  child: Material(
-                    color: selectionMode && isSelected
-                        ? theme.colorScheme.primaryContainer.withOpacity(0.45)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        if (selectionMode) {
-                          toggleSelection(selectedFileIds, file);
-                          return;
-                        }
-                        final newPath = currentPath.value == '/'
-                            ? '/${file.name}'
-                            : '${currentPath.value}/${file.name}';
-                        if (HardwareKeyboard.instance.isShiftPressed) {
-                          onOpenFolderInNewTab(newPath);
-                        } else {
-                          currentPath.value = newPath;
-                        }
-                      },
-                      onLongPress: () {
-                        if (!selectionMode) {
-                          isSelectionMode.value = true;
-                        }
-                        toggleSelection(selectedFileIds, file);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          children: [
-                            if (showTreeExpansionAffordance)
-                              const SizedBox(width: 32),
-                            if (selectionMode) ...[
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Checkbox(
-                                  value: isSelected,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
-                                  onChanged: (_) =>
-                                      toggleSelection(selectedFileIds, file),
-                                ),
-                              ),
-                              const Gap(10),
-                            ],
-                            const _DriveFolderLeading(),
-                            const Gap(14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    file.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
+              return _wrapFolderDropTarget(
+                context: context,
+                ref: ref,
+                folder: file,
+                child: _wrapIndexedDraggable(
+                  context: context,
+                  file: file,
+                  selectedIds: selectedFileIds.value,
+                  isSelectionMode: selectionMode,
+                  child: ContextMenuWidget(
+                    previewBuilder: contextMenuPreviewBuilder,
+                    menuProvider: (_) => _buildFolderMenu(context, ref, file),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 3,
+                      ),
+                      child: Material(
+                        color: selectionMode && isSelected
+                            ? theme.colorScheme.primaryContainer.withOpacity(
+                                0.45,
+                              )
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            if (selectionMode) {
+                              toggleSelection(selectedFileIds, file);
+                              return;
+                            }
+                            final newPath = currentPath.value == '/'
+                                ? '/${file.name}'
+                                : '${currentPath.value}/${file.name}';
+                            if (HardwareKeyboard.instance.isShiftPressed) {
+                              onOpenFolderInNewTab(newPath);
+                            } else {
+                              currentPath.value = newPath;
+                            }
+                          },
+                          onLongPress: () {
+                            if (!selectionMode) {
+                              isSelectionMode.value = true;
+                            }
+                            toggleSelection(selectedFileIds, file);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              children: [
+                                if (showTreeExpansionAffordance)
+                                  const SizedBox(width: 32),
+                                if (selectionMode) ...[
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Checkbox(
+                                      value: isSelected,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                      onChanged: (_) => toggleSelection(
+                                        selectedFileIds,
+                                        file,
+                                      ),
                                     ),
                                   ),
-                                  const Gap(4),
-                                  Text(
-                                    [
-                                      'folder'.tr(),
-                                      if (file.childrenCount > 0)
-                                        '${file.childrenCount}',
-                                    ].join(' · '),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: metaStyle?.copyWith(height: 1.25),
-                                  ),
+                                  const Gap(10),
                                 ],
-                              ),
+                                const _DriveFolderLeading(),
+                                const Gap(14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        file.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.bodyLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            ),
+                                      ),
+                                      const Gap(4),
+                                      Text(
+                                        [
+                                          'folder'.tr(),
+                                          if (file.childrenCount > 0)
+                                            '${file.childrenCount}',
+                                        ].join(' · '),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: metaStyle?.copyWith(
+                                          height: 1.25,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (!selectionMode) ...[
+                                  const Gap(8),
+                                  _buildFolderActions(context, ref, file),
+                                ],
+                              ],
                             ),
-                            if (!selectionMode) ...[
-                              const Gap(8),
-                              _buildFolderActions(context, ref, file),
-                            ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -917,59 +1018,65 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
     bool isSelectionMode,
-    bool isSelected,
+    Set<String> selectedIds,
     VoidCallback? toggleSelection,
   ) {
-    return ContextMenuWidget(
-      previewBuilder: contextMenuPreviewBuilder,
-      menuProvider: (_) {
-        return Menu(
-          children: [
-            MenuAction(
-              title: 'Inspect',
-              image: MenuImage.icon(Symbols.info),
-              callback: () => onInspectFile(fileItem.file),
-            ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'rename'.tr(),
-              image: MenuImage.icon(Symbols.edit),
-              callback: () async {
-                await CloudFileActionsSheet.showRenameSheet(
-                  context: context,
-                  file: fileItem.file,
-                  onRenamed: (_) {
-                    invalidateIndexedDriveViews(ref, tabId);
-                  },
-                );
-              },
-            ),
-            MenuAction(
-              title: 'moveToFolder'.tr(),
-              image: MenuImage.icon(Symbols.drive_file_move),
-              callback: () async {
-                await _showMoveToFolderSheet(
-                  context: ref.context,
-                  ref: ref,
-                  fileId: fileItem.file.id,
-                  fileName: fileItem.file.name,
-                  isUnindexed: false,
-                );
-              },
-            ),
-            MenuAction(
-              title: 'share'.tr(),
-              image: MenuImage.icon(Symbols.share),
-              callback: () async {
-                final url = fileItem.file.storageUrl ?? fileItem.file.id;
-                await Share.share(url);
-              },
-            ),
-            MenuAction(
-              title: 'copyLink'.tr(),
-              image: MenuImage.icon(Symbols.content_copy),
-              callback: () {
-                Clipboard.setData(
+    final isSelected = selectedIds.contains(fileItem.file.id);
+    return _wrapIndexedDraggable(
+      context: context,
+      file: fileItem.file,
+      selectedIds: selectedIds,
+      isSelectionMode: isSelectionMode,
+      child: ContextMenuWidget(
+        previewBuilder: contextMenuPreviewBuilder,
+        menuProvider: (_) {
+          return Menu(
+            children: [
+              MenuAction(
+                title: 'Inspect',
+                image: MenuImage.icon(Symbols.info),
+                callback: () => onInspectFile(fileItem.file),
+              ),
+              MenuSeparator(),
+              MenuAction(
+                title: 'rename'.tr(),
+                image: MenuImage.icon(Symbols.edit),
+                callback: () async {
+                  await CloudFileActionsSheet.showRenameSheet(
+                    context: context,
+                    file: fileItem.file,
+                    onRenamed: (_) {
+                      invalidateIndexedDriveViews(ref, tabId);
+                    },
+                  );
+                },
+              ),
+              MenuAction(
+                title: 'moveToFolder'.tr(),
+                image: MenuImage.icon(Symbols.drive_file_move),
+                callback: () async {
+                  await _showMoveToFolderSheet(
+                    context: ref.context,
+                    ref: ref,
+                    fileId: fileItem.file.id,
+                    fileName: fileItem.file.name,
+                    isUnindexed: false,
+                  );
+                },
+              ),
+              MenuAction(
+                title: 'share'.tr(),
+                image: MenuImage.icon(Symbols.share),
+                callback: () async {
+                  final url = fileItem.file.storageUrl ?? fileItem.file.id;
+                  await Share.share(url);
+                },
+              ),
+              MenuAction(
+                title: 'copyLink'.tr(),
+                image: MenuImage.icon(Symbols.content_copy),
+                callback: () {
+                  Clipboard.setData(
                   ClipboardData(
                     text: fileItem.file.storageUrl ?? fileItem.file.id,
                   ),
@@ -1035,15 +1142,16 @@ class FileListView extends HookConsumerWidget {
           ],
         );
       },
-      child: _buildWaterfallFileTileBase(
-        fileItem.file,
-        ref,
-        context,
-        _buildIndexedFileActions(fileItem.file, ref, context),
-        isSelectionMode,
-        isSelected,
-        toggleSelection,
-        onOpen: () => onOpenFile(fileItem.file),
+        child: _buildWaterfallFileTileBase(
+          fileItem.file,
+          ref,
+          context,
+          _buildIndexedFileActions(fileItem.file, ref, context),
+          isSelectionMode,
+          isSelected,
+          toggleSelection,
+          onOpen: () => onOpenFile(fileItem.file),
+        ),
       ),
     );
   }
@@ -1516,96 +1624,108 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<String> currentPath,
     BuildContext context, {
     bool isSelectionMode = false,
-    bool isSelected = false,
+    Set<String> selectedIds = const {},
     VoidCallback? onToggleSelection,
     VoidCallback? onEnterSelection,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final file = folderItem.file;
+    final isSelected = selectedIds.contains(file.id);
 
-    return ContextMenuWidget(
-      previewBuilder: contextMenuPreviewBuilder,
-      menuProvider: (_) => _buildFolderMenu(context, ref, file),
-      child: Material(
-        color: isSelectionMode && isSelected
-            ? colorScheme.primaryContainer.withOpacity(0.35)
-            : colorScheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(
+    return _wrapFolderDropTarget(
+      context: context,
+      ref: ref,
+      folder: file,
+      child: _wrapIndexedDraggable(
+        context: context,
+        file: file,
+        selectedIds: selectedIds,
+        isSelectionMode: isSelectionMode,
+        child: ContextMenuWidget(
+          previewBuilder: contextMenuPreviewBuilder,
+          menuProvider: (_) => _buildFolderMenu(context, ref, file),
+          child: Material(
             color: isSelectionMode && isSelected
-                ? colorScheme.primary.withOpacity(0.45)
-                : colorScheme.outlineVariant.withOpacity(0.55),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {
-            if (isSelectionMode) {
-              onToggleSelection?.call();
-              return;
-            }
-            final newPath = currentPath.value == '/'
-                ? '/${file.name}'
-                : '${currentPath.value}/${file.name}';
-            if (HardwareKeyboard.instance.isShiftPressed) {
-              onOpenFolderInNewTab(newPath);
-            } else {
-              currentPath.value = newPath;
-            }
-          },
-          onLongPress: onEnterSelection,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 16, 10, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+                ? colorScheme.primaryContainer.withOpacity(0.35)
+                : colorScheme.surfaceContainerLow,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: isSelectionMode && isSelected
+                    ? colorScheme.primary.withOpacity(0.45)
+                    : colorScheme.outlineVariant.withOpacity(0.55),
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () {
+                if (isSelectionMode) {
+                  onToggleSelection?.call();
+                  return;
+                }
+                final newPath = currentPath.value == '/'
+                    ? '/${file.name}'
+                    : '${currentPath.value}/${file.name}';
+                if (HardwareKeyboard.instance.isShiftPressed) {
+                  onOpenFolderInNewTab(newPath);
+                } else {
+                  currentPath.value = newPath;
+                }
+              },
+              onLongPress: onEnterSelection,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 16, 10, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (isSelectionMode) ...[
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Checkbox(
-                          value: isSelected,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (_) => onToggleSelection?.call(),
-                        ),
+                    Row(
+                      children: [
+                        if (isSelectionMode) ...[
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Checkbox(
+                              value: isSelected,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                              onChanged: (_) => onToggleSelection?.call(),
+                            ),
+                          ),
+                          const Gap(10),
+                        ],
+                        const _DriveFolderLeading(),
+                        const Spacer(),
+                        if (!isSelectionMode)
+                          _buildFolderActions(context, ref, file),
+                      ],
+                    ),
+                    const Gap(14),
+                    Text(
+                      file.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                      const Gap(10),
-                    ],
-                    const _DriveFolderLeading(),
-                    const Spacer(),
-                    if (!isSelectionMode)
-                      _buildFolderActions(context, ref, file),
+                    ),
+                    const Gap(4),
+                    Text(
+                      [
+                        'folder'.tr(),
+                        if (file.childrenCount > 0) '${file.childrenCount}',
+                      ].join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.25,
+                      ),
+                    ),
                   ],
                 ),
-                const Gap(14),
-                Text(
-                  file.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Gap(4),
-                Text(
-                  [
-                    'folder'.tr(),
-                    if (file.childrenCount > 0) '${file.childrenCount}',
-                  ].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.25,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -1890,134 +2010,92 @@ class FileListView extends HookConsumerWidget {
               ],
             );
           },
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 12 + depth * 18.0,
-              right: 12,
-              top: 3,
-              bottom: 3,
-            ),
-            child: Material(
-              color: isSelectionMode && isSelected
-                  ? theme.colorScheme.primaryContainer.withOpacity(0.45)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  if (isSelectionMode) {
-                    toggleSelection(selectedFileIds, file);
-                  } else {
-                    onOpen();
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+          child: isUnindexed
+              ? Padding(
+                  padding: EdgeInsets.only(
+                    left: 12 + depth * 18.0,
+                    right: 12,
+                    top: 3,
+                    bottom: 3,
                   ),
-                  child: Row(
-                    children: [
-                      if (hasTreeChildren)
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints.tightFor(
-                              width: 32,
-                              height: 32,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            iconSize: 20,
-                            icon: Icon(
-                              isExpanded
-                                  ? Symbols.expand_more
-                                  : Symbols.chevron_right,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            onPressed: () async {
-                              if (!isExpanded) {
-                                await ensureTreeChildrenLoaded(file);
-                              }
-                              _toggleId(expandedFileIds, file.id);
-                            },
-                          ),
-                        )
-                      else if (showTreeExpansionAffordance)
-                        const SizedBox(width: 32, height: 32),
-                      if (hasTreeChildren || showTreeExpansionAffordance)
-                        const Gap(4),
-                      if (isSelectionMode) ...[
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: Checkbox(
-                            value: isSelected,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                            onChanged: (_) =>
-                                toggleSelection(selectedFileIds, file),
-                          ),
-                        ),
-                        const Gap(10),
-                      ],
-                      SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: _FileListLeadingPreview(file: file),
+                  child: Material(
+                    color: isSelectionMode && isSelected
+                        ? theme.colorScheme.primaryContainer.withOpacity(0.45)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        if (isSelectionMode) {
+                          toggleSelection(selectedFileIds, file);
+                        } else {
+                          onOpen();
+                        }
+                      },
+                      child: _buildTreeFileTileRow(
+                        context: context,
+                        theme: theme,
+                        file: file,
+                        hasTreeChildren: hasTreeChildren,
+                        isExpanded: isExpanded,
+                        showTreeExpansionAffordance: showTreeExpansionAffordance,
+                        isSelectionMode: isSelectionMode,
+                        isSelected: isSelected,
+                        selectedFileIds: selectedFileIds,
+                        expandedFileIds: expandedFileIds,
+                        ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
+                        toggleSelection: toggleSelection,
+                        ref: ref,
+                      ),
+                    ),
+                  ),
+                )
+              : _wrapIndexedDraggable(
+                  context: context,
+                  file: file,
+                  selectedIds: selectedFileIds.value,
+                  isSelectionMode: isSelectionMode,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 12 + depth * 18.0,
+                      right: 12,
+                      top: 3,
+                      bottom: 3,
+                    ),
+                    child: Material(
+                      color: isSelectionMode && isSelected
+                          ? theme.colorScheme.primaryContainer.withOpacity(0.45)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          if (isSelectionMode) {
+                            toggleSelection(selectedFileIds, file);
+                          } else {
+                            onOpen();
+                          }
+                        },
+                        child: _buildTreeFileTileRow(
+                          context: context,
+                          theme: theme,
+                          file: file,
+                          hasTreeChildren: hasTreeChildren,
+                          isExpanded: isExpanded,
+                          showTreeExpansionAffordance:
+                              showTreeExpansionAffordance,
+                          isSelectionMode: isSelectionMode,
+                          isSelected: isSelected,
+                          selectedFileIds: selectedFileIds,
+                          expandedFileIds: expandedFileIds,
+                          ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
+                          toggleSelection: toggleSelection,
+                          ref: ref,
                         ),
                       ),
-                      const Gap(14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            file.name.isEmpty
-                                ? Text(
-                                    'untitled',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      fontStyle: FontStyle.italic,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ).tr()
-                                : Text(
-                                    file.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                            const Gap(4),
-                            Text(
-                              _fileMetaLine(file),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                height: 1.25,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Gap(8),
-                      ..._buildIndexedFileActions(file, ref, context),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
         ),
         if (hasTreeChildren && isExpanded)
           if (isLoadingChildren && children.isEmpty)
@@ -2051,6 +2129,120 @@ class FileListView extends HookConsumerWidget {
               ),
             ),
       ],
+    );
+  }
+
+  Widget _buildTreeFileTileRow({
+    required BuildContext context,
+    required ThemeData theme,
+    required SnCloudFile file,
+    required bool hasTreeChildren,
+    required bool isExpanded,
+    required bool showTreeExpansionAffordance,
+    required bool isSelectionMode,
+    required bool isSelected,
+    required ValueNotifier<Set<String>> selectedFileIds,
+    required ValueNotifier<Set<String>> expandedFileIds,
+    required Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
+    required void Function(ValueNotifier<Set<String>> ids, SnCloudFile file)
+    toggleSelection,
+    required WidgetRef ref,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          if (hasTreeChildren)
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 32,
+                  height: 32,
+                ),
+                visualDensity: VisualDensity.compact,
+                iconSize: 20,
+                icon: Icon(
+                  isExpanded ? Symbols.expand_more : Symbols.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () async {
+                  if (!isExpanded) {
+                    await ensureTreeChildrenLoaded(file);
+                  }
+                  _toggleId(expandedFileIds, file.id);
+                },
+              ),
+            )
+          else if (showTreeExpansionAffordance)
+            const SizedBox(width: 32, height: 32),
+          if (hasTreeChildren || showTreeExpansionAffordance) const Gap(4),
+          if (isSelectionMode) ...[
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: isSelected,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                onChanged: (_) => toggleSelection(selectedFileIds, file),
+              ),
+            ),
+            const Gap(10),
+          ],
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: _FileListLeadingPreview(file: file),
+            ),
+          ),
+          const Gap(14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                file.name.isEmpty
+                    ? Text(
+                        'untitled',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ).tr()
+                    : Text(
+                        file.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ),
+                const Gap(4),
+                Text(
+                  _fileMetaLine(file),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    height: 1.25,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(8),
+          ..._buildIndexedFileActions(file, ref, context),
+        ],
+      ),
     );
   }
 
@@ -2306,6 +2498,60 @@ class FileListView extends HookConsumerWidget {
     }
   }
 
+  Widget _wrapIndexedDraggable({
+    required BuildContext context,
+    required SnCloudFile file,
+    required Set<String> selectedIds,
+    required bool isSelectionMode,
+    required Widget child,
+  }) {
+    return _DriveDraggableTile(
+      data: _resolveMoveDragData(
+        file: file,
+        selectedIds: selectedIds,
+        isSelectionMode: isSelectionMode,
+      ),
+      child: child,
+    );
+  }
+
+  Widget _wrapFolderDropTarget({
+    required BuildContext context,
+    required WidgetRef ref,
+    required SnCloudFile folder,
+    required Widget child,
+  }) {
+    return _DriveFolderDropTarget(
+      folderId: folder.id,
+      onAccept: (data) => _moveDriveItems(
+        context: context,
+        ref: ref,
+        tabId: tabId,
+        fileIds: data.fileIds,
+        parentId: folder.id,
+      ),
+      child: child,
+    );
+  }
+
+  Widget _wrapPathDropTarget({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String path,
+    required Widget child,
+  }) {
+    return _DrivePathDropTarget(
+      onAccept: (data) => _moveDriveItemsToPath(
+        context: context,
+        ref: ref,
+        tabId: tabId,
+        fileIds: data.fileIds,
+        path: path,
+      ),
+      child: child,
+    );
+  }
+
   Widget _buildClearRecycledButton(WidgetRef ref) {
     return Card(
       child: Padding(
@@ -2484,6 +2730,20 @@ class _DriveColumnBrowser extends HookConsumerWidget {
                 currentVisibleFileIds: currentVisibleFileIds,
                 onPickAndUpload: onPickAndUpload,
                 onShowCreateFolder: onShowCreateFolder,
+                onMoveToFolder: (data, folder) => _moveDriveItems(
+                  context: context,
+                  ref: ref,
+                  tabId: tabId,
+                  fileIds: data.fileIds,
+                  parentId: folder.id,
+                ),
+                onMoveToColumnPath: (data) => _moveDriveItemsToPath(
+                  context: context,
+                  ref: ref,
+                  tabId: tabId,
+                  fileIds: data.fileIds,
+                  path: columnPath,
+                ),
                 onEntryTap: (file) {
                   if (selectionMode) {
                     toggleSelection(selectedFileIds, file);
@@ -2529,6 +2789,9 @@ class _DriveColumnPane extends HookConsumerWidget {
   final ValueNotifier<Set<String>>? currentVisibleFileIds;
   final VoidCallback onPickAndUpload;
   final VoidCallback onShowCreateFolder;
+  final Future<void> Function(_DriveMoveDragData data, SnCloudFile folder)
+  onMoveToFolder;
+  final Future<void> Function(_DriveMoveDragData data) onMoveToColumnPath;
   final void Function(SnCloudFile file) onEntryTap;
   final void Function(SnCloudFile file) onEntryLongPress;
   final void Function(SnCloudFile file) onInspect;
@@ -2543,6 +2806,8 @@ class _DriveColumnPane extends HookConsumerWidget {
     required this.currentVisibleFileIds,
     required this.onPickAndUpload,
     required this.onShowCreateFolder,
+    required this.onMoveToFolder,
+    required this.onMoveToColumnPath,
     required this.onEntryTap,
     required this.onEntryLongPress,
     required this.onInspect,
@@ -2598,10 +2863,13 @@ class _DriveColumnPane extends HookConsumerWidget {
       ),
       data: (items) {
         if (items.isEmpty) {
-          return _ColumnEmptyState(
-            isRoot: query.path == '/',
-            onPickAndUpload: onPickAndUpload,
-            onShowCreateFolder: onShowCreateFolder,
+          return _DrivePathDropTarget(
+            onAccept: onMoveToColumnPath,
+            child: _ColumnEmptyState(
+              isRoot: query.path == '/',
+              onPickAndUpload: onPickAndUpload,
+              onShowCreateFolder: onShowCreateFolder,
+            ),
           );
         }
 
@@ -2619,7 +2887,7 @@ class _DriveColumnPane extends HookConsumerWidget {
                 isFileFocused ||
                 (selectionMode && isMultiSelected);
 
-            return _ColumnEntryTile(
+            final tile = _ColumnEntryTile(
               file: file,
               isHighlighted: isHighlighted,
               isSelectionMode: selectionMode,
@@ -2627,6 +2895,23 @@ class _DriveColumnPane extends HookConsumerWidget {
               onTap: () => onEntryTap(file),
               onLongPress: () => onEntryLongPress(file),
               onInspect: () => onInspect(file),
+            );
+
+            final draggable = _DriveDraggableTile(
+              data: _resolveMoveDragData(
+                file: file,
+                selectedIds: selectedIds,
+                isSelectionMode: selectionMode,
+              ),
+              child: tile,
+            );
+
+            if (!isFolder) return draggable;
+
+            return _DriveFolderDropTarget(
+              folderId: file.id,
+              onAccept: (data) => onMoveToFolder(data, file),
+              child: draggable,
             );
           },
         );
@@ -3466,6 +3751,155 @@ class _FileActionListTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DriveDraggableTile extends StatelessWidget {
+  final _DriveMoveDragData data;
+  final Widget child;
+
+  const _DriveDraggableTile({required this.data, required this.child});
+
+  Widget _feedback(BuildContext context) {
+    final theme = Theme.of(context);
+    final name = data.primaryName.isEmpty ? 'untitled'.tr() : data.primaryName;
+    return Material(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(10),
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              data.primaryIsFolder ? Symbols.folder : Symbols.draft,
+              size: 20,
+              color: theme.colorScheme.primary,
+              fill: data.primaryIsFolder ? 1 : 0,
+            ),
+            const Gap(8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (data.count > 1) ...[
+              const Gap(8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '+${data.count - 1}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final feedback = _feedback(context);
+    if (_preferLongPressDrag(context)) {
+      return LongPressDraggable<_DriveMoveDragData>(
+        data: data,
+        feedback: feedback,
+        childWhenDragging: Opacity(opacity: 0.35, child: child),
+        child: child,
+      );
+    }
+    return Draggable<_DriveMoveDragData>(
+      data: data,
+      feedback: feedback,
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _DriveFolderDropTarget extends StatelessWidget {
+  final String folderId;
+  final Future<void> Function(_DriveMoveDragData data) onAccept;
+  final Widget child;
+
+  const _DriveFolderDropTarget({
+    required this.folderId,
+    required this.onAccept,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DragTarget<_DriveMoveDragData>(
+      onWillAcceptWithDetails: (details) {
+        final ids = details.data.fileIds;
+        if (ids.isEmpty) return false;
+        // Don't drop a folder onto itself or include the target in a multi-move.
+        return !ids.contains(folderId);
+      },
+      onAcceptWithDetails: (details) {
+        onAccept(details.data);
+      },
+      builder: (context, candidateData, rejectedData) {
+        final hovering = candidateData.isNotEmpty;
+        if (!hovering) return child;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: theme.colorScheme.primary, width: 2),
+            color: theme.colorScheme.primaryContainer.withOpacity(0.35),
+          ),
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _DrivePathDropTarget extends StatelessWidget {
+  final Future<void> Function(_DriveMoveDragData data) onAccept;
+  final Widget child;
+
+  const _DrivePathDropTarget({required this.onAccept, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DragTarget<_DriveMoveDragData>(
+      onWillAcceptWithDetails: (details) => details.data.fileIds.isNotEmpty,
+      onAcceptWithDetails: (details) {
+        onAccept(details.data);
+      },
+      builder: (context, candidateData, rejectedData) {
+        final hovering = candidateData.isNotEmpty;
+        if (!hovering) return child;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: theme.colorScheme.primary, width: 1.5),
+            color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+          ),
+          child: child,
+        );
+      },
     );
   }
 }

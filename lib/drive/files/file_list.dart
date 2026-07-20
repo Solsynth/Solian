@@ -463,13 +463,6 @@ class FileListScreen extends HookConsumerWidget {
                                 currentPathValue,
                                 selectedPoolValue?.id,
                               ),
-                              onDropFiles: (files) => _uploadDroppedFiles(
-                                ref,
-                                activeTab.id,
-                                currentPathValue,
-                                selectedPoolValue?.id,
-                                files,
-                              ),
                               onShowCreateFolder: () => _showCreateFolderDialog(
                                 context,
                                 ref,
@@ -605,20 +598,28 @@ class FileListScreen extends HookConsumerWidget {
       error: (e, _) => Center(child: Text('errorLoadingUsage'.tr())),
     );
 
-    final droppableBody = activeTab != null && activeTab.file == null
+    // Accept desktop file/folder drops on folder browser tabs (not file preview).
+    final canAcceptDrops =
+        activeTab != null &&
+        activeTab.file == null &&
+        modeValue == FileListMode.normal;
+
+    final droppableBody = canAcceptDrops
         ? DropTarget(
             onDragEntered: (_) => dragging.value = true,
             onDragExited: (_) => dragging.value = false,
             onDragDone: (details) async {
               dragging.value = false;
-              if (modeValue != FileListMode.normal || details.files.isEmpty) {
+              if (details.files.isEmpty ||
+                  currentPath == null ||
+                  selectedPool == null) {
                 return;
               }
               await _uploadDroppedFiles(
                 ref,
                 activeTab.id,
-                currentPathValue,
-                selectedPoolValue?.id,
+                currentPath.value,
+                selectedPool.value?.id,
                 details.files,
               );
             },
@@ -627,39 +628,44 @@ class FileListScreen extends HookConsumerWidget {
               children: [
                 bodyContent,
                 if (dragging.value)
-                  IgnorePointer(
-                    child: Container(
-                      margin: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
                         color: Theme.of(
                           context,
-                        ).colorScheme.primaryContainer.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Symbols.upload,
-                              size: 40,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const Gap(12),
-                            Text(
-                              'dropFilesHere'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const Gap(4),
-                            Text(
-                              'dragAndDropToAttach'.tr(),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+                        ).colorScheme.primaryContainer.withOpacity(0.9),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Symbols.upload_file,
+                                size: 64,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const Gap(16),
+                              Text(
+                                'dropFilesHere'.tr(),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const Gap(8),
+                              Text(
+                                'dragAndDropToAttach'.tr(),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
