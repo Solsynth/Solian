@@ -127,6 +127,199 @@ Future<void> _moveDriveItemsToPath({
   );
 }
 
+Future<void> _showIndexedMoveSheet({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String tabId,
+  required String fileId,
+  required String fileName,
+}) async {
+  final result = await showModalBottomSheet<String>(
+    useRootNavigator: true,
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => _FolderSelectorSheet(fileName: fileName),
+  );
+  if (result == null || !context.mounted) return;
+  await _moveDriveItemsToPath(
+    context: context,
+    ref: ref,
+    tabId: tabId,
+    fileIds: [fileId],
+    path: result.isEmpty ? '/' : result,
+  );
+}
+
+Future<void> _deleteIndexedDriveItem({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String tabId,
+  required SnCloudFile file,
+}) async {
+  final confirmed = await showConfirmAlert(
+    'confirmDeleteFile'.tr(),
+    file.isFolder ? 'delete'.tr() : 'deleteFile'.tr(),
+    isDanger: true,
+  );
+  if (!confirmed || !context.mounted) return;
+
+  showLoadingModal(context);
+  try {
+    await ref.read(driveFileUploaderProvider).deleteFile(file.id);
+    invalidateIndexedDriveViews(ref, tabId);
+  } catch (_) {
+    showSnackBar('failedToDeleteFile'.tr());
+  } finally {
+    if (context.mounted) {
+      hideLoadingModal(context);
+    }
+  }
+}
+
+Menu _buildIndexedColumnMenu({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String tabId,
+  required SnCloudFile file,
+  required void Function(SnCloudFile file) onInspect,
+}) {
+  if (file.isFolder) {
+    return Menu(
+      children: [
+        MenuAction(
+          title: 'Inspect',
+          image: MenuImage.icon(Symbols.info),
+          callback: () => onInspect(file),
+        ),
+        MenuSeparator(),
+        MenuAction(
+          title: 'rename'.tr(),
+          image: MenuImage.icon(Symbols.edit),
+          callback: () async {
+            await CloudFileActionsSheet.showRenameSheet(
+              context: context,
+              file: file,
+              onRenamed: (_) {
+                invalidateIndexedDriveViews(ref, tabId);
+              },
+            );
+          },
+        ),
+        MenuAction(
+          title: 'moveToFolder'.tr(),
+          image: MenuImage.icon(Symbols.drive_file_move),
+          callback: () => _showIndexedMoveSheet(
+            context: context,
+            ref: ref,
+            tabId: tabId,
+            fileId: file.id,
+            fileName: file.name,
+          ),
+        ),
+        MenuSeparator(),
+        MenuAction(
+          title: 'delete'.tr(),
+          image: MenuImage.icon(Symbols.delete),
+          callback: () => _deleteIndexedDriveItem(
+            context: context,
+            ref: ref,
+            tabId: tabId,
+            file: file,
+          ),
+        ),
+      ],
+    );
+  }
+
+  return Menu(
+    children: [
+      MenuAction(
+        title: 'Inspect',
+        image: MenuImage.icon(Symbols.info),
+        callback: () => onInspect(file),
+      ),
+      MenuSeparator(),
+      MenuAction(
+        title: 'rename'.tr(),
+        image: MenuImage.icon(Symbols.edit),
+        callback: () async {
+          await CloudFileActionsSheet.showRenameSheet(
+            context: context,
+            file: file,
+            onRenamed: (_) {
+              invalidateIndexedDriveViews(ref, tabId);
+            },
+          );
+        },
+      ),
+      MenuAction(
+        title: 'moveToFolder'.tr(),
+        image: MenuImage.icon(Symbols.drive_file_move),
+        callback: () => _showIndexedMoveSheet(
+          context: context,
+          ref: ref,
+          tabId: tabId,
+          fileId: file.id,
+          fileName: file.name,
+        ),
+      ),
+      MenuAction(
+        title: 'share'.tr(),
+        image: MenuImage.icon(Symbols.share),
+        callback: () async {
+          final url = file.storageUrl ?? file.id;
+          await Share.share(url);
+        },
+      ),
+      MenuAction(
+        title: 'copyLink'.tr(),
+        image: MenuImage.icon(Symbols.content_copy),
+        callback: () {
+          Clipboard.setData(ClipboardData(text: file.storageUrl ?? file.id));
+          showSnackBar('linkCopied'.tr());
+        },
+      ),
+      MenuAction(
+        title: 'fileInfoTitle'.tr(),
+        image: MenuImage.icon(Symbols.info),
+        callback: () {
+          showModalBottomSheet(
+            useRootNavigator: true,
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => FileInfoSheet(item: file),
+          );
+        },
+      ),
+      MenuSeparator(),
+      MenuAction(
+        title: 'delete'.tr(),
+        image: MenuImage.icon(Symbols.delete),
+        callback: () => _deleteIndexedDriveItem(
+          context: context,
+          ref: ref,
+          tabId: tabId,
+          file: file,
+        ),
+      ),
+      MenuSeparator(),
+      MenuAction(
+        title: 'more'.tr(),
+        image: MenuImage.icon(Symbols.menu_open),
+        callback: () async {
+          await CloudFileActionsSheet.show(
+            context: context,
+            item: file,
+            onRenamed: (_) {
+              invalidateIndexedDriveViews(ref, tabId);
+            },
+          );
+        },
+      ),
+    ],
+  );
+}
+
 class FileListView extends HookConsumerWidget {
   final String tabId;
   final Map<String, dynamic>? usage;
@@ -2722,6 +2915,7 @@ class _DriveColumnBrowser extends HookConsumerWidget {
                   query: query,
                   epoch: epoch,
                 ),
+                tabId: tabId,
                 selectedName: selectedName,
                 isLastColumn: isLastColumn,
                 focusedFileId: focusedFileId.value,
@@ -2781,6 +2975,7 @@ class _DriveColumnBrowser extends HookConsumerWidget {
 
 class _DriveColumnPane extends HookConsumerWidget {
   final DriveBrowserPathKey query;
+  final String tabId;
   final String? selectedName;
   final bool isLastColumn;
   final String? focusedFileId;
@@ -2798,6 +2993,7 @@ class _DriveColumnPane extends HookConsumerWidget {
 
   const _DriveColumnPane({
     required this.query,
+    required this.tabId,
     required this.selectedName,
     required this.isLastColumn,
     required this.focusedFileId,
@@ -2894,24 +3090,34 @@ class _DriveColumnPane extends HookConsumerWidget {
               isMultiSelected: isMultiSelected,
               onTap: () => onEntryTap(file),
               onLongPress: () => onEntryLongPress(file),
-              onInspect: () => onInspect(file),
             );
 
-            final draggable = _DriveDraggableTile(
-              data: _resolveMoveDragData(
+            // Context menu outside Draggable so right-click is not eaten by drag.
+            final withMenu = ContextMenuWidget(
+              previewBuilder: contextMenuPreviewBuilder,
+              menuProvider: (_) => _buildIndexedColumnMenu(
+                context: context,
+                ref: ref,
+                tabId: tabId,
                 file: file,
-                selectedIds: selectedIds,
-                isSelectionMode: selectionMode,
+                onInspect: onInspect,
               ),
-              child: tile,
+              child: _DriveDraggableTile(
+                data: _resolveMoveDragData(
+                  file: file,
+                  selectedIds: selectedIds,
+                  isSelectionMode: selectionMode,
+                ),
+                child: tile,
+              ),
             );
 
-            if (!isFolder) return draggable;
+            if (!isFolder) return withMenu;
 
             return _DriveFolderDropTarget(
               folderId: file.id,
               onAccept: (data) => onMoveToFolder(data, file),
-              child: draggable,
+              child: withMenu,
             );
           },
         );
@@ -3044,7 +3250,6 @@ class _ColumnEntryTile extends ConsumerWidget {
   final bool isMultiSelected;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
-  final VoidCallback onInspect;
 
   const _ColumnEntryTile({
     required this.file,
@@ -3053,7 +3258,6 @@ class _ColumnEntryTile extends ConsumerWidget {
     required this.isMultiSelected,
     required this.onTap,
     required this.onLongPress,
-    required this.onInspect,
   });
 
   @override
@@ -3073,7 +3277,6 @@ class _ColumnEntryTile extends ConsumerWidget {
           borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           onLongPress: onLongPress,
-          onSecondaryTap: onInspect,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
             child: Row(

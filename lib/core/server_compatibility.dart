@@ -5,12 +5,14 @@ const kSupportedServerApiRevision = 1;
 
 /// The capabilities required before the app can safely start its core flows.
 /// Optional product capabilities are deliberately not listed here.
-const kRequiredServerCapabilities = <String>{
-  'auth',
-  'accounts',
-  'chat',
-  'posts',
+const kClientSupportedCapabilities = <String, int>{
+  'auth': 1,
+  'accounts': 1,
+  'chat': 1,
+  'posts': 1,
 };
+
+final kRequiredServerCapabilities = kClientSupportedCapabilities.keys;
 
 enum ServerCompatibilityIssue {
   invalidMetadata,
