@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -231,27 +232,72 @@ class PostComposeDialog extends HookConsumerWidget {
       ),
     ];
 
-    return AttentionModalScaffold(
-      titleText: 'postCompose'.tr(),
-      actions: actions,
-      onDismiss: onCancel,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: SizedBox.expand(
-          key: ValueKey(showPreview.value),
-          child: showPreview.value
-              ? _DialogPreviewPane(state: state)
-              : PostComposeCard(
-                  originalPost: effectiveOriginalPost,
-                  initialState: initialState,
-                  onCancel: onCancel,
-                  onSubmit: onSubmitted,
-                  isContained: true,
-                  showHeader: false,
-                  providedState: state,
-                  onSubmitRequest: performSubmit,
+    final isDragging = useState(false);
+
+    return DropTarget(
+      onDragEntered: (_) => isDragging.value = true,
+      onDragExited: (_) => isDragging.value = false,
+      onDragDone: (details) {
+        isDragging.value = false;
+        ComposeLogic.addDroppedFiles(state, details.files);
+      },
+      child: Stack(
+        children: [
+          AttentionModalScaffold(
+            titleText: 'postCompose'.tr(),
+            actions: actions,
+            onDismiss: onCancel,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: SizedBox.expand(
+                key: ValueKey(showPreview.value),
+                child: showPreview.value
+                    ? _DialogPreviewPane(state: state)
+                    : PostComposeCard(
+                        originalPost: effectiveOriginalPost,
+                        initialState: initialState,
+                        onCancel: onCancel,
+                        onSubmit: onSubmitted,
+                        isContained: true,
+                        showHeader: false,
+                        providedState: state,
+                        onSubmitRequest: performSubmit,
+                      ),
+              ),
+            ),
+          ),
+          if (isDragging.value)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withOpacity(0.9),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Symbols.upload_file,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const Gap(16),
+                        Text(
+                          'dropFilesHere'.tr(),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-        ),
+              ),
+            ),
+        ],
       ),
     );
   }

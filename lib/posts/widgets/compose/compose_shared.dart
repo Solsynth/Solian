@@ -706,6 +706,32 @@ class ComposeLogic {
     state.attachments.value = [...state.attachments.value, ...newFiles];
   }
 
+  /// Converts dropped desktop files into typed [UniversalFile]s and appends them.
+  /// Returns the number of files added.
+  static int addDroppedFiles(ComposeState state, List<XFile> files) {
+    if (files.isEmpty) return 0;
+
+    final newFiles = <UniversalFile>[];
+    for (final xfile in files) {
+      final provisional = UniversalFile(
+        data: xfile,
+        type: UniversalFileType.file,
+      );
+      final mimeType = FileUploader.getMimeType(provisional);
+      final fileType = switch (mimeType.split('/').firstOrNull) {
+        'image' => UniversalFileType.image,
+        'video' => UniversalFileType.video,
+        'audio' => UniversalFileType.audio,
+        _ => UniversalFileType.file,
+      };
+      newFiles.add(UniversalFile(data: xfile, type: fileType));
+    }
+
+    if (newFiles.isEmpty) return 0;
+    state.attachments.value = [...state.attachments.value, ...newFiles];
+    return newFiles.length;
+  }
+
   static Future<void> pickPhotoMedia(WidgetRef ref, ComposeState state) async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> results = await picker.pickMultiImage();
