@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -29,7 +28,6 @@ import 'package:island/accounts/check_in.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:island/sharing/share_sheet.dart';
 import 'package:slide_countdown/slide_countdown.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/misc/dashboard/dash_customize.dart';
@@ -99,144 +97,95 @@ class DashboardGrid extends HookConsumerWidget {
     final userInfo = ref.watch(userInfoProvider);
     final appSettings = ref.watch(appSettingsProvider);
 
-    final dragging = useState(false);
-
     // Check if user is authenticated
     final isAuthenticated = userInfo.value != null;
 
-    return DropTarget(
-      onDragDone: (detail) {
-        dragging.value = false;
-        if (detail.files.isNotEmpty) {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (context) => ShareSheet.files(files: detail.files),
-          );
-        }
-      },
-      onDragEntered: (_) => dragging.value = true,
-      onDragExited: (_) => dragging.value = false,
-      child: Stack(
-        children: [
-          Container(
-            padding: isAuthenticated
-                ? EdgeInsets.only(top: devicePadding.top + (isWide ? 16 : 24))
-                : EdgeInsets.zero,
-            child: isAuthenticated
-                ? (isWide
-                      // Desktop: one scroll so a half-viewport spacer can
-                      // rest the search bar near vertical center by default.
-                      ? const _DashboardGridWide()
-                      : Column(
-                          spacing: 16,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Gap(8),
-                                if (appSettings
-                                        .dashboardConfig
-                                        ?.showClockAndCountdown ??
-                                    true)
-                                  Expanded(child: ClockCard(compact: true)),
-                                if (appSettings
-                                        .dashboardConfig
-                                        ?.showSearchBar ??
-                                    true)
-                                  IconButton(
-                                    onPressed: () {
-                                      eventBus.fire(
-                                        CommandPaletteTriggerEvent(),
-                                      );
-                                    },
-                                    icon: const Icon(Symbols.search),
-                                    tooltip: 'searchAnything'.tr(),
-                                  ),
-                              ],
-                            ).padding(horizontal: 24),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
+    return Stack(
+      children: [
+        Container(
+          padding: isAuthenticated
+              ? EdgeInsets.only(top: devicePadding.top + (isWide ? 16 : 24))
+              : EdgeInsets.zero,
+          child: isAuthenticated
+              ? (isWide
+                    // Desktop: one scroll so a half-viewport spacer can
+                    // rest the search bar near vertical center by default.
+                    ? const _DashboardGridWide()
+                    : Column(
+                        spacing: 16,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Gap(8),
+                              if (appSettings
+                                      .dashboardConfig
+                                      ?.showClockAndCountdown ??
+                                  true)
+                                Expanded(child: ClockCard(compact: true)),
+                              if (appSettings.dashboardConfig?.showSearchBar ??
+                                  true)
+                                IconButton(
+                                  onPressed: () {
+                                    eventBus.fire(CommandPaletteTriggerEvent());
+                                  },
+                                  icon: const Icon(Symbols.search),
+                                  tooltip: 'searchAnything'.tr(),
                                 ),
-                                scrollDirection: Axis.vertical,
-                                child: _DashboardGridNarrow(),
-                              ).clipRRect(topLeft: 12, topRight: 12),
-                            ),
-                          ],
-                        ))
-                : Center(child: _UnauthorizedCard(isWide: isWide)),
-          ),
-          // Customize button (positioned for wide screens only)
-          if (isWide && isAuthenticated)
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: TextButton.icon(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useRootNavigator: true,
-                    builder: (context) => const DashboardCustomizationSheet(),
-                  );
-                },
-                icon: Icon(
-                  Symbols.tune,
-                  size: 16,
+                            ],
+                          ).padding(horizontal: 24),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              scrollDirection: Axis.vertical,
+                              child: _DashboardGridNarrow(),
+                            ).clipRRect(topLeft: 12, topRight: 12),
+                          ),
+                        ],
+                      ))
+              : Center(child: _UnauthorizedCard(isWide: isWide)),
+        ),
+        // Customize button (positioned for wide screens only)
+        if (isWide && isAuthenticated)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: TextButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useRootNavigator: true,
+                  builder: (context) => const DashboardCustomizationSheet(),
+                );
+              },
+              icon: Icon(
+                Symbols.tune,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              label: Text(
+                'customize',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                label: Text(
-                  'customize',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ).tr(),
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              ).tr(),
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-          if (dragging.value)
-            Positioned.fill(
-              child: Container(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withOpacity(0.9),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.upload_file,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const Gap(16),
-                      Text(
-                        'dropToShare'.tr(),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

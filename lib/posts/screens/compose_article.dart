@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -341,207 +342,262 @@ class ArticleComposeScreen extends HookConsumerWidget {
       return editorContent;
     }
 
+    final isDragging = useState(false);
+
     return PopScope(
       onPopInvoked: (_) {
         if (originalPost == null) {
           ComposeLogic.saveDraftWithoutUploadWithDatabase(database, state);
         }
       },
-      child: AppScaffold(
-        isNoBackground: false,
-        appBar: AppBar(
-          leading: const AutoLeadingButton(),
-          title: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: state.titleController,
-            builder: (context, titleValue, _) {
-              return AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                switchOutCurve: Curves.fastEaseInToSlowEaseOut,
-                child: Text(
-                  titleValue.text.isEmpty ? 'postTitle'.tr() : titleValue.text,
-                  key: ValueKey(titleValue.text),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            },
-          ),
-          actions: [
-            const SizedBox.shrink(),
-            ValueListenableBuilder<SnPublisher?>(
-              valueListenable: state.currentPublisher,
-              builder: (context, publisher, _) {
-                return IconButton(
-                  icon: ProfilePictureWidget(
-                    file: publisher?.picture,
-                    radius: 12,
-                    fallbackIcon: publisher == null
-                        ? Symbols.question_mark
-                        : null,
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (context) => const PublisherModal(),
-                    ).then((value) {
-                      if (value != null) {
-                        state.currentPublisher.value = value;
-                      }
-                    });
-                  },
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Symbols.tune),
-              onPressed: () => showSidebar.value = !showSidebar.value,
-              tooltip: 'sidebar'.tr(),
-            ),
-            Tooltip(
-              message: 'togglePreview'.tr(),
-              child: IconButton(
-                icon: Icon(
-                  showPreview.value ? Symbols.preview_off : Symbols.preview,
-                ),
-                onPressed: () => showPreview.value = !showPreview.value,
-              ),
-            ),
-            ValueListenableBuilder<bool>(
-              valueListenable: state.submitting,
-              builder: (context, submitting, _) {
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  switchInCurve: Curves.easeOut,
-                  switchOutCurve: Curves.easeIn,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: ScaleTransition(
-                            scale: Tween<double>(
-                              begin: 0.8,
-                              end: 1.0,
-                            ).animate(animation),
-                            child: child,
-                          ),
-                        );
-                      },
-                  child: submitting
-                      ? SizedBox(
-                          key: const ValueKey('submitting'),
-                          width: 28,
-                          height: 28,
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        ).center()
-                      : IconButton(
-                          key: const ValueKey('icon'),
-                          onPressed: () => ComposeLogic.performAction(
-                            ref,
-                            state,
-                            context,
-                            originalPost: originalPost,
-                          ),
-                          icon: Icon(
-                            originalPost != null
-                                ? Symbols.edit
-                                : Symbols.upload,
-                          ),
-                        ),
-                );
-              },
-            ),
-            const Gap(8),
-          ],
-        ),
-        body: Column(
+      child: DropTarget(
+        onDragEntered: (_) => isDragging.value = true,
+        onDragExited: (_) => isDragging.value = false,
+        onDragDone: (details) {
+          isDragging.value = false;
+          final added = ComposeLogic.addDroppedFiles(state, details.files);
+          if (added > 0) {
+            showSidebar.value = true;
+          }
+        },
+        child: Stack(
           children: [
-            Expanded(
-              child: ArticleResponsiveSidebar(
-                sidebarWidth: 480,
-                attachmentsContent: ArticleComposeAttachments(
-                  state: state,
-                  onAttachmentAdded: () => showSidebar.value = true,
+            AppScaffold(
+              isNoBackground: false,
+              appBar: AppBar(
+                leading: const AutoLeadingButton(),
+                title: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: state.titleController,
+                  builder: (context, titleValue, _) {
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                      switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                      child: Text(
+                        titleValue.text.isEmpty
+                            ? 'postTitle'.tr()
+                            : titleValue.text,
+                        key: ValueKey(titleValue.text),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
                 ),
-                settingsContent: ComposeSettingsSheet(state: state),
-                showSidebar: showSidebar,
-                mainContent: Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeOutCubic,
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                          final isWide = isWideScreen(context);
-                          if (isWide) {
-                            // Desktop: scale animation
-                            return ScaleTransition(
-                              scale: Tween<double>(begin: 0.95, end: 1.0)
-                                  .animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeOutCubic,
-                                    ),
-                                  ),
-                              child: child,
-                            );
-                          } else {
-                            // Mobile: horizontal slide animation
-                            return SlideTransition(
-                              position:
-                                  Tween<Offset>(
-                                    begin: const Offset(0.05, 0),
-                                    end: Offset.zero,
-                                  ).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeOutCubic,
-                                    ),
-                                  ),
-                              child: child,
-                            );
-                          }
+                actions: [
+                  const SizedBox.shrink(),
+                  ValueListenableBuilder<SnPublisher?>(
+                    valueListenable: state.currentPublisher,
+                    builder: (context, publisher, _) {
+                      return IconButton(
+                        icon: ProfilePictureWidget(
+                          file: publisher?.picture,
+                          radius: 12,
+                          fallbackIcon: publisher == null
+                              ? Symbols.question_mark
+                              : null,
+                        ),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            isScrollControlled: true,
+                            context: context,
+                            builder: (context) => const PublisherModal(),
+                          ).then((value) {
+                            if (value != null) {
+                              state.currentPublisher.value = value;
+                            }
+                          });
                         },
-                    child: isWideScreen(context)
-                        ? Row(
-                            spacing: 16,
-                            children: [
-                              Expanded(child: buildEditorPane()),
-                              if (showPreview.value)
-                                Expanded(
-                                  child: _ArticlePreviewPane(
-                                    state: state,
-                                    theme: theme,
-                                    colorScheme: colorScheme,
-                                  ),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Symbols.tune),
+                    onPressed: () => showSidebar.value = !showSidebar.value,
+                    tooltip: 'sidebar'.tr(),
+                  ),
+                  Tooltip(
+                    message: 'togglePreview'.tr(),
+                    child: IconButton(
+                      icon: Icon(
+                        showPreview.value
+                            ? Symbols.preview_off
+                            : Symbols.preview,
+                      ),
+                      onPressed: () => showPreview.value = !showPreview.value,
+                    ),
+                  ),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: state.submitting,
+                    builder: (context, submitting, _) {
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder:
+                            (Widget child, Animation<double> animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: ScaleTransition(
+                                  scale: Tween<double>(
+                                    begin: 0.8,
+                                    end: 1.0,
+                                  ).animate(animation),
+                                  child: child,
                                 ),
-                            ],
-                          )
-                        : Container(
-                            key: ValueKey('narrow-${showPreview.value}'),
-                            child: showPreview.value
-                                ? _ArticlePreviewPane(
-                                    state: state,
-                                    theme: theme,
-                                    colorScheme: colorScheme,
-                                  )
-                                : buildEditorPane(),
+                              );
+                            },
+                        child: submitting
+                            ? SizedBox(
+                                key: const ValueKey('submitting'),
+                                width: 28,
+                                height: 28,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              ).center()
+                            : IconButton(
+                                key: const ValueKey('icon'),
+                                onPressed: () => ComposeLogic.performAction(
+                                  ref,
+                                  state,
+                                  context,
+                                  originalPost: originalPost,
+                                ),
+                                icon: Icon(
+                                  originalPost != null
+                                      ? Symbols.edit
+                                      : Symbols.upload,
+                                ),
+                              ),
+                      );
+                    },
+                  ),
+                  const Gap(8),
+                ],
+              ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: ArticleResponsiveSidebar(
+                      sidebarWidth: 480,
+                      attachmentsContent: ArticleComposeAttachments(
+                        state: state,
+                        onAttachmentAdded: () => showSidebar.value = true,
+                      ),
+                      settingsContent: ComposeSettingsSheet(state: state),
+                      showSidebar: showSidebar,
+                      mainContent: Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeOutCubic,
+                          transitionBuilder:
+                              (Widget child, Animation<double> animation) {
+                                final isWide = isWideScreen(context);
+                                if (isWide) {
+                                  // Desktop: scale animation
+                                  return ScaleTransition(
+                                    scale:
+                                        Tween<double>(
+                                          begin: 0.95,
+                                          end: 1.0,
+                                        ).animate(
+                                          CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeOutCubic,
+                                          ),
+                                        ),
+                                    child: child,
+                                  );
+                                } else {
+                                  // Mobile: horizontal slide animation
+                                  return SlideTransition(
+                                    position:
+                                        Tween<Offset>(
+                                          begin: const Offset(0.05, 0),
+                                          end: Offset.zero,
+                                        ).animate(
+                                          CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeOutCubic,
+                                          ),
+                                        ),
+                                    child: child,
+                                  );
+                                }
+                              },
+                          child: isWideScreen(context)
+                              ? Row(
+                                  spacing: 16,
+                                  children: [
+                                    Expanded(child: buildEditorPane()),
+                                    if (showPreview.value)
+                                      Expanded(
+                                        child: _ArticlePreviewPane(
+                                          state: state,
+                                          theme: theme,
+                                          colorScheme: colorScheme,
+                                        ),
+                                      ),
+                                  ],
+                                )
+                              : Container(
+                                  key: ValueKey('narrow-${showPreview.value}'),
+                                  child: showPreview.value
+                                      ? _ArticlePreviewPane(
+                                          state: state,
+                                          theme: theme,
+                                          colorScheme: colorScheme,
+                                        )
+                                      : buildEditorPane(),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Bottom toolbar
+                  ComposeToolbar(
+                    state: state,
+                    originalPost: originalPost,
+                    onAttachmentAdded: () => showSidebar.value = true,
+                  ),
+                ],
+              ),
+            ),
+            if (isDragging.value)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Container(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.9),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Symbols.upload_file,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
+                          const Gap(16),
+                          Text(
+                            'dropFilesHere'.tr(),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-
-            // Bottom toolbar
-            ComposeToolbar(
-              state: state,
-              originalPost: originalPost,
-              onAttachmentAdded: () => showSidebar.value = true,
-            ),
           ],
         ),
       ),

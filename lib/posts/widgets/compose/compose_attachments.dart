@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
@@ -123,27 +122,8 @@ class ArticleComposeAttachments extends HookConsumerWidget {
     DropDoneDetails details,
     ComposeState state,
   ) async {
-    final newFiles = <UniversalFile>[];
-
-    for (final xfile in details.files) {
-      // Create UniversalFile with default type first
-      final uf = UniversalFile(data: xfile, type: UniversalFileType.file);
-      // Use FileUploader.getMimeType to get proper MIME type
-      final mimeType = FileUploader.getMimeType(uf);
-      final fileType = switch (mimeType.split('/').firstOrNull) {
-        'image' => UniversalFileType.image,
-        'video' => UniversalFileType.video,
-        'audio' => UniversalFileType.audio,
-        _ => UniversalFileType.file,
-      };
-
-      // Update the file type
-      final correctedUf = UniversalFile(data: xfile, type: fileType);
-      newFiles.add(correctedUf);
-    }
-
-    if (newFiles.isNotEmpty) {
-      state.attachments.value = [...state.attachments.value, ...newFiles];
+    final added = ComposeLogic.addDroppedFiles(state, details.files);
+    if (added > 0) {
       onAttachmentAdded?.call();
     }
   }
