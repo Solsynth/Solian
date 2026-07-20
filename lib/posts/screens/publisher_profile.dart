@@ -973,7 +973,7 @@ class _PublisherPostsTab extends HookWidget {
             categoryTabController: categoryTabController,
             initialQuery: queryState.value,
             onQueryChanged: (newQuery) => queryState.value = newQuery,
-            hideSearch: true,
+            showSearchAtTop: true,
           ).padding(horizontal: 12),
         ),
         const SliverGap(12),

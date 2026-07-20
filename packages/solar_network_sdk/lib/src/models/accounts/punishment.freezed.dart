@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'punishment.dart';
@@ -9,6 +9,7 @@ part of 'punishment.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnAccountPunishmentCopyWithImpl<$Res>
 /// Create a copy of SnAccountPunishment
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? reason = null,Object? expiredAt = freezed,Object? type = null,Object? blockedPermissions = freezed,Object? accountId = null,Object? account = freezed,Object? creatorId = freezed,Object? creator = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountPunishment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
 as String,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
@@ -238,7 +239,7 @@ return $default(_that.id,_that.reason,_that.expiredAt,_that.type,_that.blockedPe
 @JsonSerializable()
 
 class _SnAccountPunishment implements SnAccountPunishment {
-  const _SnAccountPunishment({required this.id, required this.reason, @JsonKey(name: 'expired_at') this.expiredAt, @PunishmentTypeConverter() required this.type, @JsonKey(name: 'blocked_permissions') final  List<String>? blockedPermissions, @JsonKey(name: 'account_id') required this.accountId, this.account, @JsonKey(name: 'creator_id') this.creatorId, this.creator, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt, @JsonKey(name: 'deleted_at') this.deletedAt}): _blockedPermissions = blockedPermissions;
+  const _SnAccountPunishment({required this.id, required this.reason, @JsonKey(name: 'expired_at') this.expiredAt, @PunishmentTypeConverter() required this.type, @JsonKey(name: 'blocked_permissions')  List<String>? blockedPermissions, @JsonKey(name: 'account_id') required this.accountId, this.account, @JsonKey(name: 'creator_id') this.creatorId, this.creator, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt, @JsonKey(name: 'deleted_at') this.deletedAt}): _blockedPermissions = blockedPermissions;
   factory _SnAccountPunishment.fromJson(Map<String, dynamic> json) => _$SnAccountPunishmentFromJson(json);
 
 @override final  String id;

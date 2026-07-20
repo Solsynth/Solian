@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'wallet.dart';
@@ -9,6 +9,7 @@ part of 'wallet.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnWalletCopyWithImpl<$Res>
 /// Create a copy of SnWallet
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? pockets = null,Object? accountId = freezed,Object? realmId = freezed,Object? name = null,Object? isPrimary = null,Object? publicId = freezed,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWallet(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,pockets: null == pockets ? _self.pockets : pockets // ignore: cast_nullable_to_non_nullable
 as List<SnWalletPocket>,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -225,7 +226,7 @@ return $default(_that.id,_that.pockets,_that.accountId,_that.realmId,_that.name,
 @JsonSerializable()
 
 class _SnWallet implements SnWallet {
-  const _SnWallet({required this.id, required final  List<SnWalletPocket> pockets, this.accountId, this.realmId, required this.name, this.isPrimary = false, this.publicId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _pockets = pockets;
+  const _SnWallet({required this.id, required  List<SnWalletPocket> pockets, this.accountId, this.realmId, required this.name, this.isPrimary = false, this.publicId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _pockets = pockets;
   factory _SnWallet.fromJson(Map<String, dynamic> json) => _$SnWalletFromJson(json);
 
 @override final  String id;
@@ -383,7 +384,7 @@ class _$SnWalletStatsCopyWithImpl<$Res>
 /// Create a copy of SnWalletStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? periodBegin = null,Object? periodEnd = null,Object? totalTransactions = null,Object? totalOrders = null,Object? totalIncome = null,Object? totalOutgoing = null,Object? sum = null,Object? incomeCategories = null,Object? outgoingCategories = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletStats(
 periodBegin: null == periodBegin ? _self.periodBegin : periodBegin // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,totalTransactions: null == totalTransactions ? _self.totalTransactions : totalTransactions // ignore: cast_nullable_to_non_nullable
@@ -528,7 +529,7 @@ return $default(_that.periodBegin,_that.periodEnd,_that.totalTransactions,_that.
 @JsonSerializable()
 
 class _SnWalletStats implements SnWalletStats {
-  const _SnWalletStats({required this.periodBegin, required this.periodEnd, required this.totalTransactions, required this.totalOrders, required this.totalIncome, required this.totalOutgoing, required this.sum, final  Map<String, double> incomeCategories = const {}, final  Map<String, double> outgoingCategories = const {}}): _incomeCategories = incomeCategories,_outgoingCategories = outgoingCategories;
+  const _SnWalletStats({required this.periodBegin, required this.periodEnd, required this.totalTransactions, required this.totalOrders, required this.totalIncome, required this.totalOutgoing, required this.sum,  Map<String, double> incomeCategories = const {},  Map<String, double> outgoingCategories = const {}}): _incomeCategories = incomeCategories,_outgoingCategories = outgoingCategories;
   factory _SnWalletStats.fromJson(Map<String, dynamic> json) => _$SnWalletStatsFromJson(json);
 
 @override final  DateTime periodBegin;
@@ -676,7 +677,7 @@ class _$SnWalletPocketCopyWithImpl<$Res>
 /// Create a copy of SnWalletPocket
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? currency = null,Object? amount = null,Object? heldAmount = null,Object? walletId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletPocket(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
@@ -903,8 +904,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnTransaction {
 
- String get id; String get currency; double get amount; String? get remarks; int get type; int get status;// 0: Pending, 1: Frozen, 2: Confirmed, 3: Refunded, 4: Cancelled
- bool get isFrozen; bool get requireConfirmation; DateTime? get frozenAt; DateTime? get expiresAt; DateTime? get confirmedAt; String? get payerWalletId; SnWallet? get payerWallet; String? get payeeWalletId; SnWallet? get payeeWallet; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get currency; double get amount; String? get remarks; int get type; int get status; bool get isFrozen; bool get requireConfirmation; DateTime? get frozenAt; DateTime? get expiresAt; DateTime? get confirmedAt; String? get payerWalletId; SnWallet? get payerWallet; String? get payeeWalletId; SnWallet? get payeeWallet; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnTransaction
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -955,7 +955,7 @@ class _$SnTransactionCopyWithImpl<$Res>
 /// Create a copy of SnTransaction
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? currency = null,Object? amount = null,Object? remarks = freezed,Object? type = null,Object? status = null,Object? isFrozen = null,Object? requireConfirmation = null,Object? frozenAt = freezed,Object? expiresAt = freezed,Object? confirmedAt = freezed,Object? payerWalletId = freezed,Object? payerWallet = freezed,Object? payeeWalletId = freezed,Object? payeeWallet = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnTransaction(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
@@ -1142,7 +1142,6 @@ class _SnTransaction implements SnTransaction {
 @override final  String? remarks;
 @override final  int type;
 @override@JsonKey() final  int status;
-// 0: Pending, 1: Frozen, 2: Confirmed, 3: Refunded, 4: Cancelled
 @override@JsonKey() final  bool isFrozen;
 @override@JsonKey() final  bool requireConfirmation;
 @override final  DateTime? frozenAt;
@@ -1312,7 +1311,7 @@ class _$SnWalletSubscriptionCopyWithImpl<$Res>
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? groupIdentifier = freezed,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? isPendingActivation = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletSubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,begunAt: null == begunAt ? _self.begunAt : begunAt // ignore: cast_nullable_to_non_nullable
 as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
@@ -1482,7 +1481,7 @@ return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.grou
 @JsonSerializable()
 
 class _SnWalletSubscription implements SnWalletSubscription {
-  const _SnWalletSubscription({required this.id, required this.begunAt, required this.endedAt, required this.identifier, this.groupIdentifier, this.isActive = true, this.isFreeTrial = false, this.status = 1, required this.paymentMethod, required final  Map<String, dynamic>? paymentDetails, required this.basePrice, required this.couponId, required this.coupon, required this.renewalAt, required this.accountId, required this.account, this.isAvailable = true, this.isPendingActivation = false, required this.finalPrice, required this.createdAt, required this.updatedAt, required this.deletedAt}): _paymentDetails = paymentDetails;
+  const _SnWalletSubscription({required this.id, required this.begunAt, required this.endedAt, required this.identifier, this.groupIdentifier, this.isActive = true, this.isFreeTrial = false, this.status = 1, required this.paymentMethod, required  Map<String, dynamic>? paymentDetails, required this.basePrice, required this.couponId, required this.coupon, required this.renewalAt, required this.accountId, required this.account, this.isAvailable = true, this.isPendingActivation = false, required this.finalPrice, required this.createdAt, required this.updatedAt, required this.deletedAt}): _paymentDetails = paymentDetails;
   factory _SnWalletSubscription.fromJson(Map<String, dynamic> json) => _$SnWalletSubscriptionFromJson(json);
 
 @override final  String id;
@@ -1664,7 +1663,7 @@ class _$SnWalletSubscriptionRefCopyWithImpl<$Res>
 /// Create a copy of SnWalletSubscriptionRef
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? isActive = null,Object? accountId = null,Object? createdAt = null,Object? deletedAt = freezed,Object? updatedAt = null,Object? identifier = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletSubscriptionRef(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -1939,7 +1938,7 @@ class _$SnWalletOrderCopyWithImpl<$Res>
 /// Create a copy of SnWalletOrder
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? currency = null,Object? remarks = freezed,Object? appIdentifier = null,Object? meta = null,Object? amount = null,Object? expiredAt = null,Object? payeeWalletId = freezed,Object? transactionId = freezed,Object? issuerAppId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletOrder(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
@@ -2089,7 +2088,7 @@ return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIden
 @JsonSerializable()
 
 class _SnWalletOrder implements SnWalletOrder {
-  const _SnWalletOrder({required this.id, required this.status, required this.currency, required this.remarks, required this.appIdentifier, final  Map<String, dynamic> meta = const {}, required this.amount, required this.expiredAt, required this.payeeWalletId, required this.transactionId, required this.issuerAppId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnWalletOrder({required this.id, required this.status, required this.currency, required this.remarks, required this.appIdentifier,  Map<String, dynamic> meta = const {}, required this.amount, required this.expiredAt, required this.payeeWalletId, required this.transactionId, required this.issuerAppId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnWalletOrder.fromJson(Map<String, dynamic> json) => _$SnWalletOrderFromJson(json);
 
 @override final  String id;
@@ -2241,7 +2240,7 @@ class _$SnWalletGiftCopyWithImpl<$Res>
 /// Create a copy of SnWalletGift
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? giftCode = null,Object? subscriptionIdentifier = null,Object? recipientId = freezed,Object? recipient = freezed,Object? gifterId = null,Object? gifter = freezed,Object? redeemerId = freezed,Object? redeemer = freezed,Object? message = freezed,Object? status = null,Object? redeemedAt = freezed,Object? expiredAt = freezed,Object? subscriptionId = freezed,Object? subscription = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletGift(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,giftCode: null == giftCode ? _self.giftCode : giftCode // ignore: cast_nullable_to_non_nullable
 as String,subscriptionIdentifier: null == subscriptionIdentifier ? _self.subscriptionIdentifier : subscriptionIdentifier // ignore: cast_nullable_to_non_nullable
@@ -2594,11 +2593,7 @@ $SnWalletSubscriptionCopyWith<$Res>? get subscription {
 /// @nodoc
 mixin _$SnWalletFund {
 
- String get id; String get currency; double get totalAmount; double get remainingAmount; int get amountOfSplits; int get splitType;// 0: even, 1: random
- int get status;// 0: created, 1: partially claimed, 2: fully claimed, 3: expired, 4: refunded
- String? get message; String get creatorAccountId; SnAccount? get creatorAccount;// Raising mode fields
- bool get isRaising; double get targetAmount; int get contributionType;// 0: Free, 1: Fixed
- double get contributionAmount; DateTime? get deadlineAt; DateTime get expiredAt; List<SnWalletFundRecipient> get recipients; bool get isOpen; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get currency; double get totalAmount; double get remainingAmount; int get amountOfSplits; int get splitType; int get status; String? get message; String get creatorAccountId; SnAccount? get creatorAccount; bool get isRaising; double get targetAmount; int get contributionType; double get contributionAmount; DateTime? get deadlineAt; DateTime get expiredAt; List<SnWalletFundRecipient> get recipients; bool get isOpen; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnWalletFund
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2649,7 +2644,7 @@ class _$SnWalletFundCopyWithImpl<$Res>
 /// Create a copy of SnWalletFund
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? currency = null,Object? totalAmount = null,Object? remainingAmount = null,Object? amountOfSplits = null,Object? splitType = null,Object? status = null,Object? message = freezed,Object? creatorAccountId = null,Object? creatorAccount = freezed,Object? isRaising = null,Object? targetAmount = null,Object? contributionType = null,Object? contributionAmount = null,Object? deadlineAt = freezed,Object? expiredAt = null,Object? recipients = null,Object? isOpen = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletFund(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
@@ -2818,7 +2813,7 @@ return $default(_that.id,_that.currency,_that.totalAmount,_that.remainingAmount,
 @JsonSerializable()
 
 class _SnWalletFund implements SnWalletFund {
-  const _SnWalletFund({required this.id, required this.currency, required this.totalAmount, required this.remainingAmount, required this.amountOfSplits, required this.splitType, required this.status, required this.message, required this.creatorAccountId, required this.creatorAccount, this.isRaising = false, this.targetAmount = 0, this.contributionType = 0, this.contributionAmount = 0, this.deadlineAt, required this.expiredAt, required final  List<SnWalletFundRecipient> recipients, required this.isOpen, required this.createdAt, required this.updatedAt, required this.deletedAt}): _recipients = recipients;
+  const _SnWalletFund({required this.id, required this.currency, required this.totalAmount, required this.remainingAmount, required this.amountOfSplits, required this.splitType, required this.status, required this.message, required this.creatorAccountId, required this.creatorAccount, this.isRaising = false, this.targetAmount = 0, this.contributionType = 0, this.contributionAmount = 0, this.deadlineAt, required this.expiredAt, required  List<SnWalletFundRecipient> recipients, required this.isOpen, required this.createdAt, required this.updatedAt, required this.deletedAt}): _recipients = recipients;
   factory _SnWalletFund.fromJson(Map<String, dynamic> json) => _$SnWalletFundFromJson(json);
 
 @override final  String id;
@@ -2827,17 +2822,13 @@ class _SnWalletFund implements SnWalletFund {
 @override final  double remainingAmount;
 @override final  int amountOfSplits;
 @override final  int splitType;
-// 0: even, 1: random
 @override final  int status;
-// 0: created, 1: partially claimed, 2: fully claimed, 3: expired, 4: refunded
 @override final  String? message;
 @override final  String creatorAccountId;
 @override final  SnAccount? creatorAccount;
-// Raising mode fields
 @override@JsonKey() final  bool isRaising;
 @override@JsonKey() final  double targetAmount;
 @override@JsonKey() final  int contributionType;
-// 0: Free, 1: Fixed
 @override@JsonKey() final  double contributionAmount;
 @override final  DateTime? deadlineAt;
 @override final  DateTime expiredAt;
@@ -3000,7 +2991,7 @@ class _$SnWalletFundRecipientCopyWithImpl<$Res>
 /// Create a copy of SnWalletFundRecipient
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fundId = null,Object? recipientAccountId = null,Object? recipientAccount = freezed,Object? amount = null,Object? isReceived = null,Object? receivedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnWalletFundRecipient(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fundId: null == fundId ? _self.fundId : fundId // ignore: cast_nullable_to_non_nullable
 as String,recipientAccountId: null == recipientAccountId ? _self.recipientAccountId : recipientAccountId // ignore: cast_nullable_to_non_nullable
@@ -3308,7 +3299,7 @@ class _$SnSubscriptionCatalogCopyWithImpl<$Res>
 /// Create a copy of SnSubscriptionCatalog
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? groupIdentifier = null,Object? displayName = null,Object? currency = null,Object? basePrice = null,Object? perkLevel = null,Object? minimumAccountLevel = null,Object? experienceMultiplier = null,Object? goldenPointReward = null,Object? displayConfig = freezed,Object? allowedPaymentMethods = null,Object? providerMappings = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnSubscriptionCatalog(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
@@ -3477,7 +3468,7 @@ return $default(_that.identifier,_that.groupIdentifier,_that.displayName,_that.c
 @JsonSerializable()
 
 class _SnSubscriptionCatalog implements SnSubscriptionCatalog {
-  const _SnSubscriptionCatalog({required this.identifier, required this.groupIdentifier, required this.displayName, required this.currency, required this.basePrice, required this.perkLevel, required this.minimumAccountLevel, required this.experienceMultiplier, required this.goldenPointReward, required this.displayConfig, required final  List<String> allowedPaymentMethods, required this.providerMappings}): _allowedPaymentMethods = allowedPaymentMethods;
+  const _SnSubscriptionCatalog({required this.identifier, required this.groupIdentifier, required this.displayName, required this.currency, required this.basePrice, required this.perkLevel, required this.minimumAccountLevel, required this.experienceMultiplier, required this.goldenPointReward, required this.displayConfig, required  List<String> allowedPaymentMethods, required this.providerMappings}): _allowedPaymentMethods = allowedPaymentMethods;
   factory _SnSubscriptionCatalog.fromJson(Map<String, dynamic> json) => _$SnSubscriptionCatalogFromJson(json);
 
 @override final  String identifier;
@@ -3646,7 +3637,7 @@ class _$SnSubscriptionDisplayConfigCopyWithImpl<$Res>
 /// Create a copy of SnSubscriptionDisplayConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? color = null,Object? backgroundColor = freezed,Object? badgeText = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSubscriptionDisplayConfig(
 color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String,backgroundColor: freezed == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
 as dynamic,badgeText: freezed == badgeText ? _self.badgeText : badgeText // ignore: cast_nullable_to_non_nullable
@@ -3909,7 +3900,7 @@ class _$SnProductProviderMappingsCopyWithImpl<$Res>
 /// Create a copy of SnProductProviderMappings
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? afdian = null,Object? paddle = null,Object? appleStore = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnProductProviderMappings(
 afdian: null == afdian ? _self.afdian : afdian // ignore: cast_nullable_to_non_nullable
 as List<String>,paddle: null == paddle ? _self.paddle : paddle // ignore: cast_nullable_to_non_nullable
 as List<String>,appleStore: null == appleStore ? _self.appleStore : appleStore // ignore: cast_nullable_to_non_nullable
@@ -4048,7 +4039,7 @@ return $default(_that.afdian,_that.paddle,_that.appleStore);case _:
 @JsonSerializable()
 
 class _SnProductProviderMappings implements SnProductProviderMappings {
-  const _SnProductProviderMappings({required final  List<String> afdian, required final  List<String> paddle, required final  List<String> appleStore}): _afdian = afdian,_paddle = paddle,_appleStore = appleStore;
+  const _SnProductProviderMappings({required  List<String> afdian, required  List<String> paddle, required  List<String> appleStore}): _afdian = afdian,_paddle = paddle,_appleStore = appleStore;
   factory _SnProductProviderMappings.fromJson(Map<String, dynamic> json) => _$SnProductProviderMappingsFromJson(json);
 
  final  List<String> _afdian;
@@ -4190,7 +4181,7 @@ class _$SnSubscriptionGroupCopyWithImpl<$Res>
 /// Create a copy of SnSubscriptionGroup
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? current = freezed,Object? next = freezed,Object? subscriptions = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnSubscriptionGroup(
 groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
 as String,catalog: null == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
 as SnSubscriptionGroupCatalog,current: freezed == current ? _self.current : current // ignore: cast_nullable_to_non_nullable
@@ -4364,7 +4355,7 @@ return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_th
 @JsonSerializable()
 
 class _SnSubscriptionGroup implements SnSubscriptionGroup {
-  const _SnSubscriptionGroup({required this.groupIdentifier, required this.catalog, this.current, this.next, required final  List<SnActiveSubscription> subscriptions}): _subscriptions = subscriptions;
+  const _SnSubscriptionGroup({required this.groupIdentifier, required this.catalog, this.current, this.next, required  List<SnActiveSubscription> subscriptions}): _subscriptions = subscriptions;
   factory _SnSubscriptionGroup.fromJson(Map<String, dynamic> json) => _$SnSubscriptionGroupFromJson(json);
 
 @override final  String groupIdentifier;
@@ -4531,7 +4522,7 @@ class _$SnSubscriptionGroupCatalogCopyWithImpl<$Res>
 /// Create a copy of SnSubscriptionGroupCatalog
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? groupIdentifier = null,Object? displayName = null,Object? maxPerkLevel = null,Object? displayConfig = freezed,Object? items = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnSubscriptionGroupCatalog(
 groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,maxPerkLevel: null == maxPerkLevel ? _self.maxPerkLevel : maxPerkLevel // ignore: cast_nullable_to_non_nullable
@@ -4684,7 +4675,7 @@ return $default(_that.groupIdentifier,_that.displayName,_that.maxPerkLevel,_that
 @JsonSerializable()
 
 class _SnSubscriptionGroupCatalog implements SnSubscriptionGroupCatalog {
-  const _SnSubscriptionGroupCatalog({required this.groupIdentifier, required this.displayName, required this.maxPerkLevel, required this.displayConfig, required final  List<SnSubscriptionCatalog> items}): _items = items;
+  const _SnSubscriptionGroupCatalog({required this.groupIdentifier, required this.displayName, required this.maxPerkLevel, required this.displayConfig, required  List<SnSubscriptionCatalog> items}): _items = items;
   factory _SnSubscriptionGroupCatalog.fromJson(Map<String, dynamic> json) => _$SnSubscriptionGroupCatalogFromJson(json);
 
 @override final  String groupIdentifier;
@@ -4830,7 +4821,7 @@ class _$SnActiveSubscriptionCopyWithImpl<$Res>
 /// Create a copy of SnActiveSubscription
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? subscription = null,Object? definition = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnActiveSubscription(
 subscription: null == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
 as SnWalletSubscription,definition: null == definition ? _self.definition : definition // ignore: cast_nullable_to_non_nullable
 as SnSubscriptionCatalog,

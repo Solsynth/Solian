@@ -7,8 +7,9 @@ part 'activitypub.g.dart';
 @freezed
 sealed class SnActivityPubInstance with _$SnActivityPubInstance {
   const factory SnActivityPubInstance({
-    required String id,
-    required String domain,
+    /// Synthetic remote instances may omit id (Guid.Empty / null).
+    @Default('') String id,
+    @Default('unknown') String domain,
     String? name,
     String? description,
     String? software,
@@ -51,12 +52,14 @@ sealed class SnActivityPubUser with _$SnActivityPubUser {
 @freezed
 sealed class SnActivityPubActor with _$SnActivityPubActor {
   const factory SnActivityPubActor({
-    required String id,
-    required String uri,
+    /// Remote outbox reconstructions may send empty Guid.
+    @Default('') String id,
+    @Default('') String uri,
     @Default('Person') String type,
-    required String fullHandle,
+    /// Computed server-side; tolerate missing values on partial payloads.
+    @Default('') String fullHandle,
     String? displayName,
-    required String username,
+    @Default('') String username,
     String? bio,
     String? inboxUri,
     String? outboxUri,
@@ -75,8 +78,9 @@ sealed class SnActivityPubActor with _$SnActivityPubActor {
     Map<String, dynamic>? metadata,
     DateTime? lastFetchedAt,
     DateTime? lastActivityAt,
-    required SnActivityPubInstance instance,
-    required String instanceId,
+    /// Nested instance is incomplete on some remote outbox posts.
+    @Default(SnActivityPubInstance()) SnActivityPubInstance instance,
+    @Default('') String instanceId,
     bool? isFollowing,
     int? followersCount,
     int? followingCount,

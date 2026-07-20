@@ -186,20 +186,22 @@ sealed class SnCloudFileReference
 
   const factory SnCloudFileReference({
     required String id,
-    required String name,
+    @Default('') String name,
     @Default({}) Map<String, dynamic> fileMeta,
     @Default({}) Map<String, dynamic> userMeta,
     @Default([]) List<int> sensitiveMarks,
-    required String mimeType,
-    required String hash,
-    required int size,
-    required bool hasCompression,
-    @JsonKey(name: "url") required String? storageUrl,
-    required double? width,
-    required double? height,
+    /// Fediverse/remote attachments often omit mime type; default safely.
+    @Default('application/octet-stream') String mimeType,
+    /// Fediverse/remote attachments often omit content hash.
+    @Default('') String hash,
+    @Default(0) int size,
+    @Default(false) bool hasCompression,
+    @JsonKey(name: "url") String? storageUrl,
+    double? width,
+    double? height,
     @JsonKey(name: 'blurhash') String? blur,
-    required String? usage,
-    required String? applicationType,
+    String? usage,
+    String? applicationType,
   }) = _SnCloudFileReference;
 
   @override

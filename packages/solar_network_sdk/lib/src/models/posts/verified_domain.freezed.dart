@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'verified_domain.dart';
@@ -9,6 +9,7 @@ part of 'verified_domain.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnPublisherVerifiedDomainCopyWithImpl<$Res>
 /// Create a copy of SnPublisherVerifiedDomain
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? publisherId = null,Object? domain = null,Object? status = null,Object? verifiedAt = freezed,Object? lastCheckedAt = freezed,Object? failedAttempts = null,Object? lastError = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherVerifiedDomain(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,domain: null == domain ? _self.domain : domain // ignore: cast_nullable_to_non_nullable

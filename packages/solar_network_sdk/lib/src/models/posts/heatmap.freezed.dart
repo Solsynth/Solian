@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'heatmap.dart';
@@ -9,6 +9,7 @@ part of 'heatmap.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnHeatmapCopyWithImpl<$Res>
 /// Create a copy of SnHeatmap
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? unit = null,Object? periodStart = null,Object? periodEnd = null,Object? items = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnHeatmap(
 unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
@@ -206,7 +207,7 @@ return $default(_that.unit,_that.periodStart,_that.periodEnd,_that.items);case _
 @JsonSerializable()
 
 class _SnHeatmap implements SnHeatmap {
-  const _SnHeatmap({required this.unit, @JsonKey(name: 'period_start') required this.periodStart, @JsonKey(name: 'period_end') required this.periodEnd, required final  List<SnHeatmapItem> items}): _items = items;
+  const _SnHeatmap({required this.unit, @JsonKey(name: 'period_start') required this.periodStart, @JsonKey(name: 'period_end') required this.periodEnd, required  List<SnHeatmapItem> items}): _items = items;
   factory _SnHeatmap.fromJson(Map<String, dynamic> json) => _$SnHeatmapFromJson(json);
 
 @override final  String unit;
@@ -338,7 +339,7 @@ class _$SnHeatmapItemCopyWithImpl<$Res>
 /// Create a copy of SnHeatmapItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? count = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnHeatmapItem(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nullable
 as int,

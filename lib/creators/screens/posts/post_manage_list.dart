@@ -201,7 +201,9 @@ class CreatorPostListScreen extends HookConsumerWidget {
           AnimatedSlide(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
-            offset: isFilterVisible.value ? Offset.zero : const Offset(0, -0.08),
+            offset: isFilterVisible.value
+                ? Offset.zero
+                : const Offset(0, -0.08),
             child: AnimatedSize(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOutCubic,
@@ -219,6 +221,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
                           initialQuery: queryState.value,
                           onQueryChanged: (newQuery) =>
                               queryState.value = newQuery,
+                          showSearchAtTop: true,
                         ),
                       )
                     : const SizedBox(key: ValueKey('filters-hidden')),

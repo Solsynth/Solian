@@ -53,7 +53,13 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 @RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
-  const ChatRoomScreen({super.key, @PathParam("id") required this.id});
+  final String? initialMessageId;
+
+  const ChatRoomScreen({
+    super.key,
+    @PathParam("id") required this.id,
+    this.initialMessageId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -121,14 +127,21 @@ class ChatRoomScreen extends HookConsumerWidget {
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
         appBar: AppBar(leading: const AutoLeadingButton()),
-        body: Center(
-          child: ConfuseSpinner(
-            size: 40,
-            speed: 6,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-          ),
+        body: Column(
+          children: [
+            const ChatSyncIndicator(),
+            Expanded(
+              child: Center(
+                child: ConfuseSpinner(
+                  size: 40,
+                  speed: 6,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     } else if (chatIdentity.value == null) {
@@ -756,6 +769,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             messageId: messageId,
             messageList: messageList,
             jumpToMessage: messagesNotifier.jumpToMessage,
+            hasMessagesBetween: messagesNotifier.hasMessagesBetween,
           );
         },
         loading: () {},
@@ -763,23 +777,27 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
     }, [messages, chatStateNotifier, messagesNotifier]);
 
-    final jumpAndRevealMessage = useCallback((String messageId) {
-      messagesNotifier.jumpToMessage(messageId).then((index) {
-        if (index != -1 && context.mounted) {
-          messages.when(
-            data: (messageList) {
-              chatStateNotifier.scrollToMessage(
-                messageId: messageId,
-                messageList: messageList,
-                jumpToMessage: messagesNotifier.jumpToMessage,
-              );
-            },
-            loading: () {},
-            error: (_, _) {},
-          );
-        }
-      });
-    }, [messagesNotifier, messages, chatStateNotifier, context]);
+    final jumpAndRevealMessage = useCallback(
+      (String messageId) => onJump(messageId),
+      [onJump],
+    );
+    final loadMessageGap = useCallback((MessageLoadGap gap) async {
+      final nextGap = await messagesNotifier.loadMessagesBetween(gap);
+      chatStateNotifier.updateMessageLoadGap(nextGap);
+    }, [messagesNotifier, chatStateNotifier]);
+    final initialMessageJumpHandled = useRef(false);
+    useEffect(() {
+      final messageId = initialMessageId;
+      if (messageId == null ||
+          initialMessageJumpHandled.value ||
+          messages.value == null) {
+        return null;
+      }
+
+      initialMessageJumpHandled.value = true;
+      Future.microtask(() => jumpAndRevealMessage(messageId));
+      return null;
+    }, [initialMessageId, messages, jumpAndRevealMessage]);
 
     final filteredMessages = messages;
 
@@ -943,6 +961,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 roomAsync: chatRoom,
                                 chatIdentity: chatIdentity,
                                 onJump: onJump,
+                                onLoadMessageGap: loadMessageGap,
                               ),
                         loading: () => Center(
                           key: const ValueKey('messages-loading'),

@@ -32,10 +32,21 @@ final chatSyncHintProvider = NotifierProvider<ChatSyncHintNotifier, String?>(
 );
 
 class ChatSyncingNotifier extends Notifier<bool> {
+  int _activeOperations = 0;
+
   @override
   bool build() => false;
 
-  void set(bool value) => state = value;
+  void begin() {
+    _activeOperations += 1;
+    state = true;
+  }
+
+  void end() {
+    if (_activeOperations == 0) return;
+    _activeOperations -= 1;
+    state = _activeOperations > 0;
+  }
 }
 
 class ChatSyncHintNotifier extends Notifier<String?> {
@@ -900,7 +911,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
     Future.microtask(() {
       if (ref.mounted) {
-        ref.read(chatSyncingProvider.notifier).set(true);
+        ref.read(chatSyncingProvider.notifier).begin();
       }
     });
 
@@ -1171,9 +1182,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       );
       ref
           .read(chatSyncHintProvider.notifier)
-          .set(
-            'chatSyncComplete'.tr(args: ['$totalSynced']),
-          );
+          .set('chatSyncComplete'.tr(args: ['$totalSynced']));
       if (updatedRoomIds.isNotEmpty) {
         eventBus.fire(ChatMessagesSyncedEvent(roomIds: updatedRoomIds));
       }
@@ -1182,7 +1191,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     } finally {
       Future.microtask(() {
         if (ref.mounted) {
-          ref.read(chatSyncingProvider.notifier).set(false);
+          ref.read(chatSyncingProvider.notifier).end();
           ref.read(chatSyncHintProvider.notifier).clear();
         }
       });

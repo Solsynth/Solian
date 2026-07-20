@@ -8,19 +8,20 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
-import 'package:island/accounts/widgets/account/handle_chip.dart';
-import 'package:island/core/network.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
+import 'package:island/accounts/widgets/account/handle_chip.dart';
+import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
+import 'package:island/core/network.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
-import 'package:island/core/services/responsive.dart';
-import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class FediverseActorRelationship {
@@ -153,10 +154,30 @@ class _ActorBasisWidget extends HookWidget {
     required this.hasFediverseIdentity,
   });
 
+  String _getFirstLine(String bio) {
+    final lines = bio.split('\n');
+    if (lines.isEmpty) return '';
+    return lines.first.trim();
+  }
+
+  VoidCallback? _followAction(
+    BuildContext context, {
+    required bool isFollowing,
+  }) {
+    if (acting.value) return null;
+    if (!hasFediverseIdentity) {
+      return () =>
+          showFediverseInteractionHint(context, 'fediverseFollowHint');
+    }
+    return isFollowing ? unfollow : follow;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isBioExpanded = useState(false);
     final theme = Theme.of(context);
+    final bioMarkdown =
+        data.bio?.isNotEmpty == true ? html2md.convert(data.bio!) : null;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -166,7 +187,6 @@ class _ActorBasisWidget extends HookWidget {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              // Banner/background image
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
@@ -189,7 +209,6 @@ class _ActorBasisWidget extends HookWidget {
                         ),
                 ),
               ),
-              // Profile picture positioned at bottom left
               Positioned(
                 bottom: -24,
                 left: 16,
@@ -201,19 +220,7 @@ class _ActorBasisWidget extends HookWidget {
                       width: 3,
                     ),
                   ),
-                  child: CircleAvatar(
-                    radius: 32,
-                    backgroundImage: data.avatarUrl != null
-                        ? CachedNetworkImageProvider(data.avatarUrl!)
-                        : null,
-                    backgroundColor: theme.colorScheme.surfaceContainer,
-                    child: data.avatarUrl == null
-                        ? Icon(
-                            Symbols.person,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          )
-                        : null,
-                  ),
+                  child: ActorPictureWidget(actor: data, radius: 32),
                 ),
               ),
             ],
@@ -226,7 +233,7 @@ class _ActorBasisWidget extends HookWidget {
                 const Gap(16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
+                  spacing: 4,
                   children: [
                     Flexible(
                       child: Text(
@@ -245,9 +252,7 @@ class _ActorBasisWidget extends HookWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: data.isBot
-                              ? theme.colorScheme.tertiaryContainer
-                              : theme.colorScheme.primaryContainer,
+                          color: theme.colorScheme.tertiaryContainer,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -255,76 +260,97 @@ class _ActorBasisWidget extends HookWidget {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: data.isBot
-                                ? theme.colorScheme.onTertiaryContainer
-                                : theme.colorScheme.onPrimaryContainer,
+                            color: theme.colorScheme.onTertiaryContainer,
                           ),
                         ),
                       ),
-                    HandleChip(
-                      handle: data.username,
-                      domain: data.instance.domain,
-                      isRemote: true,
-                      allowCopy: true,
-                      maxLines: 1,
-                    ),
+                    if (isWideScreen(context))
+                      Flexible(
+                        child: HandleChip(
+                          handle: data.username,
+                          domain: data.instance.domain,
+                          isRemote: true,
+                          allowCopy: true,
+                          maxLines: 1,
+                        ),
+                      ),
                   ],
                 ),
-                const Gap(12),
-                relationship.when(
-                  data: (rel) {
-                    return FilledButton.icon(
-                      onPressed: acting.value
-                          ? null
-                          : hasFediverseIdentity
-                          ? (rel?.isFollowing == true ? unfollow : follow)
-                          : () => showFediverseInteractionHint(
-                              context,
-                              'fediverseFollowHint',
-                            ),
-                      icon: Icon(
-                        rel?.isFollowing == true
-                            ? Symbols.remove_circle
-                            : Icons.person_add_outlined,
-                      ),
-                      label: Text(
-                        rel?.isFollowing == true ? 'unfollow' : 'follow',
-                      ).tr(),
-                      style: ButtonStyle(
-                        visualDensity: VisualDensity(vertical: -2),
-                      ),
-                    );
-                  },
-                  error: (_, _) {
-                    return FilledButton.icon(
-                      onPressed: acting.value
-                          ? null
-                          : hasFediverseIdentity
-                          ? follow
-                          : () => showFediverseInteractionHint(
-                              context,
-                              'fediverseFollowHint',
-                            ),
-                      icon: const Icon(Icons.person_add_outlined),
-                      label: Text('follow').tr(),
-                      style: ButtonStyle(
-                        visualDensity: VisualDensity(vertical: -2),
-                      ),
-                    );
-                  },
-                  loading: () => const SizedBox(
-                    height: 36,
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                if (!isWideScreen(context))
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: HandleChip(
+                        handle: data.username,
+                        domain: data.instance.domain,
+                        isRemote: true,
+                        allowCopy: true,
+                        maxLines: 1,
                       ),
                     ),
                   ),
-                ),
-                if (data.bio?.isNotEmpty ?? false) ...[
-                  const Gap(12),
+                relationship
+                    .when(
+                      data: (rel) {
+                        if (rel?.isPending == true) {
+                          return OutlinedButton.icon(
+                            onPressed: _followAction(
+                              context,
+                              isFollowing: true,
+                            ),
+                            icon: const Icon(Symbols.hourglass_top),
+                            label: Text('pendingRequest').tr(),
+                            style: const ButtonStyle(
+                              visualDensity: VisualDensity(vertical: -2),
+                            ),
+                          );
+                        }
+                        final isFollowing = rel?.isFollowing == true;
+                        return FilledButton.icon(
+                          onPressed: _followAction(
+                            context,
+                            isFollowing: isFollowing,
+                          ),
+                          icon: Icon(
+                            isFollowing
+                                ? Symbols.remove_circle
+                                : Icons.person_add_outlined,
+                          ),
+                          label: Text(
+                            isFollowing ? 'unfollow' : 'follow',
+                          ).tr(),
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity(vertical: -2),
+                          ),
+                        );
+                      },
+                      error: (_, _) {
+                        return FilledButton.icon(
+                          onPressed: _followAction(
+                            context,
+                            isFollowing: false,
+                          ),
+                          icon: const Icon(Icons.person_add_outlined),
+                          label: Text('follow').tr(),
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity(vertical: -2),
+                          ),
+                        );
+                      },
+                      loading: () => const SizedBox(
+                        height: 36,
+                        child: Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      ),
+                    )
+                    .padding(vertical: 12),
+                if (bioMarkdown != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -337,15 +363,13 @@ class _ActorBasisWidget extends HookWidget {
                               child: isBioExpanded.value
                                   ? MarkdownTextContent(
                                       key: const ValueKey('expanded'),
-                                      content: html2md.convert(data.bio!),
+                                      content: bioMarkdown,
                                       linesMargin: EdgeInsets.zero,
                                     )
                                   : Text(
-                                      html2md.convert(data.bio!),
+                                      _getFirstLine(bioMarkdown),
                                       key: const ValueKey('collapsed'),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
+                                      style: theme.textTheme.bodyMedium,
                                       textAlign: TextAlign.left,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -367,14 +391,13 @@ class _ActorBasisWidget extends HookWidget {
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   color: theme.colorScheme.primary,
                                 ),
-                              ).tr(),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ],
               ],
             ),
           ),
@@ -681,6 +704,99 @@ class _FollowedMessageWidget extends StatelessWidget {
   }
 }
 
+class _ActorLastActiveWidget extends StatelessWidget {
+  final DateTime lastActivityAt;
+
+  const _ActorLastActiveWidget({required this.lastActivityAt});
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays > 30) {
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    } else if (diff.inDays > 0) {
+      return '${diff.inDays}d ago';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes}m ago';
+    } else {
+      return 'justNow'.tr();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(
+              Symbols.schedule,
+              size: 16,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const Gap(8),
+            Expanded(
+              child: Text(
+                'lastActiveAt'.tr(args: [_formatDate(lastActivityAt)]),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shared profile column (basis + metadata cards) used by both layouts.
+class _ActorProfileSidebar extends StatelessWidget {
+  final SnActivityPubActor data;
+  final AsyncValue<FediverseActorRelationship?> relationship;
+  final ValueNotifier<bool> acting;
+  final VoidCallback follow;
+  final VoidCallback unfollow;
+  final bool hasFediverseIdentity;
+
+  const _ActorProfileSidebar({
+    required this.data,
+    required this.relationship,
+    required this.acting,
+    required this.follow,
+    required this.unfollow,
+    required this.hasFediverseIdentity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 12,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ActorBasisWidget(
+          data: data,
+          relationship: relationship,
+          acting: acting,
+          follow: follow,
+          unfollow: unfollow,
+          hasFediverseIdentity: hasFediverseIdentity,
+        ),
+        if (data.metadata?['_misskey_followedMessage'] != null)
+          _FollowedMessageWidget(data: data),
+        _FediverseHintWidget(data: data),
+        _ActorTagsWidget(data: data),
+        _ActorAttachmentsWidget(data: data),
+        if (data.lastActivityAt != null)
+          _ActorLastActiveWidget(lastActivityAt: data.lastActivityAt!),
+      ],
+    );
+  }
+}
+
 class _ActorPostsWidget extends ConsumerWidget {
   final String actorId;
 
@@ -695,8 +811,8 @@ class _ActorPostsWidget extends ConsumerWidget {
       notifier: provider.notifier,
       isRefreshable: false,
       isSliver: true,
-      footerSkeletonChild: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      footerSkeletonChild: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: PostItemSkeleton(maxWidth: double.infinity),
       ),
       itemBuilder: (context, index, post) {
@@ -736,6 +852,35 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final actor = ref.watch(fediverseActorProvider(requestKey));
 
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        leading: const AutoLeadingButton(),
+        title: Text(
+          actor.value?.displayName ??
+              actor.value?.username ??
+              fullHandle ??
+              id,
+        ),
+      ),
+      body: FediverseActorProfileContent(requestKey: requestKey),
+    );
+  }
+}
+
+class FediverseActorProfileContent extends HookConsumerWidget {
+  static const double _wideLayoutMinWidth = 900;
+
+  final String requestKey;
+
+  const FediverseActorProfileContent({
+    super.key,
+    required this.requestKey,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final actor = ref.watch(fediverseActorProvider(requestKey));
     final acting = useState(false);
 
     Future<void> follow(SnActivityPubActor actorData) async {
@@ -743,7 +888,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
       acting.value = true;
       try {
         await client.dio.post(
-          "/sphere/fediverse/actors/${actorData.id}/follow",
+          '/sphere/fediverse/actors/${actorData.id}/follow',
         );
         ref.invalidate(fediverseActorRelationshipProvider(actorData.id));
         HapticFeedback.heavyImpact();
@@ -759,7 +904,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
       acting.value = true;
       try {
         await client.dio.post(
-          "/sphere/fediverse/actors/${actorData.id}/unfollow",
+          '/sphere/fediverse/actors/${actorData.id}/unfollow',
         );
         ref.invalidate(fediverseActorRelationshipProvider(actorData.id));
         HapticFeedback.heavyImpact();
@@ -777,151 +922,85 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
         );
         final hasFediverseIdentity = ref.watch(hasFediverseIdentityProvider);
 
-        return AppScaffold(
-          isNoBackground: false,
-          appBar: AppBar(
-            leading: AutoLeadingButton(),
-            title: Text(data.displayName ?? data.username),
-          ),
-          body: isWideScreen(context)
-              ? Row(
-                  spacing: 12,
-                  children: [
-                    Flexible(
-                      flex: 4,
+        final profileSidebar = _ActorProfileSidebar(
+          data: data,
+          relationship: relationship,
+          acting: acting,
+          follow: () => follow(data),
+          unfollow: () => unfollow(data),
+          hasFediverseIdentity: hasFediverseIdentity,
+        );
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : MediaQuery.of(context).size.width;
+            final useWideLayout =
+                isWideScreen(context) &&
+                availableWidth >= _wideLayoutMinWidth;
+
+            if (!useWideLayout) {
+              // Single scroll so the tall profile header can leave the
+              // viewport on short/narrow screens (matches publisher profile).
+              return CustomScrollView(
+                slivers: [
+                  const SliverGap(12),
+                  SliverToBoxAdapter(
+                    child: profileSidebar.padding(horizontal: 12),
+                  ),
+                  const SliverGap(12),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    sliver: _ActorPostsWidget(actorId: data.id),
+                  ),
+                  SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                ],
+              );
+            }
+
+            return Row(
+              spacing: 12,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  flex: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12, top: 12),
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      clipBehavior: Clip.antiAlias,
                       child: CustomScrollView(
                         slivers: [
                           const SliverGap(12),
-                          _ActorPostsWidget(actorId: data.id),
-                          SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            sliver: _ActorPostsWidget(actorId: data.id),
+                          ),
+                          SliverGap(
+                            MediaQuery.of(context).padding.bottom + 16,
+                          ),
                         ],
                       ),
                     ),
-                    Flexible(
-                      flex: 3,
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Column(
-                            spacing: 12,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _ActorBasisWidget(
-                                data: data,
-                                relationship: relationship,
-                                acting: acting,
-                                follow: () => follow(data),
-                                unfollow: () => unfollow(data),
-                                hasFediverseIdentity: hasFediverseIdentity,
-                              ),
-                              if (data.metadata?['_misskey_followedMessage'] !=
-                                  null)
-                                _FollowedMessageWidget(data: data),
-                              _FediverseHintWidget(data: data),
-                              _ActorTagsWidget(data: data),
-                              _ActorAttachmentsWidget(data: data),
-                              if (data.lastActivityAt != null)
-                                Card(
-                                  margin: EdgeInsets.zero,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Symbols.schedule,
-                                          size: 16,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                        const Gap(8),
-                                        Expanded(
-                                          child: Text(
-                                            'lastActive'.tr(
-                                              args: [
-                                                _formatDate(
-                                                  data.lastActivityAt!,
-                                                ),
-                                              ],
-                                            ),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ).padding(horizontal: 12)
-              : CustomScrollView(
-                  slivers: [
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _ActorBasisWidget(
-                        data: data,
-                        relationship: relationship,
-                        acting: acting,
-                        follow: () => follow(data),
-                        unfollow: () => unfollow(data),
-                        hasFediverseIdentity: hasFediverseIdentity,
-                      ),
-                    ),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(child: _FediverseHintWidget(data: data)),
-                    if (data.metadata?['_misskey_followedMessage'] != null) ...[
-                      const SliverGap(12),
-                      SliverToBoxAdapter(
-                        child: _FollowedMessageWidget(data: data),
-                      ),
-                    ],
-                    const SliverGap(12),
-                    SliverToBoxAdapter(child: _ActorTagsWidget(data: data)),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _ActorAttachmentsWidget(data: data),
-                    ),
-                    const SliverGap(12),
-                    _ActorPostsWidget(actorId: data.id),
-                    SliverGap(MediaQuery.of(context).padding.bottom + 16),
-                  ],
-                ).padding(horizontal: 8),
+                  ),
+                ),
+                Flexible(
+                  flex: 3,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                    child: profileSidebar,
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
-      error: (error, stackTrace) => AppScaffold(
-        isNoBackground: false,
-        appBar: AppBar(leading: const AutoLeadingButton()),
-        body: Center(child: Text(error.toString())),
-      ),
-      loading: () => AppScaffold(
-        isNoBackground: false,
-        appBar: AppBar(leading: const AutoLeadingButton()),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
+      error: (error, stackTrace) => Center(child: Text(error.toString())),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inDays > 30) {
-      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    } else if (diff.inDays > 0) {
-      return '${diff.inDays}d ago';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h ago';
-    } else if (diff.inMinutes > 0) {
-      return '${diff.inMinutes}m ago';
-    } else {
-      return 'justNow'.tr();
-    }
   }
 }

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'leaderboard.dart';
@@ -9,6 +9,7 @@ part of 'leaderboard.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$LeaderboardEntryCopyWithImpl<$Res>
 /// Create a copy of LeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? rank = null,Object? accountId = null,Object? value = null,Object? account = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(LeaderboardEntry(
 rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -356,7 +357,7 @@ class _$LeaderboardResponseCopyWithImpl<$Res>
 /// Create a copy of LeaderboardResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? entries = null,Object? userEntry = freezed,Object? totalCount = null,}) {
-  return _then(_self.copyWith(
+  return _then(LeaderboardResponse(
 entries: null == entries ? _self.entries : entries // ignore: cast_nullable_to_non_nullable
 as List<LeaderboardEntry>,userEntry: freezed == userEntry ? _self.userEntry : userEntry // ignore: cast_nullable_to_non_nullable
 as LeaderboardEntry?,totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
@@ -507,7 +508,7 @@ return $default(_that.entries,_that.userEntry,_that.totalCount);case _:
 @JsonSerializable()
 
 class _LeaderboardResponse implements LeaderboardResponse {
-  const _LeaderboardResponse({required final  List<LeaderboardEntry> entries, this.userEntry, required this.totalCount}): _entries = entries;
+  const _LeaderboardResponse({required  List<LeaderboardEntry> entries, this.userEntry, required this.totalCount}): _entries = entries;
   factory _LeaderboardResponse.fromJson(Map<String, dynamic> json) => _$LeaderboardResponseFromJson(json);
 
  final  List<LeaderboardEntry> _entries;

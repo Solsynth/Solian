@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'post_tag.dart';
@@ -9,6 +9,7 @@ part of 'post_tag.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnPostTagCopyWithImpl<$Res>
 /// Create a copy of SnPostTag
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? ownerPublisherId = freezed,Object? ownerPublisher = freezed,Object? isProtected = null,Object? isEvent = null,Object? eventEndsAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? posts = null,Object? usage = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnPostTag(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -227,7 +228,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.ownerPubl
 @JsonSerializable()
 
 class _SnPostTag extends SnPostTag {
-  const _SnPostTag({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'owner_publisher_id') this.ownerPublisherId, @JsonKey(name: 'owner_publisher') this.ownerPublisher, @JsonKey(name: 'is_protected') this.isProtected = false, @JsonKey(name: 'is_event') this.isEvent = false, @JsonKey(name: 'event_ends_at') this.eventEndsAt, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt, final  List<SnPost> posts = const [], this.usage = 0}): _posts = posts,super._();
+  const _SnPostTag({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'owner_publisher_id') this.ownerPublisherId, @JsonKey(name: 'owner_publisher') this.ownerPublisher, @JsonKey(name: 'is_protected') this.isProtected = false, @JsonKey(name: 'is_event') this.isEvent = false, @JsonKey(name: 'event_ends_at') this.eventEndsAt, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt,  List<SnPost> posts = const [], this.usage = 0}): _posts = posts,super._();
   factory _SnPostTag.fromJson(Map<String, dynamic> json) => _$SnPostTagFromJson(json);
 
 @override final  String id;

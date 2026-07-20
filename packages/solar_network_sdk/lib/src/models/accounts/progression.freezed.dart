@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'progression.dart';
@@ -9,6 +9,7 @@ part of 'progression.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnProgressBadgeRewardDefinitionCopyWithImpl<$Res>
 /// Create a copy of SnProgressBadgeRewardDefinition
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? label = freezed,Object? caption = freezed,Object? meta = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnProgressBadgeRewardDefinition(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
@@ -206,7 +207,7 @@ return $default(_that.type,_that.label,_that.caption,_that.meta);case _:
 @JsonSerializable()
 
 class _SnProgressBadgeRewardDefinition implements SnProgressBadgeRewardDefinition {
-  const _SnProgressBadgeRewardDefinition({required this.type, this.label, this.caption, final  Map<String, dynamic>? meta}): _meta = meta;
+  const _SnProgressBadgeRewardDefinition({required this.type, this.label, this.caption,  Map<String, dynamic>? meta}): _meta = meta;
   factory _SnProgressBadgeRewardDefinition.fromJson(Map<String, dynamic> json) => _$SnProgressBadgeRewardDefinitionFromJson(json);
 
 @override final  String type;
@@ -340,7 +341,7 @@ class _$SnProgressRewardDefinitionCopyWithImpl<$Res>
 /// Create a copy of SnProgressRewardDefinition
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? experience = null,Object? sourcePoints = null,Object? sourcePointsCurrency = null,Object? badge = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnProgressRewardDefinition(
 experience: null == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as int,sourcePoints: null == sourcePoints ? _self.sourcePoints : sourcePoints // ignore: cast_nullable_to_non_nullable
 as num,sourcePointsCurrency: null == sourcePointsCurrency ? _self.sourcePointsCurrency : sourcePointsCurrency // ignore: cast_nullable_to_non_nullable
@@ -630,7 +631,7 @@ class _$SnQuestScheduleConfigCopyWithImpl<$Res>
 /// Create a copy of SnQuestScheduleConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? repeatability = null,Object? activeDaysOfWeek = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnQuestScheduleConfig(
 repeatability: null == repeatability ? _self.repeatability : repeatability // ignore: cast_nullable_to_non_nullable
 as String,activeDaysOfWeek: null == activeDaysOfWeek ? _self.activeDaysOfWeek : activeDaysOfWeek // ignore: cast_nullable_to_non_nullable
 as List<int>,
@@ -768,7 +769,7 @@ return $default(_that.repeatability,_that.activeDaysOfWeek);case _:
 @JsonSerializable()
 
 class _SnQuestScheduleConfig implements SnQuestScheduleConfig {
-  const _SnQuestScheduleConfig({this.repeatability = 'none', final  List<int> activeDaysOfWeek = const []}): _activeDaysOfWeek = activeDaysOfWeek;
+  const _SnQuestScheduleConfig({this.repeatability = 'none',  List<int> activeDaysOfWeek = const []}): _activeDaysOfWeek = activeDaysOfWeek;
   factory _SnQuestScheduleConfig.fromJson(Map<String, dynamic> json) => _$SnQuestScheduleConfigFromJson(json);
 
 @override@JsonKey() final  String repeatability;
@@ -896,7 +897,7 @@ class _$SnSeriesStageCopyWithImpl<$Res>
 /// Create a copy of SnSeriesStage
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? seriesOrder = null,Object? targetCount = null,Object? isCompleted = null,Object? completedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnSeriesStage(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
@@ -1168,7 +1169,7 @@ class _$SnAchievementStatsCopyWithImpl<$Res>
 /// Create a copy of SnAchievementStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? totalCount = null,Object? completedCount = null,Object? hiddenTotalCount = null,Object? hiddenCompletedCount = null,Object? completionPercentage = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnAchievementStats(
 totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
 as int,completedCount: null == completedCount ? _self.completedCount : completedCount // ignore: cast_nullable_to_non_nullable
 as int,hiddenTotalCount: null == hiddenTotalCount ? _self.hiddenTotalCount : hiddenTotalCount // ignore: cast_nullable_to_non_nullable
@@ -1437,7 +1438,7 @@ class _$SnAchievementStateCopyWithImpl<$Res>
 /// Create a copy of SnAchievementState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,Object? seriesStages = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnAchievementState(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
@@ -1603,7 +1604,7 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 @JsonSerializable()
 
 class _SnAchievementState implements SnAchievementState {
-  const _SnAchievementState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0, final  List<SnSeriesStage> seriesStages = const []}): _seriesStages = seriesStages;
+  const _SnAchievementState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0,  List<SnSeriesStage> seriesStages = const []}): _seriesStages = seriesStages;
   factory _SnAchievementState.fromJson(Map<String, dynamic> json) => _$SnAchievementStateFromJson(json);
 
 @override final  String identifier;
@@ -1775,7 +1776,7 @@ class _$SnQuestStateCopyWithImpl<$Res>
 /// Create a copy of SnQuestState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? periodKey = null,Object? nextResetAt = freezed,Object? schedule = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,Object? seriesStages = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnQuestState(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
@@ -1956,7 +1957,7 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 @JsonSerializable()
 
 class _SnQuestState implements SnQuestState {
-  const _SnQuestState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.periodKey = '', this.nextResetAt, this.schedule, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0, final  List<SnSeriesStage> seriesStages = const []}): _seriesStages = seriesStages;
+  const _SnQuestState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.periodKey = '', this.nextResetAt, this.schedule, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0,  List<SnSeriesStage> seriesStages = const []}): _seriesStages = seriesStages;
   factory _SnQuestState.fromJson(Map<String, dynamic> json) => _$SnQuestStateFromJson(json);
 
 @override final  String identifier;
@@ -2146,7 +2147,7 @@ class _$SnProgressRewardGrantCopyWithImpl<$Res>
 /// Create a copy of SnProgressRewardGrant
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? definitionType = null,Object? definitionIdentifier = null,Object? definitionTitle = null,Object? rewardToken = null,Object? sourceEventId = null,Object? reward = freezed,Object? periodKey = freezed,Object? badgeGrantedAt = freezed,Object? experienceGrantedAt = freezed,Object? sourcePointsGrantedAt = freezed,Object? notificationSentAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnProgressRewardGrant(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,definitionType: null == definitionType ? _self.definitionType : definitionType // ignore: cast_nullable_to_non_nullable
@@ -2472,7 +2473,7 @@ class _$SnProgressionCompletedPacketCopyWithImpl<$Res>
 /// Create a copy of SnProgressionCompletedPacket
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? kind = null,Object? identifier = null,Object? title = null,Object? periodKey = freezed,Object? reward = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnProgressionCompletedPacket(
 kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as String,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable

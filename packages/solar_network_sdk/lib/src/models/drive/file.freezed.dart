@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'file.dart';
@@ -9,6 +9,7 @@ part of 'file.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$UniversalFileCopyWithImpl<$Res>
 /// Create a copy of UniversalFile
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? data = freezed,Object? type = null,Object? isLink = null,Object? displayName = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UniversalFile(
 data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as dynamic,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as UniversalFileType,isLink: null == isLink ? _self.isLink : isLink // ignore: cast_nullable_to_non_nullable
@@ -332,7 +333,7 @@ class _$SnFileReplicaCopyWithImpl<$Res>
 /// Create a copy of SnFileReplica
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? objectId = null,Object? poolId = null,Object? pool = freezed,Object? storageId = null,Object? status = null,Object? isPrimary = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnFileReplica(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,objectId: null == objectId ? _self.objectId : objectId // ignore: cast_nullable_to_non_nullable
 as String,poolId: null == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable
@@ -640,7 +641,7 @@ class _$SnCloudFileObjectCopyWithImpl<$Res>
 /// Create a copy of SnCloudFileObject
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? size = null,Object? meta = freezed,Object? mimeType = freezed,Object? hash = freezed,Object? hasCompression = null,Object? hasThumbnail = null,Object? fileReplicas = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnCloudFileObject(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
@@ -787,7 +788,7 @@ return $default(_that.id,_that.size,_that.meta,_that.mimeType,_that.hash,_that.h
 @JsonSerializable()
 
 class _SnCloudFileObject implements SnCloudFileObject {
-  const _SnCloudFileObject({required this.id, required this.size, required final  Map<String, dynamic>? meta, required this.mimeType, required this.hash, required this.hasCompression, required this.hasThumbnail, required final  List<SnFileReplica> fileReplicas, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta,_fileReplicas = fileReplicas;
+  const _SnCloudFileObject({required this.id, required this.size, required  Map<String, dynamic>? meta, required this.mimeType, required this.hash, required this.hasCompression, required this.hasThumbnail, required  List<SnFileReplica> fileReplicas, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta,_fileReplicas = fileReplicas;
   factory _SnCloudFileObject.fromJson(Map<String, dynamic> json) => _$SnCloudFileObjectFromJson(json);
 
 @override final  String id;
@@ -890,8 +891,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnCloudFile {
 
- String get id; String get accountId; String? get description; bool get indexed; bool get isFolder; bool get isMarkedRecycle; String get name;// Folder will not have object
- SnCloudFileObject? get object; String? get objectId; String? get parentId; String get resourceIdentifier; String? get storageId; String? get storageUrl; String get mimeType; String? get applicationType; String? get usage; List<int> get sensitiveMarks; Map<String, dynamic> get fileMeta; Map<String, dynamic> get userMeta; List<SnCloudFile> get children;@JsonKey(name: 'children_count') int get childrenCount;@JsonKey(name: 'permission_status') SnFilePermissionStatus? get permissionStatus; DateTime? get uploadedAt; DateTime? get expiredAt; DateTime get updatedAt; DateTime get createdAt; DateTime? get deletedAt;
+ String get id; String get accountId; String? get description; bool get indexed; bool get isFolder; bool get isMarkedRecycle; String get name; SnCloudFileObject? get object; String? get objectId; String? get parentId; String get resourceIdentifier; String? get storageId; String? get storageUrl; String get mimeType; String? get applicationType; String? get usage; List<int> get sensitiveMarks; Map<String, dynamic> get fileMeta; Map<String, dynamic> get userMeta; List<SnCloudFile> get children;@JsonKey(name: 'children_count') int get childrenCount;@JsonKey(name: 'permission_status') SnFilePermissionStatus? get permissionStatus; DateTime? get uploadedAt; DateTime? get expiredAt; DateTime get updatedAt; DateTime get createdAt; DateTime? get deletedAt;
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -942,7 +942,7 @@ class _$SnCloudFileCopyWithImpl<$Res>
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? description = freezed,Object? indexed = null,Object? isFolder = null,Object? isMarkedRecycle = null,Object? name = null,Object? object = freezed,Object? objectId = freezed,Object? parentId = freezed,Object? resourceIdentifier = null,Object? storageId = freezed,Object? storageUrl = freezed,Object? mimeType = null,Object? applicationType = freezed,Object? usage = freezed,Object? sensitiveMarks = null,Object? fileMeta = null,Object? userMeta = null,Object? children = null,Object? childrenCount = null,Object? permissionStatus = freezed,Object? uploadedAt = freezed,Object? expiredAt = freezed,Object? updatedAt = null,Object? createdAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnCloudFile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -1129,7 +1129,7 @@ return $default(_that.id,_that.accountId,_that.description,_that.indexed,_that.i
 @JsonSerializable()
 
 class _SnCloudFile extends SnCloudFile {
-  const _SnCloudFile({required this.id, required this.accountId, required this.description, required this.indexed, required this.isFolder, required this.isMarkedRecycle, required this.name, required this.object, required this.objectId, required this.parentId, required this.resourceIdentifier, required this.storageId, required this.storageUrl, required this.mimeType, required this.applicationType, required this.usage, final  List<int> sensitiveMarks = const [], final  Map<String, dynamic> fileMeta = const {}, final  Map<String, dynamic> userMeta = const {}, final  List<SnCloudFile> children = const [], @JsonKey(name: 'children_count') this.childrenCount = 0, @JsonKey(name: 'permission_status') required this.permissionStatus, required this.uploadedAt, required this.expiredAt, required this.updatedAt, required this.createdAt, required this.deletedAt}): _sensitiveMarks = sensitiveMarks,_fileMeta = fileMeta,_userMeta = userMeta,_children = children,super._();
+  const _SnCloudFile({required this.id, required this.accountId, required this.description, required this.indexed, required this.isFolder, required this.isMarkedRecycle, required this.name, required this.object, required this.objectId, required this.parentId, required this.resourceIdentifier, required this.storageId, required this.storageUrl, required this.mimeType, required this.applicationType, required this.usage,  List<int> sensitiveMarks = const [],  Map<String, dynamic> fileMeta = const {},  Map<String, dynamic> userMeta = const {},  List<SnCloudFile> children = const [], @JsonKey(name: 'children_count') this.childrenCount = 0, @JsonKey(name: 'permission_status') required this.permissionStatus, required this.uploadedAt, required this.expiredAt, required this.updatedAt, required this.createdAt, required this.deletedAt}): _sensitiveMarks = sensitiveMarks,_fileMeta = fileMeta,_userMeta = userMeta,_children = children,super._();
   factory _SnCloudFile.fromJson(Map<String, dynamic> json) => _$SnCloudFileFromJson(json);
 
 @override final  String id;
@@ -1139,7 +1139,6 @@ class _SnCloudFile extends SnCloudFile {
 @override final  bool isFolder;
 @override final  bool isMarkedRecycle;
 @override final  String name;
-// Folder will not have object
 @override final  SnCloudFileObject? object;
 @override final  String? objectId;
 @override final  String? parentId;
@@ -1299,7 +1298,9 @@ $SnFilePermissionStatusCopyWith<$Res>? get permissionStatus {
 /// @nodoc
 mixin _$SnCloudFileReference {
 
- String get id; String get name; Map<String, dynamic> get fileMeta; Map<String, dynamic> get userMeta; List<int> get sensitiveMarks; String get mimeType; String get hash; int get size; bool get hasCompression;@JsonKey(name: "url") String? get storageUrl; double? get width; double? get height;@JsonKey(name: 'blurhash') String? get blur; String? get usage; String? get applicationType;
+ String get id; String get name; Map<String, dynamic> get fileMeta; Map<String, dynamic> get userMeta; List<int> get sensitiveMarks;/// Fediverse/remote attachments often omit mime type; default safely.
+ String get mimeType;/// Fediverse/remote attachments often omit content hash.
+ String get hash; int get size; bool get hasCompression;@JsonKey(name: "url") String? get storageUrl; double? get width; double? get height;@JsonKey(name: 'blurhash') String? get blur; String? get usage; String? get applicationType;
 /// Create a copy of SnCloudFileReference
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1350,7 +1351,7 @@ class _$SnCloudFileReferenceCopyWithImpl<$Res>
 /// Create a copy of SnCloudFileReference
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? fileMeta = null,Object? userMeta = null,Object? sensitiveMarks = null,Object? mimeType = null,Object? hash = null,Object? size = null,Object? hasCompression = null,Object? storageUrl = freezed,Object? width = freezed,Object? height = freezed,Object? blur = freezed,Object? usage = freezed,Object? applicationType = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnCloudFileReference(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fileMeta: null == fileMeta ? _self.fileMeta : fileMeta // ignore: cast_nullable_to_non_nullable
@@ -1501,11 +1502,11 @@ return $default(_that.id,_that.name,_that.fileMeta,_that.userMeta,_that.sensitiv
 @JsonSerializable()
 
 class _SnCloudFileReference extends SnCloudFileReference {
-  const _SnCloudFileReference({required this.id, required this.name, final  Map<String, dynamic> fileMeta = const {}, final  Map<String, dynamic> userMeta = const {}, final  List<int> sensitiveMarks = const [], required this.mimeType, required this.hash, required this.size, required this.hasCompression, @JsonKey(name: "url") required this.storageUrl, required this.width, required this.height, @JsonKey(name: 'blurhash') this.blur, required this.usage, required this.applicationType}): _fileMeta = fileMeta,_userMeta = userMeta,_sensitiveMarks = sensitiveMarks,super._();
+  const _SnCloudFileReference({required this.id, this.name = '',  Map<String, dynamic> fileMeta = const {},  Map<String, dynamic> userMeta = const {},  List<int> sensitiveMarks = const [], this.mimeType = 'application/octet-stream', this.hash = '', this.size = 0, this.hasCompression = false, @JsonKey(name: "url") this.storageUrl, this.width, this.height, @JsonKey(name: 'blurhash') this.blur, this.usage, this.applicationType}): _fileMeta = fileMeta,_userMeta = userMeta,_sensitiveMarks = sensitiveMarks,super._();
   factory _SnCloudFileReference.fromJson(Map<String, dynamic> json) => _$SnCloudFileReferenceFromJson(json);
 
 @override final  String id;
-@override final  String name;
+@override@JsonKey() final  String name;
  final  Map<String, dynamic> _fileMeta;
 @override@JsonKey() Map<String, dynamic> get fileMeta {
   if (_fileMeta is EqualUnmodifiableMapView) return _fileMeta;
@@ -1527,10 +1528,12 @@ class _SnCloudFileReference extends SnCloudFileReference {
   return EqualUnmodifiableListView(_sensitiveMarks);
 }
 
-@override final  String mimeType;
-@override final  String hash;
-@override final  int size;
-@override final  bool hasCompression;
+/// Fediverse/remote attachments often omit mime type; default safely.
+@override@JsonKey() final  String mimeType;
+/// Fediverse/remote attachments often omit content hash.
+@override@JsonKey() final  String hash;
+@override@JsonKey() final  int size;
+@override@JsonKey() final  bool hasCompression;
 @override@JsonKey(name: "url") final  String? storageUrl;
 @override final  double? width;
 @override final  double? height;

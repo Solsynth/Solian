@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'misc.dart';
@@ -9,6 +9,7 @@ part of 'misc.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AppTokenCopyWithImpl<$Res>
 /// Create a copy of AppToken
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? token = null,}) {
-  return _then(_self.copyWith(
+  return _then(AppToken(
 token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -323,7 +324,7 @@ class _$GeoIpLocationCopyWithImpl<$Res>
 /// Create a copy of GeoIpLocation
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? country = freezed,Object? city = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(GeoIpLocation(
 latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
@@ -592,7 +593,7 @@ class _$SnAuthFactorCopyWithImpl<$Res>
 /// Create a copy of SnAuthFactor
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? expiredAt = freezed,Object? enabledAt = freezed,Object? trustworthy = null,Object? createdResponse = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAuthFactor(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -737,7 +738,7 @@ return $default(_that.id,_that.type,_that.createdAt,_that.updatedAt,_that.delete
 @JsonSerializable()
 
 class _SnAuthFactor implements SnAuthFactor {
-  const _SnAuthFactor({required this.id, required this.type, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.expiredAt, required this.enabledAt, required this.trustworthy, required final  Map<String, dynamic>? createdResponse}): _createdResponse = createdResponse;
+  const _SnAuthFactor({required this.id, required this.type, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.expiredAt, required this.enabledAt, required this.trustworthy, required  Map<String, dynamic>? createdResponse}): _createdResponse = createdResponse;
   factory _SnAuthFactor.fromJson(Map<String, dynamic> json) => _$SnAuthFactorFromJson(json);
 
 @override final  String id;
@@ -881,7 +882,7 @@ class _$SnAccountConnectionCopyWithImpl<$Res>
 /// Create a copy of SnAccountConnection
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? provider = null,Object? providedIdentifier = null,Object? isPublic = null,Object? meta = null,Object? lastUsedAt = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnAccountConnection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
@@ -1027,7 +1028,7 @@ return $default(_that.id,_that.accountId,_that.provider,_that.providedIdentifier
 @JsonSerializable()
 
 class _SnAccountConnection implements SnAccountConnection {
-  const _SnAccountConnection({required this.id, required this.accountId, required this.provider, required this.providedIdentifier, this.isPublic = false, final  Map<String, dynamic> meta = const {}, required this.lastUsedAt, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnAccountConnection({required this.id, required this.accountId, required this.provider, required this.providedIdentifier, this.isPublic = false,  Map<String, dynamic> meta = const {}, required this.lastUsedAt, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
   factory _SnAccountConnection.fromJson(Map<String, dynamic> json) => _$SnAccountConnectionFromJson(json);
 
 @override final  String id;

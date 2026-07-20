@@ -16,6 +16,17 @@ import 'package:pasteboard/pasteboard.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
+/// A deliberately unloaded range between two messages in the rendered list.
+class MessageLoadGap {
+  final String newerMessageId;
+  final String olderMessageId;
+
+  const MessageLoadGap({
+    required this.newerMessageId,
+    required this.olderMessageId,
+  });
+}
+
 /// Universal state for a chat room, supporting multiple instances via family provider.
 /// This enables multi-window chat support and consolidates all UI state in one place.
 class ChatRoomState {
@@ -34,6 +45,7 @@ class ChatRoomState {
 
   // Scroll state (not persisted - fresh on each navigation)
   final bool isScrollingToMessage;
+  final MessageLoadGap? messageLoadGap;
 
   // Read receipt state
   final DateTime roomOpenTime;
@@ -50,6 +62,7 @@ class ChatRoomState {
     this.messageForwardingTo,
     this.embeds = const [],
     this.isScrollingToMessage = false,
+    this.messageLoadGap,
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
     this.dismissedLastReadAnchorMessageId,
@@ -65,6 +78,7 @@ class ChatRoomState {
     SnChatMessage? messageForwardingTo,
     List<Map<String, dynamic>>? embeds,
     bool? isScrollingToMessage,
+    MessageLoadGap? messageLoadGap,
     DateTime? roomOpenTime,
     String? lastReadAnchorMessageId,
     String? dismissedLastReadAnchorMessageId,
@@ -74,6 +88,7 @@ class ChatRoomState {
     bool clearEmbeds = false,
     bool clearLastReadAnchor = false,
     bool clearDismissedLastReadAnchor = false,
+    bool clearMessageLoadGap = false,
   }) {
     return ChatRoomState(
       isSelectionMode: isSelectionMode ?? this.isSelectionMode,
@@ -91,6 +106,9 @@ class ChatRoomState {
           : (messageForwardingTo ?? this.messageForwardingTo),
       embeds: clearEmbeds ? [] : (embeds ?? this.embeds),
       isScrollingToMessage: isScrollingToMessage ?? this.isScrollingToMessage,
+      messageLoadGap: clearMessageLoadGap
+          ? null
+          : (messageLoadGap ?? this.messageLoadGap),
       roomOpenTime: roomOpenTime ?? this.roomOpenTime,
       lastReadAnchorMessageId: clearLastReadAnchor
           ? null
@@ -481,6 +499,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     required String messageId,
     required List<LocalChatMessage> messageList,
     required Future<int> Function(String) jumpToMessage,
+    required Future<bool> Function(String, String) hasMessagesBetween,
   }) async {
     if (state.isScrollingToMessage) return;
 
@@ -492,6 +511,25 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       // Message not loaded, need to jump
       final index = await jumpToMessage(messageId);
       if (index != -1) {
+        state = state.copyWith(clearMessageLoadGap: true);
+        final updatedMessages = ref.read(messagesProvider(roomId)).value ?? [];
+        if (messageList.isNotEmpty) {
+          final newerIndex = updatedMessages.indexWhere(
+            (message) => message.id == messageList.last.id,
+          );
+          if (newerIndex != -1 && newerIndex + 1 < updatedMessages.length) {
+            final newerMessageId = updatedMessages[newerIndex].id;
+            final olderMessageId = updatedMessages[newerIndex + 1].id;
+            if (await hasMessagesBetween(newerMessageId, olderMessageId)) {
+              state = state.copyWith(
+                messageLoadGap: MessageLoadGap(
+                  newerMessageId: newerMessageId,
+                  olderMessageId: olderMessageId,
+                ),
+              );
+            }
+          }
+        }
         _performScrollAnimation(index: index, messageId: messageId);
       } else {
         state = state.copyWith(isScrollingToMessage: false);
@@ -499,6 +537,12 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     } else {
       _performScrollAnimation(index: messageIndex, messageId: messageId);
     }
+  }
+
+  void updateMessageLoadGap(MessageLoadGap? gap) {
+    state = gap == null
+        ? state.copyWith(clearMessageLoadGap: true)
+        : state.copyWith(messageLoadGap: gap);
   }
 
   void _performScrollAnimation({

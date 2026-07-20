@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'publisher.dart';
@@ -9,6 +9,7 @@ part of 'publisher.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnPublisherCopyWithImpl<$Res>
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? realmNick = freezed,Object? realmBio = freezed,Object? realmExperience = freezed,Object? realmLevel = freezed,Object? realmLevelingProgress = freezed,Object? realmLabel = freezed,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? realm = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,Object? rating = null,Object? ratingLevel = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisher(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -542,7 +543,7 @@ class _$SnPublisherMemberCopyWithImpl<$Res>
 /// Create a copy of SnPublisherMember
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? publisherId = null,Object? publisher = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherMember(
 publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -871,7 +872,7 @@ class _$SnPublisherFollowRequestCopyWithImpl<$Res>
 /// Create a copy of SnPublisherFollowRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? publisherId = null,Object? accountId = null,Object? state = null,Object? rejectReason = freezed,Object? createdAt = null,Object? reviewedAt = freezed,Object? reviewedByAccountId = freezed,Object? account = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherFollowRequest(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -1176,7 +1177,7 @@ class _$SnPublisherFollowResponseCopyWithImpl<$Res>
 /// Create a copy of SnPublisherFollowResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? requestId = freezed,Object? state = freezed,Object? message = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherFollowResponse(
 requestId: freezed == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
 as String?,state: freezed == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as FollowRequestState?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
@@ -1439,7 +1440,7 @@ class _$SnPublisherFollowRequestListResponseCopyWithImpl<$Res>
 /// Create a copy of SnPublisherFollowRequestListResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? requests = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherFollowRequestListResponse(
 requests: null == requests ? _self.requests : requests // ignore: cast_nullable_to_non_nullable
 as List<SnPublisherFollowRequest>,
   ));
@@ -1576,7 +1577,7 @@ return $default(_that.requests);case _:
 @JsonSerializable()
 
 class _SnPublisherFollowRequestListResponse implements SnPublisherFollowRequestListResponse {
-  const _SnPublisherFollowRequestListResponse({required final  List<SnPublisherFollowRequest> requests}): _requests = requests;
+  const _SnPublisherFollowRequestListResponse({required  List<SnPublisherFollowRequest> requests}): _requests = requests;
   factory _SnPublisherFollowRequestListResponse.fromJson(Map<String, dynamic> json) => _$SnPublisherFollowRequestListResponseFromJson(json);
 
  final  List<SnPublisherFollowRequest> _requests;
@@ -1702,7 +1703,7 @@ class _$SnPublisherFollowStatusCopyWithImpl<$Res>
 /// Create a copy of SnPublisherFollowStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? isSubscribed = null,Object? followRequestState = freezed,Object? followRequestId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherFollowStatus(
 isSubscribed: null == isSubscribed ? _self.isSubscribed : isSubscribed // ignore: cast_nullable_to_non_nullable
 as bool,followRequestState: freezed == followRequestState ? _self.followRequestState : followRequestState // ignore: cast_nullable_to_non_nullable
 as FollowRequestState?,followRequestId: freezed == followRequestId ? _self.followRequestId : followRequestId // ignore: cast_nullable_to_non_nullable
@@ -1965,7 +1966,7 @@ class _$SnPublisherSubscriptionStatusCopyWithImpl<$Res>
 /// Create a copy of SnPublisherSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? subscription = freezed,Object? followRequest = freezed,Object? requiresApproval = null,Object? status = null,Object? message = null,Object? isPending = null,Object? isActive = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherSubscriptionStatus(
 subscription: freezed == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
 as SnPublisherSubscription?,followRequest: freezed == followRequest ? _self.followRequest : followRequest // ignore: cast_nullable_to_non_nullable
 as SnPublisherFollowRequest?,requiresApproval: null == requiresApproval ? _self.requiresApproval : requiresApproval // ignore: cast_nullable_to_non_nullable
@@ -2288,7 +2289,7 @@ class _$SnPublisherSubscriberCopyWithImpl<$Res>
 /// Create a copy of SnPublisherSubscriber
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? subscription = null,Object? account = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherSubscriber(
 subscription: null == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
 as SnPublisherSubscription,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,
@@ -2590,7 +2591,7 @@ class _$SnPublisherSubscriptionCopyWithImpl<$Res>
 /// Create a copy of SnPublisherSubscription
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? publisherId = null,Object? accountId = null,Object? lastReadAt = freezed,Object? notify = null,Object? endedAt = freezed,Object? endReason = freezed,Object? endedByAccountId = freezed,Object? isActive = null,Object? createdAt = null,Object? updatedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnPublisherSubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable

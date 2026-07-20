@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'workout.dart';
@@ -9,6 +9,7 @@ part of 'workout.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnWorkoutCopyWithImpl<$Res>
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? distance = freezed,Object? distanceUnit = freezed,Object? averageSpeed = freezed,Object? averageHeartRate = freezed,Object? maxHeartRate = freezed,Object? elevationGain = freezed,Object? maxSpeed = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnWorkout(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -223,7 +224,7 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 @JsonSerializable()
 
 class _SnWorkout implements SnWorkout {
-  const _SnWorkout({required this.id, required this.accountId, required this.name, this.description, required this.type, required this.startTime, this.endTime, this.caloriesBurned, this.distance, this.distanceUnit, this.averageSpeed, this.averageHeartRate, this.maxHeartRate, this.elevationGain, this.maxSpeed, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta, required this.createdAt, required this.updatedAt, final  List<SnWorkoutExercise> exercises = const []}): _meta = meta,_exercises = exercises;
+  const _SnWorkout({required this.id, required this.accountId, required this.name, this.description, required this.type, required this.startTime, this.endTime, this.caloriesBurned, this.distance, this.distanceUnit, this.averageSpeed, this.averageHeartRate, this.maxHeartRate, this.elevationGain, this.maxSpeed, this.notes, this.visibility = FitnessVisibility.private,  Map<String, dynamic>? meta, required this.createdAt, required this.updatedAt,  List<SnWorkoutExercise> exercises = const []}): _meta = meta,_exercises = exercises;
   factory _SnWorkout.fromJson(Map<String, dynamic> json) => _$SnWorkoutFromJson(json);
 
 @override final  String id;
@@ -397,7 +398,7 @@ class _$SnWorkoutExerciseCopyWithImpl<$Res>
 /// Create a copy of SnWorkoutExercise
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? workoutId = null,Object? exerciseName = null,Object? sets = freezed,Object? reps = freezed,Object? weight = freezed,Object? notes = freezed,Object? orderIndex = null,Object? createdAt = null,Object? updatedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnWorkoutExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,workoutId: null == workoutId ? _self.workoutId : workoutId // ignore: cast_nullable_to_non_nullable
 as String,exerciseName: null == exerciseName ? _self.exerciseName : exerciseName // ignore: cast_nullable_to_non_nullable
@@ -681,7 +682,7 @@ class _$CreateWorkoutRequestCopyWithImpl<$Res>
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? distance = freezed,Object? distanceUnit = freezed,Object? averageSpeed = freezed,Object? averageHeartRate = freezed,Object? maxHeartRate = freezed,Object? elevationGain = freezed,Object? maxSpeed = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CreateWorkoutRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as WorkoutType,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
@@ -834,7 +835,7 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 @JsonSerializable()
 
 class _CreateWorkoutRequest implements CreateWorkoutRequest {
-  const _CreateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, @NullableDateTimeConverter() this.endTime, this.description, this.externalId, this.caloriesBurned, this.distance, this.distanceUnit, this.averageSpeed, this.averageHeartRate, this.maxHeartRate, this.elevationGain, this.maxSpeed, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta}): _meta = meta;
+  const _CreateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, @NullableDateTimeConverter() this.endTime, this.description, this.externalId, this.caloriesBurned, this.distance, this.distanceUnit, this.averageSpeed, this.averageHeartRate, this.maxHeartRate, this.elevationGain, this.maxSpeed, this.notes, this.visibility = FitnessVisibility.private,  Map<String, dynamic>? meta}): _meta = meta;
   factory _CreateWorkoutRequest.fromJson(Map<String, dynamic> json) => _$CreateWorkoutRequestFromJson(json);
 
 @override final  String name;
@@ -994,7 +995,7 @@ class _$UpdateWorkoutRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? description = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = freezed,Object? meta = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateWorkoutRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as WorkoutType,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
@@ -1138,7 +1139,7 @@ return $default(_that.name,_that.type,_that.startTime,_that.description,_that.ca
 @JsonSerializable()
 
 class _UpdateWorkoutRequest implements UpdateWorkoutRequest {
-  const _UpdateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, this.description, this.caloriesBurned, this.notes, this.visibility, final  Map<String, dynamic>? meta}): _meta = meta;
+  const _UpdateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, this.description, this.caloriesBurned, this.notes, this.visibility,  Map<String, dynamic>? meta}): _meta = meta;
   factory _UpdateWorkoutRequest.fromJson(Map<String, dynamic> json) => _$UpdateWorkoutRequestFromJson(json);
 
 @override final  String name;
@@ -1280,7 +1281,7 @@ class _$AddExerciseRequestCopyWithImpl<$Res>
 /// Create a copy of AddExerciseRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? exerciseName = null,Object? sets = freezed,Object? reps = freezed,Object? weight = freezed,Object? notes = freezed,Object? orderIndex = null,}) {
-  return _then(_self.copyWith(
+  return _then(AddExerciseRequest(
 exerciseName: null == exerciseName ? _self.exerciseName : exerciseName // ignore: cast_nullable_to_non_nullable
 as String,sets: freezed == sets ? _self.sets : sets // ignore: cast_nullable_to_non_nullable
 as int?,reps: freezed == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
@@ -1552,7 +1553,7 @@ class _$UpdateWorkoutExerciseRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateWorkoutExerciseRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? exerciseName = null,Object? sets = freezed,Object? reps = freezed,Object? weight = freezed,Object? orderIndex = freezed,Object? notes = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateWorkoutExerciseRequest(
 exerciseName: null == exerciseName ? _self.exerciseName : exerciseName // ignore: cast_nullable_to_non_nullable
 as String,sets: freezed == sets ? _self.sets : sets // ignore: cast_nullable_to_non_nullable
 as int?,reps: freezed == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
@@ -1824,7 +1825,7 @@ class _$CreateWorkoutsBatchRequestCopyWithImpl<$Res>
 /// Create a copy of CreateWorkoutsBatchRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? workouts = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreateWorkoutsBatchRequest(
 workouts: null == workouts ? _self.workouts : workouts // ignore: cast_nullable_to_non_nullable
 as List<CreateWorkoutRequest>,
   ));
@@ -1961,7 +1962,7 @@ return $default(_that.workouts);case _:
 @JsonSerializable()
 
 class _CreateWorkoutsBatchRequest implements CreateWorkoutsBatchRequest {
-  const _CreateWorkoutsBatchRequest({required final  List<CreateWorkoutRequest> workouts}): _workouts = workouts;
+  const _CreateWorkoutsBatchRequest({required  List<CreateWorkoutRequest> workouts}): _workouts = workouts;
   factory _CreateWorkoutsBatchRequest.fromJson(Map<String, dynamic> json) => _$CreateWorkoutsBatchRequestFromJson(json);
 
  final  List<CreateWorkoutRequest> _workouts;

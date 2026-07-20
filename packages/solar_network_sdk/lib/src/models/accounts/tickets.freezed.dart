@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'tickets.dart';
@@ -9,6 +9,7 @@ part of 'tickets.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnTicketCopyWithImpl<$Res>
 /// Create a copy of SnTicket
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? content = freezed,Object? type = null,Object? status = null,Object? priority = null,Object? creatorId = null,Object? creator = null,Object? assigneeId = freezed,Object? assignee = freezed,Object? resolvedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? messages = null,Object? fileIds = null,Object? resources = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnTicket(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
@@ -240,7 +241,7 @@ return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that
 @JsonSerializable()
 
 class _SnTicket implements SnTicket {
-  const _SnTicket({required this.id, required this.title, this.content, required this.type, required this.status, required this.priority, required this.creatorId, required this.creator, this.assigneeId, this.assignee, this.resolvedAt, required this.createdAt, required this.updatedAt, this.deletedAt, final  List<SnTicketMessage> messages = const [], final  List<String> fileIds = const [], final  List<String?> resources = const []}): _messages = messages,_fileIds = fileIds,_resources = resources;
+  const _SnTicket({required this.id, required this.title, this.content, required this.type, required this.status, required this.priority, required this.creatorId, required this.creator, this.assigneeId, this.assignee, this.resolvedAt, required this.createdAt, required this.updatedAt, this.deletedAt,  List<SnTicketMessage> messages = const [],  List<String> fileIds = const [],  List<String?> resources = const []}): _messages = messages,_fileIds = fileIds,_resources = resources;
   factory _SnTicket.fromJson(Map<String, dynamic> json) => _$SnTicketFromJson(json);
 
 @override final  String id;
@@ -431,7 +432,7 @@ class _$SnTicketMessageCopyWithImpl<$Res>
 /// Create a copy of SnTicketMessage
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? ticketId = null,Object? senderId = null,Object? sender = null,Object? content = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? files = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnTicketMessage(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,ticketId: null == ticketId ? _self.ticketId : ticketId // ignore: cast_nullable_to_non_nullable
 as String,senderId: null == senderId ? _self.senderId : senderId // ignore: cast_nullable_to_non_nullable
@@ -585,7 +586,7 @@ return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.conten
 @JsonSerializable()
 
 class _SnTicketMessage implements SnTicketMessage {
-  const _SnTicketMessage({required this.id, required this.ticketId, required this.senderId, required this.sender, required this.content, required this.createdAt, required this.updatedAt, this.deletedAt, required final  List<SnCloudFileReference> files}): _files = files;
+  const _SnTicketMessage({required this.id, required this.ticketId, required this.senderId, required this.sender, required this.content, required this.createdAt, required this.updatedAt, this.deletedAt, required  List<SnCloudFileReference> files}): _files = files;
   factory _SnTicketMessage.fromJson(Map<String, dynamic> json) => _$SnTicketMessageFromJson(json);
 
 @override final  String id;
@@ -733,9 +734,9 @@ class _$TicketTypeCopyWithImpl<$Res>
 /// Create a copy of TicketType
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? value = null,Object? displayName = null,}) {
-  return _then(_self.copyWith(
-value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
-as int,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+  return _then(TicketType(
+null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as int,null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -987,9 +988,9 @@ class _$TicketStatusCopyWithImpl<$Res>
 /// Create a copy of TicketStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? value = null,Object? displayName = null,}) {
-  return _then(_self.copyWith(
-value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
-as int,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+  return _then(TicketStatus(
+null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as int,null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -1241,9 +1242,9 @@ class _$TicketPriorityCopyWithImpl<$Res>
 /// Create a copy of TicketPriority
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? value = null,Object? displayName = null,}) {
-  return _then(_self.copyWith(
-value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
-as int,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+  return _then(TicketPriority(
+null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as int,null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

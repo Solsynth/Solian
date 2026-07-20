@@ -180,7 +180,7 @@ _SnCloudFileReference _$SnCloudFileReferenceFromJson(
   Map<String, dynamic> json,
 ) => _SnCloudFileReference(
   id: json['id'] as String,
-  name: json['name'] as String,
+  name: json['name'] as String? ?? '',
   fileMeta: json['file_meta'] as Map<String, dynamic>? ?? const {},
   userMeta: json['user_meta'] as Map<String, dynamic>? ?? const {},
   sensitiveMarks:
@@ -188,10 +188,10 @@ _SnCloudFileReference _$SnCloudFileReferenceFromJson(
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
-  mimeType: json['mime_type'] as String,
-  hash: json['hash'] as String,
-  size: (json['size'] as num).toInt(),
-  hasCompression: json['has_compression'] as bool,
+  mimeType: json['mime_type'] as String? ?? 'application/octet-stream',
+  hash: json['hash'] as String? ?? '',
+  size: (json['size'] as num?)?.toInt() ?? 0,
+  hasCompression: json['has_compression'] as bool? ?? false,
   storageUrl: json['url'] as String?,
   width: (json['width'] as num?)?.toDouble(),
   height: (json['height'] as num?)?.toDouble(),

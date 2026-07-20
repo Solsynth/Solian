@@ -267,7 +267,9 @@ class _ChatSearchFilterBar extends HookWidget {
       (before != null ? 1 : 0);
 
   int get _advancedCount =>
-      (sender != null ? 1 : 0) + (after != null ? 1 : 0) + (before != null ? 1 : 0);
+      (sender != null ? 1 : 0) +
+      (after != null ? 1 : 0) +
+      (before != null ? 1 : 0);
 
   @override
   Widget build(BuildContext context) {
@@ -591,10 +593,7 @@ class _SenderAccountField extends StatelessWidget {
           child: Row(
             children: [
               if (selected)
-                ProfilePictureWidget(
-                  file: account!.profile.picture,
-                  radius: 16,
-                )
+                ProfilePictureWidget(file: account!.profile.picture, radius: 16)
               else
                 Icon(
                   Symbols.person_search,
@@ -793,9 +792,7 @@ class _SearchStatusBar extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             children: [
               // Keep the match count centered even when an info icon is present.
-              SizedBox(
-                width: infoTooltip != null ? 36 : 0,
-              ),
+              SizedBox(width: infoTooltip != null ? 36 : 0),
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -877,24 +874,21 @@ class _SearchEmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: muted,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: muted),
             ),
             if (subtitle != null) ...[
               const Gap(8),
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: muted),
               ),
             ],
-            if (action != null) ...[
-              const Gap(16),
-              action!,
-            ],
+            if (action != null) ...[const Gap(16), action!],
           ],
         ),
       ),
@@ -902,10 +896,8 @@ class _SearchEmptyState extends StatelessWidget {
   }
 }
 
-bool _messageHasLink(LocalChatMessage message) => RegExp(
-  r'https?://',
-  caseSensitive: false,
-).hasMatch(message.content ?? '');
+bool _messageHasLink(LocalChatMessage message) =>
+    RegExp(r'https?://', caseSensitive: false).hasMatch(message.content ?? '');
 
 /// Query string for cloud `sender` param (matches name or nickname on server).
 String? _senderQuery(SnAccount? account) {
@@ -990,9 +982,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
       final trimmedQuery = query.trim();
       final hasLocalFilters = withLinks.value || withAttachments.value;
       final hasCloudFilters =
-          sender.value != null ||
-          after.value != null ||
-          before.value != null;
+          sender.value != null || after.value != null || before.value != null;
 
       if (trimmedQuery.isEmpty && !hasLocalFilters && !hasCloudFilters) {
         searchState.value = SearchState.idle;
@@ -1071,10 +1061,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
             }
             if (after.value != null) {
               messages = messages
-                  .where(
-                    (m) =>
-                        !m.createdAt.isBefore(after.value!.toUtc()),
-                  )
+                  .where((m) => !m.createdAt.isBefore(after.value!.toUtc()))
                   .toList();
             }
             if (before.value != null) {
@@ -1129,8 +1116,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
         title: const Text('searchMessages').tr(),
         actions: [
           IconButton(
-            onPressed: () =>
-                isFilterVisible.value = !isFilterVisible.value,
+            onPressed: () => isFilterVisible.value = !isFilterVisible.value,
             icon: Icon(
               isFilterVisible.value
                   ? Symbols.filter_list_off
@@ -1214,8 +1200,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                   before: before.value,
                   onAfterChanged: (value) => after.value = value,
                   onBeforeChanged: (value) => before.value = value,
-                  onFiltersChanged: () =>
-                      performSearch(searchController.text),
+                  onFiltersChanged: () => performSearch(searchController.text),
                 ),
               ),
               Expanded(
@@ -1251,9 +1236,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                               return MessageListTile(
                                 message: message,
                                 onJump: (messageId) {
-                                  context.pop(
-                                    SearchMessagesResult(messageId),
-                                  );
+                                  context.pop(SearchMessagesResult(messageId));
                                 },
                               );
                             },
@@ -1277,8 +1260,7 @@ class SearchMessagesScreen extends HookConsumerWidget {
                       icon: Symbols.error_outline,
                       title: 'searchError'.tr(),
                       action: FilledButton.tonalIcon(
-                        onPressed: () =>
-                            performSearch(searchController.text),
+                        onPressed: () => performSearch(searchController.text),
                         icon: const Icon(Symbols.refresh),
                         label: const Text('retry').tr(),
                       ),
@@ -1331,9 +1313,7 @@ class SearchAllMessagesScreen extends HookConsumerWidget {
       final query = rawQuery.trim();
       final hasLocalFilters = withLinks.value || withAttachments.value;
       final hasCloudFilters =
-          sender.value != null ||
-          after.value != null ||
-          before.value != null;
+          sender.value != null || after.value != null || before.value != null;
 
       if (query.isEmpty && !hasLocalFilters && !hasCloudFilters) {
         groups.value = [];
@@ -1354,9 +1334,7 @@ class SearchAllMessagesScreen extends HookConsumerWidget {
           var total = 0;
 
           final useCloud =
-              cloudSearch.value &&
-              query.isNotEmpty &&
-              !withAttachments.value;
+              cloudSearch.value && query.isNotEmpty && !withAttachments.value;
 
           if (useCloud) {
             try {
@@ -1486,8 +1464,7 @@ class SearchAllMessagesScreen extends HookConsumerWidget {
         title: const Text('Search all chats'),
         actions: [
           IconButton(
-            onPressed: () =>
-                isFilterVisible.value = !isFilterVisible.value,
+            onPressed: () => isFilterVisible.value = !isFilterVisible.value,
             icon: Icon(
               isFilterVisible.value
                   ? Symbols.filter_list_off
@@ -1601,10 +1578,13 @@ class SearchAllMessagesScreen extends HookConsumerWidget {
                               onOpenRoom: () => context.router.navigate(
                                 ChatRoomRoute(id: group.roomId),
                               ),
-                              onJumpMessage: (_) =>
+                              onJumpMessage: (messageId) =>
                                   context.router.navigate(
-                                ChatRoomRoute(id: group.roomId),
-                              ),
+                                    ChatRoomRoute(
+                                      id: group.roomId,
+                                      initialMessageId: messageId,
+                                    ),
+                                  ),
                             );
                           },
                         ),
@@ -1627,10 +1607,7 @@ class _CollapsibleFilterHeader extends StatelessWidget {
   final bool visible;
   final Widget child;
 
-  const _CollapsibleFilterHeader({
-    required this.visible,
-    required this.child,
-  });
+  const _CollapsibleFilterHeader({required this.visible, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -1721,11 +1698,7 @@ class _SearchRoomSection extends StatelessWidget {
           onTap: onOpenRoom,
         ),
         for (final message in group.messages)
-          MessageListTile(
-            message: message,
-            onJump: onJumpMessage,
-          ),
-        const Divider(height: 1),
+          MessageListTile(message: message, onJump: onJumpMessage),
       ],
     );
   }

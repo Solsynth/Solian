@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'post_category.dart';
@@ -9,6 +9,7 @@ part of 'post_category.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnPostCategoryCopyWithImpl<$Res>
 /// Create a copy of SnPostCategory
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? posts = null,Object? usage = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnPostCategory(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -207,7 +208,7 @@ return $default(_that.id,_that.slug,_that.name,_that.posts,_that.usage);case _:
 @JsonSerializable()
 
 class _SnPostCategory extends SnPostCategory {
-  const _SnPostCategory({required this.id, required this.slug, this.name, final  List<SnPost> posts = const [], this.usage = 0}): _posts = posts,super._();
+  const _SnPostCategory({required this.id, required this.slug, this.name,  List<SnPost> posts = const [], this.usage = 0}): _posts = posts,super._();
   factory _SnPostCategory.fromJson(Map<String, dynamic> json) => _$SnPostCategoryFromJson(json);
 
 @override final  String id;
@@ -341,7 +342,7 @@ class _$SnCategorySubscriptionCopyWithImpl<$Res>
 /// Create a copy of SnCategorySubscription
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? categoryId = freezed,Object? category = freezed,Object? tagId = freezed,Object? tag = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnCategorySubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable

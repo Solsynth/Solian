@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'realm.dart';
@@ -9,6 +9,7 @@ part of 'realm.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnRealmCopyWithImpl<$Res>
 /// Create a copy of SnRealm
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = null,Object? verifiedAs = freezed,Object? verifiedAt = freezed,Object? isCommunity = null,Object? isPublic = null,Object? picture = freezed,Object? background = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? boostPoints = null,Object? boostLevel = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnRealm(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -416,7 +417,7 @@ class _$SnRealmMemberCopyWithImpl<$Res>
 /// Create a copy of SnRealmMember
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? realmId = null,Object? realm = freezed,Object? accountId = null,Object? account = freezed,Object? role = null,Object? joinedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? status = freezed,Object? nick = freezed,Object? bio = freezed,Object? labelId = freezed,Object? label = freezed,Object? experience = null,Object? level = null,Object? levelingProgress = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnRealmMember(
 realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
 as SnRealm?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -817,7 +818,7 @@ class _$SnRealmLabelCopyWithImpl<$Res>
 /// Create a copy of SnRealmLabel
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? realmId = null,Object? name = null,Object? description = null,Object? color = freezed,Object? icon = freezed,Object? createdByAccountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnRealmLabel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,realmId: null == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -1101,7 +1102,7 @@ class _$SnRealmRolePermissionCopyWithImpl<$Res>
 /// Create a copy of SnRealmRolePermission
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? roleLevel = null,Object? canChat = null,Object? canPost = null,Object? canComment = null,Object? canUploadMedia = null,Object? canModeratePosts = null,Object? canModerateChat = null,Object? canManageMembers = null,Object? canManageRealm = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnRealmRolePermission(
 roleLevel: null == roleLevel ? _self.roleLevel : roleLevel // ignore: cast_nullable_to_non_nullable
 as int,canChat: null == canChat ? _self.canChat : canChat // ignore: cast_nullable_to_non_nullable
 as bool,canPost: null == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable
@@ -1382,7 +1383,7 @@ class _$SnRealmUserPermissionCopyWithImpl<$Res>
 /// Create a copy of SnRealmUserPermission
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? accountId = null,Object? canChat = freezed,Object? canPost = freezed,Object? canComment = freezed,Object? canUploadMedia = freezed,Object? canModeratePosts = freezed,Object? canModerateChat = freezed,Object? canManageMembers = freezed,Object? canManageRealm = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnRealmUserPermission(
 accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,canChat: freezed == canChat ? _self.canChat : canChat // ignore: cast_nullable_to_non_nullable
 as bool?,canPost: freezed == canPost ? _self.canPost : canPost // ignore: cast_nullable_to_non_nullable

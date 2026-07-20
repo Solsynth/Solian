@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'chat.dart';
@@ -9,6 +9,7 @@ part of 'chat.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SnChatGroupCopyWithImpl<$Res>
 /// Create a copy of SnChatGroup
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? color = freezed,Object? icon = freezed,Object? order = null,Object? roomIds = null,Object? createdAt = null,Object? updatedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatGroup(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -211,7 +212,7 @@ return $default(_that.id,_that.accountId,_that.name,_that.color,_that.icon,_that
 @JsonSerializable()
 
 class _SnChatGroup implements SnChatGroup {
-  const _SnChatGroup({required this.id, required this.accountId, required this.name, this.color, this.icon, required this.order, @JsonKey(name: 'room_ids') final  List<String> roomIds = const [], required this.createdAt, required this.updatedAt}): _roomIds = roomIds;
+  const _SnChatGroup({required this.id, required this.accountId, required this.name, this.color, this.icon, required this.order, @JsonKey(name: 'room_ids')  List<String> roomIds = const [], required this.createdAt, required this.updatedAt}): _roomIds = roomIds;
   factory _SnChatGroup.fromJson(Map<String, dynamic> json) => _$SnChatGroupFromJson(json);
 
 @override final  String id;
@@ -302,8 +303,7 @@ as DateTime,
 /// @nodoc
 mixin _$SnChatRoom {
 
- String get id; String? get name; String? get description; int get type;@JsonKey(name: 'encryption_mode') int get encryptionMode;@JsonKey(name: 'mls_group_id') String? get mlsGroupId; bool get isPublic; bool get isCommunity; SnCloudFileReference? get picture; SnCloudFileReference? get background; String? get realmId; String? get accountId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;// Frontend data
- bool get isPinned;
+ String get id; String? get name; String? get description; int get type;@JsonKey(name: 'encryption_mode') int get encryptionMode;@JsonKey(name: 'mls_group_id') String? get mlsGroupId; bool get isPublic; bool get isCommunity; SnCloudFileReference? get picture; SnCloudFileReference? get background; String? get realmId; String? get accountId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members; bool get isPinned;
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -354,7 +354,7 @@ class _$SnChatRoomCopyWithImpl<$Res>
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? type = null,Object? encryptionMode = null,Object? mlsGroupId = freezed,Object? isPublic = null,Object? isCommunity = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? accountId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,Object? isPinned = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatRoom(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -544,7 +544,7 @@ return $default(_that.id,_that.name,_that.description,_that.type,_that.encryptio
 @JsonSerializable()
 
 class _SnChatRoom implements SnChatRoom {
-  const _SnChatRoom({required this.id, required this.name, required this.description, required this.type, @JsonKey(name: 'encryption_mode') this.encryptionMode = 0, @JsonKey(name: 'mls_group_id') this.mlsGroupId, this.isPublic = false, this.isCommunity = false, required this.picture, required this.background, required this.realmId, required this.accountId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required final  List<SnChatMember>? members, this.isPinned = false}): _members = members;
+  const _SnChatRoom({required this.id, required this.name, required this.description, required this.type, @JsonKey(name: 'encryption_mode') this.encryptionMode = 0, @JsonKey(name: 'mls_group_id') this.mlsGroupId, this.isPublic = false, this.isCommunity = false, required this.picture, required this.background, required this.realmId, required this.accountId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required  List<SnChatMember>? members, this.isPinned = false}): _members = members;
   factory _SnChatRoom.fromJson(Map<String, dynamic> json) => _$SnChatRoomFromJson(json);
 
 @override final  String id;
@@ -572,7 +572,6 @@ class _SnChatRoom implements SnChatRoom {
   return EqualUnmodifiableListView(value);
 }
 
-// Frontend data
 @override@JsonKey() final  bool isPinned;
 
 /// Create a copy of SnChatRoom
@@ -743,7 +742,7 @@ class _$SnChatMessageCopyWithImpl<$Res>
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? clientMessageId = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatMessage(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -908,7 +907,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 @JsonSerializable()
 
 class _SnChatMessage implements SnChatMessage {
-  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, @JsonKey(name: 'client_message_id') this.clientMessageId, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMentioned = const [], this.editedAt, final  List<SnCloudFileReference> attachments = const [], final  List<SnChatReaction> reactions = const [], @JsonKey(name: 'reactions_count') final  Map<String, int> reactionsCount = const {}, @JsonKey(name: 'reactions_made') final  Map<String, bool> reactionsMade = const {}, this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade;
+  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, @JsonKey(name: 'client_message_id') this.clientMessageId, this.nonce,  Map<String, dynamic> meta = const {},  List<String> membersMentioned = const [], this.editedAt,  List<SnCloudFileReference> attachments = const [],  List<SnChatReaction> reactions = const [], @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount = const {}, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade = const {}, this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade;
   factory _SnChatMessage.fromJson(Map<String, dynamic> json) => _$SnChatMessageFromJson(json);
 
 @override final  DateTime createdAt;
@@ -1111,7 +1110,7 @@ class _$SnChatReactionCopyWithImpl<$Res>
 /// Create a copy of SnChatReaction
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? messageId = null,Object? senderId = null,Object? sender = null,Object? symbol = null,Object? attitude = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatReaction(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -1410,7 +1409,7 @@ class _$SnChatMessagePinCopyWithImpl<$Res>
 /// Create a copy of SnChatMessagePin
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? messageId = null,Object? chatRoomId = null,Object? pinnedByMemberId = null,Object? expiresAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? message = freezed,Object? pinnedBy = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatMessagePin(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,messageId: null == messageId ? _self.messageId : messageId // ignore: cast_nullable_to_non_nullable
 as String,chatRoomId: null == chatRoomId ? _self.chatRoomId : chatRoomId // ignore: cast_nullable_to_non_nullable
@@ -1688,9 +1687,7 @@ $SnChatMemberCopyWith<$Res>? get pinnedBy {
 /// @nodoc
 mixin _$SnChatMember {
 
- DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get chatRoomId; SnChatRoom? get chatRoom; String get accountId; SnAccount get account; String? get nick; int get notify; DateTime? get joinedAt; DateTime? get breakUntil; DateTime? get timeoutUntil;@JsonKey(name: 'chat_group_id') String? get chatGroupId;@JsonKey(name: 'chat_group') SnChatGroup? get chatGroup; DateTime? get lastReadAt; SnAccountStatus? get status;// Realm related-content
- String? get realmNick; String? get realmBio; int? get realmExperience; int? get realmLevel; double? get realmLevelingProgress; SnRealmLabel? get realmLabel;// Frontend data
- DateTime? get lastTyped;
+ DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get chatRoomId; SnChatRoom? get chatRoom; String get accountId; SnAccount get account; String? get nick; int get notify; DateTime? get joinedAt; DateTime? get breakUntil; DateTime? get timeoutUntil;@JsonKey(name: 'chat_group_id') String? get chatGroupId;@JsonKey(name: 'chat_group') SnChatGroup? get chatGroup; DateTime? get lastReadAt; SnAccountStatus? get status; String? get realmNick; String? get realmBio; int? get realmExperience; int? get realmLevel; double? get realmLevelingProgress; SnRealmLabel? get realmLabel; DateTime? get lastTyped;
 /// Create a copy of SnChatMember
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1741,7 +1738,7 @@ class _$SnChatMemberCopyWithImpl<$Res>
 /// Create a copy of SnChatMember
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? chatRoomId = null,Object? chatRoom = freezed,Object? accountId = null,Object? account = null,Object? nick = freezed,Object? notify = null,Object? joinedAt = freezed,Object? breakUntil = freezed,Object? timeoutUntil = freezed,Object? chatGroupId = freezed,Object? chatGroup = freezed,Object? lastReadAt = freezed,Object? status = freezed,Object? realmNick = freezed,Object? realmBio = freezed,Object? realmExperience = freezed,Object? realmLevel = freezed,Object? realmLevelingProgress = freezed,Object? realmLabel = freezed,Object? lastTyped = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatMember(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -1978,14 +1975,12 @@ class _SnChatMember implements SnChatMember {
 @override@JsonKey(name: 'chat_group') final  SnChatGroup? chatGroup;
 @override final  DateTime? lastReadAt;
 @override final  SnAccountStatus? status;
-// Realm related-content
 @override final  String? realmNick;
 @override final  String? realmBio;
 @override final  int? realmExperience;
 @override final  int? realmLevel;
 @override final  double? realmLevelingProgress;
 @override final  SnRealmLabel? realmLabel;
-// Frontend data
 @override final  DateTime? lastTyped;
 
 /// Create a copy of SnChatMember
@@ -2183,7 +2178,7 @@ class _$SnChatSummaryCopyWithImpl<$Res>
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? unreadCount = null,Object? lastMessage = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatSummary(
 unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
 as int,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
 as SnChatMessage?,
@@ -2467,7 +2462,7 @@ class _$SnChatOnlineAccountCopyWithImpl<$Res>
 /// Create a copy of SnChatOnlineAccount
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nick = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatOnlineAccount(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
@@ -2730,7 +2725,7 @@ class _$SnChatOnlineStatusCopyWithImpl<$Res>
 /// Create a copy of SnChatOnlineStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? onlineCount = null,Object? directMessageStatus = freezed,Object? onlineUserNames = null,Object? onlineAccounts = null,}) {
-  return _then(_self.copyWith(
+  return _then(SnChatOnlineStatus(
 onlineCount: null == onlineCount ? _self.onlineCount : onlineCount // ignore: cast_nullable_to_non_nullable
 as int,directMessageStatus: freezed == directMessageStatus ? _self.directMessageStatus : directMessageStatus // ignore: cast_nullable_to_non_nullable
 as SnAccountStatus?,onlineUserNames: null == onlineUserNames ? _self.onlineUserNames : onlineUserNames // ignore: cast_nullable_to_non_nullable
@@ -2882,7 +2877,7 @@ return $default(_that.onlineCount,_that.directMessageStatus,_that.onlineUserName
 @JsonSerializable()
 
 class _SnChatOnlineStatus implements SnChatOnlineStatus {
-  const _SnChatOnlineStatus({required this.onlineCount, this.directMessageStatus, final  List<String> onlineUserNames = const [], final  List<SnChatOnlineAccount> onlineAccounts = const []}): _onlineUserNames = onlineUserNames,_onlineAccounts = onlineAccounts;
+  const _SnChatOnlineStatus({required this.onlineCount, this.directMessageStatus,  List<String> onlineUserNames = const [],  List<SnChatOnlineAccount> onlineAccounts = const []}): _onlineUserNames = onlineUserNames,_onlineAccounts = onlineAccounts;
   factory _SnChatOnlineStatus.fromJson(Map<String, dynamic> json) => _$SnChatOnlineStatusFromJson(json);
 
 @override final  int onlineCount;
@@ -3032,7 +3027,7 @@ class _$MessageSyncResponseCopyWithImpl<$Res>
 /// Create a copy of MessageSyncResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? messages = null,Object? totalCount = null,Object? currentTimestamp = null,}) {
-  return _then(_self.copyWith(
+  return _then(MessageSyncResponse(
 messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
 as List<SnChatMessage>,totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
 as int,currentTimestamp: null == currentTimestamp ? _self.currentTimestamp : currentTimestamp // ignore: cast_nullable_to_non_nullable
@@ -3171,7 +3166,7 @@ return $default(_that.messages,_that.totalCount,_that.currentTimestamp);case _:
 @JsonSerializable()
 
 class _MessageSyncResponse implements MessageSyncResponse {
-  const _MessageSyncResponse({final  List<SnChatMessage> messages = const [], this.totalCount = 0, required this.currentTimestamp}): _messages = messages;
+  const _MessageSyncResponse({ List<SnChatMessage> messages = const [], this.totalCount = 0, required this.currentTimestamp}): _messages = messages;
   factory _MessageSyncResponse.fromJson(Map<String, dynamic> json) => _$MessageSyncResponseFromJson(json);
 
  final  List<SnChatMessage> _messages;
@@ -3301,7 +3296,7 @@ class _$ChatRealtimeJoinResponseCopyWithImpl<$Res>
 /// Create a copy of ChatRealtimeJoinResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? provider = null,Object? endpoint = null,Object? token = null,Object? callId = null,Object? roomName = null,Object? isAdmin = null,Object? participants = null,}) {
-  return _then(_self.copyWith(
+  return _then(ChatRealtimeJoinResponse(
 provider: null == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
 as String,endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
 as String,token: null == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
@@ -3444,7 +3439,7 @@ return $default(_that.provider,_that.endpoint,_that.token,_that.callId,_that.roo
 @JsonSerializable()
 
 class _ChatRealtimeJoinResponse implements ChatRealtimeJoinResponse {
-  const _ChatRealtimeJoinResponse({required this.provider, required this.endpoint, required this.token, required this.callId, required this.roomName, required this.isAdmin, required final  List<CallParticipant> participants}): _participants = participants;
+  const _ChatRealtimeJoinResponse({required this.provider, required this.endpoint, required this.token, required this.callId, required this.roomName, required this.isAdmin, required  List<CallParticipant> participants}): _participants = participants;
   factory _ChatRealtimeJoinResponse.fromJson(Map<String, dynamic> json) => _$ChatRealtimeJoinResponseFromJson(json);
 
 @override final  String provider;
@@ -3582,7 +3577,7 @@ class _$CallParticipantCopyWithImpl<$Res>
 /// Create a copy of CallParticipant
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? identity = null,Object? name = null,Object? joinedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(CallParticipant(
 identity: null == identity ? _self.identity : identity // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,joinedAt: null == joinedAt ? _self.joinedAt : joinedAt // ignore: cast_nullable_to_non_nullable
@@ -3845,7 +3840,7 @@ class _$SnRealtimeCallCopyWithImpl<$Res>
 /// Create a copy of SnRealtimeCall
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? endedAt = freezed,Object? senderId = null,Object? sender = null,Object? roomId = null,Object? room = null,Object? upstreamConfig = null,Object? providerName = freezed,Object? sessionId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SnRealtimeCall(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -4011,7 +4006,7 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.e
 @JsonSerializable()
 
 class _SnRealtimeCall implements SnRealtimeCall {
-  const _SnRealtimeCall({required this.id, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.endedAt, required this.senderId, required this.sender, required this.roomId, required this.room, required final  Map<String, dynamic> upstreamConfig, this.providerName, this.sessionId}): _upstreamConfig = upstreamConfig;
+  const _SnRealtimeCall({required this.id, required this.createdAt, required this.updatedAt, required this.deletedAt, required this.endedAt, required this.senderId, required this.sender, required this.roomId, required this.room, required  Map<String, dynamic> upstreamConfig, this.providerName, this.sessionId}): _upstreamConfig = upstreamConfig;
   factory _SnRealtimeCall.fromJson(Map<String, dynamic> json) => _$SnRealtimeCallFromJson(json);
 
 @override final  String id;

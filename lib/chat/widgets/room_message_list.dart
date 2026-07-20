@@ -23,6 +23,7 @@ class RoomMessageList extends HookConsumerWidget {
   final AsyncValue<SnChatRoom?> roomAsync;
   final AsyncValue<SnChatMember?> chatIdentity;
   final void Function(String messageId) onJump;
+  final Future<void> Function(MessageLoadGap gap) onLoadMessageGap;
 
   const RoomMessageList({
     super.key,
@@ -31,6 +32,7 @@ class RoomMessageList extends HookConsumerWidget {
     required this.roomAsync,
     required this.chatIdentity,
     required this.onJump,
+    required this.onLoadMessageGap,
   });
 
   @override
@@ -100,6 +102,9 @@ class RoomMessageList extends HookConsumerWidget {
     );
     final roomOpenTime = ref.watch(
       chatRoomStateProvider(roomId).select((state) => state.roomOpenTime),
+    );
+    final messageLoadGap = ref.watch(
+      chatRoomStateProvider(roomId).select((state) => state.messageLoadGap),
     );
     final chatStateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
     final skipInitialLoadMessageAnimations = useState(true);
@@ -265,6 +270,10 @@ class RoomMessageList extends HookConsumerWidget {
           key: key,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (messageLoadGap?.newerMessageId == message.id)
+              _MessageLoadGapMarker(
+                onTap: () => onLoadMessageGap(messageLoadGap!),
+              ),
             _LastReadMarker(visible: showLastReadMarker),
             messageContent,
           ],
@@ -273,6 +282,23 @@ class RoomMessageList extends HookConsumerWidget {
     );
 
     return listWidget;
+  }
+}
+
+class _MessageLoadGapMarker extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _MessageLoadGapMarker({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.unfold_more, size: 18),
+        label: const Text('Messages skipped — tap to load'),
+      ),
+    );
   }
 }
 
