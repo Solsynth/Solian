@@ -3495,8 +3495,10 @@
   "startupNoInternet": "无网络连接，等待恢复启动",
   "startupPreviousStage": "上一步：{}",
   "startupRetryFailed": "{} 重试 {}/{} 失败",
+  "startupCheckForUpdates": "检查更新",
   "startupServerCompatibilityCheckFailed": "无法确认服务器兼容性。点击以重试。",
   "startupServerIncompatible": "此服务器与当前版本的 Solian 不兼容。",
+  "startupServerUpdateRequired": "此服务器需要较新版本的 Solian。",
   "startupSkipOptional": "跳过可选阶段",
   "startupSkippedStage": "已跳过可选阶段：{}",
   "startupStageAudioAssets": "正在准备音频资源",
@@ -4290,5 +4292,18 @@
   "chatSearchLocal": "本地",
   "chatSyncHistory": "正在同步聊天记录...",
   "chatSyncHistoryProgress": "正在同步历史：已同步 {} 条（第 {} 轮）",
-  "chatSyncComplete": "同步完成：{} 条消息"
+  "chatSyncComplete": "同步完成：{} 条消息",
+  "taskWorking": "进行中",
+  "taskCompletedJustNow": "刚刚完成",
+  "taskFinishedJustNow": {
+    "one": "刚刚完成 {} 个任务",
+    "other": "刚刚完成 {} 个任务"
+  },
+  "taskMoreCount": "还有 {} 个",
+  "taskNoTasks": "当前没有任务",
+  "taskFileTransmission": "文件传输",
+  "taskDownloading": "下载中",
+  "taskProcessing": "处理中",
+  "taskTotalCount": "共 {} 项",
+  "taskChunksCount": "{current}/{total} 分块"
 }

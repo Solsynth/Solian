@@ -143,4 +143,5 @@ abstract class AppTaskType {
   static const driveUpload = 'drive.upload';
   static const driveDownload = 'drive.download';
   static const postPublish = 'post.publish';
+  static const accountCheckIn = 'account.check-in';
 }

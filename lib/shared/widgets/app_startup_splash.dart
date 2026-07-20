@@ -12,6 +12,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/server_compatibility.dart';
+import 'package:island/core/services/update_service.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
@@ -182,6 +183,7 @@ class StartupSplashScreen extends HookConsumerWidget {
     final isErrored = useState(false);
     final isDismissable = useState(true);
     final isWaitingForConnectivity = useState(false);
+    final isUpdateRequired = useState(false);
     final periodCursor = useState(0);
     final showSkip = useState(false);
     final isCurrentStageSkippable = useState(false);
@@ -198,6 +200,7 @@ class StartupSplashScreen extends HookConsumerWidget {
       isErrored.value = false;
       isDismissable.value = true;
       isWaitingForConnectivity.value = false;
+      isUpdateRequired.value = false;
       subtitle.value = null;
       showSkip.value = false;
       warnings.value = [];
@@ -245,9 +248,16 @@ class StartupSplashScreen extends HookConsumerWidget {
             isBusy.value = false;
             isErrored.value = true;
             isDismissable.value = false;
-            subtitle.value = error is ServerIncompatibleException
-                ? 'startupServerIncompatible'.tr()
-                : 'startupServerCompatibilityCheckFailed'.tr();
+            if (error is ServerIncompatibleException) {
+              isUpdateRequired.value =
+                  error.compatibility.issue ==
+                  ServerCompatibilityIssue.clientTooOld;
+              subtitle.value = isUpdateRequired.value
+                  ? 'startupServerUpdateRequired'.tr()
+                  : 'startupServerIncompatible'.tr();
+            } else {
+              subtitle.value = 'startupServerCompatibilityCheckFailed'.tr();
+            }
             return;
           }
           final warning = 'startupStageFailedAfterRetries'.tr(
@@ -384,11 +394,13 @@ class StartupSplashScreen extends HookConsumerWidget {
                     isDismissable: isDismissable.value,
                     showSkip: showSkip.value,
                     isCurrentStageSkippable: isCurrentStageSkippable.value,
+                    showUpdateAction: isUpdateRequired.value,
                     onSkip: () {
                       if (skipCompleterRef.value?.isCompleted == false) {
                         skipCompleterRef.value?.complete();
                       }
                     },
+                    onUpdate: () => UpdateService().checkForUpdates(context),
                     textTheme: textTheme,
                     colorScheme: colorScheme,
                   ),
@@ -424,7 +436,9 @@ class _StageInfo extends StatelessWidget {
   final bool isDismissable;
   final bool showSkip;
   final bool isCurrentStageSkippable;
+  final bool showUpdateAction;
   final VoidCallback onSkip;
+  final VoidCallback onUpdate;
   final TextTheme textTheme;
   final ColorScheme colorScheme;
 
@@ -437,7 +451,9 @@ class _StageInfo extends StatelessWidget {
     required this.isDismissable,
     required this.showSkip,
     required this.isCurrentStageSkippable,
+    required this.showUpdateAction,
     required this.onSkip,
+    required this.onUpdate,
     required this.textTheme,
     required this.colorScheme,
   });
@@ -578,6 +594,14 @@ class _StageInfo extends StatelessWidget {
                 'startupSkipOptional'.tr(),
                 style: TextStyle(color: colorScheme.primary, fontSize: 12),
               ),
+            ),
+          ],
+          if (!isBusy && isErrored && !isDismissable && showUpdateAction) ...[
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: onUpdate,
+              icon: const Icon(Icons.system_update_alt, size: 16),
+              label: Text('startupCheckForUpdates'.tr()),
             ),
           ],
         ],

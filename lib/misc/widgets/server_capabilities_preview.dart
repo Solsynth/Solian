@@ -94,17 +94,31 @@ class ServerCapabilitiesPreview extends HookConsumerWidget {
       ),
       onTap: metadata == null && health == null
           ? null
-          : () => showModalBottomSheet<void>(
-              context: context,
-              useSafeArea: true,
-              builder: (_) => _ServerCapabilitiesSheet(
-                metadata: metadata,
-                compatibility: compatibility,
-                health: health,
-              ),
+          : () => showServerCapabilitiesDetails(
+              context,
+              metadata: metadata,
+              health: health,
             ),
     );
   }
+}
+
+void showServerCapabilitiesDetails(
+  BuildContext context, {
+  required Map<String, dynamic>? metadata,
+  Map<String, dynamic>? health,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    builder: (_) => _ServerCapabilitiesSheet(
+      metadata: metadata,
+      compatibility: metadata == null
+          ? null
+          : ServerCompatibility.fromMetadata(metadata),
+      health: health,
+    ),
+  );
 }
 
 class _ServerCapabilitiesSheet extends StatelessWidget {

@@ -1,7 +1,8 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -13,6 +14,8 @@ import 'package:island/core/network.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:lunar/lunar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -56,33 +59,87 @@ Color checkInResultBackdrop(int level) {
   }
 }
 
-class CheckInScreen extends HookConsumerWidget {
+class CheckInScreen extends ConsumerWidget {
   const CheckInScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayResult = ref.watch(checkInResultTodayProvider);
-    final isCheckingIn = useState(false);
 
-    Future<void> checkIn({String? captchaTk}) async {
-      final client = ref.read(solarNetworkClientProvider);
-      isCheckingIn.value = true;
-      try {
-        await client.accounts.checkIn(captchaToken: captchaTk);
-        ref.invalidate(checkInResultTodayProvider);
-        await ref.read(userInfoProvider.notifier).fetchUser();
-      } catch (err) {
-        if (err is DioException &&
-            err.response?.statusCode == 423 &&
-            context.mounted) {
-          final nextCaptchaTk = await CaptchaScreen.show(context);
-          if (nextCaptchaTk == null) return;
-          return await checkIn(captchaTk: nextCaptchaTk);
+    void checkIn() {
+      final navigator = Navigator.of(context, rootNavigator: true);
+      final container = ProviderScope.containerOf(context, listen: false);
+      final client = container.read(solarNetworkClientProvider);
+      final tasks = container.read(tasksProvider.notifier);
+      final loadingMessage = 'checkInTempleLoading'.tr();
+      final taskId = tasks.addTask(
+        title: 'checkInTemple'.tr(),
+        type: AppTaskType.accountCheckIn,
+        status: AppTaskStatus.inProgress,
+      );
+      final startedAt = DateTime.now();
+      final progressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        final elapsed = DateTime.now().difference(startedAt);
+        final progress =
+            (elapsed.inMilliseconds / const Duration(minutes: 1).inMilliseconds)
+                .clamp(0.0, 1.0);
+        tasks.updateTask(
+          taskId,
+          progress: progress * 0.99,
+          statusMessage: loadingMessage,
+        );
+      });
+
+      navigator.pop();
+      unawaited(() async {
+        Future<void> run({String? captchaTk}) async {
+          try {
+            await client.accounts.checkIn(captchaToken: captchaTk);
+            container.invalidate(checkInResultTodayProvider);
+            await container.read(userInfoProvider.notifier).fetchUser();
+            tasks.updateTask(
+              taskId,
+              status: AppTaskStatus.completed,
+              progress: 1,
+              statusMessage: 'taskStatusCompleted'.tr(),
+            );
+
+            if (navigator.mounted) {
+              unawaited(showCheckInSheet(navigator.context));
+            }
+          } catch (err) {
+            if (err is DioException && err.response?.statusCode == 423) {
+              if (!navigator.mounted) return;
+              final nextCaptchaTk = await navigator.push<String>(
+                MaterialPageRoute(
+                  builder: (_) => const CaptchaScreen(),
+                  fullscreenDialog: true,
+                ),
+              );
+              if (nextCaptchaTk != null) return run(captchaTk: nextCaptchaTk);
+              tasks.updateTask(
+                taskId,
+                status: AppTaskStatus.cancelled,
+                statusMessage: 'taskStatusCancelled'.tr(),
+              );
+              return;
+            }
+            tasks.updateTask(
+              taskId,
+              status: AppTaskStatus.failed,
+              errorMessage: err.toString(),
+              statusMessage: 'taskStatusFailed'.tr(),
+            );
+            showErrorAlert(err);
+          }
         }
-        showErrorAlert(err);
-      } finally {
-        isCheckingIn.value = false;
-      }
+
+        try {
+          await run();
+        } finally {
+          progressTimer.cancel();
+        }
+      }());
     }
 
     return SheetScaffold(
@@ -104,18 +161,7 @@ class CheckInScreen extends HookConsumerWidget {
         const Gap(8),
       ],
       child: todayResult.when(
-        data: (result) => Stack(
-          children: [
-            _CheckInContent(result: result, onCheckIn: () => checkIn()),
-            if (isCheckingIn.value)
-              ColoredBox(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surface.withValues(alpha: 0.9),
-                child: _CheckInLoadingOverlay(),
-              ),
-          ],
-        ),
+        data: (result) => _CheckInContent(result: result, onCheckIn: checkIn),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
           child: Padding(
@@ -1117,70 +1163,6 @@ class FallbackMessage extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CheckInLoadingOverlay extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: Card(
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/images/michan/checking-in.webp',
-                    height: 168,
-                    fit: BoxFit.contain,
-                  ),
-                  const Gap(18),
-                  SizedBox(
-                    width: 96,
-                    child: LinearProgressIndicator(
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(999),
-                      color: theme.colorScheme.primary,
-                      backgroundColor:
-                          theme.colorScheme.surfaceContainerHighest,
-                    ),
-                  ),
-                  const Gap(18),
-                  Text(
-                    'checkInTempleLoading'.tr(),
-                    style: checkInSerif(
-                      context,
-                      base: theme.textTheme.titleLarge,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const Gap(8),
-                  Text(
-                    'checkInTempleLoadingHint'.tr(),
-                    style: checkInSerif(
-                      context,
-                      base: theme.textTheme.bodyMedium,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),

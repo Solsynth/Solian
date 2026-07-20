@@ -14,6 +14,15 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'check_in.g.dart';
 
+Future<void> showCheckInSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    builder: (_) => const CheckInScreen(),
+  );
+}
+
 @riverpod
 Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
@@ -136,12 +145,7 @@ class CheckInWidget extends ConsumerWidget {
                   vertical: -2,
                 ),
                 onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useRootNavigator: true,
-                    builder: (context) => const CheckInScreen(),
-                  );
+                  showCheckInSheet(context);
                 },
                 icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),

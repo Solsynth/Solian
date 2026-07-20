@@ -23,10 +23,11 @@ IconData _taskStatusIcon(AppTask? task) {
   if (task == null) return Symbols.sync;
   return switch (task.status) {
     AppTaskStatus.pending => Symbols.schedule,
-    AppTaskStatus.inProgress =>
-      task.type == AppTaskType.driveDownload
-          ? Symbols.download
-          : Symbols.upload,
+    AppTaskStatus.inProgress => switch (task.type) {
+      AppTaskType.driveDownload => Symbols.download,
+      AppTaskType.accountCheckIn => Symbols.local_fire_department,
+      _ => Symbols.upload,
+    },
     AppTaskStatus.paused => Symbols.pause_circle,
     AppTaskStatus.completed => Symbols.check_circle,
     AppTaskStatus.failed => Symbols.error,
@@ -85,6 +86,7 @@ String _taskTypeLabel(String type) {
     AppTaskType.driveUpload => 'taskTypeDriveUpload'.tr(),
     AppTaskType.driveDownload => 'taskTypeDriveDownload'.tr(),
     AppTaskType.postPublish => 'taskTypePostPublish'.tr(),
+    AppTaskType.accountCheckIn => 'checkInTemple'.tr(),
     _ => type,
   };
 }
@@ -409,37 +411,35 @@ class _TaskOverlayBar extends ConsumerWidget {
   }
 
   String _buildTitle(AppTask? task) {
-    if (task == null) return 'Tasks';
+    if (task == null) return 'tasks'.tr();
     if (task.title.isNotEmpty) return task.title;
-    return task.status == AppTaskStatus.completed ? 'Completed' : 'Working';
+    return task.status == AppTaskStatus.completed
+        ? 'taskStatusCompleted'.tr()
+        : 'taskWorking'.tr();
   }
 
   String _buildSubtitle(AppTask? task, int visibleCount, int completedCount) {
     final otherCount = visibleCount - 1;
-    if (task == null) return '$visibleCount tasks';
+    if (task == null) return 'tasksCount'.plural(visibleCount);
 
     if (task.status == AppTaskStatus.completed &&
         completedCount == visibleCount) {
       return completedCount == 1
-          ? 'Completed just now'
-          : '$completedCount tasks finished just now';
+          ? 'taskCompletedJustNow'.tr()
+          : 'taskFinishedJustNow'.plural(completedCount);
     }
 
     final statusText = task.statusMessage?.trim();
     if (statusText != null && statusText.isNotEmpty) {
-      return otherCount > 0 ? '$statusText · +$otherCount more' : statusText;
+      return otherCount > 0
+          ? '$statusText · ${'taskMoreCount'.tr(args: ['$otherCount'])}'
+          : statusText;
     }
 
-    final label = switch (task.status) {
-      AppTaskStatus.pending => 'Queued',
-      AppTaskStatus.inProgress => 'In progress',
-      AppTaskStatus.paused => 'Paused',
-      AppTaskStatus.completed => 'Completed',
-      AppTaskStatus.failed => 'Failed',
-      AppTaskStatus.cancelled => 'Cancelled',
-      AppTaskStatus.expired => 'Expired',
-    };
-    return otherCount > 0 ? '$label · +$otherCount more' : label;
+    final label = _taskStatusLabel(task.status);
+    return otherCount > 0
+        ? '$label · ${'taskMoreCount'.tr(args: ['$otherCount'])}'
+        : label;
   }
 
   void _showTaskSheet(BuildContext context, WidgetRef ref) {
@@ -470,7 +470,7 @@ class _TasksSheet extends ConsumerWidget {
     final hasFinished = tasks.any((t) => t.isFinished);
 
     return SheetScaffold(
-      titleText: 'Tasks',
+      titleText: 'tasks'.tr(),
       child: Column(
         children: [
           Padding(
@@ -478,20 +478,20 @@ class _TasksSheet extends ConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  '${sortedTasks.length} total',
+                  'taskTotalCount'.tr(args: ['${sortedTasks.length}']),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: hasFinished ? notifier.clearCompleted : null,
                   icon: const Icon(Symbols.done_all, size: 18),
-                  label: const Text('Clear done'),
+                  label: Text('clearCompleted'.tr()),
                 ),
                 const Gap(8),
                 TextButton.icon(
                   onPressed: sortedTasks.isEmpty ? null : notifier.clearAll,
                   icon: const Icon(Symbols.delete_sweep, size: 18),
-                  label: const Text('Clear all'),
+                  label: Text('clearAll'.tr()),
                 ),
               ],
             ),
@@ -500,7 +500,7 @@ class _TasksSheet extends ConsumerWidget {
             child: sortedTasks.isEmpty
                 ? Center(
                     child: Text(
-                      'No tasks right now',
+                      'taskNoTasks'.tr(),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   )
@@ -508,10 +508,7 @@ class _TasksSheet extends ConsumerWidget {
                     itemCount: sortedTasks.length,
                     itemBuilder: (context, index) {
                       final task = sortedTasks[index];
-                      return AppTaskTile(
-                        key: ValueKey(task.id),
-                        task: task,
-                      );
+                      return AppTaskTile(key: ValueKey(task.id), task: task);
                     },
                   ),
           ),
@@ -681,13 +678,18 @@ class _DriveUploadDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DetailSectionHeader(
-          label: task.statusMessage ?? 'Processing',
+          label: task.statusMessage ?? 'taskProcessing'.tr(),
           color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
         _ProgressRow(
           left: '${(task.progress * 100).toStringAsFixed(1)}%',
-          right: '$uploadedChunks/$totalChunks chunks',
+          right: 'taskChunksCount'.tr(
+            namedArgs: {
+              'current': '$uploadedChunks',
+              'total': '$totalChunks',
+            },
+          ),
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
@@ -697,7 +699,7 @@ class _DriveUploadDetails extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _DetailSectionHeader(
-          label: 'File Transmission',
+          label: 'taskFileTransmission'.tr(),
           color: colorScheme.secondary,
         ),
         const SizedBox(height: 2),
@@ -759,7 +761,7 @@ class _DriveDownloadDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DetailSectionHeader(
-          label: task.statusMessage ?? 'Downloading',
+          label: task.statusMessage ?? 'taskDownloading'.tr(),
           color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
@@ -887,10 +889,7 @@ class _ProgressRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          left,
-          style: style?.copyWith(fontWeight: FontWeight.w600),
-        ),
+        Text(left, style: style?.copyWith(fontWeight: FontWeight.w600)),
         Text(right, style: style),
       ],
     );

@@ -3303,8 +3303,10 @@
   "startupNoInternet": "無網路連線，等待恢復啟動",
   "startupPreviousStage": "上一步：{}",
   "startupRetryFailed": "{} 重試 {}/{} 失敗",
+  "startupCheckForUpdates": "檢查更新",
   "startupServerCompatibilityCheckFailed": "無法確認伺服器相容性。點選以重試。",
   "startupServerIncompatible": "此伺服器與目前版本的 Solian 不相容。",
+  "startupServerUpdateRequired": "此伺服器需要較新版本的 Solian。",
   "startupSkipOptional": "跳過可選階段",
   "startupSkippedStage": "已跳過可選階段：{}",
   "startupStageAudioAssets": "正在準備音訊資源",
@@ -4190,5 +4192,18 @@
   "driveIndexedEntryDescription": "瀏覽資料夾、上傳檔案，並管理你的 Solar Network 雲端儲存空間。",
   "driveUnindexedEntryDescription": "檢視服務附件，並將它們整理到雲端資料夾中。",
   "copyFileId": "複製檔案 ID",
-  "fileIdCopied": "已複製檔案 ID"
+  "fileIdCopied": "已複製檔案 ID",
+  "taskWorking": "進行中",
+  "taskCompletedJustNow": "剛剛完成",
+  "taskFinishedJustNow": {
+    "one": "剛剛完成 {} 個任務",
+    "other": "剛剛完成 {} 個任務"
+  },
+  "taskMoreCount": "還有 {} 個",
+  "taskNoTasks": "目前沒有任務",
+  "taskFileTransmission": "檔案傳輸",
+  "taskDownloading": "下載中",
+  "taskProcessing": "處理中",
+  "taskTotalCount": "共 {} 項",
+  "taskChunksCount": "{current}/{total} 分塊"
 }
