@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:island/data/drift_store_connection.dart';
+import 'package:island/data/snapshot_encoder.dart';
 
 /// Small persistence primitive used by [AppDatabase].
 ///
@@ -42,10 +43,11 @@ class DriftStore {
 
   Future<void> writeSnapshot(Map<String, dynamic> snapshot) async {
     await _open();
+    final payload = await encodeSnapshot(snapshot);
     await _connection.executor.runCustom(
       'INSERT INTO app_state(id, payload) VALUES (1, ?) '
       'ON CONFLICT(id) DO UPDATE SET payload = excluded.payload',
-      [jsonEncode(snapshot)],
+      [payload],
     );
   }
 
