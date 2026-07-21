@@ -1,71 +1,59 @@
 // Copyright (c) Solsynth
-// Sensitive content categories for content warnings, in fixed order.
+// Coarse content marks for warnings (sensitive, spoiler, etc.).
+//
+// Indices are client-defined and stored as ints on the server.
+// **Never reorder or insert into the middle of this enum** — only append.
 
+import 'package:easy_localization/easy_localization.dart';
+
+/// Broad content marks. Enum index is the persisted mark value.
+///
+/// Intentionally coarse — for spoilers, CW, NSFW, and similar flags,
+/// not fine-grained taxonomy.
 enum SensitiveCategory {
-  language,
-  sexualContent,
-  violence,
-  profanity,
-  hateSpeech,
-  racism,
-  adultContent,
-  drugAbuse,
-  alcoholAbuse,
-  gambling,
-  selfHarm,
-  childAbuse,
-  other,
+  nsfw, // 0 — mature / sexual / nudity
+  violence, // 1 — violence / gore / weapons
+  language, // 2 — strong language
+  spoiler, // 3 — plot spoilers
+  flashing, // 4 — flashing lights / seizure risk
+  hate, // 5 — hate / discrimination
+  substances, // 6 — drugs / alcohol / smoking / gambling
+  sensitive, // 7 — other sensitive topics (mental health, politics, …)
+  other, // 8
 }
 
 extension SensitiveCategoryI18n on SensitiveCategory {
-  /// i18n key to look up localized label
-  String get i18nKey => switch (this) {
-    SensitiveCategory.language => 'sensitiveCategories.language',
-    SensitiveCategory.sexualContent => 'sensitiveCategories.sexualContent',
-    SensitiveCategory.violence => 'sensitiveCategories.violence',
-    SensitiveCategory.profanity => 'sensitiveCategories.profanity',
-    SensitiveCategory.hateSpeech => 'sensitiveCategories.hateSpeech',
-    SensitiveCategory.racism => 'sensitiveCategories.racism',
-    SensitiveCategory.adultContent => 'sensitiveCategories.adultContent',
-    SensitiveCategory.drugAbuse => 'sensitiveCategories.drugAbuse',
-    SensitiveCategory.alcoholAbuse => 'sensitiveCategories.alcoholAbuse',
-    SensitiveCategory.gambling => 'sensitiveCategories.gambling',
-    SensitiveCategory.selfHarm => 'sensitiveCategories.selfHarm',
-    SensitiveCategory.childAbuse => 'sensitiveCategories.childAbuse',
-    SensitiveCategory.other => 'sensitiveCategories.other',
-  };
+  String get i18nKey => 'sensitiveCategories.$name';
 
-  /// Optional symbol you can use alongside the label in UI
   String get symbol => switch (this) {
-    SensitiveCategory.language => '🌐',
-    SensitiveCategory.sexualContent => '🔞',
+    SensitiveCategory.nsfw => '🔞',
     SensitiveCategory.violence => '⚠️',
-    SensitiveCategory.profanity => '🗯️',
-    SensitiveCategory.hateSpeech => '🚫',
-    SensitiveCategory.racism => '✋',
-    SensitiveCategory.adultContent => '🍑',
-    SensitiveCategory.drugAbuse => '💊',
-    SensitiveCategory.alcoholAbuse => '🍺',
-    SensitiveCategory.gambling => '🎲',
-    SensitiveCategory.selfHarm => '🆘',
-    SensitiveCategory.childAbuse => '🛑',
+    SensitiveCategory.language => '💬',
+    SensitiveCategory.spoiler => '🙈',
+    SensitiveCategory.flashing => '⚡',
+    SensitiveCategory.hate => '🚫',
+    SensitiveCategory.substances => '💊',
+    SensitiveCategory.sensitive => '👁️',
     SensitiveCategory.other => '❗',
   };
 }
 
-/// Ordered list for UI consumption, matching enum declaration order.
-const List<SensitiveCategory> kSensitiveCategoriesOrdered = [
-  SensitiveCategory.language,
-  SensitiveCategory.sexualContent,
-  SensitiveCategory.violence,
-  SensitiveCategory.profanity,
-  SensitiveCategory.hateSpeech,
-  SensitiveCategory.racism,
-  SensitiveCategory.adultContent,
-  SensitiveCategory.drugAbuse,
-  SensitiveCategory.alcoholAbuse,
-  SensitiveCategory.gambling,
-  SensitiveCategory.selfHarm,
-  SensitiveCategory.childAbuse,
-  SensitiveCategory.other,
-];
+/// All marks in declaration (index) order.
+const List<SensitiveCategory> kSensitiveCategoriesOrdered =
+    SensitiveCategory.values;
+
+/// Safe label for a stored mark index (unknown → Other).
+String sensitiveCategoryLabel(int index) {
+  if (index < 0 || index >= SensitiveCategory.values.length) {
+    return SensitiveCategory.other.i18nKey.tr();
+  }
+  return SensitiveCategory.values[index].i18nKey.tr();
+}
+
+/// Safe symbol for a stored mark index.
+String sensitiveCategorySymbol(int index) {
+  if (index < 0 || index >= SensitiveCategory.values.length) {
+    return SensitiveCategory.other.symbol;
+  }
+  return SensitiveCategory.values[index].symbol;
+}

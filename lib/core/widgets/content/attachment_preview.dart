@@ -59,21 +59,36 @@ class SensitiveMarksSelectorState extends State<SensitiveMarksSelector> {
 
   @override
   Widget build(BuildContext context) {
-    // Build a list of all categories in fixed order as int list indices
+    final theme = Theme.of(context);
     final categories = kSensitiveCategoriesOrdered;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (var i = 0; i < categories.length; i++)
-          FilterChip(
-            label: Text(categories[i].i18nKey.tr()),
-            avatar: Text(categories[i].symbol),
-            selected: _selected.contains(i),
-            onSelected: (_) => _toggle(i),
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final category = categories[index];
+        final selected = _selected.contains(category.index);
+        return CheckboxListTile(
+          value: selected,
+          onChanged: (_) => _toggle(category.index),
+          secondary: SizedBox(
+            width: 28,
+            child: Center(
+              child: Text(
+                category.symbol,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
           ),
-      ],
+          title: Text(category.i18nKey.tr()),
+          controlAffinity: ListTileControlAffinity.trailing,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          selected: selected,
+          selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+            alpha: 0.35,
+          ),
+        );
+      },
     );
   }
 }
@@ -203,21 +218,15 @@ class AttachmentPreview extends HookConsumerWidget {
       isScrollControlled: true,
       useRootNavigator: true,
       builder: (context) => SheetScaffold(
-        heightFactor: 0.6,
-        titleText: 'markAsSensitive'.tr(),
+        heightFactor: 0.65,
+        titleText: 'markContent'.tr(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 24,
-                ),
-                child: SensitiveMarksSelector(
-                  initial: selected,
-                  onChanged: (marks) => selected = marks,
-                ),
+              child: SensitiveMarksSelector(
+                initial: selected,
+                onChanged: (marks) => selected = marks,
               ),
             ),
             Row(
@@ -228,22 +237,24 @@ class AttachmentPreview extends HookConsumerWidget {
                   child: Text('cancel'.tr()),
                 ),
                 const Gap(8),
-                TextButton(
+                FilledButton(
                   onPressed: () async {
                     try {
                       showLoadingModal(context);
                       final uploader = ref.read(driveFileUploaderProvider);
-                      final updated = await uploader.updateSensitiveMarks(
+                      await uploader.updateSensitiveMarks(
                         cloudFile.id,
                         selected,
                       );
-                      // Preserve original model type when possible.
+                      // API returns empty 200; apply marks locally.
                       final newData = switch (item.data) {
                         final SnCloudFileReference ref => ref.copyWith(
-                          sensitiveMarks: updated.sensitiveMarks,
+                          sensitiveMarks: selected,
                         ),
-                        SnCloudFile _ => updated,
-                        _ => updated,
+                        final SnCloudFile file => file.copyWith(
+                          sensitiveMarks: selected,
+                        ),
+                        _ => item.data,
                       };
                       onUpdate?.call(item.copyWith(data: newData));
                       if (context.mounted) Navigator.pop(context);
@@ -709,8 +720,8 @@ class AttachmentPreview extends HookConsumerWidget {
             ),
           if (item.isOnCloud)
             MenuAction(
-              title: 'markAsSensitive'.tr(),
-              image: MenuImage.icon(Symbols.no_adult_content),
+              title: 'markContent'.tr(),
+              image: MenuImage.icon(Symbols.label),
               callback: () async {
                 await _showSensitiveDialog(context, ref);
               },

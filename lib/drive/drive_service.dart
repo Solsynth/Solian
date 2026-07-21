@@ -1561,7 +1561,8 @@ class FileUploader {
   /// Sets content sensitivity labels. Owner only.
   ///
   /// [marks] — integer category indices.
-  Future<SnCloudFile> updateSensitiveMarks(String fileId, List<int> marks) {
+  /// API returns 200 with no body; update local state after success.
+  Future<void> updateSensitiveMarks(String fileId, List<int> marks) {
     return _driveApi.updateSensitiveMarks(fileId, marks);
   }
 
