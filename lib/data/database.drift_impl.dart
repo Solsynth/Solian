@@ -13,6 +13,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 /// can be removed through the existing Storage Settings reset action and then
 /// rebuilt by normal sync.
 class AppDatabase {
+  static const _persistenceDebounce = Duration(milliseconds: 250);
+
   AppDatabase.native(
     Future<String?> directoryPath, {
     Future<String?>? legacyDirectoryPath,
@@ -27,6 +29,9 @@ class AppDatabase {
   final Future<DriftStore> _store;
   final memory.AppDatabase _memory = memory.AppDatabase.web();
   Future<void>? _restoreOperation;
+  Future<void> _persistenceTail = Future.value();
+  Timer? _persistenceTimer;
+  bool _persistenceNeeded = false;
 
   Future<void> _ensureReady() {
     return _restoreOperation ??= () async {
@@ -44,20 +49,51 @@ class AppDatabase {
   Future<T> _write<T>(Future<T> Function() action) async {
     await _ensureReady();
     final result = await action();
-    final store = await _store;
-    await store.writeSnapshot(_memory.exportState());
+    _schedulePersistence();
     return result;
   }
 
+  /// Coalesce bursty edits and message syncs into one snapshot write. The
+  /// in-memory state remains immediately visible to callers; [close] and
+  /// [reset] flush this queue before releasing the store.
+  void _schedulePersistence() {
+    _persistenceNeeded = true;
+    _persistenceTimer ??= Timer(_persistenceDebounce, () {
+      _persistenceTimer = null;
+      unawaited(_flushPersistence().catchError((_) {}));
+    });
+  }
+
+  Future<void> _flushPersistence() async {
+    _persistenceTimer?.cancel();
+    _persistenceTimer = null;
+    if (!_persistenceNeeded) return;
+
+    _persistenceNeeded = false;
+    final snapshot = _memory.exportState();
+    final previous = _persistenceTail.catchError((_) {});
+    final operation = previous.then(
+      (_) async => (await _store).writeSnapshot(snapshot),
+    );
+    _persistenceTail = operation;
+    await operation;
+  }
+
+  Future<void> _flushAllPersistence() async {
+    await _flushPersistence();
+    await _persistenceTail;
+  }
+
   Future<void> close() async {
+    await _flushAllPersistence();
     await (await _store).close();
   }
 
   Future<void> reset() async {
-    await _write(() async {
-      await _memory.reset();
-      await (await _store).clear();
-    });
+    await _ensureReady();
+    await _flushAllPersistence();
+    await _memory.reset();
+    await (await _store).clear();
 
     // Reset is the explicit opt-in cleanup path for the retired database
     // directory. Drift is reopened through a new provider after resetDatabase
