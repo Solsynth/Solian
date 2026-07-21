@@ -194,7 +194,8 @@ class AttachmentPreview extends HookConsumerWidget {
   }
 
   Future<void> _showSensitiveDialog(BuildContext context, WidgetRef ref) async {
-    final cloudFile = item.data as SnCloudFile;
+    // Attachments may be either SnCloudFile or SnCloudFileReference.
+    final cloudFile = item.data as IDisplayableCloudFile;
     var selected = List<int>.from(cloudFile.sensitiveMarks);
 
     await showModalBottomSheet(
@@ -236,7 +237,15 @@ class AttachmentPreview extends HookConsumerWidget {
                         cloudFile.id,
                         selected,
                       );
-                      onUpdate?.call(item.copyWith(data: updated));
+                      // Preserve original model type when possible.
+                      final newData = switch (item.data) {
+                        final SnCloudFileReference ref => ref.copyWith(
+                          sensitiveMarks: updated.sensitiveMarks,
+                        ),
+                        SnCloudFile _ => updated,
+                        _ => updated,
+                      };
+                      onUpdate?.call(item.copyWith(data: newData));
                       if (context.mounted) Navigator.pop(context);
                     } catch (err) {
                       showErrorAlert(err);
@@ -685,7 +694,7 @@ class AttachmentPreview extends HookConsumerWidget {
           if (item.isOnDevice)
             MenuAction(
               title: 'rename'.tr(),
-              image: MenuImage.icon(Symbols.edit),
+              image: MenuImage.icon(Symbols.drive_file_rename),
               callback: () async {
                 await _showRenameSheet(context, ref);
               },
@@ -693,7 +702,7 @@ class AttachmentPreview extends HookConsumerWidget {
           if (item.isOnCloud)
             MenuAction(
               title: 'rename'.tr(),
-              image: MenuImage.icon(Symbols.edit),
+              image: MenuImage.icon(Symbols.drive_file_rename),
               callback: () async {
                 await _showRenameSheet(context, ref);
               },
