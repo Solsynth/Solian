@@ -929,10 +929,10 @@ class _SensitiveOverlay extends StatelessWidget {
           child: _OverlayCard(
             icon: Icons.warning,
             title: file.sensitiveMarks
-                .map((e) => SensitiveCategory.values[e].i18nKey.tr())
+                .map(sensitiveCategoryLabel)
                 .join(' · '),
-            subtitle: 'Sensitive Content',
-            hint: 'Tap to Reveal',
+            subtitle: 'contentWarning'.tr(),
+            hint: 'tapToReveal'.tr(),
           ),
         ),
       ),

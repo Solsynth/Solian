@@ -120,16 +120,10 @@ class DriveApi extends BaseApi {
 
   /// Sets content sensitivity labels. Owner only.
   ///
-  /// [marks] — integer category indices (see SensitiveCategory order).
-  Future<SnCloudFile> updateSensitiveMarks(
-    String fileId,
-    List<int> marks,
-  ) async {
-    final response = await put<Map<String, dynamic>>(
-      '$_basePath/files/$fileId/sensitive',
-      data: {'marks': marks},
-    );
-    return SnCloudFile.fromJson(response.data!);
+  /// [marks] — integer content-mark indices (client-defined).
+  /// Returns 200 with no body; callers should update local state.
+  Future<void> updateSensitiveMarks(String fileId, List<int> marks) async {
+    await put('$_basePath/files/$fileId/sensitive', data: {'marks': marks});
   }
 
   /// Sets arbitrary user-defined metadata. Owner only.
