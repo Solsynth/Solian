@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
-import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,6 +76,14 @@ class CloudFileLightbox extends HookConsumerWidget {
       () => List.generate(items.length, (_) => PhotoViewController()),
       [items.length],
     );
+    useEffect(() {
+      return () {
+        pageController.dispose();
+        for (final controller in photoViewControllers) {
+          controller.dispose();
+        }
+      };
+    }, [pageController, photoViewControllers]);
     final showExif = useState(ExifInfoOverlay.precheck(items[initialIndex]));
     final showOriginal = useState(false);
     final focusNode = useFocusNode();
@@ -135,23 +142,8 @@ class CloudFileLightbox extends HookConsumerWidget {
     final currentIsVideo = isLightboxVideo(currentItem);
     final showDesktopImageTools =
         _isDesktopImageControlsPlatform() && isLightboxImage(currentItem);
-    final isZoomed = useState(false);
-
     PhotoViewController currentPhotoController() =>
         photoViewControllers[currentIndex.value];
-
-    // Disable drag-to-dismiss while zoomed so vertical pan can move the image.
-    useEffect(() {
-      final controller = photoViewControllers[currentIndex.value];
-      void syncZoom() {
-        final scale = controller.scale ?? 1.0;
-        isZoomed.value = scale > 1.05;
-      }
-
-      syncZoom();
-      final sub = controller.outputStateStream.listen((_) => syncZoom());
-      return sub.cancel;
-    }, [currentIndex.value, items.length]);
 
     void zoomBy(double delta) {
       final controller = currentPhotoController();
@@ -225,38 +217,35 @@ class CloudFileLightbox extends HookConsumerWidget {
     final controlsShown =
         currentIsVideo || (showControls.value && controlsVisible.value);
 
-    return DismissiblePage(
-      isFullScreen: true,
-      backgroundColor: Colors.black,
-      direction: DismissiblePageDismissDirection.down,
-      disabled: isZoomed.value,
-      onDismissed: () => Navigator.of(context).pop(),
-      child: Focus(
-        focusNode: focusNode,
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              goToPrevious();
-              return KeyEventResult.handled;
-            } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-              goToNext();
-              return KeyEventResult.handled;
-            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-              Navigator.of(context).pop();
-              return KeyEventResult.handled;
-            }
+    // A drag-to-dismiss recognizer competes with PhotoView's vertical pan once
+    // an image is enlarged. Keeping the gallery as the sole gesture owner
+    // avoids transform contention and the resulting jitter while zooming.
+    return Focus(
+      focusNode: focusNode,
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+            goToPrevious();
+            return KeyEventResult.handled;
+          } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+            goToNext();
+            return KeyEventResult.handled;
+          } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+            Navigator.of(context).pop();
+            return KeyEventResult.handled;
           }
-          return KeyEventResult.ignored;
-        },
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.light,
-          child: Material(
-            color: Colors.transparent,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                PhotoViewGallery.builder(
+        }
+        return KeyEventResult.ignored;
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Material(
+          color: Colors.transparent,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              PhotoViewGallery.builder(
                 key: ValueKey(items.length),
                 pageController: pageController,
                 itemCount: items.length,
@@ -524,8 +513,7 @@ class CloudFileLightbox extends HookConsumerWidget {
                     ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
