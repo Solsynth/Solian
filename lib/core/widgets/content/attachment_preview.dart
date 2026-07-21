@@ -62,21 +62,17 @@ class SensitiveMarksSelectorState extends State<SensitiveMarksSelector> {
     // Build a list of all categories in fixed order as int list indices
     final categories = kSensitiveCategoriesOrdered;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        Wrap(
-          spacing: 8,
-          children: [
-            for (var i = 0; i < categories.length; i++)
-              FilterChip(
-                label: Text(categories[i].i18nKey.tr()),
-                avatar: Text(categories[i].symbol),
-                selected: _selected.contains(i),
-                onSelected: (_) => _toggle(i),
-              ),
-          ],
-        ),
+        for (var i = 0; i < categories.length; i++)
+          FilterChip(
+            label: Text(categories[i].i18nKey.tr()),
+            avatar: Text(categories[i].symbol),
+            selected: _selected.contains(i),
+            onSelected: (_) => _toggle(i),
+          ),
       ],
     );
   }
@@ -113,10 +109,6 @@ class AttachmentPreview extends HookConsumerWidget {
     this.onSetThumbnail,
     this.bordered = false,
   });
-
-  // GlobalKey for selector
-  static final GlobalKey<SensitiveMarksSelectorState> _sensitiveSelectorKey =
-      GlobalKey<SensitiveMarksSelectorState>();
 
   String _getDisplayName() {
     return item.displayName ??
@@ -202,36 +194,29 @@ class AttachmentPreview extends HookConsumerWidget {
   }
 
   Future<void> _showSensitiveDialog(BuildContext context, WidgetRef ref) async {
+    final cloudFile = item.data as SnCloudFile;
+    var selected = List<int>.from(cloudFile.sensitiveMarks);
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       builder: (context) => SheetScaffold(
         heightFactor: 0.6,
         titleText: 'markAsSensitive'.tr(),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Column(
-                children: [
-                  // Sensitive categories checklist
-                  SensitiveMarksSelector(
-                    key: _sensitiveSelectorKey,
-                    initial: (item.data.sensitiveMarks ?? [])
-                        .map((e) => e as int)
-                        .cast<int>()
-                        .toList(),
-                    onChanged: (marks) {
-                      // Update local data immediately (optimistic)
-                      final newData = item.data;
-                      newData.sensitiveMarks = marks;
-                      final updatedFile = item.copyWith(data: newData);
-                      onUpdate?.call(item.copyWith(data: updatedFile));
-                    },
-                  ),
-                ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 24,
+                ),
+                child: SensitiveMarksSelector(
+                  initial: selected,
+                  onChanged: (marks) => selected = marks,
+                ),
               ),
             ),
             Row(
@@ -247,17 +232,11 @@ class AttachmentPreview extends HookConsumerWidget {
                     try {
                       showLoadingModal(context);
                       final uploader = ref.read(driveFileUploaderProvider);
-                      final selectorState = _sensitiveSelectorKey.currentState;
-                      final marks = selectorState?.current ?? <int>[];
-                      await uploader.updateSensitiveMarks(
-                        item.data.id,
-                        marks.map((e) => e.toString()).toList(),
+                      final updated = await uploader.updateSensitiveMarks(
+                        cloudFile.id,
+                        selected,
                       );
-                      final newData = item.data as SnCloudFile;
-                      final updatedFile = item.copyWith(
-                        data: newData.copyWith(sensitiveMarks: marks),
-                      );
-                      onUpdate?.call(updatedFile);
+                      onUpdate?.call(item.copyWith(data: updated));
                       if (context.mounted) Navigator.pop(context);
                     } catch (err) {
                       showErrorAlert(err);
