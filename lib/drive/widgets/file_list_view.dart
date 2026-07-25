@@ -565,9 +565,31 @@ class FileListView extends HookConsumerWidget {
     final unindexedListState = ref.watch(
       unindexedFileListFamilyProvider(tabId),
     );
+    // Include PaginationState.isReloading — refresh() keeps AsyncData and only
+    // flips the nested flag, so AsyncValue.isReloading alone misses it.
     final isRefreshing = modeValue == FileListMode.normal
-        ? (indexedListState.isLoading || indexedListState.isReloading)
-        : (unindexedListState.isLoading || unindexedListState.isReloading);
+        ? (indexedListState.isLoading ||
+              indexedListState.isReloading ||
+              (indexedListState.asData?.value.isLoading ?? false) ||
+              (indexedListState.asData?.value.isReloading ?? false))
+        : (unindexedListState.isLoading ||
+              unindexedListState.isReloading ||
+              (unindexedListState.asData?.value.isLoading ?? false) ||
+              (unindexedListState.asData?.value.isReloading ?? false));
+
+    // Drop expanded-tree caches whenever the list reloads (refresh/delete/move)
+    // so children rows never show stale server state.
+    useEffect(() {
+      if (!isRefreshing) return null;
+      if (treeChildrenCache.value.isNotEmpty ||
+          expandedFileIds.value.isNotEmpty ||
+          loadingTreeChildren.value.isNotEmpty) {
+        treeChildrenCache.value = {};
+        expandedFileIds.value = {};
+        loadingTreeChildren.value = {};
+      }
+      return null;
+    }, [isRefreshing]);
 
     final useColumnBrowser =
         modeValue == FileListMode.normal &&
@@ -808,6 +830,11 @@ class FileListView extends HookConsumerWidget {
                     enabled: !isRefreshing,
                     onChanged: (next) => filters.value = next,
                     onRefresh: () async {
+                      // Drop in-memory tree expand caches so reloads reflect
+                      // server state after deletes/moves.
+                      treeChildrenCache.value = {};
+                      loadingTreeChildren.value = {};
+                      expandedFileIds.value = {};
                       if (modeValue == FileListMode.unindexed) {
                         await ref
                             .read(

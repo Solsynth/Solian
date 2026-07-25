@@ -155,12 +155,19 @@ class DriveApi extends BaseApi {
   }
 
   /// Deletes multiple files at once. Owner only.
+  ///
+  /// Server: `POST /api/files/delete/batch` with `{ "file_ids": [...] }`.
   Future<int> batchDeleteFiles(List<String> fileIds) async {
-    final response = await delete<Map<String, dynamic>>(
-      '$_basePath/files/batches/delete',
+    if (fileIds.isEmpty) return 0;
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/files/delete/batch',
       data: {'file_ids': fileIds},
     );
-    return (response.data!['count'] as num).toInt();
+    final data = response.data;
+    if (data == null) return fileIds.length;
+    final count = data['count'];
+    if (count is num) return count.toInt();
+    return fileIds.length;
   }
 
   // ===========================================================================

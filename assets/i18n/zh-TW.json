@@ -1189,6 +1189,8 @@
   "driveUnindexedTabTitle": "服務附件",
   "driveWorkspaceEmptyDescription": "選擇工作區以瀏覽雲端檔案或服務附件。你可以同時開啟多個分頁。",
   "driveWorkspaceEmptyTitle": "歡迎使用雲端硬碟",
+  "driveNoOpenTabs": "沒有開啟的分頁",
+  "driveUploadAsset": "上傳資源",
   "dropFilesHere": "將檔案拖放到這裡",
   "dropToShare": "拖到此處以分享",
   "duration": "時長",

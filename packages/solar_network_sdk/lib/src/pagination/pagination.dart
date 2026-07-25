@@ -121,28 +121,37 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
   Future<void> refresh() async {
     state = AsyncData(
       PaginationState(
-        items: [],
+        items: state.value?.items ?? const [],
         isLoading: true,
         isReloading: true,
-        totalCount: null,
+        totalCount: state.value?.totalCount,
         hasMore: true,
         cursor: null,
       ),
     );
 
-    final newItems = await fetch();
+    try {
+      final newItems = await fetch();
 
-    if (!ref.mounted) return;
-    state = AsyncData(
-      PaginationState(
-        items: newItems,
-        isLoading: false,
-        isReloading: false,
-        totalCount: totalCount,
-        hasMore: hasMore,
-        cursor: cursor,
-      ),
-    );
+      if (!ref.mounted) return;
+      final resolvedTotal = totalCount;
+      final more = resolvedTotal == null
+          ? newItems.isNotEmpty
+          : newItems.length < resolvedTotal;
+      state = AsyncData(
+        PaginationState(
+          items: newItems,
+          isLoading: false,
+          isReloading: false,
+          totalCount: resolvedTotal,
+          hasMore: more,
+          cursor: cursor,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (!ref.mounted) return;
+      state = AsyncError(error, stackTrace);
+    }
   }
 
   @override
@@ -152,15 +161,34 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
 
     state = AsyncData(state.value!.copyWith(isLoading: true));
 
-    final newItems = await fetch();
+    try {
+      final newItems = await fetch();
 
-    if (!ref.mounted) return;
-    state = AsyncData(
-      state.value!.copyWith(
-        items: [...state.value!.items, ...newItems],
-        isLoading: false,
-      ),
-    );
+      if (!ref.mounted) return;
+      final combined = [...state.value!.items, ...newItems];
+      final resolvedTotal = totalCount ?? state.value!.totalCount;
+      final more = newItems.isEmpty
+          ? false
+          : resolvedTotal == null
+          ? true
+          : combined.length < resolvedTotal;
+      state = AsyncData(
+        state.value!.copyWith(
+          items: combined,
+          isLoading: false,
+          totalCount: resolvedTotal,
+          hasMore: more,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (!ref.mounted) return;
+      // Keep previously loaded pages; surface the error only if we had none.
+      if (state.value?.items.isEmpty ?? true) {
+        state = AsyncError(error, stackTrace);
+      } else {
+        state = AsyncData(state.value!.copyWith(isLoading: false));
+      }
+    }
   }
 }
 
