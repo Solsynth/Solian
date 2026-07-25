@@ -115,18 +115,29 @@ class WebSocketService {
     final baseUrl = ref.read(serverUrlProvider);
     final token = await getValidAuthToken(ref);
 
-    final url = '$baseUrl/ws'.replaceFirst('http', 'ws');
+    // Blade multi-tenant isolation: same product id as Ring `app` / `app_id`.
+    // Empty namespace would land in the gateway DefaultNamespace and mix with
+    // other clients (e.g. SolWatt). See Blade docs/WEBSOCKET_GATEWAY.md.
+    final uri = Uri.parse(
+      '$baseUrl/ws'.replaceFirst('http', 'ws'),
+    ).replace(queryParameters: {'namespace': kWebsocketNamespace});
 
-    Logger.root.info('[WebSocket] Trying connecting to $url');
+    Logger.root.info(
+      '[WebSocket] Trying connecting to $uri (namespace=$kWebsocketNamespace)',
+    );
     try {
       if (kIsWeb) {
-        final wsUrl = token?.isNotEmpty ?? false ? '$url?tk=$token' : url;
-        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+        final wsUri = (token?.isNotEmpty ?? false)
+            ? uri.replace(
+                queryParameters: {...uri.queryParameters, 'tk': token!},
+              )
+            : uri;
+        _channel = WebSocketChannel.connect(wsUri);
       } else {
         final headers = token?.isNotEmpty ?? false
             ? {'Authorization': 'Bearer $token'}
             : null;
-        _channel = IOWebSocketChannel.connect(Uri.parse(url), headers: headers);
+        _channel = IOWebSocketChannel.connect(uri, headers: headers);
       }
       await _channel!.ready;
       _isConnecting = false;

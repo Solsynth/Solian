@@ -26,7 +26,23 @@ const kTokenPairStoreKey = 'dyn_user_tk';
 
 const kNetworkServerDefault = 'https://api.solian.app';
 const kNetworkServerStoreKey = 'app_server_url';
-const kNotificationTenantAppId = 'dev.solsynth.solian';
+
+/// Product multi-tenant id for Solian (Island).
+///
+/// Used for both Ring notification `app` / `app_id` filtering and the Blade
+/// wsgateway connection `namespace` query param. SolWatt uses
+/// `dev.solsynth.solarwatt` for the same pair. See
+/// Blade `docs/WEBSOCKET_GATEWAY.md`.
+const kProductTenantId = 'dev.solsynth.solian';
+
+/// Ring multi-tenant app id (alias of [kProductTenantId]).
+const kNotificationTenantAppId = kProductTenantId;
+
+/// Websocket gateway namespace (alias of [kProductTenantId]).
+///
+/// Connect with `GET /ws?namespace=…` so presence and pushes stay isolated
+/// from other first-party clients (e.g. SolWatt).
+const kWebsocketNamespace = kProductTenantId;
 
 const kAppbarTransparentStoreKey = 'app_bar_transparent';
 const kAppBackgroundStoreKey = 'app_has_background';
@@ -526,7 +542,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
       attachmentsListStyle: prefs.getString(kAppAttachmentsListStyle) ?? 'row',
-      attachmentPreviewMode: prefs.getString(kAppAttachmentPreviewMode) ?? 'large',
+      attachmentPreviewMode:
+          prefs.getString(kAppAttachmentPreviewMode) ?? 'large',
       linkCollapseMode: prefs.getString(kAppLinkCollapseMode) ?? 'expand',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
