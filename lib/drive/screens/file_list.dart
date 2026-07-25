@@ -113,18 +113,31 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
 
       String? parentId;
       for (final part in parts) {
+        // Resolve by exact folder name — do not scan a single page of mixed
+        // files (which misses folders beyond the first page).
         final PaginatedResult<SnCloudFile> result;
         if (parentId == null) {
-          result = await driveApi.listRootChildren(poolId: key.poolId);
+          result = await driveApi.listRootChildren(
+            poolId: key.poolId,
+            name: part,
+            isFolder: true,
+            take: 20,
+            orderDesc: false,
+          );
         } else {
           result = await driveApi.listFolderChildren(
             parentId,
             poolId: key.poolId,
+            name: part,
+            isFolder: true,
+            take: 20,
+            orderDesc: false,
           );
         }
 
         final matchedFolder = result.items
-            .where((item) => item.isFolder && item.name == part)
+            .where((item) => item.isFolder)
+            .where((item) => item.name.toLowerCase() == part.toLowerCase())
             .firstOrNull;
         if (matchedFolder == null || matchedFolder.id.isEmpty) {
           return const [];
@@ -132,6 +145,8 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
         parentId = matchedFolder.id;
       }
 
+      // Column pages still load a generous first window; epoch bumps re-fetch.
+      const columnTake = 200;
       final PaginatedResult<SnCloudFile> result;
       if (parentId == null) {
         result = await driveApi.listRootChildren(
@@ -145,6 +160,7 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
           extension: key.extension,
           createdAfter: key.createdAfter,
           createdBefore: key.createdBefore,
+          take: columnTake,
         );
       } else {
         result = await driveApi.listFolderChildren(
@@ -159,6 +175,7 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
           extension: key.extension,
           createdAfter: key.createdAfter,
           createdBefore: key.createdBefore,
+          take: columnTake,
         );
       }
       return result.items;
@@ -259,15 +276,31 @@ class IndexedCloudFileListNotifier
     ref.invalidateSelf();
   }
 
+  static const int pageSize = 50;
+
   @override
   FutureOr<PaginationState<FileListItem>> build() async {
     final items = await fetch();
+    if (!ref.mounted) {
+      return PaginationState(
+        items: items,
+        isLoading: false,
+        isReloading: false,
+        totalCount: totalCount,
+        hasMore: false,
+        cursor: null,
+      );
+    }
+    final resolvedTotal = totalCount;
+    final more = resolvedTotal == null
+        ? items.length >= pageSize
+        : items.length < resolvedTotal;
     return PaginationState(
       items: items,
       isLoading: false,
       isReloading: false,
-      totalCount: totalCount,
-      hasMore: false,
+      totalCount: resolvedTotal,
+      hasMore: more,
       cursor: null,
     );
   }
@@ -277,11 +310,16 @@ class IndexedCloudFileListNotifier
     final driveApi = ref.read(solarNetworkClientProvider).drive;
 
     final resolution = await _resolveParentIdForPath(driveApi);
-    if (!resolution.found) return const [];
+    if (!resolution.found) {
+      totalCount = 0;
+      return const [];
+    }
 
     final PaginatedResult<SnCloudFile> result;
     if (resolution.parentId == null) {
       result = await driveApi.listRootChildren(
+        offset: fetchedCount,
+        take: pageSize,
         query: _query,
         extension: _extension,
         order: _order,
@@ -296,6 +334,8 @@ class IndexedCloudFileListNotifier
     } else {
       result = await driveApi.listFolderChildren(
         resolution.parentId!,
+        offset: fetchedCount,
+        take: pageSize,
         query: _query,
         extension: _extension,
         order: _order,
@@ -320,6 +360,8 @@ class IndexedCloudFileListNotifier
     return FileListItem.file(file);
   }
 
+  /// Resolve each path segment by exact folder name lookup (avoids missing
+  /// folders that fall outside the default list page of 50 items).
   Future<({bool found, String? parentId})> _resolveParentIdForPath(
     DriveApi driveApi,
   ) async {
@@ -335,23 +377,34 @@ class IndexedCloudFileListNotifier
     for (final part in parts) {
       final PaginatedResult<SnCloudFile> result;
       if (parentId == null) {
-        result = await driveApi.listRootChildren(poolId: _poolId);
+        result = await driveApi.listRootChildren(
+          poolId: _poolId,
+          name: part,
+          isFolder: true,
+          take: 20,
+          orderDesc: false,
+        );
       } else {
-        result = await driveApi.listFolderChildren(parentId, poolId: _poolId);
+        result = await driveApi.listFolderChildren(
+          parentId,
+          poolId: _poolId,
+          name: part,
+          isFolder: true,
+          take: 20,
+          orderDesc: false,
+        );
       }
 
       final matchedFolder = result.items
-          .where((item) => item.isFolder && item.name == part)
+          .where((item) => item.isFolder)
+          .where((item) => item.name.toLowerCase() == part.toLowerCase())
           .firstOrNull;
 
-      if (matchedFolder == null) {
+      if (matchedFolder == null || matchedFolder.id.isEmpty) {
         return (found: false, parentId: null);
       }
 
       parentId = matchedFolder.id;
-      if (parentId.isEmpty) {
-        return (found: false, parentId: null);
-      }
     }
 
     return (found: true, parentId: parentId);

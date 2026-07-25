@@ -1274,6 +1274,8 @@
   "driveUnindexedTabTitle": "服务附件",
   "driveWorkspaceEmptyDescription": "选择一个工作区开始浏览云盘文件或服务附件。你可以同时打开多个标签页。",
   "driveWorkspaceEmptyTitle": "欢迎使用云盘",
+  "driveNoOpenTabs": "没有打开的标签页",
+  "driveUploadAsset": "上传资源",
   "dropFilesHere": "将文件拖放到这里",
   "dropToShare": "拖到此处以分享",
   "duration": "时长",

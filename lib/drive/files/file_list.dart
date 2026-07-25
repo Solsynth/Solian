@@ -220,11 +220,10 @@ class FileListScreen extends HookConsumerWidget {
       activeTabId.value = remainingTabs[nextIndex].id;
     }
 
+    /// Uses [ReorderableListView.onReorderItem], which already adjusts
+    /// [newIndex] for the removed item (no manual `newIndex -= 1`).
     void reorderTab(int oldIndex, int newIndex) {
       final currentTabs = [...tabs.value];
-      if (oldIndex < newIndex) {
-        newIndex -= 1;
-      }
       final tab = currentTabs.removeAt(oldIndex);
       currentTabs.insert(newIndex, tab);
       tabs.value = currentTabs;
@@ -391,13 +390,56 @@ class FileListScreen extends HookConsumerWidget {
                     onReorderTab: reorderTab,
                     onAddIndexedTab: () => createTab(FileListMode.normal),
                     onAddUnindexedTab: () => createTab(FileListMode.unindexed),
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withOpacity(0.55),
+                    onRefresh: activeTab == null || activeTab.file != null
+                        ? null
+                        : () async {
+                            if (modeValue == FileListMode.unindexed) {
+                              await ref
+                                  .read(
+                                    unindexedFileListFamilyProvider(
+                                      activeTab.id,
+                                    ).notifier,
+                                  )
+                                  .refresh();
+                            } else {
+                              await ref
+                                  .read(
+                                    indexedCloudFileListFamilyProvider(
+                                      activeTab.id,
+                                    ).notifier,
+                                  )
+                                  .refresh();
+                              bumpDriveBrowserEpoch(ref, activeTab.id);
+                            }
+                          },
+                    onNewFolder:
+                        activeTab == null ||
+                            activeTab.file != null ||
+                            modeValue != FileListMode.normal ||
+                            currentPath == null ||
+                            selectedPool == null
+                        ? null
+                        : () => _showCreateFolderDialog(
+                            context,
+                            ref,
+                            activeTab.id,
+                            currentPathValue,
+                            selectedPoolValue?.id,
+                          ),
+                    onUpload:
+                        activeTab == null ||
+                            activeTab.file != null ||
+                            modeValue != FileListMode.normal ||
+                            currentPath == null ||
+                            selectedPool == null
+                        ? null
+                        : () => _pickAndUploadFile(
+                            ref,
+                            activeTab.id,
+                            currentPathValue,
+                            selectedPoolValue?.id,
+                          ),
+                    uploadIsAsset: modeValue == FileListMode.unindexed,
                   ),
                   Expanded(
                     child: PageTransitionSwitcher(
@@ -1216,6 +1258,8 @@ class FileListScreen extends HookConsumerWidget {
   }
 }
 
+// ── Browser-style tab strip (SolWatt-inspired flat chrome) ──────────────────
+
 class _DriveTabStrip extends StatelessWidget {
   final List<_DriveFileTab> tabs;
   final String? activeTabId;
@@ -1227,6 +1271,10 @@ class _DriveTabStrip extends StatelessWidget {
   final void Function(int oldIndex, int newIndex) onReorderTab;
   final VoidCallback onAddIndexedTab;
   final VoidCallback onAddUnindexedTab;
+  final VoidCallback? onRefresh;
+  final VoidCallback? onNewFolder;
+  final VoidCallback? onUpload;
+  final bool uploadIsAsset;
 
   const _DriveTabStrip({
     required this.tabs,
@@ -1239,125 +1287,215 @@ class _DriveTabStrip extends StatelessWidget {
     required this.onReorderTab,
     required this.onAddIndexedTab,
     required this.onAddUnindexedTab,
+    this.onRefresh,
+    this.onNewFolder,
+    this.onUpload,
+    this.uploadIsAsset = false,
   });
+
+  IconData _tabIcon(_DriveFileTab tab) {
+    if (tab.file != null) return Symbols.draft;
+    if (tab.mode == FileListMode.unindexed) return Symbols.inventory_2;
+    return Symbols.folder;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final border = scheme.outlineVariant.withValues(alpha: 0.55);
+
+    Widget toolButton({
+      required String tooltip,
+      required IconData icon,
+      required VoidCallback? onPressed,
+    }) {
+      return SizedBox(
+        width: 36,
+        height: 40,
+        child: IconButton(
+          tooltip: tooltip,
+          onPressed: onPressed,
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          iconSize: 18,
+          style: IconButton.styleFrom(
+            foregroundColor: scheme.onSurfaceVariant,
+            disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.28),
+          ),
+          icon: Icon(icon),
+        ),
+      );
+    }
+
     return Material(
-      color: Colors.transparent,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 40,
-                child: ReorderableListView.builder(
-                  buildDefaultDragHandles: false,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: tabs.length,
-                  onReorder: onReorderTab,
-                  itemBuilder: (context, index) {
-                    final tab = tabs[index];
-                    return ReorderableDragStartListener(
-                      key: ValueKey(tab.id),
-                      index: index,
-                      child: Row(
-                        key: ValueKey(tab.id),
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _DriveTabChip(
-                            title: getTabTitle(tab),
-                            icon: tab.mode == FileListMode.normal
-                                ? Symbols.cloud
-                                : Symbols.inventory_2,
-                            file: tab.file,
-                            onRenameFile: onRenameFile,
-                            onRevealParentFolder: onRevealParentFolder,
-                            isSelected: tab.id == activeTabId,
-                            onTap: () => onSelectTab(tab.id),
-                            onClose: () => onCloseTab(tab.id),
+      color: scheme.surfaceContainerLow,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: border)),
+        ),
+        child: SizedBox(
+          height: 40,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: tabs.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'driveNoOpenTabs'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
                           ),
-                          const Gap(8),
-                        ],
+                        ),
+                      )
+                    : ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: tabs.length,
+                        onReorderItem: onReorderTab,
+                        proxyDecorator: (child, index, animation) {
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) {
+                              return Material(
+                                elevation: 3,
+                                color: scheme.surface,
+                                shadowColor: scheme.shadow.withValues(
+                                  alpha: 0.25,
+                                ),
+                                child: child,
+                              );
+                            },
+                            child: child,
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          final tab = tabs[index];
+                          final selected = tab.id == activeTabId;
+                          return ReorderableDragStartListener(
+                            key: ValueKey(tab.id),
+                            index: index,
+                            child: _DriveTabItem(
+                              title: getTabTitle(tab),
+                              icon: _tabIcon(tab),
+                              file: tab.file,
+                              isSelected: selected,
+                              showDivider:
+                                  index > 0 &&
+                                  tabs[index - 1].id != activeTabId &&
+                                  !selected,
+                              onRenameFile: onRenameFile,
+                              onRevealParentFolder: onRevealParentFolder,
+                              onTap: () => onSelectTab(tab.id),
+                              onClose: () => onCloseTab(tab.id),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
-            ),
-            const Gap(8),
-            PopupMenuButton<String>(
-              tooltip: 'add'.tr(),
-              onSelected: (value) {
-                switch (value) {
-                  case 'indexed':
-                    onAddIndexedTab();
-                    break;
-                  case 'unindexed':
-                    onAddUnindexedTab();
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'indexed',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.cloud),
-                      const Gap(12),
-                      Text('driveIndexedEntryLabel'.tr()),
-                    ],
+              VerticalDivider(width: 1, thickness: 1, color: border),
+              PopupMenuButton<String>(
+                tooltip: 'add'.tr(),
+                padding: EdgeInsets.zero,
+                onSelected: (value) {
+                  switch (value) {
+                    case 'indexed':
+                      onAddIndexedTab();
+                    case 'unindexed':
+                      onAddUnindexedTab();
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'indexed',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Symbols.folder, size: 20),
+                      title: Text('driveIndexedEntryLabel'.tr()),
+                      subtitle: Text('driveIndexedEntryDescription'.tr()),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'unindexed',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Symbols.inventory_2, size: 20),
+                      title: Text('driveUnindexedEntryLabel'.tr()),
+                      subtitle: Text('driveUnindexedEntryDescription'.tr()),
+                    ),
+                  ),
+                ],
+                child: SizedBox(
+                  width: 36,
+                  height: 40,
+                  child: Icon(
+                    Symbols.add,
+                    size: 20,
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
-                PopupMenuItem(
-                  value: 'unindexed',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.inventory_2),
-                      const Gap(12),
-                      Text('driveUnindexedEntryLabel'.tr()),
-                    ],
-                  ),
-                ),
-              ],
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Icon(Symbols.add),
               ),
-            ),
-          ],
+              VerticalDivider(width: 1, thickness: 1, color: border),
+              toolButton(
+                tooltip: 'refresh'.tr(),
+                icon: Symbols.refresh,
+                onPressed: onRefresh,
+              ),
+              toolButton(
+                tooltip: 'createDirectory'.tr(),
+                icon: Symbols.create_new_folder,
+                onPressed: onNewFolder,
+              ),
+              toolButton(
+                tooltip: uploadIsAsset
+                    ? 'driveUploadAsset'.tr()
+                    : 'uploadFile'.tr(),
+                icon: Symbols.upload,
+                onPressed: onUpload,
+              ),
+              const SizedBox(width: 4),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _DriveTabChip extends StatelessWidget {
+/// Single document tab — flat browser chrome, not a floating chip.
+class _DriveTabItem extends StatelessWidget {
   final String title;
   final IconData icon;
   final SnCloudFile? file;
+  final bool isSelected;
+  final bool showDivider;
   final ValueChanged<SnCloudFile> onRenameFile;
   final Future<void> Function(SnCloudFile file) onRevealParentFolder;
-  final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onClose;
 
-  const _DriveTabChip({
+  const _DriveTabItem({
     required this.title,
     required this.icon,
     required this.file,
+    required this.isSelected,
+    required this.showDivider,
     required this.onRenameFile,
     required this.onRevealParentFolder,
-    required this.isSelected,
     required this.onTap,
     required this.onClose,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final scheme = Theme.of(context).colorScheme;
+    final border = scheme.outlineVariant.withValues(alpha: 0.55);
+
     return ContextMenuWidget(
       previewBuilder: contextMenuPreviewBuilder,
       menuProvider: (_) {
@@ -1380,9 +1518,7 @@ class _DriveTabChip extends StatelessWidget {
               MenuAction(
                 title: 'download'.tr(),
                 image: MenuImage.icon(Symbols.download),
-                callback: () {
-                  // Download is handled by the dedicated button
-                },
+                callback: () {},
               ),
             ],
             MenuAction(
@@ -1393,71 +1529,114 @@ class _DriveTabChip extends StatelessWidget {
           ],
         );
       },
-      child: Material(
-        color: isSelected
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        child: Listener(
-          onPointerDown: (event) {
-            if (event.kind == PointerDeviceKind.mouse &&
-                event.buttons == kMiddleMouseButton) {
-              onClose();
-            }
-          },
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 2, 8, 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 18),
-                  const Gap(8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 120),
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+      child: Listener(
+        onPointerDown: (event) {
+          if (event.kind == PointerDeviceKind.mouse &&
+              event.buttons == kMiddleMouseButton) {
+            onClose();
+          }
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 120, maxWidth: 220),
+          child: Material(
+            color: isSelected ? scheme.surface : Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              hoverColor: scheme.onSurface.withValues(alpha: 0.04),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: showDivider
+                        ? BorderSide(color: border)
+                        : BorderSide.none,
+                    // Selected tab sits on the content surface: hide bar bottom
+                    // edge and draw a thin top accent.
+                    top: isSelected
+                        ? BorderSide(color: scheme.primary, width: 2)
+                        : BorderSide.none,
+                    right: isSelected
+                        ? BorderSide(color: border)
+                        : BorderSide.none,
                   ),
-                  const Gap(4),
-                  if (file != null) ...[
-                    Consumer(
-                      builder: (context, ref, _) => IconButton(
-                        visualDensity: VisualDensity.compact,
-                        iconSize: 18,
-                        splashRadius: 16,
-                        tooltip: 'download'.tr(),
-                        onPressed: () => ref
-                            .read(driveFileDownloaderProvider)
-                            .downloadFile(
-                              file!,
-                              useDownloadsFolder:
-                                  HardwareKeyboard.instance.isShiftPressed,
-                            ),
-                        icon: const Icon(Symbols.download),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 4, 0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        icon,
+                        size: 16,
+                        color: isSelected
+                            ? scheme.primary
+                            : scheme.onSurfaceVariant,
                       ),
-                    ),
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      iconSize: 18,
-                      splashRadius: 16,
-                      tooltip: 'close'.tr(),
-                      onPressed: onClose,
-                      icon: const Icon(Symbols.close),
-                    ),
-                  ] else
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      iconSize: 18,
-                      splashRadius: 16,
-                      onPressed: onClose,
-                      icon: const Icon(Symbols.close),
-                    ),
-                ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: isSelected
+                                    ? scheme.onSurface
+                                    : scheme.onSurfaceVariant,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                        ),
+                      ),
+                      if (file != null)
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: Consumer(
+                            builder: (context, ref, _) => IconButton(
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              iconSize: 15,
+                              tooltip: 'download'.tr(),
+                              onPressed: () => ref
+                                  .read(driveFileDownloaderProvider)
+                                  .downloadFile(
+                                    file!,
+                                    useDownloadsFolder: HardwareKeyboard
+                                        .instance
+                                        .isShiftPressed,
+                                  ),
+                              style: IconButton.styleFrom(
+                                foregroundColor: scheme.onSurfaceVariant,
+                                hoverColor: scheme.onSurface.withValues(
+                                  alpha: 0.08,
+                                ),
+                              ),
+                              icon: const Icon(Symbols.download),
+                            ),
+                          ),
+                        ),
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          iconSize: 15,
+                          tooltip: 'close'.tr(),
+                          onPressed: onClose,
+                          style: IconButton.styleFrom(
+                            foregroundColor: scheme.onSurfaceVariant,
+                            hoverColor: scheme.onSurface.withValues(
+                              alpha: 0.08,
+                            ),
+                          ),
+                          icon: const Icon(Symbols.close),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -1526,7 +1705,7 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                   const Gap(28),
                   if (isCompact) ...[
                     _DriveEntryCard(
-                      icon: Symbols.cloud,
+                      icon: Symbols.folder,
                       title: 'driveIndexedEntryLabel'.tr(),
                       description: 'driveIndexedEntryDescription'.tr(),
                       onTap: onOpenIndexed,
@@ -1544,7 +1723,7 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _DriveEntryCard(
-                            icon: Symbols.cloud,
+                            icon: Symbols.folder,
                             title: 'driveIndexedEntryLabel'.tr(),
                             description: 'driveIndexedEntryDescription'.tr(),
                             onTap: onOpenIndexed,
@@ -1680,68 +1859,72 @@ class _DriveStorageStatusBar extends StatelessWidget {
         ? (usedBytes / totalBytes).clamp(0.0, 1.0)
         : 0.0;
 
+    final scheme = Theme.of(context).colorScheme;
+    final border = scheme.outlineVariant.withValues(alpha: 0.55);
+
     return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          2,
-          8,
-          2 + MediaQuery.paddingOf(context).bottom,
+      color: scheme.surfaceContainerLow,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: border)),
         ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isCompact = constraints.maxWidth < 520;
-            return Row(
-              mainAxisSize: MainAxisSize.max,
-              spacing: 12,
-              children: [
-                Icon(
-                  Symbols.storage,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                if (!isCompact)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: SizedBox(
-                      width: 120,
-                      child: LinearProgressIndicator(
-                        value: ratio,
-                        minHeight: 8,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            2,
+            8,
+            2 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 520;
+              return Row(
+                mainAxisSize: MainAxisSize.max,
+                spacing: 12,
+                children: [
+                  Icon(Symbols.storage, size: 18, color: scheme.primary),
+                  if (!isCompact)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: SizedBox(
+                        width: 120,
+                        child: LinearProgressIndicator(
+                          value: ratio,
+                          minHeight: 8,
+                        ),
                       ),
                     ),
+                  if (!isCompact && totalMatches != null)
+                    Expanded(
+                      child: Text(
+                        'matches'.plural(totalMatches ?? 0),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    )
+                  else
+                    const Spacer(),
+                  Text(
+                    '${formatFileSize(usedBytes)} / ${formatFileSize(totalBytes)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                if (!isCompact && totalMatches != null)
-                  Expanded(
-                    child: Text(
-                      'matches'.plural(totalMatches ?? 0),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
+                  if (!isCompact)
+                    Text(
+                      '${(ratio * 100).toStringAsFixed(1)}%',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
-                  )
-                else
-                  const Spacer(),
-                Text(
-                  '${formatFileSize(usedBytes)} / ${formatFileSize(totalBytes)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (!isCompact)
-                  Text(
-                    '${(ratio * 100).toStringAsFixed(1)}%',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  IconButton(
+                    onPressed: onTapDetails,
+                    tooltip: 'viewDetails'.tr(),
+                    icon: const Icon(Symbols.bar_chart),
                   ),
-                IconButton(
-                  onPressed: onTapDetails,
-                  tooltip: 'viewDetails'.tr(),
-                  icon: const Icon(Symbols.bar_chart),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -1767,54 +1950,58 @@ class _DriveSelectionStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final border = scheme.outlineVariant.withValues(alpha: 0.55);
+
     return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          2,
-          8,
-          2 + MediaQuery.paddingOf(context).bottom,
+      color: scheme.surfaceContainerLow,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: border)),
         ),
-        child: Row(
-          children: [
-            Icon(
-              Symbols.select_check_box,
-              size: 18,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const Gap(12),
-            Expanded(
-              child: Text(
-                selectionCount == 1
-                    ? 'fileSelected'.tr(args: [selectionCount.toString()])
-                    : 'filesSelected'.tr(args: [selectionCount.toString()]),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            2,
+            8,
+            2 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: Row(
+            children: [
+              Icon(Symbols.select_check_box, size: 18, color: scheme.primary),
+              const Gap(12),
+              Expanded(
+                child: Text(
+                  selectionCount == 1
+                      ? 'fileSelected'.tr(args: [selectionCount.toString()])
+                      : 'filesSelected'.tr(args: [selectionCount.toString()]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            TextButton(
-              onPressed: onToggleSelectAll,
-              child: Text(
-                allVisibleSelected ? 'deselectAll'.tr() : 'selectAll'.tr(),
+              TextButton(
+                onPressed: onToggleSelectAll,
+                child: Text(
+                  allVisibleSelected ? 'deselectAll'.tr() : 'selectAll'.tr(),
+                ),
               ),
-            ),
-            IconButton(
-              onPressed: onDownload,
-              tooltip: 'download'.tr(),
-              icon: const Icon(Symbols.download),
-            ),
-            IconButton(
-              onPressed: onDelete,
-              tooltip: 'delete'.tr(),
-              icon: const Icon(Symbols.delete),
-            ),
-            IconButton(
-              onPressed: onCancel,
-              tooltip: 'cancel'.tr(),
-              icon: const Icon(Symbols.close),
-            ),
-          ],
+              IconButton(
+                onPressed: onDownload,
+                tooltip: 'download'.tr(),
+                icon: const Icon(Symbols.download),
+              ),
+              IconButton(
+                onPressed: onDelete,
+                tooltip: 'delete'.tr(),
+                icon: const Icon(Symbols.delete),
+              ),
+              IconButton(
+                onPressed: onCancel,
+                tooltip: 'cancel'.tr(),
+                icon: const Icon(Symbols.close),
+              ),
+            ],
+          ),
         ),
       ),
     );

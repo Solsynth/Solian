@@ -1274,6 +1274,8 @@
   "driveUnindexedTabTitle": "Service Attachments",
   "driveWorkspaceEmptyDescription": "Open a workspace to browse cloud files or service attachments. You can keep multiple tabs open side by side.",
   "driveWorkspaceEmptyTitle": "Welcome to Drive",
+  "driveNoOpenTabs": "No open tabs",
+  "driveUploadAsset": "Upload asset",
   "dropFilesHere": "Drop your files here",
   "dropToShare": "Drop to share",
   "duration": "Duration",
