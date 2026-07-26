@@ -542,9 +542,18 @@ class ChatRoomScreen extends HookConsumerWidget {
         };
       } else {
         // At bottom, hide button and reset badge.
+        final hadUnseenMessages = newMessagesCount.value > 0;
         isBackToBottomVisible.value = false;
         newMessagesCount.value = 0;
         hideBackToBottomTimer.value?.cancel();
+
+        // A new row can arrive while the reversed list is outside its cache
+        // area. Re-read the local timeline after returning to the latest
+        // position so the row is always materialized, including when the user
+        // reaches the bottom by manually scrolling rather than tapping the FAB.
+        if (hadUnseenMessages) {
+          unawaited(messagesNotifier.loadInitial(forceRemoteRefresh: false));
+        }
         return null;
       }
     }, [isAtLatestMessages.value]);
@@ -1058,7 +1067,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                                       isBackToBottomVisible.value)
                                   ? () {
                                       chatStateNotifier.jumpToBottom();
-                                      newMessagesCount.value = 0;
                                     }
                                   : null,
                               elevation:
