@@ -27,6 +27,10 @@ import 'udid.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
+const _iosCommunicationNotificationChannel = MethodChannel(
+  'dev.solsynth.solian/local_communication_notification',
+);
+
 AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
 void _onAppLifecycleChanged(AppLifecycleState state) {
@@ -86,6 +90,41 @@ int _notificationIdFromString(String id) {
     hash = (hash * 31 + id.codeUnitAt(i)) & 0x7FFFFFFF;
   }
   return hash;
+}
+
+Future<bool> _showIosCommunicationNotification({
+  required SnNotification notification,
+  required String threadId,
+  required List<DarwinNotificationAttachment> attachments,
+  String? senderImagePath,
+}) async {
+  try {
+    return await _iosCommunicationNotificationChannel
+            .invokeMethod<bool>('show', {
+              'id': notification.id,
+              'title': notification.title,
+              'body': notification.body,
+              'topic': notification.topic,
+              'threadId': threadId,
+              'payload': notification.meta['action_uri'],
+              'meta': notification.meta,
+              'attachmentPaths': attachments
+                  .map((item) => item.filePath)
+                  .toList(),
+              'senderImagePath': senderImagePath,
+            }) ??
+        false;
+  } on PlatformException catch (error) {
+    Logger.root.warning(
+      '[Notification] Failed to show iOS communication notification: $error',
+    );
+    return false;
+  } on MissingPluginException catch (error) {
+    Logger.root.warning(
+      '[Notification] iOS communication notification bridge is unavailable: $error',
+    );
+    return false;
+  }
 }
 
 Future<void> initializeLocalNotifications(WidgetRef ref) async {
@@ -180,8 +219,10 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         playNotificationSfx(ref);
         ref.read(notificationStateProvider.notifier).add(notification);
       } else {
-        // App is in background, show system notification (only on supported platforms)
-        if (!kIsWeb && !Platform.isIOS) {
+        // When the app is not focused, mirror WebSocket notifications to the
+        // system notification center. This includes iOS while its WebSocket is
+        // still connected; foreground notifications remain in-app above.
+        if (!kIsWeb) {
           Logger.root.info(
             '[Notification] Showing system notification: ${notification.title}',
           );
@@ -192,6 +233,21 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             serverUrl,
             notification,
           );
+
+          String? senderImagePath;
+          if (Platform.isIOS &&
+              notification.topic.startsWith('messages.') &&
+              notification.meta['pfp'] is String) {
+            try {
+              senderImagePath = (await DefaultCacheManager().getSingleFile(
+                '$serverUrl/drive/files/${notification.meta['pfp']}',
+              )).path;
+            } catch (error) {
+              Logger.root.warning(
+                '[Notification] Failed to download communication sender image: $error',
+              );
+            }
+          }
 
           final DarwinNotificationDetails darwinNotificationDetails =
               DarwinNotificationDetails(
@@ -211,13 +267,24 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             android: androidNotificationDetails,
             macOS: darwinNotificationDetails,
           );
-          await flutterLocalNotificationsPlugin.show(
-            id: _notificationIdFromString(notification.id),
-            title: notification.title,
-            body: notification.body,
-            notificationDetails: notificationDetails,
-            payload: notification.meta['action_uri'] as String?,
-          );
+          final shownAsCommunicationNotification =
+              Platform.isIOS && notification.topic.startsWith('messages.')
+              ? await _showIosCommunicationNotification(
+                  notification: notification,
+                  threadId: threadId,
+                  attachments: attachments,
+                  senderImagePath: senderImagePath,
+                )
+              : false;
+          if (!shownAsCommunicationNotification) {
+            await flutterLocalNotificationsPlugin.show(
+              id: _notificationIdFromString(notification.id),
+              title: notification.title,
+              body: notification.body,
+              notificationDetails: notificationDetails,
+              payload: notification.meta['action_uri'] as String?,
+            );
+          }
         } else {
           Logger.root.info(
             '[Notification] Skipping system notification for unsupported platform: ${notification.title}',
@@ -229,7 +296,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
 }
 
 Future<void> showDebugLocalNotification(WidgetRef ref) async {
-  if (kIsWeb || Platform.isIOS) return;
+  if (kIsWeb) return;
 
   const darwinNotificationDetails = DarwinNotificationDetails(
     presentAlert: true,

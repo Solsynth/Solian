@@ -49,6 +49,7 @@ import flutter_callkit_incoming
         
         if let controller = window?.rootViewController as? FlutterViewController {
             setupNativeCallChannel(binaryMessenger: controller.binaryMessenger)
+            LocalCommunicationNotification.install(binaryMessenger: controller.binaryMessenger)
         }
 
         UNUserNotificationCenter.current().delegate = self
