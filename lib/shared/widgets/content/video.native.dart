@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
+import 'package:island/shared/widgets/content/media_playback.dart';
 
 class UniversalVideo extends ConsumerStatefulWidget {
   final String uri;
@@ -13,6 +16,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
   final bool autoplay;
   final VoidCallback? onRetry;
   final Player? externalPlayer;
+  final bool persistent;
   const UniversalVideo({
     super.key,
     required this.uri,
@@ -20,6 +24,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
     this.autoplay = false,
     this.onRetry,
     this.externalPlayer,
+    this.persistent = true,
   });
 
   @override
@@ -44,12 +49,6 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   }
 
   @override
-  void dispose() {
-    _disposePlayer();
-    super.dispose();
-  }
-
-  @override
   void didUpdateWidget(UniversalVideo oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.uri != widget.uri) {
@@ -60,10 +59,15 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     }
   }
 
-  void _initPlayer() {
+  Future<void> _initPlayer() async {
     MediaKit.ensureInitialized();
 
-    _ownPlayer = widget.externalPlayer ?? Player();
+    final controller = ref.read(mediaPlaybackProvider.notifier);
+    final usePersistentPlayer =
+        widget.externalPlayer == null && widget.persistent;
+    _ownPlayer =
+        widget.externalPlayer ??
+        (usePersistentPlayer ? controller.player : Player());
     _videoController = VideoController(_ownPlayer!);
 
     _ownPlayer!.stream.playing.listen((playing) {
@@ -86,11 +90,33 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       }
     });
 
-    _ownPlayer!.open(Media(widget.uri), play: widget.autoplay);
+    if (usePersistentPlayer) {
+      final serverUrl = ref.read(serverUrlProvider);
+      final token = ref.read(tokenProvider);
+      await controller.open(
+        uri: widget.uri,
+        title: _titleFromUri(widget.uri),
+        kind: MediaPlaybackKind.video,
+        autoplay: widget.autoplay,
+        aspectRatio: widget.aspectRatio,
+        httpHeaders: widget.uri.startsWith(serverUrl) && token != null
+            ? {'Authorization': 'Bearer ${token.token}'}
+            : null,
+      );
+    } else if (widget.externalPlayer == null) {
+      await _ownPlayer!.open(Media(widget.uri), play: widget.autoplay);
+    }
+  }
+
+  String _titleFromUri(String uri) {
+    final segments = Uri.tryParse(uri)?.pathSegments ?? const <String>[];
+    return segments.isEmpty ? 'Video' : segments.last;
   }
 
   void _disposePlayer() {
-    if (_ownPlayer != null && widget.externalPlayer == null) {
+    if (_ownPlayer != null &&
+        widget.externalPlayer == null &&
+        !widget.persistent) {
       _ownPlayer!.dispose();
       _ownPlayer = null;
     }
@@ -105,6 +131,15 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     });
     _disposePlayer();
     _initPlayer();
+  }
+
+  @override
+  void dispose() {
+    if (widget.persistent) {
+      ref.read(mediaPlaybackProvider.notifier).dockWhenReleased(widget.uri);
+    }
+    _disposePlayer();
+    super.dispose();
   }
 
   Future<void> play() async {

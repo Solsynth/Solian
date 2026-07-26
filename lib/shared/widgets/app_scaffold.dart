@@ -16,6 +16,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
+import 'package:island/shared/widgets/content/media_playback.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart'
     hide isWideScreen, isWiderScreen, isWidestScreen;
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -135,6 +136,7 @@ class WindowScaffold extends HookConsumerWidget {
         child: Column(
           children: [
             Expanded(child: child),
+            const MediaPlaybackDock(),
             const TaskOverlayHost(),
           ],
         ),
