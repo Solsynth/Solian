@@ -1940,7 +1940,7 @@
   "contentWarning": "内容提示",
   "tapToReveal": "点击显示",
   "markComplete": "标记为完成",
-  "marketplace": "贴图市场",
+  "marketplace": "市场",
   "matches": {
     "zero": "无匹配项",
     "one": "{} 个匹配",
@@ -4051,7 +4051,7 @@
   "languagePT": "葡萄牙语",
   "plugins": "插件",
   "pluginsEmptyTitle": "暂无已安装的插件",
-  "pluginsEmptyHint": "使用编辑器创建、从文件夹安装，或浏览市场",
+  "pluginsEmptyHint": "使用编辑器创建、从文件夹安装，或浏览插件市场",
   "newPlugin": "新建插件",
   "fromFolder": "从文件夹导入",
   "pluginsCount": {
