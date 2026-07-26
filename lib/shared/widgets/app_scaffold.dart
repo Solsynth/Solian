@@ -39,8 +39,36 @@ class WindowScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showPalette = useState(false);
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
-    final useCustomTitleBar = isDesktop && !Platform.isLinux;
+    final useLinuxNativeTitleBar = ref.watch(linuxNativeTitleBarProvider);
+    final useCustomTitleBar =
+        isDesktop && (!Platform.isLinux || !useLinuxNativeTitleBar);
     final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
+
+    useEffect(() {
+      if (kIsWeb || !isDesktop || !Platform.isLinux) return null;
+
+      Future(() async {
+        if (useLinuxNativeTitleBar) {
+          await windowManager.setTitleBarStyle(
+            TitleBarStyle.normal,
+            windowButtonVisibility: true,
+          );
+        } else {
+          await windowManager.setTitleBarStyle(
+            TitleBarStyle.hidden,
+            windowButtonVisibility: false,
+          );
+          final env = Platform.environment;
+          if (env.containsKey('WAYLAND_DISPLAY')) {
+            try {
+              await windowManager.setAsFrameless();
+            } catch (_) {}
+          }
+        }
+      });
+
+      return null;
+    }, [isDesktop, useLinuxNativeTitleBar]);
 
     useEffect(() {
       if (!isDesktop) return null;

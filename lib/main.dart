@@ -283,19 +283,24 @@ void main(List<String> args) async {
         }
       }
 
+      final useLinuxNativeTitleBar = Platform.isLinux
+          ? (prefs.getBool(kAppLinuxUseNativeTitleBar) ?? true)
+          : false;
       WindowOptions windowOptions = WindowOptions(
         size: initialSize,
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
-        titleBarStyle: Platform.isLinux ? TitleBarStyle.normal : TitleBarStyle.hidden,
-        windowButtonVisibility: true,
+        titleBarStyle: useLinuxNativeTitleBar
+            ? TitleBarStyle.normal
+            : TitleBarStyle.hidden,
+        windowButtonVisibility: useLinuxNativeTitleBar,
       );
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         final env = Platform.environment;
         final isWayland = env.containsKey('WAYLAND_DISPLAY');
 
-        if (isWayland && !Platform.isLinux) {
+        if (isWayland && (!Platform.isLinux || !useLinuxNativeTitleBar)) {
           try {
             await windowManager.setAsFrameless();
           } catch (e) {
@@ -309,7 +314,7 @@ void main(List<String> args) async {
         await windowManager.setOpacity(opacity);
         Logger.root.info(
           "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
-          "${isWayland && !Platform.isLinux ? " (Wayland frameless fix applied)" : ""}",
+          "${isWayland && (!Platform.isLinux || !useLinuxNativeTitleBar) ? " (Wayland frameless fix applied)" : ""}",
         );
       });
     }

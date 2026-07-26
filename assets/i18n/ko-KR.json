@@ -2044,6 +2044,8 @@
   "settingsTtsVolume": "음량",
   "settingsUnknownRoom": "Unknown Room",
   "settingsWindowOpacity": "창 투명도",
+  "settingsLinuxNativeTitleBar": "기본 제목 표시줄 사용",
+  "settingsLinuxNativeTitleBarDescription": "Solian의 사용자 지정 데스크톱 제목 표시줄 대신 시스템 창 제목 표시줄을 사용합니다.",
   "share": "공유",
   "shareCodeWithRecipient": "이 코드를 받는 사람과 공유하여 선물을 받을 수 있도록 하세요.",
   "sharePost": "게시물 공유",

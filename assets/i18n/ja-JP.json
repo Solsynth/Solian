@@ -1812,6 +1812,8 @@
   "settingsTtsVolume": "音量",
   "settingsUnknownRoom": "Unknown Room",
   "settingsWindowOpacity": "ウィンドウの不透明度",
+  "settingsLinuxNativeTitleBar": "ネイティブタイトルバーを使う",
+  "settingsLinuxNativeTitleBarDescription": "Solian のカスタムデスクトップタイトルバーではなく、システムのウィンドウタイトルバーを使います。",
   "share": "共有",
   "shareCodeWithRecipient": "このコードを受取人と共有してギフトを引き換えてください。",
   "sharePost": "投稿を共有",

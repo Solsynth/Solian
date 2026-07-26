@@ -72,6 +72,7 @@ class SettingsScreen extends HookConsumerWidget {
     final prefs = ref.watch(sharedPreferencesProvider);
     final controller = TextEditingController(text: serverUrl);
     final settings = ref.watch(appSettingsProvider);
+    final useLinuxNativeTitleBar = ref.watch(linuxNativeTitleBarProvider);
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
     final isWide = isWideScreen(context);
@@ -153,6 +154,8 @@ class SettingsScreen extends HookConsumerWidget {
           'settingsCustomColors',
           'settingsCardBackgroundOpacity',
           'settingsWindowOpacity',
+          'settingsLinuxNativeTitleBar',
+          'settingsLinuxNativeTitleBarDescription',
           'settingsCustomFonts',
           'settingsLinkCollapseMode',
           'settingsTransparentAppBar',
@@ -590,6 +593,25 @@ class SettingsScreen extends HookConsumerWidget {
                     },
                   ),
                 ),
+              ),
+            ),
+          if (Platform.isLinux)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsLinuxNativeTitleBar').tr(),
+              subtitle: Text('settingsLinuxNativeTitleBarDescription').tr(),
+              contentPadding: _kSettingsTilePadding,
+              leading: const Icon(Symbols.web_traffic),
+              trailing: Switch(
+                value: useLinuxNativeTitleBar,
+                onChanged: (value) async {
+                  await ref
+                      .read(linuxNativeTitleBarProvider.notifier)
+                      .setEnabled(value);
+                  if (context.mounted) {
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
               ),
             ),
           if (isDesktop) const Divider(height: 24),

@@ -3249,6 +3249,8 @@
   "settingsTtsVolume": "音量",
   "settingsUnknownRoom": "Unknown Room",
   "settingsWindowOpacity": "視窗不透明度",
+  "settingsLinuxNativeTitleBar": "使用原生標題列",
+  "settingsLinuxNativeTitleBarDescription": "使用系統視窗標題列，而不是 Solian 原本的自訂桌面標題列。",
   "share": "分享",
   "shareCheckInSlogan": "在 Solar Network 檢視今日運勢。",
   "shareCodeWithRecipient": "與收件人分享此程式碼來兌換禮物。",

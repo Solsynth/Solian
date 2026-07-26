@@ -9,6 +9,7 @@ import 'package:island/core/services/analytics_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 part 'config.freezed.dart';
 part 'config.g.dart';
@@ -57,6 +58,7 @@ const kAppSoundEffects = 'app_sound_effects';
 const kAppFestivalFeatures = 'app_feastival_features';
 const kAppWindowSize = 'app_window_size';
 const kAppWindowOpacity = 'app_window_opacity';
+const kAppLinuxUseNativeTitleBar = 'app_linux_use_native_title_bar';
 const kAppCardTransparent = 'app_card_transparent';
 const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
@@ -118,6 +120,29 @@ final developerModeProvider = Provider<bool>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return prefs.getBool(kAppDeveloperMode) ?? false;
 });
+
+final linuxNativeTitleBarProvider =
+    StateNotifierProvider<LinuxNativeTitleBarNotifier, bool>((ref) {
+      final prefs = ref.watch(sharedPreferencesProvider);
+      return LinuxNativeTitleBarNotifier(prefs);
+    });
+
+class LinuxNativeTitleBarNotifier extends StateNotifier<bool> {
+  LinuxNativeTitleBarNotifier(this._prefs)
+    : super(
+        !kIsWeb && Platform.isLinux
+            ? (_prefs.getBool(kAppLinuxUseNativeTitleBar) ?? true)
+            : false,
+      );
+
+  final SharedPreferences _prefs;
+
+  Future<void> setEnabled(bool value) async {
+    if (kIsWeb || !Platform.isLinux) return;
+    await _prefs.setBool(kAppLinuxUseNativeTitleBar, value);
+    state = value;
+  }
+}
 
 @freezed
 sealed class IpOverride with _$IpOverride {

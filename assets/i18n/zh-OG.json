@@ -1722,6 +1722,8 @@
   "settingsTtsVolume": "聲量",
   "settingsUnknownRoom": "Unknown Room",
   "settingsWindowOpacity": "窗透度",
+  "settingsLinuxNativeTitleBar": "用原生題欄",
+  "settingsLinuxNativeTitleBarDescription": "用系統窗題欄，不復用 Solian 舊自訂桌面題欄。",
   "share": "分享",
   "shareCodeWithRecipient": "與受者享此碼以兌禮",
   "sharePost": "分享帖文",

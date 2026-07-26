@@ -1725,6 +1725,8 @@
   "settingsTtsVolume": "Volumen",
   "settingsUnknownRoom": "Unknown Room",
   "settingsWindowOpacity": "Window Opacity",
+  "settingsLinuxNativeTitleBar": "Usar barra de título nativa",
+  "settingsLinuxNativeTitleBarDescription": "Usa la barra de título del sistema en lugar de la barra de título personalizada de escritorio de Solian.",
   "share": "Share",
   "shareCodeWithRecipient": "Share this code with the recipient to redeem the gift.",
   "sharePost": "Share Post",
