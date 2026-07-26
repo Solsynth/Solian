@@ -13,6 +13,65 @@ import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+List<LocalChatMessage> _buildDisplayMessages(
+  List<LocalChatMessage> messages,
+) {
+  final displayMessages = <LocalChatMessage>[];
+
+  for (final message in messages) {
+    final hookResult = PluginHooks().runBeforeMessageDisplay(
+      message.toRemoteMessage().toJson(),
+    );
+    if (hookResult.cancelled) continue;
+
+    try {
+      final messageData = message.toRemoteMessage().toJson()
+        ..addAll(hookResult.data!);
+      final remote = SnChatMessage.fromJson(messageData);
+      var transformed = LocalChatMessage.fromRemoteMessage(
+        remote,
+        message.status,
+        clientMessageId: message.clientMessageId,
+        nonce: message.nonce,
+      );
+      transformed.data.addAll(message.data);
+      transformed.localAttachments = message.localAttachments;
+      if (message.isDeleted != null || message.deletedAt != null) {
+        transformed = LocalChatMessage(
+          id: transformed.id,
+          roomId: transformed.roomId,
+          senderId: transformed.senderId,
+          sender: transformed.sender,
+          data: transformed.data,
+          createdAt: transformed.createdAt,
+          clientMessageId: transformed.clientMessageId,
+          nonce: transformed.nonce,
+          status: transformed.status,
+          content: transformed.content,
+          isDeleted: message.isDeleted,
+          updatedAt: transformed.updatedAt,
+          deletedAt: message.deletedAt,
+          type: transformed.type,
+          meta: transformed.meta,
+          membersMentioned: transformed.membersMentioned,
+          editedAt: transformed.editedAt,
+          attachments: transformed.attachments,
+          reactions: transformed.reactions,
+          repliedMessageId: transformed.repliedMessageId,
+          forwardedMessageId: transformed.forwardedMessageId,
+          localAttachments: message.localAttachments,
+        );
+      }
+      displayMessages.add(transformed);
+    } catch (_) {
+      // Invalid plugin output must not prevent the original message rendering.
+      displayMessages.add(message);
+    }
+  }
+
+  return List.unmodifiable(displayMessages);
+}
+
 /// Simplified RoomMessageList that uses universal chat room state.
 /// All state is managed by [ChatRoomStateNotifier] via [chatRoomStateProvider].
 class RoomMessageList extends HookConsumerWidget {
@@ -37,57 +96,14 @@ class RoomMessageList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayMessages = <LocalChatMessage>[];
-    for (final message in messages) {
-      final hookResult = PluginHooks().runBeforeMessageDisplay(
-        message.toRemoteMessage().toJson(),
-      );
-      if (hookResult.cancelled) continue;
-
-      try {
-        final messageData = message.toRemoteMessage().toJson()
-          ..addAll(hookResult.data!);
-        final remote = SnChatMessage.fromJson(messageData);
-        var transformed = LocalChatMessage.fromRemoteMessage(
-          remote,
-          message.status,
-          clientMessageId: message.clientMessageId,
-          nonce: message.nonce,
-        );
-        transformed.data.addAll(message.data);
-        transformed.localAttachments = message.localAttachments;
-        if (message.isDeleted != null || message.deletedAt != null) {
-          transformed = LocalChatMessage(
-            id: transformed.id,
-            roomId: transformed.roomId,
-            senderId: transformed.senderId,
-            sender: transformed.sender,
-            data: transformed.data,
-            createdAt: transformed.createdAt,
-            clientMessageId: transformed.clientMessageId,
-            nonce: transformed.nonce,
-            status: transformed.status,
-            content: transformed.content,
-            isDeleted: message.isDeleted,
-            updatedAt: transformed.updatedAt,
-            deletedAt: message.deletedAt,
-            type: transformed.type,
-            meta: transformed.meta,
-            membersMentioned: transformed.membersMentioned,
-            editedAt: transformed.editedAt,
-            attachments: transformed.attachments,
-            reactions: transformed.reactions,
-            repliedMessageId: transformed.repliedMessageId,
-            forwardedMessageId: transformed.forwardedMessageId,
-            localAttachments: message.localAttachments,
-          );
-        }
-        displayMessages.add(transformed);
-      } catch (_) {
-        // Invalid plugin output must not prevent the original message rendering.
-        displayMessages.add(message);
-      }
-    }
+    // Plugin transforms deserialize every message. Keeping the result stable for
+    // the lifetime of an unchanged message list avoids doing that work when UI
+    // state changes (selection, read marker, display settings) rebuild this
+    // widget while the user is scrolling.
+    final displayMessages = useMemoized(
+      () => _buildDisplayMessages(messages),
+      [messages],
+    );
 
     final displayStyle = ref.watch(
       appSettingsProvider.select((settings) => settings.messageDisplayStyle),
@@ -161,6 +177,10 @@ class RoomMessageList extends HookConsumerWidget {
       reverse: true,
       padding: const EdgeInsets.only(top: 8),
       itemCount: displayMessages.length,
+      // Message rows are comparatively expensive (rich content, media and
+      // grouped avatars). Let SuperSliverList defer off-screen cache work while
+      // a fling is in progress so the visible viewport keeps its frame budget.
+      delayPopulatingCacheArea: true,
       findChildIndexCallback: (key) {
         if (displayMessages.isEmpty) return null;
 
@@ -286,7 +306,9 @@ class RoomMessageList extends HookConsumerWidget {
                 ),
                 onLoad: () => onLoadMessageGap(messageLoadGap),
               ),
-            _LastReadMarker(visible: showLastReadMarker),
+            // Only one row can own the marker. Avoid placing an AnimatedSize
+            // (and its hidden child) in every visible message during a fling.
+            if (showLastReadMarker) const _LastReadMarker(),
             messageContent,
           ],
         );
@@ -346,57 +368,33 @@ class _MessageLoadGapMarkerState extends State<_MessageLoadGapMarker> {
 }
 
 class _LastReadMarker extends StatelessWidget {
-  static const _duration = Duration(milliseconds: 240);
-
-  final bool visible;
-
-  const _LastReadMarker({required this.visible});
+  const _LastReadMarker();
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ClipRect(
-      child: AnimatedSize(
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : _duration,
-        curve: Curves.easeInOutCubic,
-        alignment: Alignment.topCenter,
-        child: Align(
-          alignment: Alignment.topCenter,
-          heightFactor: visible ? 1 : 0,
-          child: AnimatedSlide(
-            offset: visible ? Offset.zero : const Offset(0, -0.12),
-            duration: MediaQuery.disableAnimationsOf(context)
-                ? Duration.zero
-                : _duration,
-            curve: Curves.easeOutCubic,
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(color: colorScheme.primaryContainer),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.bookmark_added,
-                    size: 20,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'newMessageBelow'.tr(),
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                ],
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(color: colorScheme.primaryContainer),
+      child: Row(
+        children: [
+          Icon(
+            Icons.bookmark_added,
+            size: 20,
+            color: colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'newMessageBelow'.tr(),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onPrimaryContainer,
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -536,11 +534,7 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: widget.children,
         ),
-        AnimatedPositioned(
-          duration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
+        Positioned(
           left: widget.avatarLeft,
           top: 0,
           child: Transform.translate(
