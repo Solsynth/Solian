@@ -4,9 +4,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/shared/widgets/content/media_playback.dart';
 
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class UniversalAudio extends ConsumerStatefulWidget {
@@ -25,98 +25,75 @@ class UniversalAudio extends ConsumerStatefulWidget {
 }
 
 class _UniversalAudioState extends ConsumerState<UniversalAudio> {
-  Player? _player;
-
-  Duration _duration = Duration(seconds: 1);
-  Duration _duartionBuffered = Duration(seconds: 1);
-  Duration _position = Duration(seconds: 0);
-
   bool _sliderWorking = false;
-  Duration _sliderPosition = Duration(seconds: 0);
+  Duration _sliderPosition = Duration.zero;
 
   Future<void> _initPlayer() async {
-    MediaKit.ensureInitialized();
-
     final serverUrl = ref.read(serverUrlProvider);
     final token = ref.read(tokenProvider);
-    final authHeaders = widget.uri.startsWith(serverUrl) && token != null
-        ? {'Authorization': 'Bearer ${token.token}'}
-        : null;
-
-    if (!mounted) return;
-
-    // Opening a cached file required the whole recording to download before
-    // playback could start. Let media_kit stream HTTP sources instead, so it
-    // can begin playing as soon as it has enough buffered audio and continue
-    // to handle byte-range requests while the user seeks.
-    _player = Player(
-      configuration: const PlayerConfiguration(bufferSize: 8 * 1024 * 1024),
-    );
-    _player!.stream.position.listen((value) {
-      _position = value;
-      if (!_sliderWorking) _sliderPosition = _position;
-      if (mounted) setState(() {});
-    });
-    _player!.stream.buffer.listen((value) {
-      _duartionBuffered = value;
-      if (mounted) setState(() {});
-    });
-    _player!.stream.duration.listen((value) {
-      _duration = value;
-      if (mounted) setState(() {});
-    });
-
-    await _player!.open(
-      Media(widget.uri, httpHeaders: authHeaders),
-      play: widget.autoplay,
-    );
-
-    if (mounted) setState(() {});
-  }
-
-  void _disposePlayer() {
-    _player?.dispose();
-    _player = null;
+    await ref
+        .read(mediaPlaybackProvider.notifier)
+        .open(
+          uri: widget.uri,
+          title: widget.filename,
+          kind: MediaPlaybackKind.audio,
+          autoplay: widget.autoplay,
+          httpHeaders: widget.uri.startsWith(serverUrl) && token != null
+              ? {'Authorization': 'Bearer ${token.token}'}
+              : null,
+        );
   }
 
   @override
   void initState() {
     super.initState();
-    _initPlayer();
+    if (widget.autoplay) _initPlayer();
   }
 
   @override
   void didUpdateWidget(UniversalAudio oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.uri != widget.uri) {
-      _disposePlayer();
+    if (oldWidget.uri != widget.uri && widget.autoplay) {
       _initPlayer();
     }
   }
 
   @override
   void dispose() {
-    _disposePlayer();
+    ref.read(mediaPlaybackProvider.notifier).dockWhenReleased(widget.uri);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_player == null) {
-      return Center(child: CircularProgressIndicator());
-    }
+    final playback = ref.watch(mediaPlaybackProvider);
+    final controller = ref.read(mediaPlaybackProvider.notifier);
+    final isActive = playback.uri == widget.uri;
+    final position = isActive ? playback.position : Duration.zero;
+    final duration = isActive ? playback.duration : Duration.zero;
+    final buffered = isActive ? playback.buffered : Duration.zero;
+    if (!_sliderWorking) _sliderPosition = position;
+    final maximum = duration.inMilliseconds.toDouble();
+    final sliderValue = _sliderPosition.inMilliseconds
+        .toDouble()
+        .clamp(0.0, maximum <= 0 ? 1.0 : maximum)
+        .toDouble();
 
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerLowest,
       child: Row(
         children: [
           IconButton.filled(
-            onPressed: () {
-              _player!.playOrPause().then((_) {
-                if (mounted) setState(() {});
-              });
+            onPressed: () async {
+              if (!isActive) {
+                await _initPlayer();
+                await controller.player.play();
+              } else {
+                await controller.player.playOrPause();
+              }
+              if (mounted) setState(() {});
             },
-            icon: _player!.state.playing
+            icon: isActive && playback.playing
                 ? const Icon(Symbols.pause, fill: 1, color: Colors.white)
                 : const Icon(Symbols.play_arrow, fill: 1, color: Colors.white),
           ),
@@ -128,12 +105,12 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
               children: [
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  child: (_player!.state.playing || _sliderWorking)
+                  child: (isActive && playback.playing || _sliderWorking)
                       ? SizedBox(
                           width: double.infinity,
                           key: const ValueKey('playing'),
                           child: Text(
-                            '${_position.formatShortDuration()} / ${_duration.formatShortDuration()}',
+                            '${position.formatShortDuration()} / ${duration.formatShortDuration()}',
                           ),
                         )
                       : SizedBox(
@@ -147,10 +124,12 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
                         ),
                 ),
                 Slider(
-                  value: _sliderPosition.inMilliseconds.toDouble(),
-                  secondaryTrackValue: _duartionBuffered.inMilliseconds
+                  value: sliderValue,
+                  secondaryTrackValue: buffered.inMilliseconds
+                      .toDouble()
+                      .clamp(0.0, maximum <= 0 ? 1.0 : maximum)
                       .toDouble(),
-                  max: _duration.inMilliseconds.toDouble(),
+                  max: maximum <= 0 ? 1.0 : maximum,
                   onChangeStart: (_) {
                     _sliderWorking = true;
                   },
@@ -161,7 +140,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
                   onChangeEnd: (value) {
                     _sliderPosition = Duration(milliseconds: value.toInt());
                     _sliderWorking = false;
-                    _player!.seek(_sliderPosition);
+                    controller.player.seek(_sliderPosition);
                   },
                   year2023: true,
                   padding: EdgeInsets.zero,
