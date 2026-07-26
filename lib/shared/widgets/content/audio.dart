@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
-import 'package:logging/logging.dart';
 
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:media_kit/media_kit.dart';
@@ -37,32 +35,23 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
   Duration _sliderPosition = Duration(seconds: 0);
 
   Future<void> _initPlayer() async {
-    final url = widget.uri;
     MediaKit.ensureInitialized();
 
     final serverUrl = ref.read(serverUrlProvider);
     final token = ref.read(tokenProvider);
-    final authHeaders = url.startsWith(serverUrl) && token != null
+    final authHeaders = widget.uri.startsWith(serverUrl) && token != null
         ? {'Authorization': 'Bearer ${token.token}'}
         : null;
 
-    String uri;
-    final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
-    if (inCacheInfo == null) {
-      Logger.root.info('[MediaPlayer] Miss cache: $url');
-      final result = await DefaultCacheManager().downloadFile(
-        url,
-        authHeaders: authHeaders,
-      );
-      uri = result.file.path;
-    } else {
-      uri = inCacheInfo.file.path;
-      Logger.root.info('[MediaPlayer] Hit cache: $url');
-    }
-
     if (!mounted) return;
 
-    _player = Player();
+    // Opening a cached file required the whole recording to download before
+    // playback could start. Let media_kit stream HTTP sources instead, so it
+    // can begin playing as soon as it has enough buffered audio and continue
+    // to handle byte-range requests while the user seeks.
+    _player = Player(
+      configuration: const PlayerConfiguration(bufferSize: 8 * 1024 * 1024),
+    );
     _player!.stream.position.listen((value) {
       _position = value;
       if (!_sliderWorking) _sliderPosition = _position;
@@ -77,13 +66,10 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
       if (mounted) setState(() {});
     });
 
-    final Map<String, String>? httpHeaders =
-        uri.startsWith(serverUrl) && token != null
-            ? {'Authorization': 'Bearer ${token.token}'}
-            : null;
-
-    await _player!.open(Media(uri, httpHeaders: httpHeaders),
-        play: widget.autoplay);
+    await _player!.open(
+      Media(widget.uri, httpHeaders: authHeaders),
+      play: widget.autoplay,
+    );
 
     if (mounted) setState(() {});
   }
