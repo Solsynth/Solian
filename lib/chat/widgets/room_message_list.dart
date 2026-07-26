@@ -177,10 +177,6 @@ class RoomMessageList extends HookConsumerWidget {
       reverse: true,
       padding: const EdgeInsets.only(top: 8),
       itemCount: displayMessages.length,
-      // Message rows are comparatively expensive (rich content, media and
-      // grouped avatars). Let SuperSliverList defer off-screen cache work while
-      // a fling is in progress so the visible viewport keeps its frame budget.
-      delayPopulatingCacheArea: true,
       findChildIndexCallback: (key) {
         if (displayMessages.isEmpty) return null;
 
