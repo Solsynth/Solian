@@ -288,14 +288,14 @@ void main(List<String> args) async {
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.hidden,
+        titleBarStyle: Platform.isLinux ? TitleBarStyle.normal : TitleBarStyle.hidden,
         windowButtonVisibility: true,
       );
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         final env = Platform.environment;
         final isWayland = env.containsKey('WAYLAND_DISPLAY');
 
-        if (isWayland) {
+        if (isWayland && !Platform.isLinux) {
           try {
             await windowManager.setAsFrameless();
           } catch (e) {
@@ -309,7 +309,7 @@ void main(List<String> args) async {
         await windowManager.setOpacity(opacity);
         Logger.root.info(
           "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
-          "${isWayland ? " (Wayland frameless fix applied)" : ""}",
+          "${isWayland && !Platform.isLinux ? " (Wayland frameless fix applied)" : ""}",
         );
       });
     }

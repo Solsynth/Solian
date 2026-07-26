@@ -19,6 +19,7 @@ class DesktopWindowFrame extends HookWidget {
   additionalTitleBarActions;
   final VoidCallback? onClose;
   final bool isDesktopPlatform;
+  final bool showTitleBar;
 
   const DesktopWindowFrame({
     super.key,
@@ -28,6 +29,7 @@ class DesktopWindowFrame extends HookWidget {
     this.additionalTitleBarActions,
     this.onClose,
     this.isDesktopPlatform = false,
+    this.showTitleBar = true,
   });
 
   static bool get isPlatformDesktop =>
@@ -63,7 +65,10 @@ class DesktopWindowFrame extends HookWidget {
               children: [
                 Column(
                   children: [
-                    DragToMoveArea(child: _buildTitleBar(context, isMaximized)),
+                    if (showTitleBar)
+                      DragToMoveArea(
+                        child: _buildTitleBar(context, isMaximized),
+                      ),
                     Expanded(child: child),
                   ],
                 ),

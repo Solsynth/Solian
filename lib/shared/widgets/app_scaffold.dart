@@ -39,6 +39,7 @@ class WindowScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showPalette = useState(false);
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
+    final useCustomTitleBar = isDesktop && !Platform.isLinux;
     final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
 
     useEffect(() {
@@ -104,7 +105,8 @@ class WindowScaffold extends HookConsumerWidget {
       },
       child: DesktopWindowFrame(
         isDesktopPlatform: isDesktop,
-        title: isDesktop
+        showTitleBar: useCustomTitleBar,
+        title: useCustomTitleBar
             ? Platform.isMacOS
                   ? Text(
                       'Solar Network',
