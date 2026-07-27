@@ -9,7 +9,6 @@ import 'package:island/core/services/analytics_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
 part 'config.freezed.dart';
 part 'config.g.dart';
