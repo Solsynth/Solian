@@ -39,16 +39,21 @@ class WindowScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showPalette = useState(false);
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
-    final useLinuxNativeTitleBar = ref.watch(linuxNativeTitleBarProvider);
+    final useDesktopNativeTitleBar = ref.watch(
+      appSettingsProvider.select((s) => s.desktopUseNativeTitleBar),
+    );
     final useCustomTitleBar =
-        isDesktop && (!Platform.isLinux || !useLinuxNativeTitleBar);
+        isDesktop &&
+        (!(Platform.isLinux || Platform.isWindows) ||
+            !useDesktopNativeTitleBar);
     final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
 
     useEffect(() {
-      if (kIsWeb || !isDesktop || !Platform.isLinux) return null;
+      if (kIsWeb || !isDesktop || !(Platform.isLinux || Platform.isWindows))
+        return null;
 
       Future(() async {
-        if (useLinuxNativeTitleBar) {
+        if (useDesktopNativeTitleBar) {
           await windowManager.setTitleBarStyle(
             TitleBarStyle.normal,
             windowButtonVisibility: true,
@@ -68,7 +73,7 @@ class WindowScaffold extends HookConsumerWidget {
       });
 
       return null;
-    }, [isDesktop, useLinuxNativeTitleBar]);
+    }, [isDesktop, useDesktopNativeTitleBar]);
 
     useEffect(() {
       if (!isDesktop) return null;

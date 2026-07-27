@@ -72,7 +72,9 @@ class SettingsScreen extends HookConsumerWidget {
     final prefs = ref.watch(sharedPreferencesProvider);
     final controller = TextEditingController(text: serverUrl);
     final settings = ref.watch(appSettingsProvider);
-    final useLinuxNativeTitleBar = ref.watch(linuxNativeTitleBarProvider);
+    final useDesktopNativeTitleBar = ref.watch(
+      appSettingsProvider.select((s) => s.desktopUseNativeTitleBar),
+    );
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
     final isWide = isWideScreen(context);
@@ -154,8 +156,8 @@ class SettingsScreen extends HookConsumerWidget {
           'settingsCustomColors',
           'settingsCardBackgroundOpacity',
           'settingsWindowOpacity',
-          'settingsLinuxNativeTitleBar',
-          'settingsLinuxNativeTitleBarDescription',
+          'settingsDesktopNativeTitleBar',
+          'settingsDesktopNativeTitleBarDescription',
           'settingsCustomFonts',
           'settingsLinkCollapseMode',
           'settingsTransparentAppBar',
@@ -595,19 +597,19 @@ class SettingsScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-          if (Platform.isLinux)
+          if (Platform.isLinux || Platform.isWindows)
             ListTile(
               minLeadingWidth: 48,
-              title: Text('settingsLinuxNativeTitleBar').tr(),
-              subtitle: Text('settingsLinuxNativeTitleBarDescription').tr(),
+              title: Text('settingsDesktopNativeTitleBar').tr(),
+              subtitle: Text('settingsDesktopNativeTitleBarDescription').tr(),
               contentPadding: _kSettingsTilePadding,
               leading: const Icon(Symbols.web_traffic),
               trailing: Switch(
-                value: useLinuxNativeTitleBar,
-                onChanged: (value) async {
-                  await ref
-                      .read(linuxNativeTitleBarProvider.notifier)
-                      .setEnabled(value);
+                value: useDesktopNativeTitleBar,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setDesktopUseNativeTitleBar(value);
                   if (context.mounted) {
                     showSnackBar('settingsApplied'.tr());
                   }

@@ -58,7 +58,7 @@ const kAppSoundEffects = 'app_sound_effects';
 const kAppFestivalFeatures = 'app_feastival_features';
 const kAppWindowSize = 'app_window_size';
 const kAppWindowOpacity = 'app_window_opacity';
-const kAppLinuxUseNativeTitleBar = 'app_linux_use_native_title_bar';
+const kAppLinuxUseNativeTitleBarLegacy = 'app_linux_use_native_title_bar';
 const kAppCardTransparent = 'app_card_transparent';
 const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
@@ -102,6 +102,7 @@ const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
 const kAppDesktopUseSeparateCallWindow = 'app_desktop_use_separate_call_window';
+const kAppDesktopUseNativeTitleBar = 'app_desktop_use_native_title_bar';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
@@ -120,29 +121,6 @@ final developerModeProvider = Provider<bool>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return prefs.getBool(kAppDeveloperMode) ?? false;
 });
-
-final linuxNativeTitleBarProvider =
-    StateNotifierProvider<LinuxNativeTitleBarNotifier, bool>((ref) {
-      final prefs = ref.watch(sharedPreferencesProvider);
-      return LinuxNativeTitleBarNotifier(prefs);
-    });
-
-class LinuxNativeTitleBarNotifier extends StateNotifier<bool> {
-  LinuxNativeTitleBarNotifier(this._prefs)
-    : super(
-        !kIsWeb && Platform.isLinux
-            ? (_prefs.getBool(kAppLinuxUseNativeTitleBar) ?? true)
-            : false,
-      );
-
-  final SharedPreferences _prefs;
-
-  Future<void> setEnabled(bool value) async {
-    if (kIsWeb || !Platform.isLinux) return;
-    await _prefs.setBool(kAppLinuxUseNativeTitleBar, value);
-    state = value;
-  }
-}
 
 @freezed
 sealed class IpOverride with _$IpOverride {
@@ -533,6 +511,7 @@ sealed class AppSettings with _$AppSettings {
     required ExploreSettings exploreSettings,
     required bool mediaProxyEnabled,
     required bool friendStatusDesktopNotification,
+    required bool desktopUseNativeTitleBar,
   }) = _AppSettings;
 }
 
@@ -586,6 +565,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       mediaProxyEnabled: prefs.getBool(kAppMediaProxyEnabled) ?? true,
       friendStatusDesktopNotification:
           prefs.getBool(kAppFriendStatusDesktopNotification) ?? true,
+      desktopUseNativeTitleBar:
+          !kIsWeb && (Platform.isLinux || Platform.isWindows)
+          ? (prefs.getBool(kAppDesktopUseNativeTitleBar) ??
+                prefs.getBool(kAppLinuxUseNativeTitleBarLegacy) ??
+                true)
+          : false,
     );
   }
 
@@ -754,6 +739,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppLinkCollapseMode, value);
     state = state.copyWith(linkCollapseMode: value);
+  }
+
+  void setDesktopUseNativeTitleBar(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopUseNativeTitleBar, value);
+    state = state.copyWith(desktopUseNativeTitleBar: value);
   }
 
   void setWindowOpacity(double value) {
