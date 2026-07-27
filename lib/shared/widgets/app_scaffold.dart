@@ -38,19 +38,26 @@ class WindowScaffold extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showPalette = useState(false);
+    final currentPlatform = defaultTargetPlatform;
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
     final useDesktopNativeTitleBar = ref.watch(
       appSettingsProvider.select((s) => s.desktopUseNativeTitleBar),
     );
     final useCustomTitleBar =
         isDesktop &&
-        (!(Platform.isLinux || Platform.isWindows) ||
+        (!(!kIsWeb &&
+                (currentPlatform == TargetPlatform.linux ||
+                    currentPlatform == TargetPlatform.windows)) ||
             !useDesktopNativeTitleBar);
     final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
 
     useEffect(() {
-      if (kIsWeb || !isDesktop || !(Platform.isLinux || Platform.isWindows))
+      if (kIsWeb ||
+          !isDesktop ||
+          !(currentPlatform == TargetPlatform.linux ||
+              currentPlatform == TargetPlatform.windows)) {
         return null;
+      }
 
       Future(() async {
         if (useDesktopNativeTitleBar) {
@@ -63,7 +70,7 @@ class WindowScaffold extends HookConsumerWidget {
             TitleBarStyle.hidden,
             windowButtonVisibility: false,
           );
-          final env = Platform.environment;
+          const env = <String, String>{};
           if (env.containsKey('WAYLAND_DISPLAY')) {
             try {
               await windowManager.setAsFrameless();
@@ -104,7 +111,10 @@ class WindowScaffold extends HookConsumerWidget {
 
     useEffect(() {
       ShakeDetector? detector;
-      if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) && shakeEnabled) {
+      if (!kIsWeb &&
+          (currentPlatform == TargetPlatform.iOS ||
+              currentPlatform == TargetPlatform.android) &&
+          shakeEnabled) {
         detector = ShakeDetector.autoStart(
           onPhoneShake: (_) {
             showPalette.value = true;
@@ -140,7 +150,7 @@ class WindowScaffold extends HookConsumerWidget {
         isDesktopPlatform: isDesktop,
         showTitleBar: useCustomTitleBar,
         title: useCustomTitleBar
-            ? Platform.isMacOS
+            ? (!kIsWeb && currentPlatform == TargetPlatform.macOS)
                   ? Text(
                       'Solar Network',
                       style: TextStyle(
@@ -166,7 +176,7 @@ class WindowScaffold extends HookConsumerWidget {
           if (showPalette.value)
             CommandPaletteWidget(onDismiss: () => showPalette.value = false),
         ],
-        onClose: () => windowManager.hide(),
+        onClose: isDesktop ? () => windowManager.hide() : null,
         child: Column(
           children: [
             Expanded(child: child),
@@ -192,7 +202,9 @@ class _WindowSizeObserver extends WidgetsBindingObserver {
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.hidden) {
       if (!kIsWeb &&
-          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+          (defaultTargetPlatform == TargetPlatform.windows ||
+              defaultTargetPlatform == TargetPlatform.linux ||
+              defaultTargetPlatform == TargetPlatform.macOS)) {
         onSaveWindowSize();
       }
     }
@@ -322,7 +334,13 @@ class PageBackButton extends StatelessWidget {
   });
 
   static bool isDesktop() =>
-      (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows));
+      !kIsWeb &&
+      switch (defaultTargetPlatform) {
+        TargetPlatform.macOS ||
+        TargetPlatform.linux ||
+        TargetPlatform.windows => true,
+        _ => false,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -347,7 +365,9 @@ class PageBackButton extends StatelessWidget {
       icon: Icon(
         color: color,
         canPop
-            ? (!kIsWeb && (Platform.isMacOS || Platform.isIOS))
+            ? (!kIsWeb &&
+                      (defaultTargetPlatform == TargetPlatform.macOS ||
+                          defaultTargetPlatform == TargetPlatform.iOS))
                   ? Symbols.arrow_back_ios_new
                   : Symbols.arrow_back
             : Symbols.home,
@@ -451,7 +471,13 @@ class _WebSocketIndicator extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop =
-        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+        !kIsWeb &&
+        switch (defaultTargetPlatform) {
+          TargetPlatform.macOS ||
+          TargetPlatform.windows ||
+          TargetPlatform.linux => true,
+          _ => false,
+        };
 
     final devicePadding = MediaQuery.of(context).padding;
 

@@ -72,11 +72,18 @@ class SettingsScreen extends HookConsumerWidget {
     final prefs = ref.watch(sharedPreferencesProvider);
     final controller = TextEditingController(text: serverUrl);
     final settings = ref.watch(appSettingsProvider);
+    final currentPlatform = defaultTargetPlatform;
     final useDesktopNativeTitleBar = ref.watch(
       appSettingsProvider.select((s) => s.desktopUseNativeTitleBar),
     );
     final isDesktop =
-        !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+        !kIsWeb &&
+        switch (currentPlatform) {
+          TargetPlatform.windows ||
+          TargetPlatform.macOS ||
+          TargetPlatform.linux => true,
+          _ => false,
+        };
     final isWide = isWideScreen(context);
     final pools = ref.watch(poolsProvider);
     final user = ref.watch(userInfoProvider);
@@ -597,7 +604,9 @@ class SettingsScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-          if (Platform.isLinux || Platform.isWindows)
+          if (!kIsWeb &&
+              (currentPlatform == TargetPlatform.linux ||
+                  currentPlatform == TargetPlatform.windows))
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsDesktopNativeTitleBar').tr(),
@@ -1236,7 +1245,7 @@ class SettingsScreen extends HookConsumerWidget {
                 },
               ),
             ),
-            if (Platform.isMacOS) ...[
+            if (!kIsWeb && currentPlatform == TargetPlatform.macOS) ...[
               Builder(
                 builder: (context) {
                   final status = ref.watch(desktopNowPlayingCliStatusProvider);
@@ -2351,9 +2360,15 @@ class _StorageSettingsSection extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isIOS = !kIsWeb && Platform.isIOS;
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final isDesktop =
-        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+        !kIsWeb &&
+        switch (defaultTargetPlatform) {
+          TargetPlatform.macOS ||
+          TargetPlatform.windows ||
+          TargetPlatform.linux => true,
+          _ => false,
+        };
     final theme = Theme.of(context);
     final diskSpace = useState<DiskSpaceInfo?>(null);
     final flutterCacheSize = useState(0);

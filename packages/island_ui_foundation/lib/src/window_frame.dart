@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,7 +31,13 @@ class DesktopWindowFrame extends HookWidget {
   });
 
   static bool get isPlatformDesktop =>
-      !kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
+      !kIsWeb &&
+      switch (defaultTargetPlatform) {
+        TargetPlatform.macOS ||
+        TargetPlatform.linux ||
+        TargetPlatform.windows => true,
+        _ => false,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +99,7 @@ class DesktopWindowFrame extends HookWidget {
   }
 
   Widget _buildTitleBar(BuildContext context, ValueNotifier<bool> isMaximized) {
-    if (Platform.isMacOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
       return SizedBox(
         height: 32,
         child: Stack(alignment: Alignment.center, children: [?title]),
