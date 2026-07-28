@@ -109,9 +109,11 @@ SnChatMessage _mergeUpdatedRemoteMessage(
       updateRemote.type == 'messages.sync.finalize';
 
   return existingRemote.copyWith(
+    // Metadata-only update packets do not include a content field. Preserve
+    // the existing text unless the server explicitly supplies a replacement.
     content: isLinkPreviewUpdate
         ? existingRemote.content
-        : updateRemote.content,
+        : updateRemote.content ?? existingRemote.content,
     attachments: updateRemote.attachments,
     membersMentioned: updateRemote.membersMentioned,
     repliedMessageId: updateRemote.repliedMessageId,
@@ -402,8 +404,13 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       case 'messages.sync.finalize':
       case 'messages.sync.links':
         {
+          final targetId =
+              pkt.data?['meta']?['message_id']?.toString() ?? message.id;
           final shouldPersistEventRow = message.type == 'messages.update';
-          if (shouldPersistEventRow) {
+          // Do not write an update event over its target when the server uses
+          // the same ID for both records. The merged target write below is the
+          // authoritative row in that case.
+          if (shouldPersistEventRow && message.id != targetId) {
             var eventMessage = LocalChatMessage.fromRemoteMessage(
               message,
               MessageStatus.sent,
@@ -422,7 +429,6 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             await db.saveMessageWithSender(eventMessage);
           }
 
-          final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
           final existingMsg = await _fetchMessageFromDb(db, targetId, roomId);
 
           if (existingMsg != null) {

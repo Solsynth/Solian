@@ -68,6 +68,7 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
   final List<LogEntry> _pendingEntries = [];
   List<LogEntry> _currentLogs = [];
   LogFileWriter? _fileWriter;
+  bool _isLogViewerActive = false;
 
   static const _debounceWhenActive = Duration(milliseconds: 100);
   static const _debounceWhenIdle = Duration(milliseconds: 1000);
@@ -94,6 +95,13 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
 
     _fileWriter = createLogFileWriter();
 
+    // A logging callback may run while Riverpod is evaluating a provider.
+    // Keep this value locally so that callback never calls ref.read.
+    _isLogViewerActive = ref.read(logViewerActiveProvider);
+    ref.listen<bool>(logViewerActiveProvider, (_, isActive) {
+      _isLogViewerActive = isActive;
+    });
+
     ref.onDispose(() {
       _subscription?.cancel();
       _debounceTimer?.cancel();
@@ -119,8 +127,9 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
   void _scheduleFlush() {
     _debounceTimer?.cancel();
 
-    final isActive = ref.read(logViewerActiveProvider);
-    final delay = isActive ? _debounceWhenActive : _debounceWhenIdle;
+    final delay = _isLogViewerActive
+        ? _debounceWhenActive
+        : _debounceWhenIdle;
 
     _debounceTimer = Timer(delay, () {
       if (_pendingEntries.isEmpty) return;

@@ -89,6 +89,15 @@ class ChatRoomScreen extends HookConsumerWidget {
     );
     final chatStateNotifier = ref.read(chatRoomStateProvider(id).notifier);
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
+    final currentSubscribedChatId = ref.watch(currentSubscribedChatIdProvider);
+    final currentSubscribedChatIdNotifier = ref.read(
+      currentSubscribedChatIdProvider.notifier,
+    );
+    final foregroundChatRoomIdsNotifier = ref.read(
+      foregroundChatRoomIdsProvider.notifier,
+    );
+    final currentSubscribedChatIdRef = useRef(currentSubscribedChatId);
+    currentSubscribedChatIdRef.value = currentSubscribedChatId;
     final pendingSharePayloadNotifier = ref.watch(chatSharePayloadProvider(id));
     final pendingSharePayload = useValueListenable(pendingSharePayloadNotifier);
 
@@ -439,15 +448,20 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [messagesNotifier]);
 
     useEffect(() {
+      var disposed = false;
+      Future.microtask(() {
+        if (disposed) return;
+        currentSubscribedChatIdNotifier.set(id);
+        foregroundChatRoomIdsNotifier.add(id);
+      });
+
       return () {
-        Future.microtask(() {
-          // The subscription is established asynchronously, so read the current
-          // value during disposal instead of capturing its initial (often null)
-          // value when this screen is first built.
-          if (ref.read(currentSubscribedChatIdProvider) == id) {
-            ref.read(currentSubscribedChatIdProvider.notifier).set(null);
+        disposed = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (currentSubscribedChatIdRef.value == id) {
+            currentSubscribedChatIdNotifier.set(null);
           }
-          ref.read(foregroundChatRoomIdsProvider.notifier).remove(id);
+          foregroundChatRoomIdsNotifier.remove(id);
         });
       };
     }, [id]);

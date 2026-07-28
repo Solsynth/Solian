@@ -5,7 +5,6 @@ import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:island/accounts/account_pod.dart";
 import "package:island/chat/messages_notifier.dart";
-import "package:island/chat/pods/chat_foreground_rooms.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_summary.dart";
 import "package:island/core/lifecycle.dart";
@@ -101,6 +100,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   Timer? _typingCooldownTimer;
   Timer? _periodicSubscribeTimer;
   Function? _sendMessage;
+  bool _isSubscribed = false;
 
   StreamSubscription<ChatTypingEvent>? _typingSub;
   DateTime? _lastUploadStatusSentAt;
@@ -147,20 +147,61 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       ),
       context: 'subscribe ($reason)',
     );
+    _isSubscribed = true;
   }
 
   void _sendUnsubscribe({required String reason}) {
+    if (!_isSubscribed) return;
+    _isSubscribed = false;
     Logger.root.info(
       '[MessageSubscriber] Unsubscribing room $roomId ($reason)',
     );
-    _sendPacket(
-      WebSocketPacket(
-        type: 'messages.unsubscribe',
-        data: {'chat_room_id': roomId},
-        endpoint: 'messager',
-      ),
-      context: 'unsubscribe ($reason)',
-    );
+    // Disposal callbacks must not read from ref. The WebSocket sender is
+    // captured while the provider is active, so it remains safe to use here.
+    final sendMessage = _sendMessage;
+    if (sendMessage == null) return;
+    try {
+      sendMessage(
+        jsonEncode(
+          WebSocketPacket(
+            type: 'messages.unsubscribe',
+            data: {'chat_room_id': roomId},
+            endpoint: 'messager',
+          ),
+        ),
+      );
+    } catch (e, stackTrace) {
+      Logger.root.severe(
+        '[MessageSubscriber] Failed to send unsubscribe for room $roomId',
+        e,
+        stackTrace,
+      );
+    }
+  }
+
+  void _sendSubscribeWithoutRef({required String reason}) {
+    if (_isSubscribed) return;
+    final sendMessage = _sendMessage;
+    if (sendMessage == null) return;
+    Logger.root.info('[MessageSubscriber] Subscribing room $roomId ($reason)');
+    try {
+      sendMessage(
+        jsonEncode(
+          WebSocketPacket(
+            type: 'messages.subscribe',
+            data: {'chat_room_id': roomId},
+            endpoint: 'messager',
+          ),
+        ),
+      );
+      _isSubscribed = true;
+    } catch (e, stackTrace) {
+      Logger.root.severe(
+        '[MessageSubscriber] Failed to send subscribe for room $roomId',
+        e,
+        stackTrace,
+      );
+    }
   }
 
   void _cleanupResources() {
@@ -237,11 +278,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     _sendMessage = wsState.sendMessage;
     _sendSubscribe(reason: 'initial');
 
-    Future.microtask(() {
-      ref.read(currentSubscribedChatIdProvider.notifier).set(roomId);
-      ref.read(foregroundChatRoomIdsProvider.notifier).add(roomId);
-    });
-
     // Send initial read receipt
     sendReadReceipt();
 
@@ -311,24 +347,16 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       }
     });
 
-    final subscribedNotifier = ref.watch(
-      currentSubscribedChatIdProvider.notifier,
-    );
-
     ref.onCancel(() {
-      Future.microtask(() {
-        if (!ref.mounted) return;
-        final current = ref.read(currentSubscribedChatIdProvider);
-        if (current == roomId) {
-          subscribedNotifier.set(null);
-        }
-        ref.read(foregroundChatRoomIdsProvider.notifier).remove(roomId);
-      });
-      // Defer to avoid ref.read() inside lifecycle callback
-      Future.microtask(() {
-        if (!ref.mounted) return;
-        _sendUnsubscribe(reason: 'provider-cancel');
-      });
+      // Lifecycle callbacks cannot read or modify other providers.
+      _sendUnsubscribe(reason: 'provider-cancel');
+    });
+
+    ref.onResume(() {
+      _sendSubscribeWithoutRef(reason: 'provider-resume');
+    });
+
+    ref.onDispose(() {
       try {
         _cleanupResources();
       } catch (e, stackTrace) {
