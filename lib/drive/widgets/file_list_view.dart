@@ -810,85 +810,79 @@ class FileListView extends HookConsumerWidget {
           ),
         ),
 
-            AnimatedCrossFade(
-              duration: const Duration(milliseconds: 220),
-              sizeCurve: Curves.easeInOutCubic,
-              firstCurve: Curves.easeOut,
-              secondCurve: Curves.easeIn,
-              crossFadeState: showFilters
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond,
-              alignment: Alignment.topCenter,
-              firstChild: Column(
-                key: const ValueKey('drive-filters-visible'),
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  DriveFilterBar(
-                    filters: filters.value,
-                    selectedPool: selectedPool,
-                    enabled: !isRefreshing,
-                    onChanged: (next) => filters.value = next,
-                    onRefresh: () async {
-                      // Drop in-memory tree expand caches so reloads reflect
-                      // server state after deletes/moves.
-                      treeChildrenCache.value = {};
-                      loadingTreeChildren.value = {};
-                      expandedFileIds.value = {};
-                      if (modeValue == FileListMode.unindexed) {
-                        await ref
-                            .read(
-                              unindexedFileListFamilyProvider(tabId).notifier,
-                            )
-                            .refresh();
-                      } else {
-                        await ref
-                            .read(
-                              indexedCloudFileListFamilyProvider(
-                                tabId,
-                              ).notifier,
-                            )
-                            .refresh();
-                        bumpDriveBrowserEpoch(ref, tabId);
-                      }
-                    },
-                  ),
-                  const Gap(10),
-                ],
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 220),
+          sizeCurve: Curves.easeInOutCubic,
+          firstCurve: Curves.easeOut,
+          secondCurve: Curves.easeIn,
+          crossFadeState: showFilters
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+          alignment: Alignment.topCenter,
+          firstChild: Column(
+            key: const ValueKey('drive-filters-visible'),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DriveFilterBar(
+                filters: filters.value,
+                selectedPool: selectedPool,
+                enabled: !isRefreshing,
+                onChanged: (next) => filters.value = next,
+                onRefresh: () async {
+                  // Drop in-memory tree expand caches so reloads reflect
+                  // server state after deletes/moves.
+                  treeChildrenCache.value = {};
+                  loadingTreeChildren.value = {};
+                  expandedFileIds.value = {};
+                  if (modeValue == FileListMode.unindexed) {
+                    await ref
+                        .read(unindexedFileListFamilyProvider(tabId).notifier)
+                        .refresh();
+                  } else {
+                    await ref
+                        .read(
+                          indexedCloudFileListFamilyProvider(tabId).notifier,
+                        )
+                        .refresh();
+                    bumpDriveBrowserEpoch(ref, tabId);
+                  }
+                },
               ),
-              secondChild: const SizedBox(
-                key: ValueKey('drive-filters-hidden'),
-                width: double.infinity,
-              ),
-            ),
+              const Gap(10),
+            ],
+          ),
+          secondChild: const SizedBox(
+            key: ValueKey('drive-filters-hidden'),
+            width: double.infinity,
+          ),
+        ),
 
-            if (modeValue == FileListMode.unindexed && recycled.value)
-              _buildClearRecycledButton(ref).padding(horizontal: 8),
+        if (modeValue == FileListMode.unindexed && recycled.value)
+          _buildClearRecycledButton(ref).padding(horizontal: 8),
 
-            // Divider below filters / path chrome — list, columns, waterfall.
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Theme.of(
+        // Divider below filters / path chrome — list, columns, waterfall.
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.55),
+        ),
+
+        // Reserved 2px slot — no layout jump when refresh starts/stops.
+        SizedBox(
+          height: 2,
+          child: AnimatedOpacity(
+            opacity: isRefreshing ? 1 : 0,
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            child: LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Theme.of(
                 context,
-              ).colorScheme.outlineVariant.withOpacity(0.55),
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.35),
             ),
-
-            // Reserved 2px slot — no layout jump when refresh starts/stops.
-            SizedBox(
-              height: 2,
-              child: AnimatedOpacity(
-                opacity: isRefreshing ? 1 : 0,
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOut,
-                child: LinearProgressIndicator(
-                  minHeight: 2,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.35),
-                ),
-              ),
-            ),
+          ),
+        ),
         Expanded(
           child: useColumnBrowser
               ? _DriveColumnBrowser(
@@ -1297,71 +1291,71 @@ class FileListView extends HookConsumerWidget {
                 image: MenuImage.icon(Symbols.content_copy),
                 callback: () {
                   Clipboard.setData(
-                  ClipboardData(
-                    text: fileItem.file.storageUrl ?? fileItem.file.id,
-                  ),
-                );
-                showSnackBar('linkCopied'.tr());
-              },
-            ),
-            MenuAction(
-              title: 'fileInfoTitle'.tr(),
-              image: MenuImage.icon(Symbols.info),
-              callback: () {
-                showModalBottomSheet(
-                  useRootNavigator: true,
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => FileInfoSheet(item: fileItem.file),
-                );
-              },
-            ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'delete'.tr(),
-              image: MenuImage.icon(Symbols.delete),
-              callback: () async {
-                final confirmed = await showConfirmAlert(
-                  'confirmDeleteFile'.tr(),
-                  'deleteFile'.tr(),
-                  isDanger: true,
-                );
-                if (!confirmed) return;
+                    ClipboardData(
+                      text: fileItem.file.storageUrl ?? fileItem.file.id,
+                    ),
+                  );
+                  showSnackBar('linkCopied'.tr());
+                },
+              ),
+              MenuAction(
+                title: 'fileInfoTitle'.tr(),
+                image: MenuImage.icon(Symbols.info),
+                callback: () {
+                  showModalBottomSheet(
+                    useRootNavigator: true,
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => FileInfoSheet(item: fileItem.file),
+                  );
+                },
+              ),
+              MenuSeparator(),
+              MenuAction(
+                title: 'delete'.tr(),
+                image: MenuImage.icon(Symbols.delete),
+                callback: () async {
+                  final confirmed = await showConfirmAlert(
+                    'confirmDeleteFile'.tr(),
+                    'deleteFile'.tr(),
+                    isDanger: true,
+                  );
+                  if (!confirmed) return;
 
-                if (context.mounted) {
-                  showLoadingModal(context);
-                }
-                try {
-                  await ref
-                      .read(driveFileUploaderProvider)
-                      .deleteFile(fileItem.file.id);
-                  invalidateIndexedDriveViews(ref, tabId);
-                } catch (e) {
-                  showSnackBar('failedToDeleteFile'.tr());
-                } finally {
                   if (context.mounted) {
-                    hideLoadingModal(context);
+                    showLoadingModal(context);
                   }
-                }
-              },
-            ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'more'.tr(),
-              image: MenuImage.icon(Symbols.menu_open),
-              callback: () async {
-                await CloudFileActionsSheet.show(
-                  context: context,
-                  item: fileItem.file,
-                  onRenamed: (_) {
+                  try {
+                    await ref
+                        .read(driveFileUploaderProvider)
+                        .deleteFile(fileItem.file.id);
                     invalidateIndexedDriveViews(ref, tabId);
-                  },
-                );
-              },
-            ),
-          ],
-        );
-      },
+                  } catch (e) {
+                    showSnackBar('failedToDeleteFile'.tr());
+                  } finally {
+                    if (context.mounted) {
+                      hideLoadingModal(context);
+                    }
+                  }
+                },
+              ),
+              MenuSeparator(),
+              MenuAction(
+                title: 'more'.tr(),
+                image: MenuImage.icon(Symbols.menu_open),
+                callback: () async {
+                  await CloudFileActionsSheet.show(
+                    context: context,
+                    item: fileItem.file,
+                    onRenamed: (_) {
+                      invalidateIndexedDriveViews(ref, tabId);
+                    },
+                  );
+                },
+              ),
+            ],
+          );
+        },
         child: _buildWaterfallFileTileBase(
           fileItem.file,
           ref,
@@ -2258,7 +2252,8 @@ class FileListView extends HookConsumerWidget {
                         file: file,
                         hasTreeChildren: hasTreeChildren,
                         isExpanded: isExpanded,
-                        showTreeExpansionAffordance: showTreeExpansionAffordance,
+                        showTreeExpansionAffordance:
+                            showTreeExpansionAffordance,
                         isSelectionMode: isSelectionMode,
                         isSelected: isSelected,
                         selectedFileIds: selectedFileIds,
@@ -2914,7 +2909,7 @@ class _DriveColumnBrowser extends HookConsumerWidget {
         return ListView.separated(
           controller: scrollController,
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+          padding: const EdgeInsets.only(left: 8, right: 8),
           itemCount: paths.length,
           separatorBuilder: (_, _) => VerticalDivider(
             width: 1,

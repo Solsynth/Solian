@@ -60,6 +60,28 @@ void main() {
     );
 
     test(
+      'room refresh removes stale group references and room secrets',
+      () async {
+        final database = AppDatabase.web();
+        await database.saveChatRooms([room('keep'), room('old')]);
+        await database.saveChatGroups('account-1', [
+          chatGroup('group-1', 1, ['keep', 'old']),
+        ]);
+        await database.setSecret('chat_room_encryption_mode_old', '1');
+
+        await database.saveChatRooms([room('keep')], override: true);
+
+        expect((await database.getChatGroups('account-1')).single.roomIds, [
+          'keep',
+        ]);
+        expect(
+          await database.getSecret('chat_room_encryption_mode_old'),
+          isNull,
+        );
+      },
+    );
+
+    test(
       'group assignment moves a room to one group and keeps groups ordered',
       () async {
         final database = AppDatabase.web();
@@ -116,4 +138,29 @@ void main() {
     expect((await reopened.getChatRoomById('persisted'))?.id, 'persisted');
     await reopened.close();
   });
+
+  test(
+    'native transaction restores its prior snapshot after failure',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('island-drift-');
+      addTearDown(() => directory.delete(recursive: true));
+
+      final database = native.AppDatabase.native(Future.value(directory.path));
+      await database.setSecret('stable', 'value');
+
+      await expectLater(
+        database.transaction(() async {
+          await database.setSecret('temporary', 'value');
+          throw StateError('abort');
+        }),
+        throwsStateError,
+      );
+      await database.close();
+
+      final reopened = native.AppDatabase.native(Future.value(directory.path));
+      expect(await reopened.getSecret('stable'), 'value');
+      expect(await reopened.getSecret('temporary'), isNull);
+      await reopened.close();
+    },
+  );
 }

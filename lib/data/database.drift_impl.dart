@@ -3,6 +3,7 @@ import 'package:island/data/database.web_impl.dart' as memory;
 import 'package:island/data/drift_store.dart';
 import 'package:island/data/legacy_database_cleanup.dart';
 import 'package:island/data/message.dart';
+import 'package:island/data/snapshot_exporter.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -32,6 +33,7 @@ class AppDatabase {
   Future<void> _persistenceTail = Future.value();
   Timer? _persistenceTimer;
   bool _persistenceNeeded = false;
+  int _transactionDepth = 0;
 
   Future<void> _ensureReady() {
     return _restoreOperation ??= () async {
@@ -46,10 +48,15 @@ class AppDatabase {
     return action();
   }
 
-  Future<T> _write<T>(Future<T> Function() action) async {
+  Future<T> _write<T>(
+    Future<T> Function() action, {
+    bool durable = false,
+  }) async {
     await _ensureReady();
     final result = await action();
+    if (_transactionDepth > 0) return result;
     _schedulePersistence();
+    if (durable) await _flushAllPersistence();
     return result;
   }
 
@@ -60,6 +67,8 @@ class AppDatabase {
     _persistenceNeeded = true;
     _persistenceTimer ??= Timer(_persistenceDebounce, () {
       _persistenceTimer = null;
+      // Timer callbacks cannot await errors. A later write will enqueue a
+      // fresh snapshot, while close still awaits the currently queued write.
       unawaited(_flushPersistence().catchError((_) {}));
     });
   }
@@ -70,11 +79,14 @@ class AppDatabase {
     if (!_persistenceNeeded) return;
 
     _persistenceNeeded = false;
-    final snapshot = _memory.exportState();
     final previous = _persistenceTail.catchError((_) {});
-    final operation = previous.then(
-      (_) async => (await _store).writeSnapshot(snapshot),
-    );
+    final operation = previous.then((_) async {
+      // Queue capture, encoding, and writing together. Capturing before the
+      // queue would let a slow older encoder overwrite a newer snapshot.
+      // Encoding still runs in a worker isolate on native platforms.
+      final payload = await encodeDatabaseSnapshot(_memory);
+      await (await _store).writeSnapshotPayload(payload);
+    });
     _persistenceTail = operation;
     await operation;
   }
@@ -105,7 +117,29 @@ class AppDatabase {
   Future<Map<String, int>> getDatabaseStats() =>
       _read(_memory.getDatabaseStats);
 
-  Future<T> transaction<T>(Future<T> Function() action) => _write(action);
+  /// Runs a best-effort atomic mutation of the in-memory cache and persists
+  /// the resulting state before returning. Callers must not start unrelated
+  /// writes while [action] is awaiting external work.
+  Future<T> transaction<T>(Future<T> Function() action) async {
+    if (_transactionDepth > 0) return action();
+
+    await _ensureReady();
+    final rollbackState = _memory.exportState();
+    _transactionDepth += 1;
+    try {
+      final result = await action();
+      _transactionDepth -= 1;
+      _schedulePersistence();
+      await _flushAllPersistence();
+      return result;
+    } catch (_) {
+      _transactionDepth -= 1;
+      _memory.restoreState(rollbackState);
+      _schedulePersistence();
+      await _flushAllPersistence();
+      rethrow;
+    }
+  }
 
   Future<int> getLatestMessageTimestamp() =>
       _read(_memory.getLatestMessageTimestamp);
@@ -210,9 +244,9 @@ class AppDatabase {
 
   Future<String?> getSecret(String key) => _read(() => _memory.getSecret(key));
   Future<void> setSecret(String key, String value) =>
-      _write(() => _memory.setSecret(key, value));
+      _write(() => _memory.setSecret(key, value), durable: true);
   Future<void> removeSecret(String key) =>
-      _write(() => _memory.removeSecret(key));
+      _write(() => _memory.removeSecret(key), durable: true);
   Future<Map<String, String>> getAllSecrets() => _read(_memory.getAllSecrets);
 
   Future<List<SnRelationship>> getAllRelationships() =>

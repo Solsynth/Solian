@@ -84,12 +84,16 @@ class AppDatabase {
       for (final entry in groups.entries) {
         final value = entry.value;
         if (value is! List) continue;
-        _webChatGroupStore[entry.key.toString()] = value
-            .whereType<Map>()
-            .map(
-              (item) => SnChatGroup.fromJson(Map<String, dynamic>.from(item)),
-            )
-            .toList();
+        try {
+          _webChatGroupStore[entry.key.toString()] = value
+              .whereType<Map>()
+              .map(
+                (item) => SnChatGroup.fromJson(Map<String, dynamic>.from(item)),
+              )
+              .toList();
+        } catch (_) {
+          // A corrupt cache record should never prevent the app from syncing.
+        }
       }
     }
   }
@@ -328,7 +332,18 @@ class AppDatabase {
         _webChatMemberStore.removeWhere(
           (_, member) => member.chatRoomId == roomId,
         );
+        _webMessageStore.removeWhere((_, message) => message.roomId == roomId);
+        _webKvStore.remove('chat_room_encryption_mode_$roomId');
       }
+      _webChatGroupStore.updateAll(
+        (_, groups) => groups
+            .map(
+              (group) => group.copyWith(
+                roomIds: group.roomIds.where(remoteRoomIds.contains).toList(),
+              ),
+            )
+            .toList(),
+      );
     }
 
     for (final room in rooms) {
@@ -343,8 +358,17 @@ class AppDatabase {
         _webRealmStore[realm.id] = realm;
       }
 
-      for (final member in room.members ?? const <SnChatMember>[]) {
-        _webChatMemberStore[member.id] = member;
+      final members = room.members;
+      if (members != null) {
+        final currentMemberIds = members.map((member) => member.id).toSet();
+        _webChatMemberStore.removeWhere(
+          (_, member) =>
+              member.chatRoomId == room.id &&
+              !currentMemberIds.contains(member.id),
+        );
+        for (final member in members) {
+          _webChatMemberStore[member.id] = member;
+        }
       }
     }
   }

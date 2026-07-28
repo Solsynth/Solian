@@ -221,7 +221,8 @@ class RealtimeMessageHandler {
 
     _logger.info('Processing message update: ${remoteMessage.id}');
 
-    final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
+    final targetId =
+        remoteMessage.meta['message_id']?.toString() ?? remoteMessage.id;
     final existing = await _repository.getLocalMessage(targetId);
 
     if (existing == null) {
@@ -243,7 +244,10 @@ class RealtimeMessageHandler {
         updateEvent.type == 'messages.sync.finalize' ||
         updateEvent.type == 'messages.sync.links';
 
-    if (!isSilentSync) {
+    // Some servers use the edited message's ID for the update event. Saving
+    // that event first would briefly overwrite the target row (and can leave
+    // it there if processing is interrupted before the merged write below).
+    if (!isSilentSync && updateEvent.id != targetId) {
       await _repository.saveMessage(updateEvent);
       onNewMessage?.call(updateEvent, roomSequence);
     }
@@ -585,7 +589,12 @@ class RealtimeMessageHandler {
 
     return LocalChatMessage.fromRemoteMessage(
       existing.toRemoteMessage().copyWith(
-        content: isLinkPreviewUpdate ? existing.content : updateRemote.content,
+        // Update packets may omit content when they only carry metadata or
+        // attachment changes. Keep the existing text unless the server sent an
+        // explicit replacement (including an intentionally empty string).
+        content: isLinkPreviewUpdate
+            ? existing.content
+            : updateRemote.content ?? existing.content,
         attachments: updateRemote.attachments,
         // Sync events may omit message relationships. Keep the target's
         // existing values instead of treating an omitted field as a removal.

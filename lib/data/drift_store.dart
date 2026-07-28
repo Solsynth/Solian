@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:island/data/drift_store_connection.dart';
-import 'package:island/data/snapshot_encoder.dart';
 
 /// Small persistence primitive used by [AppDatabase].
 ///
@@ -36,14 +35,29 @@ class DriftStore {
     if (rows.isEmpty) return null;
     final payload = rows.single['payload'];
     if (payload is! String) return null;
-    final decoded = jsonDecode(payload);
-    if (decoded is! Map) return null;
-    return Map<String, dynamic>.from(decoded);
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(payload);
+    } on FormatException {
+      // This is a cache. A corrupt or obsolete snapshot must not prevent the
+      // app from opening and rebuilding it through normal sync.
+      await clear();
+      return null;
+    }
+    if (decoded is! Map) {
+      await clear();
+      return null;
+    }
+    try {
+      return Map<String, dynamic>.from(decoded);
+    } on TypeError {
+      await clear();
+      return null;
+    }
   }
 
-  Future<void> writeSnapshot(Map<String, dynamic> snapshot) async {
+  Future<void> writeSnapshotPayload(String payload) async {
     await _open();
-    final payload = await encodeSnapshot(snapshot);
     await _connection.executor.runCustom(
       'INSERT INTO app_state(id, payload) VALUES (1, ?) '
       'ON CONFLICT(id) DO UPDATE SET payload = excluded.payload',
