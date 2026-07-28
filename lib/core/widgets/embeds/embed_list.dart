@@ -506,19 +506,24 @@ Future<void> _openLocationInMaps(
     showSnackBar('openInMapsUnavailableOnWeb'.tr());
     return;
   }
-  final availableMaps = await MapLauncher.installedMaps;
+  final destination = Location.coords(
+    point.latitude,
+    point.longitude,
+    title: title ?? 'location'.tr(),
+  );
+  final directions = MapLauncher.directions(destination);
+  final availableMaps = await directions
+      .getSupportedMaps(MapApp.all)
+      .then((maps) => maps.where((map) => map.isInstalled).toList());
   if (availableMaps.isEmpty) return;
 
   if (availableMaps.length == 1) {
-    await availableMaps.first.showDirections(
-      destination: Coords(point.latitude, point.longitude),
-      destinationTitle: title ?? 'location'.tr(),
-    );
+    await availableMaps.first.show();
     return;
   }
 
   if (!context.mounted) return;
-  final selected = await showModalBottomSheet<AvailableMap>(
+  final selected = await showModalBottomSheet<SupportedMap>(
     context: context,
     builder: (context) => SafeArea(
       child: Column(
@@ -539,7 +544,7 @@ Future<void> _openLocationInMaps(
                 Symbols.map,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              title: Text(map.mapName),
+              title: Text(map.name),
               onTap: () => Navigator.pop(context, map),
             ),
           ),
@@ -549,10 +554,7 @@ Future<void> _openLocationInMaps(
   );
 
   if (selected != null) {
-    await selected.showDirections(
-      destination: Coords(point.latitude, point.longitude),
-      destinationTitle: title ?? 'location'.tr(),
-    );
+    await selected.show();
   }
 }
 
