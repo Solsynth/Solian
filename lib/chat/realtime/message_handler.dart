@@ -441,6 +441,18 @@ class RealtimeMessageHandler {
       );
       if (message.chatRoomId != _roomId) return;
 
+      // Upload progress is delivered asynchronously by the server. A queued
+      // progress packet can arrive after this placeholder has been finalized
+      // into a text message with attachments; never let that stale packet
+      // overwrite the finalized row with the placeholder's empty files.
+      final existing = await _repository.getLocalMessage(message.id);
+      if (existing != null && existing.type != 'placeholder') {
+        _logger.fine(
+          'Ignoring stale placeholder update for finalized message: ${message.id}',
+        );
+        return;
+      }
+
       _logger.info('Placeholder update: ${message.id}');
       final local = LocalChatMessage.fromRemoteMessage(
         message,
@@ -595,7 +607,13 @@ class RealtimeMessageHandler {
         content: isLinkPreviewUpdate
             ? existing.content
             : updateRemote.content ?? existing.content,
-        attachments: updateRemote.attachments,
+        // Link-preview sync events carry only `message_id` and `embeds`; they
+        // deliberately omit the target's files. Treating their decoded empty
+        // attachment list as a replacement loses image dimensions and makes
+        // the UI fall back to its square preview.
+        attachments: isLinkPreviewUpdate
+            ? existing.toRemoteMessage().attachments
+            : updateRemote.attachments,
         // Sync events may omit message relationships. Keep the target's
         // existing values instead of treating an omitted field as a removal.
         membersMentioned: updateRemote.membersMentioned.isEmpty
