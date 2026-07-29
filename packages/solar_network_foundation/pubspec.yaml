@@ -1,0 +1,14 @@
+name: solar_network_foundation
+description: Reusable presentation and markdown primitives for Solar Network clients.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>3.10.0'
+
+dependencies:
+  cached_network_image: ^3.4.1
+  flutter:
+    sdk: flutter
+  markdown: ^7.3.1
+  markdown_widget: ^2.3.2+8

@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/themes/a11y-dark.dart';
@@ -26,6 +25,7 @@ import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/stickers/models/sticker.dart';
 
 final _stickerLookupCache = <String, SnSticker>{};
@@ -157,13 +157,13 @@ class MarkdownTextContent extends HookConsumerWidget {
       onTap: onMentionTap,
     );
 
-    final highlightGenerator = HighlightGenerator(
+    final highlightGenerator = SolarHighlightGenerator(
       highlightColor: Theme.of(context).colorScheme.primaryContainer,
     );
 
     final spoilerRevealed = useState(false);
 
-    final spoilerGenerator = SpoilerGenerator(
+    final spoilerGenerator = SolarSpoilerGenerator(
       revealed: spoilerRevealed.value,
       onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
     );
@@ -318,9 +318,9 @@ class MarkdownTextContent extends HookConsumerWidget {
         ),
       ],
       inlineSyntaxList: [
-        _MentionInlineSyntax(),
-        _HighlightInlineSyntax(),
-        _SpoilerInlineSyntax(),
+        SolarMentionInlineSyntax(),
+        SolarHighlightInlineSyntax(),
+        SolarSpoilerInlineSyntax(),
         _StickerInlineSyntax(),
         LatexSyntax(isDark),
         ...extraInlineSyntaxList,
@@ -331,37 +331,6 @@ class MarkdownTextContent extends HookConsumerWidget {
   }
 }
 
-class _MentionInlineSyntax extends markdown.InlineSyntax {
-  _MentionInlineSyntax()
-    : super(r'(^|[^A-Za-z0-9._%+\-/\[])(@[-A-Za-z0-9_./]+)');
-
-  @override
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    final prefix = match[1] ?? '';
-    final alias = match[2]!;
-
-    if (prefix.isNotEmpty) {
-      parser.addNode(markdown.Text(prefix));
-    }
-
-    final parts = alias.substring(1).split('/');
-    final typeShortcut = parts.length == 1 ? 'u' : parts.first;
-    final type = switch (typeShortcut) {
-      'u' => 'accounts',
-      'r' => 'realms',
-      'p' => 'publishers',
-      _ => '',
-    };
-    final element = markdown.Element('mention-chip', [markdown.Text(alias)])
-      ..attributes['alias'] = alias
-      ..attributes['type'] = type
-      ..attributes['id'] = parts.last;
-    parser.addNode(element);
-
-    return true;
-  }
-}
-
 class _StickerInlineSyntax extends markdown.InlineSyntax {
   _StickerInlineSyntax() : super(MarkdownTextContent.stickerRegex);
 
@@ -369,32 +338,6 @@ class _StickerInlineSyntax extends markdown.InlineSyntax {
   bool onMatch(markdown.InlineParser parser, Match match) {
     final placeholder = match[1]!;
     final element = markdown.Element('sticker', [markdown.Text(placeholder)]);
-    parser.addNode(element);
-
-    return true;
-  }
-}
-
-class _HighlightInlineSyntax extends markdown.InlineSyntax {
-  _HighlightInlineSyntax() : super(r'==([^=]+)==');
-
-  @override
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    final text = match[1]!;
-    final element = markdown.Element('highlight', [markdown.Text(text)]);
-    parser.addNode(element);
-
-    return true;
-  }
-}
-
-class _SpoilerInlineSyntax extends markdown.InlineSyntax {
-  _SpoilerInlineSyntax() : super(r'=!([^!]+)!=');
-
-  @override
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    final text = match[1]!;
-    final element = markdown.Element('spoiler', [markdown.Text(text)]);
     parser.addNode(element);
 
     return true;
@@ -606,141 +549,6 @@ class MentionChipSpanNode extends SpanNode {
         onTap: () => onTap(type, id),
       ),
     );
-  }
-}
-
-class HighlightGenerator extends SpanNodeGeneratorWithTag {
-  HighlightGenerator({required Color highlightColor})
-    : super(
-        tag: 'highlight',
-        generator:
-            (
-              markdown.Element element,
-              MarkdownConfig config,
-              WidgetVisitor visitor,
-            ) {
-              return HighlightSpanNode(
-                text: element.textContent,
-                highlightColor: highlightColor,
-              );
-            },
-      );
-}
-
-class HighlightSpanNode extends SpanNode {
-  final String text;
-  final Color highlightColor;
-
-  HighlightSpanNode({required this.text, required this.highlightColor});
-
-  @override
-  InlineSpan build() {
-    return TextSpan(
-      text: text,
-      style: TextStyle(backgroundColor: highlightColor),
-    );
-  }
-}
-
-class SpoilerGenerator extends SpanNodeGeneratorWithTag {
-  SpoilerGenerator({required bool revealed, required VoidCallback onToggle})
-    : super(
-        tag: 'spoiler',
-        generator:
-            (
-              markdown.Element element,
-              MarkdownConfig config,
-              WidgetVisitor visitor,
-            ) {
-              return SpoilerSpanNode(
-                text: element.textContent,
-                revealed: revealed,
-                onToggle: onToggle,
-              );
-            },
-      );
-}
-
-class SpoilerSpanNode extends SpanNode {
-  final String text;
-  final bool revealed;
-  final VoidCallback onToggle;
-
-  SpoilerSpanNode({
-    required this.text,
-    required this.revealed,
-    required this.onToggle,
-  });
-
-  @override
-  InlineSpan build() {
-    final recognizer = TapGestureRecognizer()..onTap = onToggle;
-
-    return TextSpan(children: _buildSpoilerSegments(recognizer));
-  }
-
-  List<InlineSpan> _buildSpoilerSegments(TapGestureRecognizer recognizer) {
-    final parts = text.split(RegExp(r'(\s+)'));
-
-    return parts.where((part) => part.isNotEmpty).map((part) {
-      if (part.trim().isEmpty) {
-        return TextSpan(
-          text: part,
-          recognizer: recognizer,
-          style: revealed
-              ? null
-              : const TextStyle(
-                  color: Colors.transparent,
-                  backgroundColor: Colors.black,
-                ),
-        );
-      }
-
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.baseline,
-        baseline: TextBaseline.alphabetic,
-        child: Builder(
-          builder: (context) {
-            final baseStyle = DefaultTextStyle.of(context).style;
-            final hiddenStyle = baseStyle.copyWith(
-              color: Colors.transparent,
-              backgroundColor: Colors.black,
-            );
-
-            return GestureDetector(
-              onTap: onToggle,
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.08),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                ),
-                child: revealed
-                    ? Text(
-                        part,
-                        key: ValueKey('revealed-$part'),
-                        style: baseStyle,
-                      )
-                    : Text(
-                        part,
-                        key: ValueKey('hidden-$part'),
-                        style: hiddenStyle,
-                      ),
-              ),
-            );
-          },
-        ),
-      );
-    }).toList();
   }
 }
 
