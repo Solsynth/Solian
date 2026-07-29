@@ -1,5 +1,5 @@
 PODS:
-  - Alamofire (5.11.2)
+  - Alamofire (5.12.0)
   - audio_session (0.0.1):
     - Flutter
   - bluetooth_low_energy_darwin (0.0.1):
@@ -212,7 +212,7 @@ PODS:
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
-  - Kingfisher (8.10.0)
+  - Kingfisher (8.11.0)
   - KingfisherWebP (1.7.3):
     - Kingfisher (~> 8.0)
     - libwebp (>= 1.1.0)
@@ -278,11 +278,11 @@ PODS:
   - SDWebImage/Core (5.21.7)
   - sensors_plus (0.0.1):
     - Flutter
-  - Sentry/HybridSDK (8.58.3)
-  - sentry_flutter (9.24.0):
+  - Sentry/HybridSDK (8.58.4)
+  - sentry_flutter (9.25.0):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.58.3)
+    - Sentry/HybridSDK (= 8.58.4)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -514,7 +514,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
-  Alamofire: 400275dd1c6d87d95a041861d2a59da4b520a203
+  Alamofire: ddb8d5201667b256dbc225f3fc6e835a0753186f
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
   bluetooth_low_energy_darwin: 8027d98a11f64f880e4c738157dfe5ca88d28dbc
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
@@ -558,7 +558,7 @@ SPEC CHECKSUMS:
   in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
-  Kingfisher: db468f911dd666c9134dcbeec4db8bed52e4132d
+  Kingfisher: ee4ff4936d5b399164b6d01a0dfc0388583287b6
   KingfisherWebP: 064869d5f1201396ec121dcc4c9cfbdba6ecb900
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   livekit_client: b47ad395a714c455b517fb38b4436cb07b4b5116
@@ -582,8 +582,8 @@ SPEC CHECKSUMS:
   record_ios: 390a30c7caaf8b5d0fb1cb1d2fd5064b48b4520c
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
-  Sentry: 108fdbb76299c4189af12246bf0308c09c278922
-  sentry_flutter: 8528594bf73819ef3f40c2e218e93554fc2719e6
+  Sentry: 5321d74bdd28d6f6f8beaa1ca06f1fdc746bff49
+  sentry_flutter: d6279f3b5156b6535e2159e03437b571a24cc648
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171

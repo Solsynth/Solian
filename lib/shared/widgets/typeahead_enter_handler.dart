@@ -21,6 +21,10 @@ class TypeAheadEnterHandler<T> extends StatelessWidget {
         SingleActivator(LogicalKeyboardKey.enter): _TypeAheadEnterIntent(),
         SingleActivator(LogicalKeyboardKey.numpadEnter):
             _TypeAheadEnterIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowUp):
+            _TypeAheadPreviousSuggestionIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowDown):
+            _TypeAheadNextSuggestionIntent(),
       },
       child: Actions(
         actions: {
@@ -39,6 +43,11 @@ class TypeAheadEnterHandler<T> extends StatelessWidget {
               return null;
             },
           ),
+          _TypeAheadPreviousSuggestionIntent:
+              _TypeAheadPreviousSuggestionAction<T>(suggestionsController),
+          _TypeAheadNextSuggestionIntent: _TypeAheadNextSuggestionAction<T>(
+            suggestionsController,
+          ),
         },
         child: child,
       ),
@@ -48,4 +57,54 @@ class TypeAheadEnterHandler<T> extends StatelessWidget {
 
 class _TypeAheadEnterIntent extends Intent {
   const _TypeAheadEnterIntent();
+}
+
+class _TypeAheadPreviousSuggestionIntent extends Intent {
+  const _TypeAheadPreviousSuggestionIntent();
+}
+
+class _TypeAheadNextSuggestionIntent extends Intent {
+  const _TypeAheadNextSuggestionIntent();
+}
+
+class _TypeAheadPreviousSuggestionAction<T>
+    extends CallbackAction<_TypeAheadPreviousSuggestionIntent> {
+  _TypeAheadPreviousSuggestionAction(this.suggestionsController)
+    : super(
+        onInvoke: (_) {
+          suggestionsController.highlightPrevious();
+          return null;
+        },
+      );
+
+  final SuggestionsController<T> suggestionsController;
+
+  @override
+  bool isEnabled(covariant _TypeAheadPreviousSuggestionIntent intent) =>
+      suggestionsController.isOpen;
+
+  @override
+  bool consumesKey(covariant _TypeAheadPreviousSuggestionIntent intent) =>
+      suggestionsController.isOpen;
+}
+
+class _TypeAheadNextSuggestionAction<T>
+    extends CallbackAction<_TypeAheadNextSuggestionIntent> {
+  _TypeAheadNextSuggestionAction(this.suggestionsController)
+    : super(
+        onInvoke: (_) {
+          suggestionsController.highlightNext();
+          return null;
+        },
+      );
+
+  final SuggestionsController<T> suggestionsController;
+
+  @override
+  bool isEnabled(covariant _TypeAheadNextSuggestionIntent intent) =>
+      suggestionsController.isOpen;
+
+  @override
+  bool consumesKey(covariant _TypeAheadNextSuggestionIntent intent) =>
+      suggestionsController.isOpen;
 }
