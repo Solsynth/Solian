@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -8,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/core/utils/format.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/audio.dart';
 import 'package:island/shared/widgets/content/image.dart';
@@ -24,6 +22,7 @@ import 'package:island/drive/widgets/file_list_view.dart' show FileListViewMode;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 final folderChildrenProvider = FutureProvider.family<List<SnCloudFile>, String>(
   (ref, parentId) async {
@@ -40,6 +39,7 @@ class CloudFileWidget extends HookConsumerWidget {
   final bool noBlurhash;
   final bool useInternalGate;
   final SnPost? sourcePost;
+  final String? workspaceId;
   const CloudFileWidget({
     super.key,
     required this.item,
@@ -48,6 +48,7 @@ class CloudFileWidget extends HookConsumerWidget {
     this.noBlurhash = false,
     this.useInternalGate = true,
     this.sourcePost,
+    this.workspaceId,
   });
 
   @override
@@ -56,7 +57,12 @@ class CloudFileWidget extends HookConsumerWidget {
       appSettingsProvider.select((s) => s.dataSavingMode),
     );
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
+    final uri = cloudFileUrl(
+      serverUrl: serverUrl,
+      id: item.id,
+      storageUrl: item.storageUrl,
+      workspaceId: workspaceId,
+    );
 
     final unlocked = useState(false);
 
@@ -66,7 +72,11 @@ class CloudFileWidget extends HookConsumerWidget {
 
     Widget cloudImage() =>
         UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
-    Widget cloudVideo() => CloudVideoWidget(item: item, sourcePost: sourcePost);
+    Widget cloudVideo() => CloudVideoWidget(
+      item: item,
+      sourcePost: sourcePost,
+      workspaceId: workspaceId,
+    );
 
     Widget cloudAudio() => UniversalAudio(uri: uri, filename: item.name);
 
@@ -318,7 +328,13 @@ enum _VideoOverlayDensity {
 class CloudVideoWidget extends HookConsumerWidget {
   final IDisplayableCloudFile item;
   final SnPost? sourcePost;
-  const CloudVideoWidget({super.key, required this.item, this.sourcePost});
+  final String? workspaceId;
+  const CloudVideoWidget({
+    super.key,
+    required this.item,
+    this.sourcePost,
+    this.workspaceId,
+  });
 
   /// Below this min side: hide all text overlays (play icon only).
   static const double _compactMaxSide = 120;
@@ -398,7 +414,12 @@ class CloudVideoWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
+    final uri = cloudFileUrl(
+      serverUrl: serverUrl,
+      id: item.id,
+      storageUrl: item.storageUrl,
+      workspaceId: workspaceId,
+    );
     final rootMeta = Map<String, dynamic>.from(item.fileMeta as Map? ?? {});
     final mediaMeta = rootMeta['media'] is Map
         ? Map<String, dynamic>.from(rootMeta['media'] as Map)
@@ -564,6 +585,7 @@ class CloudImageWidget extends ConsumerWidget {
   final double aspectRatio;
   final String? blurHash;
   final bool noBlurhash;
+  final String? workspaceId;
   const CloudImageWidget({
     super.key,
     this.fileId,
@@ -572,18 +594,28 @@ class CloudImageWidget extends ConsumerWidget {
     this.fit = BoxFit.cover,
     this.blurHash,
     this.noBlurhash = false,
+    this.workspaceId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri =
-        file?.storageUrl ?? '$serverUrl/drive/files/${file?.id ?? fileId}';
+    final uri = cloudFileUrl(
+      serverUrl: serverUrl,
+      id: file?.id ?? fileId ?? '',
+      storageUrl: file?.storageUrl,
+      workspaceId: workspaceId,
+    );
 
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: file != null
-          ? CloudFileWidget(item: file!, fit: fit, noBlurhash: noBlurhash)
+          ? CloudFileWidget(
+              item: file!,
+              fit: fit,
+              noBlurhash: noBlurhash,
+              workspaceId: workspaceId,
+            )
           : UniversalImage(
               uri: uri,
               blurHash: noBlurhash ? null : blurHash,
@@ -596,13 +628,15 @@ class CloudImageWidget extends ConsumerWidget {
     required IDisplayableCloudFile file,
     required String serverUrl,
     bool original = false,
+    String? workspaceId,
   }) {
-    final uri =
-        file.storageUrl ??
-        (original
-            ? '$serverUrl/drive/files/${file.id}?original=true'
-            : '$serverUrl/drive/files/${file.id}');
-    return CachedNetworkImageProvider(uri);
+    return cloudFileImageProvider(
+      serverUrl: serverUrl,
+      id: file.id,
+      storageUrl: file.storageUrl,
+      original: original,
+      workspaceId: workspaceId,
+    );
   }
 }
 
