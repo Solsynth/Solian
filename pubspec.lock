@@ -97,22 +97,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "10.6.0"
-  autotrie:
-    dependency: transitive
-    description:
-      name: autotrie
-      sha256: "55da6faefb53cfcb0abb2f2ca8636123fb40e35286bb57440d2cf467568188f8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
-  avatar_stack:
-    dependency: "direct main"
-    description:
-      name: avatar_stack
-      sha256: "354527ba139956fd6439e2c49199d8298d72afdaa6c4cd6f37f26b97faf21f7e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   bluetooth_low_energy:
     dependency: "direct main"
     description:
@@ -265,14 +249,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  charcode:
-    dependency: transitive
-    description:
-      name: charcode
-      sha256: fb0f1107cac15a5ea6ef0a6ef71a807b9e4267c713bb93e00e92d737cc8dbd8a
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
   checked_yaml:
     dependency: transitive
     description:
@@ -401,14 +377,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
-  cupertino_icons:
-    dependency: "direct main"
-    description:
-      name: cupertino_icons
-      sha256: "41e005c33bd814be4d3096aff55b1908d419fde52ca656c8c47719ec745873cd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.9"
   dart_earcut:
     dependency: transitive
     description:
@@ -609,14 +577,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
-  expandable:
-    dependency: transitive
-    description:
-      name: expandable
-      sha256: "9604d612d4d1146dafa96c6d8eec9c2ff0994658d6d09fed720ab788c7f5afc2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.0.1"
   fake_async:
     dependency: transitive
     description:
@@ -886,14 +846,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
-  flutter_code_editor:
-    dependency: "direct main"
-    description:
-      name: flutter_code_editor
-      sha256: "9af48ba8e3558b6ea4bb98b84c5eb1649702acf53e61a84d88383eeb79b239b0"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.5"
   flutter_colorpicker:
     dependency: "direct main"
     description:
@@ -1059,22 +1011,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.3.1"
-  flutter_markdown:
-    dependency: transitive
-    description:
-      name: flutter_markdown
-      sha256: "08fb8315236099ff8e90cb87bb2b935e0a724a3af1623000a9cec930468e0f27"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.7+1"
-  flutter_markdown_latex:
-    dependency: "direct main"
-    description:
-      name: flutter_markdown_latex
-      sha256: "839e76a84abb3632ffcebbd450cf93c7e9894af65622527d23f0084cee1bfd04"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.4"
   flutter_math_fork:
     dependency: "direct main"
     description:
@@ -1245,14 +1181,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
-  font_awesome_flutter:
-    dependency: transitive
-    description:
-      name: font_awesome_flutter
-      sha256: b9011df3a1fa02993630b8fb83526368cf2206a711259830325bab2f1d2a4eb0
-      url: "https://pub.dev"
-    source: hosted
-    version: "10.12.0"
   freezed:
     dependency: "direct dev"
     description:
@@ -1437,14 +1365,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.0"
-  hive:
-    dependency: transitive
-    description:
-      name: hive
-      sha256: "8dcf6db979d7933da8217edcec84e9df1bdb4e4edc7fc77dbd5aa74356d6d941"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.3"
   hooks:
     dependency: transitive
     description:
@@ -1778,14 +1698,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.10"
-  linked_scroll_controller:
-    dependency: transitive
-    description:
-      name: linked_scroll_controller
-      sha256: e6020062bcf4ffc907ee7fd090fa971e65d8dfaac3c62baf601a3ced0b37986a
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   lint:
     dependency: transitive
     description:
@@ -1890,14 +1802,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.3.1"
-  markdown_editor_plus:
-    dependency: "direct main"
-    description:
-      name: markdown_editor_plus
-      sha256: "8a4749e5b80330674dc20c65281fb2171ff583136a5ffb269802bd8fe818a7ce"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.15"
   markdown_widget:
     dependency: "direct main"
     description:
@@ -2050,22 +1954,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.6.4"
-  mocktail:
-    dependency: transitive
-    description:
-      name: mocktail
-      sha256: "5e1bf53cc7baa8062a33b84424deb61513858ea05c601b8509e683815b5914aa"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.5"
-  modal_bottom_sheet:
-    dependency: "direct main"
-    description:
-      name: modal_bottom_sheet
-      sha256: eac66ef8cb0461bf069a38c5eb0fa728cee525a531a8304bd3f7b2185407c67e
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   msix:
     dependency: "direct dev"
     description:
@@ -2841,14 +2729,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
-  scrollable_positioned_list:
-    dependency: transitive
-    description:
-      name: scrollable_positioned_list
-      sha256: "1b54d5f1329a1e263269abc9e2543d90806131aa14fe7c6062a8054d57249287"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.8"
   sdp_transform:
     dependency: transitive
     description:

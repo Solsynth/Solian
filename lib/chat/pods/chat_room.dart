@@ -114,7 +114,12 @@ SnChatMessage _mergeUpdatedRemoteMessage(
     content: isLinkPreviewUpdate
         ? existingRemote.content
         : updateRemote.content ?? existingRemote.content,
-    attachments: updateRemote.attachments,
+    // `messages.sync.links` is a metadata-only packet. It has no attachment
+    // snapshot, so preserve the target's files (and their image dimensions)
+    // instead of interpreting the omitted field as an attachment removal.
+    attachments: isLinkPreviewUpdate
+        ? existingRemote.attachments
+        : updateRemote.attachments,
     membersMentioned: updateRemote.membersMentioned,
     repliedMessageId: updateRemote.repliedMessageId,
     forwardedMessageId: updateRemote.forwardedMessageId,
@@ -373,6 +378,22 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final message = _tryParseChatMessage(pkt.data, context: 'ws ${pkt.type}');
     if (message == null) return;
     final roomId = message.chatRoomId;
+
+    // `messages.new` is the common transport envelope. Its payload type
+    // identifies mutations; classify these before treating the payload as a
+    // new timeline item, otherwise an edit finalization is stored as a
+    // standalone system row and the target update depends on a second,
+    // timing-sensitive notifier path.
+    final isMutationEnvelope =
+        pkt.type == 'messages.new' &&
+        (message.type == 'messages.sync.finalize' ||
+            message.type == 'messages.sync.links');
+
+    if (isMutationEnvelope) {
+      await _applyMessageUpdateToTarget(db, message);
+      eventBus.fire(ChatMessageUpdateEvent(message));
+      return;
+    }
 
     switch (pkt.type) {
       case 'messages.new':
