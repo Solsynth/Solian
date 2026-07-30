@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -14,9 +13,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
-import 'package:island/accounts/meet_bluetooth.dart';
 import 'package:island/accounts/meet_service.dart';
-import 'package:island/accounts/nearby_service.dart';
 import 'package:island/accounts/pin_service.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -56,8 +53,6 @@ final nearbyMeetsProvider = FutureProvider.autoDispose
           );
     });
 
-enum MeetEntryMode { nearby }
-
 @RoutePage()
 class MeetScreen extends HookConsumerWidget {
   const MeetScreen({super.key});
@@ -67,45 +62,22 @@ class MeetScreen extends HookConsumerWidget {
     final routeData = RouteData.of(context);
     final initialMeetId = routeData.queryParams.optString('meet_id') ?? '';
     final meetService = ref.watch(meetServiceProvider);
-    final bluetoothService = ref.watch(meetBluetoothServiceProvider);
-    final nearbyService = ref.watch(nearbyServiceProvider);
     final meetHistory = ref.watch(meetHistoryProvider);
 
     final joinController = useTextEditingController(text: initialMeetId);
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
     final tabController = useTabController(
-      initialLength: 3,
+      initialLength: 2,
       initialIndex: initialMeetId.isNotEmpty ? 0 : 0,
     );
     final historySubTabController = useTabController(initialLength: 2);
-    final entryMode = useState(MeetEntryMode.nearby);
     final visibility = useState(SnMeetVisibility.private);
     final selectedImage = useState<SnCloudFile?>(null);
     final locationDraft = useState<_MeetLocationDraft?>(null);
     final isLocating = useState(false);
     final actionBusy = useState(false);
-    final isScanning = useState(false);
-    final discoveries = useState<List<MeetBluetoothDiscovery>>([]);
     final didAutoJoin = useState(false);
-    final scanResultSub = useRef<StreamSubscription<List<ScanResult>>?>(null);
-    final scanStateSub = useRef<StreamSubscription<bool>?>(null);
-    final nearbyDiscoverable = useState(true);
-    final nearbyFriendOnly = useState(true);
-    final nearbyBusy = useState(false);
-    final nearbyScanning = useState(false);
-    final nearbyPeers = useState<List<NearbyPeer>>([]);
-    final nearbyBundle = useState<NearbyPresenceBundle?>(null);
-    final nearbyBroadcastToken = useState<String?>(null);
-    final nearbyError = useState<Object?>(null);
-    final nearbyObservationCount = useState(0);
-    final nearbyScanResultSub =
-        useRef<StreamSubscription<List<BluetoothHexDiscovery>>?>(null);
-    final nearbyScanStateSub = useRef<StreamSubscription<bool>?>(null);
-    final nearbyRefreshTimer = useRef<Timer?>(null);
-    final nearbyResolveBusy = useRef(false);
-    final nearbyDiscoveries = useState<List<BluetoothHexDiscovery>>([]);
-    final nearbyIsResolving = useState(false);
 
     Future<void> fillCurrentLocation() async {
       isLocating.value = true;
@@ -197,9 +169,6 @@ class MeetScreen extends HookConsumerWidget {
         if (topicController.text.trim().isNotEmpty) {
           metadata['topic'] = topicController.text.trim();
         }
-        metadata['entry_mode'] = switch (entryMode.value) {
-          MeetEntryMode.nearby => 'nearby',
-        };
 
         final meet = await meetService.createMeet(
           visibility: visibility.value,
@@ -236,166 +205,7 @@ class MeetScreen extends HookConsumerWidget {
       }
     }
 
-    Future<void> stopNearbySession({bool stopScan = true}) async {
-      nearbyScanning.value = false;
-      nearbyBroadcastToken.value = null;
-      nearbyRefreshTimer.value?.cancel();
-      nearbyRefreshTimer.value = null;
-      await nearbyScanResultSub.value?.cancel();
-      nearbyScanResultSub.value = null;
-      await nearbyScanStateSub.value?.cancel();
-      nearbyScanStateSub.value = null;
-      if (stopScan) {
-        await bluetoothService.stopNearbyDiscovery();
-      }
-      await bluetoothService.stopAdvertising();
-    }
 
-    Future<void> syncNearbyAdvertising() async {
-      final bundle = nearbyBundle.value;
-      if (bundle == null) return;
-      if (!nearbyDiscoverable.value) {
-        nearbyBroadcastToken.value = null;
-        await bluetoothService.stopAdvertising();
-        return;
-      }
-      if (!bluetoothService.supportsAdvertising) return;
-
-      final activeToken = bundle.tokenForNow();
-      if (activeToken == null) return;
-      if (nearbyBroadcastToken.value == activeToken.token) return;
-
-      await bluetoothService.startAdvertisingHex(
-        serviceUuid: bundle.serviceUuid,
-        payloadHex: activeToken.token,
-      );
-      nearbyBroadcastToken.value = activeToken.token;
-    }
-
-    Future<void> resolveNearbyPeers() async {
-      if (nearbyResolveBusy.value) return;
-      nearbyResolveBusy.value = true;
-      nearbyIsResolving.value = true;
-      try {
-        final discoveries = nearbyDiscoveries.value;
-        if (discoveries.isEmpty) return;
-
-        final now = DateTime.now().toUtc();
-        final observations = discoveries
-            .map(
-              (d) => NearbyObservation(
-                token: d.payloadHex,
-                slot: nearbyService.currentSlot(
-                  nearbyBundle.value?.slotDurationSec ?? 30,
-                ),
-                avgRssi: d.rssi,
-                seenCount: 1,
-                durationMs: 0,
-                firstSeenAt: now,
-                lastSeenAt: now,
-              ),
-            )
-            .toList();
-
-        final peers = await nearbyService.resolveObservations(observations);
-        final uniquePeers = <String, NearbyPeer>{
-          for (final peer in peers) peer.userId: peer,
-        }.values.toList();
-        nearbyPeers.value = uniquePeers;
-      } catch (error) {
-        nearbyError.value = error;
-      } finally {
-        nearbyResolveBusy.value = false;
-        nearbyIsResolving.value = false;
-      }
-    }
-
-    Future<void> startNearbyPresence() async {
-      nearbyBusy.value = true;
-      nearbyError.value = null;
-      nearbyDiscoveries.value = [];
-      try {
-        final effectiveDiscoverable =
-            bluetoothService.supportsAdvertising && nearbyDiscoverable.value;
-        final deviceId = await nearbyService.getOrCreateDeviceId();
-        final bundle = await nearbyService.issuePresenceTokens(
-          deviceId: deviceId,
-          discoverable: effectiveDiscoverable,
-          friendOnly: nearbyFriendOnly.value,
-        );
-        Logger.root.info(
-          '[Nearby] presence bundle deviceId=$deviceId serviceUuid=${bundle.serviceUuid} slotDurationSec=${bundle.slotDurationSec} tokenCount=${bundle.tokens.length} currentToken=${bundle.tokenForNow()?.token ?? "none"} discoverable=$effectiveDiscoverable friendOnly=${nearbyFriendOnly.value}',
-        );
-        nearbyBundle.value = bundle;
-        nearbyObservationCount.value = 0;
-
-        await nearbyScanResultSub.value?.cancel();
-        nearbyScanResultSub.value = bluetoothService.nearbyDiscoveriesStream
-            .listen(
-              (discoveries) {
-                nearbyDiscoveries.value = discoveries;
-                if (discoveries.isEmpty) return;
-                nearbyObservationCount.value = discoveries.length;
-                if (tabController.index == 2) {
-                  unawaited(resolveNearbyPeers());
-                }
-              },
-              onError: (error, _) {
-                nearbyScanning.value = false;
-                nearbyError.value = error;
-              },
-            );
-        nearbyScanStateSub.value ??= bluetoothService.nearbyDiscoveryStateStream
-            .listen((value) {
-              nearbyScanning.value = value;
-            });
-
-        await syncNearbyAdvertising();
-        nearbyRefreshTimer.value?.cancel();
-        nearbyRefreshTimer.value = Timer.periodic(const Duration(seconds: 5), (
-          _,
-        ) {
-          if (nearbyBusy.value || tabController.index != 2) return;
-          final activeToken = nearbyBundle.value?.tokenForNow();
-          if (activeToken == null) {
-            unawaited(startNearbyPresence());
-          } else if (bluetoothService.supportsAdvertising) {
-            unawaited(syncNearbyAdvertising());
-          }
-        });
-        await bluetoothService.startNearbyDiscoveryForService(
-          bundle.serviceUuid,
-          expectedLength: kNearbyTokenHexLength ~/ 2,
-        );
-      } catch (error) {
-        nearbyError.value = error;
-        showErrorAlert(error);
-      } finally {
-        nearbyBusy.value = false;
-      }
-    }
-
-    useEffect(() {
-      void handleTabChange() {
-        if (tabController.indexIsChanging) return;
-
-        if (tabController.index == 1) {
-          unawaited(startNearbyPresence());
-          return;
-        }
-
-        unawaited(stopNearbySession());
-      }
-
-      tabController.addListener(handleTabChange);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        handleTabChange();
-      });
-
-      return () {
-        tabController.removeListener(handleTabChange);
-      };
-    }, [tabController, isScanning.value]);
 
     useEffect(() {
       if (initialMeetId.isNotEmpty && !didAutoJoin.value) {
@@ -403,16 +213,11 @@ class MeetScreen extends HookConsumerWidget {
         Future.microtask(() => openMeetDetail(initialMeetId));
       }
 
-      return () {
-        unawaited(bluetoothService.stopScan());
-        unawaited(scanResultSub.value?.cancel() ?? Future.value());
-        unawaited(scanStateSub.value?.cancel() ?? Future.value());
-        unawaited(stopNearbySession());
-      };
+      return null;
     }, [initialMeetId]);
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('meet').tr(),
@@ -423,14 +228,6 @@ class MeetScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'meet'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'nearby'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -455,13 +252,10 @@ class MeetScreen extends HookConsumerWidget {
               notesController: notesController,
               joinController: joinController,
               busy: actionBusy.value,
-              entryMode: entryMode.value,
               locationDraft: locationDraft.value,
               isLocating: isLocating.value,
               visibility: visibility.value,
               image: selectedImage.value,
-              discoveries: discoveries.value,
-              onChangeEntryMode: (value) => entryMode.value = value,
               onChangeVisibility: (value) => visibility.value = value,
               onUseCurrentLocation: fillCurrentLocation,
               onClearLocation: () => locationDraft.value = null,
@@ -490,28 +284,6 @@ class MeetScreen extends HookConsumerWidget {
               },
               onScanQr: () =>
                   showQrScannerSheet(context, (meetId) => joinMeetById(meetId)),
-              onJoinFromDiscovery: (meetId) => joinMeetById(meetId),
-            ),
-            _NearbyTab(
-              nearbyBusy: nearbyBusy.value,
-              nearbyScanning: nearbyScanning.value,
-              nearbyDiscoverable: nearbyDiscoverable.value,
-              nearbyFriendOnly: nearbyFriendOnly.value,
-              advertiseSupported: bluetoothService.supportsAdvertising,
-              nearbyObservationCount: nearbyObservationCount.value,
-              nearbyIsResolving: nearbyIsResolving.value,
-              nearbyDiscoveries: nearbyDiscoveries.value,
-              nearbyPeers: nearbyPeers.value,
-              nearbyError: nearbyError.value,
-              onRefresh: startNearbyPresence,
-              onToggleDiscoverable: (value) async {
-                nearbyDiscoverable.value = value;
-                await startNearbyPresence();
-              },
-              onToggleFriendOnly: (value) async {
-                nearbyFriendOnly.value = value;
-                await startNearbyPresence();
-              },
             ),
             _HistoryTab(
               subTabController: historySubTabController,
@@ -533,12 +305,9 @@ class _MeetTab extends StatelessWidget {
   final TextEditingController joinController;
   final bool busy;
   final SnCloudFile? image;
-  final MeetEntryMode entryMode;
   final _MeetLocationDraft? locationDraft;
   final bool isLocating;
   final SnMeetVisibility visibility;
-  final List<MeetBluetoothDiscovery> discoveries;
-  final ValueChanged<MeetEntryMode> onChangeEntryMode;
   final ValueChanged<SnMeetVisibility> onChangeVisibility;
   final VoidCallback onUseCurrentLocation;
   final VoidCallback onClearLocation;
@@ -548,7 +317,6 @@ class _MeetTab extends StatelessWidget {
   final VoidCallback onJoin;
   final VoidCallback onPaste;
   final VoidCallback onScanQr;
-  final ValueChanged<String> onJoinFromDiscovery;
 
   const _MeetTab({
     required this.topicController,
@@ -556,12 +324,9 @@ class _MeetTab extends StatelessWidget {
     required this.joinController,
     required this.busy,
     required this.image,
-    required this.entryMode,
     required this.locationDraft,
     required this.isLocating,
     required this.visibility,
-    required this.discoveries,
-    required this.onChangeEntryMode,
     required this.onChangeVisibility,
     required this.onUseCurrentLocation,
     required this.onClearLocation,
@@ -571,7 +336,6 @@ class _MeetTab extends StatelessWidget {
     required this.onJoin,
     required this.onPaste,
     required this.onScanQr,
-    required this.onJoinFromDiscovery,
   });
 
   @override
@@ -583,13 +347,10 @@ class _MeetTab extends StatelessWidget {
           topicController: topicController,
           notesController: notesController,
           busy: busy,
-          advertising: false,
-          entryMode: entryMode,
           locationDraft: locationDraft,
           isLocating: isLocating,
           visibility: visibility,
           image: image,
-          onChangeEntryMode: onChangeEntryMode,
           onChangeVisibility: onChangeVisibility,
           onUseCurrentLocation: onUseCurrentLocation,
           onClearLocation: onClearLocation,
@@ -606,74 +367,10 @@ class _MeetTab extends StatelessWidget {
           onScanQr: onScanQr,
         ),
         const Gap(16),
-        if (discoveries.isNotEmpty)
-          _MeetNearbyCard(discoveries: discoveries, onJoin: onJoinFromDiscovery)
-        else
-          _MeetInfoCard(
-            icon: Symbols.groups,
-            title: 'meetJoinReadyTitle'.tr(),
-            description: 'meetJoinReadyDescription'.tr(),
-          ),
-      ],
-    );
-  }
-}
-
-class _NearbyTab extends StatelessWidget {
-  final bool nearbyBusy;
-  final bool nearbyScanning;
-  final bool nearbyDiscoverable;
-  final bool nearbyFriendOnly;
-  final bool advertiseSupported;
-  final int nearbyObservationCount;
-  final bool nearbyIsResolving;
-  final List<BluetoothHexDiscovery> nearbyDiscoveries;
-  final List<NearbyPeer> nearbyPeers;
-  final Object? nearbyError;
-  final VoidCallback onRefresh;
-  final ValueChanged<bool> onToggleDiscoverable;
-  final ValueChanged<bool> onToggleFriendOnly;
-
-  const _NearbyTab({
-    required this.nearbyBusy,
-    required this.nearbyScanning,
-    required this.nearbyDiscoverable,
-    required this.nearbyFriendOnly,
-    required this.advertiseSupported,
-    required this.nearbyObservationCount,
-    required this.nearbyIsResolving,
-    required this.nearbyDiscoveries,
-    required this.nearbyPeers,
-    required this.nearbyError,
-    required this.onRefresh,
-    required this.onToggleDiscoverable,
-    required this.onToggleFriendOnly,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _NearbyPresenceCard(
-          busy: nearbyBusy,
-          scanning: nearbyScanning,
-          discoverable: nearbyDiscoverable,
-          friendOnly: nearbyFriendOnly,
-          advertiseSupported: advertiseSupported,
-          observationCount: nearbyObservationCount,
-          isResolving: nearbyIsResolving,
-          onRefresh: onRefresh,
-          discoveries: nearbyDiscoveries,
-          peers: nearbyPeers,
-          onToggleDiscoverable: onToggleDiscoverable,
-          onToggleFriendOnly: onToggleFriendOnly,
-        ),
-        const Gap(16),
-        _NearbyPeersCard(
-          peers: nearbyPeers,
-          error: nearbyError,
-          onRetry: onRefresh,
+        _MeetInfoCard(
+          icon: Symbols.groups,
+          title: 'meetJoinReadyTitle'.tr(),
+          description: 'meetJoinReadyDescription'.tr(),
         ),
       ],
     );
@@ -740,14 +437,12 @@ class MeetDetailScreen extends HookConsumerWidget {
     final theme = Theme.of(context);
     final currentUser = ref.watch(userInfoProvider).value;
     final meetService = ref.watch(meetServiceProvider);
-    final bluetoothService = ref.watch(meetBluetoothServiceProvider);
     final pinService = ref.watch(pinServiceProvider);
 
     final meet = useState<SnMeet?>(null);
     final error = useState<Object?>(null);
     final eventType = useState<String?>(null);
     final isWatching = useState(false);
-    final isAdvertising = useState(false);
     final actionBusy = useState(false);
     final watchSub = useRef<StreamSubscription<SnMeetEvent>?>(null);
     final currentLocation = useState<latlong.LatLng?>(null);
@@ -789,12 +484,6 @@ class MeetDetailScreen extends HookConsumerWidget {
       } finally {
         isLocating.value = false;
       }
-    }
-
-    Future<void> stopAdvertising() async {
-      if (!isAdvertising.value) return;
-      await bluetoothService.stopAdvertising();
-      isAdvertising.value = false;
     }
 
     Future<void> stopBroadcastingPin() async {
@@ -911,7 +600,6 @@ class MeetDetailScreen extends HookConsumerWidget {
               eventType.value = event.type;
               if (event.meet.isFinal) {
                 isWatching.value = false;
-                unawaited(stopAdvertising());
                 unawaited(stopBroadcastingPin());
                 ref.invalidate(meetHistoryProvider);
               }
@@ -924,21 +612,6 @@ class MeetDetailScreen extends HookConsumerWidget {
           );
 
       await startBroadcastingPin(id);
-    }
-
-    Future<void> maybeStartAdvertising() async {
-      final current = meet.value;
-      final isHost = current != null && current.hostId == currentUser?.id;
-      if (!isHost || current.status != SnMeetStatus.active) return;
-      if (_entryModeOf(current) != MeetEntryMode.nearby) return;
-      if (!bluetoothService.supportsAdvertising) return;
-
-      try {
-        await bluetoothService.startAdvertising(current.id);
-        isAdvertising.value = true;
-      } catch (_) {
-        isAdvertising.value = false;
-      }
     }
 
     Future<void> completeMeet() async {
@@ -994,28 +667,23 @@ class MeetDetailScreen extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(() async {
         await loadMeet();
-        await maybeStartAdvertising();
         await watchMeet();
       });
 
       return () {
         unawaited(stopWatching());
-        unawaited(stopAdvertising());
       };
     }, [id]);
 
     final current = meet.value;
     final participants = _displayParticipants(current, currentUser);
     final isHost = current != null && current.hostId == currentUser?.id;
-    final entryMode = _entryModeOf(current);
 
     if (current != null && current.status == SnMeetStatus.active) {
       return _MeetActiveListeningPage(
         meet: current,
-        entryMode: entryMode,
         participants: participants,
         isWatching: isWatching.value,
-        isAdvertising: isAdvertising.value,
         isHost: isHost,
         actionBusy: actionBusy.value,
         isBroadcastingPin: isBroadcastingPin.value,
@@ -1039,16 +707,13 @@ class MeetDetailScreen extends HookConsumerWidget {
               children: [
                 _MeetDetailHero(
                   meet: current,
-                  entryMode: entryMode,
                   participants: participants,
                   isWatching: isWatching.value,
-                  isAdvertising: isAdvertising.value,
                   isScanShareReady: false,
                 ),
                 const Gap(16),
                 _MeetDetailInfo(
                   meet: current,
-                  entryMode: entryMode,
                   eventType: eventType.value,
                   participants: participants,
                 ),
@@ -1128,10 +793,8 @@ class MeetDetailScreen extends HookConsumerWidget {
 
 class _MeetActiveListeningPage extends HookConsumerWidget {
   final SnMeet meet;
-  final MeetEntryMode entryMode;
   final List<_MeetPerson> participants;
   final bool isWatching;
-  final bool isAdvertising;
   final bool isHost;
   final bool actionBusy;
   final bool isBroadcastingPin;
@@ -1141,10 +804,8 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
 
   const _MeetActiveListeningPage({
     required this.meet,
-    required this.entryMode,
     required this.participants,
     required this.isWatching,
-    required this.isAdvertising,
     required this.isHost,
     required this.actionBusy,
     required this.isBroadcastingPin,
@@ -1245,17 +906,6 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (isAdvertising)
-                        _InfoPill(
-                          icon: Symbols.bluetooth,
-                          label: 'meetBroadcasting'.tr(),
-                        ),
-                      if (isAdvertising) const Gap(8),
-                      _InfoPill(
-                        icon: Symbols.bluetooth_searching,
-                        label: _entryModeLabel(entryMode, context),
-                      ),
-                      const Gap(8),
                       _InfoPill(
                         icon: isWatching
                             ? Symbols.wifi_tethering
@@ -1339,18 +989,14 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
 
 class _MeetDetailHero extends HookWidget {
   final SnMeet meet;
-  final MeetEntryMode entryMode;
   final List<_MeetPerson> participants;
   final bool isWatching;
-  final bool isAdvertising;
   final bool isScanShareReady;
 
   const _MeetDetailHero({
     required this.meet,
-    required this.entryMode,
     required this.participants,
     required this.isWatching,
-    required this.isAdvertising,
     required this.isScanShareReady,
   });
 
@@ -1409,13 +1055,10 @@ class _MeetDetailHero extends HookWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _HeroPill(label: _entryModeLabel(entryMode, context)),
                       _HeroPill(label: _statusLabel(meet.status, context)),
                       _HeroPill(
                         label: _visibilityLabel(meet.visibility, context),
                       ),
-                      if (isAdvertising)
-                        _HeroPill(label: 'meetBroadcasting'.tr()),
                     ],
                   ),
                   const Spacer(),
@@ -1478,13 +1121,11 @@ class _MeetDetailHero extends HookWidget {
 
 class _MeetDetailInfo extends StatelessWidget {
   final SnMeet meet;
-  final MeetEntryMode entryMode;
   final String? eventType;
   final List<_MeetPerson> participants;
 
   const _MeetDetailInfo({
     required this.meet,
-    required this.entryMode,
     required this.eventType,
     required this.participants,
   });
@@ -1527,10 +1168,6 @@ class _MeetDetailInfo extends StatelessWidget {
             Text('meetRecordDetails').tr().fontSize(16).bold(),
             const Gap(10),
             _DetailRow(label: 'meetId'.tr(), value: meet.id, copyable: true),
-            _DetailRow(
-              label: 'meetMethod'.tr(),
-              value: _entryModeLabel(entryMode, context),
-            ),
             _DetailRow(
               label: 'meetVisibility'.tr(),
               value: _visibilityLabel(meet.visibility, context),
@@ -1587,13 +1224,10 @@ class _MeetStartCard extends StatelessWidget {
   final TextEditingController topicController;
   final TextEditingController notesController;
   final bool busy;
-  final bool advertising;
-  final MeetEntryMode entryMode;
   final _MeetLocationDraft? locationDraft;
   final bool isLocating;
   final SnMeetVisibility visibility;
   final SnCloudFile? image;
-  final ValueChanged<MeetEntryMode> onChangeEntryMode;
   final ValueChanged<SnMeetVisibility> onChangeVisibility;
   final VoidCallback onUseCurrentLocation;
   final VoidCallback onClearLocation;
@@ -1605,13 +1239,10 @@ class _MeetStartCard extends StatelessWidget {
     required this.topicController,
     required this.notesController,
     required this.busy,
-    required this.advertising,
-    required this.entryMode,
     required this.locationDraft,
     required this.isLocating,
     required this.visibility,
     required this.image,
-    required this.onChangeEntryMode,
     required this.onChangeVisibility,
     required this.onUseCurrentLocation,
     required this.onClearLocation,
@@ -1757,11 +1388,7 @@ class _MeetStartCard extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: busy ? null : onStart,
                 icon: const Icon(Symbols.add_circle),
-                label: Text(
-                  advertising
-                      ? 'meetRestartBroadcast'.tr()
-                      : 'meetStartNow'.tr(),
-                ),
+                label: Text('meetStartNow'.tr()),
               ),
             ),
           ],
@@ -1829,597 +1456,6 @@ class _MeetJoinCard extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MeetNearbyCard extends StatelessWidget {
-  final List<MeetBluetoothDiscovery> discoveries;
-  final ValueChanged<String> onJoin;
-
-  const _MeetNearbyCard({required this.discoveries, required this.onJoin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text('meetNearby').tr().fontSize(18).bold(),
-          ),
-          ...discoveries.map((item) {
-            return ListTile(
-              leading: const Icon(Symbols.bluetooth),
-              title: Text(
-                item.name?.isNotEmpty == true
-                    ? item.name!
-                    : 'meetNearbyHost'.tr(),
-              ),
-              subtitle: Text(
-                'meetNearbySubtitle'.tr(
-                  args: [estimateDistancePercent(item.rssi).toString()],
-                ),
-              ),
-              trailing: const Icon(Symbols.arrow_outward),
-              onTap: () => onJoin(item.meetId),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-class _NearbyPresenceCard extends HookWidget {
-  final bool busy;
-  final bool scanning;
-  final bool discoverable;
-  final bool friendOnly;
-  final bool advertiseSupported;
-  final int observationCount;
-  final bool isResolving;
-  final VoidCallback onRefresh;
-  final ValueChanged<bool> onToggleDiscoverable;
-  final ValueChanged<bool> onToggleFriendOnly;
-  final List<BluetoothHexDiscovery> discoveries;
-  final List<NearbyPeer> peers;
-
-  const _NearbyPresenceCard({
-    required this.busy,
-    required this.scanning,
-    required this.discoverable,
-    required this.friendOnly,
-    required this.advertiseSupported,
-    required this.observationCount,
-    required this.isResolving,
-    required this.onRefresh,
-    required this.onToggleDiscoverable,
-    required this.onToggleFriendOnly,
-    required this.discoveries,
-    required this.peers,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final animation = useAnimationController(
-      duration: const Duration(milliseconds: 2600),
-    );
-
-    useEffect(() {
-      if (scanning) {
-        animation.repeat();
-      } else {
-        animation.stop();
-        animation.reset();
-      }
-      return null;
-    }, [scanning]);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('nearbyTitle').tr().fontSize(18).bold(),
-                      const Gap(4),
-                      Text(
-                        scanning
-                            ? 'nearbyScanningLabel'.tr(
-                                args: [discoveries.length.toString()],
-                              )
-                            : 'nearbyIdle'.tr(),
-                        style: TextStyle(
-                          color: theme.colorScheme.secondary,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isResolving)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        const Gap(4),
-                        Text(
-                          'nearbyResolving'.tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-            const Gap(16),
-            SizedBox(
-              height: 200,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (scanning)
-                    _NearbyRippleField(
-                      animation: animation,
-                      color: theme.colorScheme.primary,
-                    ),
-                  if (discoveries.isEmpty)
-                    Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            scanning
-                                ? Symbols.bluetooth_searching
-                                : Symbols.radar,
-                            size: 40,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          const Gap(8),
-                          Text(
-                            scanning
-                                ? 'nearbySearching'.tr()
-                                : 'nearbyWaiting'.tr(),
-                            style: TextStyle(
-                              color: theme.colorScheme.secondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else if (peers.isNotEmpty || discoveries.isNotEmpty)
-                    Center(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: peers.isNotEmpty
-                            ? _NearbyPeersRow(
-                                key: ValueKey('peers-${peers.length}'),
-                                peers: peers,
-                              )
-                            : _NearbyDevicesRow(
-                                key: ValueKey('devices-${discoveries.length}'),
-                                discoveries: discoveries,
-                              ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const Gap(16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (scanning)
-                  _InfoPill(icon: Symbols.radar, label: 'nearbyScanning'.tr()),
-                if (!scanning)
-                  _InfoPill(
-                    icon: Symbols.sync_disabled,
-                    label: 'nearbyIdle'.tr(),
-                  ),
-                _InfoPill(
-                  icon: Symbols.network_intelligence,
-                  label: observationCount > 0
-                      ? 'nearbyObservationsReady'.tr(
-                          args: [observationCount.toString()],
-                        )
-                      : 'nearbyObservationsCollecting'.tr(),
-                ),
-                if (peers.isNotEmpty)
-                  _InfoPill(
-                    icon: Symbols.group,
-                    label: 'nearbyPeersFound'.tr(),
-                  ),
-              ],
-            ),
-            const Gap(16),
-            Row(
-              children: [
-                Expanded(
-                  child: SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: advertiseSupported && discoverable,
-                    onChanged: busy || !advertiseSupported
-                        ? null
-                        : onToggleDiscoverable,
-                    title: Text('nearbyDiscoverable').tr(),
-                    dense: true,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: friendOnly,
-                    onChanged: busy ? null : onToggleFriendOnly,
-                    title: Text('nearbyFriendOnly').tr(),
-                    dense: true,
-                  ),
-                ),
-              ],
-            ),
-            const Gap(16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonalIcon(
-                onPressed: busy ? null : onRefresh,
-                icon: Icon(busy ? Symbols.progress_activity : Symbols.refresh),
-                label: Text(busy ? 'loading'.tr() : 'nearbyRefresh'.tr()),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NearbyRippleField extends StatelessWidget {
-  final Animation<double> animation;
-  final Color color;
-
-  const _NearbyRippleField({required this.animation, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) {
-        return Stack(
-          alignment: Alignment.center,
-          children: List.generate(3, (index) {
-            final progress = (animation.value + index / 3) % 1.0;
-            final size = 80 + (progress * 120);
-            final opacity = (1 - progress).clamp(0.0, 1.0) * 0.2;
-            return Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: color.withOpacity(opacity), width: 2),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
-}
-
-class _NearbyDeviceBubble extends StatelessWidget {
-  final int rssi;
-  final String? name;
-
-  const _NearbyDeviceBubble({required this.rssi, this.name});
-
-  IconData get _signalIcon {
-    if (rssi >= -50) return Symbols.signal_cellular_4_bar;
-    if (rssi >= -65) return Symbols.signal_cellular_3_bar;
-    if (rssi >= -80) return Symbols.signal_cellular_2_bar;
-    return Symbols.signal_cellular_1_bar;
-  }
-
-  Color _signalColor(ThemeData theme) {
-    if (rssi >= -50) return Colors.green;
-    if (rssi >= -65) return Colors.lightGreen;
-    if (rssi >= -80) return Colors.orange;
-    return theme.colorScheme.error;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: theme.colorScheme.primaryContainer,
-          ),
-          child: Icon(_signalIcon, color: _signalColor(theme), size: 24),
-        ),
-        const Gap(4),
-        SizedBox(
-          width: 60,
-          child: Text(
-            '${rssi}dBm',
-            style: TextStyle(fontSize: 10, color: theme.colorScheme.secondary),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _NearbyPeerBubble extends StatelessWidget {
-  final NearbyPeer peer;
-
-  const _NearbyPeerBubble({required this.peer});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () => showAccountProfileCard(context, peer.userId),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.colorScheme.primaryContainer,
-                ),
-                child: peer.avatar != null
-                    ? ClipOval(
-                        child: ProfilePictureWidget(
-                          file: peer.avatar,
-                          radius: 30,
-                        ),
-                      )
-                    : Center(
-                        child: Text(
-                          peer.displayName.isNotEmpty
-                              ? peer.displayName.substring(0, 1).toUpperCase()
-                              : '?',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-              ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.colorScheme.surface,
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Gap(6),
-          SizedBox(
-            width: 70,
-            child: Text(
-              peer.displayName,
-              style: TextStyle(
-                fontSize: 11,
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NearbyPeersRow extends StatelessWidget {
-  final List<NearbyPeer> peers;
-
-  const _NearbyPeersRow({super.key, required this.peers});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 16,
-      runSpacing: 16,
-      children: peers
-          .take(8)
-          .map(
-            (p) => TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: Duration(milliseconds: 300 + peers.indexOf(p) * 50),
-              curve: Curves.elasticOut,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Opacity(
-                    opacity: value,
-                    child: _NearbyPeerBubble(peer: p),
-                  ),
-                );
-              },
-            ),
-          )
-          .toList(),
-    );
-  }
-}
-
-class _NearbyDevicesRow extends StatelessWidget {
-  final List<BluetoothHexDiscovery> discoveries;
-
-  const _NearbyDevicesRow({super.key, required this.discoveries});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 12,
-      runSpacing: 12,
-      children: discoveries
-          .take(8)
-          .map(
-            (d) => TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: Duration(
-                milliseconds: 200 + discoveries.indexOf(d) * 30,
-              ),
-              curve: Curves.easeOut,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Opacity(
-                    opacity: value,
-                    child: _NearbyDeviceBubble(rssi: d.rssi, name: d.name),
-                  ),
-                );
-              },
-            ),
-          )
-          .toList(),
-    );
-  }
-}
-
-class _NearbyPeersCard extends StatelessWidget {
-  final List<NearbyPeer> peers;
-  final Object? error;
-  final VoidCallback onRetry;
-
-  const _NearbyPeersCard({
-    required this.peers,
-    required this.error,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('nearbyPeersTitle').tr().fontSize(18).bold(),
-            const Gap(8),
-            Text(
-              'nearbyPeersHint'.tr(),
-              style: TextStyle(color: theme.colorScheme.secondary),
-            ),
-            const Gap(16),
-            if (error != null)
-              ResponseErrorWidget(error: error, onRetry: onRetry)
-            else if (peers.isEmpty)
-              _MeetInfoCard(
-                icon: Symbols.radar,
-                title: 'nearbyPeersEmptyTitle'.tr(),
-                description: 'nearbyPeersEmpty'.tr(),
-              )
-            else
-              ...peers.map(
-                (peer) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: peer.avatar != null
-                      ? ProfilePictureWidget(file: peer.avatar, radius: 22)
-                      : CircleAvatar(
-                          radius: 22,
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          child: Text(
-                            peer.displayName.isNotEmpty
-                                ? peer.displayName.substring(0, 1).toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                  title: Text(peer.displayName),
-                  subtitle: Text(
-                    [
-                      peer.isFriend
-                          ? 'relationshipStatusFriend'.tr()
-                          : _nearbyVisibilityLabel(peer.visibility, context),
-                      if (peer.lastSeenAt != null)
-                        'nearbyLastSeen'.tr(
-                          args: [
-                            DateFormat.Hm().format(peer.lastSeenAt!.toLocal()),
-                          ],
-                        ),
-                    ].join(' · '),
-                  ),
-                  trailing: peer.canInvite
-                      ? Badge(
-                          label: Text('nearbyCanInvite').tr(),
-                          backgroundColor: theme.colorScheme.secondaryContainer,
-                          textColor: theme.colorScheme.onSecondaryContainer,
-                        )
-                      : null,
-                ),
-              ),
           ],
         ),
       ),
@@ -3104,7 +2140,6 @@ class _MeetHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final participants = _displayParticipants(meet, null);
-    final entryMode = _entryModeOf(meet);
     final topic = meet.metadata['topic']?.toString();
     final title = meet.locationName?.isNotEmpty == true
         ? meet.locationName!
@@ -3155,7 +2190,6 @@ class _MeetHistoryCard extends StatelessWidget {
                         runSpacing: 6,
                         children: [
                           _HeroPill(label: _statusLabel(meet.status, context)),
-                          _HeroPill(label: _entryModeLabel(entryMode, context)),
                         ],
                       ),
                     ),
@@ -3198,7 +2232,6 @@ class _MeetHistoryCard extends StatelessWidget {
                         runSpacing: 6,
                         children: [
                           _HeroPill(label: _statusLabel(meet.status, context)),
-                          _HeroPill(label: _entryModeLabel(entryMode, context)),
                         ],
                       ),
                     ),
@@ -3240,7 +2273,6 @@ class _MeetHistoryCard extends StatelessWidget {
                         runSpacing: 6,
                         children: [
                           _HeroPill(label: _statusLabel(meet.status, context)),
-                          _HeroPill(label: _entryModeLabel(entryMode, context)),
                         ],
                       ),
                     ),
@@ -4455,24 +3487,6 @@ String _visibilityLabel(SnMeetVisibility visibility, BuildContext context) {
     SnMeetVisibility.private => 'meetVisibilityPrivate'.tr(),
     SnMeetVisibility.unlisted => 'meetVisibilityUnlisted'.tr(),
     SnMeetVisibility.unknown => 'unknown'.tr(),
-  };
-}
-
-String _nearbyVisibilityLabel(String visibility, BuildContext context) {
-  return switch (visibility.trim().toLowerCase()) {
-    'friend_only' => 'nearbyVisibleToFriends'.tr(),
-    'public' => 'nearbyVisibleToEveryone'.tr(),
-    _ => visibility,
-  };
-}
-
-MeetEntryMode _entryModeOf(SnMeet? meet) {
-  return MeetEntryMode.nearby;
-}
-
-String _entryModeLabel(MeetEntryMode mode, BuildContext context) {
-  return switch (mode) {
-    MeetEntryMode.nearby => 'meetNearbyTab'.tr(),
   };
 }
 

@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  bluetooth_low_energy_linux
   desktop_drop
   desktop_multi_window
   disk_space_2
