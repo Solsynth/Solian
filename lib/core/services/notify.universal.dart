@@ -84,14 +84,6 @@ Future<List<DarwinNotificationAttachment>> _downloadDarwinAttachments(
   return results.whereType<DarwinNotificationAttachment>().toList();
 }
 
-int _notificationIdFromString(String id) {
-  var hash = 0;
-  for (var i = 0; i < id.length; i++) {
-    hash = (hash * 31 + id.codeUnitAt(i)) & 0x7FFFFFFF;
-  }
-  return hash;
-}
-
 Future<bool> _showIosCommunicationNotification({
   required SnNotification notification,
   required String threadId,
@@ -173,6 +165,9 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
     },
   );
 
+  // Proactively create the notification channel on Android 8.0+
+  await createNotificationChannel();
+
   WidgetsBinding.instance.addObserver(
     LifecycleEventHandler(onAppLifecycleChanged: _onAppLifecycleChanged),
   );
@@ -189,6 +184,22 @@ class LifecycleEventHandler extends WidgetsBindingObserver {
   }
 }
 
+Future<void> createNotificationChannel() async {
+  final android = flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+  if (android == null) return;
+  await android.createNotificationChannel(
+    const AndroidNotificationChannel(
+      'solar_network_notifications',
+      'Notifications',
+      description: 'Receive notifications from the Solar Network',
+      importance: Importance.max,
+      playSound: true,
+    ),
+  );
+}
+
 const AndroidNotificationDetails androidNotificationDetails =
     AndroidNotificationDetails(
       'solar_network_notifications',
@@ -197,8 +208,61 @@ const AndroidNotificationDetails androidNotificationDetails =
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'Solar Network Notification',
-      icon: 'launcher_icon',
+      icon: 'ic_notification',
+      groupKey: 'solar_network_notifications',
+      groupAlertBehavior: GroupAlertBehavior.all,
     );
+
+/// Shows a local notification with a fixed id (0), replacing any previous.
+/// Safe to call from a background isolate (FCM background handler).
+Future<void> ensureFcmNotificationPlugin({
+  required String title,
+  String? body,
+  String? payload,
+}) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  await plugin.initialize(
+    settings: const InitializationSettings(android: androidSettings),
+  );
+  await plugin.show(
+    id: DateTime.now().millisecondsSinceEpoch,
+    title: title,
+    body: body,
+    notificationDetails: const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'solar_network_notifications',
+        'Notifications',
+        channelDescription: 'Receive notifications from the Solar Network',
+        importance: Importance.max,
+        priority: Priority.high,
+        icon: 'ic_notification',
+        groupKey: 'solar_network_notifications',
+        groupAlertBehavior: GroupAlertBehavior.all,
+      ),
+    ),
+    payload: payload,
+  );
+}
+
+/// Shows a local notification (fixed id = 0). Plugin must already be
+/// initialised (main isolate).
+Future<void> showLocalNotificationFromFcm({
+  required String title,
+  String? body,
+  String? payload,
+}) async {
+  if (kIsWeb) return;
+  await flutterLocalNotificationsPlugin.show(
+    id: DateTime.now().millisecondsSinceEpoch,
+    title: title,
+    body: body,
+    notificationDetails: const NotificationDetails(
+      android: androidNotificationDetails,
+    ),
+    payload: payload,
+  );
+}
 
 StreamSubscription<WebSocketPacket> setupNotificationListener(
   BuildContext context,
@@ -278,7 +342,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
               : false;
           if (!shownAsCommunicationNotification) {
             await flutterLocalNotificationsPlugin.show(
-              id: _notificationIdFromString(notification.id),
+              id: notification.id.hashCode,
               title: notification.title,
               body: notification.body,
               notificationDetails: notificationDetails,

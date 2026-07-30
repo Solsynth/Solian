@@ -57,9 +57,6 @@ class PluginController extends ChangeNotifier {
 
   bool get isInitialized => manager.isInitialized;
 
-  /// Currently loading plugin ID (for API registration callbacks).
-  String? get activePluginId => PluginManager.activePluginId;
-
   // ── API registry ─────────────────────────────────────────────────────────
 
   /// Register a host or foundation API under [namespace].

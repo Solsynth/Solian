@@ -5,7 +5,6 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('DashboardApi');
 
-/// A dashboard item contributed by an active plugin.
 class PluginDashboardItem {
   final String pluginId;
   final String id;
@@ -21,14 +20,9 @@ class PluginDashboardItem {
     this.icon,
   });
 
-  /// Stable identifier stored in the user's dashboard configuration.
   String get layoutId => 'plugin:$pluginId:$id';
 }
 
-/// Host-specific API: plugins register descriptor-based dashboard items.
-///
-/// Lives in the Island app (not the foundation package) because it is tied to
-/// the Solian dashboard layout system.
 class DashboardApi extends PluginApi {
   final List<PluginDashboardItem> _items = [];
 
@@ -45,48 +39,29 @@ class DashboardApi extends PluginApi {
   Set<PluginPermission> get requiredPermissions => {PluginPermission.uiRender};
 
   @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    if (!granted.contains(PluginPermission.uiRender)) return '';
-    // Extend the `ui` object created by foundation UiApi (or create it).
-    return '''
+  void register(PluginContext context, JsRuntime runtime) {
+    runtime.exec('''
 var ui = ui || {};
 ui.register_dashboard_item = function(id, title, handler, icon) {
   sendMessage("api:ui:register_dashboard_item", JSON.stringify({id: id, title: title, handler: handler, icon: icon || null}));
 };
-''';
-  }
-
-  @override
-  void register(JsRuntime runtime) {
-    runtime.onMessage('api:ui:register_dashboard_item', (args) {
+''');
+    runtime.onMessage('api:ui:register_dashboard_item', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
+        final data = context.router.decode(raw);
         final id = data['id']?.toString();
         final title = data['title']?.toString();
         final handler = data['handler']?.toString();
-        if (id == null ||
-            id.isEmpty ||
-            title == null ||
-            title.isEmpty ||
-            handler == null ||
-            handler.isEmpty) {
-          return;
-        }
-        final pluginId = PluginManager.activePluginId;
-        if (pluginId == null) return;
-        _items.removeWhere(
-          (item) => item.pluginId == pluginId && item.id == id,
-        );
-        _items.add(
-          PluginDashboardItem(
-            pluginId: pluginId,
-            id: id,
-            title: title,
-            handlerName: handler,
-            icon: data['icon']?.toString(),
-          ),
-        );
-        _log.info('Plugin $pluginId registered dashboard item: $id');
+        if (id == null || id.isEmpty || title == null || title.isEmpty || handler == null || handler.isEmpty) return;
+        _items.removeWhere((item) => item.pluginId == context.pluginId && item.id == id);
+        _items.add(PluginDashboardItem(
+          pluginId: context.pluginId,
+          id: id,
+          title: title,
+          handlerName: handler,
+          icon: data['icon']?.toString(),
+        ));
+        _log.info('Plugin ${context.pluginId} registered dashboard item: $id');
       } catch (e) {
         _log.warning('Failed to register dashboard item: $e');
       }
@@ -95,11 +70,8 @@ ui.register_dashboard_item = function(id, title, handler, icon) {
 
   @override
   void onPluginUnload(String pluginId) {
-    clearItems(pluginId);
+    _items.removeWhere((item) => item.pluginId == pluginId);
   }
-
-  void clearItems(String pluginId) =>
-      _items.removeWhere((item) => item.pluginId == pluginId);
 
   @override
   void reset() {

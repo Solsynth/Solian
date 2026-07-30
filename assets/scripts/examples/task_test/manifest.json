@@ -1,0 +1,14 @@
+{
+  "id": "com.example.task_test",
+  "name": "Task Test",
+  "version": "1.0.0",
+  "author": "Island",
+  "description": "Test plugin for the background task system (tasks.schedule).",
+  "entry": "main.js",
+  "permissions": [
+    "commandsRegister",
+    "notify",
+    "tasksSchedule",
+    "uiRender"
+  ]
+}

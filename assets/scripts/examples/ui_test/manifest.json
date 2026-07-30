@@ -1,0 +1,8 @@
+{
+  "id": "dev.test.ui_test",
+  "name": "UI Test",
+  "version": "1.0.0",
+  "description": "Test harness for plugin UI system — draggable panes, commands, and all widget types",
+  "permissions": ["uiRender", "commandsRegister", "notify"],
+  "entry": "main.js"
+}
