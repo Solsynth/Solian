@@ -171,6 +171,7 @@ class ComposeFormFields extends HookConsumerWidget {
                   builder: (context, controller, focusNode) {
                     return TypeAheadEnterHandler<AutocompleteSuggestion>(
                       suggestionsController: suggestionsController,
+                      controller: controller,
                       onEnter: () => _insertNewLine(controller),
                       child: TextField(
                         focusNode: focusNode,

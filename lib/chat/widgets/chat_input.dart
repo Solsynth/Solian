@@ -2505,6 +2505,7 @@ class ChatInput extends HookConsumerWidget {
                                     >(
                                       suggestionsController:
                                           suggestionsController,
+                                      controller: controller,
                                       onEnter: () {
                                         final isShiftPressed = HardwareKeyboard
                                             .instance
