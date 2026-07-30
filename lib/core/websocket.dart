@@ -66,6 +66,7 @@ class WebSocketService {
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   Timer? _connectivityReconnectTimer;
+  Timer? _connectivityLostTimer;
   int _connectionGeneration = 0;
   bool _isClosing = false;
 
@@ -239,6 +240,8 @@ class WebSocketService {
     _heartbeatTimer = null;
     _connectivityReconnectTimer?.cancel();
     _connectivityReconnectTimer = null;
+    _connectivityLostTimer?.cancel();
+    _connectivityLostTimer = null;
     _heartbeatAt = null;
     heartbeatDelay = null;
   }
@@ -371,9 +374,27 @@ class WebSocketService {
 
   void _scheduleHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      // Force reconnect if no pong in 90s
+      if (_heartbeatAt != null &&
+          DateTime.now().difference(_heartbeatAt!) > const Duration(seconds: 90)) {
+        Logger.root.warning('[WebSocket] No pong for 90s, force reconnecting');
+        _disposeActiveChannel();
+        connect(_ref!);
+        return;
+      }
       _beatTheHeart();
     });
+  }
+
+  /// Call when app returns to foreground to verify WS is alive.
+  void checkConnection() {
+    if (_channel == null && !_isClosing) {
+      _reconnectWindowStart = null;
+      _reconnectCount = 0;
+      Logger.root.info('[WebSocket] Reconnecting on app resume');
+      connect(_ref!);
+    }
   }
 
   void _beatTheHeart() {
@@ -480,13 +501,22 @@ class WebSocketService {
     );
 
     if (!hasNetwork) {
-      _connectivityReconnectTimer?.cancel();
-      _connectivityReconnectTimer = null;
-      _connectionGeneration++;
-      unawaited(_disposeActiveChannel(suppressReconnect: true));
-      _addStatus(WebSocketState.disconnected());
+      // Debounce: wait before disposing — transient blips (e.g. background doze)
+      // should not tear down the WebSocket immediately.
+      _connectivityLostTimer?.cancel();
+      _connectivityLostTimer = Timer(const Duration(seconds: 3), () {
+        if (_sameConnectivityResults(_lastConnectivityResults, results)) {
+          _connectivityReconnectTimer?.cancel();
+          _connectivityReconnectTimer = null;
+          _connectionGeneration++;
+          unawaited(_disposeActiveChannel(suppressReconnect: true));
+          _addStatus(WebSocketState.disconnected());
+        }
+      });
       return;
     }
+
+    _connectivityLostTimer?.cancel();
 
     if (previous == null) return;
 

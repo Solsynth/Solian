@@ -6,18 +6,13 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('NotifyApi');
 
-/// Host-specific API: notification and alert UI for plugins.
-///
-/// Depends on Island's in-app alert/notification widgets, so it stays in the
-/// main project rather than the foundation package.
 class NotifyApi extends PluginApi {
   @override
   Set<PluginPermission> get requiredPermissions => {PluginPermission.notify};
 
   @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    if (!granted.contains(PluginPermission.notify)) return '';
-    return '''
+  void register(PluginContext context, JsRuntime runtime) {
+    runtime.exec('''
 function notify(title, body) {
   sendMessage("api:notify", JSON.stringify({title: title, body: body}));
 }
@@ -30,21 +25,17 @@ function showError(message) {
 function showConfirm(message, title) {
   sendMessage("api:alert:show_confirm", JSON.stringify({message: message, title: title || "Confirm"}));
 }
-''';
-  }
+''');
 
-  @override
-  void register(JsRuntime runtime) {
-    runtime.onMessage('api:notify', (args) {
+    runtime.onMessage('api:notify', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final title = data['title']?.toString() ?? '';
-        final body = data['body']?.toString() ?? '';
-
-        _log.info('Plugin notify: $title - $body');
-
+        final data = context.router.decode(raw);
+        _log.info('Plugin notify: ${data['title']} - ${data['body']}');
         try {
-          alert.showNotification(title: title, content: body);
+          alert.showNotification(
+            title: data['title']?.toString() ?? '',
+            content: data['body']?.toString() ?? '',
+          );
         } catch (e) {
           _log.warning('Failed to show notification: $e');
         }
@@ -53,39 +44,34 @@ function showConfirm(message, title) {
       }
     });
 
-    runtime.onMessage('api:alert:show_alert', (args) {
+    runtime.onMessage('api:alert:show_alert', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final message = data['message']?.toString() ?? '';
-        final title = data['title']?.toString() ?? 'Info';
-
-        _log.info('Plugin show_alert: $title');
-        alert.showInfoAlert(message, title);
+        final data = context.router.decode(raw);
+        alert.showInfoAlert(
+          data['message']?.toString() ?? '',
+          data['title']?.toString() ?? 'Info',
+        );
       } catch (e) {
         _log.warning('Failed to show alert: $e');
       }
     });
 
-    runtime.onMessage('api:alert:show_error', (args) {
+    runtime.onMessage('api:alert:show_error', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final message = data['message']?.toString() ?? 'Unknown error';
-
-        _log.info('Plugin show_error: $message');
-        alert.showErrorAlert(message);
+        final data = context.router.decode(raw);
+        alert.showErrorAlert(data['message']?.toString() ?? 'Unknown error');
       } catch (e) {
         _log.warning('Failed to show error: $e');
       }
     });
 
-    runtime.onMessage('api:alert:show_confirm', (args) {
+    runtime.onMessage('api:alert:show_confirm', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final message = data['message']?.toString() ?? '';
-        final title = data['title']?.toString() ?? 'Confirm';
-
-        _log.info('Plugin show_confirm: $title');
-        alert.showConfirmAlert(message, title);
+        final data = context.router.decode(raw);
+        alert.showConfirmAlert(
+          data['message']?.toString() ?? '',
+          data['title']?.toString() ?? 'Confirm',
+        );
       } catch (e) {
         _log.warning('Failed to show confirm: $e');
       }

@@ -40,6 +40,39 @@ StreamSubscription? setupNotificationListener(
   }
 }
 
+/// Show a local notification (fixed id = 0, replacing previous).
+/// Main isolate only (plugin initialised by [initializeLocalNotifications]).
+Future<void> showLocalNotificationFromFcm({
+  required String title,
+  String? body,
+  String? payload,
+}) async {
+  if (kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    return;
+  }
+  return universal_notify.showLocalNotificationFromFcm(
+    title: title,
+    body: body,
+    payload: payload,
+  );
+}
+
+/// Background-isolate variant.  Creates a fresh plugin instance per call.
+Future<void> showBackgroundNotificationFromFcm({
+  required String title,
+  String? body,
+  String? payload,
+}) async {
+  if (kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    return;
+  }
+  await universal_notify.ensureFcmNotificationPlugin(
+    title: title,
+    body: body,
+    payload: payload,
+  );
+}
+
 Future<void> showDebugLocalNotification(WidgetRef ref) async {
   if (kIsWeb) {
     return;
