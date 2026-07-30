@@ -533,15 +533,34 @@ class PostItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hookResult = PluginHooks().runBeforePostDisplay(this.item.toJson());
-    SnPost displayItem = this.item;
-    try {
-      final postData = this.item.toJson()..addAll(hookResult.data!);
-      displayItem = SnPost.fromJson(postData);
-    } catch (_) {
-      // Invalid plugin output must not prevent the original post rendering.
-    }
-    final item = displayItem;
+    // Display hooks execute JavaScript and serialize the post payload. Keep the
+    // result while unrelated provider updates rebuild this row, but recompute
+    // immediately if the active plugin set changes.
+    final pluginRevision = useState(0);
+    useEffect(() {
+      void invalidatePluginTransform() => pluginRevision.value += 1;
+
+      final pluginManager = PluginManager();
+      pluginManager.addListener(invalidatePluginTransform);
+      return () => pluginManager.removeListener(invalidatePluginTransform);
+    }, []);
+    final displayResult = useMemoized(() {
+      final hookResult = PluginHooks().runBeforePostDisplay(this.item.toJson());
+      if (hookResult.cancelled) {
+        return (item: this.item, cancelled: true);
+      }
+
+      try {
+        final postData = this.item.toJson()..addAll(hookResult.data!);
+        return (item: SnPost.fromJson(postData), cancelled: false);
+      } catch (_) {
+        // Invalid plugin output must not prevent the original post rendering.
+        return (item: this.item, cancelled: false);
+      }
+    }, [this.item, pluginRevision.value]);
+    if (displayResult.cancelled) return const SizedBox.shrink();
+
+    final item = displayResult.item;
     final renderingPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
@@ -556,8 +575,6 @@ class PostItem extends HookConsumerWidget {
 
     final translating = useState(false);
     final translatedText = useState<String?>(null);
-
-    if (hookResult.cancelled) return const SizedBox.shrink();
 
     Future<void> translate() async {
       if (!isTranslatable) return;
