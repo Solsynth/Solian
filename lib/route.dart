@@ -80,15 +80,25 @@ class AppRouter extends RootStackRouter {
       initial: true,
       children: [
         // Dashboard tab
-        AutoRoute(page: DashboardRoute.page, path: '', initial: true),
+        AutoRoute(
+          page: DashboardRoute.page,
+          path: '',
+          initial: true,
+          maintainState: false,
+        ),
 
         // Explore tab
-        AutoRoute(page: ExploreRoute.page, path: 'explore'),
+        AutoRoute(
+          page: ExploreRoute.page,
+          path: 'explore',
+          maintainState: false,
+        ),
 
         // Chat tab with nested routes - ChatScreen handles the layout internally
         AutoRoute(
           page: ChatRoute.page,
           path: 'chat',
+          maintainState: false,
           children: [
             // Default child route -> Chat list
             AutoRoute(page: ChatListRoute.page, path: '', initial: true),
@@ -104,12 +114,17 @@ class AppRouter extends RootStackRouter {
         ),
 
         // Realms tab
-        AutoRoute(page: RealmListRoute.page, path: 'realms'),
+        AutoRoute(
+          page: RealmListRoute.page,
+          path: 'realms',
+          maintainState: false,
+        ),
 
         // Account tab with nested shell
         AutoRoute(
           page: AccountRoute.page,
           path: 'account',
+          maintainState: false,
           children: [
             // Default child route -> Account list
             AutoRoute(page: AccountListRoute.page, path: '', initial: true),
@@ -148,15 +163,24 @@ class AppRouter extends RootStackRouter {
         ),
 
         // Files tab
-        AutoRoute(page: FileListRoute.page, path: 'files'),
+        AutoRoute(
+          page: FileListRoute.page,
+          path: 'files',
+          maintainState: false,
+        ),
 
         // Thought tab
-        AutoRoute(page: ThoughtRoute.page, path: 'thought'),
+        AutoRoute(
+          page: ThoughtRoute.page,
+          path: 'thought',
+          maintainState: false,
+        ),
 
         // Creator hub tab with nested routes
         AutoRoute(
           page: CreatorHubRoute.page,
           path: 'creators',
+          maintainState: false,
           children: [
             // Default child route -> Creator hub list
             AutoRoute(page: CreatorHubListRoute.page, path: '', initial: true),
@@ -181,15 +205,12 @@ class AppRouter extends RootStackRouter {
               page: CreatorDomainManageRoute.page,
               path: ':pubName/domains',
             ),
-            AutoRoute(
-              page: CreatorTagManageRoute.page,
-              path: ':pubName/tags',
-            ),
+            AutoRoute(page: CreatorTagManageRoute.page, path: ':pubName/tags'),
           ],
         ),
 
         // Wallet tab
-        AutoRoute(page: WalletRoute.page, path: 'wallet'),
+        AutoRoute(page: WalletRoute.page, path: 'wallet', maintainState: false),
       ],
     ),
 

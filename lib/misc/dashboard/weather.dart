@@ -1538,43 +1538,45 @@ class _WeatherCardSkeletonBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Skeletonizer(
-      enabled: true,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Symbols.sunny, size: 36),
-                const SizedBox(width: 12),
-                Text('22°', style: theme.textTheme.headlineSmall),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Clear sky placeholder',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      Text(
-                        'Location placeholder',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
+    return RepaintBoundary(
+      child: Skeletonizer(
+        enabled: true,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Symbols.sunny, size: 36),
+                  const SizedBox(width: 12),
+                  Text('22°', style: theme.textTheme.headlineSmall),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Clear sky placeholder',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        Text(
+                          'Location placeholder',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Text('25°/18°', style: theme.textTheme.labelMedium),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Feels like · Humidity · Wind',
-              style: theme.textTheme.labelSmall,
-            ),
-          ],
+                  Text('25°/18°', style: theme.textTheme.labelMedium),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Feels like · Humidity · Wind',
+                style: theme.textTheme.labelSmall,
+              ),
+            ],
+          ),
         ),
       ),
     );
