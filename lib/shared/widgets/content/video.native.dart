@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,10 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   String? _errorMessage;
   bool _hasError = false;
   bool _isPlaying = false;
+  StreamSubscription<bool>? _playingSubscription;
+  StreamSubscription<String>? _errorSubscription;
+  Future<void> _playerLifecycle = Future.value();
+  bool _isDisposed = false;
 
   bool get isPlaying => _isPlaying;
 
@@ -45,7 +50,7 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   @override
   void initState() {
     super.initState();
-    _initPlayer();
+    _queuePlayerInitialization();
   }
 
   @override
@@ -54,9 +59,15 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     if (oldWidget.uri != widget.uri) {
       _hasError = false;
       _errorMessage = null;
-      _disposePlayer();
-      _initPlayer();
+      _queuePlayerInitialization(replacePlayer: true);
     }
+  }
+
+  void _queuePlayerInitialization({bool replacePlayer = false}) {
+    _playerLifecycle = _playerLifecycle.then((_) async {
+      if (replacePlayer) await _disposePlayer();
+      if (!_isDisposed) await _initPlayer();
+    });
   }
 
   Future<void> _initPlayer() async {
@@ -65,12 +76,14 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     final controller = ref.read(mediaPlaybackProvider.notifier);
     final usePersistentPlayer =
         widget.externalPlayer == null && widget.persistent;
-    _ownPlayer =
+    final player =
         widget.externalPlayer ??
         (usePersistentPlayer ? controller.player : Player());
-    _videoController = VideoController(_ownPlayer!);
+    _ownPlayer = player;
+    _videoController = VideoController(player);
+    if (mounted) setState(() {});
 
-    _ownPlayer!.stream.playing.listen((playing) {
+    _playingSubscription = player.stream.playing.listen((playing) {
       if (mounted) {
         setState(() {
           _isPlaying = playing;
@@ -80,7 +93,7 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       }
     });
 
-    _ownPlayer!.stream.error.listen((error) {
+    _errorSubscription = player.stream.error.listen((error) {
       debugPrint('Video player error: $error');
       if (mounted) {
         setState(() {
@@ -104,7 +117,7 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
             : null,
       );
     } else if (widget.externalPlayer == null) {
-      await _ownPlayer!.open(Media(widget.uri), play: widget.autoplay);
+      await player.open(Media(widget.uri), play: widget.autoplay);
     }
   }
 
@@ -113,14 +126,19 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     return segments.isEmpty ? 'Video' : segments.last;
   }
 
-  void _disposePlayer() {
-    if (_ownPlayer != null &&
-        widget.externalPlayer == null &&
-        !widget.persistent) {
-      _ownPlayer!.dispose();
-      _ownPlayer = null;
-    }
+  Future<void> _disposePlayer() async {
+    await _playingSubscription?.cancel();
+    await _errorSubscription?.cancel();
+    _playingSubscription = null;
+    _errorSubscription = null;
+
+    final player = _ownPlayer;
+    _ownPlayer = null;
     _videoController = null;
+
+    if (player != null && widget.externalPlayer == null && !widget.persistent) {
+      await player.dispose();
+    }
   }
 
   void _handleRetry() {
@@ -129,16 +147,16 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       _hasError = false;
       _errorMessage = null;
     });
-    _disposePlayer();
-    _initPlayer();
+    _queuePlayerInitialization(replacePlayer: true);
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     if (widget.persistent) {
       ref.read(mediaPlaybackProvider.notifier).dockWhenReleased(widget.uri);
     }
-    _disposePlayer();
+    _playerLifecycle = _playerLifecycle.then((_) => _disposePlayer());
     super.dispose();
   }
 
