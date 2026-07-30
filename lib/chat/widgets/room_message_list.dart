@@ -16,10 +16,14 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class _DisplayMessageCacheEntry {
   final LocalChatMessage source;
   final LocalChatMessage? display;
+  final MessageStatus status;
+  final List<UniversalFile>? localAttachments;
 
   const _DisplayMessageCacheEntry({
     required this.source,
     required this.display,
+    required this.status,
+    required this.localAttachments,
   });
 }
 
@@ -85,7 +89,10 @@ List<LocalChatMessage> _buildDisplayMessages(
     final key = message.clientMessageId ?? message.id;
     activeKeys.add(key);
     final cached = cache[key];
-    if (cached != null && identical(cached.source, message)) {
+    if (cached != null &&
+        identical(cached.source, message) &&
+        cached.status == message.status &&
+        identical(cached.localAttachments, message.localAttachments)) {
       if (cached.display != null) displayMessages.add(cached.display!);
       continue;
     }
@@ -94,6 +101,8 @@ List<LocalChatMessage> _buildDisplayMessages(
     cache[key] = _DisplayMessageCacheEntry(
       source: message,
       display: transformed,
+      status: message.status,
+      localAttachments: message.localAttachments,
     );
     if (transformed != null) displayMessages.add(transformed);
   }
@@ -134,9 +143,23 @@ class RoomMessageList extends HookConsumerWidget {
     // state changes (selection, read marker, display settings) rebuild this
     // widget while the user is scrolling.
     final displayMessageCache = useRef(<String, _DisplayMessageCacheEntry>{});
+    // A plugin can be enabled, disabled, or reloaded while this screen is
+    // open. In that case transformed rows must be recomputed once using the
+    // new hook chain instead of retaining the previous plugin output.
+    final pluginRevision = useState(0);
+    useEffect(() {
+      void invalidatePluginTransforms() {
+        displayMessageCache.value.clear();
+        pluginRevision.value += 1;
+      }
+
+      final pluginManager = PluginManager();
+      pluginManager.addListener(invalidatePluginTransforms);
+      return () => pluginManager.removeListener(invalidatePluginTransforms);
+    }, []);
     final displayMessages = useMemoized(
       () => _buildDisplayMessages(messages, displayMessageCache.value),
-      [messages],
+      [messages, pluginRevision.value],
     );
 
     final displayStyle = ref.watch(
