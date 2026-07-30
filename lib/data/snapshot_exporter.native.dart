@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:island/data/database.web_impl.dart' as memory;
+import 'package:island/data/database_logic.dart' as memory;
 
 /// Builds and encodes the in-memory database snapshot.
 ///
@@ -9,4 +9,4 @@ import 'package:island/data/database.web_impl.dart' as memory;
 /// than encoding the compact snapshot locally, especially after message and
 /// member JSON has been cached by the database adapter.
 Future<String> encodeDatabaseSnapshot(memory.AppDatabase database) async =>
-    jsonEncode(database.exportState());
+    jsonEncode(database.exportState(includeMessages: false));

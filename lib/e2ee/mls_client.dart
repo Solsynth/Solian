@@ -26,6 +26,7 @@ void _mlsLogWarn(dynamic msg) {
 
 class MlsClient {
   final MlsStorage _storage;
+  Future<void>? _initialization;
   late final MlsIdentityManager _identityManager;
   late final MlsGroupManager _groupManager;
   late final MlsMessageHandler _messageHandler;
@@ -62,7 +63,11 @@ class MlsClient {
     _mlsLog('MLS Client account ID set: $accountId');
   }
 
-  Future<void> initialize() async {
+  /// Starts the expensive native MLS engine only when an MLS operation needs
+  /// it. Constructing this client is safe for regular, non-encrypted chats.
+  Future<void> initialize() => _initialization ??= _initialize();
+
+  Future<void> _initialize() async {
     await MlsEngineService.getInstance();
     await _identityManager.generateAndStoreSignerKeyPair();
     final deviceId = await _identityManager.getOrCreateDeviceId();
@@ -380,7 +385,6 @@ final mlsClientProvider = Provider<MlsClient>((ref) {
     padlockClient: padlockClient,
     apiClient: solarClient.dio,
   );
-  client.initialize();
   client.startKeyPackageDepletedListener(wsService);
   return client;
 });

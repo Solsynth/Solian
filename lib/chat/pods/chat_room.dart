@@ -829,6 +829,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final isEncrypted = message.meta['e2ee_is_encrypted'] == true;
     if (!isEncrypted) return message;
 
+    // Global sync must not start OpenMLS for rooms the user has not opened.
+    // Keep the encrypted message cached; opening the room performs MLS setup
+    // and fetches/decrypts its message history.
+    if (!MlsEngineService.isReady) return message;
+
     // Get mlsGroupId from room
     final room = await db.getChatRoomById(message.chatRoomId);
     final mlsGroupId = room?.mlsGroupId;

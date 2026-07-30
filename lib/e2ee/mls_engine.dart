@@ -16,6 +16,9 @@ class MlsEngineService {
 
   MlsEngineService._();
 
+  /// Whether an MLS room has requested the native engine in this process.
+  static bool get isReady => _initialized && _engine != null;
+
   static Future<MlsEngineService> getInstance() async {
     if (_instance != null && _initialized && _engine != null) {
       return _instance!;
