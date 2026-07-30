@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/foundation.dart';
@@ -545,7 +546,11 @@ class PostItem extends HookConsumerWidget {
       return () => pluginManager.removeListener(invalidatePluginTransform);
     }, []);
     final displayResult = useMemoized(() {
-      final hookResult = PluginHooks().runBeforePostDisplay(this.item.toJson());
+      final hookResult = developer.Timeline.timeSync(
+        'plugin.beforePostDisplay',
+        () => PluginHooks().runBeforePostDisplay(this.item.toJson()),
+        arguments: {'postId': this.item.id},
+      );
       if (hookResult.cancelled) {
         return (item: this.item, cancelled: true);
       }
