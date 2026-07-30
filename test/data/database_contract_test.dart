@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:island/data/database.dart' as native;
 import 'package:island/data/database.web_impl.dart';
+import 'package:island/data/message.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 SnChatRoom room(String id, {bool isPinned = false}) {
@@ -37,6 +38,22 @@ SnChatGroup chatGroup(String id, int order, List<String> roomIds) {
     updatedAt: now,
   );
 }
+
+LocalChatMessage message(String id) => LocalChatMessage(
+  id: id,
+  roomId: 'room-1',
+  senderId: 'account-1',
+  sender: null,
+  data: const {},
+  createdAt: DateTime.utc(2026),
+  clientMessageId: null,
+  status: MessageStatus.sent,
+  type: 'text',
+  meta: const {},
+  membersMentioned: const [],
+  attachments: const [],
+  reactions: const [],
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -124,6 +141,19 @@ void main() {
 
       expect(result, 'complete');
     });
+
+    test(
+      'snapshot stores messages without their duplicate sender object',
+      () async {
+        final database = AppDatabase.web();
+        await database.saveMessage(message('message-1'));
+
+        final snapshot = database.exportState();
+        final storedMessage = (snapshot['messages'] as Map)['message-1'] as Map;
+
+        expect(storedMessage, isNot(contains('sender')));
+      },
+    );
   });
 
   test('native adapter persists rooms through Drift', () async {

@@ -596,17 +596,19 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
         Positioned(
           left: widget.avatarLeft,
           top: 0,
-          child: Transform.translate(
-            offset: Offset(0, offset),
-            child: ChatRoomMemberRegion(
-              roomId: widget.roomId,
-              member: widget.sender,
-              child: OnlineAvatarBadge(
+          child: RepaintBoundary(
+            child: Transform.translate(
+              offset: Offset(0, offset),
+              child: ChatRoomMemberRegion(
                 roomId: widget.roomId,
-                accountId: widget.sender.accountId,
-                child: ProfilePictureWidget(
-                  file: widget.sender.account.profile.picture,
-                  radius: widget.avatarSize / 2,
+                member: widget.sender,
+                child: OnlineAvatarBadge(
+                  roomId: widget.roomId,
+                  accountId: widget.sender.accountId,
+                  child: ProfilePictureWidget(
+                    file: widget.sender.account.profile.picture,
+                    radius: widget.avatarSize / 2,
+                  ),
                 ),
               ),
             ),
