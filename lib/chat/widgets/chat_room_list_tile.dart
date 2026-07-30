@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/relationship_pod.dart';
@@ -38,34 +37,38 @@ class ChatRoomListTile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final summary = ref
-        .watch(chatSummaryProvider)
-        .whenData((summaries) => summaries[room.id]);
+    // A new message replaces the summary map. Select this room's entry so an
+    // update in another room does not rebuild every visible list tile.
+    final summary = ref.watch(
+      chatSummaryProvider.select(
+        (summaries) => summaries.whenData((items) => items[room.id]),
+      ),
+    );
     final unreadCount = summary.value?.unreadCount ?? 0;
     final hasUnread = unreadCount > 0;
     final lastMessageAt = summary.value?.lastMessage?.createdAt;
 
-    var validMembers = room.members ?? [];
-    if (validMembers.isNotEmpty) {
-      final userInfo = ref.watch(userInfoProvider);
-      if (userInfo.value != null) {
-        validMembers = validMembers
-            .where((e) => e.accountId != userInfo.value!.id)
-            .toList();
-      }
-    }
+    final currentUserId = ref.watch(
+      userInfoProvider.select((user) => user.value?.id),
+    );
+    final validMembers = (room.members ?? <SnChatMember>[])
+        .where((member) => member.accountId != currentUserId)
+        .toList(growable: false);
 
-    final friendsOverview = ref.watch(friendsOverviewProvider);
-    final onlineFriendIds = useMemoized(() {
-      if (!friendsOverview.hasValue) return <String>{};
-      return friendsOverview.value!
-          .where((f) => showsOnlinePresence(f.status))
-          .map((f) => f.account.id)
-          .toSet();
-    }, [friendsOverview.hasValue ? friendsOverview.value : null]);
+    final memberIds = validMembers.map((member) => member.accountId).toSet();
     final isOnline =
         isDirect &&
-        validMembers.any((m) => onlineFriendIds.contains(m.accountId));
+        ref.watch(
+          friendsOverviewProvider.select(
+        (friends) =>
+            friends.value?.any(
+                  (friend) =>
+                      memberIds.contains(friend.account.id) &&
+                      showsOnlinePresence(friend.status),
+                ) ??
+                false,
+          ),
+        );
 
     String titleText;
     if (isDirect && room.name == null) {

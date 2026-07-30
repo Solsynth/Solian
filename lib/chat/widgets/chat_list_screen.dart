@@ -587,26 +587,31 @@ class ChatListBodyWidget extends HookConsumerWidget {
     final friendsOverview = ref.watch(friendsOverviewProvider);
 
     Widget buildRoomTile(SnChatRoom room) {
-      return _buildChatRoomContextMenu(
-        context: context,
-        ref: ref,
-        room: room,
-        db: db,
-        client: client,
-        accountId: accountId,
-        chatGroups: chatGroups,
-        onChatGroupsChanged: onChatGroupsChanged,
-        child: ChatRoomListTile(
+      // Keep a room's element (and its image/animation state) attached to its
+      // ID when activity sorting moves it within the list.
+      return KeyedSubtree(
+        key: ValueKey('chat-room-${room.id}'),
+        child: _buildChatRoomContextMenu(
+          context: context,
+          ref: ref,
           room: room,
-          isDirect: room.type == 1,
-          selected: activeChatId == room.id,
-          pushNotificationsSuppressed:
-              accountStatus
-                  .whenData((data) => data)
-                  .value
-                  ?.isPushNotificationsSuppressed(room.id) ??
-              false,
-          onTap: () => _navigateToChatRoom(context, room.id),
+          db: db,
+          client: client,
+          accountId: accountId,
+          chatGroups: chatGroups,
+          onChatGroupsChanged: onChatGroupsChanged,
+          child: ChatRoomListTile(
+            room: room,
+            isDirect: room.type == 1,
+            selected: activeChatId == room.id,
+            pushNotificationsSuppressed:
+                accountStatus
+                    .whenData((data) => data)
+                    .value
+                    ?.isPushNotificationsSuppressed(room.id) ??
+                false,
+            onTap: () => _navigateToChatRoom(context, room.id),
+          ),
         ),
       );
     }

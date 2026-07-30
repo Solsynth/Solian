@@ -109,12 +109,16 @@ class ChatRoomSubtitle extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Callers that provide a custom subtitle should not subscribe to provider
+    // updates that the custom child does not use.
+    if (subtitle != null) return subtitle!;
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final baseUrl = ref.watch(serverUrlProvider);
-    final currentUserId = ref.watch(userInfoProvider).value?.id;
-
-    if (subtitle != null) return subtitle!;
+    final currentUserId = ref.watch(
+      userInfoProvider.select((user) => user.value?.id),
+    );
 
     final mutedStyle = theme.textTheme.bodySmall?.copyWith(
       color: colorScheme.onSurfaceVariant.withOpacity(

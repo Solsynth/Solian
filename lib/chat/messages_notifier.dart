@@ -1,4 +1,5 @@
 import "dart:async";
+import 'dart:developer' as developer;
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
 import 'package:flutter/widgets.dart';
@@ -1179,6 +1180,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     Logger.root.info('Loading initial messages');
     _isLoadingInitial = true;
 
+    final trace = developer.TimelineTask(filterKey: 'chat');
+    trace.start(
+      'chat.loadInitial',
+      arguments: {'roomId': roomId, 'forceRemoteRefresh': forceRemoteRefresh},
+    );
     try {
       final previous = _currentMessages;
       final messages = await _loadInitialMessages(
@@ -1201,6 +1207,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     } finally {
       _isLoadingInitial = false;
+      trace.finish(arguments: {'messageCount': _currentMessages.length});
     }
   }
 
@@ -1221,6 +1228,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     // Use the current displayed message count as offset for UI pagination
     // This is different from _lastApiFetchOffset which tracks API fetch progress
     final displayOffset = offset ?? _currentMessages.length;
+    final trace = developer.TimelineTask(filterKey: 'chat');
+    trace.start(
+      'chat.loadMore',
+      arguments: {'roomId': roomId, 'offset': displayOffset},
+    );
     Logger.root.info(
       'Loading more messages (displayOffset=$displayOffset, take=$_pageSize, lastApiOffset=$_lastApiFetchOffset)',
     );
@@ -1250,6 +1262,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _isLoadingMore = false;
       // Always reset global syncing state, regardless of disposal
       _setGlobalSyncing(false);
+      trace.finish(arguments: {'messageCount': _currentMessages.length});
     }
   }
 

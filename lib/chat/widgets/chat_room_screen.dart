@@ -512,6 +512,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final newMessagesCount = useState<int>(0);
     final isBackToBottomVisible = useState<bool>(false);
     final hideBackToBottomTimer = useRef<Timer?>(null);
+    final hasLeftLatestMessages = useRef(false);
 
     // Count only actual incoming/synced new-message events. Older pagination
     // loads and list regrouping can change message count without being new.
@@ -527,6 +528,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     // Auto-hide back-to-bottom button after idle period.
     useEffect(() {
       if (!isAtLatestMessages.value) {
+        hasLeftLatestMessages.value = true;
         isBackToBottomVisible.value = true;
 
         void onScroll() {
@@ -555,16 +557,16 @@ class ChatRoomScreen extends HookConsumerWidget {
         };
       } else {
         // At bottom, hide button and reset badge.
-        final hadUnseenMessages = newMessagesCount.value > 0;
         isBackToBottomVisible.value = false;
         newMessagesCount.value = 0;
         hideBackToBottomTimer.value?.cancel();
 
         // A new row can arrive while the reversed list is outside its cache
         // area. Re-read the local timeline after returning to the latest
-        // position so the row is always materialized, including when the user
-        // reaches the bottom by manually scrolling rather than tapping the FAB.
-        if (hadUnseenMessages) {
+        // position. This applies to every return from scrollback, even if the
+        // event listener did not observe a new-message notification.
+        if (hasLeftLatestMessages.value) {
+          hasLeftLatestMessages.value = false;
           unawaited(messagesNotifier.loadInitial(forceRemoteRefresh: false));
         }
         return null;
