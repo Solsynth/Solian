@@ -2,9 +2,6 @@ PODS:
   - Alamofire (5.12.0)
   - audio_session (0.0.1):
     - Flutter
-  - bluetooth_low_energy_darwin (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - connectivity_plus (0.0.1):
     - Flutter
   - CryptoSwift (1.10.0)
@@ -105,9 +102,6 @@ PODS:
   - Flutter (1.0.0)
   - flutter_app_update (0.0.1):
     - Flutter
-  - flutter_blue_plus_darwin (0.0.2):
-    - Flutter
-    - FlutterMacOS
   - flutter_callkit_incoming (0.0.1):
     - CryptoSwift
     - Flutter
@@ -228,7 +222,7 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
-  - livekit_client (2.9.0-dev.0):
+  - livekit_client (2.9.0):
     - Flutter
     - flutter_webrtc
     - WebRTC-SDK (= 144.7559.09)
@@ -311,7 +305,6 @@ PODS:
 DEPENDENCIES:
   - Alamofire
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
-  - bluetooth_low_energy_darwin (from `.symlinks/plugins/bluetooth_low_energy_darwin/darwin`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - disk_space_2 (from `.symlinks/plugins/disk_space_2/ios`)
@@ -322,7 +315,6 @@ DEPENDENCIES:
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
   - flutter_app_update (from `.symlinks/plugins/flutter_app_update/ios`)
-  - flutter_blue_plus_darwin (from `.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_callkit_incoming (from `.symlinks/plugins/flutter_callkit_incoming/ios`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_js (from `.symlinks/plugins/flutter_js/ios`)
@@ -400,8 +392,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
-  bluetooth_low_energy_darwin:
-    :path: ".symlinks/plugins/bluetooth_low_energy_darwin/darwin"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   device_info_plus:
@@ -422,8 +412,6 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_app_update:
     :path: ".symlinks/plugins/flutter_app_update/ios"
-  flutter_blue_plus_darwin:
-    :path: ".symlinks/plugins/flutter_blue_plus_darwin/darwin"
   flutter_callkit_incoming:
     :path: ".symlinks/plugins/flutter_callkit_incoming/ios"
   flutter_inappwebview_ios:
@@ -516,7 +504,6 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Alamofire: ddb8d5201667b256dbc225f3fc6e835a0753186f
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
-  bluetooth_low_energy_darwin: 8027d98a11f64f880e4c738157dfe5ca88d28dbc
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   CryptoSwift: e2e7776512f250e66205955da748e7a4e4abffe0
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
@@ -536,7 +523,6 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 40017d7bc8457ee295b0f41d480a80fdabc9994e
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
-  flutter_blue_plus_darwin: ee2377ea51a6c9e481f2ed76ec597717ef5d287d
   flutter_callkit_incoming: a143995975818a3717524decd3566d5ca7a8c608
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_js: 867813c1830e1d9b2c5d547cdb6f61801e2f2145
@@ -561,7 +547,7 @@ SPEC CHECKSUMS:
   Kingfisher: ee4ff4936d5b399164b6d01a0dfc0388583287b6
   KingfisherWebP: 064869d5f1201396ec121dcc4c9cfbdba6ecb900
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  livekit_client: b47ad395a714c455b517fb38b4436cb07b4b5116
+  livekit_client: 08c2f86ab9d5f69bd617525a97d085e7f4b70d4a
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   map_launcher: 8051ad5783913cafce93f2414c6858f2904fd8df
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
