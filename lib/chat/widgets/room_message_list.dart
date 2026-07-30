@@ -13,61 +13,94 @@ import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+class _DisplayMessageCacheEntry {
+  final LocalChatMessage source;
+  final LocalChatMessage? display;
+
+  const _DisplayMessageCacheEntry({
+    required this.source,
+    required this.display,
+  });
+}
+
+LocalChatMessage? _transformDisplayMessage(LocalChatMessage message) {
+  final hookResult = PluginHooks().runBeforeMessageDisplay(
+    message.toRemoteMessage().toJson(),
+  );
+  if (hookResult.cancelled) return null;
+
+  try {
+    final messageData = message.toRemoteMessage().toJson()
+      ..addAll(hookResult.data!);
+    final remote = SnChatMessage.fromJson(messageData);
+    var transformed = LocalChatMessage.fromRemoteMessage(
+      remote,
+      message.status,
+      clientMessageId: message.clientMessageId,
+      nonce: message.nonce,
+    );
+    transformed.data.addAll(message.data);
+    transformed.localAttachments = message.localAttachments;
+    if (message.isDeleted != null || message.deletedAt != null) {
+      transformed = LocalChatMessage(
+        id: transformed.id,
+        roomId: transformed.roomId,
+        senderId: transformed.senderId,
+        sender: transformed.sender,
+        data: transformed.data,
+        createdAt: transformed.createdAt,
+        clientMessageId: transformed.clientMessageId,
+        nonce: transformed.nonce,
+        status: transformed.status,
+        content: transformed.content,
+        isDeleted: message.isDeleted,
+        updatedAt: transformed.updatedAt,
+        deletedAt: message.deletedAt,
+        type: transformed.type,
+        meta: transformed.meta,
+        membersMentioned: transformed.membersMentioned,
+        editedAt: transformed.editedAt,
+        attachments: transformed.attachments,
+        reactions: transformed.reactions,
+        repliedMessageId: transformed.repliedMessageId,
+        forwardedMessageId: transformed.forwardedMessageId,
+        localAttachments: message.localAttachments,
+      );
+    }
+    return transformed;
+  } catch (_) {
+    // Invalid plugin output must not prevent the original message rendering.
+    return message;
+  }
+}
+
 List<LocalChatMessage> _buildDisplayMessages(
   List<LocalChatMessage> messages,
+  Map<String, _DisplayMessageCacheEntry> cache,
 ) {
   final displayMessages = <LocalChatMessage>[];
+  final activeKeys = <String>{};
 
   for (final message in messages) {
-    final hookResult = PluginHooks().runBeforeMessageDisplay(
-      message.toRemoteMessage().toJson(),
-    );
-    if (hookResult.cancelled) continue;
-
-    try {
-      final messageData = message.toRemoteMessage().toJson()
-        ..addAll(hookResult.data!);
-      final remote = SnChatMessage.fromJson(messageData);
-      var transformed = LocalChatMessage.fromRemoteMessage(
-        remote,
-        message.status,
-        clientMessageId: message.clientMessageId,
-        nonce: message.nonce,
-      );
-      transformed.data.addAll(message.data);
-      transformed.localAttachments = message.localAttachments;
-      if (message.isDeleted != null || message.deletedAt != null) {
-        transformed = LocalChatMessage(
-          id: transformed.id,
-          roomId: transformed.roomId,
-          senderId: transformed.senderId,
-          sender: transformed.sender,
-          data: transformed.data,
-          createdAt: transformed.createdAt,
-          clientMessageId: transformed.clientMessageId,
-          nonce: transformed.nonce,
-          status: transformed.status,
-          content: transformed.content,
-          isDeleted: message.isDeleted,
-          updatedAt: transformed.updatedAt,
-          deletedAt: message.deletedAt,
-          type: transformed.type,
-          meta: transformed.meta,
-          membersMentioned: transformed.membersMentioned,
-          editedAt: transformed.editedAt,
-          attachments: transformed.attachments,
-          reactions: transformed.reactions,
-          repliedMessageId: transformed.repliedMessageId,
-          forwardedMessageId: transformed.forwardedMessageId,
-          localAttachments: message.localAttachments,
-        );
-      }
-      displayMessages.add(transformed);
-    } catch (_) {
-      // Invalid plugin output must not prevent the original message rendering.
-      displayMessages.add(message);
+    final key = message.clientMessageId ?? message.id;
+    activeKeys.add(key);
+    final cached = cache[key];
+    if (cached != null && identical(cached.source, message)) {
+      if (cached.display != null) displayMessages.add(cached.display!);
+      continue;
     }
+
+    final transformed = _transformDisplayMessage(message);
+    cache[key] = _DisplayMessageCacheEntry(
+      source: message,
+      display: transformed,
+    );
+    if (transformed != null) displayMessages.add(transformed);
   }
+
+  // Pagination compaction can replace the visible timeline. Drop entries no
+  // longer displayed so a long-running room does not retain old history.
+  cache.removeWhere((key, _) => !activeKeys.contains(key));
 
   return List.unmodifiable(displayMessages);
 }
@@ -100,8 +133,9 @@ class RoomMessageList extends HookConsumerWidget {
     // the lifetime of an unchanged message list avoids doing that work when UI
     // state changes (selection, read marker, display settings) rebuild this
     // widget while the user is scrolling.
+    final displayMessageCache = useRef(<String, _DisplayMessageCacheEntry>{});
     final displayMessages = useMemoized(
-      () => _buildDisplayMessages(messages),
+      () => _buildDisplayMessages(messages, displayMessageCache.value),
       [messages],
     );
 
