@@ -161,8 +161,6 @@ dependencies:
   pointycastle: ^4.0.0
   desktop_drop: ^0.7.1
   flutter_animate: ^4.5.2
-  flutter_blue_plus: ^2.3.11
-  bluetooth_low_energy: ^6.2.1
   flutter_map: ^8.3.1
   geolocator: ^14.0.2
   geocoding: ^5.0.0
