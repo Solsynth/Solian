@@ -14,7 +14,11 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 /// can be removed through the existing Storage Settings reset action and then
 /// rebuilt by normal sync.
 class AppDatabase {
-  static const _persistenceDebounce = Duration(milliseconds: 250);
+  // Snapshotting serializes the complete in-memory database, so do it after a
+  // burst settles rather than at a fixed cadence while a paginated list is
+  // actively loading. Lifecycle operations and durable writes still bypass
+  // this delay through [_flushAllPersistence].
+  static const _persistenceDebounce = Duration(seconds: 1);
 
   AppDatabase.native(
     Future<String?> directoryPath, {
@@ -65,7 +69,11 @@ class AppDatabase {
   /// [reset] flush this queue before releasing the store.
   void _schedulePersistence() {
     _persistenceNeeded = true;
-    _persistenceTimer ??= Timer(_persistenceDebounce, () {
+    // This must be a trailing debounce. Leaving the existing timer in place
+    // turns a sustained stream of writes (for example, fast chat scrolling)
+    // into a full snapshot write every debounce interval.
+    _persistenceTimer?.cancel();
+    _persistenceTimer = Timer(_persistenceDebounce, () {
       _persistenceTimer = null;
       // Timer callbacks cannot await errors. A later write will enqueue a
       // fresh snapshot, while close still awaits the currently queued write.

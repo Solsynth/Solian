@@ -12,10 +12,15 @@ class AppDatabase {
   final Map<String, String> _webKvStore = {};
   final Map<String, SnChatRoom> _webChatRoomStore = {};
   final Map<String, SnChatMember> _webChatMemberStore = {};
+  // Chat members are mostly static while message pagination writes often.
+  // Keep their JSON alongside the model so exporting a full snapshot does not
+  // serialize the entire member directory for every message batch.
+  final Map<String, Map<String, dynamic>> _webChatMemberJsonStore = {};
   final Map<String, SnRealm> _webRealmStore = {};
   final Map<String, List<SnChatGroup>> _webChatGroupStore = {};
   final Map<String, SnSticker> _webStickerLookupStore = {};
   final Map<String, LocalChatMessage> _webMessageStore = {};
+  final Map<String, Map<String, dynamic>> _webMessageJsonStore = {};
 
   /// Serialization boundary shared with the native Drift adapter.
   ///
@@ -24,10 +29,12 @@ class AppDatabase {
   Map<String, dynamic> exportState() => {
     'drafts': _webDraftStore.map((id, post) => MapEntry(id, post.toJson())),
     'secrets': Map<String, String>.from(_webKvStore),
-    'rooms': _webChatRoomStore.map((id, room) => MapEntry(id, room.toJson())),
-    'members': _webChatMemberStore.map(
-      (id, member) => MapEntry(id, member.toJson()),
+    // Members are persisted separately. Avoid expanding a room's full member
+    // list here, which duplicates the same account graph for every room.
+    'rooms': _webChatRoomStore.map(
+      (id, room) => MapEntry(id, room.copyWith(members: null).toJson()),
     ),
+    'members': _webChatMemberJsonStore,
     'realms': _webRealmStore.map((id, realm) => MapEntry(id, realm.toJson())),
     'groups': _webChatGroupStore.map(
       (accountId, groups) =>
@@ -39,9 +46,7 @@ class AppDatabase {
     'relationships': _webRelationshipStore.map(
       (id, relationship) => MapEntry(id, relationship.toJson()),
     ),
-    'messages': _webMessageStore.map(
-      (id, message) => MapEntry(id, _messageToJson(message)),
-    ),
+    'messages': _webMessageJsonStore,
   };
 
   void restoreState(Map<String, dynamic> state) {
@@ -58,11 +63,7 @@ class AppDatabase {
       _webChatRoomStore,
       SnChatRoom.fromJson,
     );
-    _restoreObjects<SnChatMember>(
-      state['members'],
-      _webChatMemberStore,
-      SnChatMember.fromJson,
-    );
+    _restoreMembers(state['members']);
     _restoreObjects<SnRealm>(state['realms'], _webRealmStore, SnRealm.fromJson);
     _restoreObjects<SnSticker>(
       state['stickers'],
@@ -74,11 +75,7 @@ class AppDatabase {
       _webRelationshipStore,
       SnRelationship.fromJson,
     );
-    _restoreObjects<LocalChatMessage>(
-      state['messages'],
-      _webMessageStore,
-      _messageFromJson,
-    );
+    _restoreMessages(state['messages']);
     final groups = state['groups'];
     if (groups is Map) {
       for (final entry in groups.entries) {
@@ -116,6 +113,36 @@ class AppDatabase {
     }
   }
 
+  void _restoreMembers(dynamic value) {
+    if (value is! Map) return;
+    for (final entry in value.entries) {
+      if (entry.value is! Map) continue;
+      final id = entry.key.toString();
+      final json = Map<String, dynamic>.from(entry.value as Map);
+      try {
+        _webChatMemberStore[id] = SnChatMember.fromJson(json);
+        _webChatMemberJsonStore[id] = json;
+      } catch (_) {
+        // A corrupt cache record should never prevent the app from syncing.
+      }
+    }
+  }
+
+  void _restoreMessages(dynamic value) {
+    if (value is! Map) return;
+    for (final entry in value.entries) {
+      if (entry.value is! Map) continue;
+      final id = entry.key.toString();
+      final json = Map<String, dynamic>.from(entry.value as Map);
+      try {
+        _webMessageStore[id] = _messageFromJson(json);
+        _webMessageJsonStore[id] = json;
+      } catch (_) {
+        // A corrupt cache record should never prevent the app from syncing.
+      }
+    }
+  }
+
   Future<void> close() async {}
 
   Future<void> reset() async {
@@ -123,11 +150,13 @@ class AppDatabase {
     _webKvStore.clear();
     _webChatRoomStore.clear();
     _webChatMemberStore.clear();
+    _webChatMemberJsonStore.clear();
     _webRealmStore.clear();
     _webRelationshipStore.clear();
     _webChatGroupStore.clear();
     _webStickerLookupStore.clear();
     _webMessageStore.clear();
+    _webMessageJsonStore.clear();
   }
 
   Future<Map<String, int>> getDatabaseStats() async {
@@ -175,6 +204,12 @@ class AppDatabase {
 
   Future<int> saveMessage(LocalChatMessage message) async {
     _webMessageStore[message.id] = message;
+    final sender = message.sender;
+    if (sender != null && !_webChatMemberStore.containsKey(sender.id)) {
+      _webChatMemberStore[sender.id] = sender;
+      _webChatMemberJsonStore[sender.id] = sender.toJson();
+    }
+    _webMessageJsonStore[message.id] = _messageToJson(message);
     return 1;
   }
 
@@ -182,11 +217,15 @@ class AppDatabase {
     final message = _webMessageStore[id];
     if (message == null) return 0;
     message.status = status;
+    _webMessageJsonStore[id]?['status'] = status.index;
     return 1;
   }
 
-  Future<int> deleteMessage(String id) async =>
-      _webMessageStore.remove(id) == null ? 0 : 1;
+  Future<int> deleteMessage(String id) async {
+    final removed = _webMessageStore.remove(id);
+    _webMessageJsonStore.remove(id);
+    return removed == null ? 0 : 1;
+  }
 
   Future<int> deleteMessagesForRoom(String roomId) async {
     final ids = _webMessageStore.values
@@ -195,6 +234,7 @@ class AppDatabase {
         .toList();
     for (final id in ids) {
       _webMessageStore.remove(id);
+      _webMessageJsonStore.remove(id);
     }
     return ids.length;
   }
@@ -259,7 +299,9 @@ class AppDatabase {
     'id': message.id,
     'roomId': message.roomId,
     'senderId': message.senderId,
-    'sender': message.sender?.toJson(),
+    // Message senders are represented by the separately stored member cache.
+    // Storing a complete member here duplicates its account/profile graph for
+    // every message and dominates snapshot serialization time.
     'data': message.data,
     'createdAt': message.createdAt.toIso8601String(),
     'clientMessageId': message.clientMessageId,
@@ -282,14 +324,17 @@ class AppDatabase {
   LocalChatMessage _messageFromJson(Map<String, dynamic> json) {
     DateTime? date(String key) =>
         json[key] == null ? null : DateTime.tryParse(json[key].toString());
+    final senderId = json['senderId'].toString();
     final senderJson = json['sender'];
     return LocalChatMessage(
       id: json['id'].toString(),
       roomId: json['roomId'].toString(),
-      senderId: json['senderId'].toString(),
-      sender: senderJson is Map
-          ? SnChatMember.fromJson(Map<String, dynamic>.from(senderJson))
-          : null,
+      senderId: senderId,
+      sender:
+          _webChatMemberStore[senderId] ??
+          (senderJson is Map
+              ? SnChatMember.fromJson(Map<String, dynamic>.from(senderJson))
+              : null),
       data: Map<String, dynamic>.from(json['data'] as Map? ?? const {}),
       createdAt: DateTime.parse(json['createdAt'].toString()),
       clientMessageId: json['clientMessageId']?.toString(),
@@ -332,7 +377,13 @@ class AppDatabase {
         _webChatMemberStore.removeWhere(
           (_, member) => member.chatRoomId == roomId,
         );
+        _webChatMemberJsonStore.removeWhere(
+          (id, _) => !_webChatMemberStore.containsKey(id),
+        );
         _webMessageStore.removeWhere((_, message) => message.roomId == roomId);
+        _webMessageJsonStore.removeWhere(
+          (id, _) => !_webMessageStore.containsKey(id),
+        );
         _webKvStore.remove('chat_room_encryption_mode_$roomId');
       }
       _webChatGroupStore.updateAll(
@@ -366,8 +417,12 @@ class AppDatabase {
               member.chatRoomId == room.id &&
               !currentMemberIds.contains(member.id),
         );
+        _webChatMemberJsonStore.removeWhere(
+          (id, _) => !_webChatMemberStore.containsKey(id),
+        );
         for (final member in members) {
           _webChatMemberStore[member.id] = member;
+          _webChatMemberJsonStore[member.id] = member.toJson();
         }
       }
     }
@@ -439,6 +494,7 @@ class AppDatabase {
 
   Future<void> saveMember(SnChatMember member) async {
     _webChatMemberStore[member.id] = member;
+    _webChatMemberJsonStore[member.id] = member.toJson();
   }
 
   // ---------------------------------------------------------------------------
