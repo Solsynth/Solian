@@ -24,6 +24,17 @@ class DriftStore {
         payload TEXT NOT NULL
       )
     ''');
+    await _connection.executor.runCustom('''
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id TEXT PRIMARY KEY,
+        room_id TEXT NOT NULL,
+        payload TEXT NOT NULL
+      )
+    ''');
+    await _connection.executor.runCustom(
+      'CREATE INDEX IF NOT EXISTS chat_messages_room_id '
+      'ON chat_messages(room_id)',
+    );
   }();
 
   Future<Map<String, dynamic>?> readSnapshot() async {
@@ -65,9 +76,61 @@ class DriftStore {
     );
   }
 
+  Future<Map<String, dynamic>> readMessagePayloads() async {
+    await _open();
+    final rows = await _connection.executor.runSelect(
+      'SELECT id, payload FROM chat_messages',
+      const [],
+    );
+    final messages = <String, dynamic>{};
+    for (final row in rows) {
+      final id = row['id'];
+      final payload = row['payload'];
+      if (id is! String || payload is! String) continue;
+      try {
+        final decoded = jsonDecode(payload);
+        if (decoded is Map) messages[id] = Map<String, dynamic>.from(decoded);
+      } on FormatException {
+        // Ignore an individual corrupt cache row; sync can restore it.
+      }
+    }
+    return messages;
+  }
+
+  Future<void> writeMessagePayload(
+    String id,
+    String roomId,
+    String payload,
+  ) async {
+    await _open();
+    await _connection.executor.runCustom(
+      'INSERT INTO chat_messages(id, room_id, payload) VALUES (?, ?, ?) '
+      'ON CONFLICT(id) DO UPDATE SET room_id = excluded.room_id, '
+      'payload = excluded.payload',
+      [id, roomId, payload],
+    );
+  }
+
+  Future<void> deleteMessage(String id) async {
+    await _open();
+    await _connection.executor.runCustom(
+      'DELETE FROM chat_messages WHERE id = ?',
+      [id],
+    );
+  }
+
+  Future<void> deleteMessagesForRoom(String roomId) async {
+    await _open();
+    await _connection.executor.runCustom(
+      'DELETE FROM chat_messages WHERE room_id = ?',
+      [roomId],
+    );
+  }
+
   Future<void> clear() async {
     await _open();
     await _connection.executor.runCustom('DELETE FROM app_state');
+    await _connection.executor.runCustom('DELETE FROM chat_messages');
   }
 
   Future<void> close() => _connection.executor.close();

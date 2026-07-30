@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:island/data/database.web_impl.dart' as memory;
+import 'dart:convert';
+import 'package:island/data/database_logic.dart' as memory;
 import 'package:island/data/drift_store.dart';
 import 'package:island/data/legacy_database_cleanup.dart';
 import 'package:island/data/message.dart';
@@ -44,6 +45,27 @@ class AppDatabase {
       final store = await _store;
       final state = await store.readSnapshot();
       if (state != null) _memory.restoreState(state);
+      final messages = await store.readMessagePayloads();
+      if (messages.isNotEmpty) {
+        _memory.restoreMessagePayloads(messages);
+      } else if (state?['messages'] is Map) {
+        // One-time migration from the old all-in-one JSON snapshot.
+        final legacyMessages = Map<String, dynamic>.from(
+          state!['messages'] as Map,
+        );
+        for (final entry in legacyMessages.entries) {
+          final payload = entry.value;
+          if (payload is! Map) continue;
+          final message = Map<String, dynamic>.from(payload);
+          final roomId = message['roomId']?.toString();
+          if (roomId == null) continue;
+          await store.writeMessagePayload(
+            entry.key,
+            roomId,
+            jsonEncode(message),
+          );
+        }
+      }
     }();
   }
 
@@ -162,14 +184,34 @@ class AppDatabase {
   );
   Future<LocalChatMessage?> getMessageById(String id) =>
       _read(() => _memory.getMessageById(id));
-  Future<int> saveMessage(LocalChatMessage message) =>
-      _write(() => _memory.saveMessage(message));
-  Future<int> updateMessageStatus(String id, MessageStatus status) =>
-      _write(() => _memory.updateMessageStatus(id, status));
-  Future<int> deleteMessage(String id) =>
-      _write(() => _memory.deleteMessage(id));
-  Future<int> deleteMessagesForRoom(String roomId) =>
-      _write(() => _memory.deleteMessagesForRoom(roomId));
+  Future<int> saveMessage(LocalChatMessage message) async {
+    await _ensureReady();
+    final result = await _memory.saveMessage(message);
+    await _writeMessage(message.id);
+    return result;
+  }
+
+  Future<int> updateMessageStatus(String id, MessageStatus status) async {
+    await _ensureReady();
+    final result = await _memory.updateMessageStatus(id, status);
+    if (result > 0) await _writeMessage(id);
+    return result;
+  }
+
+  Future<int> deleteMessage(String id) async {
+    await _ensureReady();
+    final result = await _memory.deleteMessage(id);
+    if (result > 0) await (await _store).deleteMessage(id);
+    return result;
+  }
+
+  Future<int> deleteMessagesForRoom(String roomId) async {
+    await _ensureReady();
+    final result = await _memory.deleteMessagesForRoom(roomId);
+    if (result > 0) await (await _store).deleteMessagesForRoom(roomId);
+    return result;
+  }
+
   Future<int> getTotalMessagesForRoom(String roomId) =>
       _read(() => _memory.getTotalMessagesForRoom(roomId));
   Future<Map<String, int>> getChatRoomMessageStats() =>
@@ -197,9 +239,23 @@ class AppDatabase {
     ),
   );
   Future<int> saveMessageWithSender(LocalChatMessage message) =>
-      _write(() => _memory.saveMessageWithSender(message));
-  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) =>
-      _write(() => _memory.saveMessagesWithSenders(messages));
+      saveMessage(message);
+  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async {
+    await _ensureReady();
+    final result = await _memory.saveMessagesWithSenders(messages);
+    for (final message in messages) {
+      await _writeMessage(message.id);
+    }
+    return result;
+  }
+
+  Future<void> _writeMessage(String id) async {
+    final payload = _memory.getMessagePayload(id);
+    if (payload == null) return;
+    final roomId = payload['roomId']?.toString();
+    if (roomId == null) return;
+    await (await _store).writeMessagePayload(id, roomId, jsonEncode(payload));
+  }
 
   Future<List<SnChatRoom>> getAllChatRooms() => _read(_memory.getAllChatRooms);
   Future<SnChatRoom?> getChatRoomById(String id) =>

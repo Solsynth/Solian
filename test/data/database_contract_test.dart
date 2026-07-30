@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:island/data/database.dart' as native;
-import 'package:island/data/database.web_impl.dart';
+import 'package:island/data/database_logic.dart';
 import 'package:island/data/message.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -166,6 +166,22 @@ void main() {
 
     final reopened = native.AppDatabase.native(Future.value(directory.path));
     expect((await reopened.getChatRoomById('persisted'))?.id, 'persisted');
+    await reopened.close();
+  });
+
+  test('native adapter persists messages through their Drift rows', () async {
+    final directory = await Directory.systemTemp.createTemp('island-drift-');
+    addTearDown(() => directory.delete(recursive: true));
+
+    final first = native.AppDatabase.native(Future.value(directory.path));
+    await first.saveMessage(message('persisted-message'));
+    await first.close();
+
+    final reopened = native.AppDatabase.native(Future.value(directory.path));
+    expect(
+      (await reopened.getMessageById('persisted-message'))?.id,
+      'persisted-message',
+    );
     await reopened.close();
   });
 

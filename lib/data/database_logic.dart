@@ -5,6 +5,10 @@ import 'package:island/data/message.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+/// Shared in-memory query and mutation logic for every database backend.
+///
+/// Native persistence is layered on top by [database.drift_impl.dart], while
+/// web can use this class directly when durable storage is unavailable.
 class AppDatabase {
   AppDatabase.native(Future<String?> _);
   AppDatabase.web();
@@ -26,7 +30,7 @@ class AppDatabase {
   ///
   /// Web keeps this implementation in memory, while native persists exactly
   /// the same application contract through Drift.
-  Map<String, dynamic> exportState() => {
+  Map<String, dynamic> exportState({bool includeMessages = true}) => {
     'drafts': _webDraftStore.map((id, post) => MapEntry(id, post.toJson())),
     'secrets': Map<String, String>.from(_webKvStore),
     // Members are persisted separately. Avoid expanding a room's full member
@@ -46,8 +50,16 @@ class AppDatabase {
     'relationships': _webRelationshipStore.map(
       (id, relationship) => MapEntry(id, relationship.toJson()),
     ),
-    'messages': _webMessageJsonStore,
+    if (includeMessages) 'messages': _webMessageJsonStore,
   };
+
+  Map<String, dynamic> exportMessagePayloads() => _webMessageJsonStore;
+
+  void restoreMessagePayloads(Map<String, dynamic> messages) =>
+      _restoreMessages(messages);
+
+  Map<String, dynamic>? getMessagePayload(String id) =>
+      _webMessageJsonStore[id];
 
   void restoreState(Map<String, dynamic> state) {
     reset();

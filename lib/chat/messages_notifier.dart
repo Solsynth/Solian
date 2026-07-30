@@ -621,19 +621,21 @@ class MessagesNotifier extends _$MessagesNotifier {
     Future.microtask(() async {
       if (disposed || !ref.mounted) return;
 
-      // Set account ID for MLS operations
-      if (identity != null) {
-        final mlsClient = ref.read(mlsClientProvider);
-        await mlsClient.setCurrentAccountId(identity.accountId);
-        if (disposed || !ref.mounted) return;
-        // Fetch pending E2EE envelopes (Welcome, Commit, Proposal)
-        await mlsClient.fetchAndProcessPendingEnvelopes();
-      }
-
-      if (disposed || !ref.mounted) return;
-
-      // Ensure MLS group is bootstrapped for E2EE rooms
+      // MLS setup is intentionally deferred until an MLS-enabled room is
+      // opened. Initializing OpenMLS costs over a second on some devices.
       if (_isE2eeRoom) {
+        final mlsClient = ref.read(mlsClientProvider);
+        await mlsClient.initialize();
+        if (disposed || !ref.mounted) return;
+
+        if (identity != null) {
+          await mlsClient.setCurrentAccountId(identity.accountId);
+          if (disposed || !ref.mounted) return;
+          // Fetch pending E2EE envelopes (Welcome, Commit, Proposal).
+          await mlsClient.fetchAndProcessPendingEnvelopes();
+        }
+
+        if (disposed || !ref.mounted) return;
         if (room.mlsGroupId == null) {
           Logger.root.info(
             'Room $roomId has encryption mode 3 but no mlsGroupId - skipping MLS bootstrap',
@@ -641,8 +643,6 @@ class MessagesNotifier extends _$MessagesNotifier {
         } else {
           try {
             if (disposed || !ref.mounted) return;
-            final mlsClient = ref.read(mlsClientProvider);
-
             // Check current epoch for logging purposes
             final currentEpoch = await mlsClient.getCurrentEpoch(
               room.mlsGroupId!,

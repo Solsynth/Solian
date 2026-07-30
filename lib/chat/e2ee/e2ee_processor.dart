@@ -8,13 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// E2EE/MLS state for a room.
-enum E2eeState {
-  idle,
-  bootstrapping,
-  connected,
-  reconnecting,
-  failed,
-}
+enum E2eeState { idle, bootstrapping, connected, reconnecting, failed }
 
 /// Processes E2EE operations for a chat room.
 class E2eeProcessor {
@@ -32,8 +26,8 @@ class E2eeProcessor {
     this._roomId, {
     required String? mlsGroupId,
     required bool isE2eeRoom,
-  })  : _mlsGroupId = mlsGroupId,
-        _isE2eeRoom = isE2eeRoom;
+  }) : _mlsGroupId = mlsGroupId,
+       _isE2eeRoom = isE2eeRoom;
 
   // ── State ────────────────────────────────────────────────────────────────
 
@@ -52,8 +46,11 @@ class E2eeProcessor {
 
     _logger.info('Initializing E2EE for room $_roomId');
 
+    final mlsClient = _ref.read(mlsClientProvider);
+    await mlsClient.initialize();
+
     // Get current device ID
-    _currentDeviceId = await _ref.read(mlsClientProvider).getDeviceId();
+    _currentDeviceId = await mlsClient.getDeviceId();
 
     // Setup event listeners
     _setupEventListeners();
@@ -206,7 +203,8 @@ class E2eeProcessor {
 
     // Try to get plaintext from pending or meta
     final clientMessageId =
-        message.clientMessageId ?? message.meta['e2ee_client_message_id']?.toString();
+        message.clientMessageId ??
+        message.meta['e2ee_client_message_id']?.toString();
 
     // Return empty result - plaintext should be preserved by sender
     return DecryptionResult.success(
@@ -247,10 +245,7 @@ class E2eeProcessor {
     final updatedMeta = Map<String, dynamic>.from(message.meta);
     updatedMeta['e2ee_decrypted_content'] = plaintext;
 
-    return message.copyWith(
-      content: plaintext,
-      meta: updatedMeta,
-    );
+    return message.copyWith(content: plaintext, meta: updatedMeta);
   }
 }
 
@@ -259,10 +254,7 @@ class EncryptedPayload {
   final Map<String, dynamic> serverPayload;
   final Map<String, dynamic>? plaintextEnvelope;
 
-  const EncryptedPayload({
-    required this.serverPayload,
-    this.plaintextEnvelope,
-  });
+  const EncryptedPayload({required this.serverPayload, this.plaintextEnvelope});
 }
 
 /// Result of decrypting a message.
@@ -284,16 +276,13 @@ class DecryptionResult {
     bool isOwnMessage = false,
     String? clientMessageId,
     Map<String, dynamic>? decryptedData,
-  }) =>
-      DecryptionResult._(
-        content: content,
-        isOwnMessage: isOwnMessage,
-        clientMessageId: clientMessageId,
-        decryptedData: decryptedData,
-      );
+  }) => DecryptionResult._(
+    content: content,
+    isOwnMessage: isOwnMessage,
+    clientMessageId: clientMessageId,
+    decryptedData: decryptedData,
+  );
 
-  factory DecryptionResult.plaintext(String? content) => DecryptionResult._(
-        content: content ?? '',
-        isOwnMessage: false,
-      );
+  factory DecryptionResult.plaintext(String? content) =>
+      DecryptionResult._(content: content ?? '', isOwnMessage: false);
 }
