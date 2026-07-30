@@ -190,6 +190,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                     builder: (context, controller, focusNode) {
                       return TypeAheadEnterHandler<SnPostTag>(
                         suggestionsController: tagSuggestionsController,
+                        controller: controller,
                         onEnter: () {
                           final value = controller.text;
                           state.tags.value = [...state.tags.value, value];
