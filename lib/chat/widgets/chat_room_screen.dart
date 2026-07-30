@@ -68,7 +68,6 @@ class ChatRoomScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRoom = ref.watch(chatRoomProvider(id));
     final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
-    final onlineCount = ref.watch(chatOnlineCountProvider(id));
     final chatEventMessageMode = ref.watch(
       appSettingsProvider.select((settings) => settings.chatEventMessageMode),
     );
@@ -894,10 +893,9 @@ class ChatRoomScreen extends HookConsumerWidget {
                           ),
                   )
                 : chatRoom.when(
-                    data: (room) => RoomAppBar(
-                      room: room!,
-                      onlineStatus: onlineCount.value,
-                    ),
+                    data: (room) => room == null
+                        ? const SizedBox.shrink()
+                        : _RoomAppBarTitle(roomId: id, room: room),
                     loading: () => const Text('Loading...'),
                     error: (err, _) => ResponseErrorWidget(
                       error: err,
@@ -1320,6 +1318,22 @@ class ChatRoomScreen extends HookConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+/// Keeps presence updates local to the app bar. In busy rooms the online-count
+/// provider can change independently of the timeline; rebuilding the whole
+/// screen for it causes unnecessary list work while scrolling.
+class _RoomAppBarTitle extends ConsumerWidget {
+  final String roomId;
+  final SnChatRoom room;
+
+  const _RoomAppBarTitle({required this.roomId, required this.room});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final onlineCount = ref.watch(chatOnlineCountProvider(roomId));
+    return RoomAppBar(room: room, onlineStatus: onlineCount.value);
   }
 }
 
