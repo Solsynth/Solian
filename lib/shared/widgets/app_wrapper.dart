@@ -202,8 +202,6 @@ class AppWrapper extends HookConsumerWidget {
           unawaited(
             ref.read(nativeCallBridgeProvider.notifier).ensureInitialized(),
           );
-          // Check WebSocket connection on resume
-          ref.read(websocketProvider).checkConnection();
         }
       });
       return sub.close;

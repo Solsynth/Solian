@@ -246,6 +246,7 @@ void IslandDesktopPresencePlugin::HandleMethodCall(
     }
 
     StartExternalNowPlayingMonitoring(poll_interval_milliseconds);
+    EmitCurrentExternalNowPlaying(true);
     result->Success();
     return;
   }
@@ -555,7 +556,6 @@ void IslandDesktopPresencePlugin::StartExternalNowPlayingMonitoring(
   external_now_playing_running_ = true;
   external_now_playing_thread_ = std::thread([this]() {
     winrt::init_apartment(winrt::apartment_type::multi_threaded);
-    EmitCurrentExternalNowPlaying(true);
     while (external_now_playing_running_) {
       EmitCurrentExternalNowPlaying(false);
       std::unique_lock<std::mutex> lock(external_now_playing_mutex_);

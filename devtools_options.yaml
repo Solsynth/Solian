@@ -4,4 +4,3 @@ extensions:
   - drift: true
   - provider: true
   - shared_preferences: true
-  - riverpod: true
