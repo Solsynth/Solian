@@ -616,6 +616,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
     _roomEncryptionMode = room.encryptionMode;
     _mlsGroupId = room.mlsGroupId;
+    await _hydrateMemberDirectory(room);
+
+    if (disposed || !ref.mounted) {
+      return const <LocalChatMessage>[];
+    }
 
     // Defer heavy MLS operations to post-frame callback to not block initial build
     Future.microtask(() async {
@@ -817,6 +822,23 @@ class MessagesNotifier extends _$MessagesNotifier {
     _membersById[member.id] = member;
     _membersById[member.accountId] = member;
     return true;
+  }
+
+  /// Restores the room's member directory before messages are normalized.
+  ///
+  /// Message payloads do not always include their sender.  In that case the
+  /// local message cache only contains a sender ID, so this directory is what
+  /// lets [_normalizeMessageMember] recover the account name and avatar
+  /// instead of falling back to displaying that ID.
+  Future<void> _hydrateMemberDirectory(SnChatRoom room) async {
+    for (final member in room.members ?? const <SnChatMember>[]) {
+      _upsertMember(member);
+    }
+
+    final cachedMembers = await _database.getMembersByRoomId(roomId);
+    for (final member in cachedMembers) {
+      _upsertMember(member);
+    }
   }
 
   LocalChatMessage _copyWithSender(
