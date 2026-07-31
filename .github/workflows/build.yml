@@ -140,15 +140,12 @@ jobs:
       - run: flutter pub get
       - name: Patch Android Gradle configuration
         run: bash buildtools/patch-android-gradle-cfg.sh
-      - run: flutter build appbundle --release --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
-      - run: flutter build apk --release --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
+      - run: flutter build apk --release --split-per-abi --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
       - name: Archive Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-output-android
-          path: |
-            build/app/outputs/bundle/release/app-release.aab
-            build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-*-release.apk
 
   upload-to-s3:
     needs: [build-exe, build-linux, build-android]
@@ -184,10 +181,10 @@ jobs:
           cd ./artifacts/linux
           zip -r ../build-output-linux-appimage.zip .
       - if: needs.build-android.result == 'success'
-        name: Zip Android artifacts
+        name: Prepare Android APKs for upload
         run: |
-          cd ./artifacts/android
-          zip -r ../build-output-android.zip .
+          mkdir -p ./artifacts/android-r2
+          find ./artifacts/android -type f -name 'app-*-release.apk' -exec cp {} ./artifacts/android-r2/ \;
       - if: needs.build-exe.result == 'success'
         name: Upload Windows to R2
         uses: ryand56/r2-upload-action@latest
@@ -209,12 +206,12 @@ jobs:
           source-dir: ./artifacts/build-output-linux-appimage.zip
           destination-dir: solian
       - if: needs.build-android.result == 'success'
-        name: Upload Android to R2
+        name: Upload split Android APKs to R2
         uses: ryand56/r2-upload-action@latest
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
           r2-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.S3_BUCKET_NAME }}
-          source-dir: ./artifacts/build-output-android.zip
+          source-dir: ./artifacts/android-r2
           destination-dir: solian
