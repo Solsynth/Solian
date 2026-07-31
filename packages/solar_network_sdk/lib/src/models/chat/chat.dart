@@ -53,6 +53,20 @@ sealed class SnChatRoom with _$SnChatRoom {
 }
 
 @freezed
+sealed class SnChatEncryptionMeta with _$SnChatEncryptionMeta {
+  const factory SnChatEncryptionMeta({
+    required String ciphertext,
+    String? header,
+    String? signature,
+    required String scheme,
+    int? epoch,
+  }) = _SnChatEncryptionMeta;
+
+  factory SnChatEncryptionMeta.fromJson(Map<String, dynamic> json) =>
+      _$SnChatEncryptionMetaFromJson(json);
+}
+
+@freezed
 sealed class SnChatMessage with _$SnChatMessage {
   const factory SnChatMessage({
     required DateTime createdAt,
@@ -63,6 +77,7 @@ sealed class SnChatMessage with _$SnChatMessage {
     String? content,
     @JsonKey(name: 'client_message_id') String? clientMessageId,
     String? nonce,
+    @JsonKey(name: 'encryption_meta') SnChatEncryptionMeta? encryptionMeta,
     @Default({}) Map<String, dynamic> meta,
     @Default([]) List<String> membersMentioned,
     DateTime? editedAt,

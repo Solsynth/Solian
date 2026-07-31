@@ -88,6 +88,26 @@ Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
       'is_pinned': instance.isPinned,
     };
 
+_SnChatEncryptionMeta _$SnChatEncryptionMetaFromJson(
+  Map<String, dynamic> json,
+) => _SnChatEncryptionMeta(
+  ciphertext: json['ciphertext'] as String,
+  header: json['header'] as String?,
+  signature: json['signature'] as String?,
+  scheme: json['scheme'] as String,
+  epoch: (json['epoch'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$SnChatEncryptionMetaToJson(
+  _SnChatEncryptionMeta instance,
+) => <String, dynamic>{
+  'ciphertext': instance.ciphertext,
+  'header': instance.header,
+  'signature': instance.signature,
+  'scheme': instance.scheme,
+  'epoch': instance.epoch,
+};
+
 _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
     _SnChatMessage(
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -100,6 +120,11 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
       content: json['content'] as String?,
       clientMessageId: json['client_message_id'] as String?,
       nonce: json['nonce'] as String?,
+      encryptionMeta: json['encryption_meta'] == null
+          ? null
+          : SnChatEncryptionMeta.fromJson(
+              json['encryption_meta'] as Map<String, dynamic>,
+            ),
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
       membersMentioned:
           (json['members_mentioned'] as List<dynamic>?)
@@ -148,6 +173,7 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'content': instance.content,
       'client_message_id': instance.clientMessageId,
       'nonce': instance.nonce,
+      'encryption_meta': instance.encryptionMeta?.toJson(),
       'meta': instance.meta,
       'members_mentioned': instance.membersMentioned,
       'edited_at': instance.editedAt?.toIso8601String(),

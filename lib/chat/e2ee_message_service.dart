@@ -64,20 +64,17 @@ class E2eeMessageService {
         ? Map<String, dynamic>.from(data['meta'] as Map<String, dynamic>)
         : <String, dynamic>{};
 
-    if (data['is_encrypted'] == true) {
+    final encryptionMeta = data['encryption_meta'] is Map
+        ? Map<String, dynamic>.from(data['encryption_meta'] as Map)
+        : null;
+    if (encryptionMeta != null) {
       meta['e2ee_is_encrypted'] = true;
-      meta['e2ee_ciphertext'] = data['ciphertext'];
-      meta['e2ee_header'] = data['encryption_header'];
-      meta['e2ee_signature'] = data['encryption_signature'];
-      meta['e2ee_scheme'] = data['encryption_scheme'];
-      meta['e2ee_epoch'] = data['encryption_epoch'];
-      final normalizedType = normalizeEncryptionMessageType(
-        data['encryption_message_type'],
-        messageType: data['type'],
-      );
-      if (normalizedType != null) {
-        meta['e2ee_message_type'] = normalizedType;
-      }
+      meta['e2ee_ciphertext'] = encryptionMeta['ciphertext'];
+      meta['e2ee_header'] = encryptionMeta['header'];
+      meta['e2ee_signature'] = encryptionMeta['signature'];
+      meta['e2ee_scheme'] = encryptionMeta['scheme'];
+      meta['e2ee_epoch'] = encryptionMeta['epoch'];
+      meta['e2ee_message_type'] = data['type'];
       meta['e2ee_client_message_id'] = data['client_message_id'];
     }
 
