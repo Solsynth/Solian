@@ -30,7 +30,6 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:island/plugins/plugin.dart';
-import 'package:island/plugins/widgets/plugin_pane_host.dart';
 import 'package:logging/logging.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -259,7 +258,7 @@ void main(List<String> args) async {
         final host = PluginPaneHost.instance;
         final pluginManager = PluginManager();
         final plugin = pluginManager.plugins[pluginId];
-        final pluginName = plugin?.manifest?.name ?? pluginId;
+        final pluginName = plugin?.manifest.name ?? pluginId;
         final type = descriptor['type'] as String? ?? 'text';
         descriptor.remove('type');
         final descObj = PluginUiDescriptor(type: type, data: descriptor);
