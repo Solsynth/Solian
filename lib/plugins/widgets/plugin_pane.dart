@@ -3,9 +3,6 @@ import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
 import 'package:island/plugins/widgets/plugin_pane_host.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:logging/logging.dart';
-
-final _log = Logger('PluginPane');
 
 class PluginPane extends StatefulWidget {
   final PluginPaneData data;
