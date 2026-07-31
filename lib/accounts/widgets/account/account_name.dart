@@ -1,9 +1,11 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/badge.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -529,6 +531,12 @@ class AccountUnactivatedCard extends HookConsumerWidget {
                 if (context.mounted) hideLoadingModal(context);
               }
             },
+          ).width(double.infinity),
+          const Gap(8),
+          OutlinedButton(
+            onPressed: () =>
+                context.router.push(const AccountActivationRoute()),
+            child: const Text('View activation requirements'),
           ).width(double.infinity),
         ],
       ).padding(horizontal: 24, vertical: 16),
