@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -142,8 +143,24 @@ class CloudFileLightbox extends HookConsumerWidget {
     final currentIsVideo = isLightboxVideo(currentItem);
     final showDesktopImageTools =
         _isDesktopImageControlsPlatform() && isLightboxImage(currentItem);
+    final isZoomed = useState(false);
+
     PhotoViewController currentPhotoController() =>
         photoViewControllers[currentIndex.value];
+
+    // Let a zoomed image own vertical drags for panning; otherwise a downward
+    // swipe dismisses the lightbox.
+    useEffect(() {
+      final controller = photoViewControllers[currentIndex.value];
+      void syncZoom() {
+        final scale = controller.scale ?? 1.0;
+        isZoomed.value = scale > 1.05;
+      }
+
+      syncZoom();
+      final sub = controller.outputStateStream.listen((_) => syncZoom());
+      return sub.cancel;
+    }, [currentIndex.value, items.length]);
 
     void zoomBy(double delta) {
       final controller = currentPhotoController();
@@ -160,19 +177,22 @@ class CloudFileLightbox extends HookConsumerWidget {
 
     // Auto-hide chrome for images only; video keeps chrome so seek bar isn't
     // fighting a disappearing overlay, and top bar stays available.
-    useEffect(() {
-      if (currentIsVideo) return null;
-      if (!showControls.value || !controlsVisible.value) return null;
-      final timer = Timer(const Duration(seconds: 3), () {
-        controlsVisible.value = false;
-      });
-      return timer.cancel;
-    }, [
-      showControls.value,
-      controlsVisible.value,
-      currentIndex.value,
-      currentIsVideo,
-    ]);
+    useEffect(
+      () {
+        if (currentIsVideo) return null;
+        if (!showControls.value || !controlsVisible.value) return null;
+        final timer = Timer(const Duration(seconds: 3), () {
+          controlsVisible.value = false;
+        });
+        return timer.cancel;
+      },
+      [
+        showControls.value,
+        controlsVisible.value,
+        currentIndex.value,
+        currentIsVideo,
+      ],
+    );
 
     void showActionsSheet() async {
       revealControls();
@@ -209,226 +229,210 @@ class CloudFileLightbox extends HookConsumerWidget {
       final router = context.router;
       Navigator.of(context).pop();
       await Future<void>.delayed(Duration.zero);
-      router.push(
-        FileDetailRoute(id: currentItem.id, sourcePost: sourcePost),
-      );
+      router.push(FileDetailRoute(id: currentItem.id, sourcePost: sourcePost));
     }
 
     final controlsShown =
         currentIsVideo || (showControls.value && controlsVisible.value);
 
-    // A drag-to-dismiss recognizer competes with PhotoView's vertical pan once
-    // an image is enlarged. Keeping the gallery as the sole gesture owner
-    // avoids transform contention and the resulting jitter while zooming.
-    return Focus(
-      focusNode: focusNode,
-      autofocus: true,
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            goToPrevious();
-            return KeyEventResult.handled;
-          } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            goToNext();
-            return KeyEventResult.handled;
-          } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-            Navigator.of(context).pop();
-            return KeyEventResult.handled;
+    return DismissiblePage(
+      isFullScreen: true,
+      backgroundColor: Colors.black,
+      direction: DismissiblePageDismissDirection.down,
+      disabled: isZoomed.value,
+      onDismissed: () => Navigator.of(context).pop(),
+      child: Focus(
+        focusNode: focusNode,
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+              goToPrevious();
+              return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+              goToNext();
+              return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+              Navigator.of(context).pop();
+              return KeyEventResult.handled;
+            }
           }
-        }
-        return KeyEventResult.ignored;
-      },
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: Material(
-          color: Colors.transparent,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              PhotoViewGallery.builder(
-                key: ValueKey(items.length),
-                pageController: pageController,
-                itemCount: items.length,
-                scrollPhysics: items.length == 1
-                    ? const NeverScrollableScrollPhysics()
-                    : const BouncingScrollPhysics(),
-                onPageChanged: (index) {
-                  currentIndex.value = index;
-                  showExif.value = ExifInfoOverlay.precheck(items[index]);
-                  revealControls();
-                },
-                builder: (context, index) {
-                  final item = items[index];
-                  final isImage = isLightboxImage(item);
-                  final isVideo = isLightboxVideo(item);
-                  final isHero = heroTag != null && index == initialIndex;
-                  final isActive = index == currentIndex.value;
+          return KeyEventResult.ignored;
+        },
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
+          child: Material(
+            color: Colors.transparent,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                PhotoViewGallery.builder(
+                  key: ValueKey(items.length),
+                  pageController: pageController,
+                  itemCount: items.length,
+                  scrollPhysics: items.length == 1
+                      ? const NeverScrollableScrollPhysics()
+                      : const BouncingScrollPhysics(),
+                  onPageChanged: (index) {
+                    currentIndex.value = index;
+                    showExif.value = ExifInfoOverlay.precheck(items[index]);
+                    revealControls();
+                  },
+                  builder: (context, index) {
+                    final item = items[index];
+                    final isImage = isLightboxImage(item);
+                    final isVideo = isLightboxVideo(item);
+                    final isHero = heroTag != null && index == initialIndex;
+                    final isActive = index == currentIndex.value;
 
-                  if (isImage) {
-                    final imageProvider = CloudImageWidget.provider(
-                      file: item,
-                      serverUrl: serverUrl,
-                      original: showOriginal.value,
-                    );
-                    return PhotoViewGalleryPageOptions(
-                      imageProvider: imageProvider,
-                      controller: photoViewControllers[index],
-                      heroAttributes: isHero
-                          ? PhotoViewHeroAttributes(tag: heroTag!)
-                          : null,
-                      basePosition: Alignment.center,
-                      minScale: PhotoViewComputedScale.contained * 0.9,
-                      maxScale: PhotoViewComputedScale.covered * 3,
-                      initialScale: PhotoViewComputedScale.contained * 1.0,
-                      onTapUp: (context, details, controller) {
-                        toggleControls();
-                      },
-                    );
-                  }
-
-                  if (isVideo) {
-                    Widget videoChild = _LightboxVideoPage(
-                      item: item,
-                      serverUrl: serverUrl,
-                      isActive: isActive,
-                    );
-                    if (isHero) {
-                      videoChild = Hero(tag: heroTag!, child: videoChild);
+                    if (isImage) {
+                      final imageProvider = CloudImageWidget.provider(
+                        file: item,
+                        serverUrl: serverUrl,
+                        original: showOriginal.value,
+                      );
+                      return PhotoViewGalleryPageOptions(
+                        imageProvider: imageProvider,
+                        controller: photoViewControllers[index],
+                        heroAttributes: isHero
+                            ? PhotoViewHeroAttributes(tag: heroTag!)
+                            : null,
+                        basePosition: Alignment.center,
+                        minScale: PhotoViewComputedScale.contained * 0.9,
+                        maxScale: PhotoViewComputedScale.covered * 3,
+                        initialScale: PhotoViewComputedScale.contained * 1.0,
+                        onTapUp: (context, details, controller) {
+                          toggleControls();
+                        },
+                      );
                     }
+
+                    if (isVideo) {
+                      Widget videoChild = _LightboxVideoPage(
+                        item: item,
+                        serverUrl: serverUrl,
+                        isActive: isActive,
+                      );
+                      if (isHero) {
+                        videoChild = Hero(tag: heroTag!, child: videoChild);
+                      }
+                      return PhotoViewGalleryPageOptions.customChild(
+                        child: videoChild,
+                        disableGestures: true,
+                        onTapUp: (context, details, controller) {
+                          toggleControls();
+                        },
+                      );
+                    }
+
                     return PhotoViewGalleryPageOptions.customChild(
-                      child: videoChild,
+                      child: _LightboxUnsupportedPage(item: item),
                       disableGestures: true,
-                      onTapUp: (context, details, controller) {
-                        toggleControls();
-                      },
                     );
-                  }
-
-                  return PhotoViewGalleryPageOptions.customChild(
-                    child: _LightboxUnsupportedPage(item: item),
-                    disableGestures: true,
-                  );
-                },
-                loadingBuilder: (context, event) {
-                  if (event == null || event.expectedTotalBytes == null) {
-                    return const Center(
-                      child: SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white54,
+                  },
+                  loadingBuilder: (context, event) {
+                    if (event == null || event.expectedTotalBytes == null) {
+                      return const Center(
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white54,
+                          ),
+                        ),
+                      );
+                    }
+                    final progress =
+                        event.cumulativeBytesLoaded / event.expectedTotalBytes!;
+                    return Center(
+                      child: MediaChromeSurface(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                value: progress,
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const Gap(10),
+                            Text(
+                              '${(progress * 100).toInt()}%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
-                  }
-                  final progress =
-                      event.cumulativeBytesLoaded / event.expectedTotalBytes!;
-                  return Center(
-                    child: MediaChromeSurface(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              value: progress,
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const Gap(10),
-                          Text(
-                            '${(progress * 100).toInt()}%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                  },
+                  backgroundDecoration: const BoxDecoration(
+                    color: Colors.black,
+                  ),
+                  gaplessPlayback: true,
+                  enableRotation: true,
+                ),
+
+                if (showExif.value && isLightboxImage(currentItem))
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 0,
+                    child: IgnorePointer(
+                      child: AnimatedPadding(
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutCubic,
+                        padding: EdgeInsets.only(
+                          bottom:
+                              mediaQuery.padding.bottom +
+                              (controlsShown ? 88 : 24),
+                        ),
+                        child: ExifInfoOverlay(item: currentItem),
                       ),
                     ),
-                  );
-                },
-                backgroundDecoration: const BoxDecoration(color: Colors.black),
-                gaplessPlayback: true,
-                enableRotation: true,
-              ),
+                  ),
 
-              if (showExif.value && isLightboxImage(currentItem))
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 0,
+                if (isLightboxImage(currentItem))
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: ImageQualityProgressBar(
+                      isLoading: qualityLoad.isLoading,
+                      progress: qualityLoad.progress,
+                      loadingOriginal: showOriginal.value,
+                    ),
+                  ),
+
+                // Control chrome
+                AnimatedOpacity(
+                  opacity: controlsShown ? 1 : 0,
+                  duration: const Duration(milliseconds: 180),
                   child: IgnorePointer(
-                    child: AnimatedPadding(
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOutCubic,
-                      padding: EdgeInsets.only(
-                        bottom: mediaQuery.padding.bottom +
-                            (controlsShown ? 88 : 24),
-                      ),
-                      child: ExifInfoOverlay(item: currentItem),
-                    ),
-                  ),
-                ),
-
-              if (isLightboxImage(currentItem))
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: ImageQualityProgressBar(
-                    isLoading: qualityLoad.isLoading,
-                    progress: qualityLoad.progress,
-                    loadingOriginal: showOriginal.value,
-                  ),
-                ),
-
-              // Control chrome
-              AnimatedOpacity(
-                opacity: controlsShown ? 1 : 0,
-                duration: const Duration(milliseconds: 180),
-                child: IgnorePointer(
-                  ignoring: !controlsShown,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: mediaQuery.padding.top + 72,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withValues(alpha: 0.65),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Avoid overlapping the video player controls at bottom.
-                      if (!currentIsVideo)
+                    ignoring: !controlsShown,
+                    child: Stack(
+                      children: [
                         Positioned(
-                          bottom: 0,
+                          top: 0,
                           left: 0,
                           right: 0,
-                          height: mediaQuery.padding.bottom + 96,
+                          height: mediaQuery.padding.top + 72,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.black.withValues(alpha: 0.65),
                                   Colors.transparent,
@@ -437,83 +441,104 @@ class CloudFileLightbox extends HookConsumerWidget {
                             ),
                           ),
                         ),
-                      _LightboxTopBar(
-                        items: items,
-                        currentIndex: currentIndex.value,
-                        onClose: () => Navigator.of(context).pop(),
-                        onShowActions: showActionsSheet,
-                      ),
-                      if (!currentIsVideo)
-                        _LightboxBottomBar(
-                          item: currentItem,
-                          showOriginal: showOriginal.value,
-                          showExif: showExif.value,
-                          isQualityLoading: qualityLoad.isLoading,
-                          showTransformControls: showDesktopImageTools,
-                          onZoomOut: () => zoomBy(-0.15),
-                          onZoomIn: () => zoomBy(0.15),
-                          onRotateLeft: () => rotateBy(-math.pi / 2),
-                          onRotateRight: () => rotateBy(math.pi / 2),
-                          onToggleOriginal: () {
-                            if (qualityLoad.isLoading) return;
-                            qualityLoad.beginLoad();
-                            showOriginal.value = !showOriginal.value;
-                            revealControls();
-                          },
-                          onToggleExif: () {
-                            showExif.value = !showExif.value;
-                            revealControls();
-                          },
-                          onOpenDetail: openDetail,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-
-              if (items.length > 1)
-                AnimatedOpacity(
-                  opacity: controlsShown ? 1 : 0,
-                  duration: const Duration(milliseconds: 180),
-                  child: IgnorePointer(
-                    ignoring: !controlsShown,
-                    child: Stack(
-                      children: [
-                        if (currentIndex.value > 0)
+                        // Avoid overlapping the video player controls at bottom.
+                        if (!currentIsVideo)
                           Positioned(
-                            left: 12,
-                            top: 0,
                             bottom: 0,
-                            child: Center(
-                              child: MediaIconButton(
-                                icon: Symbols.chevron_left,
-                                size: 44,
-                                iconSize: 28,
-                                onPressed: goToPrevious,
-                                tooltip: 'Previous',
+                            left: 0,
+                            right: 0,
+                            height: mediaQuery.padding.bottom + 96,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.65),
+                                    Colors.transparent,
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        if (currentIndex.value < items.length - 1)
-                          Positioned(
-                            right: 12,
-                            top: 0,
-                            bottom: 0,
-                            child: Center(
-                              child: MediaIconButton(
-                                icon: Symbols.chevron_right,
-                                size: 44,
-                                iconSize: 28,
-                                onPressed: goToNext,
-                                tooltip: 'Next',
-                              ),
-                            ),
+                        _LightboxTopBar(
+                          items: items,
+                          currentIndex: currentIndex.value,
+                          onClose: () => Navigator.of(context).pop(),
+                          onShowActions: showActionsSheet,
+                        ),
+                        if (!currentIsVideo)
+                          _LightboxBottomBar(
+                            item: currentItem,
+                            showOriginal: showOriginal.value,
+                            showExif: showExif.value,
+                            isQualityLoading: qualityLoad.isLoading,
+                            showTransformControls: showDesktopImageTools,
+                            onZoomOut: () => zoomBy(-0.15),
+                            onZoomIn: () => zoomBy(0.15),
+                            onRotateLeft: () => rotateBy(-math.pi / 2),
+                            onRotateRight: () => rotateBy(math.pi / 2),
+                            onToggleOriginal: () {
+                              if (qualityLoad.isLoading) return;
+                              qualityLoad.beginLoad();
+                              showOriginal.value = !showOriginal.value;
+                              revealControls();
+                            },
+                            onToggleExif: () {
+                              showExif.value = !showExif.value;
+                              revealControls();
+                            },
+                            onOpenDetail: openDetail,
                           ),
                       ],
                     ),
                   ),
                 ),
-            ],
+
+                if (items.length > 1)
+                  AnimatedOpacity(
+                    opacity: controlsShown ? 1 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: IgnorePointer(
+                      ignoring: !controlsShown,
+                      child: Stack(
+                        children: [
+                          if (currentIndex.value > 0)
+                            Positioned(
+                              left: 12,
+                              top: 0,
+                              bottom: 0,
+                              child: Center(
+                                child: MediaIconButton(
+                                  icon: Symbols.chevron_left,
+                                  size: 44,
+                                  iconSize: 28,
+                                  onPressed: goToPrevious,
+                                  tooltip: 'Previous',
+                                ),
+                              ),
+                            ),
+                          if (currentIndex.value < items.length - 1)
+                            Positioned(
+                              right: 12,
+                              top: 0,
+                              bottom: 0,
+                              child: Center(
+                                child: MediaIconButton(
+                                  icon: Symbols.chevron_right,
+                                  size: 44,
+                                  iconSize: 28,
+                                  onPressed: goToNext,
+                                  tooltip: 'Next',
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -532,8 +557,7 @@ class _LightboxVideoPage extends StatelessWidget {
     required this.isActive,
   });
 
-  String get _uri =>
-      item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
+  String get _uri => item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
 
   double get _ratio {
     final ratio = item.ratio;
@@ -617,7 +641,11 @@ class _LightboxUnsupportedPage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Symbols.insert_drive_file, size: 56, color: Colors.white54),
+            const Icon(
+              Symbols.insert_drive_file,
+              size: 56,
+              color: Colors.white54,
+            ),
             const Gap(12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -652,13 +680,13 @@ class _LightboxTopBar extends StatelessWidget {
     final paddingTop = MediaQuery.of(context).padding.top;
     final item = items[currentIndex];
     final isVideo = isLightboxVideo(item);
-    final name = item.name.isEmpty
-        ? (isVideo ? 'Video' : 'Image')
-        : item.name;
+    final name = item.name.isEmpty ? (isVideo ? 'Video' : 'Image') : item.name;
     final counter = items.length > 1
         ? '${currentIndex + 1} / ${items.length}'
         : null;
-    final kindLabel = isVideo ? 'Video' : (isLightboxImage(item) ? 'Image' : null);
+    final kindLabel = isVideo
+        ? 'Video'
+        : (isLightboxImage(item) ? 'Image' : null);
 
     return Positioned(
       top: paddingTop + 8,
@@ -757,9 +785,7 @@ class _LightboxBottomBar extends StatelessWidget {
       padding: EdgeInsets.zero,
       tooltip: tooltip,
       onPressed: onPressed,
-      icon:
-          iconWidget ??
-          Icon(icon, color: Colors.white, size: 22),
+      icon: iconWidget ?? Icon(icon, color: Colors.white, size: 22),
     );
   }
 
