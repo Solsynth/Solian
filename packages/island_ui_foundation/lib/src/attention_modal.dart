@@ -194,6 +194,10 @@ class _AttentionModalRoutePage extends StatelessWidget {
                       : ColoredBox(color: barrierColor),
                 ),
                 SafeArea(
+                  // On narrow layouts the modal is full-width and should
+                  // extend behind the bottom system inset. Individual modal
+                  // content can still opt into its own safe-area padding.
+                  bottom: wide,
                   child: AnimatedBuilder(
                     animation: Listenable.merge([
                       curvedAnimation,
