@@ -7,29 +7,18 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('IconsApi');
 
-/// Host API: Material Symbols + plugin-owned icon fonts.
-///
-/// Always available (no special permission). [register_font] only reads assets
-/// inside the calling plugin’s folder (path-traversal safe).
-///
-/// JS surface:
-/// - `icons.exists(name, font?)`
-/// - `icons.lookup(name, style?, font?)`
-/// - `icons.search(query, limit?, font?)`
-/// - `icons.count(font?)`
-/// - `icons.fonts()` — custom fonts registered by this plugin
-/// - `icons.register_font(id, fontPath, glyphs)` — glyphs: object or JSON path
 class IconsApi extends PluginApi {
   final PluginIconFontRegistry _registry = PluginIconFontRegistry.instance;
 
   @override
   Set<PluginPermission> get requiredPermissions => const {};
 
+  String _pluginId(Map<String, dynamic> data, PluginContext context) =>
+      data['pluginId']?.toString() ?? context.pluginId;
+
   @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    // Always pass __plugin_id__ so custom fonts work outside of load
-    // (commands / callbacks), not only while PluginManager.activePluginId is set.
-    return '''
+  void register(PluginContext context, JsRuntime runtime) {
+    runtime.exec('''
 var icons = {};
 function __pluginId() {
   return (typeof __plugin_id__ !== "undefined") ? __plugin_id__ : null;
@@ -63,21 +52,15 @@ icons.register_font = function(id, fontPath, glyphs) {
   if (r == null || r === "") return {ok: false, error: "no response"};
   try { return typeof r === "string" ? JSON.parse(r) : r; } catch (e) { return {ok: false, error: String(e)}; }
 };
-''';
-  }
+''');
 
-  String? _pluginId(Map<String, dynamic> data) =>
-      data['pluginId']?.toString() ?? PluginManager.activePluginId;
-
-  @override
-  void register(JsRuntime runtime) {
-    runtime.onMessage('api:icons:exists', (args) {
+    runtime.onMessage('api:icons:exists', (raw) {
       try {
-        final data = _decode(args);
+        final data = context.decode(raw);
         return _registry.exists(
           name: data['name']?.toString(),
           font: data['font']?.toString(),
-          pluginId: _pluginId(data),
+          pluginId: _pluginId(data, context),
         );
       } catch (e) {
         _log.warning('icons.exists failed: $e');
@@ -85,14 +68,14 @@ icons.register_font = function(id, fontPath, glyphs) {
       }
     });
 
-    runtime.onMessage('api:icons:lookup', (args) {
+    runtime.onMessage('api:icons:lookup', (raw) {
       try {
-        final data = _decode(args);
+        final data = context.decode(raw);
         final result = _registry.lookup(
           name: data['name']?.toString(),
           style: data['style']?.toString(),
           font: data['font']?.toString(),
-          pluginId: _pluginId(data),
+          pluginId: _pluginId(data, context),
         );
         return result == null ? 'null' : jsonEncode(result);
       } catch (e) {
@@ -101,50 +84,46 @@ icons.register_font = function(id, fontPath, glyphs) {
       }
     });
 
-    runtime.onMessage('api:icons:search', (args) {
+    runtime.onMessage('api:icons:search', (raw) {
       try {
-        final data = _decode(args);
+        final data = context.decode(raw);
         final query = data['query']?.toString() ?? '';
         final limit = (data['limit'] as num?)?.toInt() ?? 50;
-        return jsonEncode(
-          _registry.search(
-            query: query,
-            limit: limit.clamp(1, 200),
-            font: data['font']?.toString(),
-            pluginId: _pluginId(data),
-          ),
-        );
+        return jsonEncode(_registry.search(
+          query: query,
+          limit: limit.clamp(1, 200),
+          font: data['font']?.toString(),
+          pluginId: _pluginId(data, context),
+        ));
       } catch (e) {
         _log.warning('icons.search failed: $e');
         return '[]';
       }
     });
 
-    runtime.onMessage('api:icons:count', (args) {
+    runtime.onMessage('api:icons:count', (raw) {
       try {
-        final data = _decode(args);
+        final data = context.decode(raw);
         return _registry.count(
           font: data['font']?.toString(),
-          pluginId: _pluginId(data),
+          pluginId: _pluginId(data, context),
         );
       } catch (e) {
         return MaterialSymbolLookup.count;
       }
     });
 
-    runtime.onMessage('api:icons:fonts', (args) {
+    runtime.onMessage('api:icons:fonts', (raw) {
       try {
-        final data = _decode(args);
-        final pluginId = _pluginId(data);
-        if (pluginId == null) return '[]';
-        final list = _registry.fontsFor(pluginId).map((f) {
-          return {
-            'id': f.id,
-            'fontFamily': f.fontFamily,
-            'glyphCount': f.glyphs.length,
-            'loaded': f.loaded,
-            'error': f.loadError,
-          };
+        final data = context.decode(raw);
+        final pluginId = _pluginId(data, context);
+        if (pluginId.isEmpty) return '[]';
+        final list = _registry.fontsFor(pluginId).map((f) => {
+          'id': f.id,
+          'fontFamily': f.fontFamily,
+          'glyphCount': f.glyphs.length,
+          'loaded': f.loaded,
+          'error': f.loadError,
         }).toList();
         return jsonEncode(list);
       } catch (e) {
@@ -153,32 +132,24 @@ icons.register_font = function(id, fontPath, glyphs) {
       }
     });
 
-    runtime.onMessage('api:icons:register_font', (args) {
+    runtime.onMessage('api:icons:register_font', (raw) {
       try {
-        final data = _decode(args);
-        final pluginId = _pluginId(data);
-        if (pluginId == null) {
-          return jsonEncode({
-            'ok': false,
-            'error': 'No active plugin context',
-          });
+        final data = context.decode(raw);
+        final pluginId = _pluginId(data, context);
+        if (pluginId.isEmpty) {
+          return jsonEncode({'ok': false, 'error': 'No active plugin context'});
         }
         final id = data['id']?.toString() ?? '';
         final fontPath = data['fontPath']?.toString() ?? '';
         if (id.isEmpty || fontPath.isEmpty) {
-          return jsonEncode({
-            'ok': false,
-            'error': 'id and fontPath are required',
-          });
+          return jsonEncode({'ok': false, 'error': 'id and fontPath are required'});
         }
-        return jsonEncode(
-          _registry.registerSync(
-            pluginId: pluginId,
-            id: id,
-            fontPath: fontPath,
-            glyphs: data['glyphs'],
-          ),
-        );
+        return jsonEncode(_registry.registerSync(
+          pluginId: pluginId,
+          id: id,
+          fontPath: fontPath,
+          glyphs: data['glyphs'],
+        ));
       } catch (e) {
         _log.warning('icons.register_font failed: $e');
         return jsonEncode({'ok': false, 'error': e.toString()});
@@ -194,14 +165,5 @@ icons.register_font = function(id, fontPath, glyphs) {
   @override
   void reset() {
     _registry.clearAll();
-  }
-
-  Map<String, dynamic> _decode(dynamic args) {
-    final data = args is String ? jsonDecode(args) : args;
-    if (data is Map<String, dynamic>) return data;
-    if (data is Map) {
-      return data.map((k, v) => MapEntry(k.toString(), v));
-    }
-    return {};
   }
 }

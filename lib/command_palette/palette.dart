@@ -24,6 +24,7 @@ import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
 import 'package:island/plugins/icons/plugin_icon_font_registry.dart';
+import 'package:island/plugins/widgets/plugin_pane_host.dart';
 import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -471,45 +472,12 @@ class CommandPaletteWidget extends HookConsumerWidget {
           )
         : null;
     if (descriptor != null) {
-      // The palette is rendered as a DesktopWindowFrame overlay (sibling of
-      // the app content), so its BuildContext is not under a Navigator.
-      // Always show results via the root router navigator.
-      final navigatorContext =
-          ref.read(routerProvider).navigatorKey.currentContext;
-      if (navigatorContext == null || !navigatorContext.mounted) {
-        return;
-      }
-
-      PluginUiDescriptor currentDescriptor = descriptor;
-      showDialog<void>(
-        context: navigatorContext,
-        useRootNavigator: true,
-        builder: (_) => StatefulBuilder(
-          builder: (dialogContext, setDialogState) => Dialog.fullscreen(
-            child: PluginUiRenderer(
-              descriptor: currentDescriptor,
-              onCallback: (callback, [value]) {
-                final next = runtime.callFunction(
-                  callback,
-                  value == null ? null : [value],
-                );
-                final nextDescriptor = next is String
-                    ? PluginUiRenderer.parse(next)
-                    : next is Map && next['type'] is String
-                    ? PluginUiDescriptor(
-                        type: next['type'] as String,
-                        data: next.map(
-                          (key, value) => MapEntry(key.toString(), value),
-                        ),
-                      )
-                    : null;
-                if (nextDescriptor != null) {
-                  setDialogState(() => currentDescriptor = nextDescriptor);
-                }
-              },
-            ),
-          ),
-        ),
+      final host = PluginPaneHost.instance;
+      host.addPane(
+        descriptor: descriptor,
+        pluginId: '',
+        pluginName: 'Command',
+        title: 'Result',
       );
       return;
     }

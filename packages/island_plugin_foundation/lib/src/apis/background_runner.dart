@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
 import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/bridge/plugin_context.dart';
 import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
 import 'package:island_plugin_foundation/src/plugin_manager.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('BackgroundRunner');
 
-/// A scheduled background task from a plugin.
 class PluginBackgroundTask {
   final String pluginId;
   final String handlerName;
@@ -26,10 +25,6 @@ class PluginBackgroundTask {
   });
 }
 
-/// Exposes background task scheduling to JavaScript plugins.
-///
-/// Provides:
-/// - `tasks.schedule(interval_seconds, handler_name)` — schedule a periodic task
 class BackgroundTaskApi extends PluginApi {
   final List<PluginBackgroundTask> _tasks = [];
 
@@ -40,43 +35,31 @@ class BackgroundTaskApi extends PluginApi {
       {PluginPermission.tasksSchedule};
 
   @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    if (!granted.contains(PluginPermission.tasksSchedule)) return '';
-    return '''
+  void register(PluginContext context, JsRuntime runtime) {
+    runtime.exec('''
 var tasks = {};
 tasks.schedule = function(intervalSeconds, handler) {
   sendMessage("api:tasks:schedule", JSON.stringify({interval: intervalSeconds, handler: handler}));
 };
-''';
-  }
-
-  @override
-  void register(JsRuntime runtime) {
-    runtime.onMessage('api:tasks:schedule', (args) {
+''');
+    runtime.onMessage('api:tasks:schedule', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
+        final data = context.decode(raw);
         final intervalSeconds = data['interval'];
         final handlerName = data['handler']?.toString();
-
         if (intervalSeconds == null || handlerName == null) return;
         if (intervalSeconds is! num || intervalSeconds <= 0) return;
 
-        final pluginId = PluginManager.activePluginId ?? 'unknown';
-
         final task = PluginBackgroundTask(
-          pluginId: pluginId,
+          pluginId: context.pluginId,
           handlerName: handlerName,
           interval: Duration(milliseconds: (intervalSeconds * 1000).toInt()),
         );
-
         task.timer = Timer.periodic(task.interval, (_) {
           _executeTask(task);
         });
-
         _tasks.add(task);
-        _log.info(
-          'Plugin $pluginId scheduled task: $handlerName every ${intervalSeconds}s',
-        );
+        _log.info('Plugin ${context.pluginId} scheduled task: $handlerName every ${intervalSeconds}s');
       } catch (e) {
         _log.warning('Failed to schedule task: $e');
       }
@@ -86,36 +69,18 @@ tasks.schedule = function(intervalSeconds, handler) {
   static void _executeTask(PluginBackgroundTask task) {
     if (task.running) return;
     task.running = true;
-
     try {
       final manager = PluginManager();
       final instance = manager.plugins[task.pluginId];
       final runtime = instance?.runtime;
-
-      if (runtime == null) {
-        _log.warning(
-          'Task handler ${task.handlerName}: no runtime for plugin ${task.pluginId}',
-        );
-        return;
-      }
-
-      final completer = Completer<void>();
-      final timer = Timer(const Duration(seconds: 30), () {
-        if (!completer.isCompleted) {
-          _log.warning('Task ${task.handlerName} timed out after 30s');
-          completer.complete();
+      if (runtime != null) {
+        try {
+          runtime.callFunction(task.handlerName);
+        } catch (e) {
+          _log.warning('Task ${task.handlerName} failed: $e');
         }
-      });
-
-      try {
-        runtime.callFunction(task.handlerName);
-      } catch (e) {
-        _log.warning('Task ${task.handlerName} failed: $e');
-      }
-
-      timer.cancel();
-      if (!completer.isCompleted) {
-        completer.complete();
+      } else {
+        _log.warning('Task handler ${task.handlerName}: no runtime for plugin ${task.pluginId}');
       }
     } catch (e) {
       _log.severe('Task ${task.handlerName} threw: $e');
@@ -126,11 +91,6 @@ tasks.schedule = function(intervalSeconds, handler) {
 
   @override
   void onPluginUnload(String pluginId) {
-    cancelTasks(pluginId);
-  }
-
-  /// Cancel all tasks for a specific plugin.
-  void cancelTasks(String pluginId) {
     final toRemove = _tasks.where((t) => t.pluginId == pluginId).toList();
     for (final task in toRemove) {
       task.timer?.cancel();
@@ -138,16 +98,11 @@ tasks.schedule = function(intervalSeconds, handler) {
     }
   }
 
-  /// Cancel all tasks.
-  void cancelAll() {
+  @override
+  void reset() {
     for (final task in _tasks) {
       task.timer?.cancel();
     }
     _tasks.clear();
-  }
-
-  @override
-  void reset() {
-    cancelAll();
   }
 }

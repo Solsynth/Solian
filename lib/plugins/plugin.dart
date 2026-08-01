@@ -14,4 +14,7 @@ export 'apis/websocket_api.dart';
 export 'icons/material_symbol_lookup.dart';
 export 'icons/plugin_icon_font_registry.dart';
 export 'plugin_event_bridge.dart';
+export 'widgets/plugin_pane_host.dart';
+export 'widgets/plugin_pane_layer.dart';
+export 'widgets/plugin_pane.dart';
 export 'widgets/plugin_ui_bridge.dart';

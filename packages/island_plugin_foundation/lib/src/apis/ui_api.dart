@@ -2,15 +2,13 @@ import 'dart:convert';
 
 import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
 import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/bridge/plugin_context.dart';
 import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
 import 'package:island_plugin_foundation/src/plugin_manager.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('UiApi');
 
-/// A UI descriptor returned by a plugin.
-///
-/// Plugins return structured data (JSON-like maps) that the host renders as widgets.
 class PluginUiDescriptor {
   final String type;
   final Map<String, dynamic> data;
@@ -18,19 +16,23 @@ class PluginUiDescriptor {
   const PluginUiDescriptor({required this.type, required this.data});
 }
 
-/// Exposes UI building functions to JavaScript plugins.
-///
-/// Descriptor builders only — host apps render them (and may register extra UI
-/// channels such as dashboard items as separate [PluginApi]s).
 class UiApi extends PluginApi {
   @override
   Set<PluginPermission> get requiredPermissions => {PluginPermission.uiRender};
 
+  /// Called when a plugin calls [ui.open] to push content into a floating pane.
+  /// Signature: (String title, Map<String, dynamic> descriptor, String pluginId)
+  static void Function(String title, Map<String, dynamic> descriptor,
+      String pluginId)? onOpenPane;
+
   @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    if (!granted.contains(PluginPermission.uiRender)) return '';
-    return '''
+  void register(PluginContext context, JsRuntime runtime) {
+    runtime.exec('''
 var ui = ui || {};
+ui.open = function(title, descriptor) {
+  sendMessage("api:ui:open", JSON.stringify({title: title, descriptor: descriptor, pluginId: (typeof __plugin_id__ !== "undefined") ? __plugin_id__ : null}));
+  return "";
+};
 ui.card = function(title, body, actions) {
   var result = sendMessage("api:ui:card", JSON.stringify({title: title, body: body, actions: actions || []}));
   return result;
@@ -92,27 +94,24 @@ ui.video = function(url, aspectRatio, autoplay) {
 ui.plugin_asset = function(path, kind, fit) {
   return sendMessage("api:ui:plugin_asset", JSON.stringify({path: path, kind: kind, fit: fit}));
 };
-''';
+''');
+
+    _registerUiHandlers(context, runtime);
   }
 
-  @override
-  void register(JsRuntime runtime) {
-    runtime.onMessage('api:ui:card', (args) {
+  void _registerUiHandlers(PluginContext context, JsRuntime runtime) {
+    runtime.onMessage('api:ui:card', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final title = data['title']?.toString() ?? '';
-        final body = data['body']?.toString() ?? '';
-        final actions = data['actions'];
-
+        final data = context.decode(raw);
         final result = <String, dynamic>{
           'type': 'card',
-          'title': title,
-          'body': body,
+          'title': data['title']?.toString() ?? '',
+          'body': data['body']?.toString() ?? '',
         };
+        final actions = data['actions'];
         if (actions is List && actions.isNotEmpty) {
           result['actions'] = actions;
         }
-
         return jsonEncode(result);
       } catch (e) {
         _log.warning('ui.card error: $e');
@@ -120,34 +119,29 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:list_items', (args) {
+    runtime.onMessage('api:ui:list_items', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
+        final data = context.decode(raw);
         final items = data['items'];
-
-        final result = <String, dynamic>{
+        return jsonEncode(<String, dynamic>{
           'type': 'list',
           'items': items is List ? items : [items?.toString()],
-        };
-
-        return jsonEncode(result);
+        });
       } catch (e) {
         _log.warning('ui.list_items error: $e');
         return '{}';
       }
     });
 
-    runtime.onMessage('api:ui:button', (args) {
+    runtime.onMessage('api:ui:button', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final label = data['label']?.toString() ?? '';
+        final data = context.decode(raw);
+        final result = <String, dynamic>{
+          'type': 'button',
+          'label': data['label']?.toString() ?? '',
+        };
         final callback = data['callback']?.toString();
-
-        final result = <String, dynamic>{'type': 'button', 'label': label};
-        if (callback != null) {
-          result['callback'] = callback;
-        }
-
+        if (callback != null) result['callback'] = callback;
         return jsonEncode(result);
       } catch (e) {
         _log.warning('ui.button error: $e');
@@ -155,45 +149,38 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:text', (args) {
+    runtime.onMessage('api:ui:text', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final content = data['content']?.toString() ?? '';
-
-        return jsonEncode({'type': 'text', 'content': content});
+        final data = context.decode(raw);
+        return jsonEncode({'type': 'text', 'content': data['content']?.toString() ?? ''});
       } catch (e) {
         _log.warning('ui.text error: $e');
         return '{}';
       }
     });
 
-    runtime.onMessage('api:ui:section', (args) {
+    runtime.onMessage('api:ui:section', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final title = data['title']?.toString() ?? '';
-        final children = data['children'];
-
-        final result = <String, dynamic>{
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'section',
-          'title': title,
-          'children': children is List ? children : [],
-        };
-
-        return jsonEncode(result);
+          'title': data['title']?.toString() ?? '',
+          'children': data['children'] is List ? data['children'] : [],
+        });
       } catch (e) {
         _log.warning('ui.section error: $e');
         return '{}';
       }
     });
 
-    runtime.onMessage('api:ui:divider', (args) {
+    runtime.onMessage('api:ui:divider', (raw) {
       return jsonEncode({'type': 'divider'});
     });
 
-    runtime.onMessage('api:ui:page', (args) {
+    runtime.onMessage('api:ui:page', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        return jsonEncode({
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'page',
           'title': data['title']?.toString() ?? '',
           'child': data['child'],
@@ -205,10 +192,10 @@ ui.plugin_asset = function(path, kind, fit) {
     });
 
     for (final type in const ['row', 'column']) {
-      runtime.onMessage('api:ui:$type', (args) {
+      runtime.onMessage('api:ui:$type', (raw) {
         try {
-          final data = args is String ? jsonDecode(args) : args;
-          return jsonEncode({
+          final data = context.decode(raw);
+          return jsonEncode(<String, dynamic>{
             'type': type,
             'children': data['children'] is List ? data['children'] : [],
           });
@@ -219,10 +206,10 @@ ui.plugin_asset = function(path, kind, fit) {
       });
     }
 
-    runtime.onMessage('api:ui:spacing', (args) {
+    runtime.onMessage('api:ui:spacing', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        return jsonEncode({
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'spacing',
           'size': (data['size'] as num?)?.toDouble() ?? 8,
         });
@@ -232,17 +219,16 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:icon', (args) {
+    runtime.onMessage('api:ui:icon', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        return jsonEncode({
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'icon',
           'name': data['name']?.toString() ?? 'extension',
           'size': (data['size'] as num?)?.toDouble() ?? 20,
           'style': data['style']?.toString(),
           'font': data['font']?.toString(),
-          'pluginId':
-              data['pluginId']?.toString() ?? PluginManager.activePluginId,
+          'pluginId': data['pluginId']?.toString() ?? context.pluginId,
         });
       } catch (e) {
         _log.warning('ui.icon error: $e');
@@ -250,10 +236,10 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:link', (args) {
+    runtime.onMessage('api:ui:link', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        return jsonEncode({
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'link',
           'label': data['label']?.toString() ?? '',
           'url': data['url']?.toString() ?? '',
@@ -264,10 +250,10 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:input', (args) {
+    runtime.onMessage('api:ui:input', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        return jsonEncode({
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'input',
           'label': data['label']?.toString(),
           'hint': data['hint']?.toString(),
@@ -279,10 +265,10 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:cloud_file', (args) {
+    runtime.onMessage('api:ui:cloud_file', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        return jsonEncode({
+        final data = context.decode(raw);
+        return jsonEncode(<String, dynamic>{
           'type': 'cloud_file',
           'id': data['id']?.toString() ?? '',
           'fit': data['fit']?.toString() ?? 'cover',
@@ -293,20 +279,17 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
-    runtime.onMessage('api:ui:plugin_asset', (args) {
+    runtime.onMessage('api:ui:plugin_asset', (raw) {
       try {
-        final data = args is String ? jsonDecode(args) : args;
-        final pluginId = PluginManager.activePluginId;
+        final data = context.decode(raw);
+        final pluginId = context.pluginId;
         final relativePath = data['path']?.toString() ?? '';
-        if (pluginId == null || relativePath.isEmpty) return '{}';
-        if (PluginManager().resolvePluginAsset(pluginId, relativePath) ==
-            null) {
-          _log.warning(
-            'Plugin asset does not exist or escapes plugin folder: $relativePath',
-          );
+        if (pluginId.isEmpty || relativePath.isEmpty) return '{}';
+        if (PluginManager().resolvePluginAsset(pluginId, relativePath) == null) {
+          _log.warning('Plugin asset does not exist or escapes plugin folder: $relativePath');
           return '{}';
         }
-        return jsonEncode({
+        return jsonEncode(<String, dynamic>{
           'type': 'plugin_asset',
           'pluginId': pluginId,
           'path': relativePath,
@@ -319,11 +302,31 @@ ui.plugin_asset = function(path, kind, fit) {
       }
     });
 
+    runtime.onMessage('api:ui:open', (raw) {
+      try {
+        final data = context.decode(raw);
+        final title = data['title']?.toString() ?? '';
+        final descriptorRaw = data['descriptor'];
+        final pluginId = data['pluginId']?.toString() ?? context.pluginId;
+        if (descriptorRaw is Map || descriptorRaw is String) {
+          final desc = descriptorRaw is Map
+              ? Map<String, dynamic>.from(descriptorRaw)
+              : jsonDecode(descriptorRaw as String) as Map<String, dynamic>;
+          if (desc['type'] is String) {
+            onOpenPane?.call(title, desc, pluginId);
+          }
+        }
+      } catch (e) {
+        _log.warning('ui.open error: $e');
+      }
+      return '';
+    });
+
     for (final type in const ['image', 'audio', 'video']) {
-      runtime.onMessage('api:ui:$type', (args) {
+      runtime.onMessage('api:ui:$type', (raw) {
         try {
-          final data = args is String ? jsonDecode(args) : args;
-          return jsonEncode({
+          final data = context.decode(raw);
+          return jsonEncode(<String, dynamic>{
             'type': 'asset_$type',
             'url': data['url']?.toString() ?? '',
             'filename': data['filename']?.toString(),

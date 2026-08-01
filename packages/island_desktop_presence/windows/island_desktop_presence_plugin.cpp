@@ -246,7 +246,6 @@ void IslandDesktopPresencePlugin::HandleMethodCall(
     }
 
     StartExternalNowPlayingMonitoring(poll_interval_milliseconds);
-    EmitCurrentExternalNowPlaying(true);
     result->Success();
     return;
   }

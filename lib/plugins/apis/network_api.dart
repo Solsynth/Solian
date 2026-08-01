@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:island/core/config.dart';
@@ -30,58 +29,43 @@ class PluginNetworkApi extends PluginApi {
   };
 
   @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    final buf = StringBuffer();
-    if (granted.contains(PluginPermission.networkInternet)) {
-      buf.writeln('''
+  void register(PluginContext context, JsRuntime runtime) {
+    if (context.hasPermission(PluginPermission.networkInternet)) {
+      runtime.exec('''
 var internet = {};
 internet.request = function(method, url, options, callback) {
   sendMessage("api:internet:request", JSON.stringify({method: method, url: url, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));
 };
 ''');
+      runtime.onMessage('api:internet:request', (args) {
+        _queueRequest(context, runtime, args, useSolarNetwork: false);
+      });
     }
-    if (granted.contains(PluginPermission.solarNetworkApi)) {
-      buf.writeln('''
+    if (context.hasPermission(PluginPermission.solarNetworkApi)) {
+      runtime.exec('''
 var solar = {};
 solar.request = function(method, path, options, callback) {
   sendMessage("api:solar:request", JSON.stringify({method: method, url: path, headers: (options && options.headers) || {}, body: options && options.body, callback: callback}));
 };
 ''');
-    }
-    return buf.toString();
-  }
-
-  @override
-  void register(JsRuntime runtime) {
-    final pluginId = PluginManager.activePluginId;
-    final permissions = pluginId == null
-        ? const <PluginPermission>{}
-        : PluginManager().plugins[pluginId]?.manifest.permissions.toSet() ??
-              const <PluginPermission>{};
-    if (permissions.contains(PluginPermission.networkInternet)) {
-      runtime.onMessage('api:internet:request', (args) {
-        _queueRequest(runtime, args, useSolarNetwork: false);
-      });
-    }
-    if (permissions.contains(PluginPermission.solarNetworkApi)) {
       runtime.onMessage('api:solar:request', (args) {
-        _queueRequest(runtime, args, useSolarNetwork: true);
+        _queueRequest(context, runtime, args, useSolarNetwork: true);
       });
     }
   }
 
   void _queueRequest(
+    PluginContext context,
     JsRuntime runtime,
     dynamic args, {
     required bool useSolarNetwork,
   }) {
     try {
-      final data = args is String ? jsonDecode(args) : args;
-      if (data is! Map) return;
+      final data = context.decode(args);
       unawaited(
         _request(
           runtime,
-          data.map((key, value) => MapEntry(key.toString(), value)),
+          data,
           useSolarNetwork: useSolarNetwork,
         ),
       );

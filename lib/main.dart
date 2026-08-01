@@ -27,6 +27,7 @@ import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/core/services/notify.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:island/plugins/plugin.dart';
 import 'package:logging/logging.dart';
@@ -50,16 +51,36 @@ var _firebaseIsReady = false;
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  var handled = false;
   if (!kIsWeb && Platform.isAndroid) {
     await NativeCallBackgroundBridge.ensureInitialized();
-    handled = await NativeCallBackgroundBridge.showIncomingCallFromPayload(
+    final handled = await NativeCallBackgroundBridge.showIncomingCallFromPayload(
       message.data,
     );
+    if (handled) return;
   }
-  Logger.root.info('Handling a background message: ${message.messageId}');
-  if (handled) {
-    Logger.root.info('[NativeCall] Displayed background incoming call');
+  Logger.root.info(
+    '[Notification] Background FCM: ${message.messageId}',
+  );
+  // Show a local notification from FCM data payload (replaces previous)
+  final data = message.data;
+  final title = data['title'] ??
+      (data['notification'] is Map
+          ? (data['notification'] as Map)['title']
+          : null) ??
+      'Notification';
+  final body = data['body'] ??
+      (data['notification'] is Map
+          ? (data['notification'] as Map)['body']
+          : null) as String?;
+  final actionUri = data['meta'] is Map
+      ? (data['meta'] as Map)['action_uri'] as String?
+      : null;
+  if (body != null) {
+    await showBackgroundNotificationFromFcm(
+      title: title.toString(),
+      body: body,
+      payload: actionUri,
+    );
   }
 }
 
@@ -233,6 +254,21 @@ void main(List<String> args) async {
       controller.registerApi('hooks', HooksApi());
       controller.registerApi('events', EventsApi());
       controller.registerApi('commands', CommandsApi());
+      UiApi.onOpenPane = (title, descriptor, pluginId) {
+        final host = PluginPaneHost.instance;
+        final pluginManager = PluginManager();
+        final plugin = pluginManager.plugins[pluginId];
+        final pluginName = plugin?.manifest.name ?? pluginId;
+        final type = descriptor['type'] as String? ?? 'text';
+        descriptor.remove('type');
+        final descObj = PluginUiDescriptor(type: type, data: descriptor);
+        host.addPane(
+          descriptor: descObj,
+          pluginId: pluginId,
+          pluginName: pluginName,
+          title: title,
+        );
+      };
       controller.registerApi('ui', UiApi());
       controller.registerApi('tasks', BackgroundTaskApi());
       // Host-specific APIs (dashboard, Solar Network, notify UI, icons)
@@ -466,7 +502,7 @@ class IslandApp extends HookConsumerWidget {
         message,
       ) {
         Logger.root.info(
-          '[Notification] foreground message received: ${message.messageId}',
+          '[Notification] foreground FCM: ${message.messageId}',
         );
         handleMessage(message);
       });

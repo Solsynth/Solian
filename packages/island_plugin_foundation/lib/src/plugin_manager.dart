@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
 import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
+import 'package:island_plugin_foundation/src/bridge/plugin_context.dart';
 import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
+import 'package:island_plugin_foundation/src/sandbox/sandbox.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -22,6 +24,7 @@ class PluginInstance {
   final String directoryPath;
   PluginState state;
   JsRuntime? runtime;
+  Sandbox? sandbox;
   String? lastError;
 
   PluginInstance({
@@ -29,6 +32,7 @@ class PluginInstance {
     required this.directoryPath,
     this.state = PluginState.discovered,
     this.runtime,
+    this.sandbox,
     this.lastError,
   });
 }
@@ -54,12 +58,6 @@ class PluginManager {
 
   /// Optional subdirectory name under the app support dir (default: `plugins`).
   String pluginsDirectoryName = 'plugins';
-
-  /// The plugin ID of the currently loading plugin (set during registration).
-  String? _activePluginId;
-
-  /// Get the currently active plugin ID (public accessor for API callbacks).
-  static String? get activePluginId => _instance._activePluginId;
 
   /// All loaded plugin instances.
   Map<String, PluginInstance> get plugins => Map.unmodifiable(_plugins);
@@ -104,6 +102,10 @@ class PluginManager {
   String? resolvePluginAsset(String pluginId, String relativePath) {
     final instance = _plugins[pluginId];
     if (instance == null || instance.directoryPath.isEmpty) return null;
+    if (instance.directoryPath.startsWith('asset:')) {
+      // Bundled plugins have no filesystem assets to resolve.
+      return null;
+    }
     try {
       final root = Directory(instance.directoryPath).resolveSymbolicLinksSync();
       final file = File(path.join(root, relativePath));
@@ -147,9 +149,15 @@ class PluginManager {
     }
 
     try {
-      await _loadBundledScripts();
+      await _discoverBundledManifests();
     } catch (e) {
-      _log.warning('Failed to load bundled scripts: $e');
+      _log.warning('Failed to discover bundled manifests: $e');
+    }
+
+    try {
+      await _executeBareScripts();
+    } catch (e) {
+      _log.warning('Failed to execute bare bundled scripts: $e');
     }
   }
 
@@ -265,28 +273,57 @@ class PluginManager {
     }
   }
 
-  /// Load bundled JavaScript scripts from [bundledScriptsPrefix].
-  Future<void> _loadBundledScripts() async {
-    try {
-      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      final allAssets = manifest.listAssets();
-      final scripts =
-          allAssets
-              .where(
-                (a) => a.startsWith(bundledScriptsPrefix) && a.endsWith('.js'),
-              )
-              .toList()
-            ..sort();
+  /// Discover plugins with manifest.json in the bundled assets.
+  Future<void> _discoverBundledManifests() async {
+    final am = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final allAssets = am.listAssets();
+    final manifestAssets = allAssets
+        .where((a) => a.startsWith(bundledScriptsPrefix) && a.endsWith('/manifest.json'))
+        .toList();
 
-      for (final assetPath in scripts) {
-        final content = await rootBundle.loadString(assetPath);
-        final runtimeName = 'bundled:${assetPath.split('/').last}';
-        final runtime = _bridge.createRuntime(runtimeName);
-        runtime.exec(content, filename: assetPath);
-        _log.info('Executed bundled script: $assetPath');
+    for (final assetPath in manifestAssets) {
+      try {
+        final json = jsonDecode(await rootBundle.loadString(assetPath));
+        final manifest = PluginManifest.fromJson(json as Map<String, dynamic>);
+        final dir = assetPath.substring(0, assetPath.length - '/manifest.json'.length);
+        if (_plugins.containsKey(manifest.id)) continue;
+        _plugins[manifest.id] = PluginInstance(
+          manifest: manifest,
+          directoryPath: 'asset:$dir',
+          state: PluginState.discovered,
+        );
+        _log.info('Discovered bundled plugin: ${manifest.id} (${manifest.name})');
+      } catch (e) {
+        _log.warning('Failed to parse bundled manifest $assetPath: $e');
       }
-    } catch (e) {
-      _log.warning('Failed to load bundled scripts: $e');
+    }
+  }
+
+  /// Execute bare .js files in bundled assets that have no manifest.json.
+  Future<void> _executeBareScripts() async {
+    final am = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final allAssets = am.listAssets().toSet();
+    final manifestDirs = allAssets
+        .where((a) => a.startsWith(bundledScriptsPrefix) && a.endsWith('/manifest.json'))
+        .map((a) => a.substring(0, a.length - '/manifest.json'.length))
+        .toSet();
+
+    final scripts = allAssets
+        .where((a) {
+          if (!a.startsWith(bundledScriptsPrefix) || !a.endsWith('.js')) return false;
+          final dir = a.substring(0, a.lastIndexOf('/'));
+          return !manifestDirs.contains(dir);
+        })
+        .toList()
+      ..sort();
+
+    for (final assetPath in scripts) {
+      final content = await rootBundle.loadString(assetPath);
+      final runtimeName = 'bundled:${assetPath.split('/').last}';
+      final runtime = _bridge.createRuntime(runtimeName);
+      Sandbox.create(runtime, runtimeName);
+      runtime.exec(content, filename: assetPath);
+      _log.info('Executed bare bundled script: $assetPath');
     }
   }
 
@@ -309,29 +346,37 @@ class PluginManager {
 
       final runtimeName = 'plugin:$pluginId';
       instance.runtime = _bridge.createRuntime(runtimeName);
+      instance.sandbox = Sandbox.create(instance.runtime!, pluginId);
 
       _registerPluginApis(instance);
 
-      final entryPath = path.join(
-        instance.directoryPath,
-        instance.manifest.entry,
-      );
-      final entryFile = File(entryPath);
-      if (!await entryFile.exists()) {
-        await _quarantinePlugin(
-          instance,
-          'Entry file not found: ${instance.manifest.entry}',
+      final String source;
+      if (instance.directoryPath.startsWith('asset:')) {
+        final assetDir = instance.directoryPath.substring(6);
+        final entryAsset = '$assetDir/${instance.manifest.entry}';
+        try {
+          source = await rootBundle.loadString(entryAsset);
+        } catch (e) {
+          await _quarantinePlugin(instance, 'Entry file not found in assets: $entryAsset');
+          return false;
+        }
+      } else {
+        final entryPath = path.join(
+          instance.directoryPath,
+          instance.manifest.entry,
         );
-        return false;
+        final entryFile = File(entryPath);
+        if (!await entryFile.exists()) {
+          await _quarantinePlugin(instance, 'Entry file not found: ${instance.manifest.entry}');
+          return false;
+        }
+        source = await entryFile.readAsString();
       }
 
-      final source = await entryFile.readAsString();
-      _activePluginId = pluginId;
       final result = instance.runtime!.execWithOutput(
         source,
-        filename: entryPath,
+        filename: instance.directoryPath,
       );
-      _activePluginId = null;
 
       if (!result.success) {
         await _quarantinePlugin(instance, result.error ?? 'Unknown error');
@@ -348,8 +393,6 @@ class PluginManager {
     } catch (e) {
       await _quarantinePlugin(instance, e.toString());
       return false;
-    } finally {
-      _activePluginId = null;
     }
   }
 
@@ -366,6 +409,8 @@ class PluginManager {
       api.onPluginUnload(pluginId);
     }
 
+    instance.sandbox?.dispose();
+    instance.sandbox = null;
     _bridge.disposeRuntime('plugin:$pluginId');
     instance.runtime = null;
     instance.state = PluginState.discovered;
@@ -575,14 +620,13 @@ class PluginManager {
 
     final runtimeName = 'plugin:$pluginId';
     instance.runtime = _bridge.createRuntime(runtimeName);
+    instance.sandbox = Sandbox.create(instance.runtime!, pluginId);
     _registerPluginApis(instance);
 
-    _activePluginId = pluginId;
     final result = instance.runtime!.execWithOutput(
       source,
       filename: '<inline:$pluginId>',
     );
-    _activePluginId = null;
 
     if (result.success) {
       _callPluginHook(instance, 'on_load');
@@ -603,49 +647,21 @@ class PluginManager {
     final runtime = instance.runtime;
     if (runtime == null) return;
     final perms = instance.manifest.permissions.toSet();
-
-    _activePluginId = instance.manifest.id;
+    final context = PluginContext(
+      pluginId: instance.manifest.id,
+      permissions: perms,
+    );
 
     for (final entry in _apis.entries) {
       final api = entry.value;
-
       if (api.requiredPermissions.isEmpty ||
           api.requiredPermissions.any(perms.contains)) {
-        api.register(runtime);
+        api.register(context, runtime);
       }
     }
 
-    _createApiNamespaces(instance, perms);
     _registerPluginMetadata(instance);
-
-    _activePluginId = null;
   }
-
-  /// Create JavaScript namespace objects from each registered API's bindings.
-  void _createApiNamespaces(
-    PluginInstance instance,
-    Set<PluginPermission> perms,
-  ) {
-    final runtime = instance.runtime;
-    if (runtime == null) return;
-
-    final buf = StringBuffer();
-    for (final api in _apis.values) {
-      if (api.requiredPermissions.isEmpty ||
-          api.requiredPermissions.any(perms.contains)) {
-        buf.write(api.jsBindingsFor(perms));
-      }
-    }
-
-    final code = buf.toString();
-    if (code.isEmpty) return;
-
-    final ok = runtime.exec(code, filename: '<api_namespaces>');
-    if (!ok) {
-      _log.warning('Failed to create API namespaces');
-    }
-  }
-
   void _registerPluginMetadata(PluginInstance instance) {
     final runtime = instance.runtime;
     if (runtime == null) return;
@@ -707,7 +723,6 @@ class PluginManager {
     _apis.clear();
     _initialized = false;
     _inlineCounter = 0;
-    _activePluginId = null;
 
     _bridge.disposeAll();
 
