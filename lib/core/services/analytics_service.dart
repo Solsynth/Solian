@@ -455,12 +455,6 @@ class AnalyticsService {
     });
   }
 
-  void logAiResponseReceived(int responseThoughtCount, String sequenceId) {
-    logEvent('ai_response_received', {
-      'response_thought_count': responseThoughtCount,
-      'sequence_id': sequenceId,
-    });
-  }
 
   void logShuffleViewed(int postIndex, int totalPostsLoaded) {
     logEvent('shuffle_viewed', {

@@ -7,7 +7,6 @@ class RoomSelectionMode extends StatelessWidget {
   final bool visible;
   final int selectedCount;
   final VoidCallback onClose;
-  final VoidCallback onAIThink;
   final VoidCallback onRedirect;
 
   const RoomSelectionMode({
@@ -15,7 +14,6 @@ class RoomSelectionMode extends StatelessWidget {
     required this.visible,
     required this.selectedCount,
     required this.onClose,
-    required this.onAIThink,
     required this.onRedirect,
   });
 
@@ -77,14 +75,6 @@ class RoomSelectionMode extends StatelessWidget {
                         compact: compact,
                       ),
                       const SizedBox(width: 8),
-                      _SelectionActionButton(
-                        icon: Symbols.smart_toy,
-                        label: 'chatAskAI'.tr(),
-                        enabled: hasSelection,
-                        onPressed: onAIThink,
-                        filled: true,
-                        compact: compact,
-                      ),
                     ],
                   );
                 },

@@ -49,7 +49,6 @@ import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
-import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -587,33 +586,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [isAtLatestMessages.value]);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
-
-    final openThinkingSheet = useCallback(() {
-      if (selectedMessageIds.isEmpty) return;
-
-      final selectedMessageData =
-          messages.value
-              ?.where((msg) => selectedMessageIds.contains(msg.id))
-              .map(
-                (msg) => {
-                  'id': msg.id,
-                  'content': msg.content,
-                  'senderId': msg.senderId,
-                  'createdAt': msg.createdAt.toIso8601String(),
-                  'attachments': msg.attachments,
-                },
-              )
-              .toList() ??
-          [];
-
-      ThoughtSheet.show(
-        context,
-        attachedMessages: selectedMessageData,
-        attachedPosts: [],
-      );
-
-      chatStateNotifier.exitSelectionMode();
-    }, [selectedMessageIds, messages, chatStateNotifier]);
 
     final openRedirectSheet = useCallback(() async {
       if (selectedMessageIds.isEmpty) return;
@@ -1211,7 +1183,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                         visible: true,
                         selectedCount: selectedMessageIds.length,
                         onClose: chatStateNotifier.exitSelectionMode,
-                        onAIThink: openThinkingSheet,
                         onRedirect: openRedirectSheet,
                       )
                     : chatRoom.when(

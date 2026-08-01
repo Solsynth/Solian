@@ -582,19 +582,6 @@ class CommandPaletteWidget extends HookConsumerWidget {
       );
     }
 
-    // Ask the AI
-    // Bugged, DO NOT USE
-    // actions.add(
-    //   FallbackAction(
-    //     name: 'Ask the AI',
-    //     description: 'Ask "$query" to the AI',
-    //     icon: Symbols.bubble_chart,
-    //     action: () {
-    //       eventBus.fire(ShowThoughtSheetEvent(initialMessage: query));
-    //     },
-    //   ),
-    // );
-
     // Search the web
     actions.add(
       FallbackAction(

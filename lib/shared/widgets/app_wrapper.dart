@@ -37,7 +37,6 @@ import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
-import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:island/wallets/wallet.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -619,13 +618,6 @@ class AppWrapper extends HookConsumerWidget {
             _showNotificationModal();
           });
 
-      final thoughtSheetSubs = eventBus.on<ShowThoughtSheetEvent>().listen((
-        event,
-      ) {
-        final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
-        if (ctx.mounted) _showThoughtSheet(ctx, event);
-      });
-
       final webAuthSubs = eventBus.on<WebAuthRequestEvent>().listen((event) {
         final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
         if (ctx.mounted) _showWebAuthSheet(ctx, event);
@@ -652,7 +644,6 @@ class AppWrapper extends HookConsumerWidget {
         ntySubs?.cancel();
         composeSheetSubs.cancel();
         notificationModalSubs.cancel();
-        thoughtSheetSubs.cancel();
         webAuthSubs.cancel();
         challengeSubs.cancel();
       };
@@ -858,15 +849,6 @@ class AppWrapper extends HookConsumerWidget {
       replaceIfExists: true,
       barrierDismissible: true,
       builder: (context, dismiss) => NotificationModal(onDismiss: dismiss),
-    );
-  }
-
-  void _showThoughtSheet(BuildContext context, ShowThoughtSheetEvent event) {
-    ThoughtSheet.show(
-      context,
-      initialMessage: event.initialMessage,
-      attachedMessages: event.attachedMessages,
-      attachedPosts: event.attachedPosts,
     );
   }
 

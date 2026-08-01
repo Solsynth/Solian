@@ -67,8 +67,27 @@ class CloudFileLightbox extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = useState(initialIndex);
-    final showControls = useState(true);
-    final controlsVisible = useState(true);
+    final showOriginal = useState(false);
+    final isZoomed = useState(false);
+
+    // Chrome-only state. Kept in ValueNotifiers so toggling/auto-hiding the
+    // controls or flipping EXIF rebuilds just the overlays in
+    // [_LightboxChrome], never the dismissible page or the gallery.
+    final showControls = useMemoized(() => ValueNotifier(true), const []);
+    final controlsVisible = useMemoized(() => ValueNotifier(true), const []);
+    final showExif = useMemoized(
+      () => ValueNotifier(ExifInfoOverlay.precheck(items[initialIndex])),
+      const [],
+    );
+
+    // [DismissiblePage] swaps between a plain [DecoratedBox] and its
+    // drag-aware wrapper whenever `disabled` flips (zoomed image <-> normal).
+    // Without this key the whole content subtree — gallery, scroll position,
+    // image streams, video player — would be disposed and rebuilt from
+    // scratch on every zoom threshold crossing. GlobalKey reparenting keeps
+    // the subtree (and all its State) alive across the flip.
+    final contentKey = useMemoized(() => GlobalKey(), const []);
+
     final pageController = useMemoized(
       () => PageController(initialPage: initialIndex),
       [initialIndex],
@@ -85,22 +104,11 @@ class CloudFileLightbox extends HookConsumerWidget {
         }
       };
     }, [pageController, photoViewControllers]);
-    final showExif = useState(ExifInfoOverlay.precheck(items[initialIndex]));
-    final showOriginal = useState(false);
     final focusNode = useFocusNode();
     final serverUrl = ref.watch(serverUrlProvider);
-    final mediaQuery = MediaQuery.of(context);
-    final currentItemForLoad = items[currentIndex.value];
-    final qualityProvider = CloudImageWidget.provider(
-      file: currentItemForLoad,
-      serverUrl: serverUrl,
-      original: showOriginal.value,
-    );
-    final qualityLoad = useImageQualityLoad(
-      provider: qualityProvider,
-      showOriginal: showOriginal.value,
-      reloadToken: '${currentItemForLoad.id}:${showOriginal.value}',
-    );
+
+    final currentItem = items[currentIndex.value];
+    final currentIsVideo = isLightboxVideo(currentItem);
 
     void revealControls() {
       showControls.value = true;
@@ -139,12 +147,6 @@ class CloudFileLightbox extends HookConsumerWidget {
       }
     }
 
-    final currentItem = items[currentIndex.value];
-    final currentIsVideo = isLightboxVideo(currentItem);
-    final showDesktopImageTools =
-        _isDesktopImageControlsPlatform() && isLightboxImage(currentItem);
-    final isZoomed = useState(false);
-
     PhotoViewController currentPhotoController() =>
         photoViewControllers[currentIndex.value];
 
@@ -176,22 +178,32 @@ class CloudFileLightbox extends HookConsumerWidget {
     }
 
     // Auto-hide chrome for images only; video keeps chrome so seek bar isn't
-    // fighting a disappearing overlay, and top bar stays available.
+    // fighting a disappearing overlay, and top bar stays available. Listens on
+    // the notifiers instead of hook state so re-arming never rebuilds the
+    // gallery.
     useEffect(
       () {
         if (currentIsVideo) return null;
-        if (!showControls.value || !controlsVisible.value) return null;
-        final timer = Timer(const Duration(seconds: 3), () {
-          controlsVisible.value = false;
-        });
-        return timer.cancel;
+        Timer? timer;
+        void restart() {
+          timer?.cancel();
+          if (showControls.value && controlsVisible.value) {
+            timer = Timer(const Duration(seconds: 3), () {
+              controlsVisible.value = false;
+            });
+          }
+        }
+
+        showControls.addListener(restart);
+        controlsVisible.addListener(restart);
+        restart();
+        return () {
+          timer?.cancel();
+          showControls.removeListener(restart);
+          controlsVisible.removeListener(restart);
+        };
       },
-      [
-        showControls.value,
-        controlsVisible.value,
-        currentIndex.value,
-        currentIsVideo,
-      ],
+      [showControls, controlsVisible, currentIsVideo],
     );
 
     void showActionsSheet() async {
@@ -232,8 +244,11 @@ class CloudFileLightbox extends HookConsumerWidget {
       router.push(FileDetailRoute(id: currentItem.id, sourcePost: sourcePost));
     }
 
-    final controlsShown =
-        currentIsVideo || (showControls.value && controlsVisible.value);
+    void onPageChanged(int index) {
+      currentIndex.value = index;
+      showExif.value = ExifInfoOverlay.precheck(items[index]);
+      revealControls();
+    }
 
     return DismissiblePage(
       isFullScreen: true,
@@ -241,307 +256,467 @@ class CloudFileLightbox extends HookConsumerWidget {
       direction: DismissiblePageDismissDirection.down,
       disabled: isZoomed.value,
       onDismissed: () => Navigator.of(context).pop(),
-      child: Focus(
-        focusNode: focusNode,
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              goToPrevious();
-              return KeyEventResult.handled;
-            } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-              goToNext();
-              return KeyEventResult.handled;
-            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-              Navigator.of(context).pop();
-              return KeyEventResult.handled;
+      child: KeyedSubtree(
+        key: contentKey,
+        child: Focus(
+          focusNode: focusNode,
+          autofocus: true,
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                goToPrevious();
+                return KeyEventResult.handled;
+              } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                goToNext();
+                return KeyEventResult.handled;
+              } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+                Navigator.of(context).pop();
+                return KeyEventResult.handled;
+              }
             }
-          }
-          return KeyEventResult.ignored;
-        },
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.light,
-          child: Material(
-            color: Colors.transparent,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                PhotoViewGallery.builder(
-                  key: ValueKey(items.length),
-                  pageController: pageController,
-                  itemCount: items.length,
-                  scrollPhysics: items.length == 1
-                      ? const NeverScrollableScrollPhysics()
-                      : const BouncingScrollPhysics(),
-                  onPageChanged: (index) {
-                    currentIndex.value = index;
-                    showExif.value = ExifInfoOverlay.precheck(items[index]);
-                    revealControls();
-                  },
-                  builder: (context, index) {
-                    final item = items[index];
-                    final isImage = isLightboxImage(item);
-                    final isVideo = isLightboxVideo(item);
-                    final isHero = heroTag != null && index == initialIndex;
-                    final isActive = index == currentIndex.value;
-
-                    if (isImage) {
-                      final imageProvider = CloudImageWidget.provider(
-                        file: item,
-                        serverUrl: serverUrl,
-                        original: showOriginal.value,
-                      );
-                      return PhotoViewGalleryPageOptions(
-                        imageProvider: imageProvider,
-                        controller: photoViewControllers[index],
-                        heroAttributes: isHero
-                            ? PhotoViewHeroAttributes(tag: heroTag!)
-                            : null,
-                        basePosition: Alignment.center,
-                        minScale: PhotoViewComputedScale.contained * 0.9,
-                        maxScale: PhotoViewComputedScale.covered * 3,
-                        initialScale: PhotoViewComputedScale.contained * 1.0,
-                        onTapUp: (context, details, controller) {
-                          toggleControls();
-                        },
-                      );
-                    }
-
-                    if (isVideo) {
-                      Widget videoChild = _LightboxVideoPage(
-                        item: item,
-                        serverUrl: serverUrl,
-                        isActive: isActive,
-                      );
-                      if (isHero) {
-                        videoChild = Hero(tag: heroTag!, child: videoChild);
-                      }
-                      return PhotoViewGalleryPageOptions.customChild(
-                        child: videoChild,
-                        disableGestures: true,
-                        onTapUp: (context, details, controller) {
-                          toggleControls();
-                        },
-                      );
-                    }
-
-                    return PhotoViewGalleryPageOptions.customChild(
-                      child: _LightboxUnsupportedPage(item: item),
-                      disableGestures: true,
-                    );
-                  },
-                  loadingBuilder: (context, event) {
-                    if (event == null || event.expectedTotalBytes == null) {
-                      return const Center(
-                        child: SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white54,
-                          ),
-                        ),
-                      );
-                    }
-                    final progress =
-                        event.cumulativeBytesLoaded / event.expectedTotalBytes!;
-                    return Center(
-                      child: MediaChromeSurface(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                value: progress,
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const Gap(10),
-                            Text(
-                              '${(progress * 100).toInt()}%',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  backgroundDecoration: const BoxDecoration(
-                    color: Colors.black,
+            return KeyEventResult.ignored;
+          },
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: Material(
+              color: Colors.transparent,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _LightboxGallery(
+                    items: items,
+                    pageController: pageController,
+                    photoViewControllers: photoViewControllers,
+                    serverUrl: serverUrl,
+                    heroTag: heroTag,
+                    initialIndex: initialIndex,
+                    currentIndex: currentIndex.value,
+                    showOriginal: showOriginal.value,
+                    onPageChanged: onPageChanged,
+                    onTapToggle: toggleControls,
                   ),
-                  gaplessPlayback: true,
-                  enableRotation: true,
-                ),
-
-                if (showExif.value && isLightboxImage(currentItem))
-                  Positioned(
-                    left: 16,
-                    right: 16,
-                    bottom: 0,
-                    child: IgnorePointer(
-                      child: AnimatedPadding(
-                        duration: const Duration(milliseconds: 180),
-                        curve: Curves.easeOutCubic,
-                        padding: EdgeInsets.only(
-                          bottom:
-                              mediaQuery.padding.bottom +
-                              (controlsShown ? 88 : 24),
-                        ),
-                        child: ExifInfoOverlay(item: currentItem),
-                      ),
-                    ),
+                  _LightboxChrome(
+                    items: items,
+                    currentIndex: currentIndex.value,
+                    currentItem: currentItem,
+                    serverUrl: serverUrl,
+                    showOriginal: showOriginal.value,
+                    showControls: showControls,
+                    controlsVisible: controlsVisible,
+                    showExif: showExif,
+                    onClose: () => Navigator.of(context).pop(),
+                    onShowActions: showActionsSheet,
+                    onGoPrevious: goToPrevious,
+                    onGoNext: goToNext,
+                    onZoomOut: () => zoomBy(-0.15),
+                    onZoomIn: () => zoomBy(0.15),
+                    onRotateLeft: () => rotateBy(-math.pi / 2),
+                    onRotateRight: () => rotateBy(math.pi / 2),
+                    onToggleOriginal: () {
+                      showOriginal.value = !showOriginal.value;
+                      revealControls();
+                    },
+                    onOpenDetail: openDetail,
                   ),
-
-                if (isLightboxImage(currentItem))
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: ImageQualityProgressBar(
-                      isLoading: qualityLoad.isLoading,
-                      progress: qualityLoad.progress,
-                      loadingOriginal: showOriginal.value,
-                    ),
-                  ),
-
-                // Control chrome
-                AnimatedOpacity(
-                  opacity: controlsShown ? 1 : 0,
-                  duration: const Duration(milliseconds: 180),
-                  child: IgnorePointer(
-                    ignoring: !controlsShown,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: mediaQuery.padding.top + 72,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.65),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Avoid overlapping the video player controls at bottom.
-                        if (!currentIsVideo)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            height: mediaQuery.padding.bottom + 96,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withValues(alpha: 0.65),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        _LightboxTopBar(
-                          items: items,
-                          currentIndex: currentIndex.value,
-                          onClose: () => Navigator.of(context).pop(),
-                          onShowActions: showActionsSheet,
-                        ),
-                        if (!currentIsVideo)
-                          _LightboxBottomBar(
-                            item: currentItem,
-                            showOriginal: showOriginal.value,
-                            showExif: showExif.value,
-                            isQualityLoading: qualityLoad.isLoading,
-                            showTransformControls: showDesktopImageTools,
-                            onZoomOut: () => zoomBy(-0.15),
-                            onZoomIn: () => zoomBy(0.15),
-                            onRotateLeft: () => rotateBy(-math.pi / 2),
-                            onRotateRight: () => rotateBy(math.pi / 2),
-                            onToggleOriginal: () {
-                              if (qualityLoad.isLoading) return;
-                              qualityLoad.beginLoad();
-                              showOriginal.value = !showOriginal.value;
-                              revealControls();
-                            },
-                            onToggleExif: () {
-                              showExif.value = !showExif.value;
-                              revealControls();
-                            },
-                            onOpenDetail: openDetail,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                if (items.length > 1)
-                  AnimatedOpacity(
-                    opacity: controlsShown ? 1 : 0,
-                    duration: const Duration(milliseconds: 180),
-                    child: IgnorePointer(
-                      ignoring: !controlsShown,
-                      child: Stack(
-                        children: [
-                          if (currentIndex.value > 0)
-                            Positioned(
-                              left: 12,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: MediaIconButton(
-                                  icon: Symbols.chevron_left,
-                                  size: 44,
-                                  iconSize: 28,
-                                  onPressed: goToPrevious,
-                                  tooltip: 'Previous',
-                                ),
-                              ),
-                            ),
-                          if (currentIndex.value < items.length - 1)
-                            Positioned(
-                              right: 12,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: MediaIconButton(
-                                  icon: Symbols.chevron_right,
-                                  size: 44,
-                                  iconSize: 28,
-                                  onPressed: goToNext,
-                                  tooltip: 'Next',
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The pannable photo/video gallery. Kept separate from [_LightboxChrome] so
+/// chrome-only state changes (controls auto-hide, EXIF toggle, quality
+/// progress) never rebuild the gallery pages.
+class _LightboxGallery extends StatelessWidget {
+  final List<IDisplayableCloudFile> items;
+  final PageController pageController;
+  final List<PhotoViewController> photoViewControllers;
+  final String serverUrl;
+  final String? heroTag;
+  final int initialIndex;
+  final int currentIndex;
+  final bool showOriginal;
+  final ValueChanged<int> onPageChanged;
+  final VoidCallback onTapToggle;
+
+  const _LightboxGallery({
+    required this.items,
+    required this.pageController,
+    required this.photoViewControllers,
+    required this.serverUrl,
+    required this.heroTag,
+    required this.initialIndex,
+    required this.currentIndex,
+    required this.showOriginal,
+    required this.onPageChanged,
+    required this.onTapToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PhotoViewGallery.builder(
+      key: ValueKey(items.length),
+      pageController: pageController,
+      itemCount: items.length,
+      scrollPhysics: items.length == 1
+          ? const NeverScrollableScrollPhysics()
+          : const BouncingScrollPhysics(),
+      onPageChanged: onPageChanged,
+      builder: (context, index) {
+        final item = items[index];
+        final isImage = isLightboxImage(item);
+        final isVideo = isLightboxVideo(item);
+        final isHero = heroTag != null && index == initialIndex;
+        final isActive = index == currentIndex;
+
+        if (isImage) {
+          final imageProvider = CloudImageWidget.provider(
+            file: item,
+            serverUrl: serverUrl,
+            original: showOriginal,
+          );
+          return PhotoViewGalleryPageOptions(
+            imageProvider: imageProvider,
+            controller: photoViewControllers[index],
+            heroAttributes: isHero
+                ? PhotoViewHeroAttributes(tag: heroTag!)
+                : null,
+            basePosition: Alignment.center,
+            minScale: PhotoViewComputedScale.contained * 0.9,
+            maxScale: PhotoViewComputedScale.covered * 3,
+            initialScale: PhotoViewComputedScale.contained * 1.0,
+            onTapUp: (context, details, controller) {
+              onTapToggle();
+            },
+          );
+        }
+
+        if (isVideo) {
+          Widget videoChild = _LightboxVideoPage(
+            item: item,
+            serverUrl: serverUrl,
+            isActive: isActive,
+          );
+          if (isHero) {
+            videoChild = Hero(tag: heroTag!, child: videoChild);
+          }
+          return PhotoViewGalleryPageOptions.customChild(
+            child: videoChild,
+            disableGestures: true,
+            onTapUp: (context, details, controller) {
+              onTapToggle();
+            },
+          );
+        }
+
+        return PhotoViewGalleryPageOptions.customChild(
+          child: _LightboxUnsupportedPage(item: item),
+          disableGestures: true,
+        );
+      },
+      loadingBuilder: (context, event) {
+        if (event == null || event.expectedTotalBytes == null) {
+          return const Center(
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white54,
+              ),
+            ),
+          );
+        }
+        final progress =
+            event.cumulativeBytesLoaded / event.expectedTotalBytes!;
+        return Center(
+          child: MediaChromeSurface(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 10,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+                const Gap(10),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      backgroundDecoration: const BoxDecoration(
+        color: Colors.black,
+      ),
+      gaplessPlayback: true,
+      enableRotation: true,
+    );
+  }
+}
+
+/// All chrome overlaid on the gallery: gradients, top/bottom bars, EXIF
+/// overlay, quality progress and page arrows.
+///
+/// Owns the frequently-toggled overlay state (controls visibility, EXIF,
+/// quality loading) so those rebuilds never reach the gallery.
+class _LightboxChrome extends HookConsumerWidget {
+  final List<IDisplayableCloudFile> items;
+  final int currentIndex;
+  final IDisplayableCloudFile currentItem;
+  final String serverUrl;
+  final bool showOriginal;
+  final ValueNotifier<bool> showControls;
+  final ValueNotifier<bool> controlsVisible;
+  final ValueNotifier<bool> showExif;
+  final VoidCallback onClose;
+  final VoidCallback onShowActions;
+  final VoidCallback onGoPrevious;
+  final VoidCallback onGoNext;
+  final VoidCallback onZoomOut;
+  final VoidCallback onZoomIn;
+  final VoidCallback onRotateLeft;
+  final VoidCallback onRotateRight;
+  final VoidCallback onToggleOriginal;
+  final VoidCallback onOpenDetail;
+
+  const _LightboxChrome({
+    required this.items,
+    required this.currentIndex,
+    required this.currentItem,
+    required this.serverUrl,
+    required this.showOriginal,
+    required this.showControls,
+    required this.controlsVisible,
+    required this.showExif,
+    required this.onClose,
+    required this.onShowActions,
+    required this.onGoPrevious,
+    required this.onGoNext,
+    required this.onZoomOut,
+    required this.onZoomIn,
+    required this.onRotateLeft,
+    required this.onRotateRight,
+    required this.onToggleOriginal,
+    required this.onOpenDetail,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final qualityProvider = useMemoized(
+      () => CloudImageWidget.provider(
+        file: currentItem,
+        serverUrl: serverUrl,
+        original: showOriginal,
+      ),
+      [currentItem, serverUrl, showOriginal],
+    );
+    final qualityLoad = useImageQualityLoad(
+      provider: qualityProvider,
+      showOriginal: showOriginal,
+      reloadToken: '${currentItem.id}:$showOriginal',
+    );
+
+    final chromeState = useMemoized(
+      () => Listenable.merge([showControls, controlsVisible, showExif]),
+      [showControls, controlsVisible, showExif],
+    );
+
+    final isImage = isLightboxImage(currentItem);
+    final isVideo = isLightboxVideo(currentItem);
+    final showDesktopImageTools = _isDesktopImageControlsPlatform() && isImage;
+    final mediaQuery = MediaQuery.of(context);
+
+    void revealControls() {
+      showControls.value = true;
+      controlsVisible.value = true;
+    }
+
+    void handleToggleOriginal() {
+      if (qualityLoad.isLoading) return;
+      qualityLoad.beginLoad();
+      onToggleOriginal();
+    }
+
+    void handleToggleExif() {
+      showExif.value = !showExif.value;
+      revealControls();
+    }
+
+    return ListenableBuilder(
+      listenable: chromeState,
+      builder: (context, _) {
+        final controlsShown =
+            isVideo || (showControls.value && controlsVisible.value);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            if (showExif.value && isImage)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 0,
+                child: IgnorePointer(
+                  child: AnimatedPadding(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.only(
+                      bottom:
+                          mediaQuery.padding.bottom + (controlsShown ? 88 : 24),
+                    ),
+                    child: ExifInfoOverlay(item: currentItem),
+                  ),
+                ),
+              ),
+
+            if (isImage)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ImageQualityProgressBar(
+                  isLoading: qualityLoad.isLoading,
+                  progress: qualityLoad.progress,
+                  loadingOriginal: showOriginal,
+                ),
+              ),
+
+            // Control chrome
+            AnimatedOpacity(
+              opacity: controlsShown ? 1 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: IgnorePointer(
+                ignoring: !controlsShown,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: mediaQuery.padding.top + 72,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.65),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Avoid overlapping the video player controls at bottom.
+                    if (!isVideo)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: mediaQuery.padding.bottom + 96,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.65),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    _LightboxTopBar(
+                      items: items,
+                      currentIndex: currentIndex,
+                      onClose: onClose,
+                      onShowActions: onShowActions,
+                    ),
+                    if (!isVideo)
+                      _LightboxBottomBar(
+                        item: currentItem,
+                        showOriginal: showOriginal,
+                        showExif: showExif.value,
+                        isQualityLoading: qualityLoad.isLoading,
+                        showTransformControls: showDesktopImageTools,
+                        onZoomOut: onZoomOut,
+                        onZoomIn: onZoomIn,
+                        onRotateLeft: onRotateLeft,
+                        onRotateRight: onRotateRight,
+                        onToggleOriginal: handleToggleOriginal,
+                        onToggleExif: handleToggleExif,
+                        onOpenDetail: onOpenDetail,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            if (items.length > 1)
+              AnimatedOpacity(
+                opacity: controlsShown ? 1 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: IgnorePointer(
+                  ignoring: !controlsShown,
+                  child: Stack(
+                    children: [
+                      if (currentIndex > 0)
+                        Positioned(
+                          left: 12,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: MediaIconButton(
+                              icon: Symbols.chevron_left,
+                              size: 44,
+                              iconSize: 28,
+                              onPressed: onGoPrevious,
+                              tooltip: 'Previous',
+                            ),
+                          ),
+                        ),
+                      if (currentIndex < items.length - 1)
+                        Positioned(
+                          right: 12,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: MediaIconButton(
+                              icon: Symbols.chevron_right,
+                              size: 44,
+                              iconSize: 28,
+                              onPressed: onGoNext,
+                              tooltip: 'Next',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

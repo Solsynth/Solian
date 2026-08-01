@@ -35,7 +35,6 @@ class TabsScreen extends StatelessWidget {
         AccountRoute(),
         FileListRoute(),
         WalletRoute(),
-        ThoughtRoute(),
         CreatorHubRoute(),
       ],
       duration: const Duration(milliseconds: 500),
@@ -185,17 +184,8 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           Icon(Symbols.wallet, fill: selected ? 1 : null),
     ),
     _TabDestination(
-      id: 'thought',
-      routeIndex: 7,
-      routePath: '/thought',
-      label: 'aiThought'.tr(),
-      navigationIcon: Symbols.bubble_chart,
-      iconBuilder: (selected) =>
-          Icon(Symbols.bubble_chart, fill: selected ? 1 : null),
-    ),
-    _TabDestination(
       id: 'creators',
-      routeIndex: 8,
+      routeIndex: 7,
       routePath: '/creators',
       label: 'creatorHub'.tr(),
       navigationIcon: Symbols.design_services_rounded,

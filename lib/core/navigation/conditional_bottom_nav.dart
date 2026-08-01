@@ -10,7 +10,6 @@ const kTabRoutes = [
   '/realms',
   '/account',
   '/files',
-  '/thought',
   '/creators',
 ];
 

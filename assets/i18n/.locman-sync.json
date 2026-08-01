@@ -2175,30 +2175,6 @@
         "en-US": "d1e9c773fa35ba24"
       }
     },
-    "aiThought": {
-      "sourceHash": "556206e4877c39cc",
-      "translations": {
-        "zh-OG": "d9191d0273a32e1d",
-        "ko-KR": "d9191d0273a32e1d",
-        "es-ES": "d9191d0273a32e1d",
-        "ja-JP": "d9191d0273a32e1d",
-        "zh-CN": "d9191d0273a32e1d",
-        "zh-TW": "d9191d0273a32e1d",
-        "en-US": "d9191d0273a32e1d"
-      }
-    },
-    "aiThoughtTitle": {
-      "sourceHash": "e07357c3977bd842",
-      "translations": {
-        "zh-OG": "864dc1df0238ada6",
-        "ko-KR": "864dc1df0238ada6",
-        "es-ES": "864dc1df0238ada6",
-        "ja-JP": "864dc1df0238ada6",
-        "zh-CN": "864dc1df0238ada6",
-        "zh-TW": "864dc1df0238ada6",
-        "en-US": "864dc1df0238ada6"
-      }
-    },
     "all": {
       "sourceHash": "a52ace420f2175d0",
       "translations": {
@@ -13673,15 +13649,7 @@
     },
     "surveys": {
       "sourceHash": "7c763b8fc78b7996",
-      "translations": {
-        "zh-OG": "1a04fca5cf32d230",
-        "ko-KR": "1a04fca5cf32d230",
-        "es-ES": "1a04fca5cf32d230",
-        "ja-JP": "1a04fca5cf32d230",
-        "zh-CN": "1a04fca5cf32d230",
-        "zh-TW": "1a04fca5cf32d230",
-        "en-US": "1a04fca5cf32d230"
-      }
+      "translations": {}
     },
     "surveysRecent": {
       "sourceHash": "ff8f0618dd4beb3d",
@@ -20170,114 +20138,6 @@
         "en-US": "bfa12227e79aadcf"
       }
     },
-    "thoughtDefaultTopic": {
-      "sourceHash": "7538c2135b030e4e",
-      "translations": {
-        "zh-OG": "756c86276bcc8b46",
-        "ko-KR": "756c86276bcc8b46",
-        "es-ES": "756c86276bcc8b46",
-        "ja-JP": "756c86276bcc8b46",
-        "zh-CN": "756c86276bcc8b46",
-        "zh-TW": "756c86276bcc8b46",
-        "en-US": "756c86276bcc8b46"
-      }
-    },
-    "thoughtFunctionCall": {
-      "sourceHash": "e31ac2986ecac7b6",
-      "translations": {
-        "zh-OG": "5c9c3089e84a2bdb",
-        "ko-KR": "5c9c3089e84a2bdb",
-        "es-ES": "5c9c3089e84a2bdb",
-        "ja-JP": "5c9c3089e84a2bdb",
-        "zh-CN": "5c9c3089e84a2bdb",
-        "zh-TW": "5c9c3089e84a2bdb",
-        "en-US": "5c9c3089e84a2bdb"
-      }
-    },
-    "thoughtFunctionCallBegin": {
-      "sourceHash": "31678b58fb7e50f1",
-      "translations": {
-        "zh-OG": "2fd83a31e3e9a73e",
-        "ko-KR": "2fd83a31e3e9a73e",
-        "es-ES": "2fd83a31e3e9a73e",
-        "ja-JP": "2fd83a31e3e9a73e",
-        "zh-CN": "2fd83a31e3e9a73e",
-        "zh-TW": "2fd83a31e3e9a73e",
-        "en-US": "2fd83a31e3e9a73e"
-      }
-    },
-    "thoughtFunctionCallFinish": {
-      "sourceHash": "a980e99d8f7b8e0b",
-      "translations": {
-        "zh-OG": "f607fa360c61c96b",
-        "ko-KR": "f607fa360c61c96b",
-        "es-ES": "f607fa360c61c96b",
-        "ja-JP": "f607fa360c61c96b",
-        "zh-CN": "f607fa360c61c96b",
-        "zh-TW": "f607fa360c61c96b",
-        "en-US": "f607fa360c61c96b"
-      }
-    },
-    "thoughtInputHint": {
-      "sourceHash": "da0e101a67e7aeed",
-      "translations": {
-        "zh-OG": "0322d61bb03d1907",
-        "ko-KR": "0322d61bb03d1907",
-        "es-ES": "0322d61bb03d1907",
-        "ja-JP": "0322d61bb03d1907",
-        "zh-CN": "0322d61bb03d1907",
-        "zh-TW": "0322d61bb03d1907",
-        "en-US": "0322d61bb03d1907"
-      }
-    },
-    "thoughtNewConversation": {
-      "sourceHash": "9518d1a29ba194a3",
-      "translations": {
-        "zh-OG": "e862e7e9c9b1d0ae",
-        "ko-KR": "e862e7e9c9b1d0ae",
-        "es-ES": "e862e7e9c9b1d0ae",
-        "ja-JP": "e862e7e9c9b1d0ae",
-        "zh-CN": "e862e7e9c9b1d0ae",
-        "zh-TW": "e862e7e9c9b1d0ae",
-        "en-US": "e862e7e9c9b1d0ae"
-      }
-    },
-    "thoughtParseError": {
-      "sourceHash": "5b5c713cf1b173b5",
-      "translations": {
-        "zh-OG": "c2c437b7309a2837",
-        "ko-KR": "c2c437b7309a2837",
-        "es-ES": "c2c437b7309a2837",
-        "ja-JP": "c2c437b7309a2837",
-        "zh-CN": "c2c437b7309a2837",
-        "zh-TW": "c2c437b7309a2837",
-        "en-US": "c2c437b7309a2837"
-      }
-    },
-    "thoughtStreamingHint": {
-      "sourceHash": "b4739a4f08650db2",
-      "translations": {
-        "zh-OG": "d73eea0c848dfe1b",
-        "ko-KR": "d73eea0c848dfe1b",
-        "es-ES": "d73eea0c848dfe1b",
-        "ja-JP": "d73eea0c848dfe1b",
-        "zh-CN": "d73eea0c848dfe1b",
-        "zh-TW": "d73eea0c848dfe1b",
-        "en-US": "d73eea0c848dfe1b"
-      }
-    },
-    "thoughtUnpaidHint": {
-      "sourceHash": "9a01ecde23006d3f",
-      "translations": {
-        "zh-OG": "516a545e8972fd80",
-        "ko-KR": "516a545e8972fd80",
-        "es-ES": "516a545e8972fd80",
-        "ja-JP": "516a545e8972fd80",
-        "zh-CN": "516a545e8972fd80",
-        "zh-TW": "516a545e8972fd80",
-        "en-US": "516a545e8972fd80"
-      }
-    },
     "ticketNumbers": {
       "sourceHash": "6e37cd3760f7747a",
       "translations": {
@@ -22892,10 +22752,6 @@
     },
     "cfIpSpeedTestSubtitle": {
       "sourceHash": "f79637a24efdbb12",
-      "translations": {}
-    },
-    "chatAskAI": {
-      "sourceHash": "ea9e45ac7083cf49",
       "translations": {}
     },
     "chatCount": {
@@ -28342,58 +28198,6 @@
       "sourceHash": "ecd8de69bd07a4df",
       "translations": {}
     },
-    "thoughtCompactArchived": {
-      "sourceHash": "290a54b58e42b107",
-      "translations": {}
-    },
-    "thoughtStatusAutoCompacted": {
-      "sourceHash": "ea6910460d44ae4a",
-      "translations": {}
-    },
-    "thoughtStatusCompacted": {
-      "sourceHash": "99ca2ce25713751b",
-      "translations": {}
-    },
-    "thoughtStatusCompacting": {
-      "sourceHash": "97afc9af7645cc05",
-      "translations": {}
-    },
-    "thoughtStatusContextCleared": {
-      "sourceHash": "e6cafa3c7b091f1c",
-      "translations": {}
-    },
-    "thoughtStatusPreparingContext": {
-      "sourceHash": "39eab01b92e0fcd0",
-      "translations": {}
-    },
-    "thoughtInputAttachedMessagesContext": {
-      "sourceHash": "09d56120387e31bf",
-      "translations": {}
-    },
-    "thoughtInputAttachedPostIds": {
-      "sourceHash": "364008fc4e6adb29",
-      "translations": {}
-    },
-    "thoughtInputAttachedFile": {
-      "sourceHash": "51880fb48fde2ec9",
-      "translations": {}
-    },
-    "thoughtEmptyStateTitle": {
-      "sourceHash": "8bf77f323399031d",
-      "translations": {}
-    },
-    "thoughtBotLabel": {
-      "sourceHash": "41e35ba1a1fd8b4c",
-      "translations": {}
-    },
-    "thoughtModelLabel": {
-      "sourceHash": "5e2c614c23f02239",
-      "translations": {}
-    },
-    "thoughtUnpaidBanner": {
-      "sourceHash": "f40eba77d457a79b",
-      "translations": {}
-    },
     "thumbnailSelected": {
       "sourceHash": "d734b93e4565b193",
       "translations": {}
@@ -29540,10 +29344,6 @@
     },
     "chatNoOnlineMembers": {
       "sourceHash": "452dfe104bf4b951",
-      "translations": {}
-    },
-    "surveys": {
-      "sourceHash": "7c763b8fc78b7996",
       "translations": {}
     },
     "surveyAnonymousAnswers": {

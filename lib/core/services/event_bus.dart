@@ -127,19 +127,6 @@ class ShowNotificationModalEvent {
   const ShowNotificationModalEvent();
 }
 
-/// Event fired to show the thought sheet
-class ShowThoughtSheetEvent {
-  final String? initialMessage;
-  final List<Map<String, dynamic>> attachedMessages;
-  final List<String> attachedPosts;
-
-  const ShowThoughtSheetEvent({
-    this.initialMessage,
-    this.attachedMessages = const [],
-    this.attachedPosts = const [],
-  });
-}
-
 /// Event fired when a custom solian:// deep link is received on platforms
 /// that deliver it via sharing intents.
 class SolianDeepLinkEvent {

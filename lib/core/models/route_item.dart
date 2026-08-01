@@ -156,13 +156,6 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.folder,
   ),
   RouteItem(
-    name: 'aiThought'.tr(),
-    path: '/thought',
-    description: 'aiThoughtTitle'.tr(),
-    searchableAliases: ['thought', 'ai', 'ai thought'],
-    icon: Symbols.psychology,
-  ),
-  RouteItem(
     name: 'creatorHub'.tr(),
     path: '/creators',
     description: 'creatorHubDescription'.tr(),

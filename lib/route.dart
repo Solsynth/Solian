@@ -170,13 +170,6 @@ class AppRouter extends RootStackRouter {
           maintainState: false,
         ),
 
-        // Thought tab
-        AutoRoute(
-          page: ThoughtRoute.page,
-          path: 'thought',
-          maintainState: false,
-        ),
-
         // Creator hub tab with nested routes
         AutoRoute(
           page: CreatorHubRoute.page,
