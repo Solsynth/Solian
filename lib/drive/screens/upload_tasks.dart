@@ -93,6 +93,83 @@ class EnhancedFileUploader extends FileUploader {
     final totalSize = await resolveUploadDataSize(uploadData);
     final tasks = ref.read(tasksProvider.notifier);
 
+    // Prefer the S3-backed direct upload (presigned PUT, multipart for large
+    // XFiles) when the pool supports it; fall back to the proxied flow when it
+    // cannot issue signed URLs. XFiles of any size are eligible (multipart
+    // above the threshold, single PUT below); in-memory payloads are capped by
+    // the single-PUT object limit. E2EE payloads and explicit chunk sizes stay
+    // on the proxied path.
+    if (localEncryptKey == null &&
+        customChunkSize == null &&
+        (uploadData is XFile ||
+            totalSize <= driveS3DirectUploadMaxFileSizeBytes)) {
+      final s3TaskId = tasks.addTask(
+        title: fileName,
+        type: AppTaskType.driveUpload,
+        status: AppTaskStatus.inProgress,
+        metadata: DriveUploadTaskMeta(
+          fileSize: totalSize,
+          totalChunks: 1,
+          poolId: poolId,
+          encryptPassword: encryptPassword,
+          expiredAt: expiredAt,
+        ).toMap(),
+      );
+
+      try {
+        onProgress?.call(null, Duration.zero);
+        final s3Uploaded = await tryUploadViaS3Direct(
+          fileData: uploadData,
+          fileName: fileName,
+          contentType: contentType,
+          poolId: poolId,
+          expiredAt: expiredAt,
+          parentId: parentId,
+          path: path,
+          usage: usage,
+          applicationType: applicationType,
+          onProgress: (progress, estimate) {
+            onProgress?.call(progress, estimate);
+            if (progress != null) {
+              tasks.updateTask(
+                s3TaskId,
+                progress: progress,
+                metadata: {
+                  ...?tasks.getTask(s3TaskId)?.metadata,
+                  'transmissionProgress': progress,
+                },
+              );
+            }
+          },
+        );
+
+        if (s3Uploaded != null) {
+          tasks.updateTask(
+            s3TaskId,
+            status: AppTaskStatus.completed,
+            progress: 1.0,
+          );
+          onProgress?.call(null, Duration.zero);
+          overallTimer.stop();
+          debugPrint(
+            '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
+          );
+          return s3Uploaded;
+        }
+
+        // Pool cannot issue presigned URLs — drop the placeholder task and
+        // fall through to the proxied flow below.
+        tasks.removeTask(s3TaskId);
+      } catch (err) {
+        tasks.updateTask(
+          s3TaskId,
+          status: AppTaskStatus.failed,
+          errorMessage: err.toString(),
+        );
+        rethrow;
+      }
+    }
+
     if (shouldUseDirectUpload(
       totalSize: totalSize,
       customChunkSize: customChunkSize,

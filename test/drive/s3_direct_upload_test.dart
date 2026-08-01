@@ -1,0 +1,310 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:cross_file/cross_file.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
+import 'package:island/core/websocket.dart';
+import 'package:island/drive/drive_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Fake DysonFS direct-upload API: prepare (single-PUT and multipart),
+/// per-part presign, and complete-direct. Part PUTs go to a real loopback
+/// HTTP server, matching the client's bare-Dio PUT behavior.
+class _FakeDysonFSAdapter implements HttpClientAdapter {
+  final String s3Base;
+
+  _FakeDysonFSAdapter(this.s3Base);
+
+  int prepareCalls = 0;
+  bool lastPrepareMultipart = false;
+  int completeCalls = 0;
+  int lastFileSize = 0;
+  final List<int> partRequests = [];
+
+  /// When true, prepare responds with a single `upload_url` (the
+  /// pre-multipart contract) instead of multipart session fields.
+  bool singlePut = false;
+
+  static const int partSize = 5 * 1024 * 1024;
+
+  Future<Map<String, dynamic>> _readJsonBody(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+  ) async {
+    if (requestStream != null) {
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in requestStream) {
+        builder.add(chunk);
+      }
+      return jsonDecode(utf8.decode(builder.takeBytes()))
+          as Map<String, dynamic>;
+    }
+    final data = options.data;
+    if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+    return jsonDecode(data as String) as Map<String, dynamic>;
+  }
+
+  ResponseBody _json(int status, Map<String, dynamic> body) =>
+      ResponseBody.fromString(
+        jsonEncode(body),
+        status,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final path = options.path;
+    if (path.startsWith('/drive/files/upload/prepare')) {
+      prepareCalls++;
+      final body = await _readJsonBody(options, requestStream);
+      lastPrepareMultipart = body['multipart'] == true;
+      lastFileSize = body['file_size'] as int;
+      final size = lastFileSize;
+      if (singlePut) {
+        return _json(200, {
+          'task_id': 'task-1',
+          'upload_id': 'upload-1',
+          'status': 1,
+          'object_key': 'objects/task-1',
+          'upload_url': '$s3Base/single',
+          'content_type': body['content_type'],
+        });
+      }
+      return _json(200, {
+        'task_id': 'task-1',
+        'upload_id': 'upload-1',
+        'status': 1,
+        'object_key': 'objects/task-1',
+        'part_size': partSize,
+        'part_count': (size / partSize).ceil(),
+        'content_type': body['content_type'],
+      });
+    }
+    if (path.endsWith('/part')) {
+      final body = await _readJsonBody(options, requestStream);
+      final partNumber = body['part_number'] as int;
+      partRequests.add(partNumber);
+      return _json(200, {
+        'part_number': partNumber,
+        'upload_url': '$s3Base/part/$partNumber',
+        'expires_in': 900,
+        'content_type': body['content_type'],
+      });
+    }
+    if (path.endsWith('/complete')) {
+      completeCalls++;
+      return _json(200, {
+        'file': {
+          'id': 'cloud-file-1',
+          'account_id': 'account-1',
+          'description': null,
+          'indexed': false,
+          'is_folder': false,
+          'is_marked_recycle': false,
+          'name': 'big.bin',
+          'object': {
+            'id': 'object-1',
+            'size': lastFileSize,
+            'hash': 'hash-1',
+            'meta': {},
+            'has_compression': false,
+            'has_thumbnail': false,
+            'file_replicas': <Object>[],
+            'created_at': '2026-08-01T00:00:00Z',
+            'updated_at': '2026-08-01T00:00:00Z',
+            'deleted_at': null,
+          },
+          'object_id': 'object-1',
+          'parent_id': 'parent-1',
+          'resource_identifier': 'resource-1',
+          'storage_id': 'pool-1',
+          'storage_url': s3Base,
+          'mime_type': 'application/octet-stream',
+          'application_type': null,
+          'usage': null,
+          'uploaded_at': '2026-08-01T00:00:00Z',
+          'expired_at': null,
+          'updated_at': '2026-08-01T00:00:00Z',
+          'created_at': '2026-08-01T00:00:00Z',
+          'deleted_at': null,
+        },
+      });
+    }
+    return _json(404, {'error': 'not found'});
+  }
+}
+
+/// Minimal fake S3: accepts PUTs (presigned part uploads and the single-PUT
+/// URL) and stores their bodies keyed by URL path.
+class _FakeS3Server {
+  final HttpServer server;
+  final Map<String, Uint8List> objects = {};
+
+  _FakeS3Server._(this.server);
+
+  static Future<_FakeS3Server> start() async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    final fake = _FakeS3Server._(server);
+    server.listen((request) async {
+      if (request.method == 'PUT') {
+        final builder = BytesBuilder(copy: false);
+        await for (final chunk in request) {
+          builder.add(chunk);
+        }
+        fake.objects[request.uri.path] = builder.takeBytes();
+        request.response.statusCode = 200;
+        request.response.headers.set(HttpHeaders.etagHeader, '"etag"');
+        await request.response.close();
+        return;
+      }
+      request.response.statusCode = 404;
+      await request.response.close();
+    });
+    return fake;
+  }
+
+  Future<void> close() => server.close(force: true);
+
+  String get base => 'http://127.0.0.1:${server.port}';
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late _FakeS3Server s3;
+  late _FakeDysonFSAdapter dyson;
+  late ProviderContainer container;
+
+  setUpAll(() async {
+    // flutter_test blocks real HTTP by default; the S3 PUTs need loopback.
+    HttpOverrides.global = null;
+    s3 = await _FakeS3Server.start();
+  });
+
+  tearDownAll(() async {
+    await s3.close();
+  });
+
+  setUp(() async {
+    dyson = _FakeDysonFSAdapter(s3.base);
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
+    container = ProviderContainer(
+      retry: (_, _) => null,
+      overrides: [
+        apiClientProvider.overrideWithValue(Dio()..httpClientAdapter = dyson),
+        sharedPreferencesProvider.overrideWithValue(preferences),
+        tokenProvider.overrideWithValue(null),
+        weakInternetModeProvider.overrideWithValue(false),
+      ],
+    );
+  });
+
+  tearDown(() {
+    container.dispose();
+  });
+
+  test('large XFile uploads via S3 multipart: prepare, per-part presign, '
+      'bare PUTs, complete-direct', () async {
+    final file = File(
+      '${Directory.systemTemp.path}/'
+      's3_multipart_${DateTime.now().microsecondsSinceEpoch}.bin',
+    );
+    final source = Uint8List(driveS3DirectMultipartMinFileSizeBytes);
+    await file.writeAsBytes(source, flush: true);
+    addTearDown(() => file.deleteSync());
+
+    final uploader = container.read(driveFileUploaderProvider);
+    double? lastProgress;
+    final result = await uploader.tryUploadViaS3Direct(
+      fileData: XFile(file.path),
+      fileName: 'big.bin',
+      contentType: 'application/octet-stream',
+      parentId: 'parent-1',
+      onProgress: (progress, estimate) {
+        if (progress != null) {
+          lastProgress = progress;
+        }
+      },
+    );
+
+    expect(result, isNotNull);
+    expect(result!.id, 'cloud-file-1');
+
+    // prepare asked for multipart exactly once; complete-direct ran once.
+    expect(dyson.prepareCalls, 1);
+    expect(dyson.lastPrepareMultipart, isTrue);
+    expect(dyson.completeCalls, 1);
+
+    // every part was presigned exactly once, in order.
+    const partCount = driveS3DirectMultipartMinFileSizeBytes ~/ (5 * 1024 * 1024);
+    expect(dyson.partRequests, List.generate(partCount, (index) => index + 1));
+
+    // all part PUTs landed on the fake S3, sized correctly, and the
+    // concatenation reproduces the source file byte-for-byte (this catches
+    // range-read boundary bugs).
+    expect(s3.objects.length, partCount);
+    var total = 0;
+    for (final part in s3.objects.values) {
+      total += part.length;
+    }
+    expect(total, source.length);
+
+    final rebuilt = Uint8List(source.length);
+    var offset = 0;
+    for (var n = 1; n <= partCount; n++) {
+      final part = s3.objects['/part/$n']!;
+      expect(part.length, lessThanOrEqualTo(5 * 1024 * 1024));
+      rebuilt.setRange(offset, offset + part.length, part);
+      offset += part.length;
+    }
+    expect(rebuilt, equals(source));
+    expect(offset, source.length);
+
+    expect(lastProgress, 1.0);
+  });
+
+  test('small XFile still uses the single presigned PUT flow', () async {
+    final file = File(
+      '${Directory.systemTemp.path}/'
+      's3_single_${DateTime.now().microsecondsSinceEpoch}.bin',
+    );
+    final source = Uint8List(1024 * 1024);
+    await file.writeAsBytes(source, flush: true);
+    addTearDown(() => file.deleteSync());
+
+    // Single-PUT prepare returns an upload_url instead of multipart fields.
+    dyson.singlePut = true;
+
+    final uploader = container.read(driveFileUploaderProvider);
+    final result = await uploader.tryUploadViaS3Direct(
+      fileData: XFile(file.path),
+      fileName: 'small.bin',
+      contentType: 'application/octet-stream',
+      parentId: 'parent-1',
+    );
+
+    expect(result, isNotNull);
+    expect(result!.id, 'cloud-file-1');
+    expect(dyson.lastPrepareMultipart, isFalse);
+    expect(s3.objects['/single'], isNotNull);
+    expect(s3.objects['/single']!.length, source.length);
+    expect(s3.objects['/single'], equals(source));
+  });
+}

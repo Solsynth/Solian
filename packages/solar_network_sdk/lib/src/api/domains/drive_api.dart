@@ -612,7 +612,7 @@ class DriveApi extends BaseApi {
 
   /// Cancels an in-progress upload and cleans up temp files.
   Future<void> cancelUpload(String taskId) async {
-    await delete('$_basePath/files/upload/task/$taskId');
+    await delete('$_basePath/files/upload/$taskId');
   }
 
   /// Returns upload statistics for the authenticated user.

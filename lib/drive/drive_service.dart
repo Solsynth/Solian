@@ -43,6 +43,17 @@ const int driveDirectUploadMaxFileSizeBytes =
     driveUploadChunkSizeBytes * driveDirectUploadMaxChunks;
 const int driveChunkUploadConcurrency = 3;
 
+/// S3 direct uploads for in-memory byte payloads use one presigned `PUT` per
+/// upload with a known `Content-Length`. S3 rejects single-PUT objects larger
+/// than 5 GB, so larger in-memory payloads must use the proxied chunk flow.
+const int driveS3DirectUploadMaxFileSizeBytes = 5 * 1024 * 1024 * 1024;
+
+/// [XFile]s at or above this size are uploaded as an S3 multipart direct
+/// upload (presigned per-part `PUT`s with server-side completion) instead of
+/// a single presigned `PUT`: parts upload in parallel and a failed part only
+/// needs that part re-sent. Smaller files keep the simpler single-PUT path.
+const int driveS3DirectMultipartMinFileSizeBytes = 100 * 1024 * 1024;
+
 class DriveQuotaExceededException implements Exception {
   final String message;
 
@@ -67,7 +78,13 @@ class _ConcurrencyLimiter {
     }
 
     final future = task();
-    _running.add(future.then((_) => _running.remove(future)));
+    _running.add(future);
+    unawaited(
+      future.then<void>(
+        (_) => _running.remove(future),
+        onError: (Object _, StackTrace _) => _running.remove(future),
+      ),
+    );
     return future;
   }
 }
@@ -802,6 +819,445 @@ class FileUploader {
     });
   }
 
+  /// Attempts the S3-backed direct upload flow (see DysonFS memo/UPLOAD_FLOW.md):
+  ///
+  /// 1. `POST /drive/files/upload/prepare` — DysonFS authorizes the upload and
+  ///    returns a short-lived presigned `PUT` URL plus a task id.
+  /// 2. `PUT <upload_url>` — the file bytes go straight to the S3 pool. The
+  ///    presigned URL is self-authenticating, so the app's auth interceptor
+  ///    must not touch this request. `XFile` bodies are streamed from disk
+  ///    with a known `Content-Length` (no chunked encoding, which presigned
+  ///    URLs reject); in-memory and web payloads go through a bare Dio.
+  /// 3. `POST /drive/files/upload/<task-id>/complete` — DysonFS verifies
+  ///    the object and creates the visible file with status `Processing`;
+  ///    clients must not wait for `Completed` before displaying it.
+  ///
+  /// Returns `null` when the pool cannot issue presigned URLs
+  /// (`use_proxied_upload`), so the caller can fall back to the proxied flow.
+  Future<SnCloudFile?> tryUploadViaS3Direct({
+    required dynamic fileData,
+    required String fileName,
+    required String contentType,
+    String? poolId,
+    String? expiredAt,
+    String? parentId,
+    String? path,
+    String? usage,
+    String? applicationType,
+    Function(double? progress, Duration estimate)? onProgress,
+  }) async {
+    final xfile = fileData is XFile ? fileData : null;
+    final byteData = fileData is Uint8List ? fileData : null;
+    if (xfile == null && byteData == null) {
+      throw ArgumentError('Invalid fileData type');
+    }
+
+    final int fileSize;
+    final String hash;
+    if (xfile != null) {
+      fileSize = await xfile.length();
+      hash = await _calculateFileHashFromStream(xfile.openRead());
+    } else {
+      fileSize = byteData!.length;
+      hash = _calculateFileHash(byteData);
+    }
+
+    // Large XFiles go through the multipart direct flow (parallel presigned
+    // part PUTs, server-side completion). Byte payloads are already
+    // materialized in memory and web cannot stream ranges, so they stay on
+    // the single-PUT path below.
+    if (xfile != null &&
+        !kIsWeb &&
+        fileSize >= driveS3DirectMultipartMinFileSizeBytes) {
+      return _uploadViaS3Multipart(
+        xfile: xfile,
+        fileSize: fileSize,
+        hash: hash,
+        fileName: fileName,
+        contentType: contentType,
+        poolId: poolId,
+        expiredAt: expiredAt,
+        parentId: parentId,
+        path: path,
+        usage: usage,
+        applicationType: applicationType,
+        onProgress: onProgress,
+      );
+    }
+
+    onProgress?.call(null, Duration.zero);
+    final prepareTimer = Stopwatch()..start();
+    Map<String, dynamic> prepared;
+    try {
+      final resolvedParentId = parentId ??
+          await resolveParentIdFromPath(path: path, poolId: poolId);
+      final response = await _guardUploadQuotaExceeded(
+        () => _client.post(
+          '/drive/files/upload/prepare',
+          data: {
+            'file_name': fileName,
+            'file_size': fileSize,
+            'content_type': contentType,
+            'hash': hash,
+            'pool_id': poolId,
+            'expired_at': expiredAt,
+            'parent_id': resolvedParentId,
+            'usage': usage,
+            'application_type': applicationType,
+          },
+          options: Options(
+            sendTimeout: const Duration(minutes: 2),
+            receiveTimeout: const Duration(minutes: 2),
+          ),
+        ),
+      );
+      prepared = Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (err) {
+      final body = err.response?.data;
+      if (body is Map && body['use_proxied_upload'] == true) {
+        return null;
+      }
+      rethrow;
+    }
+    prepareTimer.stop();
+    debugPrint(
+      '[DriveUpload] S3 prepare took: ${prepareTimer.elapsedMilliseconds}ms',
+    );
+
+    if (prepared['use_proxied_upload'] == true) {
+      return null;
+    }
+
+    final taskId = prepared['task_id']?.toString();
+    final uploadUrl = prepared['upload_url']?.toString();
+    if (taskId == null ||
+        taskId.isEmpty ||
+        uploadUrl == null ||
+        uploadUrl.isEmpty) {
+      throw const FormatException(
+        'Direct upload prepare response is missing task_id or upload_url.',
+      );
+    }
+    final preparedContentType = prepared['content_type']?.toString();
+    final resolvedContentType = (preparedContentType == null ||
+            preparedContentType.isEmpty)
+        ? contentType
+        : preparedContentType;
+
+    final putTimer = Stopwatch()..start();
+    if (xfile != null && !kIsWeb) {
+      await _putXFileToPresignedUrl(
+        uploadUrl: uploadUrl,
+        file: xfile,
+        contentType: resolvedContentType,
+        onProgress: onProgress,
+      );
+    } else {
+      final body = xfile != null
+          ? Uint8List.fromList(await xfile.readAsBytes())
+          : byteData!;
+      final putClient = Dio();
+      try {
+        await putClient.put<dynamic>(
+          uploadUrl,
+          data: body,
+          options: Options(
+            headers: {'Content-Type': resolvedContentType},
+            sendTimeout: const Duration(minutes: 10),
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+          onSendProgress: (sent, total) {
+            if (total > 0) {
+              onProgress?.call(sent / total, Duration.zero);
+            }
+          },
+        );
+      } finally {
+        putClient.close();
+      }
+    }
+    putTimer.stop();
+    debugPrint('[DriveUpload] S3 PUT took: ${putTimer.elapsedMilliseconds}ms');
+
+    return _completeS3DirectUpload(taskId, onProgress);
+  }
+
+  /// Commits a prepared S3 direct upload (single PUT or multipart) and parses
+  /// the resulting file. The server verifies the uploaded object/parts before
+  /// creating the visible file.
+  Future<SnCloudFile> _completeS3DirectUpload(
+    String taskId,
+    Function(double? progress, Duration estimate)? onProgress,
+  ) async {
+    onProgress?.call(null, Duration.zero);
+    final completeTimer = Stopwatch()..start();
+    final response = await _guardUploadQuotaExceeded(
+      () => _client.post(
+        '/drive/files/upload/$taskId/complete',
+        options: Options(
+          sendTimeout: const Duration(minutes: 5),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      ),
+    );
+    completeTimer.stop();
+    debugPrint(
+      '[DriveUpload] S3 complete-direct took: ${completeTimer.elapsedMilliseconds}ms',
+    );
+
+    if (response.data is! Map) {
+      throw const FormatException(
+        'Unexpected direct upload complete response payload.',
+      );
+    }
+    return _parseUploadedFileResponse(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
+  /// Uploads an [XFile] as an S3 multipart direct upload.
+  ///
+  /// `prepare` with `multipart: true` creates the S3 session server-side and
+  /// returns `upload_id`, `part_size` and `part_count`. Each part is presigned
+  /// on demand (`POST /drive/files/upload/<task-id>/part`), PUT straight to S3
+  /// with a bare client (presigned URLs are self-authenticating), and
+  /// `complete-direct` verifies part completeness and commits the session
+  /// server-side. Parts are uploaded in windows of
+  /// [driveChunkUploadConcurrency] so memory stays bounded to a few parts.
+  Future<SnCloudFile?> _uploadViaS3Multipart({
+    required XFile xfile,
+    required int fileSize,
+    required String hash,
+    required String fileName,
+    required String contentType,
+    String? poolId,
+    String? expiredAt,
+    String? parentId,
+    String? path,
+    String? usage,
+    String? applicationType,
+    Function(double? progress, Duration estimate)? onProgress,
+  }) async {
+    onProgress?.call(null, Duration.zero);
+    final prepareTimer = Stopwatch()..start();
+    Map<String, dynamic> prepared;
+    try {
+      final resolvedParentId =
+          parentId ?? await resolveParentIdFromPath(path: path, poolId: poolId);
+      final response = await _guardUploadQuotaExceeded(
+        () => _client.post(
+          '/drive/files/upload/prepare',
+          data: {
+            'file_name': fileName,
+            'file_size': fileSize,
+            'content_type': contentType,
+            'hash': hash,
+            'pool_id': poolId,
+            'expired_at': expiredAt,
+            'parent_id': resolvedParentId,
+            'usage': usage,
+            'application_type': applicationType,
+            'multipart': true,
+          },
+          options: Options(
+            sendTimeout: const Duration(minutes: 2),
+            receiveTimeout: const Duration(minutes: 2),
+          ),
+        ),
+      );
+      prepared = Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (err) {
+      final body = err.response?.data;
+      if (body is Map && body['use_proxied_upload'] == true) {
+        return null;
+      }
+      rethrow;
+    }
+    prepareTimer.stop();
+    debugPrint(
+      '[DriveUpload] S3 multipart prepare took: '
+      '${prepareTimer.elapsedMilliseconds}ms',
+    );
+
+    if (prepared['use_proxied_upload'] == true) {
+      return null;
+    }
+
+    final taskId = prepared['task_id']?.toString();
+    final partSize = prepared['part_size'] is int
+        ? prepared['part_size'] as int
+        : int.tryParse(prepared['part_size']?.toString() ?? '');
+    final partCount = prepared['part_count'] is int
+        ? prepared['part_count'] as int
+        : int.tryParse(prepared['part_count']?.toString() ?? '');
+    if (taskId == null ||
+        taskId.isEmpty ||
+        partSize == null ||
+        partSize <= 0 ||
+        partCount == null ||
+        partCount <= 0) {
+      throw const FormatException(
+        'Direct upload prepare response is missing task_id, part_size or '
+        'part_count.',
+      );
+    }
+    final preparedContentType = prepared['content_type']?.toString();
+    final resolvedContentType = (preparedContentType == null ||
+            preparedContentType.isEmpty)
+        ? contentType
+        : preparedContentType;
+
+    final putTimer = Stopwatch()..start();
+    final limiter = _ConcurrencyLimiter(driveChunkUploadConcurrency);
+    var sent = 0;
+    for (var batchStart = 1;
+        batchStart <= partCount;
+        batchStart += driveChunkUploadConcurrency) {
+      final batchEnd = (batchStart + driveChunkUploadConcurrency > partCount)
+          ? partCount + 1
+          : batchStart + driveChunkUploadConcurrency;
+      await Future.wait([
+        for (var partNumber = batchStart; partNumber < batchEnd; partNumber++)
+          limiter.run(
+            () => _uploadS3Part(
+              xfile: xfile,
+              taskId: taskId,
+              partNumber: partNumber,
+              partSize: partSize,
+              fileSize: fileSize,
+              contentType: resolvedContentType,
+            ).then((bytes) {
+              sent += bytes;
+              onProgress?.call(sent / fileSize, Duration.zero);
+            }),
+          ),
+      ]);
+    }
+    putTimer.stop();
+    debugPrint(
+      '[DriveUpload] S3 multipart PUT took: '
+      '${putTimer.elapsedMilliseconds}ms',
+    );
+
+    return _completeS3DirectUpload(taskId, onProgress);
+  }
+
+  /// Presigns and uploads one part of a multipart direct upload, returning
+  /// the number of bytes sent.
+  Future<int> _uploadS3Part({
+    required XFile xfile,
+    required String taskId,
+    required int partNumber,
+    required int partSize,
+    required int fileSize,
+    required String contentType,
+  }) async {
+    final presignResponse = await _guardUploadQuotaExceeded(
+      () => _client.post(
+        '/drive/files/upload/$taskId/part',
+        data: {'part_number': partNumber},
+        options: Options(
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
+      ),
+    );
+    final partBody = Map<String, dynamic>.from(presignResponse.data as Map);
+    final partUrl = partBody['upload_url']?.toString();
+    if (partUrl == null || partUrl.isEmpty) {
+      throw const FormatException(
+        'Direct upload part presign response is missing upload_url.',
+      );
+    }
+
+    final start = (partNumber - 1) * partSize;
+    final end = partNumber * partSize < fileSize
+        ? partNumber * partSize
+        : fileSize;
+    final body = await _readFileRange(xfile, start, end);
+
+    final putClient = Dio();
+    try {
+      await putClient.put<dynamic>(
+        partUrl,
+        data: body,
+        options: Options(
+          headers: {'Content-Type': contentType},
+          sendTimeout: const Duration(minutes: 10),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
+    } finally {
+      putClient.close();
+    }
+    return body.length;
+  }
+
+  /// Reads `[start, end)` bytes of [xfile] into memory (bounded to one part).
+  Future<Uint8List> _readFileRange(XFile xfile, int start, int end) async {
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in xfile.openRead(start, end)) {
+      builder.add(chunk);
+    }
+    return builder.takeBytes();
+  }
+
+  /// Streams an [XFile] to a presigned `PUT` URL with a known `Content-Length`.
+  ///
+  /// The presigned URL is self-authenticating; the app's auth interceptor must
+  /// not touch this request, so a raw [HttpClient] is used instead of the
+  /// shared Dio. `dart:io` streams cannot set `Content-Length` (they fall back
+  /// to chunked transfer encoding, which S3 presigned URLs reject), so the
+  /// body is streamed here with the size set explicitly.
+  Future<void> _putXFileToPresignedUrl({
+    required String uploadUrl,
+    required XFile file,
+    required String contentType,
+    Function(double? progress, Duration estimate)? onProgress,
+  }) async {
+    final uri = Uri.parse(uploadUrl);
+    final total = await file.length();
+    final client = HttpClient();
+    try {
+      final request = await client
+          .putUrl(uri)
+          .timeout(const Duration(seconds: 30));
+      request.contentLength = total;
+      request.headers.contentType = ContentType.parse(contentType);
+
+      var sent = 0;
+      final progressStream = file.openRead().map((chunk) {
+        sent += chunk.length;
+        if (total > 0) {
+          onProgress?.call(sent / total, Duration.zero);
+        }
+        return chunk;
+      });
+      await request
+          .addStream(progressStream)
+          .timeout(const Duration(minutes: 30));
+      final response = await request.close().timeout(const Duration(minutes: 5));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final errorBody = await response
+            .transform(utf8.decoder)
+            .join()
+            .timeout(const Duration(seconds: 10));
+        throw DioException.badResponse(
+          statusCode: response.statusCode,
+          requestOptions: RequestOptions(path: uploadUrl),
+          response: Response<dynamic>(
+            requestOptions: RequestOptions(path: uploadUrl),
+            statusCode: response.statusCode,
+            data: errorBody,
+          ),
+        );
+      }
+    } finally {
+      client.close(force: true);
+    }
+  }
+
   /// Calculates the MD5 hash of file bytes.
   String _calculateFileHash(Uint8List bytes) {
     final digest = md5.convert(bytes);
@@ -1099,6 +1555,37 @@ class FileUploader {
     }
 
     final totalSize = await resolveUploadDataSize(uploadData);
+
+    // Prefer the S3-backed direct upload (presigned PUT, multipart for large
+    // XFiles) when the pool supports it; fall back to the proxied flow when it
+    // cannot issue signed URLs. XFiles of any size are eligible (multipart
+    // above the threshold, single PUT below); in-memory payloads are capped by
+    // the single-PUT object limit. E2EE payloads and explicit chunk sizes stay
+    // on the proxied path.
+    if (localEncryptKey == null &&
+        customChunkSize == null &&
+        (uploadData is XFile ||
+            totalSize <= driveS3DirectUploadMaxFileSizeBytes)) {
+      final s3Uploaded = await tryUploadViaS3Direct(
+        fileData: uploadData,
+        fileName: fileName,
+        contentType: contentType,
+        poolId: poolId,
+        expiredAt: expiredAt,
+        parentId: parentId,
+        path: path,
+        usage: usage,
+        applicationType: applicationType,
+        onProgress: onProgress,
+      );
+      if (s3Uploaded != null) {
+        overallTimer.stop();
+        debugPrint(
+          '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
+        );
+        return s3Uploaded;
+      }
+    }
 
     if (shouldUseDirectUpload(
       totalSize: totalSize,
