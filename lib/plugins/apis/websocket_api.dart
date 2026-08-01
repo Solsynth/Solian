@@ -119,7 +119,7 @@ ws.send = function(type, data, endpoint) {
 
   void _handleSubscribe(PluginContext context, dynamic raw) {
     try {
-      final data = context.router.decode(raw);
+      final data = context.decode(raw);
       final handler = data['handler']?.toString();
       if (handler == null || handler.isEmpty) return;
       final typeRaw = data['type']?.toString();
@@ -142,7 +142,7 @@ ws.send = function(type, data, endpoint) {
 
   void _handleUnsubscribe(PluginContext context, dynamic raw) {
     try {
-      final data = context.router.decode(raw);
+      final data = context.decode(raw);
       final handler = data['handler']?.toString();
       if (handler == null || handler.isEmpty || handler == 'null') {
         _handlers.removeWhere((h) => h.pluginId == context.pluginId);
@@ -158,7 +158,7 @@ ws.send = function(type, data, endpoint) {
 
   bool _handleSend(PluginContext context, dynamic raw) {
     try {
-      final data = context.router.decode(raw);
+      final data = context.decode(raw);
       final type = data['type']?.toString();
       if (type == null || type.isEmpty) return false;
       if (reservedSendTypes.contains(type)) {

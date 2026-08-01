@@ -58,7 +58,7 @@ events.list_events = function() {
 ''');
     runtime.onMessage('api:events:subscribe', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final eventName = data['event']?.toString();
         final handlerName = data['handler']?.toString();
         if (eventName == null || handlerName == null) return;

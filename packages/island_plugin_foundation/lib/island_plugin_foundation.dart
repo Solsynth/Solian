@@ -13,7 +13,6 @@ export 'src/apis/hooks_api.dart';
 export 'src/apis/plugin_api.dart';
 export 'src/apis/ui_api.dart';
 export 'src/bridge/js_bridge.dart';
-export 'src/bridge/message_router.dart';
 export 'src/bridge/plugin_context.dart';
 export 'src/models/plugin_manifest.dart';
 export 'src/sandbox/sandbox.dart';

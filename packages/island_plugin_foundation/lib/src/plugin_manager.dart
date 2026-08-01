@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:island_plugin_foundation/src/apis/plugin_api.dart';
 import 'package:island_plugin_foundation/src/bridge/js_bridge.dart';
-import 'package:island_plugin_foundation/src/bridge/message_router.dart';
 import 'package:island_plugin_foundation/src/bridge/plugin_context.dart';
 import 'package:island_plugin_foundation/src/models/plugin_manifest.dart';
 import 'package:island_plugin_foundation/src/sandbox/sandbox.dart';
@@ -651,7 +650,6 @@ class PluginManager {
     final context = PluginContext(
       pluginId: instance.manifest.id,
       permissions: perms,
-      router: MessageRouter(),
     );
 
     for (final entry in _apis.entries) {
@@ -662,32 +660,8 @@ class PluginManager {
       }
     }
 
-    _createApiNamespaces(instance, perms);
     _registerPluginMetadata(instance);
   }
-
-  void _createApiNamespaces(
-    PluginInstance instance,
-    Set<PluginPermission> perms,
-  ) {
-    final runtime = instance.runtime;
-    if (runtime == null) return;
-
-    final buf = StringBuffer();
-    for (final api in _apis.values) {
-      if (api.requiredPermissions.isEmpty ||
-          api.requiredPermissions.any(perms.contains)) {
-        final js = api.jsBindingsFor(perms);
-        if (js != null) buf.write(js);
-      }
-    }
-
-    final code = buf.toString();
-    if (code.isEmpty) return;
-
-    runtime.exec(code, filename: '<api_namespaces>');
-  }
-
   void _registerPluginMetadata(PluginInstance instance) {
     final runtime = instance.runtime;
     if (runtime == null) return;

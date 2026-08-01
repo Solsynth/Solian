@@ -59,7 +59,7 @@ class HooksApi extends PluginApi {
 
   void _registerHookFromMessage(PluginContext context, String hookName, dynamic raw) {
     try {
-      final data = context.router.decode(raw);
+      final data = context.decode(raw);
       final handlerName = data['handler']?.toString();
       if (handlerName == null) return;
 

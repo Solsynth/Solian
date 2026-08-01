@@ -56,7 +56,7 @@ icons.register_font = function(id, fontPath, glyphs) {
 
     runtime.onMessage('api:icons:exists', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return _registry.exists(
           name: data['name']?.toString(),
           font: data['font']?.toString(),
@@ -70,7 +70,7 @@ icons.register_font = function(id, fontPath, glyphs) {
 
     runtime.onMessage('api:icons:lookup', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final result = _registry.lookup(
           name: data['name']?.toString(),
           style: data['style']?.toString(),
@@ -86,7 +86,7 @@ icons.register_font = function(id, fontPath, glyphs) {
 
     runtime.onMessage('api:icons:search', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final query = data['query']?.toString() ?? '';
         final limit = (data['limit'] as num?)?.toInt() ?? 50;
         return jsonEncode(_registry.search(
@@ -103,7 +103,7 @@ icons.register_font = function(id, fontPath, glyphs) {
 
     runtime.onMessage('api:icons:count', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return _registry.count(
           font: data['font']?.toString(),
           pluginId: _pluginId(data, context),
@@ -115,7 +115,7 @@ icons.register_font = function(id, fontPath, glyphs) {
 
     runtime.onMessage('api:icons:fonts', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final pluginId = _pluginId(data, context);
         if (pluginId.isEmpty) return '[]';
         final list = _registry.fontsFor(pluginId).map((f) => {
@@ -134,7 +134,7 @@ icons.register_font = function(id, fontPath, glyphs) {
 
     runtime.onMessage('api:icons:register_font', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final pluginId = _pluginId(data, context);
         if (pluginId.isEmpty) {
           return jsonEncode({'ok': false, 'error': 'No active plugin context'});

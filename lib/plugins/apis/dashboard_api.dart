@@ -46,7 +46,7 @@ ui.register_dashboard_item = function(id, title, handler, icon) {
 ''');
     runtime.onMessage('api:ui:register_dashboard_item', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final id = data['id']?.toString();
         final title = data['title']?.toString();
         final handler = data['handler']?.toString();

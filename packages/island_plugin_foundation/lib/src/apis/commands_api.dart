@@ -43,7 +43,7 @@ commands.register_command = function(name, description, handler, icon) {
 ''');
     runtime.onMessage('api:commands:register_command', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final name = data['name']?.toString();
         final description = data['description']?.toString();
         final handler = data['handler']?.toString();

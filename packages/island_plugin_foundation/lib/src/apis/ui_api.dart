@@ -102,7 +102,7 @@ ui.plugin_asset = function(path, kind, fit) {
   void _registerUiHandlers(PluginContext context, JsRuntime runtime) {
     runtime.onMessage('api:ui:card', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final result = <String, dynamic>{
           'type': 'card',
           'title': data['title']?.toString() ?? '',
@@ -121,7 +121,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:list_items', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final items = data['items'];
         return jsonEncode(<String, dynamic>{
           'type': 'list',
@@ -135,7 +135,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:button', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final result = <String, dynamic>{
           'type': 'button',
           'label': data['label']?.toString() ?? '',
@@ -151,7 +151,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:text', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode({'type': 'text', 'content': data['content']?.toString() ?? ''});
       } catch (e) {
         _log.warning('ui.text error: $e');
@@ -161,7 +161,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:section', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'section',
           'title': data['title']?.toString() ?? '',
@@ -179,7 +179,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:page', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'page',
           'title': data['title']?.toString() ?? '',
@@ -194,7 +194,7 @@ ui.plugin_asset = function(path, kind, fit) {
     for (final type in const ['row', 'column']) {
       runtime.onMessage('api:ui:$type', (raw) {
         try {
-          final data = context.router.decode(raw);
+          final data = context.decode(raw);
           return jsonEncode(<String, dynamic>{
             'type': type,
             'children': data['children'] is List ? data['children'] : [],
@@ -208,7 +208,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:spacing', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'spacing',
           'size': (data['size'] as num?)?.toDouble() ?? 8,
@@ -221,7 +221,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:icon', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'icon',
           'name': data['name']?.toString() ?? 'extension',
@@ -238,7 +238,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:link', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'link',
           'label': data['label']?.toString() ?? '',
@@ -252,7 +252,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:input', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'input',
           'label': data['label']?.toString(),
@@ -267,7 +267,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:cloud_file', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         return jsonEncode(<String, dynamic>{
           'type': 'cloud_file',
           'id': data['id']?.toString() ?? '',
@@ -281,7 +281,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:plugin_asset', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final pluginId = context.pluginId;
         final relativePath = data['path']?.toString() ?? '';
         if (pluginId.isEmpty || relativePath.isEmpty) return '{}';
@@ -304,7 +304,7 @@ ui.plugin_asset = function(path, kind, fit) {
 
     runtime.onMessage('api:ui:open', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final title = data['title']?.toString() ?? '';
         final descriptorRaw = data['descriptor'];
         final pluginId = data['pluginId']?.toString() ?? context.pluginId;
@@ -325,7 +325,7 @@ ui.plugin_asset = function(path, kind, fit) {
     for (final type in const ['image', 'audio', 'video']) {
       runtime.onMessage('api:ui:$type', (raw) {
         try {
-          final data = context.router.decode(raw);
+          final data = context.decode(raw);
           return jsonEncode(<String, dynamic>{
             'type': 'asset_$type',
             'url': data['url']?.toString() ?? '',

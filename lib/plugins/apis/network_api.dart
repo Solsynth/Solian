@@ -61,7 +61,7 @@ solar.request = function(method, path, options, callback) {
     required bool useSolarNetwork,
   }) {
     try {
-      final data = context.router.decode(args);
+      final data = context.decode(args);
       unawaited(
         _request(
           runtime,

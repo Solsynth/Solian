@@ -27,7 +27,7 @@ function showConfirm(message, title) {
 
     runtime.onMessage('api:notify', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         _log.info('Plugin notify: ${data['title']} - ${data['body']}');
         try {
           alert.showNotification(
@@ -44,7 +44,7 @@ function showConfirm(message, title) {
 
     runtime.onMessage('api:alert:show_alert', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         alert.showInfoAlert(
           data['message']?.toString() ?? '',
           data['title']?.toString() ?? 'Info',
@@ -56,7 +56,7 @@ function showConfirm(message, title) {
 
     runtime.onMessage('api:alert:show_error', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         alert.showErrorAlert(data['message']?.toString() ?? 'Unknown error');
       } catch (e) {
         _log.warning('Failed to show error: $e');
@@ -65,7 +65,7 @@ function showConfirm(message, title) {
 
     runtime.onMessage('api:alert:show_confirm', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         alert.showConfirmAlert(
           data['message']?.toString() ?? '',
           data['title']?.toString() ?? 'Confirm',

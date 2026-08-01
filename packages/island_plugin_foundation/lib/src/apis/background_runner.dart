@@ -44,7 +44,7 @@ tasks.schedule = function(intervalSeconds, handler) {
 ''');
     runtime.onMessage('api:tasks:schedule', (raw) {
       try {
-        final data = context.router.decode(raw);
+        final data = context.decode(raw);
         final intervalSeconds = data['interval'];
         final handlerName = data['handler']?.toString();
         if (intervalSeconds == null || handlerName == null) return;

@@ -137,21 +137,21 @@ class MyNotifyApi extends PluginApi {
   Set<PluginPermission> get requiredPermissions => {PluginPermission.notify};
 
   @override
-  void register(JsRuntime runtime) {
-    runtime.onMessage('api:notify:notify', (args) {
-      final title = args['title'] ?? '';
-      final body = args['body'] ?? '';
+  void register(PluginContext context, JsRuntime runtime) {
+    // Inject the JS surface into this plugin's sandboxed runtime.
+    runtime.exec('''
+var notify = function(title, body) {
+  sendMessage("api:notify:notify", JSON.stringify({title: title, body: body}));
+};
+''');
+
+    runtime.onMessage('api:notify:notify', (raw) {
+      // Normalize the raw bridge payload (JSON string or Map) to a map.
+      final data = context.decode(raw);
+      final title = data['title']?.toString() ?? '';
+      final body = data['body']?.toString() ?? '';
       _showSystemNotification(title, body);
     });
-  }
-
-  @override
-  String jsBindingsFor(Set<PluginPermission> granted) {
-    return '''
-      var notify = function(title, body) {
-        sendMessage("api:notify:notify", JSON.stringify({title: title, body: body}));
-      };
-    ''';
   }
 
   @override
