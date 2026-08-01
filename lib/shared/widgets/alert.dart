@@ -140,6 +140,15 @@ void hideLoadingModal(BuildContext context) async {
   return (fallback ?? err.toString(), null);
 }
 
+/// Looks up the localized label for an app error code
+/// (i18n key `errorCode_<CODE>`), falling back to the raw code when no
+/// translation exists yet.
+String _localizeErrorCode(String code, BuildContext context) {
+  final key = 'errorCode_$code';
+  final localized = context.tr(key);
+  return localized == key ? code : localized;
+}
+
 final List<void Function()> _activeOverlayDialogs = [];
 
 Future<T?> showOverlayDialog<T>({
@@ -318,17 +327,20 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
                             ),
                       ),
                       const Gap(8),
-                      Text(
-                        code,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onErrorContainer,
-                            ),
+                      Tooltip(
+                        message: code,
+                        child: Text(
+                          _localizeErrorCode(code, context),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                              ),
+                        ),
                       ),
                     ],
                   ),

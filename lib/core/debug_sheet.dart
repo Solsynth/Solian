@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +39,26 @@ import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+/// Synthetic DioException carrying a server-style ApiError payload, so the
+/// debug tools can preview the localized error dialog (code chip included).
+DioException _testApiError() {
+  const body = <String, dynamic>{
+    'code': 'POST_ALREADY_BOOSTED',
+    'message': 'This is a test error message for debugging purposes.',
+    'status': 409,
+    'traceId': '00-debug-trace-0001',
+  };
+  final options = RequestOptions(path: '/debug/test-error');
+  return DioException(
+    requestOptions: options,
+    response: Response(
+      requestOptions: options,
+      statusCode: 409,
+      data: body,
+    ),
+  );
+}
 
 SnAccount _createTestAccount({
   required String id,
@@ -1546,9 +1567,7 @@ class DebugSheet extends HookConsumerWidget {
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               title: const Text('Test error alert'),
               onTap: () {
-                showErrorAlert(
-                  'This is a test error message for debugging purposes.',
-                );
+                showErrorAlert(_testApiError());
               },
             ),
             ListTile(
