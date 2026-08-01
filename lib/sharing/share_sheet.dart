@@ -2,13 +2,11 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/chat/utils/chat_room_ordering.dart';
-import 'package:island/chat/widgets/chat_room_picker_filter.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -745,7 +743,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   }
 }
 
-class _ChatRoomsList extends HookConsumerWidget {
+class _ChatRoomsList extends ConsumerWidget {
   final Function(SnChatRoom)? onChatSelected;
 
   const _ChatRoomsList({this.onChatSelected});
@@ -754,22 +752,11 @@ class _ChatRoomsList extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatRooms = ref.watch(chatRoomJoinedProvider);
     final summaries = ref.watch(chatSummaryProvider);
-    final filter = useState(ChatRoomPickerFilter.all);
-    final query = useState('');
 
     return chatRooms.when(
       data: (rooms) {
         final summariesData = summaries.whenData((data) => data).value ?? {};
         final filteredRooms = sortChatRoomsByActivity(rooms, summariesData)
-            .where(
-              (room) =>
-                  (filter.value == ChatRoomPickerFilter.all ||
-                      (filter.value == ChatRoomPickerFilter.direct &&
-                          room.type == 1) ||
-                      (filter.value == ChatRoomPickerFilter.group &&
-                          room.type != 1)) &&
-                  chatRoomMatchesSearch(room, query.value),
-            )
             .toList();
         if (rooms.isEmpty) {
           return Container(
@@ -792,11 +779,6 @@ class _ChatRoomsList extends HookConsumerWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ChatRoomPickerSearchBar(onChanged: (value) => query.value = value),
-            ChatRoomPickerFilterBar(
-              selected: filter.value,
-              onSelected: (value) => filter.value = value,
-            ),
             if (filteredRooms.isEmpty)
               SizedBox(
                 height: 80,

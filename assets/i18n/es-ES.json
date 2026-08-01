@@ -2236,6 +2236,7 @@
   "chatRedirectSuccess": "Redirected {} message(s).",
   "chatRedirectTextOnly": "Only regular text messages can be redirected.",
   "chatRedirectTo": "to {}",
+  "chatRedirectToCurrentChat": "Redirect to this chat",
   "chatRedirectTooMany": "You can redirect up to 100 messages at once.",
   "chatRedirectedFromRoom": "Redirected from {}",
   "chatRedirectedHistoryFrom": "Redirected history from {}",

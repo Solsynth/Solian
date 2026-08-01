@@ -701,6 +701,7 @@
   "chatRedirectSuccess": "已转发 {} 条消息。",
   "chatRedirectTextOnly": "只能转发普通的文本消息。",
   "chatRedirectTo": "发送至 {}",
+  "chatRedirectToCurrentChat": "Redirect to this chat",
   "chatRedirectTooMany": "单次最多可转发 100 条消息。",
   "chatRedirectedFromRoom": "来自 {}",
   "chatRedirectedHistoryFrom": "来自 {} 的聊天记录",

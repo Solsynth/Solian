@@ -587,7 +587,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final inputKey = useMemoized(() => GlobalKey(), []);
 
-    final openRedirectSheet = useCallback(() async {
+    final redirectSelectedMessages = useCallback((String destinationRoomId) async {
       if (selectedMessageIds.isEmpty) return;
 
       final allMessages = messages.value ?? const <LocalChatMessage>[];
@@ -617,14 +617,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
 
       if (!context.mounted) return;
-
-      final destinationRoomId = await showModalBottomSheet<String>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => _RedirectRoomSelectorSheet(currentRoomId: id),
-      );
-
-      if (destinationRoomId == null || !context.mounted) return;
 
       final rooms = ref
           .read(chatRoomJoinedProvider)
@@ -698,6 +690,24 @@ class ChatRoomScreen extends HookConsumerWidget {
         }
       }
     }, [selectedMessageIds, messages, ref, context, id, chatStateNotifier]);
+
+    final openRedirectSheet = useCallback(() async {
+      if (selectedMessageIds.isEmpty) return;
+      if (!context.mounted) return;
+
+      final destinationRoomId = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => _RedirectRoomSelectorSheet(currentRoomId: id),
+      );
+
+      if (destinationRoomId == null || !context.mounted) return;
+      await redirectSelectedMessages(destinationRoomId);
+    }, [selectedMessageIds, context, id, redirectSelectedMessages]);
+
+    final redirectToCurrentChat = useCallback(() {
+      redirectSelectedMessages(id);
+    }, [redirectSelectedMessages, id]);
 
     final uploadAttachment = useCallback((
       int index, {
@@ -1184,6 +1194,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                         selectedCount: selectedMessageIds.length,
                         onClose: chatStateNotifier.exitSelectionMode,
                         onRedirect: openRedirectSheet,
+                        onRedirectToCurrentChat: redirectToCurrentChat,
                       )
                     : chatRoom.when(
                         data: (room) => room != null

@@ -8,6 +8,7 @@ class RoomSelectionMode extends StatelessWidget {
   final int selectedCount;
   final VoidCallback onClose;
   final VoidCallback onRedirect;
+  final VoidCallback onRedirectToCurrentChat;
 
   const RoomSelectionMode({
     super.key,
@@ -15,6 +16,7 @@ class RoomSelectionMode extends StatelessWidget {
     required this.selectedCount,
     required this.onClose,
     required this.onRedirect,
+    required this.onRedirectToCurrentChat,
   });
 
   @override
@@ -72,6 +74,15 @@ class RoomSelectionMode extends StatelessWidget {
                         enabled: hasSelection,
                         onPressed: onRedirect,
                         filled: false,
+                        compact: compact,
+                      ),
+                      const SizedBox(width: 8),
+                      _SelectionActionButton(
+                        icon: Symbols.login,
+                        label: 'chatRedirectToCurrentChat'.tr(),
+                        enabled: hasSelection,
+                        onPressed: onRedirectToCurrentChat,
+                        filled: true,
                         compact: compact,
                       ),
                       const SizedBox(width: 8),

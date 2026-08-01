@@ -683,6 +683,7 @@
   "chatRedirectSuccess": "已轉發 {} 條訊息。",
   "chatRedirectTextOnly": "只能轉發普通的文字訊息。",
   "chatRedirectTo": "傳送至 {}",
+  "chatRedirectToCurrentChat": "Redirect to this chat",
   "chatRedirectTooMany": "單次最多可轉發 100 條訊息。",
   "chatRedirectedFromRoom": "來自 {}",
   "chatRedirectedHistoryFrom": "來自 {} 的聊天記錄",
