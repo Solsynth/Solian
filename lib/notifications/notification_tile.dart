@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -165,24 +166,22 @@ class NotificationTile extends ConsumerWidget {
               ),
             ),
       onTap: () {
-        if (notification.meta['action_uri'] != null) {
-          var uri = notification.meta['action_uri'] as String;
-          if (uri.startsWith('/')) {
-            // In-app routes — use global router so navigation works
-            // inside attention modals where context.router is unavailable.
-            ref
-                .read(routerProvider)
-                .navigatePath(
-                  notification.meta['action_uri'],
-                  onFailure: (err) {
-                    showErrorAlert('Unable to open page: $err');
-                  },
-                );
-            dismissAttentionModal('notifications');
-          } else {
-            // External URLs
-            launchUrlString(uri);
-          }
+        final rawUri = notification.meta['action_uri'] as String?;
+        if (rawUri == null || rawUri.isEmpty) return;
+        final routePath = actionUriToRoutePath(rawUri);
+        if (routePath != null) {
+          // In-app routes — use global router so navigation works
+          // inside attention modals where context.router is unavailable.
+          ref.read(routerProvider).navigatePath(
+            routePath,
+            onFailure: (err) {
+              showErrorAlert('Unable to open page: $err');
+            },
+          );
+          dismissAttentionModal('notifications');
+        } else {
+          // External URLs
+          launchUrlString(rawUri);
         }
       },
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -18,20 +19,15 @@ class NotificationCard extends HookConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        if (notification.meta['action_uri'] != null) {
-          var uri = notification.meta['action_uri'] as String;
-          if (uri.startsWith('solian://')) {
-            uri = uri.replaceFirst('solian://', '');
-          }
-          if (uri.startsWith('/')) {
-            // In-app routes
-            ref
-                .read(routerProvider)
-                .navigatePath(notification.meta['action_uri']);
-          } else {
-            // External URLs
-            launchUrlString(uri);
-          }
+        final rawUri = notification.meta['action_uri'] as String?;
+        if (rawUri == null || rawUri.isEmpty) return;
+        final routePath = actionUriToRoutePath(rawUri);
+        if (routePath != null) {
+          // In-app routes
+          ref.read(routerProvider).navigatePath(routePath);
+        } else {
+          // External URLs
+          launchUrlString(rawUri);
         }
       },
       child: Card(

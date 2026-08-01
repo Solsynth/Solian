@@ -245,7 +245,7 @@ class AccountQrScreen extends HookConsumerWidget {
       }
 
       final uri = Uri.tryParse(value);
-      if (uri != null && uri.scheme == 'solian') {
+      if (uri != null && solianLinkToRoutePath(uri) != null) {
         eventBus.fire(SolianDeepLinkEvent(uri));
         return;
       }

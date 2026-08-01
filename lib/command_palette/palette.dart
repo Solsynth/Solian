@@ -21,6 +21,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
 import 'package:island/plugins/icons/plugin_icon_font_registry.dart';
@@ -524,9 +525,10 @@ class CommandPaletteWidget extends HookConsumerWidget {
 
     final List<FallbackAction> actions = [];
 
-    // Check if query is a solian:// deep link
+    // Check if query is a Solian deep link (custom scheme or the web app URL)
     final Uri? uri = Uri.tryParse(query);
-    final isSolianLink = uri != null && uri.scheme == 'solian';
+    final routePath = uri == null ? null : solianLinkToRoutePath(uri);
+    final isSolianLink = routePath != null;
     final isValidUrl =
         uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
     final isDomain = RegExp(
@@ -534,14 +536,14 @@ class CommandPaletteWidget extends HookConsumerWidget {
     ).hasMatch(query);
 
     if (isSolianLink) {
-      final path = '/${uri.host}${uri.path}';
+      final path = routePath;
       actions.add(
         FallbackAction(
           name: 'Open Link',
           description: 'Open $query in app',
           icon: Symbols.open_in_new,
           action: () {
-            final params = uri.queryParameters;
+            final params = uri!.queryParameters;
             if (path == '/auth/authorize') {
               ref
                   .read(routerProvider)

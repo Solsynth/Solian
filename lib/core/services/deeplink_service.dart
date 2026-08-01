@@ -240,3 +240,48 @@ class _ProtocolListener implements ProtocolListener {
   @override
   void onProtocolUrlReceived(String url) => _onProtocolUrlReceived(url);
 }
+
+/// True when [uri] points at the Solian web app itself — its routes map 1:1
+/// onto in-app routes. Subdomains (api., nt., fs., …) serve other apps and
+/// are NOT in-app routes.
+bool isSolianWebUri(Uri uri) =>
+    (uri.scheme == 'http' || uri.scheme == 'https') &&
+    uri.host == 'solian.app';
+
+/// Converts a Solian link — either the `solian://host/path` custom scheme or
+/// the web app URL `https://solian.app/path` — into the matching in-app route
+/// path (`/host/path` and `/path` respectively). Returns null when [uri] is
+/// not a Solian link.
+String? solianLinkToRoutePath(Uri uri) {
+  String path;
+  if (uri.scheme == 'solian') {
+    path = '/${uri.host}${uri.path}';
+  } else if (isSolianWebUri(uri)) {
+    path = uri.path.isEmpty ? '/' : uri.path;
+    if (!path.startsWith('/')) path = '/$path';
+  } else {
+    return null;
+  }
+  // Normalize trailing slashes so `https://solian.app/orders/123/` matches
+  // the `/orders/:id` route instead of the 404 catch-all.
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.substring(0, path.length - 1);
+  }
+  // `solian:///posts/123` (empty authority) yields `//posts/123` — collapse
+  // it to a regular in-app path.
+  if (path.startsWith('//')) {
+    path = path.substring(1);
+  }
+  return path;
+}
+
+/// Normalizes a raw action URI to an in-app route path. Handles
+/// `solian://…`, `https://solian.app/…` and bare `/…` paths. Returns null
+/// when the value should be opened externally instead.
+String? actionUriToRoutePath(String rawValue) {
+  final value = rawValue.trim();
+  if (value.startsWith('/')) return value;
+  final uri = Uri.tryParse(value);
+  if (uri == null) return null;
+  return solianLinkToRoutePath(uri);
+}

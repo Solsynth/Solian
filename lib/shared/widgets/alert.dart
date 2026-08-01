@@ -9,6 +9,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network/api_error.dart';
 import 'package:island/main.dart';
 import 'package:island/core/notification.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/route.dart';
 import 'package:just_audio/just_audio.dart';
 export 'package:island_ui_foundation/src/snackbar_overlay.dart'
@@ -511,8 +512,11 @@ Future<void> openExternalLinkWithContainer(
   if (openPostDetailAttentionModalForUri(url)) {
     return;
   }
-  if (url.scheme == 'solian') {
-    await launchUrl(url, mode: LaunchMode.externalApplication);
+  final routePath = solianLinkToRoutePath(url);
+  if (routePath != null) {
+    // Solian links (custom scheme or https://solian.app) map onto in-app
+    // routes — open them here instead of handing them to the OS/browser.
+    container.read(routerProvider).navigatePath(routePath);
     return;
   }
 

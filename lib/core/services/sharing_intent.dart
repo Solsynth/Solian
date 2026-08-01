@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/ios_share_suggestions.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
@@ -120,7 +121,8 @@ class SharingIntentService {
     String? solianDeepLink;
     for (final url in links) {
       final normalized = url.trim();
-      if (normalized.toLowerCase().startsWith('solian://')) {
+      final uri = Uri.tryParse(normalized);
+      if (uri != null && solianLinkToRoutePath(uri) != null) {
         solianDeepLink = normalized;
         break;
       }

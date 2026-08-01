@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/route.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -104,18 +105,13 @@ class NotificationItemWidget extends HookConsumerWidget {
     final notification = item.notification!;
     return GestureDetector(
       onTap: () {
-        if (notification.meta['action_uri'] != null) {
-          var uri = notification.meta['action_uri'] as String;
-          if (uri.startsWith('solian://')) {
-            uri = uri.replaceFirst('solian://', '');
-          }
-          if (uri.startsWith('/')) {
-            ref
-                .read(routerProvider)
-                .navigatePath(notification.meta['action_uri']);
-          } else {
-            launchUrlString(uri);
-          }
+        final rawUri = notification.meta['action_uri'] as String?;
+        if (rawUri == null || rawUri.isEmpty) return;
+        final routePath = actionUriToRoutePath(rawUri);
+        if (routePath != null) {
+          ref.read(routerProvider).navigatePath(routePath);
+        } else {
+          launchUrlString(rawUri);
         }
       },
       onHorizontalDragEnd: (details) {

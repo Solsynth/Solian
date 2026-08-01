@@ -14,6 +14,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/database.dart';
 import 'package:island/shared/widgets/content/markdown_remote_image.dart';
 import 'package:island/posts/screens/post_detail.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -213,9 +214,9 @@ class MarkdownTextContent extends HookConsumerWidget {
                 if (openPostDetailAttentionModalForUri(url)) {
                   return;
                 }
-                if (url.scheme == 'solian') {
-                  final fullPath = ['/', url.host, url.path].join('');
-                  context.router.navigatePath(fullPath);
+                final routePath = solianLinkToRoutePath(url);
+                if (routePath != null) {
+                  context.router.navigatePath(routePath);
                   return;
                 }
                 await openExternalLink(url, ref);

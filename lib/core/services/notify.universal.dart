@@ -14,6 +14,7 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/services/push_provider.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
@@ -256,24 +257,18 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
 
   void handleNotificationPayload(String? payload) {
     if (payload == null || payload.isEmpty) return;
-    var uri = payload;
-    if (uri.startsWith('solian://')) {
-      // The app's custom scheme — treat the remainder as an in-app route so
-      // it opens the same page as a tap on the in-app notification tile.
-      final rest = uri.substring('solian://'.length);
-      uri = rest.startsWith('/') ? rest : '/$rest';
-    }
-    if (uri.startsWith('/')) {
-      // In-app routes
+    final routePath = actionUriToRoutePath(payload);
+    if (routePath != null) {
+      // In-app routes — `solian://…`, `https://solian.app/…` or bare `/…`
       router.navigatePath(
-        uri,
+        routePath,
         onFailure: (err) {
           Logger.root.warning('[Notification] Unable to open page: $err');
         },
       );
     } else {
       // External URLs
-      launchUrlString(uri);
+      launchUrlString(payload);
     }
   }
 
