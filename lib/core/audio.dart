@@ -7,14 +7,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:island/core/config.dart';
 import 'package:audio_session/audio_session.dart';
 
-final sfxPlayerProvider = Provider<AudioPlayer>((ref) {
-  final player = AudioPlayer();
-  ref.onDispose(() {
-    player.dispose();
-  });
-  return player;
-});
-
 final callInviteLoopPlayerProvider = Provider<AudioPlayer>((ref) {
   final player = AudioPlayer();
   ref.onDispose(() {
@@ -46,23 +38,6 @@ final audioSessionProvider = FutureProvider<void>((ref) async {
   await _configureAudioSession();
 });
 
-final notificationSfxProvider = FutureProvider<void>((ref) async {
-  final player = ref.watch(sfxPlayerProvider);
-  await player.setVolume(0.75);
-  await player.setAudioSource(
-    AudioSource.asset('assets/audio/notification.wav'),
-    preload: true,
-  );
-});
-
-final messageSfxProvider = FutureProvider<void>((ref) async {
-  final player = ref.watch(sfxPlayerProvider);
-  await player.setAudioSource(
-    AudioSource.asset('assets/audio/messages.wav'),
-    preload: true,
-  );
-});
-
 Future<void> _playSfx(String assetPath, double volume) async {
   final player = AudioPlayer();
   try {
@@ -71,7 +46,16 @@ Future<void> _playSfx(String assetPath, double volume) async {
     // We handle PlayerInterruptedException gracefully as it's expected
     // when multiple SFX are triggered in rapid succession
     await player.setAudioSource(AudioSource.asset(assetPath));
-    await player.play();
+    // Do NOT await play(): on iOS its future can hang forever when the
+    // audio session cannot activate (e.g. a CallKit call owns it), which
+    // would leak this player. Play fire-and-forget and wait for natural
+    // completion instead, with a timeout as a backstop.
+    unawaited(player.play().catchError((Object _) {}));
+    await player.processingStateStream
+        .firstWhere((state) => state == ProcessingState.completed)
+        .timeout(const Duration(seconds: 10));
+  } on TimeoutException {
+    // Playback did not finish in time (session unavailable, etc.).
   } on PlayerInterruptedException catch (_) {
     // This is normal and expected when:
     // 1. Audio source is loading but player gets disposed
@@ -119,10 +103,13 @@ Future<void> playCallInvitedSfxLoop(WidgetRef ref) async {
     await player.setAudioSource(
       AudioSource.asset('assets/audio/call_invited.wav'),
     );
-    await player.play();
+    // Schedule the auto-stop BEFORE awaiting play(): play() only completes
+    // when the player is stopped, so scheduling it afterwards would never
+    // run and the loop would ring forever.
     Future.delayed(const Duration(minutes: 1), () {
       unawaited(stopCallInvitedSfxLoop(ref));
     });
+    await player.play();
   } on PlayerInterruptedException catch (_) {
     await player.stop();
   } on PlayerException catch (e) {

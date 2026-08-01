@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/config.dart';
-import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/content/media_playback.dart';
 
@@ -27,21 +25,23 @@ class UniversalAudio extends ConsumerStatefulWidget {
 class _UniversalAudioState extends ConsumerState<UniversalAudio> {
   bool _sliderWorking = false;
   Duration _sliderPosition = Duration.zero;
+  // Riverpod forbids touching `ref` in State.dispose(), so the controller is
+  // captured lazily and reused for the dock handoff.
+  MediaPlaybackController? _playbackController;
 
   Future<void> _initPlayer() async {
-    final serverUrl = ref.read(serverUrlProvider);
-    final token = ref.read(tokenProvider);
-    await ref
-        .read(mediaPlaybackProvider.notifier)
-        .open(
-          uri: widget.uri,
-          title: widget.filename,
-          kind: MediaPlaybackKind.audio,
-          autoplay: widget.autoplay,
-          httpHeaders: widget.uri.startsWith(serverUrl) && token != null
-              ? {'Authorization': 'Bearer ${token.token}'}
-              : null,
-        );
+    // NOTE: No Authorization header is sent to media_kit on purpose. The
+    // media endpoint 307-redirects to a pre-signed storage URL, and mpv's
+    // HTTP stack forwards custom headers on redirects, which makes the
+    // signed URL reject the request (400/403) and playback fails.
+    final controller =
+        _playbackController ??= ref.read(mediaPlaybackProvider.notifier);
+    await controller!.open(
+      uri: widget.uri,
+      title: widget.filename,
+      kind: MediaPlaybackKind.audio,
+      autoplay: widget.autoplay,
+    );
   }
 
   @override
@@ -60,7 +60,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
 
   @override
   void dispose() {
-    ref.read(mediaPlaybackProvider.notifier).dockWhenReleased(widget.uri);
+    _playbackController?.dockWhenReleased(widget.uri);
     super.dispose();
   }
 

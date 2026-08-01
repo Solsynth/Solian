@@ -135,11 +135,18 @@ class WindowScaffold extends HookConsumerWidget {
             CommandPaletteWidget(onDismiss: () => showPalette.value = false),
         ],
         onClose: () => windowManager.hide(),
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(child: child),
-            const MediaPlaybackDock(),
-            const TaskOverlayHost(),
+            Column(
+              children: [
+                Expanded(child: child),
+                const MediaPlaybackDock(),
+                const TaskOverlayHost(),
+              ],
+            ),
+            // Video keeps playing in a floating picture-in-picture overlay;
+            // the audio dock stays in the column above.
+            const FloatingVideoDock(),
           ],
         ),
       ),

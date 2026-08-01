@@ -200,9 +200,10 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
     final currentPath = useState('/');
 
     useEffect(() {
-      ref
-          .read(indexedCloudFileListProvider.notifier)
-          .setPath(currentPath.value);
+      final path = currentPath.value;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(indexedCloudFileListProvider.notifier).setPath(path);
+      });
       return null;
     }, [currentPath.value]);
 

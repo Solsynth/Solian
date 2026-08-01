@@ -49,6 +49,108 @@ String _buildThreadIdentifier(SnNotification notification) {
   return 'type_${notification.topic}';
 }
 
+/// Detects the file type of [file] from its magic bytes and returns an
+/// extension that iOS/macOS accept for notification attachments
+/// (jpg/png/gif images, mp3/wav/m4a audio, mp4 video). Returns null when
+/// the type cannot be determined or is not supported.
+String? _detectDarwinAttachmentExtension(File file) {
+  final raf = file.openSync();
+  try {
+    final bytes = raf.readSync(12);
+    if (bytes.length < 4) return null;
+
+    // JPEG: FF D8 FF
+    if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) {
+      return 'jpg';
+    }
+    // PNG: 89 50 4E 47
+    if (bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47) {
+      return 'png';
+    }
+    // GIF: GIF8
+    if (bytes[0] == 0x47 &&
+        bytes[1] == 0x49 &&
+        bytes[2] == 0x46 &&
+        bytes[3] == 0x38) {
+      return 'gif';
+    }
+    // MP3 with ID3 tag
+    if (bytes[0] == 0x49 && bytes[1] == 0x44 && bytes[2] == 0x33) {
+      return 'mp3';
+    }
+    // MP3 without ID3 tag: MPEG audio frame sync (FF Ex)
+    if (bytes[0] == 0xFF && (bytes[1] & 0xE0) == 0xE0) {
+      return 'mp3';
+    }
+
+    if (bytes.length >= 12 &&
+        bytes[0] == 0x52 &&
+        bytes[1] == 0x49 &&
+        bytes[2] == 0x46 &&
+        bytes[3] == 0x46) {
+      // RIFF container: WEBP image or WAVE audio
+      final formType = String.fromCharCodes(bytes.sublist(8, 12));
+      if (formType == 'WAVE') return 'wav';
+      return null; // WEBP is not a supported attachment type
+    }
+
+    if (bytes.length >= 12 &&
+        bytes[4] == 0x66 &&
+        bytes[5] == 0x74 &&
+        bytes[6] == 0x79 &&
+        bytes[7] == 0x70) {
+      // ISO BMFF box: MP4 / M4A (HEIC/AVIF images are not supported)
+      final brand = String.fromCharCodes(bytes.sublist(8, 12));
+      switch (brand) {
+        case 'M4A ':
+        case 'M4B ':
+          return 'm4a';
+        case 'mp42':
+        case 'isom':
+        case 'mp41':
+        case 'avc1':
+        case 'dash':
+          return 'mp4';
+        default:
+          return null;
+      }
+    }
+    return null;
+  } finally {
+    raf.closeSync();
+  }
+}
+
+/// Returns a path for [file] that iOS/macOS recognise as a notification
+/// attachment, copying it to a temp location with a proper extension when
+/// needed. flutter_cache_manager stores cached files as `<uuid>.file`, which
+/// UNNotificationAttachment rejects with "Unrecognized attachment file type".
+/// Returns null when the file type is unknown or unsupported.
+Future<String?> _pathForDarwinAttachment(File file) async {
+  final extension = _detectDarwinAttachmentExtension(file);
+  if (extension == null) {
+    Logger.root.warning(
+      '[Notification] Skipping attachment with unrecognised type: ${file.path}',
+    );
+    return null;
+  }
+  if (file.path.toLowerCase().endsWith('.$extension')) return file.path;
+
+  final segments = file.uri.pathSegments;
+  var stem = 'attachment';
+  if (segments.isNotEmpty) {
+    final name = segments.last;
+    final dot = name.lastIndexOf('.');
+    stem = dot > 0 ? name.substring(0, dot) : name;
+  }
+  final target = File('${Directory.systemTemp.path}/$stem.$extension');
+  await file.copy(target.path);
+  return target.path;
+}
+
 Future<List<DarwinNotificationAttachment>> _downloadDarwinAttachments(
   String serverUrl,
   SnNotification notification,
@@ -71,7 +173,9 @@ Future<List<DarwinNotificationAttachment>> _downloadDarwinAttachments(
       final file = await DefaultCacheManager()
           .getSingleFile('$serverUrl/drive/files/$imageId')
           .timeout(const Duration(seconds: 10));
-      return DarwinNotificationAttachment(file.path, identifier: imageId);
+      final path = await _pathForDarwinAttachment(file);
+      if (path == null) return null;
+      return DarwinNotificationAttachment(path, identifier: imageId);
     } catch (e) {
       Logger.root.warning(
         'Failed to download notification attachment ($imageId): $e',
@@ -303,9 +407,10 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
               notification.topic.startsWith('messages.') &&
               notification.meta['pfp'] is String) {
             try {
-              senderImagePath = (await DefaultCacheManager().getSingleFile(
+              final file = await DefaultCacheManager().getSingleFile(
                 '$serverUrl/drive/files/${notification.meta['pfp']}',
-              )).path;
+              );
+              senderImagePath = await _pathForDarwinAttachment(file);
             } catch (error) {
               Logger.root.warning(
                 '[Notification] Failed to download communication sender image: $error',

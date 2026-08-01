@@ -180,11 +180,24 @@ class ActivityListNotifier
   String? currentFilter;
 
   @override
-  Future<List<SnTimelineEvent>> fetch({int retryCount = 0}) async {
+  Future<List<SnTimelineEvent>> fetch({int retryCount = 0}) {
+    return _fetchTimelinePage(cursor, retryCount: retryCount);
+  }
+
+  /// Fetches one page of the timeline at [pageCursor].
+  ///
+  /// Only pages that contain posts count toward the next cursor: pages made
+  /// up entirely of other event types (presence, status, discovery, ...) are
+  /// transparently skipped by following the server cursor, so non-post data
+  /// never advances or ends pagination.
+  Future<List<SnTimelineEvent>> _fetchTimelinePage(
+    String? pageCursor, {
+    int retryCount = 0,
+  }) async {
     final client = ref.read(solarNetworkClientProvider);
 
     final queryParameters = {
-      if (cursor != null) 'cursor': cursor,
+      'cursor': ?pageCursor,
       'take': pageSize,
       'mode': currentMode,
       'aggressive': isAggressiveMode,
@@ -207,6 +220,11 @@ class ActivityListNotifier
         .map((e) => SnTimelineEvent.fromJson(Map<String, dynamic>.from(e)))
         .toList();
 
+    final hasPosts = items.any((item) => item.type.startsWith('posts.new'));
+    if (!hasPosts && nextCursor != null && nextCursor.isNotEmpty) {
+      return _fetchTimelinePage(nextCursor, retryCount: retryCount);
+    }
+
     hasMore = nextCursor != null && nextCursor.isNotEmpty;
     cursor = hasMore ? nextCursor : null;
 
@@ -224,7 +242,7 @@ class ActivityListNotifier
         final adjustedCursor = prevCursor.subtract(retryAdjustmentDuration);
         cursor = adjustedCursor.toUtc().toIso8601String();
         // Retry fetch with adjusted cursor
-        return fetch(retryCount: retryCount + 1);
+        return _fetchTimelinePage(cursor, retryCount: retryCount + 1);
       }
     }
 

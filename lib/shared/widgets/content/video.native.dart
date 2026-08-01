@@ -7,8 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/core/config.dart';
-import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/content/media_playback.dart';
 
 class UniversalVideo extends ConsumerStatefulWidget {
@@ -18,6 +16,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
   final VoidCallback? onRetry;
   final Player? externalPlayer;
   final bool persistent;
+  final VideoControlsBuilder? controls;
   const UniversalVideo({
     super.key,
     required this.uri,
@@ -26,6 +25,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
     this.onRetry,
     this.externalPlayer,
     this.persistent = true,
+    this.controls,
   });
 
   @override
@@ -42,6 +42,9 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   StreamSubscription<String>? _errorSubscription;
   Future<void> _playerLifecycle = Future.value();
   bool _isDisposed = false;
+  // Riverpod forbids touching `ref` in State.dispose(), so the controller is
+  // captured eagerly (lazily, on first use) and reused for dock handoff.
+  MediaPlaybackController? _playbackController;
 
   bool get isPlaying => _isPlaying;
 
@@ -73,12 +76,13 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   Future<void> _initPlayer() async {
     MediaKit.ensureInitialized();
 
-    final controller = ref.read(mediaPlaybackProvider.notifier);
+    final controller =
+        _playbackController ??= ref.read(mediaPlaybackProvider.notifier);
     final usePersistentPlayer =
         widget.externalPlayer == null && widget.persistent;
     final player =
         widget.externalPlayer ??
-        (usePersistentPlayer ? controller.player : Player());
+        (usePersistentPlayer ? controller!.player : Player());
     _ownPlayer = player;
     _videoController = VideoController(player);
     if (mounted) setState(() {});
@@ -104,17 +108,16 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     });
 
     if (usePersistentPlayer) {
-      final serverUrl = ref.read(serverUrlProvider);
-      final token = ref.read(tokenProvider);
-      await controller.open(
+      // NOTE: No Authorization header is sent to media_kit on purpose. The
+      // media endpoint 307-redirects to a pre-signed storage URL, and mpv's
+      // HTTP stack forwards custom headers on redirects, which makes the
+      // signed URL reject the request (400/403) and playback fails.
+      await controller!.open(
         uri: widget.uri,
         title: _titleFromUri(widget.uri),
         kind: MediaPlaybackKind.video,
         autoplay: widget.autoplay,
         aspectRatio: widget.aspectRatio,
-        httpHeaders: widget.uri.startsWith(serverUrl) && token != null
-            ? {'Authorization': 'Bearer ${token.token}'}
-            : null,
       );
     } else if (widget.externalPlayer == null) {
       await player.open(Media(widget.uri), play: widget.autoplay);
@@ -154,7 +157,7 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   void dispose() {
     _isDisposed = true;
     if (widget.persistent) {
-      ref.read(mediaPlaybackProvider.notifier).dockWhenReleased(widget.uri);
+      _playbackController?.dockWhenReleased(widget.uri);
     }
     _playerLifecycle = _playerLifecycle.then((_) => _disposePlayer());
     super.dispose();
@@ -201,7 +204,8 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       controller: _videoController!,
       aspectRatio: widget.aspectRatio != 1 ? widget.aspectRatio : null,
       fit: BoxFit.contain,
-      controls: isMobile ? MaterialVideoControls : MaterialDesktopVideoControls,
+      controls: widget.controls ??
+          (isMobile ? MaterialVideoControls : MaterialDesktopVideoControls),
       fill: const Color.fromARGB(0, 0, 0, 0),
       filterQuality: FilterQuality.high,
     );

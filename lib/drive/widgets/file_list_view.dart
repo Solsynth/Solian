@@ -52,6 +52,27 @@ class _DriveMoveDragData {
   int get count => fileIds.length;
 }
 
+/// Sets [notifier]'s value only while it is still being observed.
+///
+/// Post-frame callbacks scheduled by a file-list view can fire after the
+/// owning tab was closed: [closeTab] disposes the tab's `ValueNotifier`s
+/// synchronously, but the outgoing view (still animating out, or awaiting a
+/// reload triggered by the tab's invalidation) may schedule one more write.
+/// A disposed [ChangeNotifier] always reports `hasListeners == false`, so the
+/// write is dropped instead of throwing "used after being disposed". Writes to
+/// an unobserved notifier are unobservable by definition, so skipping them is
+/// always safe.
+void _writeIfObserved<T>(ValueNotifier<T>? notifier, T value) {
+  if (notifier == null) return;
+  // `hasListeners` is @protected, but this is a deliberate read-only use: it
+  // is the only public signal distinguishing a live, observed notifier from
+  // one whose owning tab was closed (dispose() clears the listener list, so a
+  // disposed notifier always reports no listeners).
+  // ignore: invalid_use_of_protected_member
+  if (!notifier.hasListeners) return;
+  notifier.value = value;
+}
+
 _DriveMoveDragData _resolveMoveDragData({
   required SnCloudFile file,
   required Set<String> selectedIds,
@@ -474,11 +495,12 @@ class FileListView extends HookConsumerWidget {
           };
           syncLoadedChildrenSelection(selectedIdsNotifier, file, result.items);
           if (currentVisibleFileIds != null) {
+            final visible = currentVisibleFileIds!;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              currentVisibleFileIds!.value = {
-                ...currentVisibleFileIds!.value,
-                ...result.items.map((item) => item.id),
-              };
+              _writeIfObserved(
+                visible,
+                {...visible.value, ...result.items.map((item) => item.id)},
+              );
             });
           }
         }
@@ -493,8 +515,8 @@ class FileListView extends HookConsumerWidget {
     useEffect(() {
       if (modeValue == FileListMode.unindexed) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          isSelectionMode.value = false;
-          selectedIdsNotifier.value = <String>{};
+          _writeIfObserved(isSelectionMode, false);
+          _writeIfObserved(selectedIdsNotifier, <String>{});
         });
       }
       return null;
@@ -938,16 +960,19 @@ class FileListView extends HookConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         currentVisibleItems.value = items;
         // Include folders so Select All works for mixed / folder-only listings.
-        currentVisibleFileIds?.value = items
-            .expand(
-              (item) => item.maybeMap(
-                file: (fileItem) => [fileItem.file.id],
-                folder: (folderItem) => [folderItem.file.id],
-                unindexedFile: (fileItem) => [fileItem.file.id],
-                orElse: () => <String>[],
-              ),
-            )
-            .toSet();
+        _writeIfObserved(
+          currentVisibleFileIds,
+          items
+              .expand(
+                (item) => item.maybeMap(
+                  file: (fileItem) => [fileItem.file.id],
+                  folder: (folderItem) => [folderItem.file.id],
+                  unindexedFile: (fileItem) => [fileItem.file.id],
+                  orElse: () => <String>[],
+                ),
+              )
+              .toSet(),
+        );
       });
     }
     final showTreeExpansionAffordance = items.any(
@@ -1966,16 +1991,19 @@ class FileListView extends HookConsumerWidget {
     if (currentVisibleItems.value != items) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         currentVisibleItems.value = items;
-        currentVisibleFileIds?.value = items
-            .expand(
-              (item) => item.maybeMap(
-                file: (fileItem) => [fileItem.file.id],
-                folder: (folderItem) => [folderItem.file.id],
-                unindexedFile: (fileItem) => [fileItem.file.id],
-                orElse: () => <String>[],
-              ),
-            )
-            .toSet();
+        _writeIfObserved(
+          currentVisibleFileIds,
+          items
+              .expand(
+                (item) => item.maybeMap(
+                  file: (fileItem) => [fileItem.file.id],
+                  folder: (folderItem) => [folderItem.file.id],
+                  unindexedFile: (fileItem) => [fileItem.file.id],
+                  orElse: () => <String>[],
+                ),
+              )
+              .toSet(),
+        );
       });
     }
     final showTreeExpansionAffordance = items.any(
@@ -3046,7 +3074,7 @@ class _DriveColumnPane extends HookConsumerWidget {
         final notifier = currentVisibleFileIds;
         if (notifier == null) return;
         if (!_setEquals(notifier.value, nextIds)) {
-          notifier.value = nextIds;
+          _writeIfObserved(notifier, nextIds);
         }
       });
       return null;
@@ -3549,7 +3577,10 @@ class _FolderSelectorSheet extends HookConsumerWidget {
     final currentPath = useState('/');
 
     useEffect(() {
-      ref.read(_folderSelectorListProvider.notifier).setPath(currentPath.value);
+      final path = currentPath.value;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(_folderSelectorListProvider.notifier).setPath(path);
+      });
       return null;
     }, [currentPath.value]);
 
