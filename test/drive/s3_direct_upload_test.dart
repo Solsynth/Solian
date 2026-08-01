@@ -30,6 +30,10 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
   /// pre-multipart contract) instead of multipart session fields.
   bool singlePut = false;
 
+  /// Part numbers the fake server reports as already uploaded, so prepare
+  /// returns a resumed session the client must skip.
+  List<int> preloadedParts = const [];
+
   static const int partSize = 5 * 1024 * 1024;
 
   Future<Map<String, dynamic>> _readJsonBody(
@@ -93,6 +97,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
         'object_key': 'objects/task-1',
         'part_size': partSize,
         'part_count': (size / partSize).ceil(),
+        'uploaded_parts': [...preloadedParts],
         'content_type': body['content_type'],
       });
     }
@@ -202,6 +207,7 @@ void main() {
   });
 
   setUp(() async {
+    s3.objects.clear();
     dyson = _FakeDysonFSAdapter(s3.base);
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
@@ -276,6 +282,54 @@ void main() {
     }
     expect(rebuilt, equals(source));
     expect(offset, source.length);
+
+    expect(lastProgress, 1.0);
+  });
+
+  test('resumed multipart session skips already-uploaded parts', () async {
+    final file = File(
+      '${Directory.systemTemp.path}/'
+      's3_resume_${DateTime.now().microsecondsSinceEpoch}.bin',
+    );
+    final source = Uint8List(driveS3DirectMultipartMinFileSizeBytes);
+    await file.writeAsBytes(source, flush: true);
+    addTearDown(() => file.deleteSync());
+
+    // The server reports parts 2, 5 and 8 as already uploaded (a resumed
+    // session keyed by the file hash); the client must not presign or PUT
+    // them, yet still count their bytes toward progress.
+    dyson.preloadedParts = [2, 5, 8];
+
+    final uploader = container.read(driveFileUploaderProvider);
+    double? lastProgress;
+    final result = await uploader.tryUploadViaS3Direct(
+      fileData: XFile(file.path),
+      fileName: 'big.bin',
+      contentType: 'application/octet-stream',
+      parentId: 'parent-1',
+      onProgress: (progress, estimate) {
+        if (progress != null) {
+          lastProgress = progress;
+        }
+      },
+    );
+
+    expect(result, isNotNull);
+    expect(dyson.completeCalls, 1);
+
+    const partCount =
+        driveS3DirectMultipartMinFileSizeBytes ~/ (5 * 1024 * 1024);
+    final expected = [
+      for (var n = 1; n <= partCount; n++)
+        if (!dyson.preloadedParts.contains(n)) n,
+    ];
+    expect(dyson.partRequests, expected);
+
+    // Skipped parts never reached the S3 server.
+    expect(s3.objects.containsKey('/part/2'), isFalse);
+    expect(s3.objects.containsKey('/part/5'), isFalse);
+    expect(s3.objects.containsKey('/part/8'), isFalse);
+    expect(s3.objects.length, expected.length);
 
     expect(lastProgress, 1.0);
   });

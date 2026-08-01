@@ -1107,6 +1107,18 @@ class FileUploader {
         ? contentType
         : preparedContentType;
 
+    // Parts the server already holds for this hash (a resumed session) are
+    // skipped: their byte counts are still folded into progress.
+    final uploadedParts = <int>{};
+    if (prepared['uploaded_parts'] is List) {
+      for (final raw in prepared['uploaded_parts'] as List) {
+        final n = raw is int ? raw : int.tryParse(raw?.toString() ?? '');
+        if (n != null && n >= 1 && n <= partCount) {
+          uploadedParts.add(n);
+        }
+      }
+    }
+
     final putTimer = Stopwatch()..start();
     final limiter = _ConcurrencyLimiter(driveChunkUploadConcurrency);
     var sent = 0;
@@ -1118,19 +1130,28 @@ class FileUploader {
           : batchStart + driveChunkUploadConcurrency;
       await Future.wait([
         for (var partNumber = batchStart; partNumber < batchEnd; partNumber++)
-          limiter.run(
-            () => _uploadS3Part(
-              xfile: xfile,
-              taskId: taskId,
-              partNumber: partNumber,
-              partSize: partSize,
-              fileSize: fileSize,
-              contentType: resolvedContentType,
-            ).then((bytes) {
-              sent += bytes;
+          if (uploadedParts.contains(partNumber))
+            () async {
+              final partBytes = (partNumber == partCount)
+                  ? fileSize - (partCount - 1) * partSize
+                  : partSize;
+              sent += partBytes;
               onProgress?.call(sent / fileSize, Duration.zero);
-            }),
-          ),
+            }()
+          else
+            limiter.run(
+              () => _uploadS3Part(
+                xfile: xfile,
+                taskId: taskId,
+                partNumber: partNumber,
+                partSize: partSize,
+                fileSize: fileSize,
+                contentType: resolvedContentType,
+              ).then((bytes) {
+                sent += bytes;
+                onProgress?.call(sent / fileSize, Duration.zero);
+              }),
+            ),
       ]);
     }
     putTimer.stop();

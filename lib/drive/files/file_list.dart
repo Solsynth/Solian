@@ -1552,7 +1552,7 @@ class _DriveTabItem extends StatelessWidget {
                     // Selected tab sits on the content surface: hide bar bottom
                     // edge and draw a thin top accent.
                     top: isSelected
-                        ? BorderSide(color: scheme.primary, width: 2)
+                        ? BorderSide(color: scheme.tertiary, width: 2)
                         : BorderSide.none,
                     right: isSelected
                         ? BorderSide(color: border)
@@ -1734,8 +1734,7 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                           child: _DriveEntryCard(
                             icon: Symbols.inventory_2,
                             title: 'driveUnindexedEntryLabel'.tr(),
-                            description:
-                                'driveUnindexedEntryDescription'.tr(),
+                            description: 'driveUnindexedEntryDescription'.tr(),
                             onTap: onOpenUnindexed,
                           ),
                         ),
@@ -1773,9 +1772,7 @@ class _DriveEntryCard extends StatelessWidget {
       color: colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.55),
-        ),
+        side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.55)),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
