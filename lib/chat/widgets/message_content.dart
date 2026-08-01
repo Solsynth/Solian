@@ -13,7 +13,7 @@ import 'package:island/chat/pods/call.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:island/shared/widgets/content/media_playback.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -425,21 +425,31 @@ class _VoiceMessageContent extends HookConsumerWidget {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
+  /// Display name for the docked player: the sender, not the file name.
+  String get _senderName {
+    final sender = item.sender;
+    final raw = sender.nick?.isNotEmpty == true
+        ? sender.nick
+        : sender.realmNick?.isNotEmpty == true
+        ? sender.realmNick
+        : sender.account.nick;
+    final name = raw?.trim() ?? '';
+    return name.isEmpty ? 'Audio' : name;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final token = ref.watch(tokenProvider);
-    final player = useMemoized(() => AudioPlayer(), []);
-    final isLoading = useState(false);
-    final loaded = useState(false);
+    final playback = ref.watch(mediaPlaybackProvider);
+    // Captured for the unmount cleanup: `ref` must not be touched then, and
+    // provider modification must be deferred out of the lifecycle.
+    final controllerRef = useRef<MediaPlaybackController?>(null);
+    controllerRef.value ??= ref.read(mediaPlaybackProvider.notifier);
     final isScrubbing = useState(false);
     final scrubPosition = useState(Duration.zero);
     final waveformBars = useState<List<double>?>(null);
     final waveformSource = useState<String?>(null);
-
-    useEffect(() {
-      return () => player.dispose();
-    }, [player]);
 
     final durationMs = (() {
       final raw = item.meta['duration_ms'];
@@ -450,23 +460,27 @@ class _VoiceMessageContent extends HookConsumerWidget {
     final mediaUrl = voiceUrl == null
         ? null
         : (voiceUrl.startsWith('http') ? voiceUrl : '$serverUrl$voiceUrl');
-    final position =
-        useStream(player.positionStream, initialData: Duration.zero).data ??
-        Duration.zero;
-    final total =
-        useStream(
-          player.durationStream,
-          initialData: Duration(milliseconds: durationMs ?? 0),
-        ).data ??
-        Duration(milliseconds: durationMs ?? 0);
-    final playerState = useStream(player.playerStateStream).data;
-    final isPlaying = playerState?.playing ?? false;
-    final isCompleted =
-        playerState?.processingState == ProcessingState.completed;
+    final isActive = mediaUrl != null && playback.uri == mediaUrl;
+    final position = isActive ? playback.position : Duration.zero;
+    final total = isActive && playback.duration > Duration.zero
+        ? playback.duration
+        : Duration(milliseconds: durationMs ?? 0);
+    final isPlaying = isActive && playback.playing;
     final shownPosition = isScrubbing.value ? scrubPosition.value : position;
     final totalMs = total.inMilliseconds <= 0
         ? 1.0
         : total.inMilliseconds.toDouble();
+
+    // Dock handoff: playback continues in the docked player when this
+    // message scrolls out of view, and hands back when it reappears.
+    useEffect(() {
+      if (mediaUrl == null) return null;
+      final controller = controllerRef.value;
+      scheduleMicrotask(() => controller?.restoreInline(mediaUrl));
+      return () {
+        scheduleMicrotask(() => controller?.dockWhenReleased(mediaUrl));
+      };
+    }, [mediaUrl]);
 
     Future<void> generateWaveform(dynamic file) async {
       final path = file.path?.toString();
@@ -505,37 +519,6 @@ class _VoiceMessageContent extends HookConsumerWidget {
 
         waveformBars.value = bars;
       } catch (_) {}
-    }
-
-    Future<void> ensureLoaded() async {
-      if (loaded.value || mediaUrl == null) return;
-      isLoading.value = true;
-      try {
-        final headers = token == null
-            ? null
-            : {'Authorization': 'Bearer ${token.token}'};
-        final cachedFile = await DefaultCacheManager().getFileFromCache(
-          mediaUrl,
-        );
-        if (cachedFile != null) {
-          unawaited(generateWaveform(cachedFile.file));
-          await player.setFilePath(cachedFile.file.path);
-        } else {
-          final download = DefaultCacheManager().downloadFile(
-            mediaUrl,
-            authHeaders: headers,
-          );
-          unawaited(
-            download.then((downloaded) {
-              unawaited(generateWaveform(downloaded.file));
-            }),
-          );
-          await player.setUrl(mediaUrl, headers: headers);
-        }
-        loaded.value = true;
-      } finally {
-        isLoading.value = false;
-      }
     }
 
     useEffect(() {
@@ -578,22 +561,34 @@ class _VoiceMessageContent extends HookConsumerWidget {
               isPlaying ? Symbols.pause_circle : Symbols.play_circle,
               size: 22,
             ),
-            onPressed: mediaUrl == null || isLoading.value
+            onPressed: mediaUrl == null
                 ? null
                 : () async {
-                    await ensureLoaded();
-                    if (isPlaying) {
-                      await player.pause();
-                    } else {
-                      final replayFromStart =
-                          isCompleted ||
-                          (total.inMilliseconds > 0 &&
-                              position >=
-                                  total - const Duration(milliseconds: 250));
-                      if (replayFromStart) {
-                        await player.seek(Duration.zero);
+                    final controller = ref.read(
+                      mediaPlaybackProvider.notifier,
+                    );
+                    if (isActive) {
+                      if (isPlaying) {
+                        await controller.player.pause();
+                      } else {
+                        final replayFromStart =
+                            total.inMilliseconds > 0 &&
+                            position >= total - const Duration(
+                              milliseconds: 250,
+                            );
+                        if (replayFromStart) {
+                          await controller.player.seek(Duration.zero);
+                        }
+                        await controller.player.play();
                       }
-                      await player.play();
+                    } else {
+                      await controller.open(
+                        uri: mediaUrl,
+                        title: _senderName,
+                        kind: MediaPlaybackKind.audio,
+                        autoplay: true,
+                        source: 'chat:${item.chatRoomId}',
+                      );
                     }
                   },
           ),
@@ -630,8 +625,21 @@ class _VoiceMessageContent extends HookConsumerWidget {
                     onSeekEnd: mediaUrl == null
                         ? null
                         : () async {
-                            await ensureLoaded();
-                            await player.seek(scrubPosition.value);
+                            final controller = ref.read(
+                              mediaPlaybackProvider.notifier,
+                            );
+                            if (!isActive) {
+                              await controller.open(
+                                uri: mediaUrl,
+                                title: _senderName,
+                                kind: MediaPlaybackKind.audio,
+                                autoplay: false,
+                                source: 'chat:${item.chatRoomId}',
+                              );
+                            }
+                            await controller.player.seek(
+                              scrubPosition.value,
+                            );
                             isScrubbing.value = false;
                           },
                   ),
@@ -653,17 +661,6 @@ class _VoiceMessageContent extends HookConsumerWidget {
               ],
             ),
           ),
-          if (isLoading.value) ...[
-            const Gap(6),
-            SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ],
         ],
       ),
     );

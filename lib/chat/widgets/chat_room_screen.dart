@@ -17,6 +17,7 @@ import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
+import 'package:island/shared/widgets/content/media_playback.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
@@ -71,6 +72,18 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatEventMessageMode = ref.watch(
       appSettingsProvider.select((settings) => settings.chatEventMessageMode),
     );
+
+    // Leaving the room tears down its message widgets. Chat voice playback
+    // must not survive that in the docked player: stop it on unmount.
+    useEffect(() {
+      final controller = ref.read(mediaPlaybackProvider.notifier);
+      return () {
+        // Deferred: modifying a provider during a lifecycle is forbidden.
+        scheduleMicrotask(() {
+          if (controller.isChatVoiceOf(id)) controller.close();
+        });
+      };
+    }, [id]);
 
     // Universal chat room state - manages all UI state for this room.
     // Watch only the fields that affect the whole screen; input state stays

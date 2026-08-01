@@ -9,6 +9,13 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/shared/widgets/content/media_playback.dart';
 
+/// Sentinel default for [UniversalVideo.controls]: replaced in [build] with
+/// the platform's built-in controls. An explicit `null` (i.e.
+/// [NoVideoControls]) is preserved, disabling the built-in controls.
+const VideoControlsBuilder _unsetControls = _noOpControlsForUnset;
+
+Widget _noOpControlsForUnset(VideoState state) => const SizedBox.shrink();
+
 class UniversalVideo extends ConsumerStatefulWidget {
   final String uri;
   final double aspectRatio;
@@ -25,7 +32,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
     this.onRetry,
     this.externalPlayer,
     this.persistent = true,
-    this.controls,
+    this.controls = _unsetControls,
   });
 
   @override
@@ -53,6 +60,15 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   @override
   void initState() {
     super.initState();
+    if (widget.persistent) {
+      _playbackController ??= ref.read(mediaPlaybackProvider.notifier);
+      // Deferred: modifying a provider during initState (a widget lifecycle)
+      // is forbidden by Riverpod. The inline view is (re)appearing, so hand
+      // the media back from the dock/PiP.
+      scheduleMicrotask(() {
+        if (mounted) _playbackController?.restoreInline(widget.uri);
+      });
+    }
     _queuePlayerInitialization();
   }
 
@@ -85,26 +101,24 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
         (usePersistentPlayer ? controller!.player : Player());
     _ownPlayer = player;
     _videoController = VideoController(player);
-    if (mounted) setState(() {});
+    if (mounted && !_isDisposed) setState(() {});
 
     _playingSubscription = player.stream.playing.listen((playing) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = playing;
-          _hasError = false;
-          _errorMessage = null;
-        });
-      }
+      if (!mounted || _isDisposed) return;
+      setState(() {
+        _isPlaying = playing;
+        _hasError = false;
+        _errorMessage = null;
+      });
     });
 
     _errorSubscription = player.stream.error.listen((error) {
       debugPrint('Video player error: $error');
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = error;
-        });
-      }
+      if (!mounted || _isDisposed) return;
+      setState(() {
+        _hasError = true;
+        _errorMessage = error;
+      });
     });
 
     if (usePersistentPlayer) {
@@ -156,8 +170,15 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   @override
   void dispose() {
     _isDisposed = true;
+    // Detach the stream listeners now so no late event can reach a defunct
+    // element; the queued [_disposePlayer] re-cancels them (idempotent).
+    unawaited(_playingSubscription?.cancel());
+    unawaited(_errorSubscription?.cancel());
     if (widget.persistent) {
-      _playbackController?.dockWhenReleased(widget.uri);
+      // Deferred: modifying a provider from dispose is forbidden by Riverpod.
+      scheduleMicrotask(() {
+        _playbackController?.dockWhenReleased(widget.uri);
+      });
     }
     _playerLifecycle = _playerLifecycle.then((_) => _disposePlayer());
     super.dispose();
@@ -204,8 +225,9 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       controller: _videoController!,
       aspectRatio: widget.aspectRatio != 1 ? widget.aspectRatio : null,
       fit: BoxFit.contain,
-      controls: widget.controls ??
-          (isMobile ? MaterialVideoControls : MaterialDesktopVideoControls),
+      controls: identical(widget.controls, _unsetControls)
+          ? (isMobile ? MaterialVideoControls : MaterialDesktopVideoControls)
+          : widget.controls,
       fill: const Color.fromARGB(0, 0, 0, 0),
       filterQuality: FilterQuality.high,
     );

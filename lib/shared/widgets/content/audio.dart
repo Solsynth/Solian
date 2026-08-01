@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -47,6 +49,13 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
   @override
   void initState() {
     super.initState();
+    _playbackController ??= ref.read(mediaPlaybackProvider.notifier);
+    // Deferred: modifying a provider during initState (a widget lifecycle)
+    // is forbidden by Riverpod. The inline view is (re)appearing, so hand
+    // the media back from the dock.
+    scheduleMicrotask(() {
+      if (mounted) _playbackController?.restoreInline(widget.uri);
+    });
     if (widget.autoplay) _initPlayer();
   }
 
@@ -60,7 +69,10 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
 
   @override
   void dispose() {
-    _playbackController?.dockWhenReleased(widget.uri);
+    // Deferred: modifying a provider from dispose is forbidden by Riverpod.
+    scheduleMicrotask(() {
+      _playbackController?.dockWhenReleased(widget.uri);
+    });
     super.dispose();
   }
 
