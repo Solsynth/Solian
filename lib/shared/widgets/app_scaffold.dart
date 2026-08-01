@@ -41,6 +41,7 @@ class WindowScaffold extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showPalette = useState(false);
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
+    final useNativeFrame = ref.watch(desktopNativeWindowFrameProvider);
     final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
 
     useEffect(() {
@@ -106,8 +107,8 @@ class WindowScaffold extends HookConsumerWidget {
         return KeyEventResult.handled;
       },
       child: DesktopWindowFrame(
-        isDesktopPlatform: isDesktop,
-        title: isDesktop
+        isDesktopPlatform: isDesktop && !useNativeFrame,
+        title: isDesktop && !useNativeFrame
             ? Platform.isMacOS
                   ? Text(
                       'Solar Network',

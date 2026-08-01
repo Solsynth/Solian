@@ -1174,8 +1174,36 @@ class SettingsScreen extends HookConsumerWidget {
             'settingsDesktopNowPlayingEnabled',
             'settingsDesktopRpcServerEnabled',
             'settingsNowPlayingReuseFixedManualId',
+            'window frame',
+            'native frame',
+            'title bar',
+            'custom title bar',
+            'os frame',
+            'system window frame',
+            'window decorations',
+            'settingsWindowFrame',
+            'settingsDesktopNativeWindowFrame',
+            'settingsDesktopNativeWindowFrameHelper',
           ],
           children: [
+            const _SettingsSubheader('settingsWindowFrame'),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDesktopNativeWindowFrame').tr(),
+              subtitle: Text('settingsDesktopNativeWindowFrameHelper').tr(),
+              contentPadding: _kSettingsTilePadding,
+              leading: const Icon(Symbols.window),
+              trailing: Switch(
+                value: ref.watch(desktopNativeWindowFrameProvider),
+                onChanged: (value) {
+                  ref
+                      .read(desktopNativeWindowFrameProvider.notifier)
+                      .setEnabled(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
+            const Divider(height: 24),
             const _SettingsSubheader('settingsIdleStatus'),
             ListTile(
               minLeadingWidth: 48,

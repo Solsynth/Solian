@@ -100,6 +100,7 @@ const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
 const kAppDesktopUseSeparateCallWindow = 'app_desktop_use_separate_call_window';
+const kAppDesktopNativeWindowFrame = 'app_desktop_native_window_frame';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
@@ -379,6 +380,32 @@ class DesktopUseSeparateCallWindowNotifier extends Notifier<bool> {
 final desktopUseSeparateCallWindowProvider =
     NotifierProvider<DesktopUseSeparateCallWindowNotifier, bool>(
       DesktopUseSeparateCallWindowNotifier.new,
+    );
+
+class DesktopNativeWindowFrameNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppDesktopNativeWindowFrame) ?? false;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopNativeWindowFrame, value);
+    state = value;
+    if (!kIsWeb &&
+        (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+      Future(() => windowManager.setTitleBarStyle(
+            value ? TitleBarStyle.normal : TitleBarStyle.hidden,
+            windowButtonVisibility: true,
+          ));
+    }
+  }
+}
+
+final desktopNativeWindowFrameProvider =
+    NotifierProvider<DesktopNativeWindowFrameNotifier, bool>(
+      DesktopNativeWindowFrameNotifier.new,
     );
 
 class DesktopRpcServerEnabledNotifier extends Notifier<bool> {

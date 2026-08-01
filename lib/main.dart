@@ -319,19 +319,25 @@ void main(List<String> args) async {
         }
       }
 
+      final useNativeWindowFrame =
+          prefs.getBool(kAppDesktopNativeWindowFrame) ?? false;
       WindowOptions windowOptions = WindowOptions(
         size: initialSize,
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.hidden,
+        titleBarStyle: useNativeWindowFrame
+            ? TitleBarStyle.normal
+            : TitleBarStyle.hidden,
         windowButtonVisibility: true,
       );
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         final env = Platform.environment;
         final isWayland = env.containsKey('WAYLAND_DISPLAY');
 
-        if (isWayland) {
+        // The frameless fix would strip the native decorations we want when
+        // the OS default frame is enabled.
+        if (isWayland && !useNativeWindowFrame) {
           try {
             await windowManager.setAsFrameless();
           } catch (e) {
