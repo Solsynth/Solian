@@ -4257,5 +4257,6 @@
   "taskDownloading": "Downloading",
   "taskProcessing": "Processing",
   "taskTotalCount": "{} total",
-  "taskChunksCount": "{current}/{total} chunks"
+  "taskChunksCount": "{current}/{total} chunks",
+  "errorCode": "Error code"
 }

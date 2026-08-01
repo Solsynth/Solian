@@ -4183,5 +4183,6 @@
   "taskDownloading": "下載中",
   "taskProcessing": "處理中",
   "taskTotalCount": "共 {} 項",
-  "taskChunksCount": "{current}/{total} 分塊"
+  "taskChunksCount": "{current}/{total} 分塊",
+  "errorCode": "錯誤代碼"
 }

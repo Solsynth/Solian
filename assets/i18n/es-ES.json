@@ -3951,5 +3951,6 @@
   "taskDownloading": "Descargando",
   "taskProcessing": "Procesando",
   "taskTotalCount": "{} en total",
-  "taskChunksCount": "{current}/{total} fragmentos"
+  "taskChunksCount": "{current}/{total} fragmentos",
+  "errorCode": "Código de error"
 }

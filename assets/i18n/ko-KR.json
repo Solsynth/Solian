@@ -3944,5 +3944,6 @@
   "taskDownloading": "다운로드 중",
   "taskProcessing": "처리 중",
   "taskTotalCount": "총 {}개",
-  "taskChunksCount": "{current}/{total} 청크"
+  "taskChunksCount": "{current}/{total} 청크",
+  "errorCode": "오류 코드"
 }

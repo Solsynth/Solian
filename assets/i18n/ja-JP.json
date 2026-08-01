@@ -3951,5 +3951,6 @@
   "taskDownloading": "ダウンロード中",
   "taskProcessing": "処理中",
   "taskTotalCount": "全 {} 件",
-  "taskChunksCount": "{current}/{total} チャンク"
+  "taskChunksCount": "{current}/{total} チャンク",
+  "errorCode": "エラーコード"
 }

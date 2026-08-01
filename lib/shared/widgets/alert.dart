@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/network/api_error.dart';
 import 'package:island/main.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/route.dart';
@@ -125,27 +126,18 @@ void hideLoadingModal(BuildContext context) async {
   entry.remove();
 }
 
-String _parseRemoteError(DioException err) {
-  String? message;
-  if (err.response?.data is String) {
-    message = err.response?.data;
-  } else if (err.response?.data?['message'] != null) {
-    message = <String?>[
-      err.response?.data?['message']?.toString(),
-      err.response?.data?['detail']?.toString(),
-    ].where((e) => e != null).cast<String>().map((e) => e.trim()).join('\n');
-  } else if (err.response?.data?['errors'] != null) {
-    final errors = err.response?.data['errors'] as Map<String, dynamic>;
-    message = errors.values
-        .map(
-          (ele) =>
-              (ele as List<dynamic>).map((ele) => ele.toString()).join('\n'),
-        )
-        .join('\n');
+/// Resolves the user-facing message and the app-specific error code (if any)
+/// from a failed request. Returns `(message, code)`.
+(String, String?) _parseRemoteError(DioException err) {
+  final apiError = ApiError.tryParse(err);
+  if (apiError != null) {
+    final message = apiError.displayMessage;
+    if (message.isNotEmpty) {
+      return (message, apiError.hasCode ? apiError.code : null);
+    }
   }
-  if (message == null || message.isEmpty) message = err.response?.statusMessage;
-  message ??= err.message;
-  return message ?? err.toString();
+  final fallback = err.response?.statusMessage ?? err.message;
+  return (fallback ?? err.toString(), null);
 }
 
 final List<void Function()> _activeOverlayDialogs = [];
@@ -272,11 +264,11 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
   if (err is Error) {
     Logger.root.severe('Something went wrong...', err, err.stackTrace);
   }
-  final text = switch (err) {
-    String _ => err,
+  final (text, code) = switch (err) {
+    String _ => (err, null),
     DioException _ => _parseRemoteError(err),
-    Exception _ => err.toString(),
-    _ => err.toString(),
+    Exception _ => (err.toString(), null),
+    _ => (err.toString(), null),
   };
 
   showOverlayDialog<void>(
@@ -301,6 +293,47 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
                 'somethingWentWrong'.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+              if (code != null) ...[
+                const Gap(8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'errorCode'.tr(),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer
+                                  .withOpacity(0.75),
+                            ),
+                      ),
+                      const Gap(8),
+                      Text(
+                        code,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const Gap(8),
               SelectableText(text),
               const Gap(8),

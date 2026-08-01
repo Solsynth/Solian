@@ -643,29 +643,12 @@ class ChatRoomScreen extends HookConsumerWidget {
 
       if (!context.mounted) return;
 
-      final shouldProceed =
-          await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text('chatRedirectConfirmTitle'.tr()),
-              content: Text(
-                'chatRedirectConfirmBody'.tr(
-                  args: [selectedMessages.length.toString(), destinationName],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text('cancel'.tr()),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text('redirect'.tr()),
-                ),
-              ],
-            ),
-          ) ??
-          false;
+      final shouldProceed = await showConfirmAlert(
+        'chatRedirectConfirmBody'.tr(
+          args: [selectedMessages.length.toString(), destinationName],
+        ),
+        'chatRedirectConfirmTitle'.tr(),
+      );
 
       if (!shouldProceed || !context.mounted) return;
 
