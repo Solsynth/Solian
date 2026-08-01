@@ -101,18 +101,18 @@ packages:
     dependency: "direct main"
     description:
       name: dio
-      sha256: ea2bad3c89a27635ce2d85cce4d6b199da49a5a48ec77b03e45b65a3b90922b0
+      sha256: "0df44ebba85e503958eb75d07eedd3c86275a58c1d3eda2f2ce8f0a2c3abbb3c"
       url: "https://pub.dev"
     source: hosted
-    version: "5.10.0"
+    version: "5.11.0"
   dio_web_adapter:
     dependency: transitive
     description:
       name: dio_web_adapter
-      sha256: dd58dc3861eb36edb13b217efc006a1c21e5bbc341de8c229b85634fa5e362e4
+      sha256: "0786d0b7295a373de356fc0af4f6f1d0ab2844ed31b19dfc5e7556b70e24212c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.1"
   fake_async:
     dependency: transitive
     description:
@@ -264,6 +264,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  listen:
+    dependency: transitive
+    description:
+      name: listen
+      sha256: "47501a08016a43fcad79252439d723f50f14f88fa7bfd8a177e0a417e5c9e1f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   logging:
     dependency: transitive
     description:
@@ -388,10 +396,10 @@ packages:
     dependency: transitive
     description:
       name: riverpod
-      sha256: "17100416c51db7810c71a7bb2c34d1f881faa0074fd452afb0c4db6f8f126c76"
+      sha256: "84351b3472a447f7b89f961f95c73287009d58c59d8cc1267425d995f78e50f1"
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.2"
+    version: "3.4.2"
   shared_preferences:
     dependency: "direct main"
     description:
