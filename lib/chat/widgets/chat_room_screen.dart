@@ -149,7 +149,22 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
-        appBar: AppBar(leading: const AutoLeadingButton()),
+        appBar: AppBar(
+          leading: Builder(
+            builder: (context) {
+              if (context.router.canPop()) {
+                return const AutoLeadingButton();
+              } else {
+                return IconButton(
+                  onPressed: () {
+                    context.router.navigate(const ChatListRoute());
+                  },
+                  icon: const Icon(Symbols.home),
+                );
+              }
+            },
+          ),
+        ),
         body: Column(
           children: [
             const ChatSyncIndicator(),
@@ -587,7 +602,9 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final inputKey = useMemoized(() => GlobalKey(), []);
 
-    final redirectSelectedMessages = useCallback((String destinationRoomId) async {
+    final redirectSelectedMessages = useCallback((
+      String destinationRoomId,
+    ) async {
       if (selectedMessageIds.isEmpty) return;
 
       final allMessages = messages.value ?? const <LocalChatMessage>[];

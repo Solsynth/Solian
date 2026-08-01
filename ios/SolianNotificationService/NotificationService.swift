@@ -36,12 +36,37 @@ class NotificationService: UNNotificationServiceExtension {
             return
         }
         self.bestAttemptContent = bestAttemptContent
-        
+
+        stampFlutterLocalNotificationKeys(on: bestAttemptContent)
+
         do {
             try processNotification(request: request, content: bestAttemptContent)
         } catch {
             contentHandler(bestAttemptContent)
         }
+    }
+
+    /// flutter_local_notifications only delivers taps to Dart for notifications
+    /// it can identify (its marker keys) and reads the target from the `payload`
+    /// key. APNs pushes arrive with none of that, so stamp the action_uri in
+    /// before display — then tapping the notification navigates to the page.
+    private func stampFlutterLocalNotificationKeys(on content: UNMutableNotificationContent) {
+        if content.userInfo["payload"] != nil { return }
+
+        let actionUri =
+            (content.userInfo["meta"] as? [AnyHashable: Any])?["action_uri"] as? String
+            ?? content.userInfo["action_uri"] as? String
+        guard let actionUri, !actionUri.isEmpty else { return }
+
+        var userInfo = content.userInfo
+        userInfo["NotificationId"] = userInfo["NotificationId"] ?? "0"
+        userInfo["presentAlert"] = true
+        userInfo["presentSound"] = true
+        userInfo["presentBadge"] = true
+        userInfo["presentBanner"] = true
+        userInfo["presentList"] = true
+        userInfo["payload"] = actionUri
+        content.userInfo = userInfo
     }
     
     override func serviceExtensionTimeWillExpire() {

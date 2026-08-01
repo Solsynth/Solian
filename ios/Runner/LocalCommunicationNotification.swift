@@ -52,9 +52,20 @@ enum LocalCommunicationNotification {
         var userInfo: [AnyHashable: Any] = [
             "type": topic,
             "meta": meta,
+            // flutter_local_notifications only routes taps for notifications it
+            // can identify (its marker keys) and reads the target from the
+            // `payload` key — without these, tapping a chat notification is
+            // silently dropped and nothing opens.
+            "NotificationId": identifier,
+            "presentAlert": true,
+            "presentSound": true,
+            "presentBadge": true,
+            "presentBanner": true,
+            "presentList": true,
         ]
         if let payload = arguments["payload"] as? String {
             userInfo["action_uri"] = payload
+            userInfo["payload"] = payload
         }
         content.userInfo = userInfo
 

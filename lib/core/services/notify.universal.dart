@@ -253,21 +253,58 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
 
   // Hold the router
   final router = ref.read(routerProvider);
+
+  void handleNotificationPayload(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+    var uri = payload;
+    if (uri.startsWith('solian://')) {
+      // The app's custom scheme — treat the remainder as an in-app route so
+      // it opens the same page as a tap on the in-app notification tile.
+      final rest = uri.substring('solian://'.length);
+      uri = rest.startsWith('/') ? rest : '/$rest';
+    }
+    if (uri.startsWith('/')) {
+      // In-app routes
+      router.navigatePath(
+        uri,
+        onFailure: (err) {
+          Logger.root.warning('[Notification] Unable to open page: $err');
+        },
+      );
+    } else {
+      // External URLs
+      launchUrlString(uri);
+    }
+  }
+
   await flutterLocalNotificationsPlugin.initialize(
     settings: initializationSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse response) async {
-      final payload = response.payload;
-      if (payload != null) {
-        if (payload.startsWith('/')) {
-          // In-app routes
-          router.navigatePath(payload);
-        } else {
-          // External URLs
-          launchUrlString(payload);
-        }
-      }
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      handleNotificationPayload(response.payload);
     },
   );
+
+  // Cold start: when the app was terminated and is launched by tapping a
+  // notification, `onDidReceiveNotificationResponse` never fires — read the
+  // launch payload explicitly instead.
+  final launchDetails =
+      await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+  if (launchDetails?.didNotificationLaunchApp ?? false) {
+    final payload = launchDetails?.notificationResponse?.payload;
+    if (payload != null && payload.isNotEmpty) {
+      // The router may still be building its initial stack during bootstrap;
+      // wait for the navigator to attach before navigating so the route isn't
+      // clobbered by the initial route.
+      for (var attempt = 0; attempt < 20; attempt++) {
+        final navigatorContext = router.navigatorKey.currentContext;
+        if (navigatorContext != null && navigatorContext.mounted) {
+          handleNotificationPayload(payload);
+          break;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+    }
+  }
 
   // Proactively create the notification channel on Android 8.0+
   await createNotificationChannel();

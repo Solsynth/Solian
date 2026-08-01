@@ -187,7 +187,22 @@ import flutter_callkit_incoming
             return
         }
 
-        notifyDelegate.userNotificationCenter(
+        if response.actionIdentifier == "reply_action" {
+            // Inline chat reply — posted natively (see NotifyDelegate).
+            notifyDelegate.userNotificationCenter(
+                center,
+                didReceive: response,
+                withCompletionHandler: completionHandler
+            )
+            return
+        }
+
+        // Plain tap (and dismiss): forward to the Flutter side via the base
+        // FlutterAppDelegate, which dispatches to flutter_local_notifications.
+        // That delivers the notification payload to Dart so the app can open
+        // the notification's action_uri. Without this, every tap was dropped
+        // here and nothing ever opened.
+        super.userNotificationCenter(
             center,
             didReceive: response,
             withCompletionHandler: completionHandler
