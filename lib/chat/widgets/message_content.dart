@@ -317,7 +317,8 @@ class MessageContent extends StatelessWidget {
   }
 
   static bool hasContent(SnChatMessage item) {
-    if (item.type == 'messages.sync.finalize' ||
+    if (item.type == 'messages.sync.file' ||
+        item.type == 'messages.sync.finalize' ||
         item.type == 'messages.sync.links') {
       return false;
     }

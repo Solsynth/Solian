@@ -91,6 +91,7 @@ class SystemEventTypes {
     if (type.startsWith('system.')) return true;
     return switch (type) {
       'messages.update' ||
+      'messages.sync.file' ||
       'messages.sync.finalize' ||
       'messages.sync.links' ||
       'messages.delete' ||

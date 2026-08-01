@@ -134,6 +134,7 @@ class RealtimeMessageHandler {
     switch (packet.type) {
       case 'messages.new':
       case 'messages.update':
+      case 'messages.sync.file':
         // The packet indicates delivery; the parsed message type identifies
         // the concrete mutation. Placeholder finalization is broadcast as a
         // `messages.update` packet containing `messages.sync.finalize`.
@@ -143,6 +144,7 @@ class RealtimeMessageHandler {
 
         switch (message.type) {
           case 'messages.update':
+          case 'messages.sync.file':
           case 'messages.sync.finalize':
           case 'messages.sync.links':
             _handleUpdateMessage(message, roomSequence: roomSequence);
@@ -241,6 +243,7 @@ class RealtimeMessageHandler {
     );
 
     final isSilentSync =
+        updateEvent.type == 'messages.sync.file' ||
         updateEvent.type == 'messages.sync.finalize' ||
         updateEvent.type == 'messages.sync.links';
 
@@ -274,6 +277,7 @@ class RealtimeMessageHandler {
 
     // Handle edit/delete events
     if (type == 'messages.update' ||
+        type == 'messages.sync.file' ||
         type == 'messages.sync.finalize' ||
         type == 'messages.sync.links' ||
         type == 'messages.delete') {

@@ -387,6 +387,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (type.startsWith('system.')) return true;
     switch (type) {
       case 'messages.update':
+      case 'messages.sync.file':
       case 'messages.sync.finalize':
       case 'messages.sync.links':
       case 'messages.delete':
@@ -403,6 +404,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isImportantEventType(String type) {
     if (type == 'call.start' || type == 'call.ended') return true;
     if (type == 'messages.update' ||
+        type == 'messages.sync.file' ||
         type == 'messages.sync.finalize' ||
         type == 'messages.sync.links' ||
         type == 'messages.delete') {
@@ -419,7 +421,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   bool _shouldIncludeInActiveList(LocalChatMessage message) {
-    if (message.type == 'messages.sync.finalize' ||
+    if (message.type == 'messages.sync.file' ||
+        message.type == 'messages.sync.finalize' ||
         message.type == 'messages.sync.links') {
       return false;
     }
@@ -1339,6 +1342,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
     final isMessageUpdate =
         localMessage.type == 'messages.update' ||
+        localMessage.type == 'messages.sync.file' ||
         localMessage.type == 'messages.sync.finalize' ||
         localMessage.type == 'messages.sync.links';
     final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
@@ -1391,6 +1395,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           remoteMessage.meta['message_id'] ?? remoteMessage.id,
         );
       case "messages.update":
+      case "messages.sync.file":
       case "messages.sync.finalize":
       case "messages.sync.links":
         await receiveMessageUpdate(remoteMessage);

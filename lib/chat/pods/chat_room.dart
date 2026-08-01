@@ -105,6 +105,7 @@ SnChatMessage _mergeUpdatedRemoteMessage(
   mergedMeta.remove('message_id');
   final isLinkPreviewUpdate = updateRemote.type == 'messages.sync.links';
   final isSilentSync =
+      updateRemote.type == 'messages.sync.file' ||
       updateRemote.type == 'messages.sync.links' ||
       updateRemote.type == 'messages.sync.finalize';
 
@@ -394,6 +395,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           eventBus.fire(ChatMessageNewEvent(message));
         }
       case 'messages.update':
+      case 'messages.sync.file':
       case 'messages.sync.finalize':
       case 'messages.sync.links':
         {
@@ -1031,6 +1033,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           final reactionMessages = <SnChatMessage>[];
           for (final msg in messages) {
             if (msg.type == 'messages.update' ||
+                msg.type == 'messages.sync.file' ||
                 msg.type == 'messages.sync.finalize' ||
                 msg.type == 'messages.sync.links') {
               updateMessages.add(msg);
