@@ -131,11 +131,14 @@ class FriendStatusListener {
       channelDescription: 'Friend online/offline status changes',
       importance: Importance.low,
       priority: Priority.low,
+      icon: 'ic_notification',
     );
 
     const darwinDetails = DarwinNotificationDetails(
       presentSound: false,
       presentBanner: true,
+      // Banner only: don't leave a record in Notification Center.
+      presentList: false,
     );
 
     final notificationDetails = NotificationDetails(
@@ -150,6 +153,17 @@ class FriendStatusListener {
       body: caption,
       notificationDetails: notificationDetails,
     );
+
+    if (Platform.isMacOS) {
+      // macOS records background-delivered notifications in Notification
+      // Center regardless of `presentList` (that flag only applies to
+      // foreground delivery through `willPresent`). Purge the record once the
+      // banner has had time to display so the notification stays transient.
+      Future<void>.delayed(
+        const Duration(seconds: 6),
+        () => _notificationsPlugin.cancel(id: event.account.id.hashCode),
+      );
+    }
 
     _log.info('Sent desktop notification for ${event.account.name}: $caption');
   }
