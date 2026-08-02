@@ -22,7 +22,7 @@ subprojects {
     plugins.withId("com.android.library") {
         extensions.findByName("android")?.let { ext ->
             if (ext is BaseExtension) {
-                ext.compileSdkVersion(36)
+                ext.compileSdkVersion(37)
             }
         }
     }
@@ -30,7 +30,7 @@ subprojects {
     plugins.withId("com.android.application") {
         extensions.findByName("android")?.let { ext ->
             if (ext is BaseExtension) {
-                ext.compileSdkVersion(36)
+                ext.compileSdkVersion(37)
             }
         }
     }
