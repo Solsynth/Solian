@@ -124,8 +124,12 @@ class MediaPlaybackController extends Notifier<MediaPlaybackState> {
     await player.open(Media(uri), play: autoplay);
   }
 
+  /// Only continue playback in the dock/PiP while the parent player is
+  /// actively playing; a paused or finished media stays with its origin.
   void dockWhenReleased(String uri) {
-    if (state.uri == uri) state = state.copyWith(docked: true);
+    if (state.uri == uri && state.playing) {
+      state = state.copyWith(docked: true);
+    }
   }
 
   void restoreInline(String uri) {
@@ -279,9 +283,7 @@ class _AudioDockBar extends ConsumerWidget {
                       trackHeight: 3,
                       activeTrackColor: primary,
                       inactiveTrackColor: primary.withValues(alpha: 0.22),
-                      secondaryActiveTrackColor: primary.withValues(
-                        alpha: 0.4,
-                      ),
+                      secondaryActiveTrackColor: primary.withValues(alpha: 0.4),
                       thumbColor: primary,
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 6,
@@ -371,6 +373,18 @@ class _FloatingVideoDockState extends ConsumerState<FloatingVideoDock>
     if (!_controlsVisible) setState(() => _controlsVisible = true);
     // Restart the hide countdown on every mouse move.
     _scheduleHide();
+  }
+
+  /// Toggle control visibility from a tap on the video surface.
+  void _toggleControls() {
+    if (_controlsVisible) {
+      // While paused the controls stay put by design; hiding is a no-op.
+      if (!ref.read(mediaPlaybackProvider).playing) return;
+      _hideTimer?.cancel();
+      setState(() => _controlsVisible = false);
+    } else {
+      _showControls();
+    }
   }
 
   void _scheduleHide() {
@@ -496,12 +510,18 @@ class _FloatingVideoDockState extends ConsumerState<FloatingVideoDock>
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: UniversalVideo(
-                        uri: playback.uri!,
-                        aspectRatio: playback.aspectRatio,
-                        externalPlayer: controller.player,
-                        persistent: false,
-                        controls: NoVideoControls,
+                      // Tap anywhere on the surface toggles the controls;
+                      // mouse hover alone left touch users with no way in.
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _toggleControls,
+                        child: UniversalVideo(
+                          uri: playback.uri!,
+                          aspectRatio: playback.aspectRatio,
+                          externalPlayer: controller.player,
+                          persistent: false,
+                          controls: NoVideoControls,
+                        ),
                       ),
                     ),
                     // Thin draggable progress bar; no timestamps. Sits above the
@@ -510,60 +530,70 @@ class _FloatingVideoDockState extends ConsumerState<FloatingVideoDock>
                       left: 0,
                       right: 0,
                       bottom: _edgeHandleSize + 2,
-                      child: AnimatedOpacity(
-                        opacity: controlsVisible ? 1 : 0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        child: SizedBox(
-                          // Generous invisible hit target around the 3px bar.
-                          height: 20,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) => GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTapDown: (details) => _seekTo(
-                                details.localPosition.dx,
-                                constraints.maxWidth,
-                              ),
-                              onHorizontalDragUpdate: (details) => _seekTo(
-                                details.localPosition.dx,
-                                constraints.maxWidth,
-                              ),
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: LinearProgressIndicator(
-                                  value: progress,
-                                  minHeight: 3,
-                                  borderRadius: BorderRadius.circular(2),
-                                  backgroundColor: Colors.white24,
-                                  valueColor: const AlwaysStoppedAnimation(
-                                    Colors.white,
+                      child: IgnorePointer(
+                        ignoring: !controlsVisible,
+                        child: AnimatedOpacity(
+                          opacity: controlsVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                          child: SizedBox(
+                            // Generous invisible hit target around the 3px bar.
+                            height: 20,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) =>
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTapDown: (details) => _seekTo(
+                                      details.localPosition.dx,
+                                      constraints.maxWidth,
+                                    ),
+                                    onHorizontalDragUpdate: (details) =>
+                                        _seekTo(
+                                          details.localPosition.dx,
+                                          constraints.maxWidth,
+                                        ),
+                                    child: Align(
+                                      alignment: Alignment.bottomCenter,
+                                      child: LinearProgressIndicator(
+                                        value: progress,
+                                        minHeight: 3,
+                                        borderRadius: BorderRadius.circular(2),
+                                        backgroundColor: Colors.white24,
+                                        valueColor:
+                                            const AlwaysStoppedAnimation(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    // Centered play/pause.
+                    // Centered play/pause. Ignored while hidden so taps fall
+                    // through to the surface toggle below.
                     Center(
-                      child: AnimatedOpacity(
-                        opacity: controlsVisible ? 1 : 0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        child: IconButton.filled(
-                          onPressed: controller.player.playOrPause,
-                          icon: Icon(
-                            playback.playing
-                                ? Symbols.pause
-                                : Symbols.play_arrow,
-                            size: 28,
-                            fill: 1,
-                            color: Colors.white,
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.black.withValues(
-                              alpha: 0.45,
+                      child: IgnorePointer(
+                        ignoring: !controlsVisible,
+                        child: AnimatedOpacity(
+                          opacity: controlsVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                          child: IconButton.filled(
+                            onPressed: controller.player.playOrPause,
+                            icon: Icon(
+                              playback.playing
+                                  ? Symbols.pause
+                                  : Symbols.play_arrow,
+                              size: 28,
+                              fill: 1,
+                              color: Colors.white,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.45,
+                              ),
                             ),
                           ),
                         ),
