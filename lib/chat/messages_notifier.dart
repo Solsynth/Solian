@@ -961,9 +961,11 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     for (final message in messages) {
       final clientMessageId = message.clientMessageId;
-      final existingIndex =
-          indexById[message.id] ??
-          (clientMessageId == null ? null : indexByClientId[clientMessageId]);
+      final existingById = indexById[message.id];
+      final existingByClientId = clientMessageId == null
+          ? null
+          : indexByClientId[clientMessageId];
+      final existingIndex = existingById ?? existingByClientId;
 
       if (existingIndex == null) {
         indexById[message.id] = result.length;
@@ -974,13 +976,32 @@ class MessagesNotifier extends _$MessagesNotifier {
         continue;
       }
 
-      if (result[existingIndex].status != MessageStatus.sent &&
+      final existing = result[existingIndex];
+
+      // A pending/failed row may be upgraded in place by its
+      // server-confirmed counterpart (matched by id or client_message_id).
+      if (existing.status != MessageStatus.sent &&
           message.status == MessageStatus.sent) {
         result[existingIndex] = message;
         indexById[message.id] = existingIndex;
         if (clientMessageId != null) {
           indexByClientId[clientMessageId] = existingIndex;
         }
+        continue;
+      }
+
+      // Same id: a true duplicate - keep the row already in the list.
+      if (existingById != null) continue;
+
+      // The collision comes from client_message_id. Distinct server rows can
+      // legitimately share it: a `messages.update` event row carries the
+      // client_message_id of the message it edits. When both rows are
+      // confirmed they are separate timeline entries - keep both instead of
+      // silently dropping one. A non-confirmed row that cannot upgrade the
+      // existing confirmed row is a stale duplicate - drop it.
+      if (message.status == MessageStatus.sent) {
+        indexById[message.id] = result.length;
+        result.add(message);
       }
     }
 
@@ -1354,8 +1375,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     final existingIndex = currentMessages.indexWhere(
       (m) =>
           m.id == localMessage.id ||
+          // A client_message_id match only identifies the local placeholder
+          // awaiting finalization. Confirmed rows (a `messages.update` event
+          // and the message it edits) share the sender's client_message_id
+          // while being distinct timeline entries, so they must not match
+          // each other.
           (localMessage.clientMessageId != null &&
-              m.clientMessageId == localMessage.clientMessageId),
+              m.clientMessageId == localMessage.clientMessageId &&
+              m.status != MessageStatus.sent),
     );
 
     if (!ref.mounted) return;
