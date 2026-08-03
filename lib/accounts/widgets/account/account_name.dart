@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/badge.dart';
-import 'package:island/core/network.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -494,11 +492,11 @@ class VerificationStatusCard extends StatelessWidget {
   }
 }
 
-class AccountUnactivatedCard extends HookConsumerWidget {
+class AccountUnactivatedCard extends StatelessWidget {
   const AccountUnactivatedCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
       child: Column(
@@ -513,26 +511,7 @@ class AccountUnactivatedCard extends HookConsumerWidget {
           const Gap(4),
           Text('accountActivationAlert').tr().fontSize(16).bold(),
           Text('accountActivationAlertHint').tr(),
-          const Gap(4),
-          Text('accountActivationResendHint').tr().opacity(0.8),
           const Gap(16),
-          FilledButton.icon(
-            icon: const Icon(Symbols.email),
-            label: Text('accountActivationResend').tr(),
-            onPressed: () async {
-              final client = ref.watch(apiClientProvider);
-              try {
-                showLoadingModal(context);
-                await client.post('/passport/spells/activation/resend');
-                showSnackBar("Activation magic spell has been resend");
-              } catch (err) {
-                showErrorAlert(err);
-              } finally {
-                if (context.mounted) hideLoadingModal(context);
-              }
-            },
-          ).width(double.infinity),
-          const Gap(8),
           OutlinedButton(
             onPressed: () =>
                 context.router.push(const AccountActivationRoute()),

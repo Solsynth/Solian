@@ -10,6 +10,12 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+final resendVerificationContactsProvider =
+    FutureProvider.autoDispose<List<SnContactMethod>>((ref) async {
+      final client = ref.read(solarNetworkClientProvider);
+      return await client.auth.getContacts();
+    });
+
 class ContactMethodSheet extends HookConsumerWidget {
   final SnContactMethod contact;
   const ContactMethodSheet({super.key, required this.contact});
@@ -332,6 +338,96 @@ class ContactMethodNewSheet extends HookConsumerWidget {
           ),
         ],
       ).padding(horizontal: 20, vertical: 24),
+    );
+  }
+}
+
+class ResendVerificationSheet extends HookConsumerWidget {
+  const ResendVerificationSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contacts = ref.watch(resendVerificationContactsProvider);
+
+    Future<void> sendVerification(SnContactMethod contact) async {
+      try {
+        showLoadingModal(context);
+        final client = ref.read(apiClientProvider);
+        await client.post('/padlock/contacts/${contact.id}/verify');
+        if (context.mounted) {
+          showSnackBar('contactMethodVerificationSent'.tr());
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'contactMethodResendVerification'.tr(),
+      heightFactor: 0.7,
+      child: contacts.when(
+        data: (list) => list.isEmpty
+            ? Center(child: Text('contactsEmpty'.tr()))
+            : ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  for (final contact in list)
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: contact.verifiedAt == null
+                            ? Theme.of(context).colorScheme.secondaryContainer
+                            : Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(switch (contact.type) {
+                          0 => Symbols.mail,
+                          1 => Symbols.phone,
+                          _ => Symbols.home,
+                        }),
+                      ),
+                      title: Text(contact.content),
+                      subtitle: Text(
+                        contact.verifiedAt == null
+                            ? 'contactMethodUnverified'.tr()
+                            : 'contactMethodVerified'.tr(),
+                      ),
+                      trailing: contact.verifiedAt == null
+                          ? FilledButton.tonalIcon(
+                              onPressed: () => sendVerification(contact),
+                              icon: const Icon(
+                                Symbols.forward_to_inbox,
+                                size: 18,
+                              ),
+                              label: Text('contactMethodVerify'.tr()),
+                            )
+                          : Icon(
+                              Symbols.check,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                    ),
+                ],
+              ),
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Symbols.error, size: 32),
+                const SizedBox(height: 12),
+                Text('contactMethodLoadError'.tr()),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () =>
+                      ref.invalidate(resendVerificationContactsProvider),
+                  child: Text('retry'.tr()),
+                ),
+              ],
+            ),
+          ),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

@@ -28,6 +28,7 @@ class FileInfoSheet extends ConsumerWidget {
     const tileHorizontalPadding = 18.0;
     final exifData = item.fileMeta['exif'];
     final file = item is SnCloudFile ? item as SnCloudFile : null;
+    final hash = item.hash;
     final permissionStatus = file?.permissionStatus;
     final childrenCount = file?.childrenCount ?? 0;
     final mimeTypeLabel = file?.isFolder == true
@@ -76,9 +77,9 @@ class FileInfoSheet extends ConsumerWidget {
                     ],
                   ),
                 ),
-                if (item.hash != null)
+                if (hash != null && hash.isNotEmpty)
                   SizedBox(height: 28, child: const VerticalDivider()),
-                if (item.hash != null)
+                if (hash != null && hash.isNotEmpty)
                   Expanded(
                     child: GestureDetector(
                       child: Column(
@@ -87,7 +88,9 @@ class FileInfoSheet extends ConsumerWidget {
                         children: [
                           Text('fileHash').tr(),
                           Text(
-                            '${item.hash!.substring(0, 6)}...',
+                            hash.length > 6
+                                ? '${hash.substring(0, 6)}...'
+                                : hash,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -95,7 +98,7 @@ class FileInfoSheet extends ConsumerWidget {
                         ],
                       ),
                       onLongPress: () {
-                        Clipboard.setData(ClipboardData(text: item.hash!));
+                        Clipboard.setData(ClipboardData(text: hash));
                         showSnackBar('fileHashCopied'.tr());
                       },
                     ),

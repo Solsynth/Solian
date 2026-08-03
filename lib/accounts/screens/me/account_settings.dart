@@ -14,6 +14,7 @@ import 'package:island/auth/login.dart';
 import 'package:island/chat/widgets/chat_groups_manager.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/server_compatibility.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -618,17 +619,21 @@ class AccountSettingsScreen extends HookConsumerWidget {
           context.router.push(const PunishmentsRoute());
         },
       ),
-      ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.auto_fix_high),
-        title: Text('affiliations').tr(),
-        subtitle: Text('affiliationsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        trailing: const Icon(Symbols.chevron_right),
-        onTap: () {
-          context.router.push(const AffiliationRoute());
-        },
-      ),
+      if (serverFeatureEnabled(
+        ref.watch(serverCapabilitiesProvider).value,
+        'affiliations',
+      ))
+        ListTile(
+          minLeadingWidth: 48,
+          leading: const Icon(Symbols.auto_fix_high),
+          title: Text('affiliations').tr(),
+          subtitle: Text('affiliationsDescription').tr().fontSize(12),
+          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            context.router.push(const AffiliationRoute());
+          },
+        ),
       ListTile(
         minLeadingWidth: 48,
         leading: const Icon(Symbols.report),

@@ -2317,6 +2317,13 @@ class _MembershipTierCard extends StatelessWidget {
           const Gap(8),
           for (final benefit in _benefits)
             _buildBenefitItem(context, benefit, tierColor),
+          if (effectiveMethod == 1 || effectiveMethod == 2) ...[
+            _buildBenefitItem(
+              context,
+              'stellarBenefitSpecialPrivilege'.tr(),
+              tierColor,
+            ),
+          ],
           const Gap(4),
           InkWell(
             onTap: () => launchUrlString(

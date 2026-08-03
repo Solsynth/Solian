@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/core/network.dart';
 import 'package:island/core/server_capabilities.g.dart';
 
 /// The capabilities required before the app can safely start its core flows.
@@ -8,6 +11,52 @@ const kRequiredServerCapabilities = <String>{
   'chat',
   'posts',
 };
+
+/// A single entry from the server's `/meta` `capabilities` map
+/// (an `ApiFeature` on the server, e.g. `affiliations`).
+class ServerCapability {
+  final bool enabled;
+  final int? revision;
+
+  const ServerCapability({required this.enabled, this.revision});
+
+  factory ServerCapability.fromJson(Map<String, dynamic> json) =>
+      ServerCapability(
+        enabled: json['enabled'] == true,
+        revision: json['revision'] as int?,
+      );
+}
+
+/// Capabilities advertised by the server via `/meta`, keyed by feature name.
+/// Used to gate optional product sections behind server `ApiFeature` flags.
+final serverCapabilitiesProvider =
+    FutureProvider<Map<String, ServerCapability>>((ref) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get<Map<String, dynamic>>(
+        '/meta',
+        options: Options(validateStatus: (_) => true),
+      );
+      final data = response.data;
+      if (response.statusCode != 200 || data is! Map) return const {};
+      final raw = data?['capabilities'] ?? {};
+      if (raw is! Map) return const {};
+      return {
+        for (final entry in raw.entries)
+          if (entry.key is String && entry.value is Map)
+            entry.key as String: ServerCapability.fromJson(
+              Map<String, dynamic>.from(entry.value as Map),
+            ),
+      };
+    });
+
+/// Whether [feature] is enabled according to the server capabilities.
+///
+/// While capabilities are still loading (null) the feature is assumed
+/// available so gated sections don't flicker during startup.
+bool serverFeatureEnabled(
+  Map<String, ServerCapability>? capabilities,
+  String feature,
+) => capabilities == null || capabilities[feature]?.enabled == true;
 
 enum ServerCompatibilityIssue {
   invalidMetadata,

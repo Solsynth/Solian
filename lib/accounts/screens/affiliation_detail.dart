@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -27,6 +28,9 @@ class AffiliationDetailScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final spellAsync = ref.watch(affiliationSpellProvider(id));
+    // DELETE requires `affiliations.manage`; superuser is the client-side
+    // proxy (server bypasses permission checks for superusers).
+    final canManage = ref.watch(userInfoProvider).value?.isSuperuser == true;
 
     return AppScaffold(
       appBar: AppBar(
@@ -46,15 +50,19 @@ class AffiliationDetailScreen extends HookConsumerWidget {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: ListTile(
-                        leading: Icon(Symbols.delete, color: colorScheme.error),
-                        title: Text('affiliationDelete').tr(),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
+                    if (canManage)
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: Icon(
+                            Symbols.delete,
+                            color: colorScheme.error,
+                          ),
+                          title: Text('affiliationDelete').tr(),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
-                    ),
                   ],
                   onSelected: (value) async {
                     if (value == 'copy') {
@@ -155,20 +163,55 @@ class AffiliationDetailScreen extends HookConsumerWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-              child: Row(
-                children: [
-                  Text(
-                    'affiliationResults',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+            if (spell.isRegistrationInvite) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  color: colorScheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Symbols.card_giftcard,
+                          size: 24,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'affiliationInviteDescription',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ).tr(),
+                        ),
+                      ],
                     ),
-                  ).tr(),
-                ],
+                  ),
+                ),
               ),
-            ),
-            Expanded(child: _ResultsList(spellId: id)),
+            ] else ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                child: Row(
+                  children: [
+                    Text(
+                      'affiliationResults',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ).tr(),
+                  ],
+                ),
+              ),
+              Expanded(child: _ResultsList(spellId: id)),
+            ],
           ],
         ),
       ),

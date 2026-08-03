@@ -71,6 +71,7 @@ class ApiError {
         'detail',
         'status',
         'traceId',
+        'trace_id',
         'errors',
         'meta',
       };
@@ -80,10 +81,7 @@ class ApiError {
       }
     } else if (data is String && data.trim().isNotEmpty) {
       // Plain-text error body.
-      return ApiError(
-        message: data.trim(),
-        status: err.response?.statusCode,
-      );
+      return ApiError(message: data.trim(), status: err.response?.statusCode);
     }
     return null;
   }
@@ -108,12 +106,11 @@ class ApiError {
           json['message']?.toString() ??
           json['error']?.toString() ??
           'An unexpected error occurred.',
-      status:
-          rawStatus is num
-              ? rawStatus.toInt()
-              : int.tryParse(rawStatus?.toString() ?? ''),
+      status: rawStatus is num
+          ? rawStatus.toInt()
+          : int.tryParse(rawStatus?.toString() ?? ''),
       detail: json['detail']?.toString(),
-      traceId: json['traceId']?.toString(),
+      traceId: json['traceId']?.toString() ?? json['trace_id']?.toString(),
       errors: errors,
       meta: rawMeta is Map ? Map<String, dynamic>.from(rawMeta) : null,
     );

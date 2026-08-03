@@ -10,7 +10,9 @@ _SnAffiliationSpell _$SnAffiliationSpellFromJson(Map<String, dynamic> json) =>
     _SnAffiliationSpell(
       id: json['id'] as String,
       spell: json['spell'] as String,
-      type: (json['type'] as num?)?.toInt() ?? 0,
+      type: json['type'] == null
+          ? SnAffiliationSpellType.registrationInvite
+          : const SnAffiliationSpellTypeConverter().fromJson(json['type']),
       expiresAt: json['expires_at'] == null
           ? null
           : DateTime.parse(json['expires_at'] as String),
@@ -30,7 +32,7 @@ Map<String, dynamic> _$SnAffiliationSpellToJson(_SnAffiliationSpell instance) =>
     <String, dynamic>{
       'id': instance.id,
       'spell': instance.spell,
-      'type': instance.type,
+      'type': const SnAffiliationSpellTypeConverter().toJson(instance.type),
       'expires_at': instance.expiresAt?.toIso8601String(),
       'affected_at': instance.affectedAt?.toIso8601String(),
       'meta': instance.meta,
@@ -61,4 +63,20 @@ Map<String, dynamic> _$SnAffiliationResultToJson(
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
   'deleted_at': instance.deletedAt?.toIso8601String(),
+};
+
+_SnAffiliationPurchase _$SnAffiliationPurchaseFromJson(
+  Map<String, dynamic> json,
+) => _SnAffiliationPurchase(
+  purchaseId: json['purchase_id'] as String,
+  orderId: json['order_id'] as String,
+  amount: (json['amount'] as num).toDouble(),
+);
+
+Map<String, dynamic> _$SnAffiliationPurchaseToJson(
+  _SnAffiliationPurchase instance,
+) => <String, dynamic>{
+  'purchase_id': instance.purchaseId,
+  'order_id': instance.orderId,
+  'amount': instance.amount,
 };

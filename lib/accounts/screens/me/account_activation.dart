@@ -1,10 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/screens/me/settings_contacts.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/network/api_error.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -32,8 +36,8 @@ class ActivationTestRequirement {
       title: json['title'] as String? ?? 'Activation test',
       available: json['available'] as bool? ?? false,
       passed: json['passed'] as bool? ?? false,
-      maxAttempts: (json['maxAttempts'] as num?)?.toInt(),
-      usedAttemptCount: (json['usedAttemptCount'] as num?)?.toInt() ?? 0,
+      maxAttempts: (json['max_attempts'] as num?)?.toInt(),
+      usedAttemptCount: (json['used_attempt_count'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -62,15 +66,16 @@ class AccountActivationProgress {
   factory AccountActivationProgress.fromJson(Map<String, dynamic> json) {
     final tests = json['tests'];
     return AccountActivationProgress(
-      isActivated: json['isActivated'] as bool? ?? false,
-      testsEnabled: json['testsEnabled'] as bool? ?? false,
-      testsBypassed: json['testsBypassed'] as bool? ?? false,
-      requireVerifiedContact: json['requireVerifiedContact'] as bool? ?? false,
-      hasVerifiedContact: json['hasVerifiedContact'] as bool? ?? false,
+      isActivated: json['is_activated'] as bool? ?? false,
+      testsEnabled: json['tests_enabled'] as bool? ?? false,
+      testsBypassed: json['tests_bypassed'] as bool? ?? false,
+      requireVerifiedContact:
+          json['require_verified_contact'] as bool? ?? false,
+      hasVerifiedContact: json['has_verified_contact'] as bool? ?? false,
       requiredRequirementCount:
-          (json['requiredRequirementCount'] as num?)?.toInt() ?? 0,
+          (json['required_requirement_count'] as num?)?.toInt() ?? 0,
       completedRequirementCount:
-          (json['completedRequirementCount'] as num?)?.toInt() ?? 0,
+          (json['completed_requirement_count'] as num?)?.toInt() ?? 0,
       tests: tests is List
           ? tests
                 .whereType<Map>()
@@ -103,6 +108,17 @@ class AccountActivationScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(accountActivationProgressProvider);
+    final lifecycleState = useAppLifecycleState();
+    final hasResumedOnce = useRef(false);
+    useEffect(() {
+      if (lifecycleState == AppLifecycleState.resumed) {
+        if (hasResumedOnce.value) {
+          ref.invalidate(accountActivationProgressProvider);
+        }
+        hasResumedOnce.value = true;
+      }
+      return null;
+    }, [lifecycleState]);
     final isRefreshing = useState(false);
     final inviteController = useTextEditingController();
     final inviteCode = useState('');
@@ -133,11 +149,8 @@ class AccountActivationScreen extends HookConsumerWidget {
       inviteError.value = null;
       inviteSuccess.value = null;
       try {
-        final client = ref.read(apiClientProvider);
-        await client.post(
-          '/passport/affiliations/registration-invites/consume',
-          data: {'spell': code},
-        );
+        final client = ref.read(solarNetworkClientProvider);
+        await client.accounts.consumeRegistrationInvite(code);
         inviteController.clear();
         inviteCode.value = '';
         await refresh();
@@ -145,10 +158,12 @@ class AccountActivationScreen extends HookConsumerWidget {
             ref.read(accountActivationProgressProvider).value?.isActivated ??
             false;
         inviteSuccess.value = activated
-            ? 'Your invitation code has activated this account.'
-            : 'Your invitation code was applied. Complete any remaining account requirements to activate.';
+            ? 'activation.inviteActivated'.tr()
+            : 'activation.inviteApplied'.tr();
       } catch (error) {
-        inviteError.value = _errorMessage(error);
+        if (context.mounted) {
+          inviteError.value = _errorMessage(error, context);
+        }
       } finally {
         isConsumingInvite.value = false;
       }
@@ -156,11 +171,11 @@ class AccountActivationScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        title: const Text('Account activation'),
+        title: Text('activation.title'.tr()),
         leading: const AutoLeadingButton(),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: 'refresh'.tr(),
             onPressed: isRefreshing.value ? null : refresh,
             icon: isRefreshing.value
                 ? const SizedBox(
@@ -170,6 +185,7 @@ class AccountActivationScreen extends HookConsumerWidget {
                   )
                 : const Icon(Symbols.refresh),
           ),
+          const Gap(8),
         ],
       ),
       body: progress.when(
@@ -182,11 +198,11 @@ class AccountActivationScreen extends HookConsumerWidget {
               children: [
                 const Icon(Symbols.error, size: 32),
                 const SizedBox(height: 12),
-                const Text('Unable to load activation requirements.'),
+                Text('activation.loadError'.tr()),
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: refresh,
-                  child: const Text('Try again'),
+                  child: Text('retry'.tr()),
                 ),
               ],
             ),
@@ -201,14 +217,13 @@ class AccountActivationScreen extends HookConsumerWidget {
                 _ActivationMessage(
                   icon: Symbols.check_circle,
                   color: Theme.of(context).colorScheme.primary,
-                  text:
-                      'Your account is active. Your completed activation requirements are shown below.',
+                  text: 'activation.activeMessage'.tr(),
                 ),
                 const SizedBox(height: 16),
               ],
               if (!value.isActivated) ...[
                 Text(
-                  'Complete the remaining requirements to unlock your account.',
+                  'activation.description'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
@@ -224,21 +239,18 @@ class AccountActivationScreen extends HookConsumerWidget {
                           : value.completedRequirementCount /
                                 value.requiredRequirementCount,
                     ),
-                    if (value.requireVerifiedContact)
-                      _RequirementTile(
-                        icon: value.hasVerifiedContact
-                            ? Symbols.mark_email_read
-                            : Symbols.mail,
-                        title: 'Verify your contact',
-                        detail: value.hasVerifiedContact
-                            ? 'Complete'
-                            : 'Use the verification link we sent you.',
-                        complete: value.hasVerifiedContact,
-                      ),
+                    _RequirementTile(
+                      icon: value.hasVerifiedContact
+                          ? Symbols.mark_email_read
+                          : Symbols.mail,
+                      title: 'activation.verifyContact'.tr(),
+                      detail: value.hasVerifiedContact
+                          ? 'activation.complete'.tr()
+                          : 'activation.verifyContactHint'.tr(),
+                      complete: value.hasVerifiedContact,
+                    ),
                     for (final test in value.tests) ...[
-                      if (value.requireVerifiedContact ||
-                          test != value.tests.first)
-                        const Divider(height: 1),
+                      const Divider(height: 1),
                       _RequirementTile(
                         icon: Symbols.quiz,
                         title: test.title,
@@ -249,8 +261,7 @@ class AccountActivationScreen extends HookConsumerWidget {
                                 !test.passed &&
                                 test.available &&
                                 (test.maxAttempts == null ||
-                                    test.usedAttemptCount <
-                                        test.maxAttempts!)
+                                    test.usedAttemptCount < test.maxAttempts!)
                             ? () => _takeTest(context, test.key)
                             : null,
                       ),
@@ -258,12 +269,29 @@ class AccountActivationScreen extends HookConsumerWidget {
                   ],
                 ),
               ),
+              if (!value.isActivated && !value.hasVerifiedContact) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => const ResendVerificationSheet(),
+                      );
+                    },
+                    icon: const Icon(Symbols.forward_to_inbox, size: 18),
+                    label: Text('contactMethodResendVerification'.tr()),
+                  ),
+                ),
+              ],
               if (value.testsBypassed) ...[
                 const SizedBox(height: 12),
                 _ActivationMessage(
                   icon: Symbols.info,
                   color: Theme.of(context).colorScheme.primary,
-                  text: 'An invitation has waived the test requirement.',
+                  text: 'activation.testsBypassed'.tr(),
                 ),
               ],
               if (!value.isActivated && !value.testsBypassed) ...[
@@ -337,7 +365,7 @@ class _RequirementTile extends StatelessWidget {
           ? FilledButton.tonalIcon(
               onPressed: onTakeTest,
               icon: const Icon(Symbols.quiz, size: 18),
-              label: const Text('Take test'),
+              label: Text('activation.takeTest'.tr()),
             )
           : complete
           ? Icon(Symbols.check, color: colors.primary)
@@ -377,14 +405,15 @@ class _AffiliationSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Have an affiliation code?',
+              'activation.affiliationTitle'.tr(),
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
             Text(
-              'Use a registration invitation code to skip eligible entry tests.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: colors.onSurfaceVariant),
+              'activation.affiliationHint'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -398,9 +427,8 @@ class _AffiliationSection extends StatelessWidget {
                     onSubmitted: (_) {
                       if (enabled) onSubmit();
                     },
-                    decoration: const InputDecoration(
-                      hintText: 'Enter affiliation code',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      hintText: 'activation.affiliationPlaceholder'.tr(),
                       isDense: true,
                     ),
                   ),
@@ -414,7 +442,7 @@ class _AffiliationSection extends StatelessWidget {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Use code'),
+                      : Text('activation.useCode'.tr()),
                 ),
               ],
             ),
@@ -422,15 +450,15 @@ class _AffiliationSection extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 error!,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: colors.error),
+                style: theme.textTheme.bodySmall?.copyWith(color: colors.error),
               ),
             ] else if (success != null) ...[
               const SizedBox(height: 12),
               Text(
                 success!,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: colors.primary),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.primary,
+                ),
               ),
             ],
           ],
@@ -441,16 +469,18 @@ class _AffiliationSection extends StatelessWidget {
 }
 
 String _testDetail(ActivationTestRequirement test) {
-  if (test.passed) return 'Passed';
-  if (!test.available) return 'Not currently available';
+  if (test.passed) return 'activation.passed'.tr();
+  if (!test.available) return 'activation.notAvailable'.tr();
   final maxAttempts = test.maxAttempts;
   if (maxAttempts != null && test.usedAttemptCount >= maxAttempts) {
-    return 'Maximum attempts reached';
+    return 'activation.maxAttemptsReached'.tr();
   }
   if (maxAttempts != null) {
-    return 'Attempts: ${test.usedAttemptCount}/$maxAttempts';
+    return 'activation.remainingAttempts'.tr(
+      namedArgs: {'used': '${test.usedAttemptCount}', 'max': '$maxAttempts'},
+    );
   }
-  return 'Required before activation';
+  return 'activation.required'.tr();
 }
 
 Future<void> _takeTest(BuildContext context, String key) async {
@@ -459,16 +489,22 @@ Future<void> _takeTest(BuildContext context, String key) async {
   await openExternalLinkWithContainer(uri, container);
 }
 
-String _errorMessage(Object error) {
+/// Resolves a user-facing error text, preferring the localized label for the
+/// structured `{ code, message, status, trace_id }` error code
+/// (i18n key `errorCode_<CODE>`), then the server message.
+String _errorMessage(Object error, BuildContext context) {
   if (error is DioException) {
-    final data = error.response?.data;
-    final message = data is Map
-        ? (data['message'] ?? data['detail'] ?? data['error'])?.toString()
-        : data?.toString();
-    if (message != null && message.isNotEmpty) return message;
-    return error.response?.statusMessage ??
-        error.message ??
-        error.toString();
+    final apiError = ApiError.tryParse(error);
+    if (apiError != null) {
+      if (apiError.hasCode) {
+        final key = 'errorCode_${apiError.code}';
+        final localized = context.tr(key);
+        return localized == key ? apiError.message : localized;
+      }
+      final message = apiError.displayMessage;
+      if (message.isNotEmpty) return message;
+    }
+    return error.response?.statusMessage ?? error.message ?? error.toString();
   }
   return error.toString();
 }

@@ -908,13 +908,67 @@ class AccountsApi extends BaseApi {
 
   /// Creates a new affiliation spell.
   ///
+  /// Requires the `affiliations.manage` permission.
+  ///
   /// [spell] - Optional custom spell word. If null, a random 8-char string is generated.
-  Future<SnAffiliationSpell> createAffiliationSpell({String? spell}) async {
+  /// [maxUsages] - Optional maximum number of uses (>= 1); null means unlimited.
+  /// [skipTests] - Whether activating with this spell bypasses onboarding
+  /// tests. Defaults to true.
+  Future<SnAffiliationSpell> createAffiliationSpell({
+    String? spell,
+    int? maxUsages,
+    bool skipTests = true,
+  }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/affiliations',
-      data: {'spell': ?spell},
+      data: {
+        'spell': ?spell,
+        'max_usages': maxUsages,
+        'skip_tests': skipTests,
+      },
     );
     return SnAffiliationSpell.fromJson(response.data!);
+  }
+
+  /// Purchases a registration invitation spell.
+  ///
+  /// Creates a Wallet order paid with points; the single-use invite spell
+  /// appears in the list once the order is fulfilled. Available to any
+  /// authenticated user, unlike [createAffiliationSpell].
+  Future<SnAffiliationPurchase> purchaseAffiliationSpell() async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/affiliations/purchase',
+    );
+    return SnAffiliationPurchase.fromJson(response.data!);
+  }
+
+  /// Consumes a registration invitation spell, activating the account.
+  ///
+  /// Only valid for unactivated accounts. Returns the activation requirement
+  /// state after consumption; callers should refresh their activation flow
+  /// state.
+  Future<Map<String, dynamic>> consumeRegistrationInvite(String spell) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/affiliations/registration-invites/consume',
+      data: {'spell': spell},
+    );
+    return response.data!;
+  }
+
+  /// Records a conversion result for a spell.
+  ///
+  /// Public (no auth). Rejected with `PASSPORT_AFFILIATION_INVITE_USE_RESTRICTED`
+  /// for RegistrationInvite-type spells, which are consumed during signup and
+  /// never tracked as results.
+  Future<SnAffiliationResult> recordAffiliationResult({
+    required String spell,
+    required String resourceIdentifier,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/affiliations/$spell/results',
+      data: {'resource_identifier': resourceIdentifier},
+    );
+    return SnAffiliationResult.fromJson(response.data!);
   }
 
   /// Lists the current user's affiliation spells.
