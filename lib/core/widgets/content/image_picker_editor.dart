@@ -518,14 +518,19 @@ class ImagePickerEditor extends HookConsumerWidget {
           final image = images.value[idx];
 
           final bytes = await image.getBytes();
+          // cross_file's io implementation derives `XFile.name` from the
+          // path and drops the `name:` argument of `fromData`; carry the
+          // upload name out-of-band via `UniversalFile.displayName` so a
+          // non-empty `file_name` reaches the server on every platform.
+          final uploadName = _editedImageName(
+            image.displayName ?? image.file.name,
+            isEdited: image.isEdited,
+          );
           final xfile = XFile.fromData(
             bytes,
-            name: _editedImageName(
-              image.displayName ?? image.file.name,
-              isEdited: image.isEdited,
-            ),
+            name: uploadName,
             mimeType: _imageMimeType(
-              image.displayName ?? image.file.name,
+              uploadName,
               isEdited: image.isEdited,
             ),
           );
@@ -536,6 +541,7 @@ class ImagePickerEditor extends HookConsumerWidget {
                 fileData: UniversalFile(
                   data: xfile,
                   type: UniversalFileType.image,
+                  displayName: uploadName,
                 ),
                 usage: config.usage,
                 onProgress: (progress, _) {

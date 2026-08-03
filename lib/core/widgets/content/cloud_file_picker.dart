@@ -106,7 +106,13 @@ class CloudFilePicker extends HookConsumerWidget {
         final xfile = e.bytes != null
             ? XFile.fromData(e.bytes!, name: e.name)
             : XFile(e.path!);
-        return UniversalFile(data: xfile, type: UniversalFileType.file);
+        // cross_file drops `fromData`'s `name:` on io; keep it via
+        // `displayName` so `file_name` is never empty on upload.
+        return UniversalFile(
+          data: xfile,
+          type: UniversalFileType.file,
+          displayName: e.name,
+        );
       }).toList();
 
       if (!allowMultiple) {
@@ -184,7 +190,11 @@ class CloudFilePicker extends HookConsumerWidget {
         final xfile = e.bytes != null
             ? XFile.fromData(e.bytes!, name: e.name)
             : XFile(e.path!);
-        return UniversalFile(data: xfile, type: UniversalFileType.video);
+        return UniversalFile(
+          data: xfile,
+          type: UniversalFileType.video,
+          displayName: e.name,
+        );
       }).toList();
 
       if (!allowMultiple) {

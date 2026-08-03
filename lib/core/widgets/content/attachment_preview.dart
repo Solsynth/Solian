@@ -698,7 +698,14 @@ class AttachmentPreview extends HookConsumerWidget {
                 );
                 if (result == null) return;
                 onUpdate?.call(
-                  item.copyWith(data: result, displayName: result.name),
+                  item.copyWith(
+                    data: result,
+                    // `result.name` is empty on io (cross_file drops
+                    // fromData's `name:`); fall back to the edited name.
+                    displayName: result.name.isNotEmpty
+                        ? result.name
+                        : editedImageName(item.data.name),
+                  ),
                 );
               },
             ),

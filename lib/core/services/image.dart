@@ -26,7 +26,7 @@ Future<XFile?> cropImage(
 
   return XFile.fromData(
     bytes,
-    name: _editedImageName(image.name),
+    name: editedImageName(image.name),
     path: replacePath ? null : image.path,
     mimeType: 'image/png',
   );
@@ -62,7 +62,13 @@ Future<XFile?> pickAndEditImage(
   );
 }
 
-String _editedImageName(String originalName) {
+/// Returns the display name of an image edited by [cropImage]: the original
+/// base name with the extension replaced by `.png`.
+///
+/// Callers that wrap the returned [XFile] in a [UniversalFile] should use
+/// this as `displayName` — cross_file's io implementation drops the `name:`
+/// argument of `XFile.fromData`, so `XFile.name` is empty on io platforms.
+String editedImageName(String originalName) {
   final extension = p.extension(originalName);
   if (extension.isEmpty) return '${originalName}_cropped.png';
   return originalName.replaceRange(

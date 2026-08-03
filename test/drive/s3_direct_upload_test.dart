@@ -10,7 +10,9 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Fake DysonFS direct-upload API: prepare (single-PUT and multipart),
 /// per-part presign, and complete-direct. Part PUTs go to a real loopback
@@ -24,6 +26,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
   bool lastPrepareMultipart = false;
   int completeCalls = 0;
   int lastFileSize = 0;
+  String? lastFileName;
   final List<int> partRequests = [];
 
   /// When true, prepare responds with a single `upload_url` (the
@@ -79,6 +82,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
       final body = await _readJsonBody(options, requestStream);
       lastPrepareMultipart = body['multipart'] == true;
       lastFileSize = body['file_size'] as int;
+      lastFileName = body['file_name']?.toString();
       final size = lastFileSize;
       if (singlePut) {
         return _json(200, {
@@ -220,6 +224,9 @@ void main() {
         weakInternetModeProvider.overrideWithValue(false),
       ],
     );
+    // tasksProvider is autoDispose; in production the task tray listens to
+    // it. Keep it alive here so in-flight uploads can update task state.
+    container.listen(tasksProvider, (_, _) {});
   });
 
   tearDown(() {
@@ -360,5 +367,64 @@ void main() {
     expect(s3.objects['/single'], isNotNull);
     expect(s3.objects['/single']!.length, source.length);
     expect(s3.objects['/single'], equals(source));
+  });
+
+  test('byte-backed upload (editor flow) sends displayName as file_name',
+      () async {
+    // Mirrors ImagePickerEditor.startUpload: picked bytes wrapped in an
+    // in-memory XFile whose real name is carried via UniversalFile.displayName
+    // (cross_file's io implementation drops `fromData`'s `name:` argument,
+    // which previously produced an empty `file_name` and a server-side
+    // "file_name and positive file_size are required" rejection).
+    dyson.singlePut = true;
+    final bytes = Uint8List.fromList(
+      List.generate(1024 * 1024, (i) => i % 251),
+    );
+    final uploader = container.read(driveFileUploaderProvider);
+    final result = await uploader
+        .createCloudFile(
+          fileData: UniversalFile(
+            data: XFile.fromData(
+              bytes,
+              name: 'IMG_0001.jpg',
+              mimeType: 'image/jpeg',
+            ),
+            type: UniversalFileType.image,
+            displayName: 'IMG_0001.jpg',
+          ),
+        )
+        .future;
+
+    expect(result, isNotNull);
+    expect(dyson.prepareCalls, 1);
+    expect(dyson.lastFileName, 'IMG_0001.jpg');
+    expect(dyson.lastFileSize, bytes.length);
+    // The in-memory bytes reached the fake S3 intact.
+    expect(s3.objects['/single'], equals(bytes));
+  });
+
+  test('in-memory XFile without displayName has no file name on io', () async {
+    // Documents the cross_file trap that broke profile uploads: on io
+    // platforms `XFile.fromData` derives `name` from the (empty) path, so a
+    // byte-backed XFile without a path has an empty name. Callers must pass
+    // `UniversalFile.displayName` (as the editor now does); otherwise the
+    // upload would hit the server's "file_name and positive file_size are
+    // required" validation.
+    dyson.singlePut = true;
+    final uploader = container.read(driveFileUploaderProvider);
+    final result = await uploader
+        .createCloudFile(
+          fileData: UniversalFile(
+            data: XFile.fromData(
+              Uint8List.fromList(List.generate(64, (i) => i)),
+              name: 'dropped.jpg',
+            ),
+            type: UniversalFileType.image,
+          ),
+        )
+        .future;
+
+    expect(result, isNotNull);
+    expect(dyson.lastFileName, isEmpty);
   });
 }
