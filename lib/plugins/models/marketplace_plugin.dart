@@ -1,3 +1,4 @@
+import 'package:island/developers/models/developer.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A production plugin listing from the public marketplace
@@ -18,7 +19,10 @@ class MarketplacePlugin {
     this.packageUrl,
     this.packageSha256,
     this.packageSize,
+    this.downloadCount,
     this.icon,
+    this.developer,
+    this.developerId,
     this.publisher,
     this.publisherId,
     this.projectName,
@@ -46,7 +50,18 @@ class MarketplacePlugin {
   /// Lowercase SHA-256 of the exact ZIP bytes (optional but preferred).
   final String? packageSha256;
   final int? packageSize;
+
+  /// Total installs reported by the marketplace (`download_count`).
+  final int? downloadCount;
+
   final SnCloudFileReference? icon;
+
+  /// Full developer record (`developer`) with the hydrated publisher —
+  /// avatar (`picture`), `verification` and optional full `account`.
+  final SnDeveloper? developer;
+
+  /// Developer record id (`developer_id`, same as [SnDeveloper.id]).
+  final String? developerId;
 
   /// Hydrated publisher from `developer.publisher` (preferred attribution).
   final SnPublisher? publisher;
@@ -65,8 +80,54 @@ class MarketplacePlugin {
 
   bool get hasPublisher => publisher != null;
 
-  /// Author shown in marketplace UI — prefers the **manifest / denormalized
-  /// author** field, not the hydrated publisher record.
+  /// Developer avatar file — publisher `picture`, falling back to the
+  /// hydrated account profile picture.
+  SnCloudFileReference? get developerPicture =>
+      publisher?.picture ?? publisher?.account?.profile.picture;
+
+  /// Developer as an [SnAccount] for [AccountName] rendering: prefers the
+  /// hydrated `publisher.account`; otherwise synthesizes a minimal account
+  /// from the publisher record so the nick, avatar and verification mark
+  /// still render.
+  SnAccount? get developerAccount {
+    final pub = publisher;
+    if (pub == null) return null;
+    final account = pub.account;
+    if (account != null) return account;
+
+    final id = pub.accountId ?? pub.id;
+    final now = DateTime.now();
+    return SnAccount(
+      id: id,
+      name: pub.name,
+      nick: pub.nick,
+      language: '',
+      isSuperuser: false,
+      automatedId: null,
+      profile: SnAccountProfile(
+        id: id,
+        bio: pub.bio,
+        experience: 0,
+        level: 0,
+        levelingProgress: 0,
+        picture: pub.picture,
+        background: pub.background,
+        verification: pub.verification,
+        createdAt: pub.createdAt ?? now,
+        updatedAt: pub.updatedAt ?? now,
+        deletedAt: pub.deletedAt,
+      ),
+      perkSubscription: null,
+      activatedAt: null,
+      createdAt: pub.createdAt ?? now,
+      updatedAt: pub.updatedAt ?? now,
+      deletedAt: pub.deletedAt,
+    );
+  }
+
+  /// Author shown in plain-text fallback contexts (e.g. no hydrated
+  /// developer) — prefers the manifest / denormalized author field, then
+  /// the hydrated publisher record.
   String get displayAuthor {
     final a = author?.trim();
     if (a != null && a.isNotEmpty) return a;
@@ -112,16 +173,20 @@ class MarketplacePlugin {
     final projectMap = _asStringKeyMap(json['project']);
     final projectDeveloperMap = _asStringKeyMap(projectMap?['developer']);
 
-    // Prefer top-level developer.publisher, then project.developer.publisher.
+    // Prefer the top-level developer, then project.developer.
+    final developer =
+        _parseDeveloper(developerMap) ?? _parseDeveloper(projectDeveloperMap);
+
     final publisher =
-        _parsePublisher(developerMap?['publisher']) ??
+        developer?.publisher ??
         _parsePublisher(projectDeveloperMap?['publisher']);
 
     final publisherId =
+        developer?.publisherId ??
         (developerMap?['publisher_id'] ??
                 projectDeveloperMap?['publisher_id'] ??
                 publisher?.id)
-            ?.toString();
+            .toString();
 
     final projectName = projectMap?['name']?.toString();
 
@@ -159,7 +224,11 @@ class MarketplacePlugin {
           json['package_sha256'] as String? ?? json['packageSha256'] as String?,
       packageSize: (json['package_size'] as num?)?.toInt() ??
           (json['packageSize'] as num?)?.toInt(),
+      downloadCount: (json['download_count'] as num?)?.toInt() ??
+          (json['downloadCount'] as num?)?.toInt(),
       icon: icon,
+      developer: developer,
+      developerId: (json['developer_id'] ?? developer?.id)?.toString(),
       publisher: publisher,
       publisherId: publisherId,
       projectName: projectName,
@@ -173,6 +242,16 @@ class MarketplacePlugin {
     if (raw is Map<String, dynamic>) return raw;
     if (raw is Map) return Map<String, dynamic>.from(raw);
     return null;
+  }
+
+  static SnDeveloper? _parseDeveloper(dynamic raw) {
+    final map = _asStringKeyMap(raw);
+    if (map == null) return null;
+    try {
+      return SnDeveloper.fromJson(map);
+    } catch (_) {
+      return null;
+    }
   }
 
   static SnPublisher? _parsePublisher(dynamic raw) {

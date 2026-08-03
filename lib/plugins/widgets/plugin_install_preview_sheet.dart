@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/plugins/models/plugin_install_preview.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -39,6 +40,7 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
     final overrideAck = useState(false);
 
     final canConfirm = !preview.requiresOverrideAck || overrideAck.value;
+    final developerAccount = preview.developerAccount;
 
     final (actionLabel, actionIcon, title) = switch (preview.conflict) {
       PluginInstallConflict.upgrade => (
@@ -115,16 +117,58 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        preview.name,
-                        style: tt.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              preview.name,
+                              style: tt.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (developerAccount != null) ...[
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (preview.developerPicture != null) ...[
+                                    ProfilePictureWidget(
+                                      file: preview.developerPicture,
+                                      radius: 8,
+                                    ),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Flexible(
+                                    child: AccountName(
+                                      account: developerAccount,
+                                      textOverride: developerAccount.nick
+                                                  .trim()
+                                                  .isEmpty &&
+                                              preview.displayAttribution
+                                                  .isNotEmpty
+                                          ? preview.displayAttribution
+                                          : null,
+                                      style: tt.bodySmall?.copyWith(
+                                        color: cs.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         [
-                          if (preview.displayAttribution.isNotEmpty)
+                          if (developerAccount == null &&
+                              preview.displayAttribution.isNotEmpty)
                             preview.displayAttribution,
                           'v${preview.version}',
                           if (preview.isInstalled &&
@@ -158,6 +202,17 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
               ],
             ),
           ),
+
+          // Developer card (marketplace listings with a hydrated publisher)
+          if (preview.publisher != null) ...[
+            const SizedBox(height: 20),
+            Text(
+              'pluginInstallPreviewDeveloper'.tr(),
+              style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            _DeveloperCard(preview: preview),
+          ],
 
           // Conflict / version banners
           if (preview.conflict == PluginInstallConflict.upgrade) ...[
@@ -257,10 +312,16 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
               label: 'pluginInstallPreviewInstalledLabel'.tr(),
               value: 'v${preview.installedVersion}',
             ),
-          if (preview.displayAttribution.isNotEmpty)
+          if (preview.publisher == null &&
+              preview.displayAttribution.isNotEmpty)
             _DetailRow(
               label: 'pluginInstallPreviewAuthor'.tr(),
               value: preview.displayAttribution,
+            ),
+          if (preview.downloadCount != null)
+            _DetailRow(
+              label: 'pluginInstallPreviewDownloads'.tr(),
+              value: _formatCount(preview.downloadCount!),
             ),
           _DetailRow(
             label: 'pluginInstallPreviewEntry'.tr(),
@@ -354,6 +415,15 @@ class PluginInstallPreviewSheet extends HookConsumerWidget {
       return '${(bytes / 1024).toStringAsFixed(1)} KB';
     }
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  static String _formatCount(int count) {
+    if (count >= 1000000) {
+      return '${(count / 1000000).toStringAsFixed(1)}M';
+    } else if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}K';
+    }
+    return '$count';
   }
 
   static String _shortHash(String hash) {
@@ -488,6 +558,104 @@ class _DetailRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _DeveloperCard extends StatelessWidget {
+  final PluginInstallPreview preview;
+
+  const _DeveloperCard({required this.preview});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final publisher = preview.publisher!;
+    final account = preview.developerAccount;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfilePictureWidget(file: preview.developerPicture, radius: 26),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (account != null)
+                  AccountName(
+                    account: account,
+                    textOverride: account.nick.trim().isEmpty &&
+                            publisher.nick.trim().isNotEmpty
+                        ? publisher.nick.trim()
+                        : null,
+                    style: tt.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                else
+                  Text(
+                    publisher.nick.trim().isNotEmpty
+                        ? publisher.nick.trim()
+                        : publisher.name.trim(),
+                    style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                if (publisher.name.trim().isNotEmpty) ...[
+                  const SizedBox(height: 1),
+                  Text(
+                    '@${publisher.name.trim()}',
+                    style: tt.bodySmall?.copyWith(color: cs.outline),
+                  ),
+                ],
+                if (publisher.bio.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    publisher.bio.trim(),
+                    style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (publisher.rating > 100 || publisher.ratingLevel > 0) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Symbols.star, size: 14, color: Colors.amber),
+                      const SizedBox(width: 4),
+                      Text(
+                        'ratingTooltip'.tr(
+                          args: [_formatRating(publisher.rating)],
+                        ),
+                        style: tt.labelSmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatRating(double rating) {
+    if (rating >= 1000000) {
+      return '${(rating / 1000000).toStringAsFixed(1)}M';
+    } else if (rating >= 1000) {
+      return '${(rating / 1000).toStringAsFixed(1)}K';
+    }
+    return rating.toStringAsFixed(0);
   }
 }
 

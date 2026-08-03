@@ -29,12 +29,15 @@ class PluginInstallPreview {
     this.author = '',
     this.publisher,
     this.publisherLabel = '',
+    this.developerAccount,
+    this.developerPicture,
     this.description = '',
     this.homepage,
     this.entry = 'main.js',
     this.background = false,
     this.permissions = const [],
     this.packageSize,
+    this.downloadCount,
     this.packageSha256,
     this.icon,
     this.slug,
@@ -58,12 +61,23 @@ class PluginInstallPreview {
   /// Precomputed publisher display label (nick preferred).
   final String publisherLabel;
 
+  /// Developer as an [SnAccount] for [AccountName] rendering (avatar +
+  /// verification mark); marketplace listings only.
+  final SnAccount? developerAccount;
+
+  /// Developer avatar file — publisher picture or account profile picture.
+  final SnCloudFileReference? developerPicture;
+
   final String description;
   final String? homepage;
   final String entry;
   final bool background;
   final List<String> permissions;
   final int? packageSize;
+
+  /// Marketplace-reported install count (`download_count`).
+  final int? downloadCount;
+
   final String? packageSha256;
   final SnCloudFileReference? icon;
   final String? slug;
@@ -151,12 +165,15 @@ class PluginInstallPreview {
       author: plugin.displayAuthor,
       publisher: plugin.publisher,
       publisherLabel: plugin.displayPublisher,
+      developerAccount: plugin.developerAccount,
+      developerPicture: plugin.developerPicture,
       description: plugin.description ?? '',
       homepage: plugin.homepage,
       entry: plugin.entry,
       background: plugin.background,
       permissions: plugin.permissions,
       packageSize: plugin.packageSize,
+      downloadCount: plugin.downloadCount,
       packageSha256: plugin.packageSha256,
       icon: plugin.icon,
       slug: plugin.slug,

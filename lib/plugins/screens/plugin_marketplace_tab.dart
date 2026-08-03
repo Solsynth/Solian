@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/plugins/models/marketplace_plugin.dart';
@@ -19,8 +20,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 // Pagination provider
 // ---------------------------------------------------------------------------
 
-final pluginMarketplaceProvider =
-    AsyncNotifierProvider.autoDispose(PluginMarketplaceNotifier.new);
+final pluginMarketplaceProvider = AsyncNotifierProvider.autoDispose(
+  PluginMarketplaceNotifier.new,
+);
 
 class PluginMarketplaceNotifier
     extends AsyncNotifier<PaginationState<MarketplacePlugin>>
@@ -153,9 +155,13 @@ class _MarketplacePluginTile extends HookConsumerWidget {
     final installing = useState(false);
 
     final canInstall = plugin.hasInstallablePackage && !installing.value;
+    final developerAccount = plugin.developerAccount;
     final subtitle = [
-      if (plugin.displayAuthor.isNotEmpty) plugin.displayAuthor,
+      if (developerAccount == null && plugin.displayAuthor.isNotEmpty)
+        plugin.displayAuthor,
       'v${plugin.version}',
+      if (plugin.downloadCount != null)
+        'pluginInstallPreviewDownloadCount'.plural(plugin.downloadCount!),
       if (plugin.permissions.isNotEmpty)
         'pluginInstallPreviewPermissionCount'.plural(plugin.permissions.length),
       if (plugin.description != null && plugin.description!.trim().isNotEmpty)
@@ -190,20 +196,16 @@ class _MarketplacePluginTile extends HookConsumerWidget {
                 namedArgs: {'name': plugin.name},
               )
             : switch (preview.conflict) {
-                PluginInstallConflict.upgrade =>
-                  'pluginMarketplaceUpdated'.tr(
-                    namedArgs: {
-                      'name': plugin.name,
-                      'version': plugin.version,
-                    },
-                  ),
+                PluginInstallConflict.upgrade => 'pluginMarketplaceUpdated'.tr(
+                  namedArgs: {'name': plugin.name, 'version': plugin.version},
+                ),
                 _ => 'pluginMarketplaceInstalled'.tr(
                   namedArgs: {'name': plugin.name},
                 ),
               };
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       } finally {
         if (context.mounted) installing.value = false;
       }
@@ -231,13 +233,54 @@ class _MarketplacePluginTile extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        plugin.name,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              plugin.name,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (developerAccount != null) ...[
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (plugin.developerPicture != null) ...[
+                                    ProfilePictureWidget(
+                                      file: plugin.developerPicture,
+                                      radius: 8,
+                                    ),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Flexible(
+                                    child: AccountName(
+                                      account: developerAccount,
+                                      textOverride:
+                                          developerAccount.nick
+                                                  .trim()
+                                                  .isEmpty &&
+                                              plugin.displayAuthor.isNotEmpty
+                                          ? plugin.displayAuthor
+                                          : null,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: cs.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -265,22 +308,19 @@ class _MarketplacePluginTile extends HookConsumerWidget {
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
-                    child: Text(
-                      () {
-                        final conflict =
-                            PluginInstallPreview.resolveConflict(
-                          incomingVersion: plugin.version,
-                          installedVersion: installedVersion,
-                        );
-                        return switch (conflict) {
-                          PluginInstallConflict.upgrade =>
-                            'pluginMarketplaceUpdate'.tr(),
-                          PluginInstallConflict.downgrade =>
-                            'pluginInstallPreviewDowngrade'.tr(),
-                          _ => 'pluginMarketplaceInstalledLabel'.tr(),
-                        };
-                      }(),
-                    ),
+                    child: Text(() {
+                      final conflict = PluginInstallPreview.resolveConflict(
+                        incomingVersion: plugin.version,
+                        installedVersion: installedVersion,
+                      );
+                      return switch (conflict) {
+                        PluginInstallConflict.upgrade =>
+                          'pluginMarketplaceUpdate'.tr(),
+                        PluginInstallConflict.downgrade =>
+                          'pluginInstallPreviewDowngrade'.tr(),
+                        _ => 'pluginMarketplaceInstalledLabel'.tr(),
+                      };
+                    }()),
                   )
                 else
                   FilledButton(
