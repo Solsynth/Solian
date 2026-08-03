@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:island/core/services/event_bus.dart';
@@ -284,4 +285,40 @@ String? actionUriToRoutePath(String rawValue) {
   final uri = Uri.tryParse(value);
   if (uri == null) return null;
   return solianLinkToRoutePath(uri);
+}
+
+/// The `https://solian.app/…` web URL equivalent of a Solian link, for
+/// opening in the browser when the app doesn't implement the route in-app.
+/// Returns [uri] itself for `https://solian.app/…` links and null for
+/// anything else.
+Uri? solianLinkWebUrl(Uri uri) {
+  if (isSolianWebUri(uri)) return uri;
+  if (uri.scheme != 'solian') return null;
+  final path = uri.path.isEmpty ? '' : uri.path;
+  final webUrl = Uri.https('solian.app', '${uri.host}$path');
+  return uri.queryParameters.isEmpty
+      ? webUrl
+      : webUrl.replace(queryParameters: uri.queryParameters);
+}
+
+/// True when [path] resolves to a concrete route in [router]'s tree — i.e.
+/// anything other than the 404 catch-all. Use to guard `navigatePath` so
+/// Solian links to pages the app doesn't implement fall back to the browser
+/// instead of landing on the in-app 404 page.
+///
+/// Must be called with the root router: nested routers only match their own
+/// sub-collection and would report unknown paths for routes outside the tab.
+bool isKnownInAppRoutePath(StackRouter router, String path) {
+  final matches = router.matcher.match(path, includePrefixMatches: false);
+  if (matches == null || matches.isEmpty) return false;
+  return matches.every((m) => m.path != '*');
+}
+
+/// Navigates to [path] in-app when it maps to a concrete route; returns false
+/// when the page isn't implemented in-app so callers can fall back (typically
+/// opening the web URL in the browser) instead of showing the 404 page.
+bool tryNavigateToRoutePath(StackRouter router, String path) {
+  if (!isKnownInAppRoutePath(router, path)) return false;
+  router.navigatePath(path);
+  return true;
 }

@@ -14,6 +14,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/database.dart';
 import 'package:island/shared/widgets/content/markdown_remote_image.dart';
 import 'package:island/posts/screens/post_detail.dart';
+import 'package:island/route.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -215,8 +216,14 @@ class MarkdownTextContent extends HookConsumerWidget {
                   return;
                 }
                 final routePath = solianLinkToRoutePath(url);
-                if (routePath != null) {
-                  context.router.navigatePath(routePath);
+                // Only navigate in-app when the path maps to a real route —
+                // otherwise the 404 catch-all page would open. Unknown Solian
+                // pages fall through to the external browser instead.
+                if (routePath != null &&
+                    tryNavigateToRoutePath(
+                      ref.read(routerProvider),
+                      routePath,
+                    )) {
                   return;
                 }
                 await openExternalLink(url, ref);

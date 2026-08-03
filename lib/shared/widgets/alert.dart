@@ -514,10 +514,16 @@ Future<void> openExternalLinkWithContainer(
   }
   final routePath = solianLinkToRoutePath(url);
   if (routePath != null) {
-    // Solian links (custom scheme or https://solian.app) map onto in-app
-    // routes — open them here instead of handing them to the OS/browser.
-    container.read(routerProvider).navigatePath(routePath);
-    return;
+    final router = container.read(routerProvider);
+    if (tryNavigateToRoutePath(router, routePath)) {
+      // Solian links (custom scheme or https://solian.app) map onto in-app
+      // routes — open them here instead of handing them to the OS/browser.
+      return;
+    }
+    // The page isn't implemented in-app — hand it to the browser via its
+    // https://solian.app equivalent (custom-scheme URLs would re-trigger the
+    // app's protocol handler) instead of landing on the 404 catch-all.
+    url = solianLinkWebUrl(url) ?? url;
   }
 
   final context = container

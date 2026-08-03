@@ -1026,7 +1026,15 @@ class AppWrapper extends HookConsumerWidget {
         path,
       ).replace(queryParameters: uri.queryParameters).toString();
     }
-    context.router.navigatePath(path);
+    if (!tryNavigateToRoutePath(ref.read(routerProvider), path)) {
+      // The page isn't implemented in-app — open the web page in the browser
+      // instead of landing on the 404 catch-all.
+      await launchUrlString(
+        (solianLinkWebUrl(uri) ?? uri).toString(),
+        mode: LaunchMode.externalApplication,
+      );
+      return;
+    }
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       windowManager.show();
