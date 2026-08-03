@@ -515,13 +515,20 @@ class _FloatingVideoDockState extends ConsumerState<FloatingVideoDock>
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: _toggleControls,
-                        child: UniversalVideo(
-                          uri: playback.uri!,
-                          aspectRatio: playback.aspectRatio,
-                          externalPlayer: controller.player,
-                          persistent: false,
-                          controls: NoVideoControls,
-                        ),
+                        // [MediaPlaybackController.close] resets the shared
+                        // state while the exit animation is still running, so
+                        // `uri` can be null here; a black surface keeps the
+                        // exit animation intact instead of crashing the build
+                        // on the null-check below.
+                        child: playback.hasMedia
+                            ? UniversalVideo(
+                                uri: playback.uri!,
+                                aspectRatio: playback.aspectRatio,
+                                externalPlayer: controller.player,
+                                persistent: false,
+                                controls: NoVideoControls,
+                              )
+                            : const ColoredBox(color: Colors.black),
                       ),
                     ),
                     // Thin draggable progress bar; no timestamps. Sits above the
