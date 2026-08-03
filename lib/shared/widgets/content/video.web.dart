@@ -9,7 +9,7 @@ class UniversalVideo extends StatelessWidget {
   final bool autoplay;
   final Player? externalPlayer;
   final bool persistent;
-  final VideoControlsBuilder? controls;
+  final Widget Function(VideoState)? controls;
   const UniversalVideo({
     super.key,
     required this.uri,

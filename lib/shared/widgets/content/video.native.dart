@@ -12,7 +12,9 @@ import 'package:island/shared/widgets/content/media_playback.dart';
 /// Sentinel default for [UniversalVideo.controls]: replaced in [build] with
 /// the platform's built-in controls. An explicit `null` (i.e.
 /// [NoVideoControls]) is preserved, disabling the built-in controls.
-const VideoControlsBuilder _unsetControls = _noOpControlsForUnset;
+// `VideoControlsBuilder` is not exported by media_kit_video on web (only the
+// native variant defines it), so use the underlying function type directly.
+const Widget Function(VideoState) _unsetControls = _noOpControlsForUnset;
 
 Widget _noOpControlsForUnset(VideoState state) => const SizedBox.shrink();
 
@@ -23,7 +25,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
   final VoidCallback? onRetry;
   final Player? externalPlayer;
   final bool persistent;
-  final VideoControlsBuilder? controls;
+  final Widget Function(VideoState)? controls;
   const UniversalVideo({
     super.key,
     required this.uri,
