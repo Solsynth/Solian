@@ -11,7 +11,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/restore_purchase_sheet.dart';
-import 'package:island/accounts/widgets/account/stellar_benefits_table.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
@@ -327,8 +326,8 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
   }
 }
 
-class StellarProgramTab extends HookConsumerWidget {
-  const StellarProgramTab({super.key});
+class StellarProgramView extends HookConsumerWidget {
+  const StellarProgramView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -406,7 +405,7 @@ class StellarProgramTab extends HookConsumerWidget {
             hasExternalCheckout,
           ),
           const Gap(16),
-          const StellarBenefitsTable(),
+          _buildPricingGuideCard(context),
           const Gap(16),
           _buildSubscriptionQueueSummary(context, ref),
           const Gap(16),
@@ -560,16 +559,12 @@ class StellarProgramTab extends HookConsumerWidget {
                     context: context,
                     builder: (context) {
                       return SheetScaffold(
-                        titleText: 'About Stellar Program',
+                        titleText: 'stellarProgram'.tr(),
                         child: Column(
                           spacing: 12,
                           children: [
-                            Text(
-                              'Stellar Program allows your unlocks more personalization settings on the Solar Network. And most imporantly, it helps support the development of the Solian and the Solar Network!',
-                            ),
-                            Text(
-                              'To learn more about the Stellar Program benefits, scroll the page to see the comparison table.',
-                            ),
+                            Text('stellarProgramAbout'.tr()),
+                            Text('stellarProgramAboutPricing'.tr()),
                           ],
                         ).padding(horizontal: 24, vertical: 16),
                       );
@@ -820,6 +815,66 @@ class StellarProgramTab extends HookConsumerWidget {
           null => const <Widget>[],
         },
       ],
+    );
+  }
+
+  Widget _buildPricingGuideCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return _buildSectionCard(
+      context,
+      color: scheme.surfaceContainerLow,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.currency_exchange_rounded,
+                  color: scheme.onPrimaryContainer,
+                  size: 24,
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Text(
+                  'stellarPricingTitle'.tr(),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Gap(12),
+          Text(
+            'stellarPricingDescription'.tr(),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const Gap(16),
+          FilledButton.icon(
+            onPressed: () => launchUrlString(
+              'https://solian.app/pricing',
+              mode: LaunchMode.externalApplication,
+            ),
+            icon: const Icon(Icons.open_in_new, size: 18),
+            label: Text('viewPricing'.tr()),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

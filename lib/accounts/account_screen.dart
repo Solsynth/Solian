@@ -220,9 +220,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
               level: user.value!.profile.level,
               experience: user.value!.profile.experience,
               progress: user.value!.profile.levelingProgress,
-              onTap: () {
-                context.router.push(const LevelingRoute());
-              },
             ).padding(horizontal: 12),
             Builder(
               builder: (context) {
@@ -253,6 +250,20 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     'title': 'progress',
                     'onTap': () {
                       context.router.push(const ProgressRoute());
+                    },
+                  },
+                  {
+                    'icon': Symbols.trending_up,
+                    'title': 'leveling',
+                    'onTap': () {
+                      context.router.push(const LevelingRoute());
+                    },
+                  },
+                  {
+                    'icon': Symbols.star,
+                    'title': 'stellarProgram',
+                    'onTap': () {
+                      context.router.push(const StellarProgramRoute());
                     },
                   },
                   {

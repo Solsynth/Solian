@@ -76,7 +76,7 @@ void showStellarProgramSheet(BuildContext context) {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          Expanded(child: StellarProgramTab()),
+          Expanded(child: StellarProgramView()),
         ],
       ),
     ),

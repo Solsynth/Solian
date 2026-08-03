@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/leveling_progress.dart';
-import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/credits.dart';
@@ -77,7 +76,7 @@ class LevelingScreen extends HookConsumerWidget {
     }
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('levelingProgress'.tr()),
@@ -102,15 +101,6 @@ class LevelingScreen extends HookConsumerWidget {
                   ),
                 ),
               ),
-              Tab(
-                child: Text(
-                  'stellarProgram'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -118,7 +108,6 @@ class LevelingScreen extends HookConsumerWidget {
           children: [
             _buildLevelingTab(context, ref, user.value!),
             const SocialCreditsTab(),
-            const StellarProgramTab(),
           ],
         ),
       ),
