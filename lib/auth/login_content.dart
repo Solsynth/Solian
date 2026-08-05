@@ -75,7 +75,8 @@ bool get _supportsPhysicalPassportLogin {
 /// - Passkey (7): offered separately as discoverable passkey on the lookup step.
 List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
   return factors.where((factor) {
-    if (factor.type == 7) return false; // passkey — use alt-methods entry instead
+    if (factor.type == 7)
+      return false; // passkey — use alt-methods entry instead
     if (factor.type == 6) return _supportsPhysicalPassportLogin;
     return true;
   }).toList();
@@ -98,9 +99,7 @@ class _FactorTrustChip extends StatelessWidget {
         size: 16,
         color: scheme.onSecondaryContainer,
       ),
-      label: Text(
-        'authFactorTrustworthy'.tr(args: ['$trustworthy']),
-      ),
+      label: Text('authFactorTrustworthy'.tr(args: ['$trustworthy'])),
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: EdgeInsets.zero,
@@ -168,7 +167,7 @@ Future<void> exchangeAuthCodeForToken(
 }) async {
   final client = ref.watch(apiClientProvider);
   final tokenResp = await client.post(
-    '/padlock/auth/token',
+    '/stargate/auth/token',
     data: {'grant_type': 'authorization_code', 'code': code},
   );
   final token = tokenResp.data['token'];
@@ -194,7 +193,7 @@ Future<void> handleLockedError(
     final client = ref.watch(solarNetworkClientProvider);
     try {
       final response = await client.dio.get(
-        '/padlock/accounts/$username/punishments/overview',
+        '/stargate/accounts/$username/punishments/overview',
       );
       final overview = response.data != null
           ? SnAccountPunishment.fromJson(response.data)
@@ -287,10 +286,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
     if (factor == null) {
       return AuthFormColumn(
         children: [
-          AuthFormHeader(
-            icon: Symbols.asterisk,
-            title: 'loginInProgress'.tr(),
-          ),
+          AuthFormHeader(icon: Symbols.asterisk, title: 'loginInProgress'.tr()),
           const Align(
             alignment: Alignment.centerLeft,
             child: CircularProgressIndicator(),
@@ -306,7 +302,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(solarNetworkClientProvider);
         final resp = await client.dio.patch(
-          '/padlock/auth/challenge/${challenge!.id}',
+          '/stargate/auth/challenge/${challenge!.id}',
           data: {'factor_id': factor!.id, 'password': pwd},
         );
         final result = SnAuthChallenge.fromJson(resp.data);
@@ -567,10 +563,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           ],
         ),
         if (factor!.type != 6 && factor!.type != 7)
-          AuthFormActions(
-            isBusy: isBusy.value,
-            onNext: performCheckTicket,
-          ),
+          AuthFormActions(isBusy: isBusy.value, onNext: performCheckTicket),
       ],
     );
   }
@@ -591,7 +584,8 @@ class LoginContent extends HookConsumerWidget {
     final stepProgress = currentTicket.value == null
         ? null
         : 1 -
-            (currentTicket.value!.stepRemain / currentTicket.value!.stepTotal);
+              (currentTicket.value!.stepRemain /
+                  currentTicket.value!.stepTotal);
 
     return Column(
       children: [
@@ -702,7 +696,7 @@ class _LoginPickerScreen extends HookConsumerWidget {
 
       try {
         await client.dio.post(
-          '/padlock/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
+          '/stargate/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
         );
         onPickFactor(factors!.where((x) => x == factorPicked.value).first);
         onNext();
@@ -734,37 +728,34 @@ class _LoginPickerScreen extends HookConsumerWidget {
           subtitle: 'loginMultiFactor'.plural(challenge!.stepRemain),
         ),
         AuthSectionCard(
-          children:
-              _filterLoginFactors(factors ?? const [])
-                  .map(
-                    (x) => RadioListTile<SnAuthFactor>(
-                      value: x,
-                      groupValue: factorPicked.value,
-                      onChanged: challenge!.blacklistFactors.contains(x.id)
-                          ? null
-                          : (value) {
-                              if (value != null) factorPicked.value = value;
-                            },
-                      secondary: Icon(
-                        kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
-                        color: scheme.primary,
-                      ),
-                      title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            kFactorTypes[x.type]?.$2 ?? 'unknown',
-                          ).tr(),
-                          const Gap(6),
-                          _FactorTrustChip(trustworthy: x.trustworthy),
-                        ],
-                      ),
-                      isThreeLine: true,
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                  )
-                  .toList(),
+          children: _filterLoginFactors(factors ?? const [])
+              .map(
+                (x) => RadioListTile<SnAuthFactor>(
+                  value: x,
+                  groupValue: factorPicked.value,
+                  onChanged: challenge!.blacklistFactors.contains(x.id)
+                      ? null
+                      : (value) {
+                          if (value != null) factorPicked.value = value;
+                        },
+                  secondary: Icon(
+                    kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
+                    color: scheme.primary,
+                  ),
+                  title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(kFactorTypes[x.type]?.$2 ?? 'unknown').tr(),
+                      const Gap(6),
+                      _FactorTrustChip(trustworthy: x.trustworthy),
+                    ],
+                  ),
+                  isThreeLine: true,
+                  controlAffinity: ListTileControlAffinity.trailing,
+                ),
+              )
+              .toList(),
         ),
         AuthFormActions(
           isBusy: isBusy.value || factorPicked.value == null,
@@ -858,7 +849,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
                           }
                           final client = ref.read(solarNetworkClientProvider);
                           final resp = await client.dio.post(
-                            '/padlock/auth/recover',
+                            '/stargate/auth/recover',
                             data: {
                               'account': accountController.text,
                               'recovery_code': codeController.text,
@@ -932,12 +923,12 @@ class _LoginLookupScreen extends HookConsumerWidget {
         final client = ref.watch(solarNetworkClientProvider);
         try {
           final resp = await client.dio.get(
-            '/padlock/auth/challenge/${event.challengeId}',
+            '/stargate/auth/challenge/${event.challengeId}',
           );
           final challenge = SnAuthChallenge.fromJson(resp.data);
           onChallenge(challenge);
           final factorResp = await client.dio.get(
-            '/padlock/auth/challenge/${challenge.id}/factors',
+            '/stargate/auth/challenge/${challenge.id}/factors',
           );
           onFactor(
             _filterLoginFactors(
@@ -984,7 +975,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(solarNetworkClientProvider);
         final resp = await client.dio.post(
-          '/padlock/auth/challenge',
+          '/stargate/auth/challenge',
           data: {
             'account': uname,
             'device_id': await getUdid(),
@@ -1004,13 +995,11 @@ class _LoginLookupScreen extends HookConsumerWidget {
         final result = SnAuthChallenge.fromJson(resp.data);
         onChallenge(result);
         final factorResp = await client.dio.get(
-          '/padlock/auth/challenge/${result.id}/factors',
+          '/stargate/auth/challenge/${result.id}/factors',
         );
         onFactor(
           _filterLoginFactors(
-            (factorResp.data as List).map(
-              (ele) => SnAuthFactor.fromJson(ele),
-            ),
+            (factorResp.data as List).map((ele) => SnAuthFactor.fromJson(ele)),
           ),
         );
         onNext();
@@ -1038,7 +1027,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
 
         if (context.mounted) showLoadingModal(context);
         final resp = await client.dio.post(
-          '/padlock/auth/login/apple/mobile',
+          '/stargate/auth/login/apple/mobile',
           data: {
             'identity_token': credential.identityToken!,
             'authorization_code': credential.authorizationCode,
@@ -1124,7 +1113,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
         queryParams['token'] = token!.token;
       }
       final url = Uri.parse(
-        '$serverUrl/padlock/auth/login/${provider.toLowerCase()}',
+        '$serverUrl/stargate/auth/login/${provider.toLowerCase()}',
       ).replace(queryParameters: queryParams).toString();
       final isLaunched = await launchUrlString(
         url,
@@ -1146,10 +1135,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
 
     return AuthFormColumn(
       children: [
-        AuthFormHeader(
-          icon: Symbols.login,
-          title: 'loginGreeting'.tr(),
-        ),
+        AuthFormHeader(icon: Symbols.login, title: 'loginGreeting'.tr()),
         TextField(
           autocorrect: false,
           enableSuggestions: false,
@@ -1185,11 +1171,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
             ),
             AuthMethodIconButton(
               onPressed: isBusy.value ? null : performDiscoverablePasskeyLogin,
-              icon: Icon(
-                Symbols.fingerprint,
-                size: 18,
-                color: methodIconColor,
-              ),
+              icon: Icon(Symbols.fingerprint, size: 18, color: methodIconColor),
               tooltip: 'authFactorPasskey'.tr(),
             ),
             if (!kIsWeb) ...[
@@ -1223,10 +1205,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
             ],
           ],
         ),
-        AuthFormActions(
-          isBusy: isBusy.value,
-          onNext: performNewTicket,
-        ),
+        AuthFormActions(isBusy: isBusy.value, onNext: performNewTicket),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: kAuthGapSm,
@@ -1344,7 +1323,7 @@ class _QrLoginSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         final resp = await client.dio.get(
-          '/padlock/auth/qr/${current.qrChallengeId}',
+          '/stargate/auth/qr/${current.qrChallengeId}',
         );
         final snapshot = _QrLoginStatusSnapshot.fromJson(
           Map<String, dynamic>.from(resp.data as Map),
@@ -1364,7 +1343,7 @@ class _QrLoginSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         final resp = await client.dio.post(
-          '/padlock/auth/qr/generate',
+          '/stargate/auth/qr/generate',
           data: {
             'device_id': await getUdid(),
             'device_name': await getDeviceName(),

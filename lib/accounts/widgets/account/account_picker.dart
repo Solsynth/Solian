@@ -22,7 +22,7 @@ Future<List<SnAccount>> searchAccounts(Ref ref, {required String query}) async {
 
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get(
-    '/passport/accounts/search',
+    '/stargate/accounts/search',
     queryParameters: {'query': query},
   );
 

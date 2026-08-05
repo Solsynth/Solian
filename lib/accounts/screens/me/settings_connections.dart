@@ -88,7 +88,7 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/padlock/connections/${connection.id}');
+        await client.delete('/stargate/connections/${connection.id}');
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -102,7 +102,7 @@ class AccountConnectionSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/padlock/connections/${connection.id}/visibility',
+          '/stargate/connections/${connection.id}/visibility',
           data: {'is_public': true},
         );
         if (context.mounted) Navigator.pop(context, true);
@@ -118,7 +118,7 @@ class AccountConnectionSheet extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/padlock/connections/${connection.id}/visibility',
+          '/stargate/connections/${connection.id}/visibility',
           data: {'is_public': false},
         );
         if (context.mounted) Navigator.pop(context, true);
@@ -247,7 +247,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
             if (context.mounted) showLoadingModal(context);
 
             await client.post(
-              '/padlock/auth/connect/apple/mobile',
+              '/stargate/auth/connect/apple/mobile',
               data: {
                 'identity_token': credential.identityToken!,
                 'authorization_code': credential.authorizationCode,
@@ -267,7 +267,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
           final serverUrl = ref.watch(serverUrlProvider);
           final accessToken = ref.watch(tokenProvider);
           launchUrlString(
-            '$serverUrl/padlock/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
+            '$serverUrl/stargate/auth/login/${selectedProvider.value}?tk=${accessToken!.token}',
           );
           if (context.mounted) Navigator.pop(context, true);
           break;
@@ -385,7 +385,7 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                           try {
                             final client = ref.read(apiClientProvider);
                             await client.delete(
-                              '/padlock/connections/${connection.id}',
+                              '/stargate/connections/${connection.id}',
                             );
                             ref.invalidate(accountConnectionsProvider);
                             return true;

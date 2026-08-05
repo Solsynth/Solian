@@ -119,7 +119,7 @@ extension UserDefaults {
             return current
         }
 
-        guard let url = URL(string: getServerUrl(forKey: "app_server_url") + "/padlock/auth/token") else {
+        guard let url = URL(string: getServerUrl(forKey: "app_server_url") + "/stargate/auth/token") else {
             return current
         }
 

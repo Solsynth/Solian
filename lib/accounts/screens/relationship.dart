@@ -26,7 +26,7 @@ part 'relationship.g.dart';
 @riverpod
 Future<List<SnRelationship>> friendRequest(Ref ref) async {
   final client = ref.read(apiClientProvider);
-  final resp = await client.get('/passport/relationships/requests');
+  final resp = await client.get('/stargate/relationships/requests');
   return resp.data
       .map((e) => SnRelationship.fromJson(e))
       .cast<SnRelationship>()
@@ -80,7 +80,7 @@ class RelationshipListNotifier
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.get(
-        '/passport/relationships',
+        '/stargate/relationships',
         queryParameters: {'offset': '0', 'take': '100'},
       );
 
@@ -117,7 +117,7 @@ class RelationshipListNotifier
     final take = 20;
 
     final response = await client.get(
-      '/passport/relationships',
+      '/stargate/relationships',
       queryParameters: {'offset': fetchedCount.toString(), 'take': take},
     );
 
@@ -549,7 +549,7 @@ class RelationshipScreen extends HookConsumerWidget {
       if (result == null) return;
 
       final client = ref.read(apiClientProvider);
-      await client.post('/passport/relationships/${result.id}/friends');
+      await client.post('/stargate/relationships/${result.id}/friends');
       ref.invalidate(friendRequestProvider);
     }
 
@@ -561,7 +561,7 @@ class RelationshipScreen extends HookConsumerWidget {
     ) async {
       final client = ref.read(apiClientProvider);
       await client.patch(
-        '/passport/relationships/${relationship.accountId}',
+        '/stargate/relationships/${relationship.accountId}',
         data: {'status': newStatus},
       );
       relationshipNotifier.refresh();
@@ -582,7 +582,7 @@ class RelationshipScreen extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.delete(
-          '/passport/relationships/${relationship.relatedId}',
+          '/stargate/relationships/${relationship.relatedId}',
         );
         relationshipNotifier.refresh();
         showSnackBar('relationshipDeleted'.tr());
@@ -605,7 +605,7 @@ class RelationshipScreen extends HookConsumerWidget {
         if (expiresIn != null) data['expires_in'] = expiresIn;
         if (degradeTo != null) data['degrade_to'] = degradeTo;
         await client.post(
-          '/passport/relationships/${relationship.relatedId}/block',
+          '/stargate/relationships/${relationship.relatedId}/block',
           data: data.isNotEmpty ? data : null,
         );
         relationshipNotifier.refresh();
@@ -624,7 +624,7 @@ class RelationshipScreen extends HookConsumerWidget {
         final data = <String, dynamic>{};
         if (expiresIn != null) data['expires_in'] = expiresIn;
         await client.post(
-          '/passport/relationships/${relationship.relatedId}/mute',
+          '/stargate/relationships/${relationship.relatedId}/mute',
           data: data.isNotEmpty ? data : null,
         );
         relationshipNotifier.refresh();
@@ -639,12 +639,12 @@ class RelationshipScreen extends HookConsumerWidget {
         final client = ref.read(apiClientProvider);
         if (relationship.status >= 200) {
           await client.delete(
-            '/passport/relationships/${relationship.relatedId}/close-friend',
+            '/stargate/relationships/${relationship.relatedId}/close-friend',
           );
           showSnackBar('closeFriendRemoved'.tr());
         } else {
           await client.post(
-            '/passport/relationships/${relationship.relatedId}/close-friend',
+            '/stargate/relationships/${relationship.relatedId}/close-friend',
           );
           showSnackBar('closeFriendAdded'.tr());
         }
@@ -661,7 +661,7 @@ class RelationshipScreen extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.patch(
-          '/passport/relationships/${relationship.relatedId}/alias',
+          '/stargate/relationships/${relationship.relatedId}/alias',
           data: {'alias': alias},
         );
         relationshipNotifier.refresh();
@@ -746,7 +746,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
       try {
         final client = ref.read(apiClientProvider);
         await client.delete(
-          '/passport/relationships/${request.relatedId}/friends',
+          '/stargate/relationships/${request.relatedId}/friends',
         );
         ref.invalidate(friendRequestProvider);
       } catch (err) {
@@ -764,7 +764,7 @@ class _SentFriendRequestsSheet extends HookConsumerWidget {
         submitting.value = true;
         final client = ref.read(apiClientProvider);
         await client.post(
-          '/passport/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
+          '/stargate/relationships/${relationship.accountId}/friends/${isAccept ? 'accept' : 'decline'}',
         );
         ref.invalidate(friendRequestProvider);
         if (!context.mounted) return;

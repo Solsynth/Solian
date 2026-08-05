@@ -243,7 +243,7 @@ final myAccountBoardProvider = FutureProvider<List<AccountBoardItem>>((
   ref,
 ) async {
   final dio = ref.watch(apiClientProvider);
-  final response = await dio.get('/passport/accounts/me/board');
+  final response = await dio.get('/stargate/accounts/me/board');
   final list = response.data as List<dynamic>;
   return parseAccountBoardItems(list);
 });
@@ -251,7 +251,7 @@ final myAccountBoardProvider = FutureProvider<List<AccountBoardItem>>((
 final accountBoardProvider =
     FutureProvider.family<List<AccountBoardItem>, String>((ref, uname) async {
       final dio = ref.watch(apiClientProvider);
-      final response = await dio.get('/passport/accounts/$uname/board');
+      final response = await dio.get('/stargate/accounts/$uname/board');
       final list = response.data as List<dynamic>;
       return parseAccountBoardItems(list);
     });
@@ -282,7 +282,7 @@ final publicAccountConnectionsProvider =
       uname,
     ) async {
       final dio = ref.watch(apiClientProvider);
-      final response = await dio.get('/passport/accounts/$uname/connections');
+      final response = await dio.get('/stargate/accounts/$uname/connections');
       final list = response.data as List<dynamic>;
       return list
           .map(

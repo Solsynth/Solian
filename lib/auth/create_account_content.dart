@@ -86,9 +86,9 @@ class _BulletPoint extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: DefaultTextStyle.merge(
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: children,
@@ -143,7 +143,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/padlock/accounts/validate',
+          '/stargate/accounts/validate',
           data: {
             'email': email,
             if (affiliationSpellController.text.isNotEmpty)
@@ -163,10 +163,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
     return AuthFormColumn(
       columnKey: const ValueKey<int>(0),
       children: [
-        AuthFormHeader(
-          icon: Symbols.mail,
-          title: 'createAccount'.tr(),
-        ),
+        AuthFormHeader(icon: Symbols.mail, title: 'createAccount'.tr()),
         TextField(
           controller: emailController,
           autocorrect: false,
@@ -226,10 +223,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
               ),
             ],
           ),
-        AuthFormActions(
-          isBusy: isBusy.value,
-          onNext: performNext,
-        ),
+        AuthFormActions(isBusy: isBusy.value, onNext: performNext),
       ],
     );
   }
@@ -271,10 +265,7 @@ class _CreateAccountPasswordScreen extends HookConsumerWidget {
     return AuthFormColumn(
       columnKey: const ValueKey<int>(1),
       children: [
-        AuthFormHeader(
-          icon: Symbols.password,
-          title: 'password'.tr(),
-        ),
+        AuthFormHeader(icon: Symbols.password, title: 'password'.tr()),
         TextField(
           controller: passwordController,
           obscureText: true,
@@ -341,7 +332,7 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
       try {
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/padlock/accounts/validate',
+          '/stargate/accounts/validate',
           data: {'name': username},
         );
         onNext();
@@ -546,12 +537,12 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
     }, [isBusy]);
 
     Future<void> performAction() async {
-      String endpoint = '/padlock/accounts';
+      String endpoint = '/stargate/accounts';
       Map<String, dynamic> data = {};
 
       if (onboardingToken != null) {
         // OIDC onboarding
-        endpoint = '/padlock/account/onboard';
+        endpoint = '/stargate/account/onboard';
         data['onboarding_token'] = onboardingToken;
         data['name'] = usernameController.text;
         data['nick'] = nicknameController.text;
@@ -582,7 +573,7 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(endpoint, data: data);
-        if (endpoint == '/padlock/account/onboard') {
+        if (endpoint == '/stargate/account/onboard') {
           // Onboard response has tokens, set them
           final token = resp.data['token'];
           setToken(ref.watch(sharedPreferencesProvider), token);
@@ -665,7 +656,7 @@ class CreateAccountContent extends HookConsumerWidget {
         try {
           // Exchange code for tokens
           final resp = await client.post(
-            '/padlock/auth/token',
+            '/stargate/auth/token',
             data: {
               'grant_type': 'authorization_code',
               'code': event.challengeId,
@@ -704,7 +695,7 @@ class CreateAccountContent extends HookConsumerWidget {
       final serverUrl = ref.watch(serverUrlProvider);
       final deviceId = await getUdid();
       final url =
-          Uri.parse('$serverUrl/padlock/auth/login/${provider.toLowerCase()}')
+          Uri.parse('$serverUrl/stargate/auth/login/${provider.toLowerCase()}')
               .replace(
                 queryParameters: {
                   'returnUrl': 'solian://auth/callback',
@@ -730,10 +721,7 @@ class CreateAccountContent extends HookConsumerWidget {
         if (isBusy.value)
           const LinearProgressIndicator(minHeight: 4)
         else
-          LinearProgressIndicator(
-            minHeight: 4,
-            value: period.value / 5,
-          ),
+          LinearProgressIndicator(minHeight: 4, value: period.value / 5),
         Expanded(
           child: AuthFormShell(
             child: PageTransitionSwitcher(
@@ -820,11 +808,7 @@ class _PostCreateModal extends HookConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Symbols.celebration,
-                  size: 48,
-                  color: scheme.primary,
-                ),
+                Icon(Symbols.celebration, size: 48, color: scheme.primary),
                 const Gap(16),
                 Text(
                   'postCreateAccountTitle'.tr(),
@@ -843,12 +827,8 @@ class _PostCreateModal extends HookConsumerWidget {
                   ),
                 ),
                 const Gap(8),
-                _BulletPoint(
-                  children: [Text('postCreateAccountNext1'.tr())],
-                ),
-                _BulletPoint(
-                  children: [Text('postCreateAccountNext2'.tr())],
-                ),
+                _BulletPoint(children: [Text('postCreateAccountNext1'.tr())]),
+                _BulletPoint(children: [Text('postCreateAccountNext2'.tr())]),
                 const Gap(24),
                 FilledButton.icon(
                   onPressed: () {

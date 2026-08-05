@@ -223,7 +223,7 @@ class AuthFactorSheet extends HookConsumerWidget {
         if (context.mounted) showLoadingModal(context);
         final client = ref.read(solarNetworkClientProvider);
         final response = await client.dio.post(
-          '/padlock/factors/${factor.id}/enable',
+          '/stargate/factors/${factor.id}/enable',
           data: verificationCode != null ? jsonEncode(verificationCode) : null,
         );
         if (!context.mounted) return;

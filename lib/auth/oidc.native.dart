@@ -80,7 +80,7 @@ class _OidcScreenState extends ConsumerState<OidcScreen> {
                   ),
                   initialUrlRequest: URLRequest(
                     url: WebUri(
-                      '$serverUrl/padlock/auth/login/${widget.provider}',
+                      '$serverUrl/stargate/auth/login/${widget.provider}',
                     ),
                     headers: {
                       if (token?.token.isNotEmpty ?? false)

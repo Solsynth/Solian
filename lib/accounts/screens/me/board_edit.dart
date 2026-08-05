@@ -268,7 +268,7 @@ class BoardEditorState extends _$BoardEditorState {
   Future<void> loadFromServer() async {
     try {
       final dio = ref.read(apiClientProvider);
-      final response = await dio.get('/passport/accounts/me/board');
+      final response = await dio.get('/stargate/accounts/me/board');
       final defaultPrebuilt = <String, bool>{
         'activity': false,
         'badges': false,
@@ -536,7 +536,7 @@ class AccountBoardEditScreen extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final dio = ref.read(apiClientProvider);
-      await dio.put('/passport/accounts/me/board', data: items);
+      await dio.put('/stargate/accounts/me/board', data: items);
       ref.invalidate(myAccountBoardProvider);
       if (context.mounted) {
         hideLoadingModal(context);

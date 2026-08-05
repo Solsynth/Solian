@@ -123,7 +123,7 @@ class WebAuthServer {
     try {
       final dio = _ref.read(apiClientProvider);
       final response = await dio.get(
-        '/passport/accounts/me',
+        '/stargate/accounts/me',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -297,7 +297,7 @@ class WebAuthServer {
       Response<dynamic> response;
 
       response = await dio.post(
-        '/padlock/auth/login/session',
+        '/stargate/auth/login/session',
         data: {
           'device_id': await getUdid(),
           'device_name': await getDeviceName(),

@@ -1157,13 +1157,13 @@ Future<void> handleQrLoginChallengeScan({
     final client = ref.read(solarNetworkClientProvider);
 
     try {
-      await client.dio.post('/padlock/auth/qr/$qrChallengeId/scan');
+      await client.dio.post('/stargate/auth/qr/$qrChallengeId/scan');
     } on DioException catch (err) {
       if (!{400, 409}.contains(err.response?.statusCode)) rethrow;
     }
 
     final snapshotResp = await client.dio.get(
-      '/padlock/auth/qr/$qrChallengeId',
+      '/stargate/auth/qr/$qrChallengeId',
     );
     final snapshot = _QrLoginChallengeSnapshot.fromJson(
       Map<String, dynamic>.from(snapshotResp.data as Map),
@@ -1172,7 +1172,7 @@ Future<void> handleQrLoginChallengeScan({
     SnAuthChallenge? challenge;
     try {
       final challengeResp = await client.dio.get(
-        '/padlock/auth/challenge/${snapshot.authChallengeId}',
+        '/stargate/auth/challenge/${snapshot.authChallengeId}',
       );
       challenge = SnAuthChallenge.fromJson(
         Map<String, dynamic>.from(challengeResp.data as Map),
@@ -1243,7 +1243,7 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         await client.dio.post(
-          '/padlock/auth/qr/$qrChallengeId/${approve ? 'approve' : 'decline'}',
+          '/stargate/auth/qr/$qrChallengeId/${approve ? 'approve' : 'decline'}',
         );
         if (!context.mounted) return;
         showSnackBar(
@@ -1582,7 +1582,7 @@ Future<void> _checkAndShowDeviceApproval(
     showLoadingModal(context);
     final client = ref.read(solarNetworkClientProvider);
     final resp = await client.dio.get(
-      '/padlock/auth/open/device/code/${Uri.encodeComponent(userCode)}',
+      '/stargate/auth/open/device/code/${Uri.encodeComponent(userCode)}',
     );
     final data = Map<String, dynamic>.from(resp.data as Map);
     final clientId =
@@ -1688,7 +1688,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         await client.dio.post(
-          '/padlock/auth/open/device/code/${Uri.encodeComponent(userCode)}/${approve ? 'approve' : 'decline'}',
+          '/stargate/auth/open/device/code/${Uri.encodeComponent(userCode)}/${approve ? 'approve' : 'decline'}',
         );
         resolved.value = approve ? 'approved' : 'declined';
         if (!context.mounted) return;

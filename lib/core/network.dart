@@ -417,7 +417,7 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
       onResponse: (response, handler) async {
         final responseData = response.data;
         if (responseData is Map &&
-            response.requestOptions.path.endsWith('/padlock/auth/token')) {
+            response.requestOptions.path.endsWith('/stargate/auth/token')) {
           final token = responseData['token'];
           if (token is String && token.isNotEmpty) {
             await setToken(
@@ -556,7 +556,7 @@ final apiClientProvider = Provider<Dio>((ref) {
       onResponse: (response, handler) async {
         final responseData = response.data;
         if (responseData is Map &&
-            response.requestOptions.path.endsWith('/padlock/auth/token')) {
+            response.requestOptions.path.endsWith('/stargate/auth/token')) {
           final token = responseData['token'];
           if (token is String && token.isNotEmpty) {
             await setToken(
@@ -832,7 +832,7 @@ Future<_StoredTokenPair?> _refreshTokenPairInternal({
         'grant_type': 'refresh_token',
         if (refreshToken?.isNotEmpty ?? false) 'refresh_token': refreshToken,
       };
-      final response = await client.post('/padlock/auth/token', data: payload);
+      final response = await client.post('/stargate/auth/token', data: payload);
       final data = Map<String, dynamic>.from(response.data as Map);
       final nextToken = data['token'] as String?;
       if (nextToken == null || nextToken.isEmpty) {

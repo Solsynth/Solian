@@ -18,8 +18,12 @@ import 'package:solar_network_sdk/src/models/activity/activity.dart';
 class AccountsApi extends BaseApi {
   AccountsApi(super.dio);
 
-  /// Base path for all passport endpoints.
+  /// Base path for endpoints still served by Passport.
   static const String _basePath = '/passport';
+
+  /// Base path for profile/social-graph endpoints served by Stargate
+  /// (accounts/me, public accounts, relationships, followers/following).
+  static const String _stargateBasePath = '/stargate';
 
   // ==========================================
   // Account endpoints
@@ -28,7 +32,7 @@ class AccountsApi extends BaseApi {
   /// Gets the current user's account information.
   Future<SnAccount> getCurrentAccount({Options? options}) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/accounts/me',
+      '$_stargateBasePath/accounts/me',
       options: options,
     );
     return SnAccount.fromJson(response.data!);
@@ -41,7 +45,7 @@ class AccountsApi extends BaseApi {
     required Map<String, dynamic> data,
   }) async {
     final response = await patch<Map<String, dynamic>>(
-      '$_basePath/accounts/me',
+      '$_stargateBasePath/accounts/me',
       data: data,
     );
     return SnAccount.fromJson(response.data!);
@@ -49,7 +53,7 @@ class AccountsApi extends BaseApi {
 
   /// Deletes the current user's account.
   Future<void> deleteCurrentAccount() async {
-    await delete('$_basePath/accounts/me');
+    await delete('$_stargateBasePath/accounts/me');
   }
 
   /// Gets an account by username.
@@ -57,7 +61,7 @@ class AccountsApi extends BaseApi {
   /// [username] - The username to look up.
   Future<SnAccount> getAccountByUsername(String username) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/accounts/$username',
+      '$_stargateBasePath/accounts/$username',
     );
     return SnAccount.fromJson(response.data!);
   }
@@ -67,7 +71,7 @@ class AccountsApi extends BaseApi {
   /// [accountId] - The account ID to look up.
   Future<SnAccount> getAccountById(String accountId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/accounts/id/$accountId',
+      '$_stargateBasePath/accounts/id/$accountId',
     );
     return SnAccount.fromJson(response.data!);
   }
@@ -126,7 +130,7 @@ class AccountsApi extends BaseApi {
   /// [accountId] - The other account's ID.
   Future<SnRelationship> getRelationship(String accountId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/relationships/$accountId',
+      '$_stargateBasePath/relationships/$accountId',
     );
     return SnRelationship.fromJson(response.data!);
   }
@@ -135,21 +139,21 @@ class AccountsApi extends BaseApi {
   ///
   /// [accountId] - The account ID to follow.
   Future<void> addAccountAsFriend(String accountId) async {
-    await post('$_basePath/relationships/$accountId/friends');
+    await post('$_stargateBasePath/relationships/$accountId/friends');
   }
 
   /// Blocks an account.
   ///
   /// [accountId] - The account ID to block.
   Future<void> blockAccount(String accountId) async {
-    await post('$_basePath/relationships/$accountId/block');
+    await post('$_stargateBasePath/relationships/$accountId/block');
   }
 
   /// Unblocks an account.
   ///
   /// [accountId] - The account ID to unblock.
   Future<void> unblockAccount(String accountId) async {
-    await delete('$_basePath/relationships/$accountId/block');
+    await delete('$_stargateBasePath/relationships/$accountId/block');
   }
 
   /// Mutes an account.
@@ -158,7 +162,7 @@ class AccountsApi extends BaseApi {
   /// [duration] - Optional duration in seconds.
   Future<void> muteAccount(String accountId, {int? duration}) async {
     await post(
-      '$_basePath/relationships/$accountId/mute',
+      '$_stargateBasePath/relationships/$accountId/mute',
       data: duration != null ? {'duration': duration} : null,
     );
   }
@@ -167,7 +171,7 @@ class AccountsApi extends BaseApi {
   ///
   /// [accountId] - The account ID to unmute.
   Future<void> unmuteAccount(String accountId) async {
-    await delete('$_basePath/relationships/$accountId/mute');
+    await delete('$_stargateBasePath/relationships/$accountId/mute');
   }
 
   /// Gets the list of followers.
@@ -181,8 +185,8 @@ class AccountsApi extends BaseApi {
     int take = 20,
   }) async {
     final path = accountId != null
-        ? '$_basePath/accounts/$accountId/followers'
-        : '$_basePath/accounts/me/followers';
+        ? '$_stargateBasePath/accounts/$accountId/followers'
+        : '$_stargateBasePath/accounts/me/followers';
     final response = await get<List<dynamic>>(
       path,
       queryParameters: {'offset': offset, 'take': take},
@@ -201,8 +205,8 @@ class AccountsApi extends BaseApi {
     int take = 20,
   }) async {
     final path = accountId != null
-        ? '$_basePath/accounts/$accountId/following'
-        : '$_basePath/accounts/me/following';
+        ? '$_stargateBasePath/accounts/$accountId/following'
+        : '$_stargateBasePath/accounts/me/following';
     final response = await get<List<dynamic>>(
       path,
       queryParameters: {'offset': offset, 'take': take},

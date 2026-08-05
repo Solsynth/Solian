@@ -179,7 +179,7 @@ class PadlockApi extends BaseApi {
   }
 
   // ==========================================
-  // Punishment endpoints (/padlock/admin/accounts)
+  // Punishment endpoints (/stargate/admin/accounts)
   // ==========================================
 
   /// Gets punishment overview for an account.

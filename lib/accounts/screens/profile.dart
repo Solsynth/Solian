@@ -617,7 +617,7 @@ Future<SnAccountPunishment?> accountPunishmentOverview(
   final client = ref.watch(solarNetworkClientProvider);
   try {
     final response = await client.dio.get(
-      '/padlock/accounts/$uname/punishments/overview',
+      '/stargate/accounts/$uname/punishments/overview',
     );
     if (response.data == null) return null;
     return SnAccountPunishment.fromJson(response.data);
