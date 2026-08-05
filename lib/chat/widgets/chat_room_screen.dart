@@ -150,20 +150,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
         appBar: AppBar(
-          leading: Builder(
-            builder: (context) {
-              if (context.router.canPop()) {
-                return const AutoLeadingButton();
-              } else {
-                return IconButton(
-                  onPressed: () {
-                    context.router.navigate(const ChatListRoute());
-                  },
-                  icon: const Icon(Symbols.home),
-                );
-              }
-            },
-          ),
+          leading: const _ChatRoomLeading(),
         ),
         body: Column(
           children: [
@@ -189,7 +176,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             return PublicRoomPreview(id: id, room: room);
           } else {
             return AppScaffold(
-              appBar: AppBar(leading: const AutoLeadingButton()),
+              appBar: AppBar(leading: const _ChatRoomLeading()),
               body: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 280),
@@ -239,7 +226,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           }
         },
         loading: () => AppScaffold(
-          appBar: AppBar(leading: const AutoLeadingButton()),
+          appBar: AppBar(leading: const _ChatRoomLeading()),
           body: Center(
             child: ConfuseSpinner(
               size: 40,
@@ -251,7 +238,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
         ),
         error: (error, _) => AppScaffold(
-          appBar: AppBar(leading: const AutoLeadingButton()),
+          appBar: AppBar(leading: const _ChatRoomLeading()),
           body: ResponseErrorWidget(
             error: error,
             onRetry: () => ref.refresh(chatRoomProvider(id)),
@@ -879,7 +866,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                     tooltip: 'exitSelectionMode'.tr(),
                     onPressed: chatStateNotifier.exitSelectionMode,
                   )
-                : const AutoLeadingButton(),
+                : const _ChatRoomLeading(),
             automaticallyImplyLeading: false,
             title: isSelectionMode
                 ? Text(
@@ -1760,5 +1747,26 @@ class _PinnedMessagesBarState extends State<_PinnedMessagesBar> {
       );
     }
     return const SizedBox.shrink();
+  }
+}
+
+/// AppBar leading for this room: the router's own [AutoLeadingButton] when it
+/// can pop (or has a drawer), falling back to a home button when there is
+/// nothing to pop — e.g. the room was opened directly from a deep link.
+class _ChatRoomLeading extends StatelessWidget {
+  const _ChatRoomLeading();
+
+  @override
+  Widget build(BuildContext context) {
+    return AutoLeadingButton.builder(
+      builder: (context, leading) =>
+          leading ??
+          IconButton(
+            onPressed: () {
+              context.router.navigate(const ChatListRoute());
+            },
+            icon: const Icon(Symbols.home),
+          ),
+    );
   }
 }
