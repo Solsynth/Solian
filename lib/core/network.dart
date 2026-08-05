@@ -7,6 +7,7 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/network/api_error.dart';
 import 'package:island/core/network/media_proxy_server.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -450,7 +451,17 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
         }
         return handler.next(response);
       },
-      onError: (error, handler) {
+      onError: (error, handler) async {
+        if (_isTokenExpiredError(error)) {
+          final retried = await _retryAfterTokenExpired(
+            ref: ref,
+            dio: dio,
+            error: error,
+          );
+          if (retried != null) {
+            return handler.resolve(retried);
+          }
+        }
         if (error.response?.statusCode == 503) {
           final networkStatusNotifier = ref.read(
             networkStatusProvider.notifier,
@@ -591,8 +602,17 @@ final apiClientProvider = Provider<Dio>((ref) {
         }
         return handler.next(response);
       },
-      onError: (error, handler) {
-        // Handle network errors and set offline status
+      onError: (error, handler) async {
+        if (_isTokenExpiredError(error)) {
+          final retried = await _retryAfterTokenExpired(
+            ref: ref,
+            dio: dio,
+            error: error,
+          );
+          if (retried != null) {
+            return handler.resolve(retried);
+          }
+        }
         if (error.response?.statusCode == 503) {
           final networkStatusNotifier = ref.read(
             networkStatusProvider.notifier,
@@ -769,6 +789,58 @@ Future<void> _saveTokenPair(
           .toIso8601String(),
   };
   await prefs.setString(kTokenPairStoreKey, jsonEncode(payload));
+}
+
+/// Server error code emitted on a 401 when the access token's JWT `exp` has
+/// passed (see RequireAuth in Stargate): the signal to refresh and retry.
+const String kTokenExpiredErrorCode = 'TOKEN_EXPIRED';
+
+/// RequestOptions.extra flag marking a request already retried once after a
+/// token refresh, so the refresh-and-retry path cannot loop.
+const String _kTokenExpiredRetryExtra = '_tokenExpiredRetried';
+
+/// Whether a failed request is the server's "access token expired" signal:
+/// HTTP 401 with body `{ "code": "TOKEN_EXPIRED", ... }`.
+bool _isTokenExpiredError(DioException error) {
+  if (error.response?.statusCode != 401) return false;
+  final apiError = ApiError.tryParse(error);
+  return apiError?.code == kTokenExpiredErrorCode;
+}
+
+/// Reacts to a TOKEN_EXPIRED 401: refreshes the token pair (deduplicated
+/// across concurrent failures via forceRefreshToken) and re-issues the failed
+/// request once with the fresh token.
+///
+/// Returns the retried response, or null when there is nothing to refresh,
+/// refresh fails, or the retry fails again — the caller then propagates the
+/// original error.
+Future<Response<dynamic>?> _retryAfterTokenExpired({
+  required Ref ref,
+  required Dio dio,
+  required DioException error,
+}) async {
+  final options = error.requestOptions;
+  if (options.extra[_kTokenExpiredRetryExtra] == true) return null;
+
+  final prefs = ref.read(sharedPreferencesProvider);
+  final before = _readTokenPairFromPrefs(prefs)?.token;
+  try {
+    await forceRefreshToken(
+      prefs: prefs,
+      serverUrl: ref.read(serverUrlProvider),
+    );
+  } catch (_) {
+    return null; // no usable refresh token, or refresh failed
+  }
+  final after = _readTokenPairFromPrefs(prefs)?.token;
+  if (after == null || after == before) return null; // nothing refreshed
+
+  options.extra = {...options.extra, _kTokenExpiredRetryExtra: true};
+  try {
+    return await dio.fetch(options);
+  } catch (_) {
+    return null; // retry failed too — keep the original error
+  }
 }
 
 bool _shouldRefreshToken(_StoredTokenPair tokenPair) {
