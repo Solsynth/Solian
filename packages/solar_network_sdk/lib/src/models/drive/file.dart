@@ -93,6 +93,8 @@ abstract interface class IDisplayableCloudFile {
   bool get isFolder;
   int get childrenCount;
 
+  Map<String, dynamic> toJson();
+
   double? get ratio {
     if (width != null && height != null && height != 0) {
       return width! / height!;

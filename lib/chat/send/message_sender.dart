@@ -217,7 +217,7 @@ class MessageSender {
     await _repository.saveMessage(pending);
     onPending?.call(pending);
 
-    late List<SnCloudFile> cloudAttachments;
+    late List<IDisplayableCloudFile> cloudAttachments;
     try {
       cloudAttachments = await _uploadAttachments(
         attachments: attachments,
@@ -609,19 +609,19 @@ class MessageSender {
     return LocalChatMessage.fromRemoteMessage(mock, MessageStatus.pending);
   }
 
-  Future<List<SnCloudFile>> _uploadAttachments({
+  Future<List<IDisplayableCloudFile>> _uploadAttachments({
     required List<UniversalFile> attachments,
     required String pendingMessageId,
     Function(String messageId, Map<int, double?>)? onProgress,
   }) async {
-    final cloudFiles = <SnCloudFile>[];
+    final cloudFiles = <IDisplayableCloudFile>[];
 
     for (var i = 0; i < attachments.length; i++) {
       final attachment = attachments[i];
 
       // Skip already-uploaded files
       if (attachment.isOnCloud) {
-        cloudFiles.add(attachment.data as SnCloudFile);
+        cloudFiles.add(attachment.data as IDisplayableCloudFile);
         continue;
       }
 

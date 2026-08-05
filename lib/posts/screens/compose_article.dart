@@ -8,7 +8,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/database.dart';
-import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
@@ -97,8 +96,7 @@ class _ArticlePreviewPane extends HookWidget {
               textStyle: theme.textTheme.bodyMedium,
               attachments: attachments
                   .where((e) => e.isOnCloud)
-                  .map((e) => e.data)
-                  .cast<SnCloudFile>()
+                  .map((e) => e.data as IDisplayableCloudFile)
                   .toList(),
             ),
         ],
@@ -157,7 +155,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final publishers = ref.watch(publishersManagedProvider);
     final database = ref.read(databaseProvider);
     final state = useMemoized(
       () => ComposeLogic.createState(
@@ -192,13 +189,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
     final showPreview = useState(false);
     final showSidebar = useState(false);
 
-    // Initialize publisher once when data is available
-    useEffect(() {
-      if (publishers.value?.isNotEmpty ?? false) {
-        state.currentPublisher.value = publishers.value!.first;
-      }
-      return null;
-    }, [publishers]);
+    // Initialize publisher once when data is available; never overrides an
+    // existing publisher (e.g. the one loaded from the original post).
+    ComposeStateUtils.usePublisherInitialization(ref, state);
 
     // Load initial state if provided (for sharing functionality)
     useEffect(() {

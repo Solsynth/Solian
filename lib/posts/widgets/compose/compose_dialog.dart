@@ -455,8 +455,7 @@ class _DialogPreviewPane extends HookWidget {
         textStyle: theme.textTheme.bodyMedium,
         attachments: attachments
             .where((e) => e.isOnCloud)
-            .map((e) => e.data)
-            .cast<SnCloudFile>()
+            .map((e) => e.data as IDisplayableCloudFile)
             .toList(),
       ),
     );

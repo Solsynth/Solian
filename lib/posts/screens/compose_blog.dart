@@ -7,7 +7,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/database.dart';
-import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
@@ -119,7 +118,6 @@ class BlogComposeDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final publishers = ref.watch(publishersManagedProvider);
     final database = ref.read(databaseProvider);
     final showWidePanel = isWideScreen(context);
 
@@ -150,14 +148,6 @@ class BlogComposeDialog extends HookConsumerWidget {
         ComposeLogic.dispose(state);
       };
     }, [state]);
-
-    // Publisher init
-    useEffect(() {
-      if (publishers.value?.isNotEmpty ?? false) {
-        state.currentPublisher.value = publishers.value!.first;
-      }
-      return null;
-    }, [publishers]);
 
     // Load initial state
     useEffect(() {

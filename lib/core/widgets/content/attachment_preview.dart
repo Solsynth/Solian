@@ -462,7 +462,7 @@ class AttachmentPreview extends HookConsumerWidget {
           ),
         if (thumbnailId != null &&
             item.isOnCloud &&
-            (item.data as SnCloudFile).id == thumbnailId)
+            (item.data as IDisplayableCloudFile).id == thumbnailId)
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -476,7 +476,7 @@ class AttachmentPreview extends HookConsumerWidget {
           ),
         if (thumbnailId != null &&
             item.isOnCloud &&
-            (item.data as SnCloudFile).id == thumbnailId)
+            (item.data as IDisplayableCloudFile).id == thumbnailId)
           Positioned(
             bottom: 8,
             right: 8,
@@ -737,17 +737,17 @@ class AttachmentPreview extends HookConsumerWidget {
               item.type == UniversalFileType.image &&
               onSetThumbnail != null)
             MenuAction(
-              title: thumbnailId == (item.data as SnCloudFile).id
+              title: thumbnailId == (item.data as IDisplayableCloudFile).id
                   ? 'unsetAsThumbnail'.tr()
                   : 'setAsThumbnail'.tr(),
               image: MenuImage.icon(Symbols.image),
               callback: () {
                 final isCurrentlyThumbnail =
-                    thumbnailId == (item.data as SnCloudFile).id;
+                    thumbnailId == (item.data as IDisplayableCloudFile).id;
                 if (isCurrentlyThumbnail) {
                   onSetThumbnail?.call(null);
                 } else {
-                  onSetThumbnail?.call((item.data as SnCloudFile).id);
+                  onSetThumbnail?.call((item.data as IDisplayableCloudFile).id);
                 }
               },
             ),
