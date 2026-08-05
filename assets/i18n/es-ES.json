@@ -1393,6 +1393,7 @@
   "publicChatDescription": "Anyone can preview the content of this chat. Including unjoined bots.",
   "publicRealm": "Public Realm",
   "publicRealmDescription": "Anyone can preview the content of this realm.",
+  "publicRoomTooltip": "Cualquiera puede unirse a esta sala",
   "publisher": "Publisher",
   "publisherBelongsTo": "Belongs to {}",
   "publisherBelongsToRealm": "Part of {}",

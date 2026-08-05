@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -14,6 +15,7 @@ class ChatRoomListTile extends HookConsumerWidget {
   final bool isDirect;
   final bool selected;
   final bool pushNotificationsSuppressed;
+  final bool showPublicBadge;
   final Widget? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -26,6 +28,7 @@ class ChatRoomListTile extends HookConsumerWidget {
     this.isDirect = false,
     this.selected = false,
     this.pushNotificationsSuppressed = false,
+    this.showPublicBadge = false,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -182,6 +185,17 @@ class ChatRoomListTile extends HookConsumerWidget {
                               Icons.lock_outline,
                               size: 13,
                               color: colorScheme.onSurfaceVariant,
+                            ),
+                          ],
+                          if (showPublicBadge && room.isPublic) ...[
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: 'publicRoomTooltip'.tr(),
+                              child: Icon(
+                                Icons.public,
+                                size: 13,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                           if (pushNotificationsSuppressed) ...[

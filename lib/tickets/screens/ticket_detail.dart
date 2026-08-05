@@ -45,8 +45,8 @@ class TicketDetailScreen extends HookConsumerWidget {
     final inputFocusNode = useFocusNode();
     final isSubmitting = useState(false);
     final attachments = useState<List<SelectedFile>>([]);
-    final ticketService = ref.watch(ticketServiceProvider);
-    final cachedMessages = useState<List<SnTicketMessage>?>(null);
+    final ticketAsync = ref.watch(ticketDetailProvider(ticketId));
+    final messages = ticketAsync.value?.messages ?? const <SnTicketMessage>[];
     final messagePollingTimer = useRef<Timer?>(null);
 
     void scrollToBottom(ScrollController sc) {
@@ -64,21 +64,23 @@ class TicketDetailScreen extends HookConsumerWidget {
     useEffect(() {
       messagePollingTimer.value = Timer.periodic(const Duration(minutes: 1), (
         _,
-      ) async {
-        if (!context.mounted) return;
-        final ticket = await ticketService.getTicket(ticketId);
-        if (context.mounted &&
-            cachedMessages.value != null &&
-            ticket.messages.length > cachedMessages.value!.length) {
-          cachedMessages.value = ticket.messages;
-          scrollToBottom(scrollController);
-        }
+      ) {
+        ref.invalidate(ticketDetailProvider(ticketId));
       });
 
       return () {
         messagePollingTimer.value?.cancel();
       };
-    }, []);
+    }, [ref, ticketId]);
+
+    // Scroll to the newest message whenever the list grows.
+    final messageCount = messages.length;
+    useEffect(() {
+      if (messageCount > 0) {
+        scrollToBottom(scrollController);
+      }
+      return null;
+    }, [messageCount, scrollController]);
 
     final uploadAttachment = useCallback((SelectedFile selectedFile) async {
       final universalFile = UniversalFile(
@@ -139,20 +141,19 @@ class TicketDetailScreen extends HookConsumerWidget {
                 messageController.text.trim(),
                 fileIds: attachmentIds,
               );
+          if (!context.mounted) return;
+
           messageController.clear();
           attachments.value = [];
 
           // Refresh the ticket to get updated messages
-          ref.invalidate(ticketServiceProvider);
-
-          // Update cached messages and scroll
-          final updatedTicket = await ticketService.getTicket(ticketId);
-          cachedMessages.value = updatedTicket.messages;
-          scrollToBottom(scrollController);
+          ref.invalidate(ticketDetailProvider(ticketId));
         } catch (e) {
           showErrorAlert(e);
         } finally {
-          isSubmitting.value = false;
+          if (context.mounted) {
+            isSubmitting.value = false;
+          }
         }
       },
       [
@@ -162,7 +163,6 @@ class TicketDetailScreen extends HookConsumerWidget {
         ticketId,
         attachments,
         uploadAttachment,
-        cachedMessages,
       ],
     );
 
@@ -212,7 +212,7 @@ class TicketDetailScreen extends HookConsumerWidget {
         await ref
             .read(ticketServiceProvider)
             .updateTicketStatus(ticketId, status);
-        ref.invalidate(ticketServiceProvider);
+        ref.invalidate(ticketDetailProvider(ticketId));
       } catch (e) {
         showErrorAlert(e);
       }
@@ -284,63 +284,52 @@ class TicketDetailScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      body: FutureBuilder<SnTicket>(
-        future: ticketService.getTicket(ticketId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Symbols.error, size: 48, color: Colors.red),
-                  const Gap(16),
-                  Text('Error: ${snapshot.error}'),
-                  const Gap(16),
-                  ElevatedButton(
-                    onPressed: () => ref.invalidate(ticketServiceProvider),
-                    child: const Text('Retry'),
-                  ),
-                ],
+      body: ticketAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Symbols.error, size: 48, color: Colors.red),
+              const Gap(16),
+              Text('Error: $error'),
+              const Gap(16),
+              ElevatedButton(
+                onPressed: () =>
+                    ref.invalidate(ticketDetailProvider(ticketId)),
+                child: const Text('Retry'),
               ),
-            );
-          } else if (snapshot.hasData) {
-            final ticket = snapshot.data!;
-            if (cachedMessages.value == null) {
-              cachedMessages.value = ticket.messages;
-            }
-            return Column(
-              children: [
-                // Ticket header
-                _buildTicketHeader(context, ticket),
+            ],
+          ),
+        ),
+        data: (ticket) => Column(
+          children: [
+            // Ticket header
+            _buildTicketHeader(context, ticket),
 
-                // Messages section
-                Expanded(
-                  child: _buildMessagesSection(
-                    context,
-                    cachedMessages.value ?? ticket.messages,
-                    scrollController,
-                  ),
-                ),
+            // Messages section
+            Expanded(
+              child: _buildMessagesSection(
+                context,
+                messages,
+                scrollController,
+              ),
+            ),
 
-                // Message input - chat-like design
-                _buildMessageInput(
-                  context,
-                  messageController,
-                  inputFocusNode,
-                  isSubmitting,
-                  attachments,
-                  sendMessage,
-                  pickFile,
-                  pickGeneralFile,
-                  removeAttachment,
-                ),
-              ],
-            );
-          }
-          return const Center(child: Text('No data'));
-        },
+            // Message input - chat-like design
+            _buildMessageInput(
+              context,
+              messageController,
+              inputFocusNode,
+              isSubmitting,
+              attachments,
+              sendMessage,
+              pickFile,
+              pickGeneralFile,
+              removeAttachment,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -365,13 +354,15 @@ class TicketDetailScreen extends HookConsumerWidget {
             ),
             if (ticket.content != null && ticket.content!.isNotEmpty) ...[
               const Gap(4),
-              Text(
-                ticket.content!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+              SelectionArea(
+                child: Text(
+                  ticket.content!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
             const Gap(8),
@@ -542,7 +533,10 @@ class TicketDetailScreen extends HookConsumerWidget {
             ],
           ),
           const Gap(12),
-          Text(message.content, style: Theme.of(context).textTheme.bodyMedium),
+          SelectableText(
+            message.content,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           // Files section for message
           if (message.files.isNotEmpty) ...[
             const Divider(),

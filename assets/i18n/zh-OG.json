@@ -1394,6 +1394,7 @@
   "publicChatDescription": "人皆可覽此談筵之資，含未入之機",
   "publicRealm": "公界域",
   "publicRealmDescription": "人皆可覽此界域之資",
+  "publicRoomTooltip": "人皆可入此房",
   "publisher": "發布者",
   "publisherBelongsTo": "屬 {}",
   "publisherBelongsToRealm": "屬於 {}",

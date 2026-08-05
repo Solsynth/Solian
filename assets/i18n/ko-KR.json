@@ -1651,6 +1651,7 @@
   "publicChatDescription": "누구나 이 채팅의 콘텐츠를 미리 볼 수 있습니다. 참여하지 않은 봇도 포함됩니다.",
   "publicRealm": "공개 레얼름",
   "publicRealmDescription": "누구나 이 레얼름의 콘텐츠를 미리 볼 수 있습니다.",
+  "publicRoomTooltip": "누구나 이 방에 참여할 수 있습니다",
   "publisher": "퍼블리셔",
   "publisherBelongsTo": "{}에 속함",
   "publisherBelongsToRealm": "{}의 일부",

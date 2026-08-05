@@ -6,6 +6,26 @@ final ticketServiceProvider = Provider<TicketService>((ref) {
   return TicketService(ref);
 });
 
+/// Fetches a single ticket with its messages.
+///
+/// The screen invalidates this provider (never [ticketServiceProvider]) after
+/// sending a message or changing status. Invalidating the service provider
+/// would dispose its `Ref` while in-flight calls from captured stale instances
+/// are still running.
+final ticketDetailProvider = AsyncNotifierProvider.autoDispose
+    .family<TicketDetailNotifier, SnTicket, String>(TicketDetailNotifier.new);
+
+class TicketDetailNotifier extends AsyncNotifier<SnTicket> {
+  TicketDetailNotifier(this.ticketId);
+
+  final String ticketId;
+
+  @override
+  Future<SnTicket> build() {
+    return ref.watch(ticketServiceProvider).getTicket(ticketId);
+  }
+}
+
 class TicketService {
   final Ref ref;
   TicketService(this.ref);

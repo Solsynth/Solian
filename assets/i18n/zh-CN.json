@@ -2767,6 +2767,7 @@
   "publicChatDescription": "任何人都可以预览此聊天的内容。包括未加入的机器人。",
   "publicRealm": "公开可见",
   "publicRealmDescription": "所有人都可以预览这个领域的内容。",
+  "publicRoomTooltip": "任何人都可以加入此房间",
   "publisher": "发布者",
   "publisherBelongsTo": "属于 {}",
   "publisherBelongsToRealm": "属于 {}",

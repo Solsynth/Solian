@@ -1463,6 +1463,7 @@
   "publicChatDescription": "誰でもこのチャットの内容をプレビューできます (未参加のボットも含む)。",
   "publicRealm": "公開レルム",
   "publicRealmDescription": "誰でもこのレルムの内容をプレビューできます。",
+  "publicRoomTooltip": "誰でもこのルームに参加できます",
   "publisher": "パブリッシャー",
   "publisherBelongsTo": "{} に属します",
   "publisherBelongsToRealm": "{} の一部",

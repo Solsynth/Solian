@@ -2023,6 +2023,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   for (final room in rooms)
                     ChatRoomListTile(
                       room: room,
+                      showPublicBadge: true,
                       onTap: () {
                         context.router.navigate(ChatRoomRoute(id: room.id));
                       },
