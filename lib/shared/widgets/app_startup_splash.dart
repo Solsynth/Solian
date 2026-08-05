@@ -244,25 +244,20 @@ class StartupSplashScreen extends HookConsumerWidget {
             }
           }
         } catch (error) {
-          if (stage.blocksStartupOnFailure) {
-            isBusy.value = false;
-            isErrored.value = true;
-            isDismissable.value = false;
-            if (error is ServerIncompatibleException) {
-              isUpdateRequired.value =
-                  error.compatibility.issue ==
-                  ServerCompatibilityIssue.clientTooOld;
-              subtitle.value = isUpdateRequired.value
-                  ? 'startupServerUpdateRequired'.tr()
-                  : 'startupServerIncompatible'.tr();
-            } else {
-              subtitle.value = 'startupServerCompatibilityCheckFailed'.tr();
-            }
-            return;
+          final String warning;
+          if (stage.blocksStartupOnFailure &&
+              error is ServerIncompatibleException) {
+            isUpdateRequired.value =
+                error.compatibility.issue ==
+                ServerCompatibilityIssue.clientTooOld;
+            warning = isUpdateRequired.value
+                ? 'startupServerUpdateRequired'.tr()
+                : 'startupServerIncompatible'.tr();
+          } else {
+            warning = 'startupStageFailedAfterRetries'.tr(
+              args: [stage.label],
+            );
           }
-          final warning = 'startupStageFailedAfterRetries'.tr(
-            args: [stage.label],
-          );
           warnings.value = [...warnings.value, warning];
           subtitle.value = '$warning ${'startupLimitedFunctionality'.tr()}';
         } finally {
