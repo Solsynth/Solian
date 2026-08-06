@@ -115,6 +115,7 @@ class RealmMemberCard extends HookConsumerWidget {
               aspectRatio: 16 / 9,
               child: CloudImageWidget(
                 file: effectiveMember.account!.profile.background!,
+                imageOnly: true,
               ),
             ),
           ),

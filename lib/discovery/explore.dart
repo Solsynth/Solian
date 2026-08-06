@@ -1754,7 +1754,7 @@ class AccountDiscoveryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final background = account.profile.background;
     final imageWidget = background != null
-        ? CloudImageWidget(file: background, fit: BoxFit.cover)
+        ? CloudImageWidget(file: background, fit: BoxFit.cover, imageOnly: true)
         : ColoredBox(color: Theme.of(context).colorScheme.secondaryContainer);
 
     final card = Container(

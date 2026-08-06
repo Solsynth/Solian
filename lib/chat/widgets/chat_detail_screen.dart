@@ -60,6 +60,7 @@ class _ChatBasisWidget extends HookConsumerWidget {
       backgroundWidget = CloudImageWidget(
         file: data.background!,
         fit: BoxFit.cover,
+        imageOnly: true,
       );
     } else if (data.type == 1 &&
         data.members?.length == 1 &&
@@ -67,11 +68,13 @@ class _ChatBasisWidget extends HookConsumerWidget {
       backgroundWidget = CloudImageWidget(
         file: data.members!.first.account.profile.background!,
         fit: BoxFit.cover,
+        imageOnly: true,
       );
     } else if (data.background != null) {
       backgroundWidget = CloudImageWidget(
         file: data.background!,
         fit: BoxFit.cover,
+        imageOnly: true,
       );
     } else {
       backgroundWidget = Container(color: theme.colorScheme.primaryContainer);

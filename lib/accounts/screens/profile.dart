@@ -112,6 +112,7 @@ class _AccountBasicInfo extends HookWidget {
                   child: CloudImageWidget(
                     file: data.profile.background,
                     fit: BoxFit.cover,
+                    imageOnly: true,
                   ),
                 ),
               ),

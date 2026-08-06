@@ -48,9 +48,10 @@ class AccountNameplate extends HookConsumerWidget {
                       Positioned.fill(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: CloudFileWidget(
-                            item: account.profile.background!,
+                          child: CloudImageWidget(
+                            file: account.profile.background!,
                             fit: BoxFit.cover,
+                            imageOnly: true,
                           ),
                         ),
                       ),

@@ -109,6 +109,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                             child: CloudImageWidget(
                               file: user.value?.profile.background,
                               fit: BoxFit.cover,
+                              imageOnly: true,
                             ),
                           ),
                         ),

@@ -586,6 +586,11 @@ class CloudImageWidget extends ConsumerWidget {
   final String? blurHash;
   final bool noBlurhash;
   final String? workspaceId;
+
+  /// Always render as an image via [UniversalImage], even when a [file] is
+  /// provided. Prevents non-image files (video, audio, text, ...) from being
+  /// rendered as their own widget instead of a picture.
+  final bool imageOnly;
   const CloudImageWidget({
     super.key,
     this.fileId,
@@ -595,6 +600,7 @@ class CloudImageWidget extends ConsumerWidget {
     this.blurHash,
     this.noBlurhash = false,
     this.workspaceId,
+    this.imageOnly = false,
   });
 
   @override
@@ -609,7 +615,7 @@ class CloudImageWidget extends ConsumerWidget {
 
     return AspectRatio(
       aspectRatio: aspectRatio,
-      child: file != null
+      child: file != null && !imageOnly
           ? CloudFileWidget(
               item: file!,
               fit: fit,
@@ -618,7 +624,7 @@ class CloudImageWidget extends ConsumerWidget {
             )
           : UniversalImage(
               uri: uri,
-              blurHash: noBlurhash ? null : blurHash,
+              blurHash: noBlurhash ? null : (file?.blurhash ?? blurHash),
               fit: fit,
             ),
     );

@@ -242,6 +242,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                           ? CloudImageWidget(
                               file: user.value!.profile.background,
                               fit: BoxFit.cover,
+                              imageOnly: true,
                             )
                           : const SizedBox.shrink(),
                     ),

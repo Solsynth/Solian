@@ -332,9 +332,10 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
                   children: [
                     if (token != null &&
                         userInfo.value?.profile.background != null)
-                      CloudFileWidget(
-                        item: userInfo.value!.profile.background!,
+                      CloudImageWidget(
+                        file: userInfo.value!.profile.background!,
                         fit: BoxFit.cover,
+                        imageOnly: true,
                       ),
                     Container(
                       decoration: BoxDecoration(
