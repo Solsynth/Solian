@@ -11,7 +11,7 @@ class AuthApi extends BaseApi {
   AuthApi(super.dio);
 
   /// Base path for all padlock endpoints.
-  static const String _basePath = '/padlock';
+  static const String _basePath = '/stargate';
 
   // ==========================================
   // Token endpoints
