@@ -18,8 +18,8 @@ enum SharedConstants {
 
     enum API {
         static let currentAccount = "/passport/accounts/me"
-        static let notificationsCount = "/ring/notifications/count"
-        static let notificationsMarkRead = "/ring/notifications/all/read"
+        static let notificationsCount = "/metoer/notifications/count"
+        static let notificationsMarkRead = "/metoer/notifications/all/read"
         static let unreadChats = "/messager/chat/unread"
         static let messages = "/messager/chat/%@/messages"
         static let sendMessage = "/messager/chat/%@/messages"

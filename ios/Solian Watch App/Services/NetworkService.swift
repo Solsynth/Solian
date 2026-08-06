@@ -174,7 +174,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        var components = URLComponents(url: baseURL.appendingPathComponent("/ring/notifications"), resolvingAgainstBaseURL: false)!
+        var components = URLComponents(url: baseURL.appendingPathComponent("/metoer/notifications"), resolvingAgainstBaseURL: false)!
         let queryItems = [URLQueryItem(name: "offset", value: String(offset)), URLQueryItem(name: "take", value: String(take))]
         components.queryItems = queryItems
         

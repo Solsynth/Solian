@@ -128,7 +128,7 @@ class NotificationService {
         }
         
         let baseURL = networkService.baseURL
-        guard let url = URL(string: "\(baseURL)/ring/notifications?unmark=true&take=\(take)") else {
+        guard let url = URL(string: "\(baseURL)/metoer/notifications?unmark=true&take=\(take)") else {
             throw RemoteError.invalidURL
         }
         
@@ -162,7 +162,7 @@ class NotificationService {
         }
         
         let baseURL = networkService.baseURL
-        guard let url = URL(string: "\(baseURL)/ring/notifications/count") else {
+        guard let url = URL(string: "\(baseURL)/metoer/notifications/count") else {
             throw RemoteError.invalidURL
         }
         

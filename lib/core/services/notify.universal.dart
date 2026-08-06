@@ -282,8 +282,8 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
   // Cold start: when the app was terminated and is launched by tapping a
   // notification, `onDidReceiveNotificationResponse` never fires — read the
   // launch payload explicitly instead.
-  final launchDetails =
-      await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+  final launchDetails = await flutterLocalNotificationsPlugin
+      .getNotificationAppLaunchDetails();
   if (launchDetails?.didNotificationLaunchApp ?? false) {
     final payload = launchDetails?.notificationResponse?.payload;
     if (payload != null && payload.isNotEmpty) {
@@ -323,7 +323,8 @@ class LifecycleEventHandler extends WidgetsBindingObserver {
 Future<void> createNotificationChannel() async {
   final android = flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+        AndroidFlutterLocalNotificationsPlugin
+      >();
   if (android == null) return;
   await android.createNotificationChannel(
     const AndroidNotificationChannel(
@@ -679,7 +680,7 @@ Future<void> _putTokenToRemote(
   required String deviceName,
 }) async {
   await apiClient.put(
-    "/ring/notifications/subscription",
+    "/metoer/notifications/subscription",
     data: {
       "provider": type,
       "device_token": token,

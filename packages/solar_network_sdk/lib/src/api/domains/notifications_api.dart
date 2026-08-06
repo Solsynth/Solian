@@ -1,14 +1,14 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
 
-/// API for notification endpoints (/ring/notification).
+/// API for notification endpoints (/metoer/notification).
 ///
 /// Handles notifications, preferences, and push notifications.
 class NotificationsApi extends BaseApi {
   NotificationsApi(super.dio);
 
   /// Base path for all notification endpoints.
-  static const String _basePath = '/ring';
+  static const String _basePath = '/metoer';
 
   Map<String, dynamic>? _queryWithApp(
     String? app,

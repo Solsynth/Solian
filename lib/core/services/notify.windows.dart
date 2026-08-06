@@ -205,7 +205,7 @@ Future<void> subscribePushNotification(
 
 Future<void> _putTokenToRemote(Dio apiClient, String token, int type) async {
   await apiClient.put(
-    "/ring/notifications/subscription",
+    "/metoer/notifications/subscription",
     data: {
       "provider": type,
       "device_token": token,
