@@ -291,12 +291,28 @@ class AppDatabase {
   Future<void> saveMember(SnChatMember member) =>
       _write(() => _memory.saveMember(member));
 
+  /// True when the account carries a server-fabricated profile shell (random
+  /// id, no name/bio/picture) rather than real data. Such shells must never
+  /// be cached or served back.
+  static bool _isBareProfile(SnAccount account) {
+    final profile = account.profile;
+    return profile.id.trim().isEmpty ||
+        (profile.firstName.trim().isEmpty &&
+            profile.lastName.trim().isEmpty &&
+            profile.bio.trim().isEmpty &&
+            profile.picture == null);
+  }
+
   Future<void> saveAccount(
     SnAccount account, {
     String source = 'unknown account endpoint',
   }) async {
     await _ensureReady();
-    if (account.profile.id.trim().isEmpty) {
+    // A server-side fallback can fabricate a profile shell (random id, only
+    // account_id set) when the profile row is missing; real accounts always
+    // carry a name. Refuse to cache such shells so a transient empty profile
+    // never overwrites a good cached copy.
+    if (_isBareProfile(account)) {
       final error = StateError(
         'Refusing to cache account ${account.id}: empty profile from $source',
       );
@@ -320,7 +336,9 @@ class AppDatabase {
       final payload = row['payload'];
       if (payload is! Map) return null;
       try {
-        return SnAccount.fromJson(Map<String, dynamic>.from(payload));
+        final account = SnAccount.fromJson(Map<String, dynamic>.from(payload));
+        if (_isBareProfile(account)) return null;
+        return account;
       } catch (_) {
         return null;
       }
@@ -340,7 +358,9 @@ class AppDatabase {
         continue;
       }
       try {
-        return SnAccount.fromJson(map);
+        final account = SnAccount.fromJson(map);
+        if (_isBareProfile(account)) continue;
+        return account;
       } catch (_) {
         return null;
       }

@@ -840,12 +840,15 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       await _database.saveMember(sender);
     } catch (error, stackTrace) {
+      // A bare/empty sender profile (server-side fallback) is refused by the
+      // cache guard; that must not fail the message pipeline. The in-memory
+      // member is already upserted above, so the UI still renders this session.
       Logger.root.warning(
         'Failed to persist sender ${sender.accountId} for room $roomId',
         error,
         stackTrace,
       );
-      Error.throwWithStackTrace(error, stackTrace);
+      return;
     }
 
     // Existing messages refer to the canonical member directory. Emit them
