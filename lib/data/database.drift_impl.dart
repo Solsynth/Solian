@@ -144,8 +144,12 @@ class AppDatabase {
     await removeLegacyDatabaseFiles(await _legacyDirectoryPath);
   }
 
-  Future<Map<String, int>> getDatabaseStats() =>
-      _read(_memory.getDatabaseStats);
+  Future<Map<String, int>> getDatabaseStats() async {
+    await _ensureReady();
+    final stats = await _memory.getDatabaseStats();
+    stats['accounts'] = (await (await _store).readEntities('accounts')).length;
+    return stats;
+  }
 
   /// Runs a best-effort atomic mutation of the in-memory cache and persists
   /// the resulting state before returning. Callers must not start unrelated
@@ -285,6 +289,48 @@ class AppDatabase {
       _read(() => _memory.getMemberById(id));
   Future<void> saveMember(SnChatMember member) =>
       _write(() => _memory.saveMember(member));
+
+  Future<void> saveAccount(SnAccount account) async {
+    await _ensureReady();
+    await (await _store).writeEntity('accounts', account.id, account.toJson());
+  }
+
+  Future<SnAccount?> getAccountById(String id) async {
+    await _ensureReady();
+    final rows = await (await _store).readEntities('accounts');
+    for (final row in rows) {
+      if (row['id']?.toString() != id) continue;
+      final payload = row['payload'];
+      if (payload is! Map) return null;
+      try {
+        return SnAccount.fromJson(Map<String, dynamic>.from(payload));
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<SnAccount?> getAccountByUsername(String username) async {
+    await _ensureReady();
+    final rows = await (await _store).readEntities('accounts');
+    for (final row in rows) {
+      final payload = row['payload'];
+      if (payload is! Map) continue;
+      final map = Map<String, dynamic>.from(payload);
+      if (map['name']?.toString() != username &&
+          map['nick']?.toString() != username) {
+        continue;
+      }
+      try {
+        return SnAccount.fromJson(map);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   Future<List<SnRealm>> getAllRealms() => _read(_memory.getAllRealms);
   Future<SnRealm?> getRealmById(String id) =>
       _read(() => _memory.getRealmById(id));

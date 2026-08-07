@@ -13,6 +13,7 @@ import 'package:island/accounts/widgets/account/board.dart';
 import 'package:island/accounts/screens/profile_timeline.dart';
 import 'package:island/developers/models/developer.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
@@ -547,8 +548,27 @@ Future<SnAccount> account(Ref ref, String uname) async {
       return userInfo.value!;
     }
   }
+  final database = ref.watch(databaseProvider);
+  final cached = await database.getAccountByUsername(uname);
+  if (cached != null) {
+    // Keep cached account data useful offline while refreshing it for the
+    // next read. The database is the durable source for the next provider
+    // build, not a replacement for the API's authority.
+    unawaited(() async {
+      try {
+        final fresh = await ref
+            .read(solarNetworkClientProvider)
+            .accounts
+            .getAccountByUsername(uname);
+        await database.saveAccount(fresh);
+      } catch (_) {}
+    }());
+    return cached;
+  }
   final client = ref.watch(solarNetworkClientProvider);
-  return await client.accounts.getAccountByUsername(uname);
+  final account = await client.accounts.getAccountByUsername(uname);
+  await database.saveAccount(account);
+  return account;
 }
 
 @riverpod

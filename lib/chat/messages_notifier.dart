@@ -574,6 +574,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         }
         _emitMessages(list);
       },
+      onIncomingMessageSender: _upsertIncomingMessageSender,
       onReconnectionNeeded: () {
         unawaited(loadInitial(forceRemoteRefresh: false));
       },
@@ -825,6 +826,29 @@ class MessagesNotifier extends _$MessagesNotifier {
     _membersById[member.id] = member;
     _membersById[member.accountId] = member;
     return true;
+  }
+
+  /// Stores sender data separately from messages so account/profile updates
+  /// received with a new message survive a timeline or app reload.
+  Future<void> _upsertIncomingMessageSender(SnChatMember sender) async {
+    if (!_upsertMember(sender)) return;
+
+    try {
+      await _database.saveAccount(sender.account);
+      await _database.saveMember(sender);
+    } catch (error, stackTrace) {
+      Logger.root.warning(
+        'Failed to persist sender ${sender.accountId} for room $roomId',
+        error,
+        stackTrace,
+      );
+    }
+
+    // Existing messages refer to the canonical member directory. Emit them
+    // again so a repaired account/profile is reflected immediately.
+    if (ref.mounted) {
+      _emitMessages(_currentMessages);
+    }
   }
 
   /// Restores the room's member directory before messages are normalized.
@@ -1361,6 +1385,13 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
+    final sender = localMessage.sender;
+    if (sender != null) {
+      // This also covers messages recovered through room-sequence sync, which
+      // bypass the real-time handler's intake callback.
+      unawaited(_upsertIncomingMessageSender(sender));
+    }
+
     final isMessageUpdate =
         localMessage.type == 'messages.update' ||
         localMessage.type == 'messages.sync.file' ||

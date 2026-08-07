@@ -36,6 +36,7 @@ class RealtimeMessageHandler {
   onMessageUpdate;
   final void Function(LocalChatMessage message, int? roomSequence)?
   onMessageDelete;
+  final Future<void> Function(SnChatMember sender)? onIncomingMessageSender;
   final void Function()? onReconnectionNeeded;
 
   bool _isJumping = false;
@@ -52,6 +53,7 @@ class RealtimeMessageHandler {
     this.onNewMessage,
     this.onMessageUpdate,
     this.onMessageDelete,
+    this.onIncomingMessageSender,
     this.onReconnectionNeeded,
   }) : _e2eeService = e2eeService;
 
@@ -193,6 +195,10 @@ class RealtimeMessageHandler {
     }
 
     _logger.info('Processing new message: ${remoteMessage.id}');
+
+    // Refresh the member cache even when the message itself is already stored.
+    // A repeated delivery can carry newer account/profile data for its sender.
+    await onIncomingMessageSender?.call(remoteMessage.sender);
 
     // Check for duplicate
     final existing = await _repository.getLocalMessage(remoteMessage.id);
