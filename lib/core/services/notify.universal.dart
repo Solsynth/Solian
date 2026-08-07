@@ -599,6 +599,15 @@ Future<void> subscribePushNotification(
     );
   }
   if (!kIsWeb && Platform.isIOS) {
+    // getAPNSToken() above has no retry — at cold start Firebase may not
+    // have registered the APNs token yet, leaving the device without an
+    // Apple alert subscription (VoIP-only). Poll for it here too.
+    registered =
+        await _registerApnsTokenIfAvailable(
+          apiClient,
+          deviceName: deviceName,
+        ) ||
+        registered;
     registered =
         await _registerVoipTokenIfAvailable(
           apiClient,
