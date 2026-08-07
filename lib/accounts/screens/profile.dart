@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -560,15 +561,33 @@ Future<SnAccount> account(Ref ref, String uname) async {
             .read(solarNetworkClientProvider)
             .accounts
             .getAccountByUsername(uname);
-        await database.saveAccount(fresh);
-      } catch (_) {}
+        await database.saveAccount(fresh, source: '/stargate/accounts/$uname');
+      } catch (error, stackTrace) {
+        developer.log(
+          'Account endpoint returned an invalid profile: /stargate/accounts/$uname',
+          name: 'AccountProvider',
+          error: error,
+          stackTrace: stackTrace,
+        );
+        Error.throwWithStackTrace(error, stackTrace);
+      }
     }());
     return cached;
   }
   final client = ref.watch(solarNetworkClientProvider);
-  final account = await client.accounts.getAccountByUsername(uname);
-  await database.saveAccount(account);
-  return account;
+  try {
+    final account = await client.accounts.getAccountByUsername(uname);
+    await database.saveAccount(account, source: '/stargate/accounts/$uname');
+    return account;
+  } catch (error, stackTrace) {
+    developer.log(
+      'Account endpoint returned an invalid profile: /stargate/accounts/$uname',
+      name: 'AccountProvider',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    Error.throwWithStackTrace(error, stackTrace);
+  }
 }
 
 @riverpod

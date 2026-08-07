@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:island/data/database_logic.dart' as memory;
 import 'package:island/data/drift_store.dart';
 import 'package:island/data/legacy_database_cleanup.dart';
@@ -290,8 +291,24 @@ class AppDatabase {
   Future<void> saveMember(SnChatMember member) =>
       _write(() => _memory.saveMember(member));
 
-  Future<void> saveAccount(SnAccount account) async {
+  Future<void> saveAccount(
+    SnAccount account, {
+    String source = 'unknown account endpoint',
+  }) async {
     await _ensureReady();
+    if (account.profile.id.trim().isEmpty) {
+      final error = StateError(
+        'Refusing to cache account ${account.id}: empty profile from $source',
+      );
+      final stackTrace = StackTrace.current;
+      developer.log(
+        error.toString(),
+        name: 'AppDatabase.accountCache',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
     await (await _store).writeEntity('accounts', account.id, account.toJson());
   }
 

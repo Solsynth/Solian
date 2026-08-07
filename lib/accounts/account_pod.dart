@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/database.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/e2ee/mls_storage.dart';
 import 'package:logging/logging.dart';
@@ -39,6 +41,9 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
             receiveTimeout: timeout,
           );
     final user = await client.accounts.getCurrentAccount(options: options);
+    await ref
+        .read(databaseProvider)
+        .saveAccount(user, source: '/stargate/accounts/me');
     AnalyticsService().setUserId(user.id);
     return user;
   }
@@ -106,6 +111,15 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
       try {
         return await _requestUser(timeout: timeout);
       } catch (error, stackTrace) {
+        if (error is! DioException) {
+          developer.log(
+            'Account endpoint returned an invalid profile: /stargate/accounts/me',
+            name: 'UserInfoProvider',
+            error: error,
+            stackTrace: stackTrace,
+          );
+          Error.throwWithStackTrace(error, stackTrace);
+        }
         lastError = error;
         lastStackTrace = stackTrace;
         Logger.root.warning(
@@ -165,12 +179,27 @@ final userInfoProvider = AsyncNotifierProvider<UserInfoNotifier, SnAccount?>(
   UserInfoNotifier.new,
 );
 
-final accountInfoProvider = FutureProvider.family
-    .autoDispose<SnAccount?, String>((ref, accountRef) async {
-      final client = ref.watch(solarNetworkClientProvider);
-      try {
-        return await client.accounts.getAccountByUsername(accountRef);
-      } catch (_) {
-        return null;
-      }
-    });
+final accountInfoProvider = FutureProvider.family.autoDispose<SnAccount?, String>((
+  ref,
+  accountRef,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    final account = await client.accounts.getAccountByUsername(accountRef);
+    await ref
+        .read(databaseProvider)
+        .saveAccount(account, source: '/stargate/accounts/$accountRef');
+    return account;
+  } catch (error, stackTrace) {
+    if (error is! DioException) {
+      developer.log(
+        'Account endpoint returned an invalid profile: /stargate/accounts/$accountRef',
+        name: 'AccountInfoProvider',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+    return null;
+  }
+});

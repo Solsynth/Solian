@@ -834,7 +834,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (!_upsertMember(sender)) return;
 
     try {
-      await _database.saveAccount(sender.account);
+      await _database.saveAccount(
+        sender.account,
+        source: 'realtime chat message sender',
+      );
       await _database.saveMember(sender);
     } catch (error, stackTrace) {
       Logger.root.warning(
@@ -842,6 +845,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         error,
         stackTrace,
       );
+      Error.throwWithStackTrace(error, stackTrace);
     }
 
     // Existing messages refer to the canonical member directory. Emit them
