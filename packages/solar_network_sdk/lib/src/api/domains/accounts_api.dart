@@ -306,13 +306,14 @@ class AccountsApi extends BaseApi {
   /// Performs daily check-in.
   ///
   /// [captchaToken] - Optional captcha token if required.
-  Future<void> checkIn({String? captchaToken}) async {
-    await post(
+  Future<SnCheckInResult> checkIn({String? captchaToken}) async {
+    final response = await post<Map<String, dynamic>>(
       '$_basePath/accounts/me/check-in',
       queryParameters: {'version': 2},
       data: captchaToken != null ? jsonEncode(captchaToken) : null,
-      options: Options(receiveTimeout: const Duration(seconds: 60)),
+      options: Options(receiveTimeout: const Duration(seconds: 15)),
     );
+    return SnCheckInResult.fromJson(response.data!);
   }
 
   // ==========================================

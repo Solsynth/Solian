@@ -92,9 +92,23 @@ class CheckInScreen extends ConsumerWidget {
 
       navigator.pop();
       unawaited(() async {
+        Future<void> refreshFortuneReport() async {
+          for (var attempt = 0; attempt < 45; attempt++) {
+            await Future<void>.delayed(const Duration(seconds: 2));
+            try {
+              final result = await client.accounts.getCheckInResultToday();
+              if (result?.fortuneReport == null) continue;
+              container.invalidate(checkInResultTodayProvider);
+              return;
+            } catch (_) {}
+          }
+        }
+
         Future<void> run({String? captchaTk}) async {
           try {
-            await client.accounts.checkIn(captchaToken: captchaTk);
+            final result = await client.accounts.checkIn(
+              captchaToken: captchaTk,
+            );
             container.invalidate(checkInResultTodayProvider);
             await container.read(userInfoProvider.notifier).fetchUser();
             tasks.updateTask(
@@ -103,6 +117,10 @@ class CheckInScreen extends ConsumerWidget {
               progress: 1,
               statusMessage: 'taskStatusCompleted'.tr(),
             );
+
+            if (result.fortuneReport == null) {
+              unawaited(refreshFortuneReport());
+            }
 
             if (navigator.mounted) {
               unawaited(showCheckInSheet(navigator.context));
