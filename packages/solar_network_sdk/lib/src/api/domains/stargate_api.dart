@@ -6,14 +6,14 @@ import 'package:solar_network_sdk/src/models/auth/auth_session.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
 import 'package:solar_network_sdk/src/models/accounts/punishment.dart';
 
-/// API for security / padlock endpoints (/padlock).
+/// API for security / stargate endpoints (/stargate).
 ///
 /// Handles security events, action logs, sessions, devices, and account security.
-class PadlockApi extends BaseApi {
-  PadlockApi(super.dio);
+class StargateApi extends BaseApi {
+  StargateApi(super.dio);
 
-  /// Base path for all padlock endpoints.
-  static const String _basePath = '/padlock';
+  /// Base path for all stargate endpoints.
+  static const String _basePath = '/stargate';
 
   /// Gets paginated account action logs.
   ///

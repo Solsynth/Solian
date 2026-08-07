@@ -44,11 +44,11 @@ void _mlsLogError(dynamic msg) {
 
 class MlsIdentityManager {
   final MlsStorage _storage;
-  final Dio _padlockClient;
+  final Dio _stargateClient;
 
-  MlsIdentityManager({required MlsStorage storage, required Dio padlockClient})
+  MlsIdentityManager({required MlsStorage storage, required Dio stargateClient})
     : _storage = storage,
-      _padlockClient = padlockClient;
+      _stargateClient = stargateClient;
 
   Future<Map<String, String>> getMlsHeaders() async {
     final deviceId = await getOrCreateDeviceId();
@@ -238,7 +238,7 @@ class MlsIdentityManager {
 
   Future<int> uploadKeyPackage(String keyPackage) async {
     try {
-      final response = await _padlockClient.put(
+      final response = await _stargateClient.put(
         '/e2ee/mls/devices/me/kps',
         data: {
           'key_package': keyPackage,
@@ -272,7 +272,7 @@ class MlsIdentityManager {
     String accountId,
   ) async {
     try {
-      final response = await _padlockClient.get(
+      final response = await _stargateClient.get(
         '/e2ee/mls/keys/$accountId/devices',
         options: Options(headers: await getMlsHeaders()),
       );
@@ -290,7 +290,7 @@ class MlsIdentityManager {
 
   Future<bool> revokeDevice(String deviceId) async {
     try {
-      final response = await _padlockClient.post(
+      final response = await _stargateClient.post(
         '/e2ee/mls/devices/$deviceId/revoke',
         options: Options(headers: await getMlsHeaders()),
       );
@@ -327,7 +327,7 @@ class MlsIdentityManager {
     if (accountIds.isEmpty) return [];
 
     try {
-      final response = await _padlockClient.post(
+      final response = await _stargateClient.post(
         '/e2ee/mls/users/ready/batch',
         data: {'account_ids': accountIds},
         options: Options(headers: await getMlsHeaders()),
@@ -350,7 +350,7 @@ class MlsIdentityManager {
 
   Future<KeyPackageStatus?> getKeyPackageStatus() async {
     try {
-      final response = await _padlockClient.get(
+      final response = await _stargateClient.get(
         '/e2ee/mls/kp/status',
         options: Options(headers: await getMlsHeaders()),
       );

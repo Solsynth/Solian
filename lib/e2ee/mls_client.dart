@@ -33,23 +33,23 @@ class MlsClient {
 
   MlsClient({
     required MlsStorage storage,
-    required Dio padlockClient,
+    required Dio stargateClient,
     required Dio apiClient,
   }) : _storage = storage {
     _identityManager = MlsIdentityManager(
       storage: storage,
-      padlockClient: padlockClient,
+      stargateClient: stargateClient,
     );
     _groupManager = MlsGroupManager(
       storage: storage,
-      padlockClient: padlockClient,
+      stargateClient: stargateClient,
       apiClient: apiClient,
       identityManager: _identityManager,
     );
     _messageHandler = MlsMessageHandler(
       groupManager: _groupManager,
       identityManager: _identityManager,
-      padlockClient: padlockClient,
+      stargateClient: stargateClient,
     );
   }
 
@@ -263,7 +263,7 @@ class MlsClient {
 
   /// Add members to an existing MLS group and fan out the Welcome message.
   ///
-  /// Fetches KeyPackages for [memberAccountIds] from the padlock service,
+  /// Fetches KeyPackages for [memberAccountIds] from the stargate service,
   /// calls `engine.addMembers()` to generate the commit + welcome,
   /// then sends the welcome to the server for distribution.
   Future<Uint8List?> addMembersAndFanoutWelcome(
@@ -377,12 +377,12 @@ final mlsStorageProvider = Provider<MlsStorage>((ref) {
 
 final mlsClientProvider = Provider<MlsClient>((ref) {
   final storage = ref.watch(mlsStorageProvider);
-  final padlockClient = ref.watch(padlockApiClientProvider);
+  final stargateClient = ref.watch(stargateApiClientProvider);
   final solarClient = ref.watch(solarNetworkClientProvider);
   final wsService = ref.watch(websocketProvider);
   final client = MlsClient(
     storage: storage,
-    padlockClient: padlockClient,
+    stargateClient: stargateClient,
     apiClient: solarClient.dio,
   );
   client.startKeyPackageDepletedListener(wsService);

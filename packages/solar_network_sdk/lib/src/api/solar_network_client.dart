@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:solar_network_sdk/src/api/domains/padlock_api.dart';
+import 'package:solar_network_sdk/src/api/domains/stargate_api.dart';
 
 import 'domains/auth_api.dart';
 import 'domains/accounts_api.dart';
@@ -45,7 +45,7 @@ class SolarNetworkClient {
   /// Exposed for making custom API calls not covered by the typed methods.
   final Dio dio;
 
-  /// Authentication API (padlock endpoints).
+  /// Authentication API (stargate endpoints).
   late final AuthApi auth;
 
   /// Accounts API (passport endpoints).
@@ -93,8 +93,8 @@ class SolarNetworkClient {
   /// Realms API (realm endpoints).
   late final RealmsApi realms;
 
-  /// Padlock API (security endpoints)
-  late final PadlockApi padlock;
+  /// Stargate API (security endpoints)
+  late final StargateApi stargate;
 
   /// Fitness API (fitness endpoints).
   late final FitnessApi fitness;
@@ -157,7 +157,7 @@ class SolarNetworkClient {
     developers = DevelopersApi(dio);
     payments = PaymentsApi(dio);
     realms = RealmsApi(dio);
-    padlock = PadlockApi(dio);
+    stargate = StargateApi(dio);
     fitness = FitnessApi(dio);
   }
 

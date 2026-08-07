@@ -48,7 +48,8 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
     _loadClientInfo();
   }
 
-  bool get _isDeviceCode => widget.userCode != null && widget.userCode!.isNotEmpty;
+  bool get _isDeviceCode =>
+      widget.userCode != null && widget.userCode!.isNotEmpty;
 
   Map<String, String> get _queryParams => {
     if (widget.clientId != null) 'client_id': widget.clientId!,
@@ -60,7 +61,7 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
 
   Future<void> _loadClientInfo() async {
     try {
-      final dio = ref.read(padlockApiClientProvider);
+      final dio = ref.read(stargateApiClientProvider);
       if (_isDeviceCode) {
         final deviceResp = await dio.get(
           '/auth/open/device/code/${Uri.encodeComponent(widget.userCode!)}',
@@ -74,9 +75,10 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
           });
           return;
         }
-        final resp = await dio.get('/auth/open/authorize', queryParameters: {
-          'client_id': clientId,
-        });
+        final resp = await dio.get(
+          '/auth/open/authorize',
+          queryParameters: {'client_id': clientId},
+        );
         setState(() {
           _clientInfo = AuthorizeClientInfo.fromJson(
             Map<String, dynamic>.from(resp.data as Map),
@@ -114,7 +116,7 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
       _error = null;
     });
     try {
-      final dio = ref.read(padlockApiClientProvider);
+      final dio = ref.read(stargateApiClientProvider);
       if (_isDeviceCode) {
         final action = authorize ? 'approve' : 'decline';
         await dio.post(

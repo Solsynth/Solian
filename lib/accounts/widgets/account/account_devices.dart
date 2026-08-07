@@ -23,9 +23,9 @@ part 'account_devices.g.dart';
 
 @riverpod
 Future<PaginatedResult<SnAuthDeviceWithSession>> authDevices(Ref ref) async {
-  final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
+  final stargateApi = ref.watch(solarNetworkClientProvider).stargate;
   final currentId = await getUdid();
-  final resp = await padlockApi.getDevices();
+  final resp = await stargateApi.getDevices();
   return PaginatedResult(
     items: resp.items.map((ele) {
       return ele.copyWith(isCurrent: ele.deviceId == currentId);
@@ -42,16 +42,16 @@ Future<PaginatedResult<SnAuthSession>> authSessions(
   Ref ref, {
   int? type,
 }) async {
-  final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
+  final stargateApi = ref.watch(solarNetworkClientProvider).stargate;
   // Get only root sessions (exclude children for tree view starting points)
-  return padlockApi.getSessions(type: type, includeChildren: false);
+  return stargateApi.getSessions(type: type, includeChildren: false);
 }
 
 /// Provider for child sessions of a specific parent session
 @riverpod
 Future<List<SnAuthSession>> sessionChildren(Ref ref, String parentId) async {
-  final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
-  final result = await padlockApi.getSessionChildren(parentId);
+  final stargateApi = ref.watch(solarNetworkClientProvider).stargate;
+  final result = await stargateApi.getSessionChildren(parentId);
   return result.items;
 }
 
@@ -263,8 +263,8 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.revokeSession(sessionId);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.revokeSession(sessionId);
         // Invalidate providers to refresh data
         ref.invalidate(authDevicesProvider);
         ref.invalidate(authSessionsProvider);
@@ -284,8 +284,8 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.revokeDevice(device.deviceId);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.revokeDevice(device.deviceId);
         ref.invalidate(authDevicesProvider);
         if (context.mounted) {
           Navigator.pop(context);
@@ -323,8 +323,8 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       );
       if (label == null || label.isEmpty || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.updateDeviceLabel(device.deviceId, label);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.updateDeviceLabel(device.deviceId, label);
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -516,7 +516,7 @@ class _DeviceDetailSheet extends HookConsumerWidget {
               child: Row(
                 spacing: 8,
                 children: [
-                  const Icon(Symbols.key, size: 18,),
+                  const Icon(Symbols.key, size: 18),
                   Text(
                     'authSessions'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -1241,8 +1241,8 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.revokeDevice(deviceId);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.revokeDevice(deviceId);
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -1257,8 +1257,8 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.revokeSession(sessionId);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.revokeSession(sessionId);
         // Invalidate all session-related providers
         ref.invalidate(authSessionsProvider);
         ref.invalidate(authDevicesProvider);
@@ -1277,8 +1277,8 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.revokeAllOtherSessions();
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.revokeAllOtherSessions();
         // Clear expanded sessions since they might be invalidated
         ref.invalidate(authSessionsProvider);
         ref.invalidate(authDevicesProvider);
@@ -1316,8 +1316,8 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (label == null || label.isEmpty || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.updateDeviceLabel(deviceId, label);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.updateDeviceLabel(deviceId, label);
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -1484,10 +1484,10 @@ class _DevicesTab extends StatelessWidget {
                           if (confirm && context.mounted) {
                             try {
                               showLoadingModal(context);
-                              final padlockApi = ref
+                              final stargateApi = ref
                                   .read(solarNetworkClientProvider)
-                                  .padlock;
-                              await padlockApi.revokeDevice(device.deviceId);
+                                  .stargate;
+                              await stargateApi.revokeDevice(device.deviceId);
                               ref.invalidate(authDevicesProvider);
                             } catch (err) {
                               showErrorAlert(err);

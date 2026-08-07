@@ -42,7 +42,7 @@ class ActionLogsNotifier extends AsyncNotifier<PaginationState<SnActionLog>>
   Future<List<SnActionLog>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
 
-    final result = await client.padlock.getActionLogs(
+    final result = await client.stargate.getActionLogs(
       offset: fetchedCount,
       take: pageSize,
       action: currentFilter,

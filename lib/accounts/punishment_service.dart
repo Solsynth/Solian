@@ -16,7 +16,7 @@ class PunishmentService {
     int take = 20,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.getAccountPunishments(
+    return client.stargate.getAccountPunishments(
       username,
       offset: offset,
       take: take,
@@ -25,7 +25,7 @@ class PunishmentService {
 
   Future<SnAccountPunishment?> getPunishmentOverview(String username) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.getAccountPunishmentOverview(username);
+    return client.stargate.getAccountPunishmentOverview(username);
   }
 
   Future<SnAccountPunishment> createPunishment({
@@ -37,7 +37,7 @@ class PunishmentService {
     double? socialCreditReduction,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.createPunishment(
+    return client.stargate.createPunishment(
       username: username,
       reason: reason,
       type: type,
@@ -56,7 +56,7 @@ class PunishmentService {
     List<String>? blockedPermissions,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.updatePunishment(
+    return client.stargate.updatePunishment(
       username: username,
       punishmentId: punishmentId,
       reason: reason,
@@ -68,7 +68,7 @@ class PunishmentService {
 
   Future<void> deletePunishment(String username, String punishmentId) async {
     final client = ref.watch(solarNetworkClientProvider);
-    await client.padlock.deletePunishment(username, punishmentId);
+    await client.stargate.deletePunishment(username, punishmentId);
   }
 
   Future<PaginatedResult<SnAccountPunishment>> getAdminCreatedPunishments({
@@ -76,7 +76,7 @@ class PunishmentService {
     int take = 20,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.getAdminCreatedPunishments(
+    return client.stargate.getAdminCreatedPunishments(
       offset: offset,
       take: take,
     );

@@ -62,17 +62,17 @@ String _generateNonce() {
 
 class MlsGroupManager {
   final MlsStorage _storage;
-  final Dio _padlockClient;
+  final Dio _stargateClient;
   final Dio _apiClient;
   final MlsIdentityManager _identityManager;
 
   MlsGroupManager({
     required MlsStorage storage,
-    required Dio padlockClient,
+    required Dio stargateClient,
     required Dio apiClient,
     required MlsIdentityManager identityManager,
   }) : _storage = storage,
-       _padlockClient = padlockClient,
+       _stargateClient = stargateClient,
        _apiClient = apiClient,
        _identityManager = identityManager;
 
@@ -280,7 +280,7 @@ class MlsGroupManager {
       // Reserve bootstrap ownership before creating local cryptographic state.
       // Replaying this request is safe, but a different device must wait for a
       // Welcome instead of independently creating a group with the same ID.
-      final bootstrapResponse = await _padlockClient.post(
+      final bootstrapResponse = await _stargateClient.post(
         '/e2ee/mls/groups/$mlsGroupId/bootstrap',
         data: {
           'epoch': 0,
@@ -450,7 +450,7 @@ class MlsGroupManager {
   Future<Map<String, dynamic>?> commitPending(String mlsGroupId) async {
     try {
       final currentEpoch = await getCurrentEpoch(mlsGroupId);
-      final response = await _padlockClient.post(
+      final response = await _stargateClient.post(
         '/e2ee/mls/groups/$mlsGroupId/commit',
         data: {'epoch': currentEpoch, 'reason': 'client_commit'},
         options: Options(headers: await _getMlsHeaders()),
@@ -494,7 +494,7 @@ class MlsGroupManager {
 
   /// Add members to an existing MLS group and fan out the Welcome message.
   ///
-  /// Fetches KeyPackages for [memberAccountIds] from the padlock service,
+  /// Fetches KeyPackages for [memberAccountIds] from the stargate service,
   /// calls `engine.addMembers()` to generate the commit + welcome,
   /// then sends the welcome to the server for distribution.
   ///
@@ -664,7 +664,7 @@ class MlsGroupManager {
             )
             .toList();
 
-        await _padlockClient.post(
+        await _stargateClient.post(
           '/e2ee/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: await _getMlsHeaders()),
@@ -704,7 +704,7 @@ class MlsGroupManager {
     );
 
     try {
-      await _padlockClient.post(
+      await _stargateClient.post(
         '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
         data: {
           'epoch': epoch,
@@ -770,7 +770,7 @@ class MlsGroupManager {
 
   Future<bool> requestReshare(String mlsGroupId) async {
     try {
-      final response = await _padlockClient.post(
+      final response = await _stargateClient.post(
         '/e2ee/mls/groups/$mlsGroupId/reshare-required',
         data: {},
         options: Options(headers: await _getMlsHeaders()),
@@ -796,7 +796,7 @@ class MlsGroupManager {
 
   Future<List<Map<String, dynamic>>> getReshareRequiredGroups() async {
     try {
-      final response = await _padlockClient.get(
+      final response = await _stargateClient.get(
         '/e2ee/mls/devices/me/reshare-required',
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -871,7 +871,7 @@ class MlsGroupManager {
 
       await commitPending(mlsGroupId);
 
-      await _padlockClient.post(
+      await _stargateClient.post(
         '/e2ee/mls/devices/me/reshare-required/$mlsGroupId/complete',
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -927,7 +927,7 @@ class MlsGroupManager {
         groupIdBytes: groupIdBytes,
       );
 
-      final response = await _padlockClient.put(
+      final response = await _stargateClient.put(
         '/e2ee/mls/groups/$mlsGroupId/groupinfo',
         data: {
           'group_info': base64Encode(groupInfo),
@@ -949,7 +949,7 @@ class MlsGroupManager {
     try {
       _mlsLog('Attempting external join for group $mlsGroupId');
 
-      final response = await _padlockClient.get(
+      final response = await _stargateClient.get(
         '/e2ee/mls/groups/$mlsGroupId/groupinfo',
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -1068,7 +1068,7 @@ class MlsGroupManager {
       );
 
       for (final memberId in membersToAdd) {
-        await _padlockClient.post(
+        await _stargateClient.post(
           '/e2ee/mls/groups/$mlsGroupId/reshare-required',
           data: {
             'chat_room_id': roomId,
@@ -1117,7 +1117,7 @@ class MlsGroupManager {
     }
 
     try {
-      await _padlockClient.post(
+      await _stargateClient.post(
         '/e2ee/mls/groups/$mlsGroupId/reset',
         data: {
           'new_epoch': 0,

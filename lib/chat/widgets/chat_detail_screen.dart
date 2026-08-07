@@ -965,8 +965,8 @@ class _ChatMemberListSheet extends HookConsumerWidget {
         final isEncrypted = (chatRoom.value?.encryptionMode ?? 0) == 3;
         if (isEncrypted && mlsGroupId != null) {
           try {
-            final padlockClient = ref.read(padlockApiClientProvider);
-            final readyResponse = await padlockClient.get(
+            final stargateClient = ref.read(stargateApiClientProvider);
+            final readyResponse = await stargateClient.get(
               '/e2ee/mls/users/${result.id}/ready',
             );
             final isReady = readyResponse.data['is_ready'] as bool? ?? false;

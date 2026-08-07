@@ -66,17 +66,17 @@ enum MlsMessageType {
 class MlsMessageHandler {
   final MlsGroupManager _groupManager;
   final MlsIdentityManager _identityManager;
-  final Dio _padlockClient;
+  final Dio _stargateClient;
 
   final Set<String> _groupsRecoveringEpoch = <String>{};
 
   MlsMessageHandler({
     required MlsGroupManager groupManager,
     required MlsIdentityManager identityManager,
-    required Dio padlockClient,
+    required Dio stargateClient,
   }) : _groupManager = groupManager,
        _identityManager = identityManager,
-       _padlockClient = padlockClient;
+       _stargateClient = stargateClient;
 
   Future<Map<String, String>> _getMlsHeaders() async {
     final deviceId = await _identityManager.getOrCreateDeviceId();
@@ -566,7 +566,7 @@ class MlsMessageHandler {
     required Map<String, dynamic> encryptedPayload,
   }) async {
     try {
-      final response = await _padlockClient.post(
+      final response = await _stargateClient.post(
         '/e2ee/mls/messages/fanout',
         data: {'room_id': mlsGroupId, 'payload': encryptedPayload},
         options: Options(headers: await _getMlsHeaders()),
@@ -600,7 +600,7 @@ class MlsMessageHandler {
     String deviceId,
   ) async {
     try {
-      final response = await _padlockClient.get(
+      final response = await _stargateClient.get(
         '/e2ee/mls/envelopes/pending',
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -618,7 +618,7 @@ class MlsMessageHandler {
 
   Future<bool> ackEnvelope(String envelopeId, String deviceId) async {
     try {
-      final response = await _padlockClient.post(
+      final response = await _stargateClient.post(
         '/e2ee/mls/envelopes/$envelopeId/ack',
         queryParameters: {'deviceId': deviceId},
         options: Options(headers: await _getMlsHeaders()),

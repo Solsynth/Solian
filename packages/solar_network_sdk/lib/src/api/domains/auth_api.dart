@@ -4,13 +4,13 @@ import 'package:solar_network_sdk/src/models/auth/auth_challenge.dart';
 import 'package:solar_network_sdk/src/models/auth/misc.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
 
-/// API for authentication-related endpoints (/padlock).
+/// API for authentication-related endpoints (/stargate).
 ///
 /// Handles authentication tokens, sessions, factors, and connections.
 class AuthApi extends BaseApi {
   AuthApi(super.dio);
 
-  /// Base path for all padlock endpoints.
+  /// Base path for all stargate endpoints.
   static const String _basePath = '/stargate';
 
   // ==========================================

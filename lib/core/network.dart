@@ -381,11 +381,11 @@ final mediaIpOverrideConnectionFactoryProvider =
       };
     });
 
-final padlockApiClientProvider = Provider<Dio>((ref) {
+final stargateApiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);
   final dio = Dio(
     BaseOptions(
-      baseUrl: '$serverUrl/padlock',
+      baseUrl: '$serverUrl/stargate',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {

@@ -16,8 +16,8 @@ part 'account_authorized_apps.g.dart';
 
 @riverpod
 Future<List<AuthorizedApp>> authorizedApps(Ref ref) async {
-  final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
-  final response = await padlockApi.getAuthorizedApps();
+  final stargateApi = ref.watch(solarNetworkClientProvider).stargate;
+  final response = await stargateApi.getAuthorizedApps();
   return response.map(AuthorizedApp.fromJson).toList();
 }
 
@@ -249,8 +249,8 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
-        await padlockApi.deauthorizeApp(id);
+        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
+        await stargateApi.deauthorizeApp(id);
         ref.invalidate(authorizedAppsProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -303,7 +303,7 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
                         try {
                           await ref
                               .read(solarNetworkClientProvider)
-                              .padlock
+                              .stargate
                               .authorizeAppScopes(app.id, result);
                           showSnackBar('scopesUpdated'.tr());
                           ref.invalidate(authorizedAppsProvider);
@@ -409,9 +409,7 @@ class _ScopesEditorState extends State<_ScopesEditor> {
               Expanded(
                 child: TextField(
                   controller: _customController,
-                  decoration: InputDecoration(
-                    hintText: 'Add custom scope',
-                  ),
+                  decoration: InputDecoration(hintText: 'Add custom scope'),
                   onSubmitted: (_) => _addCustom(),
                 ),
               ),
@@ -423,8 +421,7 @@ class _ScopesEditorState extends State<_ScopesEditor> {
           Align(
             alignment: Alignment.centerRight,
             child: FilledButton(
-              onPressed: () =>
-                  Navigator.pop(context, _selectedScopes.toList()),
+              onPressed: () => Navigator.pop(context, _selectedScopes.toList()),
               child: Text('save'.tr()),
             ),
           ),
