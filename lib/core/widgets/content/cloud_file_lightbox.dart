@@ -96,14 +96,21 @@ class CloudFileLightbox extends HookConsumerWidget {
       () => List.generate(items.length, (_) => PhotoViewController()),
       [items.length],
     );
+    final photoViewScaleStateControllers = useMemoized(
+      () => List.generate(items.length, (_) => PhotoViewScaleStateController()),
+      [items.length],
+    );
     useEffect(() {
       return () {
         pageController.dispose();
         for (final controller in photoViewControllers) {
           controller.dispose();
         }
+        for (final controller in photoViewScaleStateControllers) {
+          controller.dispose();
+        }
       };
-    }, [pageController, photoViewControllers]);
+    }, [pageController, photoViewControllers, photoViewScaleStateControllers]);
     final focusNode = useFocusNode();
     final serverUrl = ref.watch(serverUrlProvider);
 
@@ -150,19 +157,18 @@ class CloudFileLightbox extends HookConsumerWidget {
     PhotoViewController currentPhotoController() =>
         photoViewControllers[currentIndex.value];
 
-    // Let a zoomed image own vertical drags for panning; otherwise a downward
-    // swipe dismisses the lightbox.
+    // Let a zoomed-in image own vertical drags for panning; otherwise a
+    // downward swipe dismisses the lightbox.
     useEffect(() {
-      final controller = photoViewControllers[currentIndex.value];
-      void syncZoom() {
-        final scale = controller.scale ?? 1.0;
-        isZoomed.value = scale > 1.05;
+      final controller = photoViewScaleStateControllers[currentIndex.value];
+      void syncZoom(PhotoViewScaleState state) {
+        isZoomed.value = state == PhotoViewScaleState.zoomedIn;
       }
 
-      syncZoom();
-      final sub = controller.outputStateStream.listen((_) => syncZoom());
+      syncZoom(controller.scaleState);
+      final sub = controller.outputScaleStateStream.listen(syncZoom);
       return sub.cancel;
-    }, [currentIndex.value, items.length]);
+    }, [currentIndex.value, photoViewScaleStateControllers]);
 
     void zoomBy(double delta) {
       final controller = currentPhotoController();
@@ -181,30 +187,27 @@ class CloudFileLightbox extends HookConsumerWidget {
     // fighting a disappearing overlay, and top bar stays available. Listens on
     // the notifiers instead of hook state so re-arming never rebuilds the
     // gallery.
-    useEffect(
-      () {
-        if (currentIsVideo) return null;
-        Timer? timer;
-        void restart() {
-          timer?.cancel();
-          if (showControls.value && controlsVisible.value) {
-            timer = Timer(const Duration(seconds: 3), () {
-              controlsVisible.value = false;
-            });
-          }
+    useEffect(() {
+      if (currentIsVideo) return null;
+      Timer? timer;
+      void restart() {
+        timer?.cancel();
+        if (showControls.value && controlsVisible.value) {
+          timer = Timer(const Duration(seconds: 3), () {
+            controlsVisible.value = false;
+          });
         }
+      }
 
-        showControls.addListener(restart);
-        controlsVisible.addListener(restart);
-        restart();
-        return () {
-          timer?.cancel();
-          showControls.removeListener(restart);
-          controlsVisible.removeListener(restart);
-        };
-      },
-      [showControls, controlsVisible, currentIsVideo],
-    );
+      showControls.addListener(restart);
+      controlsVisible.addListener(restart);
+      restart();
+      return () {
+        timer?.cancel();
+        showControls.removeListener(restart);
+        controlsVisible.removeListener(restart);
+      };
+    }, [showControls, controlsVisible, currentIsVideo]);
 
     void showActionsSheet() async {
       revealControls();
@@ -287,11 +290,14 @@ class CloudFileLightbox extends HookConsumerWidget {
                     items: items,
                     pageController: pageController,
                     photoViewControllers: photoViewControllers,
+                    photoViewScaleStateControllers:
+                        photoViewScaleStateControllers,
                     serverUrl: serverUrl,
                     heroTag: heroTag,
                     initialIndex: initialIndex,
                     currentIndex: currentIndex.value,
-                    showOriginal: showOriginal.value,
+                    showOriginal:
+                        showOriginal.value && currentItem.hasCompression,
                     onPageChanged: onPageChanged,
                     onTapToggle: toggleControls,
                   ),
@@ -300,7 +306,8 @@ class CloudFileLightbox extends HookConsumerWidget {
                     currentIndex: currentIndex.value,
                     currentItem: currentItem,
                     serverUrl: serverUrl,
-                    showOriginal: showOriginal.value,
+                    showOriginal:
+                        showOriginal.value && currentItem.hasCompression,
                     showControls: showControls,
                     controlsVisible: controlsVisible,
                     showExif: showExif,
@@ -335,6 +342,7 @@ class _LightboxGallery extends StatelessWidget {
   final List<IDisplayableCloudFile> items;
   final PageController pageController;
   final List<PhotoViewController> photoViewControllers;
+  final List<PhotoViewScaleStateController> photoViewScaleStateControllers;
   final String serverUrl;
   final String? heroTag;
   final int initialIndex;
@@ -347,6 +355,7 @@ class _LightboxGallery extends StatelessWidget {
     required this.items,
     required this.pageController,
     required this.photoViewControllers,
+    required this.photoViewScaleStateControllers,
     required this.serverUrl,
     required this.heroTag,
     required this.initialIndex,
@@ -382,10 +391,10 @@ class _LightboxGallery extends StatelessWidget {
           return PhotoViewGalleryPageOptions(
             imageProvider: imageProvider,
             controller: photoViewControllers[index],
+            scaleStateController: photoViewScaleStateControllers[index],
             heroAttributes: isHero
                 ? PhotoViewHeroAttributes(tag: heroTag!)
                 : null,
-            basePosition: Alignment.center,
             minScale: PhotoViewComputedScale.contained * 0.9,
             maxScale: PhotoViewComputedScale.covered * 3,
             initialScale: PhotoViewComputedScale.contained * 1.0,
@@ -435,10 +444,7 @@ class _LightboxGallery extends StatelessWidget {
             event.cumulativeBytesLoaded / event.expectedTotalBytes!;
         return Center(
           child: MediaChromeSurface(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -465,9 +471,7 @@ class _LightboxGallery extends StatelessWidget {
           ),
         );
       },
-      backgroundDecoration: const BoxDecoration(
-        color: Colors.black,
-      ),
+      backgroundDecoration: const BoxDecoration(color: Colors.black),
       gaplessPlayback: true,
       enableRotation: true,
     );
@@ -1007,38 +1011,40 @@ class _LightboxBottomBar extends StatelessWidget {
               ),
               const Gap(8),
             ],
-            MediaChromeSurface.pill(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _pillIconButton(
-                    icon: showOriginal ? Symbols.hd : Symbols.sd,
-                    tooltip: isQualityLoading
-                        ? 'Loading…'
-                        : (showOriginal
-                              ? 'Original quality (HD)'
-                              : 'Compressed quality (SD)'),
-                    onPressed: isQualityLoading ? null : onToggleOriginal,
-                    iconWidget: isQualityLoading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : null,
-                  ),
-                  if (hasExifData)
-                    _pillIconButton(
-                      icon: showExif ? Icons.info : Icons.info_outline,
-                      tooltip: showExif ? 'Hide EXIF' : 'Show EXIF',
-                      onPressed: onToggleExif,
-                    ),
-                ],
+            if (item.hasCompression || hasExifData)
+              MediaChromeSurface.pill(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (item.hasCompression)
+                      _pillIconButton(
+                        icon: showOriginal ? Symbols.hd : Symbols.sd,
+                        tooltip: isQualityLoading
+                            ? 'Loading…'
+                            : (showOriginal
+                                  ? 'Original quality (HD)'
+                                  : 'Compressed quality (SD)'),
+                        onPressed: isQualityLoading ? null : onToggleOriginal,
+                        iconWidget: isQualityLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                    if (hasExifData)
+                      _pillIconButton(
+                        icon: showExif ? Icons.info : Icons.info_outline,
+                        tooltip: showExif ? 'Hide EXIF' : 'Show EXIF',
+                        onPressed: onToggleExif,
+                      ),
+                  ],
+                ),
               ),
-            ),
           ] else
             const SizedBox(width: 48),
           const Spacer(),

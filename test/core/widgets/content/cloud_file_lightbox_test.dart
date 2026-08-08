@@ -15,8 +15,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 /// gallery from scratch.
 void main() {
   group('CloudFileLightbox', () {
-    testWidgets('chrome-only changes do not reconstruct the gallery',
-        (tester) async {
+    testWidgets('chrome-only changes do not reconstruct the gallery', (
+      tester,
+    ) async {
       final items = <IDisplayableCloudFile>[
         SnCloudFileReference(
           id: 'file-1',
@@ -36,10 +37,7 @@ void main() {
             serverUrlProvider.overrideWithValue('https://example.com'),
           ],
           child: MaterialApp(
-            home: CloudFileLightbox(
-              items: items,
-              initialIndex: 0,
-            ),
+            home: CloudFileLightbox(items: items, initialIndex: 0),
           ),
         ),
       );
@@ -79,29 +77,53 @@ void main() {
         reason: 'chrome auto-hide must not reconstruct the gallery',
       );
     });
+
+    testWidgets('hides quality toggle when compression is unavailable', (
+      tester,
+    ) async {
+      final items = <IDisplayableCloudFile>[
+        SnCloudFileReference(
+          id: 'original-only',
+          name: 'original.jpg',
+          mimeType: 'image/jpeg',
+          width: 1,
+          height: 1,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            serverUrlProvider.overrideWithValue('https://example.com'),
+          ],
+          child: MaterialApp(home: CloudFileLightbox(items: items)),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byTooltip('Compressed quality (SD)'), findsNothing);
+    });
   });
 
   group('DismissiblePage zoom flip', () {
-    testWidgets('GlobalKey keeps the page subtree across the disabled flip',
-        (tester) async {
+    testWidgets('GlobalKey keeps the page subtree across the disabled flip', (
+      tester,
+    ) async {
       final key = GlobalKey();
       final controller = PageController();
       addTearDown(controller.dispose);
       var initCount = 0;
 
       Widget child() => KeyedSubtree(
-            key: key,
-            child: PageView(
-              controller: controller,
-              children: [
-                for (var i = 0; i < 5; i++)
-                  _ProbePage(
-                    label: 'page-$i',
-                    onInit: () => initCount++,
-                  ),
-              ],
-            ),
-          );
+        key: key,
+        child: PageView(
+          controller: controller,
+          children: [
+            for (var i = 0; i < 5; i++)
+              _ProbePage(label: 'page-$i', onInit: () => initCount++),
+          ],
+        ),
+      );
 
       await tester.pumpWidget(
         MaterialApp(
@@ -135,12 +157,21 @@ void main() {
       final probeAfter = tester.element(
         find.byKey(const ValueKey('probe-page-2')),
       );
-      expect(identical(probeBefore, probeAfter), isTrue,
-          reason: 'page State must survive the disabled flip');
-      expect(initCount, initCountAfterScroll,
-          reason: 'no page may be re-initialized during the flip');
-      expect(controller.page, closeTo(2, 0.001),
-          reason: 'scroll position must survive the flip');
+      expect(
+        identical(probeBefore, probeAfter),
+        isTrue,
+        reason: 'page State must survive the disabled flip',
+      );
+      expect(
+        initCount,
+        initCountAfterScroll,
+        reason: 'no page may be re-initialized during the flip',
+      );
+      expect(
+        controller.page,
+        closeTo(2, 0.001),
+        reason: 'scroll position must survive the flip',
+      );
     });
   });
 }

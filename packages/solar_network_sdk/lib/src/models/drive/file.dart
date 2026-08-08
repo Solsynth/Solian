@@ -149,7 +149,10 @@ sealed class SnCloudFile with _$SnCloudFile implements IDisplayableCloudFile {
   int get size => object?.size ?? 0;
   @override
   String? get hash => object?.hash;
-
+  @override
+  bool get hasCompression => object?.hasCompression ?? false;
+  @override
+  bool get hasThumbnail => object?.hasThumbnail ?? false;
   @override
   double? get ratio {
     if (object?.meta?['width'] != null && object?.meta?['height'] != null) {
@@ -202,6 +205,7 @@ sealed class SnCloudFileReference
     @Default('') String hash,
     @Default(0) int size,
     @Default(false) bool hasCompression,
+    @Default(false) bool hasThumbnail,
     @JsonKey(name: "url") String? storageUrl,
     double? width,
     double? height,
