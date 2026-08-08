@@ -217,6 +217,13 @@ class AppDatabase {
     return result;
   }
 
+  Future<void> deleteChatRoomLocalData(String roomId) async {
+    await transaction(() async {
+      await _memory.deleteChatRoomLocalData(roomId);
+      await (await _store).deleteMessagesForRoom(roomId);
+    });
+  }
+
   Future<int> getTotalMessagesForRoom(String roomId) =>
       _read(() => _memory.getTotalMessagesForRoom(roomId));
   Future<Map<String, int>> getChatRoomMessageStats() =>

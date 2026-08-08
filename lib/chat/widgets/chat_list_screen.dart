@@ -13,6 +13,7 @@ import 'package:island/accounts/relationship_pod.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
+import 'package:island/chat/messages_notifier.dart';
 import 'package:island/chat/pods/chat_account_status.dart';
 import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -167,6 +168,38 @@ Widget _buildChatRoomContextMenu({
                 }
               },
             ),
+          MenuAction(
+            title: 'clearChatLocalData'.tr(),
+            image: MenuImage.icon(Symbols.delete_forever),
+            callback: () async {
+              final confirmed = await showConfirmAlert(
+                'clearChatLocalDataHint'.tr(),
+                'clearChatLocalData'.tr(),
+                icon: Symbols.delete_forever,
+                isDanger: true,
+              );
+              if (!confirmed) return;
+
+              try {
+                await db.deleteChatRoomLocalData(room.id);
+                ref.invalidate(chatRoomJoinedProvider);
+                ref.invalidate(chatRoomProvider(room.id));
+                ref.invalidate(chatSummaryProvider);
+                ref.invalidate(messagesProvider(room.id));
+
+                if (ref.read(currentSubscribedChatIdProvider) == room.id) {
+                  ref.read(currentSubscribedChatIdProvider.notifier).set(null);
+                  ref
+                      .read(foregroundChatRoomIdsProvider.notifier)
+                      .remove(room.id);
+                }
+
+                await onChatGroupsChanged();
+              } catch (err) {
+                showErrorAlert(err);
+              }
+            },
+          ),
         ],
       );
     },

@@ -54,6 +54,63 @@ LocalChatMessage message(String id) => LocalChatMessage(
   attachments: const [],
   reactions: const [],
 );
+SnAccount account(String id) {
+  final now = DateTime.utc(2026);
+  return SnAccount(
+    id: id,
+    name: id,
+    nick: id,
+    language: '',
+    isSuperuser: false,
+    automatedId: null,
+    profile: SnAccountProfile(
+      id: id,
+      experience: 0,
+      level: 1,
+      levelingProgress: 0,
+      picture: null,
+      background: null,
+      verification: null,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    ),
+    perkSubscription: null,
+    activatedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  );
+}
+
+SnChatMember member(String roomId) {
+  final now = DateTime.utc(2026);
+  return SnChatMember(
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+    id: 'member-$roomId',
+    chatRoomId: roomId,
+    chatRoom: null,
+    accountId: 'account-1',
+    account: account('account-1'),
+    nick: null,
+    notify: 0,
+    joinedAt: null,
+    breakUntil: null,
+    timeoutUntil: null,
+    chatGroupId: null,
+    chatGroup: null,
+    lastReadAt: null,
+    status: null,
+    realmNick: null,
+    realmBio: null,
+    realmExperience: null,
+    realmLevel: null,
+    realmLevelingProgress: null,
+    realmLabel: null,
+  );
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -119,6 +176,32 @@ void main() {
         expect(groups.last.roomIds, isNot(contains('room-1')));
       },
     );
+    test(
+      'deleting local room data removes the room, messages, senders, groups, and secret',
+      () async {
+        final database = AppDatabase.web();
+        await database.saveChatRooms([room('room-1')]);
+        await database.saveMessage(message('message-1'));
+        await database.saveMember(member('room-1'));
+        await database.saveChatGroups('account-1', [
+          chatGroup('group-1', 1, ['room-1', 'other-room']),
+        ]);
+        await database.setSecret('chat_room_encryption_mode_room-1', '3');
+
+        await database.deleteChatRoomLocalData('room-1');
+
+        expect(await database.getChatRoomById('room-1'), isNull);
+        expect(await database.getMembersByRoomId('room-1'), isEmpty);
+        expect(await database.getMessagesForRoom('room-1'), isEmpty);
+        expect((await database.getChatGroups('account-1')).single.roomIds, [
+          'other-room',
+        ]);
+        expect(
+          await database.getSecret('chat_room_encryption_mode_room-1'),
+          isNull,
+        );
+      },
+    );
 
     test('reset clears every application-level store', () async {
       final database = AppDatabase.web();
@@ -181,6 +264,33 @@ void main() {
     expect(
       (await reopened.getMessageById('persisted-message'))?.id,
       'persisted-message',
+    );
+    await reopened.close();
+  });
+
+  test('native adapter deletes all local room data from Drift', () async {
+    final directory = await Directory.systemTemp.createTemp('island-drift-');
+    addTearDown(() => directory.delete(recursive: true));
+
+    final first = native.AppDatabase.native(Future.value(directory.path));
+    await first.saveChatRooms([room('room-1')]);
+    await first.saveMessage(message('persisted-message'));
+    await first.saveMember(member('room-1'));
+    await first.saveChatGroups('account-1', [
+      chatGroup('group-1', 1, ['room-1']),
+    ]);
+    await first.setSecret('chat_room_encryption_mode_room-1', '3');
+    await first.deleteChatRoomLocalData('room-1');
+    await first.close();
+
+    final reopened = native.AppDatabase.native(Future.value(directory.path));
+    expect(await reopened.getChatRoomById('room-1'), isNull);
+    expect(await reopened.getMembersByRoomId('room-1'), isEmpty);
+    expect(await reopened.getMessageById('persisted-message'), isNull);
+    expect((await reopened.getChatGroups('account-1')).single.roomIds, isEmpty);
+    expect(
+      await reopened.getSecret('chat_room_encryption_mode_room-1'),
+      isNull,
     );
     await reopened.close();
   });

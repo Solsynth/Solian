@@ -251,6 +251,39 @@ class AppDatabase {
     return ids.length;
   }
 
+  Future<void> deleteChatRoomLocalData(String roomId) async {
+    _webChatRoomStore.remove(roomId);
+
+    final memberIds = _webChatMemberStore.entries
+        .where((entry) => entry.value.chatRoomId == roomId)
+        .map((entry) => entry.key)
+        .toList();
+    for (final memberId in memberIds) {
+      _webChatMemberStore.remove(memberId);
+      _webChatMemberJsonStore.remove(memberId);
+    }
+
+    final messageIds = _webMessageStore.values
+        .where((message) => message.roomId == roomId)
+        .map((message) => message.id)
+        .toList();
+    for (final messageId in messageIds) {
+      _webMessageStore.remove(messageId);
+      _webMessageJsonStore.remove(messageId);
+    }
+
+    _webChatGroupStore.updateAll(
+      (_, groups) => groups
+          .map(
+            (group) => group.copyWith(
+              roomIds: group.roomIds.where((id) => id != roomId).toList(),
+            ),
+          )
+          .toList(),
+    );
+    _webKvStore.remove('chat_room_encryption_mode_$roomId');
+  }
+
   Future<int> getTotalMessagesForRoom(String roomId) async => _webMessageStore
       .values
       .where((message) => message.roomId == roomId)
