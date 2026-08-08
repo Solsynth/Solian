@@ -32,6 +32,12 @@ final folderChildrenProvider = FutureProvider.family<List<SnCloudFile>, String>(
   },
 );
 
+Widget _buildCloudImageLoadingIndicator(BuildContext _, double? progress) =>
+    _CloudImageLoadingIndicator(progress: progress);
+
+Widget _buildCloudAvatarLoadingIndicator(BuildContext _, double? progress) =>
+    _CloudAvatarLoadingIndicator(progress: progress);
+
 class CloudFileWidget extends HookConsumerWidget {
   final IDisplayableCloudFile item;
   final BoxFit fit;
@@ -70,8 +76,12 @@ class CloudFileWidget extends HookConsumerWidget {
     var ratio = item.ratio ?? 1.0;
     if (ratio == 0) ratio = 1.0;
 
-    Widget cloudImage() =>
-        UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
+    Widget cloudImage() => UniversalImage(
+      uri: uri,
+      blurHash: blurHash,
+      fit: fit,
+      loadingIndicatorBuilder: _buildCloudImageLoadingIndicator,
+    );
     Widget cloudVideo() => CloudVideoWidget(
       item: item,
       sourcePost: sourcePost,
@@ -313,6 +323,79 @@ class _DataSavingPlaceholder extends StatelessWidget {
   }
 }
 
+class _CloudImageLoadingIndicator extends StatelessWidget {
+  final double? progress;
+
+  const _CloudImageLoadingIndicator({this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final target = (progress ?? 0).clamp(0.0, 1.0).toDouble();
+
+    return SizedBox.expand(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: Colors.black.withOpacity(0.35)),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: target),
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.linear,
+            builder: (context, value, child) => Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                widthFactor: 1,
+                heightFactor: value,
+                child: child,
+              ),
+            ),
+            child: ColoredBox(color: Colors.white.withOpacity(0.78)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CloudAvatarLoadingIndicator extends StatelessWidget {
+  final double? progress;
+
+  const _CloudAvatarLoadingIndicator({this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final target = (progress ?? 0).clamp(0.0, 1.0).toDouble();
+
+    return SizedBox.expand(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: Colors.black.withOpacity(0.35)),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: target),
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.linear,
+            builder: (context, value, child) => Align(
+              alignment: Alignment.center,
+              child: FractionallySizedBox(
+                widthFactor: value,
+                heightFactor: value,
+                child: child,
+              ),
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.78),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Layout density for [CloudVideoWidget] overlays based on available space.
 enum _VideoOverlayDensity {
   /// Thumbnail / multi-attachment cell: play only.
@@ -474,7 +557,10 @@ class CloudVideoWidget extends HookConsumerWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              UniversalImage(uri: '$uri?thumbnail=true'),
+              UniversalImage(
+                uri: '$uri?thumbnail=true',
+                loadingIndicatorBuilder: _buildCloudImageLoadingIndicator,
+              ),
               Positioned.fill(
                 child: Center(
                   child: Icon(
@@ -626,6 +712,7 @@ class CloudImageWidget extends ConsumerWidget {
               uri: uri,
               blurHash: noBlurhash ? null : (file?.blurhash ?? blurHash),
               fit: fit,
+              loadingIndicatorBuilder: _buildCloudImageLoadingIndicator,
             ),
     );
   }
@@ -687,6 +774,7 @@ class ProfilePictureWidget extends ConsumerWidget {
               uri: '$serverUrl/drive/files/$id',
               blurHash: blurHash,
               fit: BoxFit.cover,
+              loadingIndicatorBuilder: _buildCloudAvatarLoadingIndicator,
             ),
           );
 
@@ -866,7 +954,11 @@ class SplitAvatarWidget extends ConsumerWidget {
 
     return SizedBox(
       width: radius,
-      child: UniversalImage(uri: uri, fit: BoxFit.cover),
+      child: UniversalImage(
+        uri: uri,
+        fit: BoxFit.cover,
+        loadingIndicatorBuilder: _buildCloudAvatarLoadingIndicator,
+      ),
     );
   }
 }

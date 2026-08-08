@@ -22,6 +22,8 @@ class UniversalImage extends HookConsumerWidget {
   final bool noCacheOptimization;
   final bool isSvg;
   final bool useFallbackImage;
+  final Widget Function(BuildContext context, double? progress)?
+  loadingIndicatorBuilder;
 
   const UniversalImage({
     super.key,
@@ -33,6 +35,7 @@ class UniversalImage extends HookConsumerWidget {
     this.noCacheOptimization = false,
     this.isSvg = false,
     this.useFallbackImage = true,
+    this.loadingIndicatorBuilder,
   });
 
   bool _isValidBlurHash(String hash) {
@@ -47,6 +50,7 @@ class UniversalImage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loaded = useState(false);
+    final loadingCompletionScheduled = useRef(false);
     final isCached = useState<bool?>(null);
     final isSvgImage = isSvg || uri.toLowerCase().endsWith('.svg');
 
@@ -59,6 +63,9 @@ class UniversalImage extends HookConsumerWidget {
         : null;
 
     useEffect(() {
+      loaded.value = false;
+      loadingCompletionScheduled.value = false;
+      isCached.value = null;
       DefaultCacheManager().getFileFromCache(uri).then((fileInfo) {
         if (context.mounted) isCached.value = fileInfo != null;
       });
@@ -72,7 +79,8 @@ class UniversalImage extends HookConsumerWidget {
         width: width,
         height: height,
         placeholderBuilder: (BuildContext context) =>
-            Center(child: CircularProgressIndicator()),
+            loadingIndicatorBuilder?.call(context, null) ??
+            const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -97,13 +105,14 @@ class UniversalImage extends HookConsumerWidget {
               _isValidBlurHash(blurHash!))
             BlurHash(hash: blurHash!),
           if (isCached.value == null)
-            Center(
-              child: SizedBox(
-                width: (width ?? 32).clamp(12, 48),
-                height: (height ?? 32).clamp(12, 48),
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
+            loadingIndicatorBuilder?.call(context, null) ??
+                Center(
+                  child: SizedBox(
+                    width: (width ?? 32).clamp(12, 48),
+                    height: (height ?? 32).clamp(12, 48),
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
           else if (isCached.value!)
             CachedNetworkImage(
               imageUrl: uri,
@@ -137,30 +146,49 @@ class UniversalImage extends HookConsumerWidget {
               memCacheHeight: cacheHeight,
               memCacheWidth: cacheWidth,
               progressIndicatorBuilder: (context, url, progress) {
-                return Center(
-                  child: AnimatedCircularProgressIndicator(
-                    value: progress.progress,
-                    color: Colors.white.withOpacity(0.5),
-                    strokeWidth: 2,
-                  ),
-                );
+                return loadingIndicatorBuilder?.call(
+                      context,
+                      progress.progress,
+                    ) ??
+                    Center(
+                      child: AnimatedCircularProgressIndicator(
+                        value: progress.progress,
+                        color: Colors.white.withOpacity(0.5),
+                        strokeWidth: 2,
+                      ),
+                    );
               },
               imageBuilder: (context, imageProvider) {
-                Future(() {
-                  if (context.mounted) loaded.value = true;
-                });
-                return AnimatedOpacity(
-                  opacity: loaded.value ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Image(
-                    image: CachedNetworkImageProvider(
-                      uri,
-                      headers: httpHeaders,
+                if (loadingIndicatorBuilder != null &&
+                    !loaded.value &&
+                    !loadingCompletionScheduled.value) {
+                  loadingCompletionScheduled.value = true;
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    if (context.mounted) loaded.value = true;
+                  });
+                }
+
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AnimatedOpacity(
+                      opacity: loaded.value ? 1.0 : 0.0,
+                      duration: loadingIndicatorBuilder == null
+                          ? const Duration(milliseconds: 300)
+                          : const Duration(milliseconds: 180),
+                      child: Image(
+                        image: CachedNetworkImageProvider(
+                          uri,
+                          headers: httpHeaders,
+                        ),
+                        fit: fit,
+                        width: width,
+                        height: height,
+                      ),
                     ),
-                    fit: fit,
-                    width: width,
-                    height: height,
-                  ),
+                    if (loadingIndicatorBuilder != null && !loaded.value)
+                      loadingIndicatorBuilder!.call(context, 1.0),
+                  ],
                 );
               },
               errorWidget: (context, url, error) => CachedImageErrorWidget(
@@ -210,6 +238,13 @@ class CachedImageErrorWidget extends StatelessWidget {
     return null;
   }
 
+  String? _extractErrorMessage(dynamic error) {
+    final message = error is DioException ? error.message : error?.toString();
+    final trimmed = message?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed.replaceFirst(RegExp(r'^(Exception|Error):\s*'), '');
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!useFallbackImage) {
@@ -217,22 +252,27 @@ class CachedImageErrorWidget extends StatelessWidget {
     }
 
     final statusCode = _extractStatusCode(error);
+    final isNotFound = statusCode == 404;
+    final errorMessage = _extractErrorMessage(error);
+    final theme = Theme.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final minDimension = constraints.maxWidth < constraints.maxHeight
             ? constraints.maxWidth
             : constraints.maxHeight;
-        final iconSize = math.max(
-          minDimension * 0.3,
-          28,
-        ); // 30% of the smaller dimension
+        final iconSize = math.max(minDimension * 0.3, 28);
         final hasEnoughSpace = minDimension > 40;
+        final foregroundColor = isNotFound
+            ? theme.colorScheme.onSurfaceVariant
+            : Colors.white;
 
         return Stack(
           fit: StackFit.expand,
           children: [
-            if (blurHash != null)
+            if (isNotFound)
+              ColoredBox(color: theme.colorScheme.surfaceContainer)
+            else if (blurHash != null)
               BlurHash(hash: blurHash!)
             else
               Image.asset(
@@ -246,15 +286,17 @@ class CachedImageErrorWidget extends StatelessWidget {
                 children: [
                   Icon(
                     _getErrorIcon(statusCode),
-                    color: Colors.white,
+                    color: foregroundColor,
                     size: iconSize * 0.5,
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    shadows: isNotFound
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                   ),
                   if (hasEnoughSpace && statusCode != null) ...[
                     SizedBox(height: iconSize * 0.1),
@@ -273,6 +315,24 @@ class CachedImageErrorWidget extends StatelessWidget {
                           color: Colors.white,
                           fontSize: iconSize * 0.15,
                           fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (hasEnoughSpace && isNotFound && errorMessage != null) ...[
+                    SizedBox(height: iconSize * 0.1),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth * 0.85,
+                      ),
+                      child: Text(
+                        errorMessage,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: foregroundColor,
+                          fontSize: math.max(iconSize * 0.15, 10),
                         ),
                       ),
                     ),
