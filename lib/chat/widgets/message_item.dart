@@ -67,6 +67,14 @@ Map<String, bool> getMessageReactionsMade(LocalChatMessage message) {
   return raw.map((key, value) => MapEntry(key.toString(), value == true));
 }
 
+double _messageAccessoryLeftPadding(String displayStyle) {
+  return switch (displayStyle) {
+    'compact' => 12,
+    'column' => 44,
+    _ => 52,
+  };
+}
+
 class MessageItem extends HookConsumerWidget {
   final LocalChatMessage message;
   final bool isCurrentUser;
@@ -534,7 +542,9 @@ class MessageItem extends HookConsumerWidget {
                             if (isPinned)
                               Padding(
                                 padding: EdgeInsets.only(
-                                  left: showAvatar ? 48 : 16,
+                                  left: _messageAccessoryLeftPadding(
+                                    settings.messageDisplayStyle,
+                                  ),
                                   right: 16,
                                   bottom: 2,
                                 ),
@@ -1395,11 +1405,11 @@ class MessageReactionChips extends HookConsumerWidget {
         (a, b) => (reactionsCount[b] ?? 0).compareTo(reactionsCount[a] ?? 0),
       );
 
-    final sectionPadding = switch (displayStyle) {
-      'compact' => const EdgeInsets.only(left: 12, right: 12, bottom: 2),
-      'column' => const EdgeInsets.only(left: 60, right: 12, bottom: 6),
-      _ => const EdgeInsets.only(left: 52, right: 12, bottom: 6),
-    };
+    final sectionPadding = EdgeInsets.only(
+      left: _messageAccessoryLeftPadding(displayStyle),
+      right: 12,
+      bottom: displayStyle == 'compact' ? 2 : 6,
+    );
     final sectionAlign = Alignment.centerLeft;
 
     return Align(
