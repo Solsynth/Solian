@@ -90,6 +90,8 @@ abstract interface class IDisplayableCloudFile {
   String? get blurhash;
   List<int> get sensitiveMarks;
   String? get hash;
+  bool get hasThumbnail;
+  bool get hasCompression;
   bool get isFolder;
   int get childrenCount;
 
@@ -192,8 +194,10 @@ sealed class SnCloudFileReference
     @Default({}) Map<String, dynamic> fileMeta,
     @Default({}) Map<String, dynamic> userMeta,
     @Default([]) List<int> sensitiveMarks,
+
     /// Fediverse/remote attachments often omit mime type; default safely.
     @Default('application/octet-stream') String mimeType,
+
     /// Fediverse/remote attachments often omit content hash.
     @Default('') String hash,
     @Default(0) int size,

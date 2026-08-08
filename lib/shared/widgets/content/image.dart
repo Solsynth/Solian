@@ -252,7 +252,7 @@ class CachedImageErrorWidget extends StatelessWidget {
     }
 
     final statusCode = _extractStatusCode(error);
-    final isNotFound = statusCode == 404;
+    final isOffline = statusCode != 404;
     final errorMessage = _extractErrorMessage(error);
     final theme = Theme.of(context);
 
@@ -263,14 +263,14 @@ class CachedImageErrorWidget extends StatelessWidget {
             : constraints.maxHeight;
         final iconSize = math.max(minDimension * 0.3, 28);
         final hasEnoughSpace = minDimension > 40;
-        final foregroundColor = isNotFound
+        final foregroundColor = isOffline
             ? theme.colorScheme.onSurfaceVariant
             : Colors.white;
 
         return Stack(
           fit: StackFit.expand,
           children: [
-            if (isNotFound)
+            if (isOffline)
               ColoredBox(color: theme.colorScheme.surfaceContainer)
             else if (blurHash != null)
               BlurHash(hash: blurHash!)
@@ -288,7 +288,7 @@ class CachedImageErrorWidget extends StatelessWidget {
                     _getErrorIcon(statusCode),
                     color: foregroundColor,
                     size: iconSize * 0.5,
-                    shadows: isNotFound
+                    shadows: isOffline
                         ? null
                         : [
                             BoxShadow(
@@ -319,7 +319,7 @@ class CachedImageErrorWidget extends StatelessWidget {
                       ),
                     ),
                   ],
-                  if (hasEnoughSpace && isNotFound && errorMessage != null) ...[
+                  if (hasEnoughSpace && isOffline && errorMessage != null) ...[
                     SizedBox(height: iconSize * 0.1),
                     ConstrainedBox(
                       constraints: BoxConstraints(

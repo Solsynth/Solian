@@ -20,7 +20,9 @@ String cloudFileUrl({
   if (workspaceId != null && workspaceId.isNotEmpty) {
     queryParameters['workspace_id'] = workspaceId;
   }
-  return uri.replace(queryParameters: queryParameters).toString();
+  final builtUri = uri.replace(queryParameters: queryParameters).toString();
+  if (builtUri.endsWith('?')) return builtUri.substring(0, builtUri.length - 1);
+  return builtUri;
 }
 
 /// Creates the cached image provider used for cloud-file previews.

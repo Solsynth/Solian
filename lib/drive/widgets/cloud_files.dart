@@ -557,10 +557,23 @@ class CloudVideoWidget extends HookConsumerWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              UniversalImage(
-                uri: '$uri?thumbnail=true',
-                loadingIndicatorBuilder: _buildCloudImageLoadingIndicator,
-              ),
+              if (item.hasThumbnail)
+                UniversalImage(
+                  uri: '$uri?thumbnail=true',
+                  loadingIndicatorBuilder: _buildCloudImageLoadingIndicator,
+                )
+              else
+                ColoredBox(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: Center(
+                    child: Icon(
+                      Symbols.video_file,
+                      fill: 1,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               Positioned.fill(
                 child: Center(
                   child: Icon(
