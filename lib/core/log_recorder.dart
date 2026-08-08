@@ -6,6 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/log_file.dart';
 
 const int kMaxLogs = 5000;
+const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
+
+bool _shouldRecordLog(LogRecord record, bool isDeveloperMode) {
+  if (isDeveloperMode) return true;
+  return record.message.startsWith(_kChatSenderDiagnosticLogPrefix);
+}
 
 class LogEntry {
   final DateTime timestamp;
@@ -76,15 +82,6 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
   @override
   List<LogEntry> build() {
     final isDeveloperMode = ref.watch(developerModeProvider);
-    if (!isDeveloperMode) {
-      _subscription?.cancel();
-      _subscription = null;
-      _debounceTimer?.cancel();
-      _debounceTimer = null;
-      _pendingEntries.clear();
-      _currentLogs = [];
-      return const [];
-    }
 
     _subscription?.cancel();
     _subscription = null;
@@ -93,6 +90,9 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
     _pendingEntries.clear();
     _currentLogs = [];
 
+    // Production keeps only explicitly marked chat sender diagnostics. This
+    // preserves the server-side debugging record without retaining all user
+    // activity logs on production devices.
     _fileWriter = createLogFileWriter();
 
     // A logging callback may run while Riverpod is evaluating a provider.
@@ -109,6 +109,8 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
     });
 
     _subscription = Logger.root.onRecord.listen((record) {
+      if (!_shouldRecordLog(record, isDeveloperMode)) return;
+
       final entry = LogEntry(
         timestamp: record.time,
         level: record.level,
@@ -117,6 +119,11 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
         stackTrace: record.stackTrace,
       );
       _fileWriter?.write(entry.toFileLine());
+
+      // Production records are persisted to the rotating log file only; keep
+      // them out of the in-memory viewer state.
+      if (!isDeveloperMode) return;
+
       _pendingEntries.add(entry);
       _scheduleFlush();
     });
@@ -127,9 +134,7 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
   void _scheduleFlush() {
     _debounceTimer?.cancel();
 
-    final delay = _isLogViewerActive
-        ? _debounceWhenActive
-        : _debounceWhenIdle;
+    final delay = _isLogViewerActive ? _debounceWhenActive : _debounceWhenIdle;
 
     _debounceTimer = Timer(delay, () {
       if (_pendingEntries.isEmpty) return;

@@ -134,6 +134,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   late final ScrollController scrollController;
   late final ListController listController;
 
+  // Typing tracking
+  String _lastMessageText = '';
+
   // Auto-fill tracking
   int _autoFillPasses = 0;
   bool _autoFillInProgress = false;
@@ -171,7 +174,10 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   }
 
   void _onTextChange() {
-    if (messageController.text.isNotEmpty) {
+    final text = messageController.text;
+    if (text == _lastMessageText) return;
+    _lastMessageText = text;
+    if (text.isNotEmpty) {
       // Read fresh notifier each time to avoid using disposed instance
       final notifier = ref.read(chatSubscribeProvider(roomId).notifier);
       notifier.sendTypingStatus();

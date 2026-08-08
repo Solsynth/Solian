@@ -3480,6 +3480,8 @@
   "settingsDatabaseResetStatRealms": "Realms",
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
+  "settingsDatabaseExport": "Exportar base de datos SQLite",
+
   "settingsDesktopIdleStatusEnabled": "Enable Idle Status Monitoring",
   "settingsDesktopIdleStatusEnabledHelper": "Send idle/active status to the server",
   "settingsDesktopIdleStatusPreview": "Current Idle Status",

@@ -53,25 +53,27 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb && Platform.isAndroid) {
     await NativeCallBackgroundBridge.ensureInitialized();
-    final handled = await NativeCallBackgroundBridge.showIncomingCallFromPayload(
-      message.data,
-    );
+    final handled =
+        await NativeCallBackgroundBridge.showIncomingCallFromPayload(
+          message.data,
+        );
     if (handled) return;
   }
-  Logger.root.info(
-    '[Notification] Background FCM: ${message.messageId}',
-  );
+  Logger.root.info('[Notification] Background FCM: ${message.messageId}');
   // Show a local notification from FCM data payload (replaces previous)
   final data = message.data;
-  final title = data['title'] ??
+  final title =
+      data['title'] ??
       (data['notification'] is Map
           ? (data['notification'] as Map)['title']
           : null) ??
       'Notification';
-  final body = data['body'] ??
+  final body =
+      data['body'] ??
       (data['notification'] is Map
-          ? (data['notification'] as Map)['body']
-          : null) as String?;
+              ? (data['notification'] as Map)['body']
+              : null)
+          as String?;
   final actionUri = data['meta'] is Map
       ? (data['meta'] as Map)['action_uri'] as String?
       : null;
@@ -446,10 +448,9 @@ class IslandApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDeveloperMode = ref.watch(developerModeProvider);
-    if (isDeveloperMode) {
-      ref.read(logsProvider);
-    }
+    // Always initialize the recorder. Production persists only explicitly
+    // marked chat sender diagnostics; developer mode keeps the full viewer.
+    ref.read(logsProvider);
 
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
@@ -507,9 +508,7 @@ class IslandApp extends HookConsumerWidget {
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
       ) {
-        Logger.root.info(
-          '[Notification] foreground FCM: ${message.messageId}',
-        );
+        Logger.root.info('[Notification] foreground FCM: ${message.messageId}');
         handleMessage(message);
       });
 

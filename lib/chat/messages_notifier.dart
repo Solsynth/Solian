@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:convert";
 import 'dart:developer' as developer;
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
@@ -36,6 +37,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'messages_notifier.g.dart';
 
 enum E2eeRecoveryState { idle, reconnecting, failed }
+
+const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
 
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
@@ -487,13 +490,105 @@ class MessagesNotifier extends _$MessagesNotifier {
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) =>
       E2eeMessageService.sanitizeChatMessageJson(input);
 
+  Map<dynamic, dynamic>? _asMap(dynamic value) {
+    return value is Map ? value : null;
+  }
+
+  List<String> _mapKeys(dynamic value) {
+    final map = _asMap(value);
+    if (map == null) return const [];
+    final keys = map.keys.map((key) => key.toString()).toList();
+    keys.sort();
+    return keys;
+  }
+
+  String? _stringValue(dynamic value) => value?.toString();
+  Map<String, dynamic> _accountProfileDiagnostic(SnAccount account) {
+    final profile = account.profile;
+    final hasIdentityFields =
+        profile.firstName.trim().isNotEmpty ||
+        profile.lastName.trim().isNotEmpty ||
+        profile.bio.trim().isNotEmpty;
+    return {
+      'account_id': account.id,
+      'profile_id': profile.id,
+      'profile_id_empty': profile.id.trim().isEmpty,
+      'profile_has_first_name': profile.firstName.trim().isNotEmpty,
+      'profile_has_last_name': profile.lastName.trim().isNotEmpty,
+      'profile_has_bio': profile.bio.trim().isNotEmpty,
+      'profile_has_picture': profile.picture != null,
+      'profile_is_bare':
+          profile.id.trim().isEmpty ||
+          !hasIdentityFields && profile.picture == null,
+    };
+  }
+
+  void _logSenderFailure(
+    String message, {
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    // Keep the stack trace in both the structured logger and the VM timeline
+    // so the exact generated-model/caller path is visible in device logs.
+    final recordMessage = '$_kChatSenderDiagnosticLogPrefix $message';
+    Logger.root.warning(recordMessage, error, stackTrace);
+    developer.log(
+      recordMessage,
+      name: 'MessagesNotifier.chatSender',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+
+  void _logInvalidMessageSender(
+    Map<String, dynamic> message, {
+    String? context,
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    final sender = _asMap(message['sender']);
+    final account = _asMap(sender?['account']);
+    final profile = account?['profile'];
+
+    final diagnostic = <String, dynamic>{
+      'context': context,
+      'message_id': _stringValue(message['id']),
+      'room_id': _stringValue(message['chat_room_id'] ?? message['room_id']),
+      'message_type': _stringValue(message['type']),
+      'sender': {
+        'type': sender?.runtimeType.toString() ?? 'null',
+        'keys': _mapKeys(sender),
+        'id': _stringValue(sender?['id']),
+        'account_id': _stringValue(sender?['account_id']),
+      },
+      'account': {
+        'type': account?.runtimeType.toString() ?? 'null',
+        'keys': _mapKeys(account),
+        'id': _stringValue(account?['id']),
+        'profile_present': account?.containsKey('profile') ?? false,
+        'profile_type': profile?.runtimeType.toString() ?? 'null',
+        'profile_keys': _mapKeys(profile),
+      },
+    };
+
+    _logSenderFailure(
+      'Skipping invalid chat message; sender/account diagnostic: '
+      '${jsonEncode(diagnostic)}',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+
   SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
     if (data is! Map<String, dynamic>) return null;
     try {
       return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
-    } catch (e) {
-      Logger.root.info(
-        'Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e',
+    } catch (error, stackTrace) {
+      _logInvalidMessageSender(
+        data,
+        context: context,
+        error: error,
+        stackTrace: stackTrace,
       );
       return null;
     }
@@ -843,10 +938,15 @@ class MessagesNotifier extends _$MessagesNotifier {
       // A bare/empty sender profile (server-side fallback) is refused by the
       // cache guard; that must not fail the message pipeline. The in-memory
       // member is already upserted above, so the UI still renders this session.
-      Logger.root.warning(
-        'Failed to persist sender ${sender.accountId} for room $roomId',
-        error,
-        stackTrace,
+      final accountDiagnostic = <String, dynamic>{
+        'member_id': sender.id,
+        ..._accountProfileDiagnostic(sender.account),
+      };
+      _logSenderFailure(
+        'Failed to persist sender ${sender.accountId} for room $roomId; '
+        'account/profile diagnostic: ${jsonEncode(accountDiagnostic)}',
+        error: error,
+        stackTrace: stackTrace,
       );
       return;
     }

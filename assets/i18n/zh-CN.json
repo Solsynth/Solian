@@ -3313,6 +3313,8 @@
   "settingsDatabaseResetStatRealms": "领域",
   "settingsDatabaseResetSuccess": "数据库重置成功",
   "settingsDatabaseSize": "数据库大小",
+  "settingsDatabaseExport": "导出 SQLite 数据库",
+
   "settingsDefaultPool": "选择文件池",
   "settingsDefaultPoolHelper": "为文件上传选择一个默认池",
   "settingsDefaultScreen": "默认起始页面",

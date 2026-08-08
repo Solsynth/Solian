@@ -12,7 +12,9 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:island/core/database.dart';
+import 'package:island/data/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -33,6 +35,7 @@ import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
@@ -1779,9 +1782,11 @@ class SettingsScreen extends HookConsumerWidget {
           'database',
           'clear cache',
           'reset database',
-          'storage used',
+          'export database',
+          'sqlite',
           'settingsClearCache',
           'settingsChatRoomStorage',
+          'settingsDatabaseExport',
         ],
         children: [_StorageSettingsSection()],
       ),
@@ -2364,6 +2369,7 @@ class _StorageSettingsSection extends HookConsumerWidget {
     final nativeCacheSize = useState(0);
     final databaseSize = useState(0);
     final databasePath = useState<String?>(null);
+    final databaseFilePath = useState<String?>(null);
     final loading = useState(true);
     final clearing = useState(false);
     final resettingDb = useState(false);
@@ -2386,11 +2392,10 @@ class _StorageSettingsSection extends HookConsumerWidget {
       CacheService.getDiskSpace().then((space) {
         diskSpace.value = space;
       });
-      getApplicationSupportDirectory().then((dir) {
-        databasePath.value = '${dir.path}/drift';
-        calculateDatabaseSize().then((size) {
-          databaseSize.value = size;
-        });
+      getDatabaseDirectoryPath().then((path) async {
+        databasePath.value = path;
+        databaseFilePath.value = await getDatabaseFilePath();
+        databaseSize.value = await calculateDatabaseSize();
       });
       CacheService.getFlutterCacheSize().then((size) {
         flutterCacheSize.value = size;
@@ -2433,6 +2438,66 @@ class _StorageSettingsSection extends HookConsumerWidget {
       }
     }
 
+    Future<void> exportDatabase() async {
+      final sourcePath = databaseFilePath.value;
+      if (kIsWeb || sourcePath == null) return;
+
+      showLoadingModal(context);
+      var databaseClosed = false;
+      try {
+        final db = ref.read(databaseProvider);
+        await db.close();
+        databaseClosed = true;
+
+        final source = File(sourcePath);
+        if (!await source.exists()) {
+          throw StateError('Database file does not exist: $sourcePath');
+        }
+
+        final tempDir = await getTemporaryDirectory();
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final fileName = 'island_database_$timestamp.sqlite';
+        final exportFile = await source.copy('${tempDir.path}/$fileName');
+
+        // Reopen the provider before handing the copy to the platform share
+        // or save dialog.
+        ref.invalidate(databaseProvider);
+        databaseClosed = false;
+
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+
+        const mimeType = 'application/vnd.sqlite3';
+        if (isDesktop) {
+          await FileSaver.instance.saveFile(
+            name: fileName,
+            file: exportFile,
+            mimeType: MimeType.custom,
+            customMimeType: mimeType,
+          );
+          if (context.mounted) {
+            showSnackBar('settingsExportSaved'.tr());
+          }
+        } else {
+          final box = context.findRenderObject() as RenderBox?;
+          await Share.shareXFiles(
+            [XFile(exportFile.path, mimeType: mimeType)],
+            sharePositionOrigin: box == null
+                ? null
+                : box.localToGlobal(Offset.zero) & box.size,
+          );
+        }
+      } catch (e) {
+        if (databaseClosed) {
+          ref.invalidate(databaseProvider);
+        }
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showErrorAlert(e);
+        }
+      }
+    }
+
     Future<void> resetDb() async {
       final db = ref.read(databaseProvider);
       final stats = await db.getDatabaseStats();
@@ -2446,11 +2511,18 @@ class _StorageSettingsSection extends HookConsumerWidget {
       );
       if (confirmed != true) return;
       resettingDb.value = true;
-      await resetDatabase(ref);
-      databaseSize.value = await calculateDatabaseSize();
-      resettingDb.value = false;
-      if (context.mounted) {
-        showSnackBar('settingsDatabaseResetSuccess'.tr());
+      try {
+        await resetDatabase(ref, deleteStorage: true);
+        databaseSize.value = await calculateDatabaseSize();
+        if (context.mounted) {
+          showSnackBar('settingsDatabaseResetSuccess'.tr());
+        }
+      } catch (e) {
+        if (context.mounted) {
+          showErrorAlert(e);
+        }
+      } finally {
+        resettingDb.value = false;
       }
     }
 
@@ -2638,7 +2710,7 @@ class _StorageSettingsSection extends HookConsumerWidget {
             ],
           ),
         ),
-        if (isDesktop)
+        if (!kIsWeb)
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
             child: Column(
@@ -2651,17 +2723,30 @@ class _StorageSettingsSection extends HookConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (isDesktop)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Symbols.folder_open, size: 20),
+                    title: Text('settingsOpenDatabaseFolder'.tr()),
+                    subtitle: Text(
+                      databasePath.value ?? 'unknown'.tr(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: const Icon(Symbols.chevron_right),
+                    onTap: openDatabaseFolder,
+                  ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Symbols.folder_open, size: 20),
-                  title: Text('settingsOpenDatabaseFolder'.tr()),
+                  leading: const Icon(Symbols.upload_file, size: 20),
+                  title: Text('settingsDatabaseExport'.tr()),
                   subtitle: Text(
-                    databasePath.value ?? 'unknown'.tr(),
+                    databaseFilePath.value ?? 'unknown'.tr(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   trailing: const Icon(Symbols.chevron_right),
-                  onTap: openDatabaseFolder,
+                  onTap: exportDatabase,
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,

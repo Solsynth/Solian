@@ -3940,6 +3940,7 @@
   "settingsDatabaseResetStatRealms": "領域",
   "settingsDatabaseResetSuccess": "資料庫重置成功",
   "settingsDatabaseSize": "資料庫大小",
+  "settingsDatabaseExport": "匯出 SQLite 資料庫",
   "settingsDesktopIdleStatusEnabled": "啟用空閒狀態監控",
   "settingsDesktopIdleStatusEnabledHelper": "向伺服器傳送空閒/活躍狀態",
   "settingsDesktopIdleStatusPreview": "當前空閒狀態",

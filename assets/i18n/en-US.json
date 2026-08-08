@@ -3313,6 +3313,8 @@
   "settingsDatabaseResetStatRealms": "Realms",
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
+  "settingsDatabaseExport": "Export SQLite Database",
+
   "settingsDefaultPool": "Default file pool",
   "settingsDefaultPoolHelper": "Select the default storage pool for file uploads",
   "settingsDefaultScreen": "Default Screen",

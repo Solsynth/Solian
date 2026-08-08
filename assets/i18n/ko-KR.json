@@ -3529,6 +3529,8 @@
   "settingsDatabaseResetStatRealms": "Realms",
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
+  "settingsDatabaseExport": "SQLite 데이터베이스 내보내기",
+
   "settingsDesktopIdleStatusEnabled": "Enable Idle Status Monitoring",
   "settingsDesktopIdleStatusEnabledHelper": "Send idle/active status to the server",
   "settingsDesktopIdleStatusPreview": "Current Idle Status",

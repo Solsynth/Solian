@@ -11,10 +11,11 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
-Future<void> resetDatabase(WidgetRef ref) async {
+Future<void> resetDatabase(WidgetRef ref, {bool deleteStorage = false}) async {
   final db = ref.read(databaseProvider);
   await db.reset();
   if (!kIsWeb) await db.close();
+  if (deleteStorage) await deleteDatabaseStorage();
 
   // Force refresh the database provider to create a new instance
   ref.invalidate(databaseProvider);
