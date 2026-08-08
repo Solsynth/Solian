@@ -2710,32 +2710,32 @@ class _StorageSettingsSection extends HookConsumerWidget {
             ],
           ),
         ),
-        if (!kIsWeb)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'settingsDatabase'.tr(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'settingsDatabase'.tr(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 12),
-                if (isDesktop)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Symbols.folder_open, size: 20),
-                    title: Text('settingsOpenDatabaseFolder'.tr()),
-                    subtitle: Text(
-                      databasePath.value ?? 'unknown'.tr(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: const Icon(Symbols.chevron_right),
-                    onTap: openDatabaseFolder,
+              ),
+              const SizedBox(height: 12),
+              if (isDesktop)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Symbols.folder_open, size: 20),
+                  title: Text('settingsOpenDatabaseFolder'.tr()),
+                  subtitle: Text(
+                    databasePath.value ?? 'unknown'.tr(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: openDatabaseFolder,
+                ),
+              if (!kIsWeb)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Symbols.upload_file, size: 20),
@@ -2748,35 +2748,41 @@ class _StorageSettingsSection extends HookConsumerWidget {
                   trailing: const Icon(Symbols.chevron_right),
                   onTap: exportDatabase,
                 ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Symbols.storage, size: 20),
-                  title: Text('settingsDatabaseSize'.tr()),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Symbols.storage, size: 20),
+                title: Text('settingsDatabaseSize'.tr()),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (kIsWeb)
+                      Text(
+                        'settingsStorageNotAvailable'.tr(),
+                        style: theme.textTheme.bodySmall,
+                      )
+                    else
                       Text(
                         CacheService.formatBytes(databaseSize.value),
                         style: theme.textTheme.bodySmall,
                       ),
-                      const SizedBox(width: 8),
-                      if (resettingDb.value)
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      else
-                        TextButton(
-                          onPressed: resetDb,
-                          child: Text('settingsDatabaseReset'.tr()),
-                        ),
-                    ],
-                  ),
+                    const SizedBox(width: 8),
+                    if (resettingDb.value)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else
+                      TextButton(
+                        onPressed: resetDb,
+                        child: Text('settingsDatabaseReset'.tr()),
+                      ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
         const SizedBox(height: 16),
       ],
     );

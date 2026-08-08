@@ -13,6 +13,8 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 
 Future<void> resetDatabase(WidgetRef ref, {bool deleteStorage = false}) async {
   final db = ref.read(databaseProvider);
+  // Native reset also closes and removes the file when requested. Web reset
+  // delegates to DriftStore.clear(), issuing DELETEs for every local table.
   await db.reset();
   if (!kIsWeb) await db.close();
   if (deleteStorage) await deleteDatabaseStorage();
