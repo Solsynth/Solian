@@ -36,6 +36,7 @@ class MessageItemWrapper extends HookConsumerWidget {
   final bool isLastInGroup;
   final bool showBubbleAvatar;
   final bool showColumnAvatar;
+  final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final AsyncValue<SnChatMember?> chatIdentity;
   final VoidCallback toggleSelectionMode;
   final Function(String) toggleMessageSelection;
@@ -52,6 +53,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     required this.isLastInGroup,
     this.showBubbleAvatar = true,
     this.showColumnAvatar = true,
+    this.avatarAnchorKey,
     required this.chatIdentity,
     required this.toggleSelectionMode,
     required this.toggleMessageSelection,
@@ -88,6 +90,7 @@ class MessageItemWrapper extends HookConsumerWidget {
       showAvatar: isLastInGroup,
       showBubbleAvatar: showBubbleAvatar,
       showColumnAvatar: showColumnAvatar,
+      avatarAnchorKey: avatarAnchorKey,
       isSelectionMode: isSelectionMode,
       isSelected: isSelected,
       onToggleSelection: toggleMessageSelection,

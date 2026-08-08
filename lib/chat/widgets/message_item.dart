@@ -75,6 +75,7 @@ class MessageItem extends HookConsumerWidget {
   final bool showAvatar;
   final bool showBubbleAvatar;
   final bool showColumnAvatar;
+  final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
   final bool isSelectionMode;
   final bool isSelected;
@@ -90,6 +91,7 @@ class MessageItem extends HookConsumerWidget {
     required this.showAvatar,
     this.showBubbleAvatar = true,
     this.showColumnAvatar = true,
+    this.avatarAnchorKey,
     required this.onJump,
     this.isSelectionMode = false,
     this.isSelected = false,
@@ -579,6 +581,7 @@ class MessageItem extends HookConsumerWidget {
                                 progress: progress,
                                 showAvatar: showAvatar,
                                 showColumnAvatar: showColumnAvatar,
+                                avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
                                 translatedText: translatedText.value,
                                 translating: translating.value,
@@ -589,6 +592,7 @@ class MessageItem extends HookConsumerWidget {
                                 progress: progress,
                                 showAvatar: showAvatar,
                                 showBubbleAvatar: showBubbleAvatar,
+                                avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
                                 translatedText: translatedText.value,
                                 translating: translating.value,
@@ -1481,6 +1485,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final bool showBubbleAvatar;
+  final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
   final String? translatedText;
   final bool translating;
@@ -1492,6 +1497,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     required this.showBubbleAvatar,
+    this.avatarAnchorKey,
     required this.onJump,
     required this.translatedText,
     required this.translating,
@@ -1661,9 +1667,11 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                 child: header,
               ),
             _StickyAvatarMessageRow(
-              key: ValueKey(
-                'sticky-avatar-${message.clientMessageId ?? message.id}',
-              ),
+              key:
+                  avatarAnchorKey ??
+                  ValueKey(
+                    'sticky-avatar-${message.clientMessageId ?? message.id}',
+                  ),
               showAvatar: showAvatar && showBubbleAvatar,
               avatar: avatar,
               child: Row(
@@ -2022,6 +2030,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final bool showColumnAvatar;
+  final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
   final String? translatedText;
   final bool translating;
@@ -2033,6 +2042,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     required this.showColumnAvatar,
+    this.avatarAnchorKey,
     required this.onJump,
     required this.translatedText,
     required this.translating,
@@ -2060,21 +2070,25 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                 Row(
                   spacing: 8,
                   children: [
-                    if (showColumnAvatar)
-                      ChatRoomMemberRegion(
-                        roomId: message.roomId,
-                        member: sender,
-                        child: OnlineAvatarBadge(
-                          roomId: message.roomId,
-                          accountId: sender.accountId,
-                          child: ProfilePictureWidget(
-                            file: sender.account.profile.picture,
-                            radius: kAvatarRadius,
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox(width: kAvatarRadius * 2),
+                    SizedBox(
+                      key: avatarAnchorKey,
+                      width: kAvatarRadius * 2,
+                      height: kAvatarRadius * 2,
+                      child: showColumnAvatar
+                          ? ChatRoomMemberRegion(
+                              roomId: message.roomId,
+                              member: sender,
+                              child: OnlineAvatarBadge(
+                                roomId: message.roomId,
+                                accountId: sender.accountId,
+                                child: ProfilePictureWidget(
+                                  file: sender.account.profile.picture,
+                                  radius: kAvatarRadius,
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
                     MessageSenderInfo(
                       roomId: message.roomId,
                       sender: sender,

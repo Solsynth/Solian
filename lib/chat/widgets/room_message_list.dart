@@ -302,6 +302,7 @@ class RoomMessageList extends HookConsumerWidget {
           required bool showItemAvatar,
           required bool drawBubbleAvatar,
           required bool drawColumnAvatar,
+          GlobalKey<State<StatefulWidget>>? avatarAnchorKey,
         }) {
           return MessageItemWrapper(
             message: item,
@@ -310,6 +311,7 @@ class RoomMessageList extends HookConsumerWidget {
             isLastInGroup: showItemAvatar,
             showBubbleAvatar: drawBubbleAvatar,
             showColumnAvatar: drawColumnAvatar,
+            avatarAnchorKey: avatarAnchorKey,
             chatIdentity: chatIdentity,
             toggleSelectionMode: chatStateNotifier.toggleSelectionMode,
             toggleMessageSelection: chatStateNotifier.toggleMessageSelection,
@@ -323,6 +325,10 @@ class RoomMessageList extends HookConsumerWidget {
           );
         }
 
+        final groupAvatarAnchorKey = GlobalObjectKey<State<StatefulWidget>>(
+          'group-avatar-$roomId-${message.clientMessageId ?? message.id}',
+        );
+
         final messageContent =
             useStickyGroupedDisplay && groupedMessages.length > 1
             ? _StickyBubbleMessageGroup(
@@ -333,7 +339,8 @@ class RoomMessageList extends HookConsumerWidget {
                 sender: message.toRemoteMessage().sender,
                 avatarSize: useColumnDisplay ? 24 : 32,
                 avatarLeft: stickyAvatarLeft,
-                avatarTop: useColumnDisplay ? 8 : 9,
+                avatarTop: useColumnDisplay ? 4 : 9,
+                avatarAnchorKey: groupAvatarAnchorKey,
                 stickyEnabled: !disableAnimationSetting,
                 children: [
                   for (var i = groupedMessages.length - 1; i >= 0; i--)
@@ -343,6 +350,9 @@ class RoomMessageList extends HookConsumerWidget {
                       showItemAvatar: i == groupedMessages.length - 1,
                       drawBubbleAvatar: false,
                       drawColumnAvatar: false,
+                      avatarAnchorKey: i == groupedMessages.length - 1
+                          ? groupAvatarAnchorKey
+                          : null,
                     ),
                 ],
               )
@@ -467,6 +477,7 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
   final double avatarSize;
   final double avatarLeft;
   final double avatarTop;
+  final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final bool stickyEnabled;
   final List<Widget> children;
 
@@ -477,6 +488,7 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
     required this.avatarSize,
     required this.avatarLeft,
     required this.avatarTop,
+    required this.avatarAnchorKey,
     required this.stickyEnabled,
     required this.children,
   });
@@ -505,8 +517,8 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     if (oldWidget.stickyEnabled != widget.stickyEnabled ||
         oldWidget.children.length != widget.children.length) {
       _stickyOffset = null;
-      _scheduleOffsetUpdate();
     }
+    _scheduleOffsetUpdate();
   }
 
   @override
@@ -538,11 +550,11 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
   void _handleScroll() => _scheduleOffsetUpdate();
 
   void _scheduleOffsetUpdate() {
-    if (!widget.stickyEnabled || _framePending || !mounted) return;
+    if (_framePending || !mounted) return;
     _framePending = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _framePending = false;
-      if (!mounted || !widget.stickyEnabled) return;
+      if (!mounted) return;
 
       final nextOffset = _avatarOffset();
       final currentOffset = _stickyOffset ?? widget.avatarTop;
@@ -551,39 +563,57 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     });
   }
 
-  double _avatarOffset() {
-    final scrollable = Scrollable.maybeOf(context);
-    if (scrollable == null) return widget.avatarTop;
+  double _baseAvatarTop(RenderBox? groupBox) {
+    if (groupBox == null || !groupBox.hasSize) return widget.avatarTop;
 
-    final box = _key.currentContext?.findRenderObject() as RenderBox?;
-    final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
-    if (box == null || viewportBox == null || !box.hasSize) {
-      return widget.avatarTop;
-    }
+    final anchorBox =
+        widget.avatarAnchorKey?.currentContext?.findRenderObject()
+            as RenderBox?;
+    if (anchorBox == null || !anchorBox.hasSize) return widget.avatarTop;
 
-    final double groupTop;
     try {
-      groupTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+      return anchorBox.localToGlobal(Offset.zero, ancestor: groupBox).dy;
     } catch (_) {
       return widget.avatarTop;
     }
+  }
 
-    final maxOffset = (box.size.height - widget.avatarSize).clamp(
+  double _avatarOffset() {
+    final groupBox = _key.currentContext?.findRenderObject() as RenderBox?;
+    final baseTop = _baseAvatarTop(groupBox);
+    if (groupBox == null || !groupBox.hasSize) return baseTop;
+    if (!widget.stickyEnabled) return baseTop;
+
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) return baseTop;
+
+    final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
+    if (viewportBox == null) return baseTop;
+
+    final double groupTop;
+    try {
+      groupTop = groupBox.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    } catch (_) {
+      return baseTop;
+    }
+
+    final maxOffset = (groupBox.size.height - widget.avatarSize).clamp(
       0.0,
       double.infinity,
     );
-    if (maxOffset <= widget.avatarTop) return widget.avatarTop;
+    if (maxOffset <= baseTop) return baseTop;
 
     final stickyDelta = _StickyBubbleMessageGroup._viewportTopMargin - groupTop;
-    return (widget.avatarTop + stickyDelta).clamp(widget.avatarTop, maxOffset);
+    return (baseTop + stickyDelta).clamp(baseTop, maxOffset);
   }
 
   @override
   Widget build(BuildContext context) {
     _updateScrollPosition();
-    final offset = widget.stickyEnabled
-        ? (_stickyOffset ?? widget.avatarTop)
-        : widget.avatarTop;
+    final baseTop = _baseAvatarTop(
+      _key.currentContext?.findRenderObject() as RenderBox?,
+    );
+    final offset = widget.stickyEnabled ? (_stickyOffset ?? baseTop) : baseTop;
 
     return Stack(
       key: _key,
