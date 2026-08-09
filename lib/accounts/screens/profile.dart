@@ -194,6 +194,31 @@ class _AccountBasicInfo extends HookWidget {
                                 uname: uname,
                                 padding: EdgeInsets.zero,
                               ),
+                              if (data.profile.location.trim().isNotEmpty) ...[
+                                const Gap(8),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Symbols.location_on,
+                                      size: 16,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    const Gap(6),
+                                    Expanded(
+                                      child: Text(
+                                        data.profile.location.trim(),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                               if (accountDeveloper.value != null) ...[
                                 const Gap(12),
                                 InkWell(
