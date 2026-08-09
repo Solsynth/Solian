@@ -515,14 +515,25 @@ class AccountBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sortedItems = [...items]..sort((a, b) => a.order.compareTo(b.order));
+    final visibleItems = <AccountBoardItem>[];
+    var hasLinksSection = false;
+
+    for (final item in sortedItems) {
+      if (!item.isEnabled) continue;
+
+      final isLinksSection =
+          item.kind == BoardWidgetKind.prebuilt &&
+          (item.widgetKey == 'links' || item.widgetKey == 'connections');
+      if (isLinksSection && hasLinksSection) continue;
+      if (isLinksSection) hasLinksSection = true;
+
+      visibleItems.add(item);
+    }
 
     return Column(
       spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: sortedItems
-          .where((item) => item.isEnabled)
-          .map((item) => _buildItem(context, item))
-          .toList(),
+      children: visibleItems.map((item) => _buildItem(context, item)).toList(),
     );
   }
 
@@ -619,7 +630,11 @@ class AccountBoard extends StatelessWidget {
             verification: account.profile.verification,
           ),
           'contacts' => _ContactsBoardWidget(contacts: account.contacts),
-          'connections' => _ConnectionsBoardWidget(uname: uname),
+          // Keep legacy `connections` board items in the combined links section.
+          'connections' => _LinksBoardWidget(
+            links: account.profile.links,
+            uname: uname,
+          ),
           'publishers' => _PublishersBoardWidget(publishers: publishers),
           'fortune' => _FortuneBoardWidget(
             uname: uname,
@@ -1506,65 +1521,6 @@ class _BoardContactTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ConnectionsBoardWidget extends ConsumerWidget {
-  final String uname;
-
-  const _ConnectionsBoardWidget({required this.uname});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final connections = ref.watch(publicAccountConnectionsProvider(uname));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Symbols.link, size: 18, color: theme.colorScheme.primary),
-            const Gap(8),
-            Text(
-              'accountConnections'.tr(),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        connections.when(
-          data: (connections) => connections.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'descriptionNone'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Column(
-                    spacing: 8,
-                    children: connections
-                        .map(
-                          (connection) =>
-                              _BoardConnectionTile(connection: connection),
-                        )
-                        .toList(),
-                  ),
-                ),
-          loading: () => const Padding(
-            padding: EdgeInsets.only(top: 12),
-            child: LinearProgressIndicator(),
-          ),
-          error: (_, _) => const SizedBox.shrink(),
-        ),
-      ],
     );
   }
 }
