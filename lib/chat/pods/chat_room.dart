@@ -95,6 +95,20 @@ int _safeToInt(dynamic value, {int fallback = 0}) {
   return fallback;
 }
 
+/// Returns whether a `messages.new` envelope carries a mutation payload.
+///
+/// The gateway uses `messages.new` as the common envelope for several chat
+/// mutations, so callers must inspect the payload type before persisting it as
+/// a new timeline row.
+bool isChatMessageMutationEnvelope(String packetType, String messageType) =>
+    packetType == 'messages.new' &&
+    const {
+      'messages.update',
+      'messages.sync.file',
+      'messages.sync.finalize',
+      'messages.sync.links',
+    }.contains(messageType);
+
 SnChatMessage _mergeUpdatedRemoteMessage(
   SnChatMessage existingRemote,
   SnChatMessage updateRemote, {
@@ -353,14 +367,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final roomId = message.chatRoomId;
 
     // `messages.new` is the common transport envelope. Its payload type
-    // identifies mutations; classify these before treating the payload as a
-    // new timeline item, otherwise an edit finalization is stored as a
-    // standalone system row and the target update depends on a second,
-    // timing-sensitive notifier path.
-    final isMutationEnvelope =
-        pkt.type == 'messages.new' &&
-        (message.type == 'messages.sync.finalize' ||
-            message.type == 'messages.sync.links');
+    // identifies mutations; classify them before treating the payload as a
+    // new timeline item, otherwise an edit update is stored as a standalone
+    // event row and the target update depends on a second timing-sensitive
+    // notifier path.
+    final isMutationEnvelope = isChatMessageMutationEnvelope(
+      pkt.type,
+      message.type,
+    );
 
     if (isMutationEnvelope) {
       await _applyMessageUpdateToTarget(db, message);

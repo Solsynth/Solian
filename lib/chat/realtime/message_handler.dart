@@ -5,14 +5,13 @@ import 'package:island/chat/data/message_cache.dart';
 import 'package:island/chat/data/message_repository.dart';
 import 'package:island/chat/e2ee_message_service.dart';
 import 'package:island/chat/sync/message_sync_service.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/data/message.dart';
 import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:uuid/uuid.dart';
 
-/// Handles real-time message events from WebSocket and Event Bus.
+/// Handles real-time message events from the WebSocket.
 class RealtimeMessageHandler {
   final _logger = Logger('RealtimeMessageHandler');
   final Ref _ref;
@@ -25,9 +24,6 @@ class RealtimeMessageHandler {
 
   // Subscriptions
   StreamSubscription<WebSocketPacket>? _wsSubscription;
-  StreamSubscription<ChatMessageNewEvent>? _newMessageSub;
-  StreamSubscription<ChatMessageUpdateEvent>? _updateMessageSub;
-  StreamSubscription<ChatMessageDeleteEvent>? _deleteMessageSub;
 
   // Callbacks for UI updates
   final void Function(LocalChatMessage message, int? roomSequence)?
@@ -64,22 +60,6 @@ class RealtimeMessageHandler {
     // Direct WebSocket listener
     final ws = _ref.read(websocketProvider);
     _wsSubscription = ws.dataStream.listen(_handleWebSocketPacket);
-
-    // Event bus listeners
-    _newMessageSub = eventBus.on<ChatMessageNewEvent>().listen((event) {
-      if (event.message.chatRoomId != _roomId) return;
-      _handleNewMessage(event.message);
-    });
-
-    _updateMessageSub = eventBus.on<ChatMessageUpdateEvent>().listen((event) {
-      if (event.message.chatRoomId != _roomId) return;
-      _handleUpdateEvent(event);
-    });
-
-    _deleteMessageSub = eventBus.on<ChatMessageDeleteEvent>().listen((event) {
-      if (event.roomId != _roomId) return;
-      _handleDeleteEvent(event);
-    });
   }
 
   /// Processes a new message manually.
@@ -108,9 +88,6 @@ class RealtimeMessageHandler {
   /// Stops listening to real-time events.
   void stopListening() {
     _wsSubscription?.cancel();
-    _newMessageSub?.cancel();
-    _updateMessageSub?.cancel();
-    _deleteMessageSub?.cancel();
   }
 
   /// Temporarily pauses real-time updates (e.g., during jump).
@@ -267,52 +244,6 @@ class RealtimeMessageHandler {
     onMessageUpdate?.call(updated, roomSequence);
   }
 
-  Future<void> _handleUpdateEvent(ChatMessageUpdateEvent event) async {
-    final type = event.message.type;
-
-    // Handle reaction events
-    if (type == 'messages.reaction.added' ||
-        type == 'messages.reaction.removed') {
-      if (event.appliedInBackground) {
-        await _handleReactionAppliedInBackground(event.message);
-        return;
-      }
-      await _handleReactionEvent(event.message);
-      return;
-    }
-
-    // Handle edit/delete events
-    if (type == 'messages.update' ||
-        type == 'messages.sync.file' ||
-        type == 'messages.sync.finalize' ||
-        type == 'messages.sync.links' ||
-        type == 'messages.delete') {
-      if (type == 'messages.delete') {
-        await _handleDeleteMessageEvent(event.message);
-      } else {
-        await _handleUpdateMessage(event.message);
-      }
-    }
-
-    // Pin/unpin events are handled as new messages (system events)
-    if (type == 'messages.pinned' || type == 'messages.unpinned') {
-      await _handleNewMessage(event.message);
-    }
-  }
-
-  Future<void> _handleReactionAppliedInBackground(
-    SnChatMessage remoteMessage,
-  ) async {
-    final targetId = remoteMessage.meta['message_id']?.toString();
-    if (targetId == null || targetId.isEmpty) return;
-
-    _messageCache.remove(targetId);
-    final updated = await _repository.getLocalMessage(targetId);
-    if (updated != null) {
-      onMessageUpdate?.call(updated, null);
-    }
-  }
-
   Future<void> _handleReactionEvent(
     SnChatMessage remoteMessage, {
     int? roomSequence,
@@ -374,10 +305,6 @@ class RealtimeMessageHandler {
     await _repository.saveMessage(updated);
     _messageCache.put(updated);
     onMessageUpdate?.call(updated, roomSequence);
-  }
-
-  Future<void> _handleDeleteEvent(ChatMessageDeleteEvent event) async {
-    await _handleDeleteMessage(event.messageId);
   }
 
   Future<void> _handleDeleteMessageEvent(
