@@ -1842,6 +1842,7 @@
   "isOidc": "OIDC Compliant",
   "joinRealm": "Join Realm",
   "joinedAt": "Joined at {}",
+  "joinedSolarNetwork": "Joined Solar Network",
   "justNow": "Just now",
   "keyName": "Key Name",
   "keyboardShortcuts": "Keyboard Shortcuts",

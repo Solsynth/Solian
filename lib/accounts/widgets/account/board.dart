@@ -1075,7 +1075,6 @@ class _NotableDaysBoardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final now = DateTime.now();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1097,32 +1096,19 @@ class _NotableDaysBoardWidget extends StatelessWidget {
           ],
         ),
         const Gap(12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        Column(
           children: [
             if (showJoined)
-              _NotableDayChip(
+              _NotableDayTile(
                 icon: Symbols.calendar_month,
-                label: 'joinedAt'.tr(
-                  args: [account.createdAt.formatCustom('yyyy-MM-dd')],
-                ),
+                title: 'joinedSolarNetwork'.tr(),
+                subtitle: account.createdAt.formatCustom('yyyy-MM-dd'),
               ),
-            if (showBirthday && account.profile.birthday != null) ...[
-              _NotableDayChip(
+            if (showBirthday && account.profile.birthday != null)
+              _NotableDayTile(
                 icon: Symbols.cake,
-                label: account.profile.birthday!.formatCustom('yyyy-MM-dd'),
-              ),
-              _NotableDayChip(
-                icon: Symbols.timer,
-                label:
-                    '${now.difference(account.profile.birthday!).inDays ~/ 365} yrs',
-              ),
-            ],
-            if (account.profile.timeZone.isNotEmpty)
-              _NotableDayChip(
-                icon: Symbols.schedule,
-                label: account.profile.timeZone,
+                title: 'birthday'.tr(),
+                subtitle: account.profile.birthday!.formatCustom('yyyy-MM-dd'),
               ),
           ],
         ),
@@ -1131,38 +1117,25 @@ class _NotableDaysBoardWidget extends StatelessWidget {
   }
 }
 
-class _NotableDayChip extends StatelessWidget {
+class _NotableDayTile extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final String title;
+  final String? subtitle;
 
-  const _NotableDayChip({required this.icon, required this.label});
+  const _NotableDayTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 6,
-        children: [
-          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
-          Flexible(
-            child: Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle!),
     );
   }
 }

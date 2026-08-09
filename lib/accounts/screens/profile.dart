@@ -92,6 +92,16 @@ class _AccountBasicInfo extends HookWidget {
     return lines.first.trim();
   }
 
+  int _getAge(DateTime birthday) {
+    final today = DateTime.now();
+    var age = today.year - birthday.year;
+    if (today.month < birthday.month ||
+        (today.month == birthday.month && today.day < birthday.day)) {
+      age--;
+    }
+    return age;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isBioExpanded = useState(false);
@@ -194,31 +204,22 @@ class _AccountBasicInfo extends HookWidget {
                                 uname: uname,
                                 padding: EdgeInsets.zero,
                               ),
-                              if (data.profile.location.trim().isNotEmpty) ...[
-                                const Gap(8),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      Symbols.location_on,
-                                      size: 16,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    const Gap(6),
-                                    Expanded(
-                                      child: Text(
-                                        data.profile.location.trim(),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
+                              if (data.profile.location.trim().isNotEmpty)
+                                _AccountProfileInfoRow(
+                                  icon: Symbols.location_on,
+                                  value: data.profile.location.trim(),
                                 ),
-                              ],
+                              if (data.profile.birthday != null)
+                                _AccountProfileInfoRow(
+                                  icon: Symbols.cake,
+                                  value:
+                                      '${_getAge(data.profile.birthday!.toLocal())} yrs',
+                                ),
+                              if (data.profile.timeZone.trim().isNotEmpty)
+                                _AccountProfileInfoRow(
+                                  icon: Symbols.schedule,
+                                  value: data.profile.timeZone.trim(),
+                                ),
                               if (accountDeveloper.value != null) ...[
                                 const Gap(12),
                                 InkWell(
@@ -355,6 +356,37 @@ class _AccountBasicInfo extends HookWidget {
                   ),
                 ],
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountProfileInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String value;
+
+  const _AccountProfileInfoRow({required this.icon, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const Gap(6),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
