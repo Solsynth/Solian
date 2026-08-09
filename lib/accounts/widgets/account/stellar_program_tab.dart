@@ -30,6 +30,10 @@ part 'stellar_program_tab.g.dart';
 
 const kDebugShowAfdian = false;
 
+String get _stellarPricingUrl => !kIsWeb && Platform.isAndroid
+    ? 'https://www.solian.app/pricing'
+    : 'https://solian.app/pricing';
+
 enum PaymentMethodTab { wallet, appleIap, afdian }
 
 final selectedTabProvider = NotifierProvider<SelectedTabNotifier, int>(
@@ -862,7 +866,7 @@ class StellarProgramView extends HookConsumerWidget {
           const Gap(16),
           FilledButton.icon(
             onPressed: () => launchUrlString(
-              'https://solian.app/pricing',
+              _stellarPricingUrl,
               mode: LaunchMode.externalApplication,
             ),
             icon: const Icon(Icons.open_in_new, size: 18),
@@ -2327,7 +2331,7 @@ class _MembershipTierCard extends StatelessWidget {
           const Gap(4),
           InkWell(
             onTap: () => launchUrlString(
-              'https://solian.app/pricing',
+              _stellarPricingUrl,
               mode: LaunchMode.externalApplication,
             ),
             borderRadius: BorderRadius.circular(8),

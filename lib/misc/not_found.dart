@@ -1,7 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:island/shared/widgets/app_scaffold.dart';
 
 @RoutePage()
 class NotFoundScreen extends StatelessWidget {
@@ -44,7 +45,7 @@ class NotFoundScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
-                onPressed: () => context.router.navigatePath('/'),
+                onPressed: () => context.router.replaceAll([const TabsRoute()]),
                 icon: const Icon(Symbols.home),
                 label: const Text('Go Home'),
               ),

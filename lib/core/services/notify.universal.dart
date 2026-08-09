@@ -20,7 +20,6 @@ import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
 import 'package:logging/logging.dart';
 
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'udid.dart';
@@ -257,19 +256,7 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
 
   void handleNotificationPayload(String? payload) {
     if (payload == null || payload.isEmpty) return;
-    final routePath = actionUriToRoutePath(payload);
-    if (routePath != null) {
-      // In-app routes — `solian://…`, `https://solian.app/…` or bare `/…`
-      router.navigatePath(
-        routePath,
-        onFailure: (err) {
-          Logger.root.warning('[Notification] Unable to open page: $err');
-        },
-      );
-    } else {
-      // External URLs
-      launchUrlString(payload);
-    }
+    unawaited(handleActionUri(router, payload));
   }
 
   await flutterLocalNotificationsPlugin.initialize(

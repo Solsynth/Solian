@@ -23,6 +23,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/realtime_posts.dart';
 import 'package:island/route.dart';
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
@@ -35,7 +36,6 @@ import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:media_kit/media_kit.dart';
@@ -474,14 +474,9 @@ class IslandApp extends HookConsumerWidget {
     }
 
     void handleMessage(RemoteMessage notification) {
-      if (notification.data['meta']?['action_uri'] != null) {
-        var uri = notification.data['meta']['action_uri'] as String;
-        if (uri.startsWith('/')) {
-          final router = ref.read(routerProvider);
-          router.push(notification.data['meta']['action_uri']);
-        } else {
-          launchUrlString(uri);
-        }
+      final uri = notification.data['meta']?['action_uri'] as String?;
+      if (uri != null && uri.isNotEmpty) {
+        unawaited(handleActionUri(ref.read(routerProvider), uri));
       }
     }
 

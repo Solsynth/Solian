@@ -1006,11 +1006,7 @@ class AppWrapper extends HookConsumerWidget {
 
     final passportDeepLink = parsePhysicalPassportDeepLink(uri.toString());
     if (passportDeepLink != null) {
-      await _handlePhysicalPassportDeepLink(
-        context,
-        ref,
-        passportDeepLink,
-      );
+      await _handlePhysicalPassportDeepLink(context, ref, passportDeepLink);
       return;
     }
 
@@ -1037,10 +1033,7 @@ class AppWrapper extends HookConsumerWidget {
     if (!tryNavigateToRoutePath(ref.read(routerProvider), path)) {
       // The page isn't implemented in-app — open the web page in the browser
       // instead of landing on the 404 catch-all.
-      await launchUrlString(
-        (solianLinkWebUrl(uri) ?? uri).toString(),
-        mode: LaunchMode.externalApplication,
-      );
+      await handleActionUri(ref.read(routerProvider), uri.toString());
       return;
     }
     if (!kIsWeb &&
@@ -1120,9 +1113,7 @@ class AppWrapper extends HookConsumerWidget {
               return _buildPassportScanSheet(sheetContext, asyncData);
             } else {
               final asyncData = sheetRef.watch(
-                scanPhysicalPassportByParamsProvider(
-                  link.queryParameters!,
-                ),
+                scanPhysicalPassportByParamsProvider(link.queryParameters!),
               );
               return _buildPassportScanSheet(sheetContext, asyncData);
             }
@@ -1204,9 +1195,9 @@ class AppWrapper extends HookConsumerWidget {
                   const Gap(12),
                   Text(
                     'ID: ${result.id}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontFamily: 'monospace',
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
                   ),
                   const Gap(12),
                   Text('tagNotClaimed'.tr()),

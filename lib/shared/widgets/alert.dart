@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
@@ -321,10 +322,9 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
                         'errorCode'.tr(),
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onErrorContainer
-                                  .withOpacity(0.75),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onErrorContainer.withOpacity(0.75),
                             ),
                       ),
                       const Gap(8),
@@ -337,9 +337,9 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
                                 fontFamily: 'monospace',
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.5,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onErrorContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
                               ),
                         ),
                       ),
@@ -521,9 +521,10 @@ Future<void> openExternalLinkWithContainer(
       return;
     }
     // The page isn't implemented in-app — hand it to the browser via its
-    // https://solian.app equivalent (custom-scheme URLs would re-trigger the
-    // app's protocol handler) instead of landing on the 404 catch-all.
-    url = solianLinkWebUrl(url) ?? url;
+    // browser-safe Solian host on Android to avoid re-entering the app.
+    url = !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? solianLinkBrowserUrl(url) ?? url
+        : solianLinkWebUrl(url) ?? url;
   }
 
   final context = container

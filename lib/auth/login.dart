@@ -5,8 +5,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/core/services/deeplink_service.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import 'login_content.dart';
 
@@ -52,19 +52,8 @@ class LoginScreen extends HookConsumerWidget {
       final router = context.router;
       final uri = redirectUri!;
       Future.microtask(() async {
-        // Try in-app navigation first
-        try {
-          await router.navigatePath(uri);
-        } catch (_) {}
-        // Check if we landed on the 404 catch-all
-        if (router.stack.isNotEmpty &&
-            router.stack.last.name == 'NotFoundRoute') {
-          router.pop(); // dismiss the 404 page
-          await launchUrlString(
-            'https://solian.app$uri',
-            mode: LaunchMode.externalApplication,
-          );
-        }
+        // Try in-app navigation first; unsupported routes go to the browser.
+        await handleActionUri(router, uri);
         if (context.mounted) {
           Navigator.of(context).pop(); // dismiss login screen
         }

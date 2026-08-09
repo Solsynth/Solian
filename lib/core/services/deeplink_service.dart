@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 
+import 'package:url_launcher/url_launcher_string.dart';
+
 class DeeplinkService {
   static final DeeplinkService _instance = DeeplinkService._internal();
   factory DeeplinkService() => _instance;
@@ -246,8 +248,7 @@ class _ProtocolListener implements ProtocolListener {
 /// onto in-app routes. Subdomains (api., nt., fs., …) serve other apps and
 /// are NOT in-app routes.
 bool isSolianWebUri(Uri uri) =>
-    (uri.scheme == 'http' || uri.scheme == 'https') &&
-    uri.host == 'solian.app';
+    (uri.scheme == 'http' || uri.scheme == 'https') && uri.host == 'solian.app';
 
 /// Converts a Solian link — either the `solian://host/path` custom scheme or
 /// the web app URL `https://solian.app/path` — into the matching in-app route
@@ -301,6 +302,16 @@ Uri? solianLinkWebUrl(Uri uri) {
       : webUrl.replace(queryParameters: uri.queryParameters);
 }
 
+/// Returns a Solian web URL on a host that is not claimed by the Android app.
+///
+/// Android app links can route `solian.app` back into this app even when the
+/// caller explicitly requests an external application. Use this URL when a
+/// Solian route is not implemented in-app and must be opened in a browser.
+Uri? solianLinkBrowserUrl(Uri uri) {
+  final webUrl = solianLinkWebUrl(uri);
+  return webUrl?.replace(host: 'www.solian.app');
+}
+
 /// True when [path] resolves to a concrete route in [router]'s tree — i.e.
 /// anything other than the 404 catch-all. Use to guard `navigatePath` so
 /// Solian links to pages the app doesn't implement fall back to the browser
@@ -321,4 +332,33 @@ bool tryNavigateToRoutePath(StackRouter router, String path) {
   if (!isKnownInAppRoutePath(router, path)) return false;
   router.navigatePath(path);
   return true;
+}
+
+/// Handles an action URI consistently across notifications and deep links.
+///
+/// Concrete in-app routes are navigated in-app. Unknown Solian routes are
+/// opened on the web; Android uses `www.solian.app` to avoid re-entering the
+/// app through its verified app link. Other external URLs are passed through
+/// unchanged.
+Future<bool> handleActionUri(StackRouter router, String rawValue) async {
+  final routePath = actionUriToRoutePath(rawValue);
+  if (routePath != null && tryNavigateToRoutePath(router, routePath)) {
+    return true;
+  }
+
+  final uri = rawValue.trim().startsWith('/')
+      ? Uri.tryParse('https://solian.app${rawValue.trim()}')
+      : Uri.tryParse(rawValue.trim());
+  if (uri == null) return false;
+
+  final solianWebUrl = solianLinkWebUrl(uri);
+  final launchUri = !kIsWeb && Platform.isAndroid && solianWebUrl != null
+      ? solianLinkBrowserUrl(uri)
+      : solianWebUrl ?? uri;
+  if (launchUri == null) return false;
+
+  return launchUrlString(
+    launchUri.toString(),
+    mode: LaunchMode.externalApplication,
+  );
 }

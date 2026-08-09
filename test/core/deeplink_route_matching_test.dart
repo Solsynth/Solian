@@ -60,16 +60,30 @@ void main() {
       'https://solian.app/posts/123',
     );
     expect(
-      solianLinkWebUrl(Uri.parse('solian://posts/123?tab=comments'))?.toString(),
+      solianLinkWebUrl(
+        Uri.parse('solian://posts/123?tab=comments'),
+      )?.toString(),
       'https://solian.app/posts/123?tab=comments',
     );
     expect(
-      solianLinkWebUrl(
-        Uri.parse('https://solian.app/posts/123'),
-      )?.toString(),
+      solianLinkWebUrl(Uri.parse('https://solian.app/posts/123'))?.toString(),
       'https://solian.app/posts/123',
     );
     expect(solianLinkWebUrl(Uri.parse('https://example.com/x')), isNull);
     expect(solianLinkWebUrl(Uri.parse('https://api.solian.app/x')), isNull);
+  });
+
+  test('solianLinkBrowserUrl avoids Android app-link re-entry', () {
+    expect(
+      solianLinkBrowserUrl(Uri.parse('solian://posts/123'))?.toString(),
+      'https://www.solian.app/posts/123',
+    );
+    expect(
+      solianLinkBrowserUrl(
+        Uri.parse('https://solian.app/nonexistent'),
+      )?.toString(),
+      'https://www.solian.app/nonexistent',
+    );
+    expect(solianLinkBrowserUrl(Uri.parse('https://example.com/x')), isNull);
   });
 }

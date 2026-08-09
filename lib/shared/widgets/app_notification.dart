@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.dart';
@@ -5,7 +7,6 @@ import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class NotificationCard extends HookConsumerWidget {
@@ -21,14 +22,7 @@ class NotificationCard extends HookConsumerWidget {
       onTap: () {
         final rawUri = notification.meta['action_uri'] as String?;
         if (rawUri == null || rawUri.isEmpty) return;
-        final routePath = actionUriToRoutePath(rawUri);
-        if (routePath != null) {
-          // In-app routes
-          ref.read(routerProvider).navigatePath(routePath);
-        } else {
-          // External URLs
-          launchUrlString(rawUri);
-        }
+        unawaited(handleActionUri(ref.read(routerProvider), rawUri));
       },
       child: Card(
         elevation: 4,

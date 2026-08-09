@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
@@ -7,7 +8,6 @@ import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 const double kNotificationBorderRadius = 8;
 
@@ -107,12 +107,7 @@ class NotificationItemWidget extends HookConsumerWidget {
       onTap: () {
         final rawUri = notification.meta['action_uri'] as String?;
         if (rawUri == null || rawUri.isEmpty) return;
-        final routePath = actionUriToRoutePath(rawUri);
-        if (routePath != null) {
-          ref.read(routerProvider).navigatePath(routePath);
-        } else {
-          launchUrlString(rawUri);
-        }
+        unawaited(handleActionUri(ref.read(routerProvider), rawUri));
       },
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! > 100) {
