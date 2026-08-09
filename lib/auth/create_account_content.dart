@@ -574,9 +574,16 @@ class _CreateAccountCompleteScreen extends HookConsumerWidget {
         final client = ref.watch(apiClientProvider);
         final resp = await client.post(endpoint, data: data);
         if (endpoint == '/stargate/account/onboard') {
-          // Onboard response has tokens, set them
-          final token = resp.data['token'];
-          setToken(ref.watch(sharedPreferencesProvider), token);
+          // Onboard responses must retain the refresh pair just like login.
+          final token = resp.data['token'] as String;
+          await setToken(
+            ref.watch(sharedPreferencesProvider),
+            token,
+            refreshToken: resp.data['refresh_token'] as String?,
+            expiresIn: (resp.data['expires_in'] as num?)?.toInt(),
+            refreshExpiresIn: (resp.data['refresh_expires_in'] as num?)
+                ?.toInt(),
+          );
           ref.invalidate(tokenProvider);
           final userNotifier = ref.read(userInfoProvider.notifier);
           await userNotifier.fetchUser();

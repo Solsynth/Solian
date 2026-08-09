@@ -971,8 +971,16 @@ class AppWrapper extends HookConsumerWidget {
 
     if (path == '/auth/callback' && uri.queryParameters.containsKey('token')) {
       final token = uri.queryParameters['token']!;
-      setToken(ref.read(sharedPreferencesProvider), token);
+      final callbackData = parseAuthCallbackTokenData(uri);
+      await setToken(
+        ref.read(sharedPreferencesProvider),
+        token,
+        refreshToken: callbackData.refreshToken,
+        expiresIn: callbackData.expiresIn,
+        refreshExpiresIn: callbackData.refreshExpiresIn,
+      );
       ref.invalidate(tokenProvider);
+      if (!context.mounted) return;
 
       await performPostLogin(context, ref);
 

@@ -128,6 +128,30 @@ final userAgentProvider = FutureProvider<String>((ref) async {
 const Duration _tokenExpirySkew = Duration(seconds: 30);
 const Duration _tokenRefreshInterval = Duration(minutes: 5);
 
+/// Token metadata returned by the social-login deep-link callback.
+class AuthCallbackTokenData {
+  final String? refreshToken;
+  final int? expiresIn;
+  final int? refreshExpiresIn;
+
+  const AuthCallbackTokenData({
+    this.refreshToken,
+    this.expiresIn,
+    this.refreshExpiresIn,
+  });
+}
+
+AuthCallbackTokenData parseAuthCallbackTokenData(Uri uri) {
+  final params = uri.queryParameters;
+  return AuthCallbackTokenData(
+    refreshToken: params['refreshToken'] ?? params['refresh_token'],
+    expiresIn: int.tryParse(params['expiresIn'] ?? params['expires_in'] ?? ''),
+    refreshExpiresIn: int.tryParse(
+      params['refreshExpiresIn'] ?? params['refresh_expires_in'] ?? '',
+    ),
+  );
+}
+
 Future<_StoredTokenPair?>? _tokenRefreshInFlight;
 Future<_StoredTokenPair?>? _forceTokenRefreshInFlight;
 
