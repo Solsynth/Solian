@@ -33,6 +33,75 @@ SnChatRoom room(String id) {
   );
 }
 
+SnChatMember member(String roomId) {
+  final now = DateTime.utc(2026);
+  final profile = SnAccountProfile(
+    id: 'profile-1',
+    experience: 0,
+    level: 1,
+    levelingProgress: 0,
+    picture: null,
+    background: null,
+    verification: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  );
+  final account = SnAccount(
+    id: 'account-1',
+    name: 'test-user',
+    nick: 'Test User',
+    language: 'en',
+    isSuperuser: false,
+    automatedId: null,
+    profile: profile,
+    perkSubscription: null,
+    activatedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  );
+  return SnChatMember(
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+    id: 'member-$roomId',
+    chatRoomId: roomId,
+    chatRoom: null,
+    accountId: account.id,
+    account: account,
+    nick: null,
+    notify: 0,
+    joinedAt: now,
+    breakUntil: null,
+    timeoutUntil: null,
+    chatGroupId: null,
+    chatGroup: null,
+    lastReadAt: null,
+    status: null,
+    realmNick: null,
+    realmBio: null,
+    realmExperience: null,
+    realmLevel: null,
+    realmLevelingProgress: null,
+    realmLabel: null,
+  );
+}
+
+SnChatMessage message(String roomId) {
+  final now = DateTime.utc(2026);
+  final sender = member(roomId);
+  return SnChatMessage(
+    createdAt: now,
+    updatedAt: now,
+    id: 'message-1',
+    content: 'hello',
+    senderId: sender.id,
+    sender: sender,
+    chatRoomId: roomId,
+  );
+}
+
 class _StaticChatRoomNotifier extends ChatRoomNotifier {
   @override
   Future<SnChatRoom?> build(String? roomId) async => room(roomId!);
@@ -123,5 +192,27 @@ void main() {
 
       expect(container.read(messagesProvider('room-1')).value, isEmpty);
     });
+    test(
+      'emits a stored realtime message when global sync won the race',
+      () async {
+        final remote = message('room-1');
+        final stored = LocalChatMessage.fromRemoteMessage(
+          remote,
+          MessageStatus.sent,
+        );
+        await database.saveMessageWithSender(stored);
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.receiveMessage(remote);
+
+        expect(
+          container
+              .read(messagesProvider('room-1'))
+              .value!
+              .map((item) => item.id),
+          contains(remote.id),
+        );
+      },
+    );
   });
 }

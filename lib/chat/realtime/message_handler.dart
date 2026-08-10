@@ -177,13 +177,20 @@ class RealtimeMessageHandler {
     // A repeated delivery can carry newer account/profile data for its sender.
     await onIncomingMessageSender?.call(remoteMessage.sender);
 
-    // Check for duplicate
     final existing = await _repository.getLocalMessage(remoteMessage.id);
+
+    // The global chat sync listener can persist the packet before this room's
+    // listener reads it. In that race, the database row is new to the active
+    // notifier even though it is already present in storage; still emit it so
+    // the visible room list receives the message.
     if (existing != null &&
         existing.content?.isNotEmpty == true &&
         !_needsAttachmentRefresh(existing, remoteMessage)) {
-      _logger.fine('Message ${remoteMessage.id} already exists, skipping');
+      _logger.fine(
+        'Message ${remoteMessage.id} already exists; emitting stored row',
+      );
       _pendingCache.removeByClientId(remoteMessage.clientMessageId);
+      onNewMessage?.call(existing, roomSequence);
       return;
     }
 
