@@ -243,7 +243,7 @@ jobs:
           channel: stable
       - if: needs.build-android.result == 'success'
         name: Upload Android armeabi-v7a artifact to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@c3a57aa
+        uses: Solsynth/SolsynthExpressUpload@v2
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
@@ -256,7 +256,7 @@ jobs:
           channel: stable
       - if: needs.build-android.result == 'success'
         name: Upload Android x86_64 artifact to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@c3a57aa
+        uses: Solsynth/SolsynthExpressUpload@v2
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
