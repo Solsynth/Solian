@@ -222,7 +222,7 @@ PODS:
   - libwebp/sharpyuv (1.6.0)
   - libwebp/webp (1.6.0):
     - libwebp/sharpyuv
-  - livekit_client (2.10.0):
+  - livekit_client (2.11.0):
     - Flutter
     - flutter_webrtc
     - WebRTC-SDK (= 144.7559.09)
@@ -547,7 +547,7 @@ SPEC CHECKSUMS:
   Kingfisher: ee4ff4936d5b399164b6d01a0dfc0388583287b6
   KingfisherWebP: 064869d5f1201396ec121dcc4c9cfbdba6ecb900
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
-  livekit_client: 6c0d36eefa88d025cd990f7af5feac2a5cedc346
+  livekit_client: 35ee4fef4e184950cc40a5c2a580a84a616d588f
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   map_launcher: 8051ad5783913cafce93f2414c6858f2904fd8df
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
@@ -584,4 +584,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3ddfd9f0daab8bdcdbd1943872d7abcf3d0b1f5e
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0
