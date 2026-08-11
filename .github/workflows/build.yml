@@ -204,7 +204,7 @@ jobs:
           zip -r ../build-output-linux-appimage.zip .
       - if: needs.build-exe.result == 'success'
         name: Upload Windows installer to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@v1
+        uses: Solsynth/SolsynthExpressUpload@c3a57aa
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
@@ -214,9 +214,10 @@ jobs:
           platform: windows
           architecture: amd64
           mime-type: application/zip
+          channel: stable
       - if: needs.build-linux.result == 'success'
         name: Upload Linux AppImage to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@v1
+        uses: Solsynth/SolsynthExpressUpload@c3a57aa
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
@@ -226,9 +227,10 @@ jobs:
           platform: linux
           architecture: amd64
           mime-type: application/zip
+          channel: stable
       - if: needs.build-android.result == 'success'
         name: Upload Android arm64 artifact to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@v1
+        uses: Solsynth/SolsynthExpressUpload@c3a57aa
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
@@ -238,9 +240,10 @@ jobs:
           platform: android
           architecture: arm64
           mime-type: application/vnd.android.package-archive
+          channel: stable
       - if: needs.build-android.result == 'success'
         name: Upload Android armeabi-v7a artifact to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@v1
+        uses: Solsynth/SolsynthExpressUpload@c3a57aa
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
@@ -250,9 +253,10 @@ jobs:
           platform: android
           architecture: armeabi-v7a
           mime-type: application/vnd.android.package-archive
+          channel: stable
       - if: needs.build-android.result == 'success'
         name: Upload Android x86_64 artifact to Solsynth Express
-        uses: Solsynth/SolsynthExpressUpload@v1
+        uses: Solsynth/SolsynthExpressUpload@c3a57aa
         with:
           api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
           product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
@@ -262,6 +266,7 @@ jobs:
           platform: android
           architecture: x86_64
           mime-type: application/vnd.android.package-archive
+          channel: stable
       # Publishing remains a human-controlled operation. After reviewing the
       # draft release, a publisher can call:
       #
