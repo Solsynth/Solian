@@ -23,7 +23,7 @@ SolsynthExpressUpload@v1 requests an upload URL and uploads each file
 DistributionCenter draft release 1.2.3
         |
         v
-Workflow publishes the release with a Sphere publisher token
+Human reviews and publishes the draft release
         |
         v
 Island calls DistributionCenter and downloads the matching artifact
@@ -43,7 +43,7 @@ product-scoped upload key is not allowed to publish releases.
 - A DistributionCenter product for Island.
 - A Sphere publisher editor token for one-time product and key management.
 - A product-scoped DistributionCenter upload key for CI.
-- A Sphere bearer token with publisher permission for the workflow publish step.
+- A publisher who reviews and publishes draft releases.
 - The Island workflow changes from this branch.
 
 The complete API contract is in `DistributionCenter/docs/MARKETPLACE_API.md`.
@@ -91,13 +91,11 @@ The upload key can only:
 
 It cannot publish, edit, yank, or delete releases.
 
-### 3. Prepare a publish token
+### 3. Prepare for human publication
 
-The workflow publishes after every successful versioned upload. Store a Sphere
-bearer token with publisher permission as `DISTRIBUTION_PUBLISH_TOKEN`.
-
-Do not use `DISTRIBUTION_UPLOAD_KEY` for this step. They are different
-credentials with different scopes.
+The workflow only uploads artifacts and leaves the release as a stable draft.
+After reviewing the artifacts, a publisher can publish the release by version.
+The publish operation is not performed by GitHub Actions.
 
 ## GitHub repository configuration
 
@@ -114,7 +112,6 @@ Configure these repository secrets:
 | Name | Value |
 | --- | --- |
 | `DISTRIBUTION_UPLOAD_KEY` | Plaintext product-scoped upload key |
-| `DISTRIBUTION_PUBLISH_TOKEN` | Sphere publisher bearer token |
 
 The existing Sentry and signing secrets remain unchanged.
 
@@ -136,8 +133,6 @@ Set secrets through standard input so they are not included in shell history:
 printf '%s' "$DISTRIBUTION_UPLOAD_KEY" |
   gh secret set DISTRIBUTION_UPLOAD_KEY --repo Solsynth/Solian
 
-printf '%s' "$DISTRIBUTION_PUBLISH_TOKEN" |
-  gh secret set DISTRIBUTION_PUBLISH_TOKEN --repo Solsynth/Solian
 ```
 
 Replace the example API URL and product UUID with the real deployment values.
@@ -285,7 +280,7 @@ variables and secrets listed above.
 Build Island with the Solsynth Express Dart defines. This client understands
 DistributionCenter release metadata and artifact download URLs.
 
-### 4. Publish a tagged canary release
+### 4. Upload a tagged canary release
 
 Push a tag with a version newer than the installed client:
 
@@ -301,7 +296,15 @@ gh run list --repo Solsynth/Solian --workflow build.yml
 gh run watch --repo Solsynth/Solian
 ```
 
-Confirm that the workflow completes the upload and publish steps.
+Confirm that the workflow completes the artifact upload steps and leaves the
+release as a draft.
+Review the draft artifacts, then publish the release manually using the
+publisher tooling or API:
+
+```http
+POST /api/products/{product_id}/releases/{version}/publish
+Authorization: Bearer <Sphere publisher token>
+```
 
 ### 5. Verify the published release
 
@@ -360,20 +363,19 @@ Check that `DISTRIBUTION_UPLOAD_KEY` is the plaintext key created for the same
 product UUID. Upload keys are product-scoped and are not interchangeable with
 Sphere publisher tokens.
 
-### Publishing returns 401 or 403
+### The draft is not visible as an update
 
-Check `DISTRIBUTION_PUBLISH_TOKEN`. It must be a valid Sphere bearer token with
-publisher permission. An upload key cannot publish.
+Draft releases are intentionally excluded from public update responses. A
+publisher must review the artifact set and publish the release manually using
+the release version:
 
-### The workflow creates a draft but does not publish it
+```http
+POST /api/products/{product_id}/releases/{version}/publish
+Authorization: Bearer <Sphere publisher token>
+```
 
-Inspect the publish step. It requires all of these values:
-
-- `DISTRIBUTION_API_BASE_URL`
-- `DISTRIBUTION_PRODUCT_ID`
-- `DISTRIBUTION_PUBLISH_TOKEN`
-
-The publish step is skipped when an upload step fails.
+The version path is resolved by DistributionCenter; the publisher does not
+need the internal release UUID.
 
 ### Island reports no update
 
