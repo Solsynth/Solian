@@ -52,11 +52,7 @@ DioException _testApiError() {
   final options = RequestOptions(path: '/debug/test-error');
   return DioException(
     requestOptions: options,
-    response: Response(
-      requestOptions: options,
-      statusCode: 409,
-      data: body,
-    ),
+    response: Response(requestOptions: options, statusCode: 409, data: body),
   );
 }
 
@@ -95,8 +91,7 @@ SnAccount _createTestAccount({
 }
 
 void _showMockCapabilityConflict(WidgetRef ref) {
-  final navigatorContext =
-      ref.read(routerProvider).navigatorKey.currentContext;
+  final navigatorContext = ref.read(routerProvider).navigatorKey.currentContext;
   if (navigatorContext == null || !navigatorContext.mounted) return;
   final metadata = <String, dynamic>{
     'api_revision': kSupportedServerApiRevision,
@@ -717,7 +712,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               );
             } else {
               showInfoAlert(
-                'Currently cannot get update from the GitHub.',
+                'Currently cannot get update from Solsynth Express.',
                 'Unable to check for updates',
               );
             }
@@ -1282,7 +1277,8 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             title: '[CallKit] Copy VoIP Token',
             onTap: () async {
               try {
-                final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+                final token =
+                    await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                 if (token != null) {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (!context.mounted) return;
@@ -1451,7 +1447,7 @@ class DebugSheet extends HookConsumerWidget {
                   await svc.showUpdateSheet(context, release);
                 } else {
                   showInfoAlert(
-                    'Currently cannot get update from the GitHub.',
+                    'Currently cannot get update from Solsynth Express.',
                     'Unable to check for updates',
                   );
                 }
@@ -2147,7 +2143,8 @@ class DebugSheet extends HookConsumerWidget {
                 title: const Text('[CallKit] Copy VoIP Token'),
                 onTap: () async {
                   try {
-                    final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+                    final token =
+                        await FlutterCallkitIncoming.getDevicePushTokenVoIP();
                     if (token != null) {
                       await Clipboard.setData(ClipboardData(text: token));
                       if (!context.mounted) return;
