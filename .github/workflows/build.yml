@@ -148,8 +148,7 @@ jobs:
           path: build/app/outputs/flutter-apk/app-*-release.apk
 
   # Configure repository variables DISTRIBUTION_API_BASE_URL and
-  # DISTRIBUTION_PRODUCT_ID, plus secrets DISTRIBUTION_UPLOAD_KEY and
-  # DISTRIBUTION_PUBLISH_TOKEN.
+  # DISTRIBUTION_PRODUCT_ID, plus secret DISTRIBUTION_UPLOAD_KEY.
   upload-to-distribution:
     needs: [build-exe, build-linux, build-android]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -243,18 +242,9 @@ jobs:
           platform: android
           architecture: x86_64
           mime-type: application/vnd.android.package-archive
-      - name: Publish release in Solsynth Express
-        if: success()
-        env:
-          API_BASE_URL: ${{ vars.DISTRIBUTION_API_BASE_URL }}
-          PRODUCT_ID: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
-          PUBLISH_TOKEN: ${{ secrets.DISTRIBUTION_PUBLISH_TOKEN }}
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: |
-          test -n "$API_BASE_URL"
-          test -n "$PRODUCT_ID"
-          test -n "$PUBLISH_TOKEN"
-          version="${RELEASE_VERSION#v}"
-          curl --fail-with-body --silent --show-error --request POST \
-            --header "Authorization: Bearer $PUBLISH_TOKEN" \
-            "$API_BASE_URL/products/$PRODUCT_ID/releases/$version/publish"
+      # Publishing remains a human-controlled operation. After reviewing the
+      # draft release, a publisher can call:
+      #
+      # curl --fail-with-body --silent --show-error --request POST \
+      #   --header "Authorization: Bearer $PUBLISH_TOKEN" \
+      #   "$API_BASE_URL/products/$PRODUCT_ID/releases/$VERSION/publish"
