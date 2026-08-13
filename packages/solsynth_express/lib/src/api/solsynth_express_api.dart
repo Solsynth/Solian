@@ -92,6 +92,16 @@ class SolsynthExpressApi {
     return distributionProductFromJson(data['product'] ?? data);
   }
 
+  Future<List<DistributionChannel>> listChannels() async {
+    final response = await _dio.get<dynamic>(_productPath('/channels'));
+    final rawChannels = distributionMap(response.data)['data'];
+    if (rawChannels is! List) return const [];
+    return rawChannels
+        .map(distributionChannelFromJson)
+        .whereType<DistributionChannel>()
+        .toList();
+  }
+
   Future<List<DistributionProduct>> listPublisherApps(
     String publisherName,
   ) async {

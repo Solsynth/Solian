@@ -38,4 +38,18 @@ void main() {
       '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
     );
   });
+
+  test('parses remote update channels with localized labels', () {
+    final channel = distributionChannelFromJson({
+      'id': 'channel-1',
+      'name': 'beta',
+      'display_name': 'Beta',
+      'display_names': {'zh-CN': '测试版'},
+    });
+
+    expect(channel, isNotNull);
+    expect(channel!.name, 'beta');
+    expect(channel.label('zh-CN'), '测试版');
+    expect(channel.label('en-US'), 'Beta');
+  });
 }

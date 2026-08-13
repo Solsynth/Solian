@@ -81,11 +81,26 @@ class SettingsScreen extends HookConsumerWidget {
     final pools = ref.watch(poolsProvider);
     final user = ref.watch(userInfoProvider);
     final docBasepath = useState<String?>(null);
+    final updateChecksEnabled = ref.watch(updateChecksEnabledProvider);
+    final updateChannel = ref.watch(updateChannelProvider);
     final latestReleaseRefreshNonce = useState(0);
+    final updateService = UpdateService(
+      channel: updateChannel,
+      productId: kDistributionProductId,
+      enabled: updateChecksEnabled,
+    );
     final latestRelease = useFuture(
-      useMemoized(() => UpdateService().fetchLatestRelease(), [
+      useMemoized(() => updateService.fetchLatestRelease(), [
         latestReleaseRefreshNonce.value,
+        updateChecksEnabled,
+        updateChannel,
       ]),
+    );
+    final remoteChannels = useFuture(
+      useMemoized(
+        () => UpdateService(productId: kDistributionProductId).fetchChannels(),
+        const [],
+      ),
     );
 
     useEffect(() {
@@ -95,6 +110,13 @@ class SettingsScreen extends HookConsumerWidget {
       return null;
     }, []);
 
+    final availableChannels =
+        remoteChannels.data ?? const <DistributionChannel>[];
+    final updateChannelNames = <String>{
+      kDefaultUpdateChannel,
+      updateChannel,
+      ...availableChannels.map((channel) => channel.name),
+    }.toList();
     final selectedCategoryId = useState('Appearance');
     final searchQuery = useState('');
     final searchController = useTextEditingController();
@@ -1816,16 +1838,75 @@ class SettingsScreen extends HookConsumerWidget {
             subtitle: Text('settingsCheckForUpdatesHelper').tr(),
             contentPadding: _kSettingsTilePadding,
             leading: const Icon(Symbols.update),
-            trailing: IconButton(
-              icon: const Icon(Symbols.refresh),
-              tooltip: 'refresh'.tr(),
-              onPressed: () {
-                latestReleaseRefreshNonce.value++;
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch(
+                  value: updateChecksEnabled,
+                  onChanged: (value) {
+                    ref
+                        .read(updateChecksEnabledProvider.notifier)
+                        .setEnabled(value);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  tooltip: 'refresh'.tr(),
+                  onPressed: () {
+                    latestReleaseRefreshNonce.value++;
+                  },
+                ),
+              ],
             ),
             onTap: () async {
-              await UpdateService().checkForUpdates(context);
+              await UpdateService(
+                channel: updateChannel,
+                productId: kDistributionProductId,
+                enabled: true,
+              ).checkForUpdates(context);
             },
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: const Text('Release channel'),
+            subtitle: remoteChannels.connectionState == ConnectionState.waiting
+                ? const Text('Fetching available channels...')
+                : remoteChannels.hasError
+                ? const Text('Unable to fetch channels; using stable')
+                : null,
+            contentPadding: _kSettingsTilePadding,
+            leading: const Icon(Symbols.tune),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: updateChannelNames
+                    .map(
+                      (name) => DropdownItem<String>(
+                        value: name,
+                        child: Text(
+                          availableChannels
+                                  .firstWhereOrNull(
+                                    (channel) => channel.name == name,
+                                  )
+                                  ?.label() ??
+                              name,
+                        ).fontSize(14),
+                      ),
+                    )
+                    .toList(),
+                valueListenable: ValueNotifier<String>(updateChannel),
+                onChanged: (value) {
+                  if (value != null) {
+                    ref.read(updateChannelProvider.notifier).setChannel(value);
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
           ),
           ListTile(
             minLeadingWidth: 48,
@@ -1843,7 +1924,7 @@ class SettingsScreen extends HookConsumerWidget {
             onTap: latestRelease.data == null
                 ? null
                 : () async {
-                    await UpdateService().showUpdateSheet(
+                    await updateService.showUpdateSheet(
                       context,
                       latestRelease.data!,
                     );

@@ -761,8 +761,9 @@ class AppWrapper extends HookConsumerWidget {
               version: packageInfo.version,
               isFirstLaunch: lastShownVersion == null,
               suggestAuth: token == null,
+              updateChecksEnabled: ref.read(updateChecksEnabledProvider),
+              updateChannel: ref.read(updateChannelProvider),
             );
-            await prefs.setString(kOnboardingLastShownVersion, currentVersion);
           }
         }
 
@@ -771,7 +772,11 @@ class AppWrapper extends HookConsumerWidget {
         Future<void> checkForUpdatesWhenReady([int retry = 0]) async {
           final ctx = ref.read(routerProvider).navigatorKey.currentContext;
           if (ctx != null && ctx.mounted) {
-            await UpdateService().checkForUpdates(ctx);
+            await UpdateService(
+              channel: ref.read(updateChannelProvider),
+              productId: kDistributionProductId,
+              enabled: ref.read(updateChecksEnabledProvider),
+            ).checkForUpdates(ctx);
             return;
           }
           if (retry >= 16) return;

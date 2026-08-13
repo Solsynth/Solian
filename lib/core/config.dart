@@ -104,10 +104,58 @@ const kAppDesktopNativeWindowFrame = 'app_desktop_native_window_frame';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
+const kAppUpdateChecksEnabled = 'app_update_checks_enabled';
+const kAppUpdateChannel = 'app_update_channel';
+const kDefaultUpdateChannel = 'stable';
+const kSolsynthExpressProductId = '5260a14a-97f3-431c-9c2a-b174a4de7d97';
+const kDistributionProductId = String.fromEnvironment(
+  'DISTRIBUTION_PRODUCT_ID',
+  defaultValue: kSolsynthExpressProductId,
+);
+
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError();
 });
+
+class UpdateChecksEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppUpdateChecksEnabled) ?? true;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppUpdateChecksEnabled, value);
+    state = value;
+  }
+}
+
+final updateChecksEnabledProvider =
+    NotifierProvider<UpdateChecksEnabledNotifier, bool>(
+      UpdateChecksEnabledNotifier.new,
+    );
+
+class UpdateChannelNotifier extends Notifier<String> {
+  @override
+  String build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getString(kAppUpdateChannel) ?? kDefaultUpdateChannel;
+  }
+
+  void setChannel(String value) {
+    final channel = value.trim();
+    if (channel.isEmpty) return;
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppUpdateChannel, channel);
+    state = channel;
+  }
+}
+
+final updateChannelProvider = NotifierProvider<UpdateChannelNotifier, String>(
+  UpdateChannelNotifier.new,
+);
 
 final serverUrlProvider = Provider<String>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
@@ -395,10 +443,12 @@ class DesktopNativeWindowFrameNotifier extends Notifier<bool> {
     state = value;
     if (!kIsWeb &&
         (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
-      Future(() => windowManager.setTitleBarStyle(
-            value ? TitleBarStyle.normal : TitleBarStyle.hidden,
-            windowButtonVisibility: true,
-          ));
+      Future(
+        () => windowManager.setTitleBarStyle(
+          value ? TitleBarStyle.normal : TitleBarStyle.hidden,
+          windowButtonVisibility: true,
+        ),
+      );
     }
   }
 }

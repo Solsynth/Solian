@@ -700,7 +700,10 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           icon: Symbols.update,
           title: 'Force update',
           onTap: () async {
-            final svc = UpdateService();
+            final svc = UpdateService(
+              channel: ref.read(updateChannelProvider),
+              productId: kDistributionProductId,
+            );
             showLoadingModal(context);
             final release = await svc.fetchLatestRelease();
             if (!context.mounted) return;
@@ -1438,7 +1441,10 @@ class DebugSheet extends HookConsumerWidget {
               title: Text('Force update'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () async {
-                final svc = UpdateService();
+                final svc = UpdateService(
+                  channel: ref.read(updateChannelProvider),
+                  productId: kDistributionProductId,
+                );
                 showLoadingModal(context);
                 final release = await svc.fetchLatestRelease();
                 if (!context.mounted) return;

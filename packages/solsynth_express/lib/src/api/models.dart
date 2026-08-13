@@ -95,6 +95,33 @@ class DistributionPublisher {
   final Map<String, dynamic> raw;
 }
 
+class DistributionChannel {
+  const DistributionChannel({
+    required this.id,
+    required this.name,
+    required this.displayName,
+    required this.displayNames,
+    required this.description,
+    required this.descriptions,
+    required this.latest,
+  });
+
+  final String id;
+  final String name;
+  final String displayName;
+  final Map<String, String> displayNames;
+  final String description;
+  final Map<String, String> descriptions;
+  final DistributionReleaseInfo? latest;
+
+  String label([String? locale]) {
+    if (locale != null && displayNames[locale]?.isNotEmpty == true) {
+      return displayNames[locale]!;
+    }
+    return displayName.isNotEmpty ? displayName : name;
+  }
+}
+
 class DistributionMarketplaceApp {
   const DistributionMarketplaceApp({
     required this.product,
@@ -227,5 +254,21 @@ DistributionPublisher? distributionPublisherFromJson(Object? value) {
     id: _string(map, 'id'),
     name: _string(map, 'name', _string(map, 'slug')),
     raw: map,
+  );
+}
+
+DistributionChannel? distributionChannelFromJson(Object? value) {
+  final map = distributionMap(value);
+  if (map.isEmpty) return null;
+  final name = _string(map, 'name');
+  if (name.isEmpty) return null;
+  return DistributionChannel(
+    id: _string(map, 'id'),
+    name: name,
+    displayName: _string(map, 'display_name', name),
+    displayNames: _strings(map['display_names']),
+    description: _string(map, 'description'),
+    descriptions: _strings(map['descriptions']),
+    latest: distributionReleaseFromJson(map['latest']),
   );
 }

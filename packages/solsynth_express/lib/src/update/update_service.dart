@@ -20,6 +20,7 @@ import '../api/solsynth_express_api.dart';
 import '../ui/update_sheet.dart';
 
 const bool kEnableBuiltInUpdate = true;
+const kDefaultDistributionProductId = '5260a14a-97f3-431c-9c2a-b174a4de7d97';
 
 /// High-level update facade for Flutter applications.
 class UpdateService {
@@ -29,6 +30,7 @@ class UpdateService {
     String? apiBaseUrl,
     String? productId,
     this.channel = 'stable',
+    this.enabled = true,
   }) : _api =
            api ??
            SolsynthExpressApi(
@@ -37,16 +39,22 @@ class UpdateService {
                  const String.fromEnvironment('DISTRIBUTION_API_BASE_URL'),
              productId:
                  productId ??
-                 const String.fromEnvironment('DISTRIBUTION_PRODUCT_ID'),
+                 const String.fromEnvironment(
+                   'DISTRIBUTION_PRODUCT_ID',
+                   defaultValue: kDefaultDistributionProductId,
+                 ),
              dio: dio,
            );
 
   final SolsynthExpressApi _api;
   final String channel;
+  final bool enabled;
 
   /// Checks for a newer release and presents [UpdateSheet] when one exists.
   Future<void> checkForUpdates(BuildContext context) async {
-    if (!kEnableBuiltInUpdate || kIsWeb || !_api.isConfigured) return;
+    if (!enabled || !kEnableBuiltInUpdate || kIsWeb || !_api.isConfigured) {
+      return;
+    }
     try {
       final info = await PackageInfo.fromPlatform();
       final target = await _currentTarget();
@@ -118,7 +126,7 @@ class UpdateService {
   }
 
   Future<DistributionReleaseInfo?> fetchLatestRelease() async {
-    if (!_api.isConfigured) return null;
+    if (!enabled || !_api.isConfigured) return null;
     final target = await _currentTarget();
     if (target == null) return null;
     return _api.fetchLatestRelease(
@@ -126,6 +134,11 @@ class UpdateService {
       platform: target.platform,
       architecture: target.architecture,
     );
+  }
+
+  Future<List<DistributionChannel>> fetchChannels() {
+    if (!_api.isConfigured) return Future.value(const []);
+    return _api.listChannels();
   }
 
   Future<int> cleanupPreviousUpdateArtifacts() async {

@@ -6,12 +6,15 @@ import 'package:island/auth/login_modal.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
 import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:island/core/config.dart';
 
 Future<void> showAppOnboardingSheet(
   BuildContext context, {
   required String version,
   required bool isFirstLaunch,
   required bool suggestAuth,
+  bool updateChecksEnabled = true,
+  String updateChannel = kDefaultUpdateChannel,
 }) async {
   final fullHeight = MediaQuery.sizeOf(context).height * 0.80;
   await showModalBottomSheet(
@@ -27,6 +30,8 @@ Future<void> showAppOnboardingSheet(
       version: version,
       isFirstLaunch: isFirstLaunch,
       suggestAuth: suggestAuth,
+      updateChecksEnabled: updateChecksEnabled,
+      updateChannel: updateChannel,
       height: fullHeight,
       onLogin: () => _showLoginSheet(context),
       onCreateAccount: () => _showCreateAccountSheet(context),
@@ -118,6 +123,8 @@ class _OnboardingSheet extends HookWidget {
   final String version;
   final bool isFirstLaunch;
   final bool suggestAuth;
+  final bool updateChecksEnabled;
+  final String updateChannel;
   final double height;
   final VoidCallback onLogin;
   final VoidCallback onCreateAccount;
@@ -126,6 +133,8 @@ class _OnboardingSheet extends HookWidget {
     required this.version,
     required this.isFirstLaunch,
     required this.suggestAuth,
+    required this.updateChecksEnabled,
+    required this.updateChannel,
     required this.height,
     required this.onLogin,
     required this.onCreateAccount,
@@ -141,7 +150,11 @@ class _OnboardingSheet extends HookWidget {
 
     useEffect(() {
       if (!isFirstLaunch) {
-        UpdateService()
+        UpdateService(
+              channel: updateChannel,
+              productId: kDistributionProductId,
+              enabled: updateChecksEnabled,
+            )
             .fetchLatestRelease()
             .then((release) {
               changelog.value = release?.body;
@@ -154,7 +167,7 @@ class _OnboardingSheet extends HookWidget {
         isLoading.value = false;
       }
       return null;
-    }, [isFirstLaunch]);
+    }, [isFirstLaunch, updateChecksEnabled, updateChannel]);
 
     final List<_OnboardingPageData> firstLaunchPages = [
       _OnboardingPageData(

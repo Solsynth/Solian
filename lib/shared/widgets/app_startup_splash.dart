@@ -12,6 +12,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/server_compatibility.dart';
+import 'package:island/core/config.dart';
 import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
@@ -393,7 +394,11 @@ class StartupSplashScreen extends HookConsumerWidget {
                         skipCompleterRef.value?.complete();
                       }
                     },
-                    onUpdate: () => UpdateService().checkForUpdates(context),
+                    onUpdate: () => UpdateService(
+                      channel: ref.read(updateChannelProvider),
+                      productId: kDistributionProductId,
+                      enabled: ref.read(updateChecksEnabledProvider),
+                    ).checkForUpdates(context),
                     textTheme: textTheme,
                     colorScheme: colorScheme,
                   ),
