@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:material_symbols_icons/symbols.dart';

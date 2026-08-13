@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/widgets/compose/article_sidebar_panel.dart';
 import 'package:island/shared/widgets/responsive_sidebar.dart';

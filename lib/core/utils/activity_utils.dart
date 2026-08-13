@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 String? getActivityTitle(String? label, Map<String, dynamic>? meta) {

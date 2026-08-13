@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/data/message.dart';

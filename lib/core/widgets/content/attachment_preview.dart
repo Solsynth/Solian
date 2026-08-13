@@ -7,7 +7,7 @@ import 'package:island/core/utils/share_utils.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/drive_service.dart';

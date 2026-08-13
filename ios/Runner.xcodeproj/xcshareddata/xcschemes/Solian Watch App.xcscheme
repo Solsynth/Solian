@@ -46,6 +46,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7310A7D32EB10962002C0FD3"
             BuildableName = "Solian Watch App.app"
+            BlueprintName = "Solian Watch App"
             ReferencedContainer = "container:Runner.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,6 +63,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7310A7D32EB10962002C0FD3"
             BuildableName = "Solian Watch App.app"
+            BlueprintName = "Solian Watch App"
             ReferencedContainer = "container:Runner.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

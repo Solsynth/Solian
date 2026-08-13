@@ -7,7 +7,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:web/web.dart' as web;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class OidcScreen extends ConsumerStatefulWidget {
   final String provider;

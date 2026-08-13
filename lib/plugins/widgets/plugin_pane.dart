@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:island/plugins/widgets/plugin_ui_bridge.dart';
 import 'package:island/plugins/widgets/plugin_pane_host.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';

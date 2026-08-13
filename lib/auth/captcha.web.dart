@@ -4,7 +4,7 @@ import 'package:island/core/config.dart';
 import 'package:island/auth/captcha.config.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:web/web.dart' as web;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CaptchaScreenContent extends ConsumerStatefulWidget {
   const CaptchaScreenContent({super.key});

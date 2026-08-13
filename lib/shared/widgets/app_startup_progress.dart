@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:material_symbols_icons/symbols.dart';
 

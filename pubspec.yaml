@@ -189,6 +189,8 @@ dependencies:
   flutter_callkit_incoming: ^3.1.5
   open_meteo: ^3.0.0
 
+  material_ui: any
+  cupertino_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

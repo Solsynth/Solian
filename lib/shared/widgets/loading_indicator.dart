@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A simple loading indicator widget that can be used throughout the app
 class LoadingIndicator extends StatelessWidget {

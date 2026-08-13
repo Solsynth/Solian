@@ -17,7 +17,7 @@ import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';

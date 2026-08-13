@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:gap/gap.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';

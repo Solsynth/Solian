@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:island/plugins/widgets/plugin_pane.dart';
 import 'package:island/plugins/widgets/plugin_pane_host.dart';
 
