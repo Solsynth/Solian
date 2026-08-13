@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solsynth_express/solsynth_express.dart';
 
@@ -51,5 +52,48 @@ void main() {
     expect(channel!.name, 'beta');
     expect(channel.label('zh-CN'), '测试版');
     expect(channel.label('en-US'), 'Beta');
+  });
+  test('allows optional release platform filters', () async {
+    Map<String, dynamic>? query;
+    final dio = Dio()
+      ..interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            query = Map<String, dynamic>.from(options.queryParameters);
+            handler.resolve(
+              Response<dynamic>(
+                requestOptions: options,
+                data: {
+                  'data': [
+                    {'version': '1.2.3'},
+                  ],
+                },
+              ),
+            );
+          },
+        ),
+      );
+    final api = SolsynthExpressApi(
+      baseUrl: 'https://distribution.example/api',
+      productId: 'product-1',
+      dio: dio,
+    );
+
+    final unfiltered = await api.fetchLatestRelease(channel: 'stable');
+    expect(unfiltered?.tagName, '1.2.3');
+    expect(query, {'channel': 'stable', 'limit': 1, 'offset': 0});
+
+    await api.fetchLatestRelease(
+      channel: 'beta',
+      platform: 'windows',
+      architecture: 'amd64',
+    );
+    expect(query, {
+      'channel': 'beta',
+      'platform': 'windows',
+      'architecture': 'amd64',
+      'limit': 1,
+      'offset': 0,
+    });
   });
 }

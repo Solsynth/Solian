@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as legacy_material;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -181,11 +182,16 @@ class CallWindowApp extends HookConsumerWidget {
         builder: (context, child) {
           // ignore: deprecated_member_use
           return MaterialUiCompatibilityBridge(
-            child: Overlay(
-              key: overlayKey,
-              initialEntries: [
-                OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-              ],
+            child: legacy_material.Material(
+              type: legacy_material.MaterialType.transparency,
+              child: Overlay(
+                key: overlayKey,
+                initialEntries: [
+                  OverlayEntry(
+                    builder: (_) => child ?? const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
           );
         },

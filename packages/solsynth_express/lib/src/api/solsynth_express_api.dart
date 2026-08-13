@@ -151,8 +151,8 @@ class SolsynthExpressApi {
 
   Future<DistributionReleaseInfo?> fetchLatestRelease({
     String channel = 'stable',
-    required String platform,
-    required String architecture,
+    String? platform,
+    String? architecture,
   }) async {
     final page = await listReleases(
       channel: channel,

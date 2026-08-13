@@ -20,6 +20,7 @@ import '../api/solsynth_express_api.dart';
 import '../ui/update_sheet.dart';
 
 const bool kEnableBuiltInUpdate = true;
+const kDefaultDistributionApiBaseUrl = 'https://api.solian.app/dist';
 const kDefaultDistributionProductId = '5260a14a-97f3-431c-9c2a-b174a4de7d97';
 
 /// High-level update facade for Flutter applications.
@@ -36,7 +37,10 @@ class UpdateService {
            SolsynthExpressApi(
              baseUrl:
                  apiBaseUrl ??
-                 const String.fromEnvironment('DISTRIBUTION_API_BASE_URL'),
+                 const String.fromEnvironment(
+                   'DISTRIBUTION_API_BASE_URL',
+                   defaultValue: kDefaultDistributionApiBaseUrl,
+                 ),
              productId:
                  productId ??
                  const String.fromEnvironment(
@@ -125,14 +129,15 @@ class UpdateService {
     );
   }
 
-  Future<DistributionReleaseInfo?> fetchLatestRelease() async {
+  Future<DistributionReleaseInfo?> fetchLatestRelease({
+    String? platform,
+    String? architecture,
+  }) async {
     if (!enabled || !_api.isConfigured) return null;
-    final target = await _currentTarget();
-    if (target == null) return null;
     return _api.fetchLatestRelease(
       channel: channel,
-      platform: target.platform,
-      architecture: target.architecture,
+      platform: platform,
+      architecture: architecture,
     );
   }
 
