@@ -179,11 +179,14 @@ class CallWindowApp extends HookConsumerWidget {
         darkTheme: theme.dark,
         themeMode: getThemeMode(),
         builder: (context, child) {
-          return Overlay(
-            key: overlayKey,
-            initialEntries: [
-              OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
-            ],
+          // ignore: deprecated_member_use
+          return MaterialUiCompatibilityBridge(
+            child: Overlay(
+              key: overlayKey,
+              initialEntries: [
+                OverlayEntry(builder: (_) => child ?? const SizedBox.shrink()),
+              ],
+            ),
           );
         },
         home: _CallWindowHome(args: args),

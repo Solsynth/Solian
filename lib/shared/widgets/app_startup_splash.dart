@@ -12,7 +12,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/server_compatibility.dart';
-import 'package:island/core/services/update_service.dart';
+import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
@@ -254,9 +254,7 @@ class StartupSplashScreen extends HookConsumerWidget {
                 ? 'startupServerUpdateRequired'.tr()
                 : 'startupServerIncompatible'.tr();
           } else {
-            warning = 'startupStageFailedAfterRetries'.tr(
-              args: [stage.label],
-            );
+            warning = 'startupStageFailedAfterRetries'.tr(args: [stage.label]);
           }
           warnings.value = [...warnings.value, warning];
           subtitle.value = '$warning ${'startupLimitedFunctionality'.tr()}';

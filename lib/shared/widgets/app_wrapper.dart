@@ -56,7 +56,7 @@ import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:gap/gap.dart';
-import 'package:island/core/services/update_service.dart';
+import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/core/tour/tour.dart';
 import 'package:island/core/services/event_bus.dart';

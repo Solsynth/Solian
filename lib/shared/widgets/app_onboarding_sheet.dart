@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:island/auth/create_account_modal.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
-import 'package:island/core/services/update_service.dart';
+import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 
 Future<void> showAppOnboardingSheet(

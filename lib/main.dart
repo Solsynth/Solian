@@ -555,17 +555,22 @@ class IslandApp extends HookConsumerWidget {
       ],
       locale: context.locale,
       builder: (context, child) {
-        return Overlay(
-          key: globalOverlay,
-          initialEntries: [
-            OverlayEntry(
-              builder: (_) {
-                return WindowScaffold(
-                  child: AppWrapper(child: child ?? const SizedBox.shrink()),
-                );
-              },
-            ),
-          ],
+        // ignore: deprecated_member_use
+        return MaterialUiCompatibilityBridge(
+          // Legacy packages still read Theme.of(context) from Flutter's
+          // material.dart library.
+          child: Overlay(
+            key: globalOverlay,
+            initialEntries: [
+              OverlayEntry(
+                builder: (_) {
+                  return WindowScaffold(
+                    child: AppWrapper(child: child ?? const SizedBox.shrink()),
+                  );
+                },
+              ),
+            ],
+          ),
         );
       },
     );
