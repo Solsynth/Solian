@@ -22,7 +22,7 @@ import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/core/services/update_service.dart';
+import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/activity/activity_rpc.dart';
 import 'package:island/misc/connectivity_self_check_screen.dart';
 import 'package:island/misc/about_content.dart';

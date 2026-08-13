@@ -1,0 +1,35 @@
+name: solsynth_express
+description: Solsynth Express marketplace, release update, and artifact upload client for Flutter.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+dependencies:
+  archive: ^4.0.9
+  crypto: ^3.0.7
+  device_info_plus: ^12.4.0
+  dio: ^5.11.0
+  easy_localization: ^3.0.8
+  flutter:
+    sdk: flutter
+  flutter_app_update:
+    path: ../flutter_app_update
+  island_ui_foundation:
+    path: ../island_ui_foundation
+  logging: ^1.3.0
+  material_symbols_icons: ^4.2960.0
+  package_info_plus: ^9.0.1
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  process_run: ^1.3.4+1
+  solar_network_foundation:
+    path: ../solar_network_foundation
+  styled_widget: ^0.4.1
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

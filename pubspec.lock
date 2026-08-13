@@ -719,7 +719,7 @@ packages:
     source: hosted
     version: "4.5.2"
   flutter_app_update:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "packages/flutter_app_update"
       relative: true
@@ -2314,7 +2314,7 @@ packages:
     source: hosted
     version: "2.1.0"
   process_run:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: process_run
       sha256: dadbf4986ddab79086a107b2f893bacd580a523453f76238bc0c13a9faa982af
@@ -2883,6 +2883,13 @@ packages:
       relative: true
     source: path
     version: "1.0.0"
+  solsynth_express:
+    dependency: "direct main"
+    description:
+      path: "packages/solsynth_express"
+      relative: true
+    source: path
+    version: "0.1.0"
   source_gen:
     dependency: transitive
     description:

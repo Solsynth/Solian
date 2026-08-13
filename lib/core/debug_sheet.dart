@@ -14,7 +14,7 @@ import 'package:island/core/database.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/server_capabilities.g.dart';
-import 'package:island/core/services/update_service.dart';
+import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/core/services/notify.dart' as local_notify;
 import 'package:island/drive/drive_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
