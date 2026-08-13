@@ -624,6 +624,583 @@ as Map<String, double>,
 
 
 /// @nodoc
+mixin _$SnWalletExchangeOption {
+
+ String get sourceCurrency; double get sourceAmount; String get targetCurrency; double get targetAmount;
+/// Create a copy of SnWalletExchangeOption
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletExchangeOptionCopyWith<SnWalletExchangeOption> get copyWith => _$SnWalletExchangeOptionCopyWithImpl<SnWalletExchangeOption>(this as SnWalletExchangeOption, _$identity);
+
+  /// Serializes this SnWalletExchangeOption to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletExchangeOption&&(identical(other.sourceCurrency, sourceCurrency) || other.sourceCurrency == sourceCurrency)&&(identical(other.sourceAmount, sourceAmount) || other.sourceAmount == sourceAmount)&&(identical(other.targetCurrency, targetCurrency) || other.targetCurrency == targetCurrency)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,sourceCurrency,sourceAmount,targetCurrency,targetAmount);
+
+@override
+String toString() {
+  return 'SnWalletExchangeOption(sourceCurrency: $sourceCurrency, sourceAmount: $sourceAmount, targetCurrency: $targetCurrency, targetAmount: $targetAmount)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletExchangeOptionCopyWith<$Res>  {
+  factory $SnWalletExchangeOptionCopyWith(SnWalletExchangeOption value, $Res Function(SnWalletExchangeOption) _then) = _$SnWalletExchangeOptionCopyWithImpl;
+@useResult
+$Res call({
+ String sourceCurrency, double sourceAmount, String targetCurrency, double targetAmount
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnWalletExchangeOptionCopyWithImpl<$Res>
+    implements $SnWalletExchangeOptionCopyWith<$Res> {
+  _$SnWalletExchangeOptionCopyWithImpl(this._self, this._then);
+
+  final SnWalletExchangeOption _self;
+  final $Res Function(SnWalletExchangeOption) _then;
+
+/// Create a copy of SnWalletExchangeOption
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? sourceCurrency = null,Object? sourceAmount = null,Object? targetCurrency = null,Object? targetAmount = null,}) {
+  return _then(SnWalletExchangeOption(
+sourceCurrency: null == sourceCurrency ? _self.sourceCurrency : sourceCurrency // ignore: cast_nullable_to_non_nullable
+as String,sourceAmount: null == sourceAmount ? _self.sourceAmount : sourceAmount // ignore: cast_nullable_to_non_nullable
+as double,targetCurrency: null == targetCurrency ? _self.targetCurrency : targetCurrency // ignore: cast_nullable_to_non_nullable
+as String,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnWalletExchangeOption].
+extension SnWalletExchangeOptionPatterns on SnWalletExchangeOption {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnWalletExchangeOption value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnWalletExchangeOption() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnWalletExchangeOption value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletExchangeOption():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnWalletExchangeOption value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletExchangeOption() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String sourceCurrency,  double sourceAmount,  String targetCurrency,  double targetAmount)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnWalletExchangeOption() when $default != null:
+return $default(_that.sourceCurrency,_that.sourceAmount,_that.targetCurrency,_that.targetAmount);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String sourceCurrency,  double sourceAmount,  String targetCurrency,  double targetAmount)  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletExchangeOption():
+return $default(_that.sourceCurrency,_that.sourceAmount,_that.targetCurrency,_that.targetAmount);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String sourceCurrency,  double sourceAmount,  String targetCurrency,  double targetAmount)?  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletExchangeOption() when $default != null:
+return $default(_that.sourceCurrency,_that.sourceAmount,_that.targetCurrency,_that.targetAmount);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletExchangeOption implements SnWalletExchangeOption {
+  const _SnWalletExchangeOption({required this.sourceCurrency, required this.sourceAmount, required this.targetCurrency, required this.targetAmount});
+  factory _SnWalletExchangeOption.fromJson(Map<String, dynamic> json) => _$SnWalletExchangeOptionFromJson(json);
+
+@override final  String sourceCurrency;
+@override final  double sourceAmount;
+@override final  String targetCurrency;
+@override final  double targetAmount;
+
+/// Create a copy of SnWalletExchangeOption
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletExchangeOptionCopyWith<_SnWalletExchangeOption> get copyWith => __$SnWalletExchangeOptionCopyWithImpl<_SnWalletExchangeOption>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletExchangeOptionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletExchangeOption&&(identical(other.sourceCurrency, sourceCurrency) || other.sourceCurrency == sourceCurrency)&&(identical(other.sourceAmount, sourceAmount) || other.sourceAmount == sourceAmount)&&(identical(other.targetCurrency, targetCurrency) || other.targetCurrency == targetCurrency)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,sourceCurrency,sourceAmount,targetCurrency,targetAmount);
+
+@override
+String toString() {
+  return 'SnWalletExchangeOption(sourceCurrency: $sourceCurrency, sourceAmount: $sourceAmount, targetCurrency: $targetCurrency, targetAmount: $targetAmount)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletExchangeOptionCopyWith<$Res> implements $SnWalletExchangeOptionCopyWith<$Res> {
+  factory _$SnWalletExchangeOptionCopyWith(_SnWalletExchangeOption value, $Res Function(_SnWalletExchangeOption) _then) = __$SnWalletExchangeOptionCopyWithImpl;
+@override @useResult
+$Res call({
+ String sourceCurrency, double sourceAmount, String targetCurrency, double targetAmount
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnWalletExchangeOptionCopyWithImpl<$Res>
+    implements _$SnWalletExchangeOptionCopyWith<$Res> {
+  __$SnWalletExchangeOptionCopyWithImpl(this._self, this._then);
+
+  final _SnWalletExchangeOption _self;
+  final $Res Function(_SnWalletExchangeOption) _then;
+
+/// Create a copy of SnWalletExchangeOption
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? sourceCurrency = null,Object? sourceAmount = null,Object? targetCurrency = null,Object? targetAmount = null,}) {
+  return _then(_SnWalletExchangeOption(
+sourceCurrency: null == sourceCurrency ? _self.sourceCurrency : sourceCurrency // ignore: cast_nullable_to_non_nullable
+as String,sourceAmount: null == sourceAmount ? _self.sourceAmount : sourceAmount // ignore: cast_nullable_to_non_nullable
+as double,targetCurrency: null == targetCurrency ? _self.targetCurrency : targetCurrency // ignore: cast_nullable_to_non_nullable
+as String,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnWalletExchangeResponse {
+
+ String get walletId; String get sourceCurrency; double get sourceAmount; String get targetCurrency; double get targetAmount; SnTransaction get debitTransaction; SnTransaction get creditTransaction;
+/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnWalletExchangeResponseCopyWith<SnWalletExchangeResponse> get copyWith => _$SnWalletExchangeResponseCopyWithImpl<SnWalletExchangeResponse>(this as SnWalletExchangeResponse, _$identity);
+
+  /// Serializes this SnWalletExchangeResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletExchangeResponse&&(identical(other.walletId, walletId) || other.walletId == walletId)&&(identical(other.sourceCurrency, sourceCurrency) || other.sourceCurrency == sourceCurrency)&&(identical(other.sourceAmount, sourceAmount) || other.sourceAmount == sourceAmount)&&(identical(other.targetCurrency, targetCurrency) || other.targetCurrency == targetCurrency)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount)&&(identical(other.debitTransaction, debitTransaction) || other.debitTransaction == debitTransaction)&&(identical(other.creditTransaction, creditTransaction) || other.creditTransaction == creditTransaction));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,walletId,sourceCurrency,sourceAmount,targetCurrency,targetAmount,debitTransaction,creditTransaction);
+
+@override
+String toString() {
+  return 'SnWalletExchangeResponse(walletId: $walletId, sourceCurrency: $sourceCurrency, sourceAmount: $sourceAmount, targetCurrency: $targetCurrency, targetAmount: $targetAmount, debitTransaction: $debitTransaction, creditTransaction: $creditTransaction)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnWalletExchangeResponseCopyWith<$Res>  {
+  factory $SnWalletExchangeResponseCopyWith(SnWalletExchangeResponse value, $Res Function(SnWalletExchangeResponse) _then) = _$SnWalletExchangeResponseCopyWithImpl;
+@useResult
+$Res call({
+ String walletId, String sourceCurrency, double sourceAmount, String targetCurrency, double targetAmount, SnTransaction debitTransaction, SnTransaction creditTransaction
+});
+
+
+$SnTransactionCopyWith<$Res> get debitTransaction;$SnTransactionCopyWith<$Res> get creditTransaction;
+
+}
+/// @nodoc
+class _$SnWalletExchangeResponseCopyWithImpl<$Res>
+    implements $SnWalletExchangeResponseCopyWith<$Res> {
+  _$SnWalletExchangeResponseCopyWithImpl(this._self, this._then);
+
+  final SnWalletExchangeResponse _self;
+  final $Res Function(SnWalletExchangeResponse) _then;
+
+/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? walletId = null,Object? sourceCurrency = null,Object? sourceAmount = null,Object? targetCurrency = null,Object? targetAmount = null,Object? debitTransaction = null,Object? creditTransaction = null,}) {
+  return _then(SnWalletExchangeResponse(
+walletId: null == walletId ? _self.walletId : walletId // ignore: cast_nullable_to_non_nullable
+as String,sourceCurrency: null == sourceCurrency ? _self.sourceCurrency : sourceCurrency // ignore: cast_nullable_to_non_nullable
+as String,sourceAmount: null == sourceAmount ? _self.sourceAmount : sourceAmount // ignore: cast_nullable_to_non_nullable
+as double,targetCurrency: null == targetCurrency ? _self.targetCurrency : targetCurrency // ignore: cast_nullable_to_non_nullable
+as String,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
+as double,debitTransaction: null == debitTransaction ? _self.debitTransaction : debitTransaction // ignore: cast_nullable_to_non_nullable
+as SnTransaction,creditTransaction: null == creditTransaction ? _self.creditTransaction : creditTransaction // ignore: cast_nullable_to_non_nullable
+as SnTransaction,
+  ));
+}
+/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnTransactionCopyWith<$Res> get debitTransaction {
+
+  return $SnTransactionCopyWith<$Res>(_self.debitTransaction, (value) {
+    return _then(_self.copyWith(debitTransaction: value));
+  });
+}/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnTransactionCopyWith<$Res> get creditTransaction {
+
+  return $SnTransactionCopyWith<$Res>(_self.creditTransaction, (value) {
+    return _then(_self.copyWith(creditTransaction: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnWalletExchangeResponse].
+extension SnWalletExchangeResponsePatterns on SnWalletExchangeResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnWalletExchangeResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnWalletExchangeResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnWalletExchangeResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletExchangeResponse():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnWalletExchangeResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnWalletExchangeResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String walletId,  String sourceCurrency,  double sourceAmount,  String targetCurrency,  double targetAmount,  SnTransaction debitTransaction,  SnTransaction creditTransaction)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnWalletExchangeResponse() when $default != null:
+return $default(_that.walletId,_that.sourceCurrency,_that.sourceAmount,_that.targetCurrency,_that.targetAmount,_that.debitTransaction,_that.creditTransaction);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String walletId,  String sourceCurrency,  double sourceAmount,  String targetCurrency,  double targetAmount,  SnTransaction debitTransaction,  SnTransaction creditTransaction)  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletExchangeResponse():
+return $default(_that.walletId,_that.sourceCurrency,_that.sourceAmount,_that.targetCurrency,_that.targetAmount,_that.debitTransaction,_that.creditTransaction);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String walletId,  String sourceCurrency,  double sourceAmount,  String targetCurrency,  double targetAmount,  SnTransaction debitTransaction,  SnTransaction creditTransaction)?  $default,) {final _that = this;
+switch (_that) {
+case _SnWalletExchangeResponse() when $default != null:
+return $default(_that.walletId,_that.sourceCurrency,_that.sourceAmount,_that.targetCurrency,_that.targetAmount,_that.debitTransaction,_that.creditTransaction);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnWalletExchangeResponse implements SnWalletExchangeResponse {
+  const _SnWalletExchangeResponse({required this.walletId, required this.sourceCurrency, required this.sourceAmount, required this.targetCurrency, required this.targetAmount, required this.debitTransaction, required this.creditTransaction});
+  factory _SnWalletExchangeResponse.fromJson(Map<String, dynamic> json) => _$SnWalletExchangeResponseFromJson(json);
+
+@override final  String walletId;
+@override final  String sourceCurrency;
+@override final  double sourceAmount;
+@override final  String targetCurrency;
+@override final  double targetAmount;
+@override final  SnTransaction debitTransaction;
+@override final  SnTransaction creditTransaction;
+
+/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnWalletExchangeResponseCopyWith<_SnWalletExchangeResponse> get copyWith => __$SnWalletExchangeResponseCopyWithImpl<_SnWalletExchangeResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnWalletExchangeResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletExchangeResponse&&(identical(other.walletId, walletId) || other.walletId == walletId)&&(identical(other.sourceCurrency, sourceCurrency) || other.sourceCurrency == sourceCurrency)&&(identical(other.sourceAmount, sourceAmount) || other.sourceAmount == sourceAmount)&&(identical(other.targetCurrency, targetCurrency) || other.targetCurrency == targetCurrency)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount)&&(identical(other.debitTransaction, debitTransaction) || other.debitTransaction == debitTransaction)&&(identical(other.creditTransaction, creditTransaction) || other.creditTransaction == creditTransaction));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,walletId,sourceCurrency,sourceAmount,targetCurrency,targetAmount,debitTransaction,creditTransaction);
+
+@override
+String toString() {
+  return 'SnWalletExchangeResponse(walletId: $walletId, sourceCurrency: $sourceCurrency, sourceAmount: $sourceAmount, targetCurrency: $targetCurrency, targetAmount: $targetAmount, debitTransaction: $debitTransaction, creditTransaction: $creditTransaction)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnWalletExchangeResponseCopyWith<$Res> implements $SnWalletExchangeResponseCopyWith<$Res> {
+  factory _$SnWalletExchangeResponseCopyWith(_SnWalletExchangeResponse value, $Res Function(_SnWalletExchangeResponse) _then) = __$SnWalletExchangeResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ String walletId, String sourceCurrency, double sourceAmount, String targetCurrency, double targetAmount, SnTransaction debitTransaction, SnTransaction creditTransaction
+});
+
+
+@override $SnTransactionCopyWith<$Res> get debitTransaction;@override $SnTransactionCopyWith<$Res> get creditTransaction;
+
+}
+/// @nodoc
+class __$SnWalletExchangeResponseCopyWithImpl<$Res>
+    implements _$SnWalletExchangeResponseCopyWith<$Res> {
+  __$SnWalletExchangeResponseCopyWithImpl(this._self, this._then);
+
+  final _SnWalletExchangeResponse _self;
+  final $Res Function(_SnWalletExchangeResponse) _then;
+
+/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? walletId = null,Object? sourceCurrency = null,Object? sourceAmount = null,Object? targetCurrency = null,Object? targetAmount = null,Object? debitTransaction = null,Object? creditTransaction = null,}) {
+  return _then(_SnWalletExchangeResponse(
+walletId: null == walletId ? _self.walletId : walletId // ignore: cast_nullable_to_non_nullable
+as String,sourceCurrency: null == sourceCurrency ? _self.sourceCurrency : sourceCurrency // ignore: cast_nullable_to_non_nullable
+as String,sourceAmount: null == sourceAmount ? _self.sourceAmount : sourceAmount // ignore: cast_nullable_to_non_nullable
+as double,targetCurrency: null == targetCurrency ? _self.targetCurrency : targetCurrency // ignore: cast_nullable_to_non_nullable
+as String,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
+as double,debitTransaction: null == debitTransaction ? _self.debitTransaction : debitTransaction // ignore: cast_nullable_to_non_nullable
+as SnTransaction,creditTransaction: null == creditTransaction ? _self.creditTransaction : creditTransaction // ignore: cast_nullable_to_non_nullable
+as SnTransaction,
+  ));
+}
+
+/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnTransactionCopyWith<$Res> get debitTransaction {
+
+  return $SnTransactionCopyWith<$Res>(_self.debitTransaction, (value) {
+    return _then(_self.copyWith(debitTransaction: value));
+  });
+}/// Create a copy of SnWalletExchangeResponse
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnTransactionCopyWith<$Res> get creditTransaction {
+
+  return $SnTransactionCopyWith<$Res>(_self.creditTransaction, (value) {
+    return _then(_self.copyWith(creditTransaction: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$SnWalletPocket {
 
  String get id; String get currency; double get amount; double get heldAmount; String get walletId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;

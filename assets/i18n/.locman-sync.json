@@ -28606,6 +28606,30 @@
       "sourceHash": "c2600a8593e4ae91",
       "translations": {}
     },
+    "walletExchangeTitle": {
+      "sourceHash": "d60a318dd8a0cdc8",
+      "translations": {}
+    },
+    "walletExchangeRate": {
+      "sourceHash": "c42b0984ec1c79e8",
+      "translations": {}
+    },
+    "walletExchangePreview": {
+      "sourceHash": "25585436b592c581",
+      "translations": {}
+    },
+    "walletExchangeSubmit": {
+      "sourceHash": "d60a318dd8a0cdc8",
+      "translations": {}
+    },
+    "walletExchangeUnavailable": {
+      "sourceHash": "d1012df03f373c39",
+      "translations": {}
+    },
+    "walletExchangeSuccess": {
+      "sourceHash": "0c551a731e142bb2",
+      "translations": {}
+    },
     "walletFundContribute": {
       "sourceHash": "97b0c61b99f65f9e",
       "translations": {}

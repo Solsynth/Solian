@@ -80,6 +80,40 @@ class WalletApi extends BaseApi {
   }
 
   // ==========================================
+  // Currency exchange endpoints
+  // ==========================================
+
+  /// Gets the configured one-way currency exchange rates.
+  Future<List<SnWalletExchangeOption>> getCurrencyExchanges() async {
+    final response = await get<List<dynamic>>('$_basePath/wallets/exchange');
+    return parseList(response, SnWalletExchangeOption.fromJson);
+  }
+
+  /// Exchanges currency from the current user's wallet.
+  ///
+  /// [amount] - The source currency amount.
+  /// [currency] - The configured source currency.
+  /// [walletId] - Optional source wallet ID.
+  /// [remark] - Optional transaction remark.
+  Future<SnWalletExchangeResponse> exchangeCurrency({
+    required double amount,
+    required String currency,
+    String? walletId,
+    String? remark,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets/exchange',
+      data: {
+        'amount': amount,
+        'currency': currency,
+        'wallet_id': ?walletId,
+        'remark': ?remark,
+      },
+    );
+    return SnWalletExchangeResponse.fromJson(response.data!);
+  }
+
+  // ==========================================
   // Fund endpoints
   // ==========================================
 

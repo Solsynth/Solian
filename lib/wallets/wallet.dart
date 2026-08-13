@@ -83,6 +83,281 @@ Future<SnWalletStats> walletStats(Ref ref) async {
   return await client.wallet.getWalletStats();
 }
 
+@riverpod
+Future<List<SnWalletExchangeOption>> walletExchangeOptions(Ref ref) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return client.wallet.getCurrencyExchanges();
+}
+
+class ExchangeCurrencySheet extends ConsumerStatefulWidget {
+  final String? walletId;
+
+  const ExchangeCurrencySheet({super.key, this.walletId});
+
+  @override
+  ConsumerState<ExchangeCurrencySheet> createState() =>
+      _ExchangeCurrencySheetState();
+}
+
+class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
+  final amountController = TextEditingController();
+  String? selectedSourceCurrency;
+  bool isSubmitting = false;
+
+  @override
+  void dispose() {
+    amountController.dispose();
+    super.dispose();
+  }
+
+  double? _parseAmount() {
+    final amount = double.tryParse(amountController.text.trim());
+    if (amount == null || amount <= 0) return null;
+    return amount;
+  }
+
+  double _calculateTargetAmount(double amount, SnWalletExchangeOption option) {
+    final targetAmount = amount * option.targetAmount / option.sourceAmount;
+    return (targetAmount * 1000).truncateToDouble() / 1000;
+  }
+
+  Future<void> _submitExchange(SnWalletExchangeOption option) async {
+    final amount = _parseAmount();
+    if (amount == null) {
+      showSnackBar('invalidAmount'.tr());
+      return;
+    }
+
+    setState(() => isSubmitting = true);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      final result = await client.wallet.exchangeCurrency(
+        amount: amount,
+        currency: option.sourceCurrency,
+        walletId: widget.walletId,
+      );
+      ref.invalidate(walletListProvider);
+      ref.invalidate(walletCurrentProvider);
+      ref.invalidate(walletStatsProvider);
+      if (mounted) Navigator.of(context).pop(result);
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (mounted) setState(() => isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final exchanges = ref.watch(walletExchangeOptionsProvider);
+
+    return SheetScaffold(
+      titleText: 'walletExchangeTitle'.tr(),
+      child: exchanges.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(error.toString(), textAlign: TextAlign.center),
+          ),
+        ),
+        data: (options) {
+          if (options.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'walletExchangeUnavailable'.tr(),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          final effectiveSourceCurrency =
+              options.any(
+                (option) => option.sourceCurrency == selectedSourceCurrency,
+              )
+              ? selectedSourceCurrency!
+              : options.first.sourceCurrency;
+          final selectedOption = options.firstWhere(
+            (option) => option.sourceCurrency == effectiveSourceCurrency,
+          );
+          final amount = _parseAmount();
+          final targetAmount = amount == null
+              ? null
+              : _calculateTargetAmount(amount, selectedOption);
+
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 16,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: 8,
+                        children: [
+                          Text(
+                            'walletExchangeRate'.tr(),
+                            style: theme.textTheme.labelLarge,
+                          ),
+                          DropdownButtonHideUnderline(
+                            child: DropdownButton2<String>(
+                              isExpanded: true,
+                              valueListenable: ValueNotifier(
+                                effectiveSourceCurrency,
+                              ),
+                              items: options.map((option) {
+                                return DropdownItem(
+                                  value: option.sourceCurrency,
+                                  child: Text(
+                                    '${option.sourceAmount} ${option.sourceCurrency} → '
+                                    '${option.targetAmount} ${option.targetCurrency}',
+                                  ).padding(left: 16, right: 8),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(
+                                    () => selectedSourceCurrency = value,
+                                  );
+                                }
+                              },
+                              selectedItemBuilder: (context) {
+                                return options.map((option) {
+                                  return Text(
+                                    '${option.sourceAmount} ${option.sourceCurrency} → '
+                                    '${option.targetAmount} ${option.targetCurrency}',
+                                  );
+                                }).toList();
+                              },
+                              buttonStyleData: ButtonStyleData(
+                                padding: const EdgeInsets.only(
+                                  left: 16,
+                                  right: 8,
+                                ),
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: theme.colorScheme.outline,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              dropdownStyleData: DropdownStyleData(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              menuItemStyleData: const MenuItemStyleData(
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextField(
+                        controller: amountController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d+\.?\d{0,3}'),
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: 'amount'.tr(),
+                          hintText: '0.000',
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 9,
+                            horizontal: 16,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onChanged: (_) => setState(() {}),
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 8,
+                          children: [
+                            Text(
+                              'walletExchangePreview'.tr(),
+                              style: theme.textTheme.labelLarge,
+                            ),
+                            Text(
+                              amount == null
+                                  ? '—'
+                                  : '${amount.toStringAsFixed(3)} '
+                                        '${selectedOption.sourceCurrency} → '
+                                        '${targetAmount!.toStringAsFixed(3)} '
+                                        '${selectedOption.targetCurrency}',
+                              style: theme.textTheme.titleMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: Text('cancel'.tr()),
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () => _submitExchange(selectedOption),
+                        child: isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text('walletExchangeSubmit'.tr()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 final walletStatsFilteredProvider = FutureProvider.autoDispose
     .family<SnWalletStats, ({String walletId, String currency, int period})>((
       ref,
@@ -2394,6 +2669,28 @@ class WalletScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> exchangeCurrency() async {
+      final result = await showModalBottomSheet<SnWalletExchangeResponse>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (context) =>
+            ExchangeCurrencySheet(walletId: selectedWalletId.value),
+      );
+
+      if (result == null || !context.mounted) return;
+      showSnackBar(
+        'walletExchangeSuccess'.tr(
+          namedArgs: {
+            'sourceAmount': result.sourceAmount.toStringAsFixed(3),
+            'sourceCurrency': result.sourceCurrency,
+            'targetAmount': result.targetAmount.toStringAsFixed(3),
+            'targetCurrency': result.targetCurrency,
+          },
+        ),
+      );
+    }
+
     List<SnWalletPocket> getAllCurrencies(List<SnWalletPocket> pockets) {
       final allCurrencies = <String>{};
       allCurrencies.addAll(kCurrencyIconData.keys);
@@ -2485,6 +2782,7 @@ class WalletScreen extends HookConsumerWidget {
                   context,
                   createTransfer,
                   createFund,
+                  exchangeCurrency,
                 ).padding(horizontal: 16, bottom: 8, top: 8),
               ),
 
@@ -3049,8 +3347,11 @@ class WalletScreen extends HookConsumerWidget {
     BuildContext context,
     Future<void> Function() onAddMoney,
     Future<void> Function() onSendMoney,
+    Future<void> Function() onExchange,
   ) {
+    final color = Theme.of(context).colorScheme.primary;
     return Column(
+      spacing: 12,
       children: [
         Row(
           children: [
@@ -3059,7 +3360,7 @@ class WalletScreen extends HookConsumerWidget {
                 context,
                 'transfer'.tr(),
                 Symbols.arrow_outward,
-                Theme.of(context).colorScheme.primary,
+                color,
                 onAddMoney,
               ),
             ),
@@ -3069,11 +3370,18 @@ class WalletScreen extends HookConsumerWidget {
                 context,
                 'createFund'.tr(),
                 Symbols.money_bag,
-                Theme.of(context).colorScheme.primary,
+                color,
                 onSendMoney,
               ),
             ),
           ],
+        ),
+        _buildActionButton(
+          context,
+          'walletExchangeTitle'.tr(),
+          Symbols.currency_exchange,
+          color,
+          onExchange,
         ),
       ],
     );

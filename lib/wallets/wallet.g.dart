@@ -195,6 +195,48 @@ final class WalletStatsProvider
 
 String _$walletStatsHash() => r'7490ae7eef524ca09903ace510b0424d3bc51806';
 
+@ProviderFor(walletExchangeOptions)
+final walletExchangeOptionsProvider = WalletExchangeOptionsProvider._();
+
+final class WalletExchangeOptionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnWalletExchangeOption>>,
+          List<SnWalletExchangeOption>,
+          FutureOr<List<SnWalletExchangeOption>>
+        >
+    with
+        $FutureModifier<List<SnWalletExchangeOption>>,
+        $FutureProvider<List<SnWalletExchangeOption>> {
+  WalletExchangeOptionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletExchangeOptionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletExchangeOptionsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnWalletExchangeOption>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnWalletExchangeOption>> create(Ref ref) {
+    return walletExchangeOptions(ref);
+  }
+}
+
+String _$walletExchangeOptionsHash() =>
+    r'889730441555b21ac76b8e3c3810f2ea9b1894b0';
+
 @ProviderFor(walletFund)
 final walletFundProvider = WalletFundFamily._();
 

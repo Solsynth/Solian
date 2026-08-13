@@ -74,6 +74,52 @@ Map<String, dynamic> _$SnWalletStatsToJson(_SnWalletStats instance) =>
       'outgoing_categories': instance.outgoingCategories,
     };
 
+_SnWalletExchangeOption _$SnWalletExchangeOptionFromJson(
+  Map<String, dynamic> json,
+) => _SnWalletExchangeOption(
+  sourceCurrency: json['source_currency'] as String,
+  sourceAmount: (json['source_amount'] as num).toDouble(),
+  targetCurrency: json['target_currency'] as String,
+  targetAmount: (json['target_amount'] as num).toDouble(),
+);
+
+Map<String, dynamic> _$SnWalletExchangeOptionToJson(
+  _SnWalletExchangeOption instance,
+) => <String, dynamic>{
+  'source_currency': instance.sourceCurrency,
+  'source_amount': instance.sourceAmount,
+  'target_currency': instance.targetCurrency,
+  'target_amount': instance.targetAmount,
+};
+
+_SnWalletExchangeResponse _$SnWalletExchangeResponseFromJson(
+  Map<String, dynamic> json,
+) => _SnWalletExchangeResponse(
+  walletId: json['wallet_id'] as String,
+  sourceCurrency: json['source_currency'] as String,
+  sourceAmount: (json['source_amount'] as num).toDouble(),
+  targetCurrency: json['target_currency'] as String,
+  targetAmount: (json['target_amount'] as num).toDouble(),
+  debitTransaction: SnTransaction.fromJson(
+    json['debit_transaction'] as Map<String, dynamic>,
+  ),
+  creditTransaction: SnTransaction.fromJson(
+    json['credit_transaction'] as Map<String, dynamic>,
+  ),
+);
+
+Map<String, dynamic> _$SnWalletExchangeResponseToJson(
+  _SnWalletExchangeResponse instance,
+) => <String, dynamic>{
+  'wallet_id': instance.walletId,
+  'source_currency': instance.sourceCurrency,
+  'source_amount': instance.sourceAmount,
+  'target_currency': instance.targetCurrency,
+  'target_amount': instance.targetAmount,
+  'debit_transaction': instance.debitTransaction.toJson(),
+  'credit_transaction': instance.creditTransaction.toJson(),
+};
+
 _SnWalletPocket _$SnWalletPocketFromJson(Map<String, dynamic> json) =>
     _SnWalletPocket(
       id: json['id'] as String,

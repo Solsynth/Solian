@@ -43,6 +43,35 @@ sealed class SnWalletStats with _$SnWalletStats {
 }
 
 @freezed
+sealed class SnWalletExchangeOption with _$SnWalletExchangeOption {
+  const factory SnWalletExchangeOption({
+    required String sourceCurrency,
+    required double sourceAmount,
+    required String targetCurrency,
+    required double targetAmount,
+  }) = _SnWalletExchangeOption;
+
+  factory SnWalletExchangeOption.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletExchangeOptionFromJson(json);
+}
+
+@freezed
+sealed class SnWalletExchangeResponse with _$SnWalletExchangeResponse {
+  const factory SnWalletExchangeResponse({
+    required String walletId,
+    required String sourceCurrency,
+    required double sourceAmount,
+    required String targetCurrency,
+    required double targetAmount,
+    required SnTransaction debitTransaction,
+    required SnTransaction creditTransaction,
+  }) = _SnWalletExchangeResponse;
+
+  factory SnWalletExchangeResponse.fromJson(Map<String, dynamic> json) =>
+      _$SnWalletExchangeResponseFromJson(json);
+}
+
+@freezed
 sealed class SnWalletPocket with _$SnWalletPocket {
   const factory SnWalletPocket({
     required String id,
