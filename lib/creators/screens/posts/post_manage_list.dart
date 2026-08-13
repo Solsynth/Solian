@@ -3,6 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
@@ -31,7 +32,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categoryTabController = useTabController(initialLength: 3);
+    final categoryTabController = useMaterialTabController(initialLength: 3);
     final queryState = useState(PostListQuery(pubName: pubName));
     final isFilterVisible = useState(true);
     final isSelectionMode = useState(false);

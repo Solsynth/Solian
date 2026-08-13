@@ -184,11 +184,16 @@ class MediaProxyServer {
 
     try {
       if (rangeHeader != null) {
-        return _handleRangeRequest(request, remoteUrl, cacheKey, rangeHeader);
+        return await _handleRangeRequest(
+          request,
+          remoteUrl,
+          cacheKey,
+          rangeHeader,
+        );
       }
 
       if (request.method == 'GET') {
-        return _handleFullRequest(request, remoteUrl, cacheKey);
+        return await _handleFullRequest(request, remoteUrl, cacheKey);
       }
 
       return Response(405);

@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
@@ -636,7 +637,7 @@ class _HoverCarouselGallery extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useCarouselController();
+    final controller = useMaterialCarouselController();
     final isHovered = useState(false);
     final currentIndex = useState(0);
 

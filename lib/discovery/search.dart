@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -40,7 +41,7 @@ class UniversalSearchScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = useTabController(
+    final tabController = useMaterialTabController(
       initialLength: 3,
       initialIndex: initialTab.index,
     );
@@ -176,7 +177,7 @@ class _PostsSearchTab extends HookConsumerWidget {
     final pubNameController = useTextEditingController();
     final realmController = useTextEditingController();
 
-    final categoryTabController = useTabController(initialLength: 3);
+    final categoryTabController = useMaterialTabController(initialLength: 3);
     final queryState = useState(
       const PostListQuery(includeReplies: false),
     );

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -59,7 +60,7 @@ class ExploreScreen extends HookConsumerWidget {
       List<String>.from(exploreSettings.selectedTagIds),
     );
     final notifier = ref.watch(activityListProvider.notifier);
-    final filterTabController = useTabController(initialLength: 3);
+    final filterTabController = useMaterialTabController(initialLength: 3);
     final selectedPostId = useState<String?>(null);
     final isDetailExpanded = useState(false);
     void handleFilterChange(String? filter) {

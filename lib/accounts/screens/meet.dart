@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:gap/gap.dart';
@@ -67,11 +68,11 @@ class MeetScreen extends HookConsumerWidget {
     final joinController = useTextEditingController(text: initialMeetId);
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
-    final tabController = useTabController(
+    final tabController = useMaterialTabController(
       initialLength: 2,
       initialIndex: initialMeetId.isNotEmpty ? 0 : 0,
     );
-    final historySubTabController = useTabController(initialLength: 2);
+    final historySubTabController = useMaterialTabController(initialLength: 2);
     final visibility = useState(SnMeetVisibility.private);
     final selectedImage = useState<SnCloudFile?>(null);
     final locationDraft = useState<_MeetLocationDraft?>(null);

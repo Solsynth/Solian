@@ -1,8 +1,10 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
@@ -31,7 +33,7 @@ class ComposeEmbedSheet extends HookConsumerWidget {
     final selectedRenderer = useState<PostEmbedViewRenderer>(
       PostEmbedViewRenderer.webView,
     );
-    final tabController = useTabController(initialLength: 2);
+    final tabController = useMaterialTabController(initialLength: 2);
     final iframeController = useTextEditingController();
 
     void clearForm() {
@@ -238,9 +240,9 @@ class ComposeEmbedSheet extends HookConsumerWidget {
                       const Gap(16),
                       DropdownButtonFormField2<PostEmbedViewRenderer>(
                         valueListenable: selectedRenderer,
-                        decoration: InputDecoration(
+                        decoration: legacy_material.InputDecoration(
                           labelText: 'renderer'.tr(),
-                          border: OutlineInputBorder(
+                          border: legacy_material.OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),

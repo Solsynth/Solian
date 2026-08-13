@@ -2379,7 +2379,7 @@ class _StorageSettingsSection extends HookConsumerWidget {
       try {
         final dbDir = Directory(databasePath.value!);
         if (await dbDir.exists()) {
-          return CacheService.getDirectorySize(dbDir);
+          return await CacheService.getDirectorySize(dbDir);
         }
         return 0;
       } catch (e) {

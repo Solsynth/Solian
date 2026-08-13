@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -935,7 +936,7 @@ class _PublisherPostsTab extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categoryTabController = useTabController(initialLength: 3);
+    final categoryTabController = useMaterialTabController(initialLength: 3);
     final queryState = useState(PostListQuery(pubName: pubName, type: 0));
 
     useEffect(() {

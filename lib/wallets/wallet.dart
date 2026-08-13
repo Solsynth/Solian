@@ -3,8 +3,10 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
@@ -657,10 +659,10 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                   DropdownButtonFormField2<String>(
                     isExpanded: true,
                     valueListenable: ValueNotifier(selectedCurrency),
-                    decoration: InputDecoration(
+                    decoration: legacy_material.InputDecoration(
                       labelText: 'currency'.tr(),
                       contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                      border: OutlineInputBorder(
+                      border: legacy_material.OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -1349,10 +1351,10 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                   DropdownButtonFormField2<String>(
                     isExpanded: true,
                     valueListenable: ValueNotifier(selectedCurrency),
-                    decoration: InputDecoration(
+                    decoration: legacy_material.InputDecoration(
                       labelText: 'currency'.tr(),
                       contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                      border: OutlineInputBorder(
+                      border: legacy_material.OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -2318,7 +2320,7 @@ class WalletScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wallets = ref.watch(walletListProvider);
     final realmsAsync = ref.watch(realmsJoinedProvider);
-    final tabController = useTabController(initialLength: 2);
+    final tabController = useMaterialTabController(initialLength: 2);
     final currentTabIndex = useState(0);
     final selectedCurrency = useState<String>('points');
     final isBalanceVisible = useState<bool>(true);

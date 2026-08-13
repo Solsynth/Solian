@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -67,7 +68,7 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = useTabController(initialLength: 2);
+    final tabController = useMaterialTabController(initialLength: 2);
     final appSettings = ref.watch(appSettingsProvider);
 
     // Mobile (narrow): single-column card stack

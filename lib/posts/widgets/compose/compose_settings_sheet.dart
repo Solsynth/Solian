@@ -1,6 +1,7 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
@@ -248,9 +249,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             // Categories field
             DropdownButtonFormField2<SnPostCategory>(
               isExpanded: true,
-              decoration: InputDecoration(
+              decoration: legacy_material.InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
+                border: legacy_material.OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -347,9 +348,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             if (publisherCollections != null && publisherCollections.hasValue)
               DropdownButtonFormField2<SnPostCollection>(
                 isExpanded: true,
-                decoration: InputDecoration(
+                decoration: legacy_material.InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                  border: OutlineInputBorder(
+                  border: legacy_material.OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
@@ -474,9 +475,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             // Language selection
             DropdownButtonFormField2<String?>(
               isExpanded: true,
-              decoration: InputDecoration(
+              decoration: legacy_material.InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
+                border: legacy_material.OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -508,9 +509,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
             // Language selection            // Realm selection
             DropdownButtonFormField2<SnRealm?>(
               isExpanded: true,
-              decoration: InputDecoration(
+              decoration: legacy_material.InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
+                border: legacy_material.OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -630,10 +631,10 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
             DropdownButtonFormField2<int>(
               isExpanded: true,
-              decoration: InputDecoration(
+              decoration: legacy_material.InputDecoration(
                 labelText: 'postVisibility'.tr(),
                 contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
+                border: legacy_material.OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),

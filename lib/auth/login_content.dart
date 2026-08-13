@@ -75,9 +75,12 @@ bool get _supportsPhysicalPassportLogin {
 /// - Passkey (7): offered separately as discoverable passkey on the lookup step.
 List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
   return factors.where((factor) {
-    if (factor.type == 7)
+    if (factor.type == 7) {
       return false; // passkey — use alt-methods entry instead
-    if (factor.type == 6) return _supportsPhysicalPassportLogin;
+    }
+    if (factor.type == 6) {
+      return _supportsPhysicalPassportLogin;
+    }
     return true;
   }).toList();
 }
