@@ -68,6 +68,11 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
   @override
   int? totalCount;
 
+  /// Whether refresh discards the current items while loading.
+  ///
+  /// Defaults to false so refreshes can keep showing existing data.
+  bool get clearOnRefresh => false;
+
   @override
   int get fetchedCount =>
       state.value?.isReloading == true ? 0 : state.value?.items.length ?? 0;
@@ -119,12 +124,16 @@ mixin AsyncPaginationController<T> on AsyncNotifier<PaginationState<T>>
 
   @override
   Future<void> refresh() async {
+    final currentState = state.value;
+    if (clearOnRefresh) {
+      totalCount = null;
+    }
     state = AsyncData(
       PaginationState(
-        items: state.value?.items ?? const [],
+        items: clearOnRefresh ? const [] : currentState?.items ?? const [],
         isLoading: true,
         isReloading: true,
-        totalCount: state.value?.totalCount,
+        totalCount: clearOnRefresh ? null : currentState?.totalCount,
         hasMore: true,
         cursor: null,
       ),

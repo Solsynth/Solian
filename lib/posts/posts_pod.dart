@@ -27,7 +27,7 @@ class ActivityListNotifier
 
   @override
   FutureOr<PaginationState<SnTimelineEvent>> build() async {
-    final exploreSettings = ref.watch(appSettingsProvider).exploreSettings;
+    final exploreSettings = ref.read(appSettingsProvider).exploreSettings;
     isAggressiveMode = exploreSettings.aggressiveMode;
     currentMode = exploreSettings.mode;
 
@@ -184,6 +184,46 @@ class ActivityListNotifier
     return _fetchTimelinePage(cursor, retryCount: retryCount);
   }
 
+  @override
+  bool get clearOnRefresh => true;
+
+  @override
+  Future<void> refresh() async {
+    final currentState = state.value;
+    if (clearOnRefresh) {
+      totalCount = null;
+    }
+    state = AsyncData(
+      PaginationState(
+        items: clearOnRefresh ? const [] : currentState?.items ?? const [],
+        isLoading: true,
+        isReloading: true,
+        totalCount: clearOnRefresh ? null : currentState?.totalCount,
+        hasMore: true,
+        cursor: null,
+      ),
+    );
+
+    try {
+      final newItems = await fetch();
+
+      if (!ref.mounted) return;
+      state = AsyncData(
+        PaginationState(
+          items: newItems,
+          isLoading: false,
+          isReloading: false,
+          totalCount: totalCount,
+          hasMore: hasMore,
+          cursor: cursor,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (!ref.mounted) return;
+      state = AsyncError(error, stackTrace);
+    }
+  }
+
   /// Fetches one page of the timeline at [pageCursor].
   ///
   /// Only pages that contain posts count toward the next cursor: pages made
@@ -229,7 +269,9 @@ class ActivityListNotifier
     cursor = hasMore ? nextCursor : null;
 
     // Check for duplicate items by id
-    final existingItemIds = state.value?.items.map((e) => e.id).toSet() ?? {};
+    final existingItemIds = state.value?.isReloading == true
+        ? <String>{}
+        : state.value?.items.map((e) => e.id).toSet() ?? {};
     final uniqueItems = items
         .where((item) => !existingItemIds.contains(item.id))
         .toList();

@@ -53,6 +53,23 @@ class _TimelineAdapter implements HttpClientAdapter {
   }
 }
 
+final _defaultRefreshProvider = AsyncNotifierProvider<
+  _DefaultRefreshNotifier,
+  PaginationState<String>
+>(_DefaultRefreshNotifier.new);
+
+class _DefaultRefreshNotifier
+    extends AsyncNotifier<PaginationState<String>>
+    with AsyncPaginationController<String> {
+  var _fetchCount = 0;
+
+  @override
+  Future<List<String>> fetch() async {
+    _fetchCount++;
+    return [_fetchCount == 1 ? 'old' : 'new'];
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -166,5 +183,39 @@ void main() {
     expect(items.map((e) => e.type), ['posts.new']);
     expect(notifier.cursor, 'c2');
     expect(notifier.hasMore, isTrue);
+  });
+  test('refresh fetches items already present in the old timeline', () async {
+    final adapter = _TimelineAdapter({
+      null: {
+        'mode': 'personalized',
+        'items': [_timelineEvent('post-1', 'posts.new')],
+        'next_cursor': null,
+      },
+    });
+    container = makeContainer(adapter);
+    await container.read(activityListProvider.future);
+
+    final notifier = container.read(activityListProvider.notifier);
+    expect(notifier.clearOnRefresh, isTrue);
+    await notifier.refresh();
+
+    final state = await container.read(activityListProvider.future);
+    expect(state.items.map((e) => e.id), ['post-1']);
+    expect(adapter.requestedCursors, [null, null]);
+  });
+
+  test('refresh keeps existing items by default', () async {
+    container = makeContainer(_TimelineAdapter({}));
+    final notifier = container.read(_defaultRefreshProvider.notifier);
+
+    await container.read(_defaultRefreshProvider.future);
+    final refresh = notifier.refresh();
+
+    expect(notifier.clearOnRefresh, isFalse);
+    expect(notifier.state.value?.items, ['old']);
+    expect(notifier.state.value?.isReloading, isTrue);
+
+    await refresh;
+    expect(notifier.state.value?.items, ['new']);
   });
 }
