@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:island_ui_foundation/src/foundation.dart';
 import 'package:island_ui_foundation/src/responsive.dart';

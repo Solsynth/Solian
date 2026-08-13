@@ -19,3 +19,4 @@ dependencies:
       url: https://github.com/boyan01/window_manager.git
       path: packages/window_manager
       ref: 6fae92d21b4c80ce1b8f71c1190d7970cf722bd4
+  material_ui: any
