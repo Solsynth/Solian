@@ -2109,60 +2109,32 @@ class SettingsScreen extends HookConsumerWidget {
         );
       }
 
-      // Narrow layout with category dropdown
+      // Narrow layout with category tabs
       final colorScheme = Theme.of(context).colorScheme;
+      final selectedIndex = visibleCategories.indexOf(selectedCategory);
+      final tabBarKey = ValueKey(
+        '${selectedCategory.title}:${visibleCategories.map((category) => category.title).join('|')}',
+      );
       return Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Material(
-              color: colorScheme.surfaceContainerHighest.withOpacity(0.55),
-              borderRadius: BorderRadius.circular(12),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2<String>(
-                  isExpanded: true,
-                  valueListenable: ValueNotifier<String>(
-                    selectedCategory.title,
-                  ),
-                  items: visibleCategories.map((category) {
-                    return DropdownItem<String>(
-                      value: category.title,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Row(
-                          children: [
-                            Icon(category.icon, size: 20),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                category.getLocalizedTitle(context),
-                                style: const TextStyle(fontSize: 14),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+          Material(
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.55),
+            child: DefaultTabController(
+              key: tabBarKey,
+              length: visibleCategories.length,
+              initialIndex: selectedIndex,
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                onTap: (index) => selectCategory(visibleCategories[index]),
+                tabs: visibleCategories
+                    .map(
+                      (category) => Tab(
+                        icon: Icon(category.icon, size: 20),
+                        text: category.getLocalizedTitle(context),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    final match = visibleCategories.firstWhereOrNull(
-                      (c) => c.title == value,
-                    );
-                    if (match != null) selectCategory(match);
-                  },
-                  buttonStyleData: const ButtonStyleData(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    height: 48,
-                  ),
-                  dropdownStyleData: DropdownStyleData(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    maxHeight: 360,
-                  ),
-                ),
+                    )
+                    .toList(),
               ),
             ),
           ),

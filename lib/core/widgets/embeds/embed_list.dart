@@ -513,7 +513,7 @@ Future<void> _openLocationInMaps(
   );
   final directions = MapLauncher.directions(destination);
   final availableMaps = await directions
-      .getSupportedMaps(MapApp.all)
+      .getSupportedMaps([MapApp.apple, MapApp.google, MapApp.waze])
       .then((maps) => maps.where((map) => map.isInstalled).toList());
   if (availableMaps.isEmpty) return;
 
