@@ -554,6 +554,8 @@ class CommandPaletteWidget extends HookConsumerWidget {
                       scope: params['scope'],
                       state: params['state'],
                       responseType: params['response_type'],
+                      codeChallenge: params['code_challenge'],
+                      codeChallengeMethod: params['code_challenge_method'],
                     ),
                   );
             } else if (path == '/auth/callback' &&

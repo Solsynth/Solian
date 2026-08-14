@@ -20,6 +20,8 @@ class AuthorizeScreen extends ConsumerStatefulWidget {
   final String? scope;
   final String? state;
   final String? responseType;
+  final String? codeChallenge;
+  final String? codeChallengeMethod;
   final String? userCode;
 
   const AuthorizeScreen({
@@ -29,6 +31,8 @@ class AuthorizeScreen extends ConsumerStatefulWidget {
     this.scope,
     this.state,
     this.responseType,
+    this.codeChallenge,
+    this.codeChallengeMethod,
     this.userCode,
   });
 
@@ -57,6 +61,9 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
     if (widget.scope != null) 'scope': widget.scope!,
     if (widget.state != null) 'state': widget.state!,
     if (widget.responseType != null) 'response_type': widget.responseType!,
+    if (widget.codeChallenge != null) 'code_challenge': widget.codeChallenge!,
+    if (widget.codeChallengeMethod != null)
+      'code_challenge_method': widget.codeChallengeMethod!,
   };
 
   Future<void> _loadClientInfo() async {

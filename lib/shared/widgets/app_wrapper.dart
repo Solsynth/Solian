@@ -960,6 +960,8 @@ class AppWrapper extends HookConsumerWidget {
           scope: uri.queryParameters['scope'],
           state: uri.queryParameters['state'],
           responseType: uri.queryParameters['response_type'],
+          codeChallenge: uri.queryParameters['code_challenge'],
+          codeChallengeMethod: uri.queryParameters['code_challenge_method'],
         ),
       );
       if (!kIsWeb &&

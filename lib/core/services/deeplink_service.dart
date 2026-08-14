@@ -16,7 +16,7 @@ class DeeplinkService {
 
   StreamSubscription<SolianDeepLinkEvent>? _solianDeepLinkSub;
   ProtocolListener? _protocolListener;
-  static const MethodChannel _iosChannel = MethodChannel(
+  static const MethodChannel _nativeChannel = MethodChannel(
     'dev.solsynth.solian/deeplink',
   );
   void Function(Uri uri)? _onDeepLink;
@@ -29,17 +29,19 @@ class DeeplinkService {
       _onDeepLink?.call(event.uri);
     });
 
-    if (!kIsWeb && Platform.isIOS) {
-      _iosChannel.setMethodCallHandler((call) async {
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      _nativeChannel.setMethodCallHandler((call) async {
         if (call.method != 'onDeepLink') return;
         final rawUrl =
-            await _iosChannel.invokeMethod<String>('consumePendingDeepLink') ??
+            await _nativeChannel.invokeMethod<String>(
+              'consumePendingDeepLink',
+            ) ??
             call.arguments?.toString();
         final uri = rawUrl == null ? null : Uri.tryParse(rawUrl);
         if (uri != null) _onDeepLink?.call(uri);
       });
 
-      _iosChannel.invokeMethod<String>('consumePendingDeepLink').then((
+      _nativeChannel.invokeMethod<String>('consumePendingDeepLink').then((
         initialUrl,
       ) {
         if (initialUrl == null) return;
@@ -74,8 +76,8 @@ class DeeplinkService {
     _solianDeepLinkSub = null;
     _onDeepLink = null;
 
-    if (!kIsWeb && Platform.isIOS) {
-      _iosChannel.setMethodCallHandler(null);
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      _nativeChannel.setMethodCallHandler(null);
     }
 
     if (!kIsWeb &&

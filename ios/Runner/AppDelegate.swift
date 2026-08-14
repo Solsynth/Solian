@@ -426,6 +426,11 @@ import flutter_callkit_incoming
             return true
         }
 
+        if let webpageURL = userActivity.webpageURL,
+           handleIncomingDeepLink(webpageURL) {
+            return true
+        }
+
         return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
@@ -461,7 +466,11 @@ import flutter_callkit_incoming
     }
     
     private func handleIncomingDeepLink(_ url: URL) -> Bool {
-        guard url.scheme == SharedConstants.urlScheme else {
+        let isSolianLink = url.scheme == SharedConstants.urlScheme
+        let isSolianWebLink =
+            (url.scheme == "http" || url.scheme == "https") &&
+            url.host == "solian.app"
+        guard isSolianLink || isSolianWebLink else {
             return false
         }
         

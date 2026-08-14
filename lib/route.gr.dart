@@ -11,7 +11,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i74;
 import 'package:flutter/foundation.dart' as _i78;
-import 'package:flutter/material.dart' as _i75;
 import 'package:island/accounts/account_screen.dart' as _i4;
 import 'package:island/accounts/screens/action_logs.dart' as _i9;
 import 'package:island/accounts/screens/affiliation_detail.dart' as _i10;
@@ -89,6 +88,7 @@ import 'package:island/tickets/screens/ticket_detail.dart' as _i68;
 import 'package:island/tickets/screens/ticket_list.dart' as _i69;
 import 'package:island/wallets/transaction_detail.dart' as _i70;
 import 'package:island/wallets/wallet.dart' as _i73;
+import 'package:material_ui/material_ui.dart' as _i75;
 import 'package:solar_network_sdk/solar_network_sdk.dart' as _i76;
 
 /// generated route for
@@ -484,6 +484,8 @@ class AuthorizeRoute extends _i74.PageRouteInfo<AuthorizeRouteArgs> {
     String? scope,
     String? state,
     String? responseType,
+    String? codeChallenge,
+    String? codeChallengeMethod,
     String? userCode,
     List<_i74.PageRouteInfo>? children,
   }) : super(
@@ -495,6 +497,8 @@ class AuthorizeRoute extends _i74.PageRouteInfo<AuthorizeRouteArgs> {
            scope: scope,
            state: state,
            responseType: responseType,
+           codeChallenge: codeChallenge,
+           codeChallengeMethod: codeChallengeMethod,
            userCode: userCode,
          ),
          initialChildren: children,
@@ -515,6 +519,8 @@ class AuthorizeRoute extends _i74.PageRouteInfo<AuthorizeRouteArgs> {
         scope: args.scope,
         state: args.state,
         responseType: args.responseType,
+        codeChallenge: args.codeChallenge,
+        codeChallengeMethod: args.codeChallengeMethod,
         userCode: args.userCode,
       );
     },
@@ -529,6 +535,8 @@ class AuthorizeRouteArgs {
     this.scope,
     this.state,
     this.responseType,
+    this.codeChallenge,
+    this.codeChallengeMethod,
     this.userCode,
   });
 
@@ -544,11 +552,15 @@ class AuthorizeRouteArgs {
 
   final String? responseType;
 
+  final String? codeChallenge;
+
+  final String? codeChallengeMethod;
+
   final String? userCode;
 
   @override
   String toString() {
-    return 'AuthorizeRouteArgs{key: $key, clientId: $clientId, redirectUri: $redirectUri, scope: $scope, state: $state, responseType: $responseType, userCode: $userCode}';
+    return 'AuthorizeRouteArgs{key: $key, clientId: $clientId, redirectUri: $redirectUri, scope: $scope, state: $state, responseType: $responseType, codeChallenge: $codeChallenge, codeChallengeMethod: $codeChallengeMethod, userCode: $userCode}';
   }
 
   @override
@@ -561,6 +573,8 @@ class AuthorizeRouteArgs {
         scope == other.scope &&
         state == other.state &&
         responseType == other.responseType &&
+        codeChallenge == other.codeChallenge &&
+        codeChallengeMethod == other.codeChallengeMethod &&
         userCode == other.userCode;
   }
 
@@ -572,6 +586,8 @@ class AuthorizeRouteArgs {
       scope.hashCode ^
       state.hashCode ^
       responseType.hashCode ^
+      codeChallenge.hashCode ^
+      codeChallengeMethod.hashCode ^
       userCode.hashCode;
 }
 
