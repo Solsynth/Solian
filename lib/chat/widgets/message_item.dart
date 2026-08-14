@@ -1571,6 +1571,9 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
             topRight: Radius.circular(16),
           )
         : BorderRadius.circular(16);
+    final attachmentItemBorderRadius = hasBodyContent || hasProgress
+        ? 0.0
+        : 16.0;
 
     Widget buildMessageBody() {
       return Container(
@@ -1591,7 +1594,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                   maxHeight: attachmentMaxH,
                   maxWidth: double.infinity,
                   padding: EdgeInsets.zero,
-                  borderRadius: 0,
+                  borderRadius: attachmentItemBorderRadius,
                 ),
               ),
             if (hasBodyContent || hasProgress)
