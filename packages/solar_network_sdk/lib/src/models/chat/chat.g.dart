@@ -267,6 +267,12 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
       joinedAt: json['joined_at'] == null
           ? null
           : DateTime.parse(json['joined_at'] as String),
+      leaveAt: json['leave_at'] == null
+          ? null
+          : DateTime.parse(json['leave_at'] as String),
+      confirmedAt: json['confirmed_at'] == null
+          ? null
+          : DateTime.parse(json['confirmed_at'] as String),
       breakUntil: json['break_until'] == null
           ? null
           : DateTime.parse(json['break_until'] as String),
@@ -310,6 +316,8 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'nick': instance.nick,
       'notify': instance.notify,
       'joined_at': instance.joinedAt?.toIso8601String(),
+      'leave_at': instance.leaveAt?.toIso8601String(),
+      'confirmed_at': instance.confirmedAt?.toIso8601String(),
       'break_until': instance.breakUntil?.toIso8601String(),
       'timeout_until': instance.timeoutUntil?.toIso8601String(),
       'chat_group_id': instance.chatGroupId,

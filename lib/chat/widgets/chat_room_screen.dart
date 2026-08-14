@@ -149,9 +149,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
-        appBar: AppBar(
-          leading: const _ChatRoomLeading(),
-        ),
+        appBar: AppBar(leading: const _ChatRoomLeading()),
         body: Column(
           children: [
             const ChatSyncIndicator(),
@@ -172,7 +170,43 @@ class ChatRoomScreen extends HookConsumerWidget {
     } else if (chatIdentity.value == null) {
       return chatRoom.when(
         data: (room) {
-          if (room!.isPublic) {
+          final currentUserId = ref.read(userInfoProvider).value?.id;
+          if (room == null) return const SizedBox.shrink();
+          final blockedDirectMember = room.members
+              ?.where(
+                (member) =>
+                    room.type == 1 &&
+                    member.accountId == currentUserId &&
+                    member.leaveAt != null &&
+                    member.confirmedAt == null,
+              )
+              .firstOrNull;
+          if (blockedDirectMember != null) {
+            return AppScaffold(
+              appBar: AppBar(leading: const _ChatRoomLeading()),
+              body: Center(
+                child: FilledButton.tonalIcon(
+                  onPressed: () async {
+                    try {
+                      showLoadingModal(context);
+                      final client = ref.read(solarNetworkClientProvider);
+                      await client.chat.unblockDirectChat(room.id);
+                      ref.invalidate(chatRoomJoinedProvider);
+                      ref.invalidate(chatRoomProvider(id));
+                      ref.invalidate(chatRoomIdentityProvider(id));
+                    } catch (err) {
+                      showErrorAlert(err);
+                    } finally {
+                      if (context.mounted) hideLoadingModal(context);
+                    }
+                  },
+                  label: Text('chatJoin').tr(),
+                  icon: const Icon(Icons.add),
+                ),
+              ),
+            );
+          }
+          if (room.isPublic) {
             return PublicRoomPreview(id: id, room: room);
           } else {
             return AppScaffold(
@@ -1230,6 +1264,11 @@ class ChatRoomScreen extends HookConsumerWidget {
                                           chatStateNotifier.setEmbeds,
                                       isMessageListScrolling:
                                           !isAtLatestMessages.value,
+                                      onDirectMessageBlocked: () async {
+                                        if (context.mounted) {
+                                          context.router.maybePop();
+                                        }
+                                      },
                                       onPickFile: (isPhoto) {
                                         if (isPhoto) {
                                           chatStateNotifier.pickPhotos();

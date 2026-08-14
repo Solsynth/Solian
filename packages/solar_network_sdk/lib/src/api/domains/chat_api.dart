@@ -339,6 +339,27 @@ class ChatApi extends BaseApi {
     return SnChatRoom.fromJson(response.data!);
   }
 
+  /// Confirms an unconfirmed one-to-one direct chat as the recipient.
+  Future<SnChatRoom> confirmDirectChat(String roomId) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/chat/$roomId/confirm',
+    );
+    return SnChatRoom.fromJson(response.data!);
+  }
+
+  /// Blocks an unconfirmed one-to-one direct chat as the recipient.
+  Future<void> blockDirectChat(String roomId) async {
+    await post<void>('$_basePath/chat/$roomId/block');
+  }
+
+  /// Rejoins a previously blocked one-to-one direct chat.
+  Future<SnChatMember> unblockDirectChat(String roomId) async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/chat/$roomId/block',
+    );
+    return SnChatMember.fromJson(response.data!);
+  }
+
   /// Gets or creates a direct chat with another user.
   ///
   /// [accountId] - The other user's account ID.

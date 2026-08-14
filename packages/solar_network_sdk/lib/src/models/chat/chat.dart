@@ -150,6 +150,8 @@ sealed class SnChatMember with _$SnChatMember {
     required String? nick,
     required int notify,
     required DateTime? joinedAt,
+    @JsonKey(name: 'leave_at') DateTime? leaveAt,
+    @JsonKey(name: 'confirmed_at') DateTime? confirmedAt,
     required DateTime? breakUntil,
     required DateTime? timeoutUntil,
     @JsonKey(name: 'chat_group_id') String? chatGroupId,

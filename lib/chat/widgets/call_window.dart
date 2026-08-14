@@ -2,8 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' hide GlobalMaterialLocalizations;
+import 'package:material_ui/material_ui.dart'
+    as material_ui
+    show GlobalMaterialLocalizations;
 import 'package:flutter/material.dart' as legacy_material;
+import 'package:flutter_localizations/flutter_localizations.dart'
+    as flutter_localizations;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -179,6 +184,12 @@ class CallWindowApp extends HookConsumerWidget {
         theme: theme.light,
         darkTheme: theme.dark,
         themeMode: getThemeMode(),
+        localizationsDelegates: [
+          ...context.localizationDelegates,
+          ...material_ui.GlobalMaterialLocalizations.delegates,
+          flutter_localizations.GlobalMaterialLocalizations.delegate,
+          flutter_localizations.GlobalCupertinoLocalizations.delegate,
+        ],
         builder: (context, child) {
           // ignore: deprecated_member_use
           return MaterialUiCompatibilityBridge(

@@ -24,6 +24,7 @@ import "package:island/stickers/widgets/stickers/sticker_picker.dart";
 import "package:island/stickers/models/sticker.dart";
 import "package:island/core/config.dart";
 import "package:island/accounts/account_pod.dart";
+import "package:island/core/network.dart";
 import "package:island/discovery/discovery_service.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/services/responsive.dart";
@@ -169,6 +170,110 @@ class _DirectMessageStatusBanner extends ConsumerWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DirectMessageConfirmationBanner extends HookConsumerWidget {
+  final SnChatRoom chatRoom;
+  final SnChatMember identity;
+  final bool isBlocked;
+  final Future<void> Function()? onBlocked;
+
+  const _DirectMessageConfirmationBanner({
+    required this.chatRoom,
+    required this.identity,
+    required this.isBlocked,
+    this.onBlocked,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+    final client = ref.read(solarNetworkClientProvider);
+    final peer = (chatRoom.members ?? const <SnChatMember>[])
+        .where((member) => member.accountId != identity.accountId)
+        .firstOrNull;
+
+    Future<void> confirm() async {
+      if (isBusy.value) return;
+      isBusy.value = true;
+      try {
+        if (isBlocked) {
+          await client.chat.unblockDirectChat(chatRoom.id);
+        } else {
+          await client.chat.confirmDirectChat(chatRoom.id);
+        }
+        ref.invalidate(chatRoomJoinedProvider);
+        ref.invalidate(chatRoomProvider(chatRoom.id));
+        ref.invalidate(chatRoomIdentityProvider(chatRoom.id));
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    Future<void> block() async {
+      if (isBusy.value) return;
+      final shouldBlock = await showConfirmAlert(
+        'directMessage'.tr(),
+        'blockUser'.tr(),
+        isDanger: true,
+      );
+      if (!shouldBlock || !context.mounted) return;
+
+      isBusy.value = true;
+      try {
+        await client.chat.blockDirectChat(chatRoom.id);
+        ref.invalidate(chatRoomJoinedProvider);
+        ref.invalidate(chatRoomProvider(chatRoom.id));
+        ref.invalidate(chatRoomIdentityProvider(chatRoom.id));
+        await onBlocked?.call();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    return Container(
+      key: ValueKey('dm-confirm-${chatRoom.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.only(left: 8, right: 8, top: 6, bottom: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Symbols.mark_chat_unread,
+            size: 18,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const Gap(8),
+          Expanded(
+            child: Text(
+              '${'directMessage'.tr()}${peer == null ? '' : ': ${peer.account.nick}'}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: isBusy.value ? null : confirm,
+            child: Text(isBlocked ? 'chatJoin'.tr() : 'confirm'.tr()),
+          ),
+          if (!isBlocked)
+            TextButton(
+              onPressed: isBusy.value ? null : block,
+              child: Text('blockUser'.tr()),
+            ),
         ],
       ),
     );
@@ -1267,6 +1372,7 @@ class ChatInput extends HookConsumerWidget {
   final List<Map<String, dynamic>> embeds;
   final Function(List<Map<String, dynamic>>) onEmbedsChanged;
   final bool isMessageListScrolling;
+  final Future<void> Function()? onDirectMessageBlocked;
 
   const ChatInput({
     super.key,
@@ -1290,6 +1396,7 @@ class ChatInput extends HookConsumerWidget {
     required this.embeds,
     required this.onEmbedsChanged,
     required this.isMessageListScrolling,
+    this.onDirectMessageBlocked,
   });
 
   @override
@@ -1321,10 +1428,28 @@ class ChatInput extends HookConsumerWidget {
     final recordingStartedAt = useRef<DateTime?>(null);
     final messagesNotifier = ref.read(messagesProvider(chatRoom.id).notifier);
     const maxVoiceRecordDuration = Duration(minutes: 5);
-    final timeoutUntil = roomIdentity.value?.timeoutUntil;
+    final userInfo = ref.watch(userInfoProvider);
+    final effectiveIdentity =
+        roomIdentity.value ??
+        (chatRoom.members ?? const <SnChatMember>[])
+            .where((member) => member.accountId == userInfo.value?.id)
+            .firstOrNull;
+    final timeoutUntil = effectiveIdentity?.timeoutUntil;
     final hasActiveTimeout =
         timeoutUntil != null && timeoutUntil.isAfter(DateTime.now());
-    final canCompose = !hasActiveTimeout;
+    final needsDirectMessageConfirmation =
+        chatRoom.type == 1 &&
+        effectiveIdentity?.joinedAt != null &&
+        effectiveIdentity?.confirmedAt == null;
+    final isDirectMessageInactive =
+        chatRoom.type == 1 &&
+        effectiveIdentity != null &&
+        (effectiveIdentity.joinedAt == null ||
+            effectiveIdentity.leaveAt != null);
+    final canCompose =
+        !hasActiveTimeout &&
+        !needsDirectMessageConfirmation &&
+        !isDirectMessageInactive;
 
     useEffect(() {
       return () {
@@ -1574,8 +1699,6 @@ class ChatInput extends HookConsumerWidget {
     const double bottomMargin = 16;
     final inputBorderRadius = BorderRadius.circular(32);
 
-    final userInfo = ref.watch(userInfoProvider);
-
     List<SnChatMember> getValidMembers(List<SnChatMember> members) {
       return members
           .where((member) => member.accountId != userInfo.value?.id)
@@ -1654,6 +1777,13 @@ class ChatInput extends HookConsumerWidget {
                       chatRoom: chatRoom,
                       validMembers: validMembers,
                     ),
+                    if (needsDirectMessageConfirmation)
+                      _DirectMessageConfirmationBanner(
+                        chatRoom: chatRoom,
+                        identity: effectiveIdentity!,
+                        isBlocked: effectiveIdentity.leaveAt != null,
+                        onBlocked: onDirectMessageBlocked,
+                      ),
                     if (hasActiveTimeout)
                       _ChatTimeoutBanner(timeoutUntil: timeoutUntil),
                     AnimatedSwitcher(
