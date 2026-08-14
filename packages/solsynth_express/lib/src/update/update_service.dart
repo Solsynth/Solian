@@ -63,12 +63,13 @@ class UpdateService {
       final info = await PackageInfo.fromPlatform();
       final target = await _currentTarget();
       if (target == null) return;
+      final currentVersion = '${info.version}+${info.buildNumber}';
       final result = await _api.checkForUpdate(
-        currentVersion: info.version,
+        currentVersion: currentVersion,
         platform: target.platform,
         architecture: target.architecture,
         channel: channel,
-        clientVersion: info.version,
+        clientVersion: currentVersion,
       );
       if (!result.updateAvailable ||
           result.release == null ||
