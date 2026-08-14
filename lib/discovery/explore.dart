@@ -6,7 +6,9 @@ import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/posts/pods/post_categories.dart';
 import 'package:island/posts/pods/post_list.dart';
+import 'package:island/posts/widgets/compose/post_featured.dart';
 import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
@@ -62,7 +64,6 @@ class ExploreScreen extends HookConsumerWidget {
     final notifier = ref.watch(activityListProvider.notifier);
     final filterTabController = useMaterialTabController(initialLength: 3);
     final selectedPostId = useState<String?>(null);
-    final isDetailExpanded = useState(false);
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
       notifier.applyFilter(filter);
@@ -100,13 +101,13 @@ class ExploreScreen extends HookConsumerWidget {
         selectedTagIds.value.isNotEmpty;
 
     final userInfo = ref.watch(userInfoProvider);
-    final isSidePanelOpen = isWide && selectedPostId.value != null;
+    final isDetailOpen = isWide && selectedPostId.value != null;
 
     if (isWide) {
       return AppScaffold(
         isNoBackground: false,
         appBar: null,
-        floatingActionButton: userInfo.value != null && !isSidePanelOpen
+        floatingActionButton: userInfo.value != null && !isDetailOpen
             ? FloatingActionButton(
                 heroTag: 'explore-fab',
                 child: const Icon(Symbols.create),
@@ -177,7 +178,6 @@ class ExploreScreen extends HookConsumerWidget {
           exploreSettings,
           ref.read(appSettingsProvider.notifier),
           selectedPostId,
-          isDetailExpanded,
         ),
       );
     }
@@ -442,6 +442,14 @@ class ExploreScreen extends HookConsumerWidget {
     return SliverAppBar(
       automaticallyImplyLeading: false,
       automaticallyImplyActions: false,
+      shape: isWide
+          ? const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            )
+          : null,
       flexibleSpace:
           Row(
             children: [
@@ -754,9 +762,7 @@ class ExploreScreen extends HookConsumerWidget {
       leadingEdgeInset: sliverRefreshInset,
       hoverRefreshLabel: 'refresh'.tr(),
       onRefresh: () async {
-        await ref
-            .read(publishersSubscriptionsLiveProvider.notifier)
-            .refresh();
+        await ref.read(publishersSubscriptionsLiveProvider.notifier).refresh();
         if (!usePostList) {
           await notifier.refresh();
         }
@@ -839,7 +845,6 @@ class ExploreScreen extends HookConsumerWidget {
     ExploreSettings exploreSettings,
     AppSettingsNotifier appSettingsNotifier,
     ValueNotifier<String?> selectedPostId,
-    ValueNotifier<bool> isDetailExpanded,
   ) {
     final sliverRefreshInset =
         MediaQuery.paddingOf(context).top + kToolbarHeight + 48;
@@ -847,48 +852,39 @@ class ExploreScreen extends HookConsumerWidget {
         selectedPublishers.value.isNotEmpty ||
         selectedCategories.value.isNotEmpty ||
         selectedTags.value.isNotEmpty;
-
     final notifier = usePostList
         ? null
         : ref.watch(activityListProvider.notifier);
-
     final activityState = ref.watch(activityListProvider);
     final isListInitialLoading =
         (activityState.isLoading || activityState.value?.isLoading == true) &&
         (activityState.value?.items.isEmpty ?? true);
 
-    const timelineContentMaxWidth = 720.0;
-
     void handlePostTap(String postId) {
       if (selectedPostId.value == postId) {
         context.router.push(PostDetailRoute(id: postId));
-      } else {
-        selectedPostId.value = postId;
-        isDetailExpanded.value = false;
+        return;
       }
+      selectedPostId.value = postId;
     }
 
-    final postListWidget = Card(
-      elevation: 2,
+    Future<void> refreshTimeline() async {
+      await ref.read(publishersSubscriptionsLiveProvider.notifier).refresh();
+      if (notifier != null) await notifier.refresh();
+    }
+
+    final timelinePane = Card(
+      margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
         ),
       ),
-      clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
       child: ExtendedRefreshIndicator(
         leadingEdgeInset: sliverRefreshInset,
         hoverRefreshLabel: 'refresh'.tr(),
-        onRefresh: () async {
-          await ref
-              .read(publishersSubscriptionsLiveProvider.notifier)
-              .refresh();
-          if (notifier != null) {
-            await notifier.refresh();
-          }
-        },
+        onRefresh: refreshTimeline,
         child: CustomScrollView(
           slivers: [
             _buildExploreSliverAppBar(
@@ -909,20 +905,7 @@ class ExploreScreen extends HookConsumerWidget {
               appSettingsNotifier: appSettingsNotifier,
               isWide: true,
             ),
-            SliverSubscribedPublishersStrip(
-              selectedPublisherNames: selectedPublishers.value,
-              onSelectedPublishersChanged: (names) {
-                applyPublisherStripSelection(
-                  names: names,
-                  selectedPublishers: selectedPublishers,
-                  selectedCategories: selectedCategories,
-                  selectedTags: selectedTags,
-                  exploreSettings: exploreSettings,
-                  appSettingsNotifier: appSettingsNotifier,
-                );
-              },
-            ),
-            if (usePostList) ...[
+            if (usePostList)
               _buildPostList(
                 context,
                 ref,
@@ -930,8 +913,8 @@ class ExploreScreen extends HookConsumerWidget {
                 selectedCategories.value,
                 selectedTags.value,
                 onPostTap: handlePostTap,
-              ),
-            ] else if (isListInitialLoading)
+              )
+            else if (isListInitialLoading)
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Center(
@@ -951,65 +934,298 @@ class ExploreScreen extends HookConsumerWidget {
       ),
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final hasSelection = selectedPostId.value != null;
-        final totalWidth = constraints.maxWidth;
-        final listWidth = hasSelection
-            ? (totalWidth - 28) / 2
-            : (timelineContentMaxWidth < totalWidth
-                  ? timelineContentMaxWidth
-                  : totalWidth);
-        final detailWidth = hasSelection ? (totalWidth - 28) / 2 : 0.0;
+    final subscriptionPane = Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: PostSubscriptionFilterWidget(
+        initialSelectedPublishers: selectedPublishers.value,
+        initialSelectedCategories: selectedCategories.value,
+        initialSelectedTags: selectedTags.value,
+        collapsible: true,
+        onSelectedPublishersChanged: (names) {
+          selectedPublishers.value = names;
+          appSettingsNotifier.setExploreSettings(
+            exploreSettings.copyWith(selectedPublisherNames: names),
+          );
+        },
+        onSelectedCategoriesChanged: (ids) {
+          selectedCategories.value = ids;
+          appSettingsNotifier.setExploreSettings(
+            exploreSettings.copyWith(selectedCategoryIds: ids),
+          );
+        },
+        onSelectedTagsChanged: (ids) {
+          selectedTags.value = ids;
+          appSettingsNotifier.setExploreSettings(
+            exploreSettings.copyWith(selectedTagIds: ids),
+          );
+        },
+      ),
+    );
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              width: listWidth,
-              child: postListWidget,
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              width: hasSelection ? 16 : 0,
-              child: const SizedBox.shrink(),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              width: detailWidth,
-              child: hasSelection
-                  ? Container(
-                      margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _TimelineDetailPane(
-                        postId: selectedPostId.value!,
-                        isExpanded: false,
-                        onExpandToggle: () {
-                          context.router.push(
-                            PostDetailRoute(id: selectedPostId.value!),
-                          );
-                        },
-                        onClose: () {
-                          selectedPostId.value = null;
-                        },
-                        onPostTap: handlePostTap,
-                      ),
-                    )
-                  : null,
-            ),
-          ],
+    final selectedId = selectedPostId.value;
+
+    final mainContent = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      reverseDuration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      layoutBuilder: (currentChild, previousChildren) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [...previousChildren, ?currentChild],
         );
       },
+      transitionBuilder: (child, animation) {
+        final offsetAnimation = animation.drive(
+          Tween(
+            begin: const Offset(0.035, 0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        );
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(position: offsetAnimation, child: child),
+        );
+      },
+      child: selectedId == null
+          ? KeyedSubtree(key: const ValueKey('timeline'), child: timelinePane)
+          : KeyedSubtree(
+              key: ValueKey('post_$selectedId'),
+              child: Card(
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: _TimelineDetailPane(
+                  postId: selectedId,
+                  isExpanded: false,
+                  onExpandToggle: () {
+                    context.router.push(PostDetailRoute(id: selectedId));
+                  },
+                  onClose: () {
+                    selectedPostId.value = null;
+                  },
+                  onPostTap: handlePostTap,
+                ),
+              ),
+            ),
     );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: SizedBox.expand(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+              child: mainContent,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 1,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 12, right: 12, bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const PostFeaturedList(maxHeight: 400, emphasizeHeader: false),
+                const Gap(12),
+                subscriptionPane,
+                const Gap(12),
+                const _ExplorePopularCategoriesCard(),
+                const Gap(12),
+                const _ExplorePopularTagsCard(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExplorePopularCategoriesCard extends ConsumerWidget {
+  const _ExplorePopularCategoriesCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(popularPostCategoriesProvider);
+    return _ExplorePopularCard(
+      icon: Symbols.category,
+      title: 'categories'.tr(),
+      child: state.when(
+        data: (page) => Column(
+          children: [
+            for (final category in page.items.take(5))
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                leading: const Icon(Symbols.category, size: 18),
+                title: Text(category.categoryTranslationKey).tr(),
+                subtitle: Text('postCount'.plural(category.usage)),
+                onTap: () {
+                  context.router.push(
+                    PostCategoryDetailRoute(
+                      slug: category.slug,
+                      isCategory: true,
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+        loading: () => const _ExplorePopularLoading(),
+        error: (error, stackTrace) => const _ExplorePopularError(),
+      ),
+    );
+  }
+}
+
+class _ExplorePopularTagsCard extends ConsumerWidget {
+  const _ExplorePopularTagsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(popularPostTagsProvider);
+    return _ExplorePopularCard(
+      icon: Symbols.label,
+      title: 'tags'.tr(),
+      child: state.when(
+        data: (page) => Column(
+          children: [
+            for (final tag in page.items.take(5))
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                leading: Icon(
+                  tag.isProtected ? Symbols.lock : Symbols.label,
+                  size: 18,
+                ),
+                title: Text(tag.name ?? '#${tag.slug}'),
+                subtitle: Text('postCount'.plural(tag.usage)),
+                onTap: () {
+                  context.router.push(
+                    PostCategoryDetailRoute(slug: tag.slug, isCategory: false),
+                  );
+                },
+              ),
+          ],
+        ),
+        loading: () => const _ExplorePopularLoading(),
+        error: (error, stackTrace) => const _ExplorePopularError(),
+      ),
+    );
+  }
+}
+
+class _ExplorePopularCard extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  const _ExplorePopularCard({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  State<_ExplorePopularCard> createState() => _ExplorePopularCardState();
+}
+
+class _ExplorePopularCardState extends State<_ExplorePopularCard> {
+  var isExpanded = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(widget.icon, size: 20),
+              const Gap(12),
+              Expanded(
+                child: Text(widget.title, style: theme.textTheme.titleMedium),
+              ),
+              IconButton(
+                onPressed: () => setState(() => isExpanded = !isExpanded),
+                icon: AnimatedRotation(
+                  turns: isExpanded ? 0 : 0.5,
+                  duration: const Duration(milliseconds: 180),
+                  child: const Icon(Symbols.expand_more, size: 20),
+                ),
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(32, 32),
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+                tooltip: isExpanded ? 'collapse'.tr() : 'expand'.tr(),
+              ),
+            ],
+          ).padding(horizontal: 16, top: 12, bottom: isExpanded ? 0 : 12),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: isExpanded
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [const Gap(8), widget.child, const Gap(8)],
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExplorePopularLoading extends StatelessWidget {
+  const _ExplorePopularLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 48,
+      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+    );
+  }
+}
+
+class _ExplorePopularError extends StatelessWidget {
+  const _ExplorePopularError();
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Symbols.error_outline,
+      size: 20,
+      color: Theme.of(context).colorScheme.error,
+    ).center();
   }
 }
 
@@ -1876,7 +2092,10 @@ class _TimelineDetailPane extends HookConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(14),
+          topRight: Radius.circular(14),
+        ),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withOpacity(0.18),
           width: 1,
@@ -1969,7 +2188,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                       PostDetailContent(
                         postId: postId,
                         post: post,
-                        maxWidth: 720,
+                        maxWidth: double.infinity,
                         onPostTap: onPostTap,
                         onRefresh: () async {
                           ref.invalidate(postProvider(postId));
@@ -2033,7 +2252,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                           length: 4,
                           child: PostInteractionsSlivers(
                             postId: postId,
-                            maxWidth: 720,
+                            maxWidth: double.infinity,
                           ),
                         ),
                       ),

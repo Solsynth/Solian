@@ -26,7 +26,13 @@ Future<List<SnPost>> featuredPosts(Ref ref) async {
 class PostFeaturedList extends HookConsumerWidget {
   final bool collapsable;
   final double? maxHeight;
-  const PostFeaturedList({super.key, this.collapsable = true, this.maxHeight});
+  final bool emphasizeHeader;
+  const PostFeaturedList({
+    super.key,
+    this.collapsable = true,
+    this.maxHeight,
+    this.emphasizeHeader = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -111,13 +117,17 @@ class PostFeaturedList extends HookConsumerWidget {
                   Icon(
                     Symbols.highlight,
                     size: 20,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: emphasizeHeader
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
                   ),
                   Expanded(
                     child: Text(
                       'highlightPost'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: emphasizeHeader
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   ),

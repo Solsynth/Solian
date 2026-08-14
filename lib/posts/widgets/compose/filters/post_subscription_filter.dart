@@ -152,11 +152,7 @@ Future<List<PublisherSubscriptionLiveItem>> fetchPublisherSubscriptionsLive(
   while (true) {
     final response = await client.dio.get(
       '/sphere/publishers/subscriptions',
-      queryParameters: {
-        'order': order,
-        'offset': offset,
-        'take': pageSize,
-      },
+      queryParameters: {'order': order, 'offset': offset, 'take': pageSize},
     );
 
     final data = response.data;
@@ -203,24 +199,17 @@ Future<List<SnPublisherSubscription>> publishersSubscriptions(Ref ref) async {
   final client = ref.read(solarNetworkClientProvider);
   final response = await client.dio.get(
     '/sphere/publishers/subscriptions',
-    queryParameters: {
-      'order': 'latest_posted_at',
-      'offset': 0,
-      'take': 100,
-    },
+    queryParameters: {'order': 'latest_posted_at', 'offset': 0, 'take': 100},
   );
 
-  return (response.data as List)
-      .whereType<Map>()
-      .map((raw) {
-        final json = Map<String, dynamic>.from(raw);
-        final subRaw = json['subscription'];
-        final map = Map<String, dynamic>.from(
-          subRaw is Map ? Map<String, dynamic>.from(subRaw) : json,
-        );
-        return SnPublisherSubscription.fromJson(map);
-      })
-      .toList();
+  return (response.data as List).whereType<Map>().map((raw) {
+    final json = Map<String, dynamic>.from(raw);
+    final subRaw = json['subscription'];
+    final map = Map<String, dynamic>.from(
+      subRaw is Map ? Map<String, dynamic>.from(subRaw) : json,
+    );
+    return SnPublisherSubscription.fromJson(map);
+  }).toList();
 }
 
 class PublishersSubscriptionsLiveNotifier
@@ -391,6 +380,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
   final ValueChanged<List<String>> onSelectedCategoriesChanged;
   final ValueChanged<List<String>> onSelectedTagsChanged;
   final bool hideSearch;
+  final bool collapsible;
 
   const PostSubscriptionFilterWidget({
     super.key,
@@ -401,6 +391,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
     required this.onSelectedCategoriesChanged,
     required this.onSelectedTagsChanged,
     this.hideSearch = false,
+    this.collapsible = false,
   });
 
   @override
@@ -413,6 +404,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
     );
     final selectedTags = useState<List<String>>(initialSelectedTags);
     final isMarkingAll = useState(false);
+    final isExpanded = useState(true);
 
     final publishersAsync = ref.watch(publishersSubscriptionsLiveProvider);
     final categoriesAsync = ref.watch(categoriesSubscriptionsProvider);
@@ -447,7 +439,9 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                         isMarkingAll.value = true;
                         try {
                           await ref
-                              .read(publishersSubscriptionsLiveProvider.notifier)
+                              .read(
+                                publishersSubscriptionsLiveProvider.notifier,
+                              )
                               .markAllAsRead();
                         } catch (_) {
                           // ignore
@@ -463,244 +457,300 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                       )
                     : Text('markAllRead'.tr()),
               ),
-          ],
-        ).padding(horizontal: 16, top: 12),
-        const Gap(12),
-
-        // Publishers Section
-        publishersAsync.when(
-          data: (items) {
-            if (items.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text('noSubscriptions'.tr()),
+            if (collapsible)
+              IconButton(
+                onPressed: () => isExpanded.value = !isExpanded.value,
+                icon: AnimatedRotation(
+                  turns: isExpanded.value ? 0 : 0.5,
+                  duration: const Duration(milliseconds: 180),
+                  child: const Icon(Symbols.expand_more, size: 20),
                 ),
-              );
-            }
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(32, 32),
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+                tooltip: isExpanded.value ? 'collapse'.tr() : 'expand'.tr(),
+              ),
+          ],
+        ).padding(
+          horizontal: 16,
+          top: 12,
+          bottom: collapsible && !isExpanded.value ? 12 : 0,
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: collapsible && !isExpanded.value
+              ? const SizedBox.shrink()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'publishers'.tr(),
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (unreadCount > 0) ...[
-                      const Gap(8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          '$unreadCount',
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ).padding(bottom: 8, horizontal: 16),
-                ...items.map((item) {
-                  final subscription = item.subscription;
-                  final isSelected = selectedPublishers.value.contains(
-                    subscription.publisher.name,
-                  );
-                  final publisher = subscription.publisher;
+                    const Gap(12),
 
-                  return CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    title: Row(
-                      children: [
-                        Expanded(child: Text(publisher.nick)),
-                        if (item.hasNewContent)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
+                    // Publishers Section
+                    publishersAsync.when(
+                      data: (items) {
+                        if (items.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text('noSubscriptions'.tr()),
                             ),
-                          ),
-                        if (item.isLive) ...[
-                          const Gap(6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(
-                                  Symbols.fiber_manual_record,
-                                  size: 9,
-                                  color: Colors.redAccent,
-                                ),
-                                SizedBox(width: 3),
+                          );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
                                 Text(
-                                  'LIVE',
-                                  style: TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 10,
+                                  'publishers'.tr(),
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                if (unreadCount > 0) ...[
+                                  const Gap(8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      '$unreadCount',
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ).padding(bottom: 8, horizontal: 16),
+                            ...items.map((item) {
+                              final subscription = item.subscription;
+                              final isSelected = selectedPublishers.value
+                                  .contains(subscription.publisher.name);
+                              final publisher = subscription.publisher;
+
+                              return CheckboxListTile(
+                                controlAffinity:
+                                    ListTileControlAffinity.trailing,
+                                title: Row(
+                                  children: [
+                                    Expanded(child: Text(publisher.nick)),
+                                    if (item.hasNewContent)
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.blue,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    if (item.isLive) ...[
+                                      const Gap(6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.redAccent.withOpacity(
+                                            0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: const [
+                                            Icon(
+                                              Symbols.fiber_manual_record,
+                                              size: 9,
+                                              color: Colors.redAccent,
+                                            ),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              'LIVE',
+                                              style: TextStyle(
+                                                color: Colors.redAccent,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                    value: isSelected,
-                    onChanged: (value) async {
-                      if (value == true) {
-                        selectedPublishers.value = [
-                          subscription.publisher.name,
-                        ];
-                        selectedCategories.value = [];
-                        selectedTags.value = [];
-                        try {
-                          await ref
-                              .read(publishersSubscriptionsLiveProvider.notifier)
-                              .markAsRead(
-                                subscription.publisher.name,
-                                lastReadAt: item.latestContentAt,
+                                value: isSelected,
+                                onChanged: (value) async {
+                                  if (value == true) {
+                                    selectedPublishers.value = [
+                                      subscription.publisher.name,
+                                    ];
+                                    selectedCategories.value = [];
+                                    selectedTags.value = [];
+                                    try {
+                                      await ref
+                                          .read(
+                                            publishersSubscriptionsLiveProvider
+                                                .notifier,
+                                          )
+                                          .markAsRead(
+                                            subscription.publisher.name,
+                                            lastReadAt: item.latestContentAt,
+                                          );
+                                    } catch (_) {
+                                      // ignore
+                                    }
+                                  } else {
+                                    selectedPublishers.value =
+                                        selectedPublishers.value
+                                            .where(
+                                              (name) =>
+                                                  name !=
+                                                  subscription.publisher.name,
+                                            )
+                                            .toList();
+                                  }
+                                  updateSelection();
+                                },
+                                dense: true,
+                                secondary: ProfilePictureWidget(
+                                  file: subscription.publisher.picture,
+                                  radius: 12,
+                                ),
+                                contentPadding: const EdgeInsets.only(
+                                  left: 15,
+                                  right: 16,
+                                ),
                               );
-                        } catch (_) {
-                          // ignore
-                        }
-                      } else {
-                        selectedPublishers.value = selectedPublishers.value
-                            .where(
-                              (name) => name != subscription.publisher.name,
-                            )
-                            .toList();
-                      }
-                      updateSelection();
-                    },
-                    dense: true,
-                    secondary: ProfilePictureWidget(
-                      file: subscription.publisher.picture,
-                      radius: 12,
+                            }),
+                          ],
+                        );
+                      },
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      error: (error, stack) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text('errorLoadingSubscription'.tr()),
+                        ),
+                      ),
                     ),
-                    contentPadding: const EdgeInsets.only(left: 15, right: 16),
-                  );
-                }),
-              ],
-            );
-          },
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text('errorLoadingSubscription'.tr()),
-            ),
-          ),
-        ),
 
-        if (publishersAsync.value?.isNotEmpty ?? false)
-          const Divider(height: 1).padding(vertical: 8),
+                    if (publishersAsync.value?.isNotEmpty ?? false)
+                      const Divider(height: 1).padding(vertical: 8),
 
-        // Categories Section
-        categoriesAsync.when(
-          data: (subscriptions) {
-            if (subscriptions.isEmpty) {
-              return const SizedBox.shrink();
-            }
+                    // Categories Section
+                    categoriesAsync.when(
+                      data: (subscriptions) {
+                        if (subscriptions.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'categoriesAndTags'.tr(),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                ).padding(bottom: 8, horizontal: 16),
-                ...subscriptions.map((subscription) {
-                  final category = subscription.category;
-                  final tag = subscription.tag;
-                  final slug = category?.slug ?? tag?.slug;
-                  final displayTitle =
-                      category?.categoryTranslationKey.tr() ??
-                      tag?.name ??
-                      slug ??
-                      '';
-                  final isCategorySelected = selectedCategories.value.contains(
-                    slug,
-                  );
-                  final isTagSelected = selectedTags.value.contains(slug);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'categoriesAndTags'.tr(),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ).padding(bottom: 8, horizontal: 16),
+                            ...subscriptions.map((subscription) {
+                              final category = subscription.category;
+                              final tag = subscription.tag;
+                              final slug = category?.slug ?? tag?.slug;
+                              final displayTitle =
+                                  category?.categoryTranslationKey.tr() ??
+                                  tag?.name ??
+                                  slug ??
+                                  '';
+                              final isCategorySelected = selectedCategories
+                                  .value
+                                  .contains(slug);
+                              final isTagSelected = selectedTags.value.contains(
+                                slug,
+                              );
 
-                  return CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    title: Text(displayTitle),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                              return CheckboxListTile(
+                                controlAffinity:
+                                    ListTileControlAffinity.trailing,
+                                title: Text(displayTitle),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                ),
+                                secondary: category != null
+                                    ? Icon(Symbols.category)
+                                    : Icon(Symbols.tag),
+                                value: category != null
+                                    ? isCategorySelected
+                                    : isTagSelected,
+                                onChanged: (value) {
+                                  if (value == true) {
+                                    selectedPublishers.value = [];
+                                    if (category != null) {
+                                      selectedCategories.value = [
+                                        ...selectedCategories.value,
+                                        slug!,
+                                      ];
+                                    } else if (tag != null) {
+                                      selectedTags.value = [
+                                        ...selectedTags.value,
+                                        slug!,
+                                      ];
+                                    }
+                                  } else {
+                                    if (category != null) {
+                                      selectedCategories.value =
+                                          selectedCategories.value
+                                              .where((id) => id != slug)
+                                              .toList();
+                                    } else if (tag != null) {
+                                      selectedTags.value = selectedTags.value
+                                          .where((id) => id != slug)
+                                          .toList();
+                                    }
+                                  }
+                                  updateSelection();
+                                },
+                                dense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                              );
+                            }),
+                          ],
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (error, stack) => const SizedBox.shrink(),
                     ),
-                    secondary: category != null
-                        ? Icon(Symbols.category)
-                        : Icon(Symbols.tag),
-                    value: category != null
-                        ? isCategorySelected
-                        : isTagSelected,
-                    onChanged: (value) {
-                      if (value == true) {
-                        selectedPublishers.value = [];
-                        if (category != null) {
-                          selectedCategories.value = [
-                            ...selectedCategories.value,
-                            slug!,
-                          ];
-                        } else if (tag != null) {
-                          selectedTags.value = [...selectedTags.value, slug!];
-                        }
-                      } else {
-                        if (category != null) {
-                          selectedCategories.value = selectedCategories.value
-                              .where((id) => id != slug)
-                              .toList();
-                        } else if (tag != null) {
-                          selectedTags.value = selectedTags.value
-                              .where((id) => id != slug)
-                              .toList();
-                        }
-                      }
-                      updateSelection();
-                    },
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  );
-                }),
-              ],
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (error, stack) => const SizedBox.shrink(),
+                  ],
+                ),
         ),
       ],
     );

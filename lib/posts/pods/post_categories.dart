@@ -11,9 +11,18 @@ final postCategoriesProvider =
       PaginationState<SnPostCategory>
     >(PostCategoriesNotifier.new);
 
+final popularPostCategoriesProvider =
+    AsyncNotifierProvider.autoDispose<
+      PopularPostCategoriesNotifier,
+      PaginationState<SnPostCategory>
+    >(PopularPostCategoriesNotifier.new);
+
 class PostCategoriesNotifier
     extends AsyncNotifier<PaginationState<SnPostCategory>>
     with AsyncPaginationController<SnPostCategory> {
+  String get order => 'usage';
+  int get pageSize => 20;
+
   @override
   FutureOr<PaginationState<SnPostCategory>> build() async {
     final items = await fetch();
@@ -33,13 +42,25 @@ class PostCategoriesNotifier
 
     final response = await client.dio.get(
       '/sphere/posts/categories',
-      queryParameters: {'offset': fetchedCount, 'take': 20, 'order': 'usage'},
+      queryParameters: {
+        'offset': fetchedCount,
+        'take': pageSize,
+        'order': order,
+      },
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final data = response.data as List;
     return data.map((json) => SnPostCategory.fromJson(json)).toList();
   }
+}
+
+class PopularPostCategoriesNotifier extends PostCategoriesNotifier {
+  @override
+  String get order => 'popularity';
+
+  @override
+  int get pageSize => 5;
 }
 
 // Post Tags Notifier
@@ -49,8 +70,17 @@ final postTagsProvider =
       PaginationState<SnPostTag>
     >(PostTagsNotifier.new);
 
+final popularPostTagsProvider =
+    AsyncNotifierProvider.autoDispose<
+      PopularPostTagsNotifier,
+      PaginationState<SnPostTag>
+    >(PopularPostTagsNotifier.new);
+
 class PostTagsNotifier extends AsyncNotifier<PaginationState<SnPostTag>>
     with AsyncPaginationController<SnPostTag> {
+  String get order => 'usage';
+  int get pageSize => 20;
+
   @override
   FutureOr<PaginationState<SnPostTag>> build() async {
     final items = await fetch();
@@ -70,11 +100,23 @@ class PostTagsNotifier extends AsyncNotifier<PaginationState<SnPostTag>>
 
     final response = await client.dio.get(
       '/sphere/posts/tags',
-      queryParameters: {'offset': fetchedCount, 'take': 20, 'order': 'usage'},
+      queryParameters: {
+        'offset': fetchedCount,
+        'take': pageSize,
+        'order': order,
+      },
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     final data = response.data as List;
     return data.map((json) => SnPostTag.fromJson(json)).toList();
   }
+}
+
+class PopularPostTagsNotifier extends PostTagsNotifier {
+  @override
+  String get order => 'popularity';
+
+  @override
+  int get pageSize => 5;
 }
