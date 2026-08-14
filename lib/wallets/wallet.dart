@@ -103,12 +103,20 @@ class ExchangeCurrencySheet extends ConsumerStatefulWidget {
 
 class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
   final amountController = TextEditingController();
+  late final ValueNotifier<String?> selectedSourceCurrencyNotifier;
   String? selectedSourceCurrency;
   bool isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    selectedSourceCurrencyNotifier = ValueNotifier(null);
+  }
+
+  @override
   void dispose() {
     amountController.dispose();
+    selectedSourceCurrencyNotifier.dispose();
     super.dispose();
   }
 
@@ -121,6 +129,217 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
   double _calculateTargetAmount(double amount, SnWalletExchangeOption option) {
     final targetAmount = amount * option.targetAmount / option.sourceAmount;
     return (targetAmount * 1000).truncateToDouble() / 1000;
+  }
+
+  String _formatAmount(double amount) => amount.toStringAsFixed(3);
+
+  Widget _buildCurrencyBadge({
+    required BuildContext context,
+    required String currency,
+    required String amount,
+    required bool emphasize,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final foregroundColor = emphasize
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: emphasize
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            kCurrencyIconData[currency] ?? Symbols.monetization_on,
+            size: 22,
+            color: foregroundColor,
+          ),
+          const Gap(10),
+          Text(
+            currency.toUpperCase(),
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: foregroundColor,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const Gap(2),
+          Text(
+            amount,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: foregroundColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRateSelector({
+    required ThemeData theme,
+    required List<SnWalletExchangeOption> options,
+    required String effectiveSourceCurrency,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'walletExchangeRate'.tr(),
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(8),
+        DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            underline: const SizedBox.shrink(),
+            valueListenable: selectedSourceCurrencyNotifier,
+            items: options.map((option) {
+              return DropdownItem(
+                value: option.sourceCurrency,
+                child: Text(
+                  '${option.sourceAmount} ${option.sourceCurrency} → '
+                  '${option.targetAmount} ${option.targetCurrency}',
+                ).padding(left: 16, right: 8),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => selectedSourceCurrency = value);
+              }
+            },
+            selectedItemBuilder: (context) {
+              return options.map((option) {
+                return Text(
+                  '${option.sourceAmount} ${option.sourceCurrency} → '
+                  '${option.targetAmount} ${option.targetCurrency}',
+                  overflow: TextOverflow.ellipsis,
+                );
+              }).toList();
+            },
+            buttonStyleData: ButtonStyleData(
+              padding: const EdgeInsets.only(left: 16, right: 8),
+              height: 52,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border.all(color: theme.colorScheme.outline),
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            iconStyleData: IconStyleData(
+              icon: Icon(
+                Symbols.keyboard_arrow_down,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            dropdownStyleData: DropdownStyleData(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            menuItemStyleData: const MenuItemStyleData(
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreview({
+    required ThemeData theme,
+    required SnWalletExchangeOption option,
+    required double? amount,
+    required double? targetAmount,
+  }) {
+    final colorScheme = theme.colorScheme;
+    final hasAmount = amount != null && targetAmount != null;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Symbols.swap_horiz,
+                size: 20,
+                color: colorScheme.onPrimaryContainer,
+              ),
+              const Gap(8),
+              Expanded(
+                child: Text(
+                  'walletExchangePreview'.tr(),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                '${option.sourceAmount} ${option.sourceCurrency} = '
+                '${option.targetAmount} ${option.targetCurrency}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+                ),
+              ),
+            ],
+          ),
+          const Gap(16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Text(
+                  hasAmount ? _formatAmount(targetAmount) : '—',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.8,
+                  ),
+                ),
+              ),
+              const Gap(8),
+              Text(
+                option.targetCurrency.toUpperCase(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const Gap(4),
+          Text(
+            hasAmount
+                ? '${_formatAmount(amount)} ${option.sourceCurrency}'
+                : 'amount'.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _submitExchange(SnWalletExchangeOption option) async {
@@ -190,167 +409,167 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
           final targetAmount = amount == null
               ? null
               : _calculateTargetAmount(amount, selectedOption);
+          final canSubmit = amount != null && !isSubmitting;
+          if (selectedSourceCurrencyNotifier.value != effectiveSourceCurrency) {
+            selectedSourceCurrencyNotifier.value = effectiveSourceCurrency;
+          }
 
           return Column(
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 16,
+                    spacing: 20,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: 8,
-                        children: [
-                          Text(
-                            'walletExchangeRate'.tr(),
-                            style: theme.textTheme.labelLarge,
-                          ),
-                          DropdownButtonHideUnderline(
-                            child: DropdownButton2<String>(
-                              underline: const SizedBox.shrink(),
-                              isExpanded: true,
-                              valueListenable: ValueNotifier(
-                                effectiveSourceCurrency,
-                              ),
-                              items: options.map((option) {
-                                return DropdownItem(
-                                  value: option.sourceCurrency,
-                                  child: Text(
-                                    '${option.sourceAmount} ${option.sourceCurrency} → '
-                                    '${option.targetAmount} ${option.targetCurrency}',
-                                  ).padding(left: 16, right: 8),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(
-                                    () => selectedSourceCurrency = value,
-                                  );
-                                }
-                              },
-                              selectedItemBuilder: (context) {
-                                return options.map((option) {
-                                  return Text(
-                                    '${option.sourceAmount} ${option.sourceCurrency} → '
-                                    '${option.targetAmount} ${option.targetCurrency}',
-                                  );
-                                }).toList();
-                              },
-                              buttonStyleData: ButtonStyleData(
-                                padding: const EdgeInsets.only(
-                                  left: 16,
-                                  right: 8,
-                                ),
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: theme.colorScheme.outline,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildCurrencyBadge(
+                                    context: context,
+                                    currency: selectedOption.sourceCurrency,
+                                    amount:
+                                        '${selectedOption.sourceAmount} ${selectedOption.sourceCurrency}',
+                                    emphasize: false,
                                   ),
-                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ),
-                              dropdownStyleData: DropdownStyleData(
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(12),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  child: Icon(
+                                    Symbols.arrow_forward,
+                                    color: theme.colorScheme.primary,
+                                  ),
                                 ),
-                              ),
-                              menuItemStyleData: const MenuItemStyleData(
-                                padding: EdgeInsets.zero,
-                              ),
+                                Expanded(
+                                  child: _buildCurrencyBadge(
+                                    context: context,
+                                    currency: selectedOption.targetCurrency,
+                                    amount:
+                                        '${selectedOption.targetAmount} ${selectedOption.targetCurrency}',
+                                    emphasize: true,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            const Gap(16),
+                            _buildRateSelector(
+                              theme: theme,
+                              options: options,
+                              effectiveSourceCurrency: effectiveSourceCurrency,
+                            ),
+                          ],
+                        ),
                       ),
                       TextField(
                         controller: amountController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
+                        textInputAction: TextInputAction.done,
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
                             RegExp(r'^\d+\.?\d{0,3}'),
                           ),
                         ],
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'amount'.tr(),
                           hintText: '0.000',
+                          suffixText: selectedOption.sourceCurrency
+                              .toUpperCase(),
                           contentPadding: const EdgeInsets.symmetric(
-                            vertical: 9,
+                            vertical: 16,
                             horizontal: 16,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 2,
+                            ),
                           ),
                         ),
                         onChanged: (_) => setState(() {}),
+                        onSubmitted: (_) {
+                          if (canSubmit) _submitExchange(selectedOption);
+                        },
                         onTapOutside: (_) =>
                             FocusManager.instance.primaryFocus?.unfocus(),
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 8,
-                          children: [
-                            Text(
-                              'walletExchangePreview'.tr(),
-                              style: theme.textTheme.labelLarge,
-                            ),
-                            Text(
-                              amount == null
-                                  ? '—'
-                                  : '${amount.toStringAsFixed(3)} '
-                                        '${selectedOption.sourceCurrency} → '
-                                        '${targetAmount!.toStringAsFixed(3)} '
-                                        '${selectedOption.targetCurrency}',
-                              style: theme.textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
+                      _buildPreview(
+                        theme: theme,
+                        option: selectedOption,
+                        amount: amount,
+                        targetAmount: targetAmount,
                       ),
                     ],
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: isSubmitting
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                        child: Text('cancel'.tr()),
-                      ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withOpacity(0.6),
                     ),
-                    const Gap(12),
-                    Expanded(
-                      flex: 2,
-                      child: FilledButton(
-                        onPressed: isSubmitting
-                            ? null
-                            : () => _submitExchange(selectedOption),
-                        child: isSubmitting
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text('walletExchangeSubmit'.tr()),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    12 + MediaQuery.viewPaddingOf(context).bottom,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: isSubmitting
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          child: Text('cancel'.tr()),
+                        ),
                       ),
-                    ),
-                  ],
+                      const Gap(12),
+                      Expanded(
+                        flex: 2,
+                        child: FilledButton.icon(
+                          onPressed: canSubmit
+                              ? () => _submitExchange(selectedOption)
+                              : null,
+                          icon: isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Symbols.swap_horiz),
+                          label: Text('walletExchangeSubmit'.tr()),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
