@@ -210,6 +210,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                           ),
                           DropdownButtonHideUnderline(
                             child: DropdownButton2<String>(
+                              underline: const SizedBox.shrink(),
                               isExpanded: true,
                               valueListenable: ValueNotifier(
                                 effectiveSourceCurrency,
@@ -2516,6 +2517,7 @@ class WalletScreen extends HookConsumerWidget {
                     const Gap(8),
                     DropdownButtonHideUnderline(
                       child: DropdownButton2<SnRealm?>(
+                        underline: const SizedBox.shrink(),
                         isExpanded: true,
                         hint: Text('selectWalletOwner'.tr()),
                         valueListenable: selected,
@@ -2989,6 +2991,7 @@ class WalletScreen extends HookConsumerWidget {
   }) {
     return DropdownButtonHideUnderline(
       child: DropdownButton2<String>(
+        underline: const SizedBox.shrink(),
         valueListenable: selectedCurrency,
         onChanged: (value) {
           if (value != null) {
@@ -3049,9 +3052,12 @@ class WalletScreen extends HookConsumerWidget {
                   size: 18,
                 ),
                 const Gap(8),
-                Text(
-                  'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
-                      .tr(),
+                Expanded(
+                  child: Text(
+                    'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
+                        .tr(),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -3982,6 +3988,7 @@ class WalletScreen extends HookConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
+          underline: const SizedBox.shrink(),
           valueListenable: selectedWalletId,
           onChanged: (value) {
             if (value != null) {

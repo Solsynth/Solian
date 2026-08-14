@@ -299,6 +299,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     decoration: legacy_material.InputDecoration(
                       labelText: 'language'.tr(),
                       helperText: 'accountLanguageHint'.tr(),
+                      border: legacy_material.InputBorder.none,
                     ),
                     items: [
                       ...kServerSupportedLanguages.values.map(
@@ -327,6 +328,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     decoration: legacy_material.InputDecoration(
                       labelText: 'region'.tr(),
                       helperText: 'accountRegionHint'.tr(),
+                      border: legacy_material.InputBorder.none,
                     ),
                     items: [
                       ...kServerSupportedRegions.map(
@@ -745,6 +747,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                       DropdownButtonFormField2<String>(
                         decoration: legacy_material.InputDecoration(
                           labelText: 'colorType'.tr(),
+                          border: legacy_material.InputBorder.none,
                         ),
                         items: [
                           DropdownItem(
@@ -817,6 +820,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                         DropdownButtonFormField2<String>(
                           decoration: legacy_material.InputDecoration(
                             labelText: 'gradientDirection'.tr(),
+                            border: legacy_material.InputBorder.none,
                           ),
                           items: [
                             DropdownItem(

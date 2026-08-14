@@ -24,10 +24,13 @@ class RealmSelectionDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Ensure the selected value is in the items list
-    final effectiveValue = value != null && !realms.contains(value) ? null : value;
-    
+    final effectiveValue = value != null && !realms.contains(value)
+        ? null
+        : value;
+
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnRealm?>(
+        underline: const SizedBox.shrink(),
         isExpanded: true,
         hint: Text('realmSelection').tr(),
         valueListenable: ValueNotifier(effectiveValue),

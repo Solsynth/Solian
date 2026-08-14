@@ -378,6 +378,7 @@ class PublisherSelector extends StatelessWidget {
 
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnPublisher?>(
+        underline: const SizedBox.shrink(),
         // Keep the dropdown interactive even when nothing is selected.
         // The first menu entry clears the current selection.
         valueListenable: ValueNotifier<SnPublisher?>(
@@ -942,8 +943,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           leading: const Icon(Symbols.domain),
           onTap: () {
             context.router.push(
-              CreatorDomainManageRoute(
-                  pubName: currentPublisher.value!.name),
+              CreatorDomainManageRoute(pubName: currentPublisher.value!.name),
             );
           },
         ),

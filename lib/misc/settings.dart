@@ -195,6 +195,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.translate),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<Locale?>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   ...EasyLocalization.of(context)!.supportedLocales.mapIndexed((
@@ -236,6 +237,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.dark_mode),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -661,6 +663,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.unfold_more),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -859,6 +862,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.chat),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -906,6 +910,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.attachment),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -947,6 +952,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.image),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -1018,6 +1024,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.info),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -1591,6 +1598,7 @@ class SettingsScreen extends HookConsumerWidget {
                   ),
                   trailing: DropdownButtonHideUnderline(
                     child: DropdownButton2<String>(
+                      underline: const SizedBox.shrink(),
                       isExpanded: true,
                       items: validPools.map((p) {
                         return DropdownItem<String>(
@@ -1713,6 +1721,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.home),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: [
                   DropdownItem<String>(
@@ -1878,6 +1887,7 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.tune),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton2<String>(
+                underline: const SizedBox.shrink(),
                 isExpanded: true,
                 items: updateChannelNames
                     .map(
