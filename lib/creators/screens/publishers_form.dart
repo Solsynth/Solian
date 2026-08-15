@@ -130,7 +130,7 @@ class EditPublisherScreen extends HookConsumerWidget {
                     : '/publishers/organization/${currentRealm.value!.slug}'
               : '/publishers/$name'}',
           data: {
-            'name': nameController.text,
+            if (name == null) 'name': nameController.text,
             'nick': nickController.text,
             'bio': bioController.text,
             'picture_id': picture.value,

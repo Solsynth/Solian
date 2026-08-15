@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_devices.dart';
 import 'package:island/accounts/widgets/account/account_authorized_apps.dart';
+import 'package:island/accounts/widgets/name_change_card_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/me/settings_auth_factors.dart';
 import 'package:island/accounts/screens/me/settings_connections.dart';
@@ -170,6 +171,22 @@ class AccountSettingsScreen extends HookConsumerWidget {
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           context.router.push(const AccountUpdateProfileRoute());
+        },
+      ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.badge),
+        title: Text('changeName').tr(),
+        subtitle: Text('changeNameDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => const NameChangeCardSheet(),
+          );
         },
       ),
       ListTile(

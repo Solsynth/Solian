@@ -10,6 +10,7 @@ import 'package:solar_network_sdk/src/models/accounts/action_log.dart';
 import 'package:solar_network_sdk/src/models/accounts/affiliation.dart';
 import 'package:solar_network_sdk/src/models/accounts/abuse_report.dart';
 import 'package:solar_network_sdk/src/models/accounts/abuse_report_type.dart';
+import 'package:solar_network_sdk/src/models/accounts/name_change_card.dart';
 import 'package:solar_network_sdk/src/models/activity/activity.dart';
 
 /// API for account-related endpoints (/passport).
@@ -59,6 +60,12 @@ class AccountsApi extends BaseApi {
   /// Gets an account by username.
   ///
   /// [username] - The username to look up.
+  ///
+  /// After a rename, the old name still resolves: if a new user has since
+  /// registered the old name, their account is returned directly (direct
+  /// match wins); otherwise the server answers 302 to
+  /// `/stargate/accounts/<current name>`, which Dio follows automatically —
+  /// stale client links keep working without extra handling.
   Future<SnAccount> getAccountByUsername(String username) async {
     final response = await get<Map<String, dynamic>>(
       '$_stargateBasePath/accounts/$username',
@@ -864,6 +871,72 @@ class AccountsApi extends BaseApi {
       },
     );
     return SnAbuseReport.fromJson(response.data!);
+  }
+
+  // ==========================================
+  // Name change card endpoints
+  // ==========================================
+
+  /// Creates a name change card purchase order.
+  ///
+  /// Requires `[Authorize]`. Returns the Wallet order to pay; the card only
+  /// becomes usable once the payment event fulfills it. Fails with
+  /// `NAME_CHANGE_CARD_PURCHASE_DISALLOWED` when the feature is disabled or
+  /// the 30-day purchase cooldown is active (max 1 purchase per 30 days).
+  ///
+  /// Pay the returned order via `POST /wallet/orders/{orderId}/pay`, then
+  /// poll [listNameChangeCards] until [SnNameChangeCardPurchase.isFulfilled].
+  Future<SnNameChangeCardOrder> orderNameChangeCard({Options? options}) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/accounts/me/name-change-card/order',
+      options: options,
+    );
+    return SnNameChangeCardOrder.fromJson(response.data!);
+  }
+
+  /// Lists the current user's name change card purchases.
+  ///
+  /// The client uses this to observe fulfilled (`fulfilled_at` set, paid &
+  /// usable) and consumed (`consumed_at` set, spent) state.
+  Future<List<SnNameChangeCardPurchase>> listNameChangeCards({
+    Options? options,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/name-change-card',
+      options: options,
+    );
+    return parseList(response, SnNameChangeCardPurchase.fromJson);
+  }
+
+  /// Spends a fulfilled name change card on a rename.
+  ///
+  /// [target] - What to rename: `account`, `realm` (owner), or `publisher`
+  /// (manager+). [targetId] is required for realm (the realm slug) and
+  /// publisher (the publisher id); ignored for `account`.
+  ///
+  /// [newName] - The new name: account names use `[A-Za-z0-9_-]`, 2-256
+  /// chars; realm slugs must be non-empty; publisher names max 256 chars.
+  ///
+  /// Returns the purchase row with `consumed_at`, `target_type`, `old_name`
+  /// and `new_name` set. Any failure returns 400 with
+  /// `NAME_CHANGE_CARD_USE_FAILED` (message carries the reason: taken name,
+  /// not owner, invalid target, etc.) and never consumes the card.
+  Future<SnNameChangeCardPurchase> useNameChangeCard({
+    required SnNameChangeCardTargetType target,
+    String? targetId,
+    required String newName,
+    Options? options,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/accounts/me/name-change-card/use',
+      data: {
+        'target': target.wire,
+        'target_id': ?targetId,
+        'new_name': newName,
+      },
+      options: options,
+    );
+    return SnNameChangeCardPurchase.fromJson(response.data!);
   }
 
   // ==========================================

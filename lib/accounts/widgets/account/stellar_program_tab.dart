@@ -12,6 +12,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/restore_purchase_sheet.dart';
+import 'package:island/accounts/widgets/name_change_card_sheet.dart';
 import 'package:island/wallets/wallet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -660,6 +661,8 @@ class StellarProgramView extends HookConsumerWidget {
               supportsIap,
               iapProducts,
             ),
+            const Gap(12),
+            _buildNameChangeCardStoreCard(context),
             const Gap(12),
           ],
           _buildMembershipSection(
@@ -1359,6 +1362,29 @@ class StellarProgramView extends HookConsumerWidget {
           minimumSize: const Size(double.infinity, 48),
           backgroundColor: const Color(0xFFE8B84A),
           foregroundColor: const Color(0xFF2A1B00),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNameChangeCardStoreCard(BuildContext context) {
+    const accent = Color(0xFF4C6EF5);
+
+    return _StoreProductCard(
+      accent: accent,
+      icon: Symbols.badge,
+      eyebrow: 'NAME CHANGE CARD',
+      title: 'storeNameChangeCardTitle'.tr(),
+      description: 'storeNameChangeCardDescription'.tr(),
+      meta: 'nameChangeCardPrice'.tr(),
+      footer: FilledButton.icon(
+        onPressed: () => showNameChangeCardSheet(context),
+        icon: const Icon(Symbols.add_card),
+        label: Text('nameChangeCardPurchase'.tr()),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(double.infinity, 48),
+          backgroundColor: accent,
+          foregroundColor: Colors.white,
         ),
       ),
     );
@@ -3255,10 +3281,6 @@ class _StoreProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final onAccent = ThemeData.estimateBrightnessForColor(accent) ==
-            Brightness.dark
-        ? Colors.white
-        : const Color(0xFF1A1200);
 
     return Container(
       decoration: BoxDecoration(
@@ -3334,31 +3356,6 @@ class _StoreProductCard extends StatelessWidget {
                 height: 1.4,
               ),
             ),
-            if (meta != null && meta!.isNotEmpty) ...[
-              const Gap(12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withOpacity(0.16),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    meta!,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: onAccent == Colors.white
-                          ? accent
-                          : const Color(0xFF5A4200),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
             const Gap(16),
             footer,
           ],
