@@ -99,14 +99,18 @@ class PostFeaturedList extends HookConsumerWidget {
 
     final appSettings = ref.watch(appSettingsProvider);
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      child: Card(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(
-          appSettings.cardTransparency,
-        ),
-        margin: EdgeInsets.zero,
-        child: Column(
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(
+        appSettings.cardTransparency,
+      ),
+      margin: EdgeInsets.zero,
+      // Clip content to the rounded corners without clipping the elevation
+      // shadow; an outer ClipRRect would cut the shadow (visible at the bottom).
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
@@ -223,7 +227,6 @@ class PostFeaturedList extends HookConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
