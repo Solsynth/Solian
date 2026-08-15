@@ -37,6 +37,7 @@ export 'src/models/chat/chat.dart';
 export 'src/models/drive/drive_task.dart';
 export 'src/models/drive/file.dart';
 export 'src/models/drive/file_list_item.dart';
+export 'src/models/drive/quota.dart';
 export 'src/models/drive/file_pool.dart';
 export 'src/models/drive/folder.dart';
 export 'src/models/drive/file_permission.dart';

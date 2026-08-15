@@ -17,6 +17,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/server_compatibility.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/payments/quota_purchase_sheet.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -703,6 +704,26 @@ class AccountSettingsScreen extends HookConsumerWidget {
           );
         },
       ),
+      if (serverFeatureEnabled(
+        ref.watch(serverCapabilitiesProvider).value,
+        'quota.purchase',
+      ))
+        ListTile(
+          minLeadingWidth: 48,
+          leading: const Icon(Symbols.add_card),
+          title: Text('quotaPurchase').tr(),
+          subtitle: Text('quotaPurchaseDescription').tr().fontSize(12),
+          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              builder: (context) => const QuotaPurchaseSheet(),
+            );
+          },
+        ),
     ];
 
     // Create a responsive layout based on screen width

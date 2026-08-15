@@ -4,6 +4,7 @@ import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/drive/file.dart';
 import 'package:solar_network_sdk/src/models/drive/file_permission.dart';
 import 'package:solar_network_sdk/src/models/drive/file_pool.dart';
+import 'package:solar_network_sdk/src/models/drive/quota.dart';
 
 /// API for cloud drive/storage endpoints (/drive).
 ///
@@ -795,5 +796,31 @@ class DriveApi extends BaseApi {
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
     return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Lists purchasable extra-quota packs.
+  ///
+  /// Only available when the `quota.purchase` feature is enabled on the
+  /// server; otherwise the route does not exist.
+  Future<List<SnQuotaProduct>> getQuotaProducts() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/billing/quota/products',
+    );
+    return parseList(response, SnQuotaProduct.fromJson);
+  }
+
+  /// Creates a quota purchase order for [productIdentifier].
+  ///
+  /// The returned order must be paid through the Wallet API
+  /// (`POST /wallet/orders/{orderId}/pay`); the granted quota lands
+  /// automatically once the payment event is consumed.
+  Future<SnQuotaOrder> createQuotaPurchaseOrder(
+    String productIdentifier,
+  ) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/billing/quota/purchase',
+      data: {'product_identifier': productIdentifier},
+    );
+    return SnQuotaOrder.fromJson(response.data!);
   }
 }
