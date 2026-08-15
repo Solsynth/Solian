@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -10,7 +11,6 @@ import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
-import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/restore_purchase_sheet.dart';
 import 'package:island/wallets/wallet.dart';
 import 'package:island/core/network.dart';
@@ -29,7 +29,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 part 'stellar_program_tab.g.dart';
 
-const _goldResupplyProductId = 'golds.resupply.pack';
+const _goldResupplyCatalogKey = 'golds_resupply_pack';
+const _goldResupplyFallbackAppleProductId = 'GDP';
+const _goldResupplyFallbackPointsPerUnit = 10;
 
 const _storePurchaseChannel = MethodChannel(
   'dev.solsynth.solian/store_purchase',
@@ -49,13 +51,59 @@ Future<bool> _detectSandboxPurchaseEnvironment() async {
   }
 }
 
-const kDebugShowAfdian = false;
+bool get _offerAfdianInDebug => kDebugMode;
 
 String get _stellarPricingUrl => !kIsWeb && Platform.isAndroid
     ? 'https://www.solian.app/pricing'
     : 'https://solian.app/pricing';
 
 enum PaymentMethodTab { wallet, appleIap, afdian }
+
+List<PaymentMethodTab> _resolvePaymentMethods({
+  required SnSubscriptionGroup? group,
+  required bool supportsIap,
+}) {
+  if (group == null) return const [];
+
+  final items = group.catalog.items;
+  final hasWallet = items.any(
+    (c) => c.allowedPaymentMethods.contains('solian.wallet'),
+  );
+  final hasAfdian = items.any(
+    (c) => c.allowedPaymentMethods.contains('afdian'),
+  );
+  final hasApple = items.any(
+    (c) => c.allowedPaymentMethods.contains('apple_store'),
+  );
+
+  final methods = <PaymentMethodTab>[];
+  if (supportsIap && hasApple) {
+    methods.add(PaymentMethodTab.appleIap);
+  }
+  if (hasAfdian && (!supportsIap || _offerAfdianInDebug)) {
+    methods.add(PaymentMethodTab.afdian);
+  }
+  if (hasWallet) {
+    methods.add(PaymentMethodTab.wallet);
+  }
+  return methods;
+}
+
+int _paymentMethodCode(PaymentMethodTab method) {
+  return switch (method) {
+    PaymentMethodTab.wallet => 0,
+    PaymentMethodTab.appleIap => 1,
+    PaymentMethodTab.afdian => 2,
+  };
+}
+
+String _paymentMethodLabel(PaymentMethodTab method) {
+  return switch (method) {
+    PaymentMethodTab.wallet => 'sourcePoints'.tr(),
+    PaymentMethodTab.appleIap => 'appleIap'.tr(),
+    PaymentMethodTab.afdian => 'afdian'.tr(),
+  };
+}
 
 final selectedTabProvider = NotifierProvider<SelectedTabNotifier, int>(
   SelectedTabNotifier.new,
@@ -83,6 +131,160 @@ class IapProductsNotifier extends Notifier<Map<String, String>> {
     state = products;
   }
 }
+
+/// Flexible catalog product.
+///
+/// `providerMappings` is:
+/// `{ paymentMethod: { providerProductId: pointsAmount } }`
+/// and keys may change over time, so lookups use a map + aliases.
+class WalletProductCatalogItem {
+  final String key;
+  final String identifier;
+  final String displayName;
+  final String currency;
+  final Map<String, Map<String, int>> providerMappings;
+
+  const WalletProductCatalogItem({
+    required this.key,
+    required this.identifier,
+    required this.displayName,
+    required this.currency,
+    required this.providerMappings,
+  });
+
+  factory WalletProductCatalogItem.fromJson(Map<String, dynamic> json) {
+    final mappings = <String, Map<String, int>>{};
+    final rawMappings = json['provider_mappings'];
+    if (rawMappings is Map) {
+      for (final methodEntry in rawMappings.entries) {
+        final method = methodEntry.key.toString();
+        final productsRaw = methodEntry.value;
+        if (productsRaw is! Map) continue;
+
+        final products = <String, int>{};
+        for (final productEntry in productsRaw.entries) {
+          final amount = productEntry.value;
+          if (amount is num) {
+            products[productEntry.key.toString()] = amount.toInt();
+          }
+        }
+        if (products.isNotEmpty) {
+          mappings[method] = products;
+        }
+      }
+    }
+
+    return WalletProductCatalogItem(
+      key: json['key']?.toString() ?? '',
+      identifier: json['identifier']?.toString() ?? '',
+      displayName: json['display_name']?.toString() ?? '',
+      currency: json['currency']?.toString() ?? 'golds',
+      providerMappings: mappings,
+    );
+  }
+
+  /// First `{productId: points}` for any matching payment method.
+  MapEntry<String, int>? productOfferFor(Iterable<String> methodAliases) {
+    final aliases = methodAliases.map((e) => e.toLowerCase()).toSet();
+    for (final entry in providerMappings.entries) {
+      if (!aliases.contains(entry.key.toLowerCase())) continue;
+      if (entry.value.isEmpty) continue;
+      return entry.value.entries.first;
+    }
+    return null;
+  }
+}
+
+class GoldResupplyOffer {
+  final String appleProductId;
+  final int applePointsPerUnit;
+  final Map<String, Map<String, int>> providerMappings;
+  final String displayName;
+
+  const GoldResupplyOffer({
+    required this.appleProductId,
+    required this.applePointsPerUnit,
+    required this.providerMappings,
+    required this.displayName,
+  });
+
+  static const fallback = GoldResupplyOffer(
+    appleProductId: _goldResupplyFallbackAppleProductId,
+    applePointsPerUnit: _goldResupplyFallbackPointsPerUnit,
+    providerMappings: {
+      'AppleStore': {
+        _goldResupplyFallbackAppleProductId: _goldResupplyFallbackPointsPerUnit,
+      },
+    },
+    displayName: 'Golds Resupply Pack',
+  );
+
+  MapEntry<String, int>? offerFor(Iterable<String> methodAliases) {
+    final aliases = methodAliases.map((e) => e.toLowerCase()).toSet();
+    for (final entry in providerMappings.entries) {
+      if (!aliases.contains(entry.key.toLowerCase())) continue;
+      if (entry.value.isEmpty) continue;
+      return entry.value.entries.first;
+    }
+    return null;
+  }
+}
+
+final walletProductCatalogProvider =
+    FutureProvider<List<WalletProductCatalogItem>>((ref) async {
+      final client = ref.watch(apiClientProvider);
+      final resp = await client.get('/wallet/wallet-products/catalog');
+      final data = resp.data;
+
+      if (data is List) {
+        return data
+            .whereType<Map>()
+            .map(
+              (item) => WalletProductCatalogItem.fromJson(
+                Map<String, dynamic>.from(item),
+              ),
+            )
+            .toList();
+      }
+
+      // Some gateways may return a single object.
+      if (data is Map) {
+        return [
+          WalletProductCatalogItem.fromJson(Map<String, dynamic>.from(data)),
+        ];
+      }
+
+      return const [];
+    });
+
+final goldResupplyOfferProvider = Provider<GoldResupplyOffer>((ref) {
+  final catalog = ref.watch(walletProductCatalogProvider).asData?.value;
+  if (catalog == null || catalog.isEmpty) {
+    return GoldResupplyOffer.fallback;
+  }
+
+  final product = catalog.firstWhere(
+    (item) =>
+        item.key == _goldResupplyCatalogKey ||
+        item.identifier == 'wallet.golds_resupply_pack',
+    orElse: () => catalog.first,
+  );
+
+  final apple = product.productOfferFor(const [
+    'AppleStore',
+    'apple_store',
+    'apple',
+  ]);
+
+  return GoldResupplyOffer(
+    appleProductId: apple?.key ?? _goldResupplyFallbackAppleProductId,
+    applePointsPerUnit: apple?.value ?? _goldResupplyFallbackPointsPerUnit,
+    providerMappings: product.providerMappings,
+    displayName: product.displayName.isEmpty
+        ? GoldResupplyOffer.fallback.displayName
+        : product.displayName,
+  );
+});
 
 @riverpod
 Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
@@ -255,28 +457,6 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                           ).padding(vertical: 32),
                   ),
                   const Gap(12),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final recipient = await showModalBottomSheet<SnAccount>(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        builder: (context) => const AccountPickerSheet(),
-                      );
-                      if (recipient != null) {
-                        setState(() => selectedRecipient = recipient);
-                      }
-                    },
-                    icon: const Icon(Icons.person_search),
-                    label: Text(
-                      selectedRecipient != null
-                          ? 'changeRecipient'.tr()
-                          : 'selectRecipient'.tr(),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                  ),
 
                   const Gap(24),
 
@@ -357,7 +537,6 @@ class StellarProgramView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = useMaterialTabController(initialLength: 2);
     final stellarSubscription = ref.watch(accountStellarSubscriptionProvider);
     final selectedTab = ref.watch(selectedTabProvider);
     final iapProducts = ref.watch(iapProductsProvider);
@@ -373,22 +552,31 @@ class StellarProgramView extends HookConsumerWidget {
     }, const []);
 
     final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
-
-    final useAfdianCheckout =
-        groupAsync.hasValue &&
-        groupAsync.value!.catalog.items.any(
-          (c) => c.allowedPaymentMethods.contains('afdian'),
-        ) &&
-        !supportsIap;
-    final hasExternalCheckout = supportsIap || useAfdianCheckout;
+    final paymentMethods = _resolvePaymentMethods(
+      group: groupAsync.asData?.value,
+      supportsIap: supportsIap,
+    );
+    final tabCount = paymentMethods.isEmpty ? 1 : paymentMethods.length;
+    final safeSelectedTab = selectedTab.clamp(0, tabCount - 1);
+    final tabController = useMaterialTabController(
+      initialLength: tabCount,
+      initialIndex: safeSelectedTab,
+      keys: [tabCount],
+    );
 
     useEffect(() {
-      if (!tabController.indexIsChanging &&
-          tabController.index != selectedTab) {
-        tabController.animateTo(selectedTab);
+      if (selectedTab >= tabCount) {
+        ref.read(selectedTabProvider.notifier).setTab(0);
       }
       return;
-    }, [selectedTab]);
+    }, [tabCount, selectedTab]);
+    useEffect(() {
+      if (!tabController.indexIsChanging &&
+          tabController.index != safeSelectedTab) {
+        tabController.animateTo(safeSelectedTab);
+      }
+      return;
+    }, [safeSelectedTab, tabController]);
 
     useEffect(() {
       void listener() {
@@ -401,17 +589,18 @@ class StellarProgramView extends HookConsumerWidget {
       tabController.addListener(listener);
       return () => tabController.removeListener(listener);
     }, [tabController]);
+    final goldOffer = ref.watch(goldResupplyOfferProvider);
+    if (showStoreHeader) {
+      ref.watch(walletProductCatalogProvider);
+    }
 
-    if (selectedTab == 0 &&
-        supportsIap &&
-        iapProducts.isEmpty &&
-        groupAsync.hasValue) {
+    if (supportsIap && iapProducts.isEmpty && groupAsync.hasValue) {
       final group = groupAsync.value!;
       final appleProductIds = group.catalog.items
           .expand((c) => c.providerMappings.appleStore)
           .toSet();
       if (showStoreHeader) {
-        appleProductIds.add(_goldResupplyProductId);
+        appleProductIds.add(goldOffer.appleProductId);
       }
       if (appleProductIds.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -428,7 +617,7 @@ class StellarProgramView extends HookConsumerWidget {
     }
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -437,27 +626,39 @@ class StellarProgramView extends HookConsumerWidget {
             const Gap(16),
           ],
           if (showStoreHeader) ...[
-            _buildGoldenPointsStoreCard(context, ref, supportsIap, iapProducts),
-            const Gap(16),
+            _buildStoreIntro(context),
+            const Gap(18),
+            _buildGoldenPointsStoreCard(
+              context,
+              ref,
+              supportsIap,
+              iapProducts,
+            ),
+            const Gap(12),
           ],
           _buildMembershipSection(
             context,
             tabController,
             ref,
             stellarSubscription,
-            selectedTab,
+            safeSelectedTab,
             iapProducts,
-            useAfdianCheckout,
-            hasExternalCheckout,
+            paymentMethods,
+            compactPurchase: showStoreHeader,
           ),
-          const Gap(16),
-          _buildPricingGuideCard(context),
-          const Gap(16),
-          _buildSubscriptionQueueSummary(context, ref),
-          const Gap(16),
-          if (!supportsIap) ...[
-            _buildGiftingSection(context, ref),
+          if (showStoreHeader) ...[
+            const Gap(28),
+            _buildStoreUtilitiesHeader(context),
+            const Gap(12),
+          ] else ...[
             const Gap(16),
+          ],
+          _buildPricingGuideCard(context),
+          const Gap(12),
+          _buildSubscriptionQueueSummary(context, ref),
+          if (!supportsIap || kDebugMode) ...[
+            const Gap(12),
+            _buildGiftEntryTile(context, ref),
           ],
         ],
       ),
@@ -471,9 +672,9 @@ class StellarProgramView extends HookConsumerWidget {
     AsyncValue<SnWalletSubscription?> stellarSubscriptionAsync,
     int selectedTab,
     Map<String, String> iapProducts,
-    bool useAfdianCheckout,
-    bool hasExternalCheckout,
-  ) {
+    List<PaymentMethodTab> paymentMethods, {
+    required bool compactPurchase,
+  }) {
     return stellarSubscriptionAsync.when(
       data: (membership) => _buildMembershipContent(
         context,
@@ -482,8 +683,8 @@ class StellarProgramView extends HookConsumerWidget {
         membership,
         selectedTab,
         iapProducts,
-        useAfdianCheckout,
-        hasExternalCheckout,
+        paymentMethods,
+        compactPurchase: compactPurchase,
       ),
       loading: () => _buildSectionCard(
         context,
@@ -506,17 +707,12 @@ class StellarProgramView extends HookConsumerWidget {
     SnWalletSubscription? membership,
     int selectedTab,
     Map<String, String> iapProducts,
-    bool useAfdianCheckout,
-    bool hasExternalCheckout,
-  ) {
+    List<PaymentMethodTab> paymentMethods, {
+    required bool compactPurchase,
+  }) {
     final isActive = membership?.isActive ?? false;
     final isWalletSubscription = membership?.paymentMethod == 'solian.wallet';
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
-    final supportsWallet =
-        groupAsync.hasValue &&
-        groupAsync.value!.catalog.items.any(
-          (c) => c.allowedPaymentMethods.contains('solian.wallet'),
-        );
     final group = groupAsync.value;
     final currentSubscription = group?.current?.subscription ?? membership;
 
@@ -548,6 +744,87 @@ class StellarProgramView extends HookConsumerWidget {
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+
+    void openPurchaseSheet() {
+      _showStellarPurchaseSheet(context, membership);
+    }
+
+    if (compactPurchase) {
+      final tierName = isActive && currentSubscription != null
+          ? _getMembershipTierName(currentSubscription.identifier)
+          : null;
+      final tierColor = isActive && currentSubscription != null
+          ? _getMembershipTierColor(context, currentSubscription.identifier)
+          : scheme.secondary;
+
+      return _StoreProductCard(
+        accent: tierColor,
+        icon: isActive ? Icons.auto_awesome : Icons.star_border_rounded,
+        eyebrow: 'stellarProgram'.tr().toUpperCase(),
+        title: 'stellarMembership'.tr(),
+        description: isActive
+            ? 'currentMembership'.tr(args: [tierName!])
+            : 'stellarProgramAbout'.tr(),
+        meta: isActive && currentSubscription?.endedAt != null
+            ? 'membershipExpires'.tr(
+                args: [currentSubscription!.endedAt!.formatSystem()],
+              )
+            : isActive
+            ? null
+            : 'Every subscription lasts 30 days',
+        trailingAction: IconButton.filledTonal(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) {
+                return SheetScaffold(
+                  titleText: 'stellarProgram'.tr(),
+                  child: Column(
+                    spacing: 12,
+                    children: [
+                      Text('stellarProgramAbout'.tr()),
+                      Text('stellarProgramAboutPricing'.tr()),
+                    ],
+                  ).padding(horizontal: 24, vertical: 16),
+                );
+              },
+            );
+          },
+          icon: const Icon(Symbols.help, size: 18),
+          visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+        ),
+        footer: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isActive && isWalletSubscription) ...[
+              FilledButton.tonalIcon(
+                style: FilledButton.styleFrom(
+                  foregroundColor: scheme.error,
+                ),
+                onPressed: membershipCancel,
+                icon: const Icon(Symbols.cancel),
+                label: Text('membershipCancel'.tr()),
+              ),
+              const Gap(8),
+            ],
+            FilledButton.icon(
+              onPressed: openPurchaseSheet,
+              icon: Icon(
+                isActive ? Symbols.swap_horiz : Symbols.shopping_bag,
+              ),
+              label: Text(
+                isActive ? 'chooseYourPlan'.tr() : 'subscribeNow'.tr(),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return _buildSectionCard(
       context,
@@ -603,6 +880,8 @@ class StellarProgramView extends HookConsumerWidget {
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
+                    useRootNavigator: true,
                     builder: (context) {
                       return SheetScaffold(
                         titleText: 'stellarProgram'.tr(),
@@ -626,7 +905,6 @@ class StellarProgramView extends HookConsumerWidget {
             ],
           ),
           const Gap(12),
-
           if (isActive) ...[
             _buildCurrentMembershipCard(context, currentSubscription!),
             const Gap(12),
@@ -642,105 +920,130 @@ class StellarProgramView extends HookConsumerWidget {
               ),
             const Gap(12),
           ],
-
-          _buildSectionHeader(
+          _buildStellarPurchaseControls(
             context,
-            title: 'chooseYourPlan'.tr(),
-            subtitle: 'Every subscription lasts 30 days',
-          ),
-          const Gap(12),
-
-          if (supportsWallet && hasExternalCheckout) ...[
-            _buildPaymentMethodTabBar(
-              context,
-              tabController,
-              ref,
-              selectedTab,
-              useAfdianCheckout,
-            ),
-            const Gap(12),
-          ] else if (hasExternalCheckout && !supportsWallet) ...[
-            _buildPaymentMethodTabBar(
-              context,
-              tabController,
-              ref,
-              selectedTab,
-              useAfdianCheckout,
-            ),
-            const Gap(12),
-          ],
-
-          _buildMembershipTiers(
-            context,
+            tabController,
             ref,
             membership,
             selectedTab,
             iapProducts,
-            useAfdianCheckout,
-            hasExternalCheckout,
-          ),
-
-          // Restore Purchase Button
-          if (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
-            OutlinedButton.icon(
-              onPressed: () => _restorePurchaseIap(context, ref),
-              icon: const Icon(Icons.restore),
-              label: Text('restorePurchase'.tr()),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ).padding(top: 12)
-          else
-            OutlinedButton.icon(
-              onPressed: () => _showRestorePurchaseSheet(context, ref),
-              icon: const Icon(Icons.restore),
-              label: Text('restorePurchase'.tr()),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ).padding(top: 12),
-          const Gap(16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Every subscription lasts 30 days',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const Gap(8),
-                InkWell(
-                  onTap: () => launchUrlString(
-                    'https://solsynth.dev/terms/user-agreement',
-                    mode: LaunchMode.externalApplication,
-                  ),
-                  borderRadius: BorderRadius.circular(999),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    child: Text(
-                      'termsLink'.tr(),
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.primary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            paymentMethods,
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showStellarPurchaseSheet(
+    BuildContext context,
+    SnWalletSubscription? membership,
+  ) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (sheetContext) {
+        return _StellarPurchaseSheet(membership: membership);
+      },
+    );
+  }
+
+  Widget _buildStellarPurchaseControls(
+    BuildContext context,
+    TabController tabController,
+    WidgetRef ref,
+    SnWalletSubscription? membership,
+    int selectedTab,
+    Map<String, String> iapProducts,
+    List<PaymentMethodTab> paymentMethods, {
+    bool includePlanHeader = true,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final showPaymentTabs = paymentMethods.length > 1;
+    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (includePlanHeader) ...[
+          Text(
+            'chooseYourPlan'.tr(),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const Gap(4),
+          Text(
+            'Every subscription lasts 30 days',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const Gap(16),
+        ],
+        if (showPaymentTabs) ...[
+          _buildPaymentMethodTabBar(
+            context,
+            tabController,
+            paymentMethods,
+          ),
+          const Gap(16),
+        ],
+        _buildMembershipTiers(
+          context,
+          ref,
+          membership,
+          selectedTab,
+          iapProducts,
+          paymentMethods,
+        ),
+        const Gap(16),
+        if (supportsIap)
+          TextButton.icon(
+            onPressed: () => _restorePurchaseIap(context, ref),
+            icon: const Icon(Icons.restore, size: 18),
+            label: Text('restorePurchase'.tr()),
+          ),
+        if (!supportsIap || kDebugMode)
+          TextButton.icon(
+            onPressed: () => _showRestorePurchaseSheet(context, ref),
+            icon: const Icon(Icons.restore, size: 18),
+            label: Text(
+              supportsIap && kDebugMode
+                  ? '${'restorePurchase'.tr()} (3rd party)'
+                  : 'restorePurchase'.tr(),
+            ),
+          ),
+
+        const Gap(12),
+        Text(
+          'Every subscription lasts 30 days',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(4),
+        Center(
+          child: InkWell(
+            onTap: () => launchUrlString(
+              'https://solsynth.dev/terms/user-agreement',
+              mode: LaunchMode.externalApplication,
+            ),
+            borderRadius: BorderRadius.circular(999),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Text(
+                'termsLink'.tr(),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -863,23 +1166,110 @@ class StellarProgramView extends HookConsumerWidget {
     );
   }
 
+  Widget _buildStoreIntro(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SOLAR NETWORK',
+          style: theme.textTheme.labelLarge?.copyWith(
+            letterSpacing: 1.4,
+            fontWeight: FontWeight.w700,
+            color: scheme.primary,
+          ),
+        ),
+        const Gap(6),
+        Text(
+          'store'.tr(),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            height: 1.05,
+          ),
+        ),
+        const Gap(8),
+        Text(
+          'stellarProgramAbout'.tr(),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStoreUtilitiesHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'More',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Text(
+          'Manage purchases & gifts',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: scheme.outline,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSandboxPurchaseWarning(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.error.withOpacity(0.28)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Symbols.warning, color: scheme.onErrorContainer),
-          const Gap(10),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: scheme.error.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Symbols.warning, color: scheme.onErrorContainer),
+          ),
+          const Gap(12),
           Expanded(
-            child: Text(
-              'storeSandboxWarning'.tr(),
-              style: TextStyle(color: scheme.onErrorContainer),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'storeSandboxWarningTitle'.tr(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: scheme.onErrorContainer,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Gap(4),
+                Text(
+                  'storeSandboxWarning'.tr(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onErrorContainer.withOpacity(0.92),
+                    height: 1.35,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -893,23 +1283,64 @@ class StellarProgramView extends HookConsumerWidget {
     bool supportsIap,
     Map<String, String> iapProducts,
   ) {
+    final goldOffer = ref.watch(goldResupplyOfferProvider);
+    final price = iapProducts[goldOffer.appleProductId];
+    final pointsLabel =
+        '${goldOffer.applePointsPerUnit} Golden Points / unit';
+
+    return _StoreProductCard(
+      accent: const Color(0xFFE8B84A),
+      icon: Symbols.account_balance_wallet,
+      eyebrow: 'GOLDEN POINTS',
+      title: 'storeGoldenPointsTitle'.tr(),
+      description: 'storeGoldenPointsDescription'.tr(),
+      meta: price == null ? pointsLabel : '$price · $pointsLabel',
+      footer: FilledButton.icon(
+        onPressed: () => supportsIap
+            ? _purchaseGolds(context, ref)
+            : _purchaseGoldsWithAfdian(context, ref),
+        icon: Icon(
+          supportsIap ? Symbols.shopping_bag : Symbols.open_in_new,
+        ),
+        label: Text('purchase'.tr()),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(double.infinity, 48),
+          backgroundColor: const Color(0xFFE8B84A),
+          foregroundColor: const Color(0xFF2A1B00),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUtilityActionTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final price = iapProducts[_goldResupplyProductId];
 
-    return _buildSectionCard(
-      context,
-      color: scheme.primaryContainer,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              Icon(
-                Symbols.account_balance,
-                size: 28,
-                color: scheme.onPrimaryContainer,
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: scheme.primary),
               ),
               const Gap(12),
               Expanded(
@@ -917,110 +1348,44 @@ class StellarProgramView extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'storeGoldenPointsTitle'.tr(),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: scheme.onPrimaryContainer,
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const Gap(4),
+                    const Gap(2),
                     Text(
-                      'storeGoldenPointsDescription'.tr(),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: scheme.onPrimaryContainer.withOpacity(0.8),
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
+              trailing ??
+                  Icon(Icons.chevron_right_rounded, color: scheme.outline),
             ],
           ),
-          const Gap(16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (price != null) ...[
-                Text(
-                  price,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: scheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Gap(12),
-              ],
-              FilledButton.icon(
-                onPressed: () => supportsIap
-                    ? _purchaseGolds(context, ref)
-                    : _purchaseGoldsWithAfdian(context, ref),
-                icon: Icon(
-                  supportsIap ? Symbols.shopping_bag : Symbols.open_in_new,
-                ),
-                label: Text('purchase'.tr()),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildPricingGuideCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return _buildSectionCard(
+    return _buildUtilityActionTile(
       context,
-      color: scheme.surfaceContainerLow,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.currency_exchange_rounded,
-                  color: scheme.onPrimaryContainer,
-                  size: 24,
-                ),
-              ),
-              const Gap(12),
-              Expanded(
-                child: Text(
-                  'stellarPricingTitle'.tr(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Gap(12),
-          Text(
-            'stellarPricingDescription'.tr(),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const Gap(16),
-          FilledButton.icon(
-            onPressed: () => launchUrlString(
-              _stellarPricingUrl,
-              mode: LaunchMode.externalApplication,
-            ),
-            icon: const Icon(Icons.open_in_new, size: 18),
-            label: Text('viewPricing'.tr()),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-            ),
-          ),
-        ],
+      icon: Icons.currency_exchange_rounded,
+      title: 'stellarPricingTitle'.tr(),
+      description: 'stellarPricingDescription'.tr(),
+      onTap: () => launchUrlString(
+        _stellarPricingUrl,
+        mode: LaunchMode.externalApplication,
+      ),
+      trailing: Icon(
+        Icons.open_in_new,
+        size: 18,
+        color: Theme.of(context).colorScheme.outline,
       ),
     );
   }
@@ -1074,31 +1439,18 @@ class StellarProgramView extends HookConsumerWidget {
 
     if (queuedSubscriptions.isEmpty) return const SizedBox.shrink();
 
-    return _buildSectionCard(
+    return _buildUtilityActionTile(
       context,
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      padding: EdgeInsets.zero,
-      child: ListTile(
-        leading: Icon(
-          Icons.schedule,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        title: Text(
-          'subscriptionRecordsTitle'.tr(),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          'subscriptionRecordsSubtitle'.tr(
-            args: [queuedSubscriptions.length.toString()],
-          ),
-        ),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => _showSubscriptionQueueSheet(
-          context,
-          ref,
-          group,
-          queuedSubscriptions,
-        ),
+      icon: Icons.schedule,
+      title: 'subscriptionRecordsTitle'.tr(),
+      description: 'subscriptionRecordsSubtitle'.tr(
+        args: [queuedSubscriptions.length.toString()],
+      ),
+      onTap: () => _showSubscriptionQueueSheet(
+        context,
+        ref,
+        group,
+        queuedSubscriptions,
       ),
     );
   }
@@ -1215,31 +1567,37 @@ class StellarProgramView extends HookConsumerWidget {
   Widget _buildPaymentMethodTabBar(
     BuildContext context,
     TabController controller,
-    WidgetRef ref,
-    int selectedTab,
-    bool useAfdianCheckout,
+    List<PaymentMethodTab> paymentMethods,
   ) {
-    final items = useAfdianCheckout
-        ? <ButtonSegment<int>>[
-            ButtonSegment<int>(value: 0, label: Text('afdian'.tr())),
-            ButtonSegment<int>(value: 1, label: Text('sourcePoints'.tr())),
-          ]
-        : <ButtonSegment<int>>[
-            ButtonSegment<int>(value: 0, label: Text('appleIap'.tr())),
-            ButtonSegment<int>(value: 1, label: Text('sourcePoints'.tr())),
-          ];
+    final scheme = Theme.of(context).colorScheme;
 
-    return SegmentedButton<int>(
-      segments: items,
-      selected: {selectedTab},
-      showSelectedIcon: false,
-      onSelectionChanged: (selection) {
-        final value = selection.first;
-        ref.read(selectedTabProvider.notifier).setTab(value);
-        if (controller.index != value) {
-          controller.animateTo(value);
-        }
-      },
+    return Material(
+      color: scheme.surfaceContainerHighest.withOpacity(0.55),
+      borderRadius: BorderRadius.circular(16),
+      child: TabBar(
+        controller: controller,
+        isScrollable: paymentMethods.length > 3,
+        tabAlignment: paymentMethods.length > 3
+            ? TabAlignment.start
+            : TabAlignment.fill,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: BoxDecoration(
+          color: scheme.primaryContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        labelColor: scheme.onPrimaryContainer,
+        unselectedLabelColor: scheme.onSurfaceVariant,
+        labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: Theme.of(context).textTheme.labelLarge,
+        padding: const EdgeInsets.all(4),
+        tabs: [
+          for (final method in paymentMethods)
+            Tab(text: _paymentMethodLabel(method)),
+        ],
+      ),
     );
   }
 
@@ -1249,8 +1607,7 @@ class StellarProgramView extends HookConsumerWidget {
     SnWalletSubscription? currentMembership,
     int selectedTab,
     Map<String, String> iapProducts,
-    bool useAfdianCheckout,
-    bool hasExternalCheckout,
+    List<PaymentMethodTab> paymentMethods,
   ) {
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
@@ -1260,62 +1617,65 @@ class StellarProgramView extends HookConsumerWidget {
           return Center(child: Text('noTiersAvailable'.tr()));
         }
 
-        final effectiveMethod = selectedTab == 0
-            ? (hasExternalCheckout ? (useAfdianCheckout ? 2 : 1) : 0)
-            : 0;
+        final method = paymentMethods.isEmpty
+            ? PaymentMethodTab.wallet
+            : paymentMethods[selectedTab.clamp(0, paymentMethods.length - 1)];
+        final effectiveMethod = _paymentMethodCode(method);
 
-        final tiers = group.catalog.items.where((tier) {
-          if (effectiveMethod == 0) {
-            return tier.allowedPaymentMethods.contains('solian.wallet');
-          }
-          if (effectiveMethod == 1) {
-            return tier.allowedPaymentMethods.contains('apple_store');
-          }
-          if (effectiveMethod == 2) {
-            return tier.allowedPaymentMethods.contains('afdian');
-          }
-          return false;
-        }).toList()..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+        final tiers =
+            group.catalog.items.where((tier) {
+              if (effectiveMethod == 0) {
+                return tier.allowedPaymentMethods.contains('solian.wallet');
+              }
+              if (effectiveMethod == 1) {
+                return tier.allowedPaymentMethods.contains('apple_store');
+              }
+              if (effectiveMethod == 2) {
+                return tier.allowedPaymentMethods.contains('afdian');
+              }
+              return false;
+            }).toList()
+              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
         if (tiers.isEmpty) {
           return Center(child: Text('noTiersAvailable'.tr()));
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < tiers.length; i++) ...[
-              if (i > 0) const Gap(12),
-              _MembershipTierCard(
-                tier: tiers[i],
-                isCurrentTier:
-                    currentMembership?.identifier == tiers[i].identifier,
-                effectiveMethod: effectiveMethod,
-                iapProducts: iapProducts,
-                onPurchase: () async {
-                  var quantity = 1;
-                  if (effectiveMethod == 0) {
-                    final selectedQuantity = await _showWalletQuantitySheet(
-                      context,
-                    );
-                    if (selectedQuantity == null || !context.mounted) return;
-                    quantity = selectedQuantity;
-                  }
-                  if (!context.mounted) return;
-                  await _purchaseMembership(
-                    context,
-                    ref,
-                    tiers[i],
-                    effectiveMethod,
-                    quantity: quantity,
-                  );
-                },
-              ),
-            ],
-          ],
+        final initialIndex = () {
+          final currentId = currentMembership?.identifier;
+          if (currentId == null) return 0;
+          final idx = tiers.indexWhere((t) => t.identifier == currentId);
+          return idx >= 0 ? idx : 0;
+        }();
+
+        return _PlanCarousel(
+          tiers: tiers,
+          initialIndex: initialIndex,
+          currentMembership: currentMembership,
+          effectiveMethod: effectiveMethod,
+          iapProducts: iapProducts,
+          onPurchase: (tier) async {
+            var quantity = 1;
+            if (effectiveMethod == 0) {
+              final selectedQuantity = await _showWalletQuantitySheet(context);
+              if (selectedQuantity == null || !context.mounted) return;
+              quantity = selectedQuantity;
+            }
+            if (!context.mounted) return;
+            await _purchaseMembership(
+              context,
+              ref,
+              tier,
+              effectiveMethod,
+              quantity: quantity,
+            );
+          },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const SizedBox(
+        height: 360,
+        child: Center(child: CircularProgressIndicator()),
+      ),
       error: (error, stack) =>
           Center(child: Text('Error loading tiers: $error')),
     );
@@ -1348,26 +1708,6 @@ class StellarProgramView extends HookConsumerWidget {
     }
   }
 
-  static final _defaultColor = Color(0xFF2196F3);
-
-  Color _parseColor(String? colorString) {
-    if (colorString == null || colorString.isEmpty) {
-      return _defaultColor;
-    }
-    try {
-      if (colorString.startsWith('#')) {
-        final hexColor = colorString.substring(1);
-        if (hexColor.length == 6) {
-          return Color(int.parse('FF$hexColor', radix: 16));
-        } else if (hexColor.length == 8) {
-          return Color(int.parse(hexColor, radix: 16));
-        }
-      }
-      return _defaultColor;
-    } catch (e) {
-      return _defaultColor;
-    }
-  }
 
   Future<void> _showRestorePurchaseSheet(
     BuildContext context,
@@ -1539,6 +1879,188 @@ class StellarProgramView extends HookConsumerWidget {
     return result;
   }
 
+  Future<int?> _showGoldQuantitySheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final goldOffer = ref.read(goldResupplyOfferProvider);
+    final controller = TextEditingController(text: '1');
+    var quantity = 1;
+    const maxQuantity = 99;
+    final unitPriceLabel =
+        ref.read(iapProductsProvider)[goldOffer.appleProductId];
+    final pointsPerUnit = goldOffer.applePointsPerUnit;
+
+    final result = await showModalBottomSheet<int>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final theme = Theme.of(context);
+          final scheme = theme.colorScheme;
+          final receivedPoints = quantity * pointsPerUnit;
+
+          void updateQuantity(int value) {
+            quantity = value.clamp(1, maxQuantity);
+            controller.text = quantity.toString();
+            controller.selection = TextSelection.collapsed(
+              offset: controller.text.length,
+            );
+            setState(() {});
+          }
+
+          return SheetScaffold(
+            titleText: 'storeGoldenPointsTitle'.tr(),
+            heightFactor: 0.72,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'storeGoldQuantityDescription'.tr(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const Gap(18),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8B84A).withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: const Color(0xFFE8B84A).withOpacity(0.35),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'You will spend',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              unitPriceLabel == null
+                                  ? '×$quantity'
+                                  : '$unitPriceLabel × $quantity',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Gap(12),
+                        const Divider(height: 1),
+                        const Gap(12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'You will receive',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '$receivedPoints Golden Points',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFFB8860B),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (unitPriceLabel != null) ...[
+                          const Gap(8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '$pointsPerUnit points per unit · $unitPriceLabel each',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const Gap(20),
+                  Row(
+                    children: [
+                      IconButton.filledTonal(
+                        onPressed: quantity > 1
+                            ? () => updateQuantity(quantity - 1)
+                            : null,
+                        icon: const Icon(Symbols.remove),
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: InputDecoration(
+                            labelText: 'quantity'.tr(),
+                            helperText: 'storeGoldQuantityLimit'.tr(),
+                          ),
+                          onChanged: (value) {
+                            final parsed = int.tryParse(value);
+                            if (parsed != null && parsed > 0) {
+                              quantity = parsed.clamp(1, maxQuantity);
+                            }
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                      const Gap(12),
+                      IconButton.filledTonal(
+                        onPressed: quantity < maxQuantity
+                            ? () => updateQuantity(quantity + 1)
+                            : null,
+                        icon: const Icon(Symbols.add),
+                      ),
+                    ],
+                  ),
+                  const Gap(20),
+                  FilledButton.icon(
+                    onPressed: () => Navigator.of(context).pop(quantity),
+                    icon: const Icon(Symbols.shopping_bag),
+                    label: Text(
+                      unitPriceLabel == null
+                          ? 'purchase'.tr()
+                          : '${'purchase'.tr()} · $unitPriceLabel × $quantity',
+                    ),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: const Color(0xFFE8B84A),
+                      foregroundColor: const Color(0xFF2A1B00),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    controller.dispose();
+    return result;
+  }
   Future<void> _purchaseMembership(
     BuildContext context,
     WidgetRef ref,
@@ -1631,16 +2153,10 @@ class StellarProgramView extends HookConsumerWidget {
   }
 
   Future<void> _purchaseGolds(BuildContext context, WidgetRef ref) async {
-    final quantity = await _showWalletQuantitySheet(
-      context,
-      descriptionKey: 'storeGoldQuantityDescription',
-      limitKey: 'storeGoldQuantityLimit',
-      maxQuantity: 99,
-    );
+    final quantity = await _showGoldQuantitySheet(context, ref);
     if (quantity == null || !context.mounted) return;
     await _purchaseGoldsWithIap(context, ref, quantity);
   }
-
   Future<void> _purchaseGoldsWithIap(
     BuildContext context,
     WidgetRef ref,
@@ -1649,7 +2165,7 @@ class StellarProgramView extends HookConsumerWidget {
     await _purchaseWithIap(
       context,
       ref,
-      _goldResupplyProductId,
+      ref.read(goldResupplyOfferProvider).appleProductId,
       successMessage: 'storeGoldPurchaseSuccess',
       consumable: true,
       quantity: quantity,
@@ -1812,144 +2328,34 @@ class StellarProgramView extends HookConsumerWidget {
     }
   }
 
-  Widget _buildGiftingSection(BuildContext context, WidgetRef ref) {
-    final sentGifts = ref.watch(accountSentGiftsProvider());
-    final receivedGifts = ref.watch(accountReceivedGiftsProvider());
-
-    return _buildSectionCard(
+  Widget _buildGiftEntryTile(BuildContext context, WidgetRef ref) {
+    return _buildUtilityActionTile(
       context,
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.card_giftcard,
-                color: Theme.of(context).colorScheme.primary,
-                size: 24,
-              ),
-              const Gap(8),
-              Text(
-                'giftSubscriptions'.tr(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const Gap(12),
-
-          _buildSectionHeader(context, title: 'purchaseAGift'.tr()),
-          const Gap(8),
-          _buildGiftPurchaseOptions(context, ref),
-          const Gap(16),
-
-          _buildSectionHeader(context, title: 'redeemAGift'.tr()),
-          const Gap(8),
-          _buildGiftRedeemSection(context, ref),
-          const Gap(16),
-
-          _buildSectionHeader(context, title: 'giftHistory'.tr()),
-          const Gap(8),
-          _buildGiftHistory(context, ref, sentGifts, receivedGifts),
-        ],
-      ),
+      icon: Icons.card_giftcard,
+      title: 'giftSubscriptions'.tr(),
+      description: 'purchaseAGift'.tr(),
+      onTap: () => _showGiftPlanSheet(context, ref),
     );
   }
 
-  Widget _buildGiftPurchaseOptions(BuildContext context, WidgetRef ref) {
-    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
-
-    return groupAsync.when(
-      data: (group) {
-        if (group == null) {
-          return Center(child: Text('noTiersAvailable'.tr()));
-        }
-        final tiers =
-            group.catalog.items
-                .where((a) => a.allowedPaymentMethods.contains('gift'))
-                .toList()
-              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
-
-        if (tiers.isEmpty) {
-          return Center(child: Text('noTiersAvailable'.tr()));
-        }
-
-        final tierWidgets = <Widget>[];
-        for (final tier in tiers) {
-          final tierColor = _parseColor(tier.displayConfig?.color);
-
-          tierWidgets.add(
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () =>
-                      _showPurchaseGiftDialog(context, ref, tier.identifier),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: tierColor,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const Gap(12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${tier.displayName} Gift',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                '${tier.basePrice} ${tier.currency}/month',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        return Column(children: tierWidgets);
+  Future<void> _showGiftPlanSheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (sheetContext) {
+        return _GiftPlanSheet(
+          onPurchaseTier: (tier) async {
+            await _showPurchaseGiftDialog(context, ref, tier.identifier);
+          },
+        );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) =>
-          Center(child: Text('Error loading gift options: $error')),
     );
   }
+
 
   Widget _buildGiftRedeemSection(BuildContext context, WidgetRef ref) {
     final codeController = useTextEditingController();
@@ -2485,12 +2891,497 @@ class StellarProgramView extends HookConsumerWidget {
   }
 }
 
+class _GiftPlanSheet extends HookConsumerWidget {
+  final Future<void> Function(SnSubscriptionCatalog tier) onPurchaseTier;
+
+  const _GiftPlanSheet({required this.onPurchaseTier});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
+    final sentGifts = ref.watch(accountSentGiftsProvider());
+    final receivedGifts = ref.watch(accountReceivedGiftsProvider());
+    const view = StellarProgramView(showStoreHeader: true);
+
+    return SheetScaffold(
+      titleText: 'giftSubscriptions'.tr(),
+      heightFactor: 0.92,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(0, 4, 0, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Gap(16),
+            groupAsync.when(
+              data: (group) {
+                if (group == null) {
+                  return Center(child: Text('noTiersAvailable'.tr()));
+                }
+
+                final tiers =
+                    group.catalog.items
+                        .where((a) => a.allowedPaymentMethods.contains('gift'))
+                        .toList()
+                      ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+
+                if (tiers.isEmpty) {
+                  return Center(child: Text('noTiersAvailable'.tr()));
+                }
+
+                return _PlanCarousel(
+                  tiers: tiers,
+                  initialIndex: 0,
+                  currentMembership: null,
+                  effectiveMethod: 0,
+                  iapProducts: const {},
+                  onPurchase: onPurchaseTier,
+                );
+              },
+              loading: () => const SizedBox(
+                height: 360,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, stack) =>
+                  Center(child: Text('Error loading gift options: $error')),
+            ),
+            const Gap(24),
+            view._buildSectionHeader(context, title: 'redeemAGift'.tr()).padding(horizontal: 24),
+            const Gap(8),
+            view._buildGiftRedeemSection(context, ref).padding(horizontal: 24),
+            const Gap(16),
+            view._buildSectionHeader(context, title: 'giftHistory'.tr()).padding(horizontal: 24),
+            const Gap(8),
+            view._buildGiftHistory(context, ref, sentGifts, receivedGifts).padding(horizontal: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StellarPurchaseSheet extends HookConsumerWidget {
+  final SnWalletSubscription? membership;
+
+  const _StellarPurchaseSheet({this.membership});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedTab = ref.watch(selectedTabProvider);
+    final iapProducts = ref.watch(iapProductsProvider);
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
+
+    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+    final paymentMethods = _resolvePaymentMethods(
+      group: groupAsync.asData?.value,
+      supportsIap: supportsIap,
+    );
+    final tabCount = paymentMethods.isEmpty ? 1 : paymentMethods.length;
+    final safeSelectedTab = selectedTab.clamp(0, tabCount - 1);
+    final tabController = useMaterialTabController(
+      initialLength: tabCount,
+      initialIndex: safeSelectedTab,
+      keys: [tabCount],
+    );
+
+    useEffect(() {
+      if (selectedTab >= tabCount) {
+        ref.read(selectedTabProvider.notifier).setTab(0);
+      }
+      return;
+    }, [tabCount, selectedTab]);
+
+    useEffect(() {
+      if (!tabController.indexIsChanging &&
+          tabController.index != safeSelectedTab) {
+        tabController.animateTo(safeSelectedTab);
+      }
+      return;
+    }, [safeSelectedTab, tabController]);
+
+    useEffect(() {
+      void listener() {
+        final newTab = tabController.index;
+        if (ref.read(selectedTabProvider) != newTab) {
+          ref.read(selectedTabProvider.notifier).setTab(newTab);
+        }
+      }
+
+      tabController.addListener(listener);
+      return () => tabController.removeListener(listener);
+    }, [tabController]);
+
+    if (supportsIap && iapProducts.isEmpty && groupAsync.hasValue) {
+      final group = groupAsync.value!;
+      final appleProductIds = group.catalog.items
+          .expand((c) => c.providerMappings.appleStore)
+          .toSet();
+      if (appleProductIds.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final iapService = ref.read(iapServiceProvider);
+          await iapService.initialize();
+          await iapService.loadProducts(appleProductIds);
+          final products = <String, String>{};
+          for (final product in iapService.products) {
+            products[product.id] = product.price;
+          }
+          ref.read(iapProductsProvider.notifier).setProducts(products);
+        });
+      }
+    }
+
+    const view = StellarProgramView(showStoreHeader: true);
+
+    return SheetScaffold(
+      titleText: 'chooseYourPlan'.tr(),
+      heightFactor: 0.92,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(0, 4, 0, 24),
+        child: view._buildStellarPurchaseControls(
+          context,
+          tabController,
+          ref,
+          membership,
+          safeSelectedTab,
+          iapProducts,
+          paymentMethods,
+          includePlanHeader: false,
+        ),
+      ),
+    );
+  }
+}
+
+class _StoreProductCard extends StatelessWidget {
+  final Color accent;
+  final IconData icon;
+  final String eyebrow;
+  final String title;
+  final String description;
+  final String? meta;
+  final Widget? trailingAction;
+  final Widget footer;
+
+  const _StoreProductCard({
+    required this.accent,
+    required this.icon,
+    required this.eyebrow,
+    required this.title,
+    required this.description,
+    required this.footer,
+    this.meta,
+    this.trailingAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final onAccent = ThemeData.estimateBrightnessForColor(accent) ==
+            Brightness.dark
+        ? Colors.white
+        : const Color(0xFF1A1200);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.alphaBlend(accent.withOpacity(0.22), scheme.surface),
+            Color.alphaBlend(accent.withOpacity(0.08), scheme.surfaceContainerLow),
+          ],
+        ),
+        border: Border.all(color: accent.withOpacity(0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: accent, size: 26),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        eyebrow,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w800,
+                          color: accent,
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ?trailingAction,
+              ],
+            ),
+            const Gap(12),
+            Text(
+              description,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurface.withOpacity(0.78),
+                height: 1.4,
+              ),
+            ),
+            if (meta != null && meta!.isNotEmpty) ...[
+              const Gap(12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    meta!,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: onAccent == Colors.white
+                          ? accent
+                          : const Color(0xFF5A4200),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            const Gap(16),
+            footer,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanCarousel extends HookWidget {
+  final List<SnSubscriptionCatalog> tiers;
+  final int initialIndex;
+  final SnWalletSubscription? currentMembership;
+  final int effectiveMethod;
+  final Map<String, String> iapProducts;
+  final Future<void> Function(SnSubscriptionCatalog tier) onPurchase;
+
+  const _PlanCarousel({
+    required this.tiers,
+    required this.initialIndex,
+    required this.currentMembership,
+    required this.effectiveMethod,
+    required this.iapProducts,
+    required this.onPurchase,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pageController = usePageController(
+      initialPage: initialIndex.clamp(0, tiers.length - 1),
+      viewportFraction: isWideScreen(context) ? 0.6 : 0.8,
+    );
+    final currentPage = useState(initialIndex.clamp(0, tiers.length - 1));
+    final isHovered = useState(false);
+    final scheme = Theme.of(context).colorScheme;
+
+    Future<void> scrollBy(int delta) async {
+      final target = (currentPage.value + delta).clamp(0, tiers.length - 1);
+      if (target == currentPage.value) return;
+      await pageController.animateToPage(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+      currentPage.value = target;
+    }
+
+    return Column(
+      children: [
+        MouseRegion(
+          onEnter: (_) => isHovered.value = true,
+          onExit: (_) => isHovered.value = false,
+          child: SizedBox(
+            height: 430,
+            child: Stack(
+              children: [
+                PageView.builder(
+                  controller: pageController,
+                  itemCount: tiers.length,
+                  onPageChanged: (index) => currentPage.value = index,
+                  itemBuilder: (context, index) {
+                    final tier = tiers[index];
+                    final selected = currentPage.value == index;
+                    return AnimatedScale(
+                      scale: selected ? 1 : 0.94,
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      child: AnimatedOpacity(
+                        opacity: selected ? 1 : 0.72,
+                        duration: const Duration(milliseconds: 220),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: _MembershipTierCard(
+                            tier: tier,
+                            isCurrentTier:
+                                currentMembership?.identifier ==
+                                tier.identifier,
+                            effectiveMethod: effectiveMethod,
+                            iapProducts: iapProducts,
+                            onPurchase: () => onPurchase(tier),
+                            compact: true,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Positioned(
+                  left: 4,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _PlanHoverArrowButton(
+                      icon: Symbols.chevron_left,
+                      isVisible: isHovered.value && currentPage.value > 0,
+                      hiddenOffset: const Offset(-0.4, 0),
+                      onTap: () => scrollBy(-1),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 4,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _PlanHoverArrowButton(
+                      icon: Symbols.chevron_right,
+                      isVisible:
+                          isHovered.value &&
+                          currentPage.value < tiers.length - 1,
+                      hiddenOffset: const Offset(0.4, 0),
+                      onTap: () => scrollBy(1),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Gap(14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < tiers.length; i++) ...[
+              if (i > 0) const Gap(6),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: currentPage.value == i ? 22 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: currentPage.value == i
+                      ? scheme.primary
+                      : scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const Gap(8),
+        Text(
+          '${currentPage.value + 1} / ${tiers.length}',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PlanHoverArrowButton extends StatelessWidget {
+  final IconData icon;
+  final bool isVisible;
+  final Offset hiddenOffset;
+  final VoidCallback onTap;
+
+  const _PlanHoverArrowButton({
+    required this.icon,
+    required this.isVisible,
+    required this.hiddenOffset,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !isVisible,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        offset: isVisible ? Offset.zero : hiddenOffset,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          opacity: isVisible ? 1 : 0,
+          child: Material(
+            color: Colors.black45,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 class _MembershipTierCard extends StatelessWidget {
   final SnSubscriptionCatalog tier;
   final bool isCurrentTier;
   final int effectiveMethod;
   final Map<String, String> iapProducts;
   final VoidCallback onPurchase;
+  final bool compact;
 
   const _MembershipTierCard({
     required this.tier,
@@ -2498,9 +3389,10 @@ class _MembershipTierCard extends StatelessWidget {
     required this.effectiveMethod,
     required this.iapProducts,
     required this.onPurchase,
+    this.compact = false,
   });
 
-  static final _defaultColor = Color(0xFF2196F3);
+  static final _defaultColor = Color(0xFF6C8CFF);
 
   Color _parseColor(String? colorString) {
     if (colorString == null || colorString.isEmpty) {
@@ -2525,13 +3417,13 @@ class _MembershipTierCard extends StatelessWidget {
     if (effectiveMethod == 1 && tier.providerMappings.appleStore.isNotEmpty) {
       final productId = tier.providerMappings.appleStore.first;
       final applePrice = iapProducts[productId] ?? '...';
-      return '$applePrice/month';
+      return '$applePrice/mo';
     }
     if (effectiveMethod == 2 && tier.providerMappings.afdian.isNotEmpty) {
-      return '${tier.basePrice} ${tier.currency}/month';
+      return '${tier.basePrice} ${tier.currency}/mo';
     }
     if (effectiveMethod == 0) {
-      return '${tier.basePrice} ${tier.currency}/month';
+      return '${tier.basePrice} ${tier.currency}/mo';
     }
     return 'pricingAtCheckout'.tr();
   }
@@ -2543,21 +3435,33 @@ class _MembershipTierCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final tierColor = _parseColor(tier.displayConfig?.color);
+    final benefits = _benefits.take(compact ? 4 : _benefits.length).toList();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: EdgeInsets.all(compact ? 18 : 16),
       decoration: BoxDecoration(
-        color: isCurrentTier ? tierColor.withOpacity(0.08) : scheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(compact ? 28 : 16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.alphaBlend(tierColor.withOpacity(0.22), scheme.surface),
+            Color.alphaBlend(
+              tierColor.withOpacity(0.06),
+              scheme.surfaceContainerHighest,
+            ),
+          ],
+        ),
         border: Border.all(
-          color: isCurrentTier ? tierColor : scheme.outline.withOpacity(0.2),
+          color: isCurrentTier ? tierColor : tierColor.withOpacity(0.28),
           width: isCurrentTier ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: tierColor.withOpacity(0.16),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
@@ -2567,87 +3471,95 @@ class _MembershipTierCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: compact ? 56 : 48,
+                height: compact ? 56 : 48,
                 decoration: BoxDecoration(
-                  color: tierColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: tierColor.withOpacity(0.16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(Icons.star_rounded, color: tierColor, size: 28),
-              ),
-              const Gap(12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            tier.displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: isCurrentTier ? tierColor : null,
-                            ),
-                          ),
-                        ),
-                        if (isCurrentTier) ...[
-                          const Gap(8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: tierColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'membershipCurrentBadge'.tr(),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const Gap(4),
-                    Text(
-                      _priceDisplay,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  Icons.auto_awesome,
+                  color: tierColor,
+                  size: compact ? 28 : 24,
                 ),
               ),
+              const Spacer(),
+              if (isCurrentTier)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tierColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'membershipCurrentBadge'.tr(),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
             ],
           ),
-          const Gap(16),
-          const Divider(height: 1),
-          const Gap(12),
+          const Gap(18),
           Text(
-            'stellarBenefitsTitle'.tr(),
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+            tier.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: isCurrentTier ? tierColor : null,
             ),
           ),
-          const Gap(8),
-          for (final benefit in _benefits)
-            _buildBenefitItem(context, benefit, tierColor),
-          if (effectiveMethod == 1 || effectiveMethod == 2) ...[
-            _buildBenefitItem(
-              context,
-              'stellarBenefitSpecialPrivilege'.tr(),
-              tierColor,
+          const Gap(6),
+          Text(
+            _priceDisplay,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
             ),
+          ),
+          const Gap(16),
+          Text(
+            'stellarBenefitsTitle'.tr().toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.1,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const Gap(10),
+          if (compact)
+            Expanded(
+              child: ListView(
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                children: [
+                  for (final benefit in benefits)
+                    _buildBenefitItem(context, benefit, tierColor),
+                  if (effectiveMethod == 1 || effectiveMethod == 2)
+                    _buildBenefitItem(
+                      context,
+                      'stellarBenefitSpecialPrivilege'.tr(),
+                      tierColor,
+                    ),
+                ],
+              ),
+            )
+          else ...[
+            for (final benefit in benefits)
+              _buildBenefitItem(context, benefit, tierColor),
+            if (effectiveMethod == 1 || effectiveMethod == 2)
+              _buildBenefitItem(
+                context,
+                'stellarBenefitSpecialPrivilege'.tr(),
+                tierColor,
+              ),
           ],
-          const Gap(4),
           InkWell(
             onTap: () => launchUrlString(
               _stellarPricingUrl,
@@ -2665,7 +3577,7 @@ class _MembershipTierCard extends StatelessWidget {
                       'stellarFullBenefitsHint'.tr(),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.primary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -2674,7 +3586,7 @@ class _MembershipTierCard extends StatelessWidget {
             ),
           ),
           if (!isCurrentTier) ...[
-            const Gap(16),
+            const Gap(14),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -2682,7 +3594,10 @@ class _MembershipTierCard extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: tierColor,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text('subscribeNow'.tr()),
               ),
@@ -2697,6 +3612,24 @@ class _MembershipTierCard extends StatelessWidget {
                 ),
               ),
             ],
+          ] else ...[
+            const Gap(14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: tierColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                'membershipCurrentBadge'.tr(),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: tierColor,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
           ],
         ],
       ),
@@ -2709,19 +3642,21 @@ class _MembershipTierCard extends StatelessWidget {
     Color tierColor,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle, size: 16, color: tierColor),
+          Icon(Icons.check_circle_rounded, size: 18, color: tierColor),
           const Gap(8),
           Expanded(
             child: Text(
               benefit,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 13.5,
+                height: 1.3,
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withOpacity(0.85),
+                ).colorScheme.onSurface.withOpacity(0.88),
               ),
             ),
           ),
