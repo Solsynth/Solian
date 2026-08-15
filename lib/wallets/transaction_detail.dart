@@ -179,22 +179,24 @@ class _TransactionDetailContent extends ConsumerWidget {
           Center(child: _buildStatusBadge(context, theme)),
           const Gap(28),
 
-          // Info sections, paired into two columns on wide screens
-          _buildSectionsGrid(
-            isWide,
-            children: [
-              _buildInfoSection(context, theme),
-              if (transaction.isFrozen || transaction.requireConfirmation ||
-                  transaction.frozenAt != null ||
-                  transaction.expiresAt != null ||
-                  transaction.confirmedAt != null)
-                _buildLifecycleSection(context, theme),
-              _buildParticipantsSection(context, theme),
-              if (transaction.remarks != null &&
-                  transaction.remarks!.isNotEmpty)
-                _buildRemarksSection(context, theme),
-            ],
-          ),
+          // Transaction info section
+          _buildInfoSection(context, theme),
+          if (transaction.isFrozen || transaction.requireConfirmation ||
+              transaction.frozenAt != null ||
+              transaction.expiresAt != null ||
+              transaction.confirmedAt != null) ...[
+            const Gap(24),
+            _buildLifecycleSection(context, theme),
+          ],
+          const Gap(24),
+
+          // Participants section
+          _buildParticipantsSection(context, theme),
+          if (transaction.remarks != null &&
+              transaction.remarks!.isNotEmpty) ...[
+            const Gap(24),
+            _buildRemarksSection(context, theme),
+          ],
           if (isPending && isPayee) ...[
             const Gap(24),
             _buildActionButtons(context, ref, theme),
@@ -211,49 +213,12 @@ class _TransactionDetailContent extends ConsumerWidget {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
-          child: Card(
-            margin: const EdgeInsets.all(16),
-            child: content,
-          ),
+          child: content,
         ),
       );
     }
 
     return content;
-  }
-
-  Widget _buildSectionsGrid(bool isWide, {required List<Widget> children}) {
-    if (!isWide) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) const Gap(24),
-            children[i],
-          ],
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var i = 0; i < children.length; i += 2)
-          Padding(
-            padding: EdgeInsets.only(top: i == 0 ? 0 : 24),
-            child: i + 1 < children.length
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: children[i]),
-                      const Gap(24),
-                      Expanded(child: children[i + 1]),
-                    ],
-                  )
-                : children[i],
-          ),
-      ],
-    );
   }
 
   Widget _buildAmountHeader(

@@ -3948,7 +3948,7 @@
   "currency": "Currency",
   "walletCurrencyGolds": "Golden Solar Points",
   "walletCurrencyPoints": "Data Bits",
-  "walletCurrencyShortGolds": "Gold",
+  "walletCurrencyShortGolds": "Golds",
   "walletCurrencyShortPoints": "Bits",
   "walletDescription": "Your source point wallet.",
   "walletDisablePublicId": "Disable Wallet ID",

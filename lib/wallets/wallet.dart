@@ -163,7 +163,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
           ),
           const Gap(10),
           Text(
-            currency.toUpperCase(),
+            walletCurrencyShort(currency),
             style: theme.textTheme.labelMedium?.copyWith(
               color: foregroundColor,
               fontWeight: FontWeight.w700,
@@ -208,8 +208,8 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
               return DropdownItem(
                 value: option.sourceCurrency,
                 child: Text(
-                  '${option.sourceAmount} ${option.sourceCurrency} → '
-                  '${option.targetAmount} ${option.targetCurrency}',
+                  '${option.sourceAmount} ${walletCurrencyShort(option.sourceCurrency)} → '
+                  '${option.targetAmount} ${walletCurrencyShort(option.targetCurrency)}',
                 ).padding(left: 16, right: 8),
               );
             }).toList(),
@@ -221,8 +221,8 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
             selectedItemBuilder: (context) {
               return options.map((option) {
                 return Text(
-                  '${option.sourceAmount} ${option.sourceCurrency} → '
-                  '${option.targetAmount} ${option.targetCurrency}',
+                  '${option.sourceAmount} ${walletCurrencyShort(option.sourceCurrency)} → '
+                  '${option.targetAmount} ${walletCurrencyShort(option.targetCurrency)}',
                   overflow: TextOverflow.ellipsis,
                 );
               }).toList();
@@ -294,8 +294,8 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                 ),
               ),
               Text(
-                '${option.sourceAmount} ${option.sourceCurrency} = '
-                '${option.targetAmount} ${option.targetCurrency}',
+                '${option.sourceAmount} ${walletCurrencyShort(option.sourceCurrency)} = '
+                '${option.targetAmount} ${walletCurrencyShort(option.targetCurrency)}',
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colorScheme.onPrimaryContainer.withOpacity(0.72),
                 ),
@@ -320,7 +320,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
               ),
               const Gap(8),
               Text(
-                option.targetCurrency.toUpperCase(),
+                walletCurrencyShort(option.targetCurrency),
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w700,
@@ -489,8 +489,9 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                         decoration: InputDecoration(
                           labelText: 'amount'.tr(),
                           hintText: '0.000',
-                          suffixText: selectedOption.sourceCurrency
-                              .toUpperCase(),
+                          suffixText: walletCurrencyShort(
+                            selectedOption.sourceCurrency,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                             vertical: 16,
                             horizontal: 16,
