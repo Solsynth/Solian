@@ -2009,6 +2009,9 @@
   "transactionDetails": "取引詳細",
   "transactionType": "取引タイプ",
   "transactions": "取引",
+  "noTransactions": "取引はまだありません",
+  "noTransactionsHint": "送金、支払い、ファンドの支払いはここに表示されます。",
+
   "transfer": "送金",
   "transferAmount": "送金額",
   "transferCreatedSuccessfully": "送金を作成しました！",

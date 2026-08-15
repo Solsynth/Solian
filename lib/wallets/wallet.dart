@@ -3029,6 +3029,7 @@ class WalletScreen extends HookConsumerWidget {
                   selectedWallet,
                   transactionFilter,
                   selectedTransactionId,
+                  createTransfer,
                 ),
                 _buildFundsList(context, ref),
               ],
@@ -3317,7 +3318,7 @@ class WalletScreen extends HookConsumerWidget {
                 ),
                 const Gap(2),
                 Text(
-                  '${formatAmountWithSuffix(amount)} $currency',
+                  '${formatAmountWithSuffix(amount)} ${walletCurrencyShort(currency)}',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -3647,6 +3648,7 @@ class WalletScreen extends HookConsumerWidget {
     SnWallet? wallet,
     ValueNotifier<int> filter,
     ValueNotifier<String?> selectedTransactionId,
+    Future<void> Function() onCreateTransfer,
   ) {
     final direction = switch (filter.value) {
       1 => 'income',
@@ -3659,89 +3661,231 @@ class WalletScreen extends HookConsumerWidget {
       direction: direction,
       type: null,
     ));
+    final data = ref.watch(provider);
+    final items = data.value?.items ?? const <SnTransaction>[];
+    final dayHeaders = groupTransactionsByDay(items, wallet?.id);
+    final isEmptyState =
+        items.isEmpty && data.hasValue && !data.isLoading && !data.hasError;
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              _buildFilterTab(context, 'all'.tr(), 0, filter, ref, provider),
-              const Gap(16),
-              _buildFilterTab(context, 'income'.tr(), 1, filter, ref, provider),
-              const Gap(16),
-              _buildFilterTab(
-                context,
-                'expense'.tr(),
-                2,
-                filter,
-                ref,
-                provider,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<int>(
+              segments: [
+                ButtonSegment(value: 0, label: Text('all'.tr())),
+                ButtonSegment(value: 1, label: Text('income'.tr())),
+                ButtonSegment(value: 2, label: Text('expense'.tr())),
+              ],
+              selected: {filter.value},
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+                textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  // Show all
-                },
-                child: Text('seeAll'.tr()),
-              ),
-            ],
+              onSelectionChanged: (values) {
+                final value = values.first;
+                if (value != filter.value) {
+                  filter.value = value;
+                  ref.invalidate(provider);
+                }
+              },
+            ),
           ),
         ),
         Expanded(
-          child: PaginationList(
-            padding: EdgeInsets.zero,
-            provider: provider,
-            notifier: provider.notifier,
-            itemBuilder: (context, index, transaction) {
-              final isIncome = wallet?.id == transaction.payeeWalletId;
-
-              return InkWell(
-                onTap: () {
-                  if (isWideScreen(context)) {
-                    // On wide screens, update selected transaction for two-column layout
-                    selectedTransactionId.value = transaction.id;
-                  } else {
-                    // On narrow screens, navigate to detail page
-                    context.router.push(
-                      TransactionDetailRoute(
-                        transactionId: transaction.id,
-                        currentWalletId: wallet?.id,
+          child: isEmptyState
+              ? _buildEmptyTransactions(context, onCreateTransfer)
+              : PaginationList(
+                  padding: EdgeInsets.zero,
+                  provider: provider,
+                  notifier: provider.notifier,
+                  itemBuilder: (context, index, transaction) {
+                    final item = InkWell(
+                      onTap: () {
+                        if (isWideScreen(context)) {
+                          // On wide screens, update selected transaction for two-column layout
+                          selectedTransactionId.value = transaction.id;
+                        } else {
+                          // On narrow screens, navigate to detail page
+                          context.router.push(
+                            TransactionDetailRoute(
+                              transactionId: transaction.id,
+                              currentWalletId: wallet?.id,
+                            ),
+                          );
+                        }
+                      },
+                      child: _buildTransactionItem(
+                        context,
+                        transaction,
+                        wallet?.id == transaction.payeeWalletId,
                       ),
                     );
-                  }
-                },
-                child: _buildTransactionItem(context, transaction, isIncome),
-              );
-            },
-          ),
+                    final day = dayHeaders[index];
+                    if (day == null) return item;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildDayHeader(context, day),
+                        item,
+                      ],
+                    );
+                  },
+                ),
         ),
       ],
     );
   }
 
-  Widget _buildFilterTab(
+  Widget _buildDayHeader(BuildContext context, TransactionDayGroup day) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final figures = <Widget>[];
+    day.byCurrency.forEach((currency, amounts) {
+      if (amounts.inAmount > 0) {
+        figures.add(_buildNetFigure(context, '+', amounts.inAmount, currency));
+      }
+      if (amounts.outAmount > 0) {
+        figures.add(_buildNetFigure(context, '-', amounts.outAmount, currency));
+      }
+    });
+
+    final netRow = <Widget>[];
+    for (var i = 0; i < figures.length; i++) {
+      if (i > 0) {
+        netRow.add(
+          Text(
+            ' · ',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.outline,
+            ),
+          ),
+        );
+      }
+      netRow.add(figures[i]);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                DateFormat.MMMd().format(day.date).toUpperCase(),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1,
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: netRow,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Gap(6),
+          Container(
+            height: 1,
+            color: colorScheme.outlineVariant.withOpacity(0.55),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetFigure(
     BuildContext context,
-    String label,
-    int value,
-    ValueNotifier<int> filter,
-    WidgetRef ref,
-    dynamic provider,
+    String sign,
+    double amount,
+    String currency,
   ) {
-    final isSelected = filter.value == value;
-    return GestureDetector(
-      onTap: () {
-        filter.value = value;
-        ref.invalidate(provider);
-      },
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurfaceVariant,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          fontSize: 15,
+    final theme = Theme.of(context);
+    final color = sign == '+' ? incomeColor(context) : expenseColor(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$sign${formatAmountWithSuffix(amount)} ',
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          TextSpan(
+            text: walletCurrencyShort(currency),
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyTransactions(
+    BuildContext context,
+    Future<void> Function() onCreateTransfer,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.receipt_long,
+              size: 48,
+              color: colorScheme.outline.withOpacity(0.6),
+            ),
+            const Gap(16),
+            Text(
+              'noTransactions'.tr(),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Gap(6),
+            Text(
+              'noTransactionsHint'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Gap(20),
+            FilledButton.tonalIcon(
+              onPressed: onCreateTransfer,
+              icon: const Icon(Symbols.arrow_outward, size: 18),
+              label: Text('createTransfer'.tr()),
+            ),
+          ],
         ),
       ),
     );
@@ -3752,109 +3896,53 @@ class WalletScreen extends HookConsumerWidget {
     SnTransaction transaction,
     bool isIncome,
   ) {
-    // Determine category and icon based on transaction type
-    IconData categoryIcon;
-    String categoryName;
-    Color categoryColor;
-
-    if (transaction.remarks?.toLowerCase().contains('food') ?? false) {
-      categoryIcon = Symbols.restaurant;
-      categoryName = 'food'.tr();
-      categoryColor = Colors.orange;
-    } else if (transaction.remarks?.toLowerCase().contains('shopping') ??
-        false) {
-      categoryIcon = Symbols.shopping_bag;
-      categoryName = 'shopping'.tr();
-      categoryColor = Colors.purple;
-    } else if (transaction.remarks?.toLowerCase().contains('transport') ??
-        false) {
-      categoryIcon = Symbols.directions_car;
-      categoryName = 'transport'.tr();
-      categoryColor = Colors.blue;
-    } else if (isIncome) {
-      categoryIcon = Symbols.arrow_circle_down;
-      categoryName = 'income'.tr();
-      categoryColor = Colors.green;
-    } else {
-      categoryIcon = Symbols.payments;
-      categoryName = 'payment'.tr();
-      categoryColor = Colors.grey;
-    }
-
-    final statusColor = transaction.status == 0
-        ? Colors.orange
-        : transaction.status == 1
-        ? Colors.blue
-        : transaction.status == 2
-        ? Colors.green
-        : transaction.status == 3
-        ? Colors.red
-        : Colors.grey;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final amountColor =
+        isIncome ? incomeColor(context) : expenseColor(context);
+    final description =
+        (transaction.remarks?.isNotEmpty ?? false)
+        ? transaction.remarks!
+        : (transaction.type == 0 ? 'transfer'.tr() : 'payment'.tr());
+    final statusLabel = _buildTransactionStatusLabel(context, transaction);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          // Category Icon
+          // Direction marker
           Container(
-            width: 48,
-            height: 48,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: categoryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
             ),
-            child: Icon(categoryIcon, color: categoryColor, size: 24),
+            child: Icon(
+              isIncome ? Symbols.arrow_downward_alt : Symbols.arrow_upward_alt,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const Gap(12),
-          // Transaction Details
+          // Counterparty and description
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      categoryName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    if (transaction.status != 2) ...[
-                      const Gap(6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          transaction.status == 0
-                              ? 'pendingShort'.tr()
-                              : transaction.status == 1
-                              ? 'frozenShort'.tr()
-                              : transaction.status == 3
-                              ? 'refundedShort'.tr()
-                              : 'cancelledShort'.tr(),
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  _transactionCounterparty(transaction, isIncome),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const Gap(2),
                 Text(
-                  transaction.remarks ?? '',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 13,
+                  '$description · ${DateFormat.Hm().format(transaction.createdAt)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -3862,26 +3950,39 @@ class WalletScreen extends HookConsumerWidget {
               ],
             ),
           ),
-          // Amount
+          const Gap(12),
+          // Amount and status
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '${isIncome ? '+' : '-'}${formatAmountWithSuffix(transaction.amount)} ${transaction.currency}',
-                style: TextStyle(
-                  color: isIncome ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text:
+                          '${isIncome ? '+' : '-'}${formatAmountWithSuffix(transaction.amount)} ',
+                      style: TextStyle(
+                        color: amountColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    TextSpan(
+                      text: walletCurrencyShort(transaction.currency),
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (transaction.isFrozen || transaction.requireConfirmation)
-                Icon(
-                  transaction.isFrozen
-                      ? Symbols.ac_unit
-                      : Symbols.hourglass_empty,
-                  size: 14,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              if (statusLabel != null) ...[
+                const Gap(3),
+                statusLabel,
+              ],
             ],
           ),
         ],
@@ -3980,7 +4081,7 @@ class WalletScreen extends HookConsumerWidget {
                         const Gap(8),
                         Expanded(
                           child: Text(
-                            '${formatAmountWithSuffix(fund.totalAmount)} ${fund.currency}',
+                            '${formatAmountWithSuffix(fund.totalAmount)} ${walletCurrencyShort(fund.currency)}',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -4014,7 +4115,7 @@ class WalletScreen extends HookConsumerWidget {
                     if (fund.isRaising) ...[
                       // Raising mode progress
                       Text(
-                        '${'raised'.tr()}: ${formatAmountWithSuffix(fund.raisedAmount)} / ${fund.targetAmount > 0 ? formatAmountWithSuffix(fund.targetAmount) : '∞'} ${fund.currency}',
+                        '${'raised'.tr()}: ${formatAmountWithSuffix(fund.raisedAmount)} / ${fund.targetAmount > 0 ? formatAmountWithSuffix(fund.targetAmount) : '∞'} ${walletCurrencyShort(fund.currency)}',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       if (fund.targetAmount > 0) ...[
@@ -4282,7 +4383,7 @@ class WalletScreen extends HookConsumerWidget {
                       const Gap(2),
                       Text(
                         isBalanceVisible.value
-                            ? '${formatAmountWithSuffix(pocket.amount)} ${pocket.currency}'
+                            ? '${formatAmountWithSuffix(pocket.amount)} ${walletCurrencyShort(pocket.currency)}'
                             : '••••••',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
@@ -4290,7 +4391,7 @@ class WalletScreen extends HookConsumerWidget {
                       ),
                       if (pocket.heldAmount > 0 && isBalanceVisible.value)
                         Text(
-                          '${'held'.tr()}: ${formatAmountWithSuffix(pocket.heldAmount)} ${pocket.currency}',
+                          '${'held'.tr()}: ${formatAmountWithSuffix(pocket.heldAmount)} ${walletCurrencyShort(pocket.currency)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.error,
                             fontSize: 11,
@@ -4416,7 +4517,7 @@ class WalletScreen extends HookConsumerWidget {
                                 const Gap(2),
                                 Text(
                                   isBalanceVisible.value
-                                      ? '${formatAmountWithSuffix(wPocket.amount)} ${wPocket.currency}'
+                                      ? '${formatAmountWithSuffix(wPocket.amount)} ${walletCurrencyShort(wPocket.currency)}'
                                       : '••••••',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
@@ -4537,4 +4638,146 @@ String formatAmountWithSuffix(double amount) {
   } else {
     return amount.toStringAsFixed(2);
   }
+}
+
+/// Short localized currency name (e.g. "Gold", "Bits"), falling back to the
+/// raw currency code when no translation exists.
+String walletCurrencyShort(String currency) {
+  if (currency.isEmpty) return currency;
+  final key =
+      'walletCurrencyShort${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
+  final localized = key.tr();
+  return localized == key ? currency : localized;
+}
+
+/// A single day in the transaction ledger, with per-currency in/out sums.
+class TransactionDayGroup {
+  final DateTime date;
+  final Map<String, ({double inAmount, double outAmount})> byCurrency;
+
+  const TransactionDayGroup({required this.date, required this.byCurrency});
+}
+
+/// Groups consecutive same-day transactions and computes each day's
+/// per-currency income/outcome sums. Returns a map from the list index where
+/// a day begins to that day's header data. Income is determined by [walletId]
+/// being the payee, matching the row-level direction logic.
+Map<int, TransactionDayGroup> groupTransactionsByDay(
+  List<SnTransaction> items,
+  String? walletId,
+) {
+  final days = <DateTime, List<int>>{};
+  for (var i = 0; i < items.length; i++) {
+    final createdAt = items[i].createdAt;
+    final date = DateTime(createdAt.year, createdAt.month, createdAt.day);
+    days.putIfAbsent(date, () => []).add(i);
+  }
+
+  return {
+    for (final entry in days.entries)
+      entry.value.first: TransactionDayGroup(
+        date: entry.key,
+        byCurrency: _sumDay(items, entry.value, walletId),
+      ),
+  };
+}
+
+Map<String, ({double inAmount, double outAmount})> _sumDay(
+  List<SnTransaction> items,
+  List<int> indexes,
+  String? walletId,
+) {
+  final sums = <String, ({double inAmount, double outAmount})>{};
+  for (final i in indexes) {
+    final transaction = items[i];
+    final acc = sums[transaction.currency] ??
+        (inAmount: 0.0, outAmount: 0.0);
+    final isIncome = walletId == transaction.payeeWalletId;
+    sums[transaction.currency] = isIncome
+        ? (inAmount: acc.inAmount + transaction.amount, outAmount: acc.outAmount)
+        : (inAmount: acc.inAmount, outAmount: acc.outAmount + transaction.amount);
+  }
+  return sums;
+}
+
+/// Green used for money coming in (income amounts, confirmed states).
+Color incomeColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF81C784)
+        : const Color(0xFF2E7D32);
+
+/// Red used for money going out (expense amounts, refunded states).
+Color expenseColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFE57373)
+        : const Color(0xFFC62828);
+
+/// Amber used for pending states.
+Color pendingColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFFFB74D)
+        : const Color(0xFFEF6C00);
+
+/// Blue used for frozen/escrow states.
+Color frozenColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF64B5F6)
+        : const Color(0xFF1565C0);
+
+/// Grey used for cancelled states.
+Color cancelledColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFBDBDBD)
+        : const Color(0xFF757575);
+
+String _transactionCounterparty(SnTransaction transaction, bool isIncome) {
+  final wallet = isIncome ? transaction.payerWallet : transaction.payeeWallet;
+  final account = wallet?.account;
+  if (account != null && account.nick.isNotEmpty) return account.nick;
+  if (wallet != null && wallet.name.isNotEmpty) return wallet.name;
+  return 'systemWallet'.tr();
+}
+
+Widget? _buildTransactionStatusLabel(BuildContext context, SnTransaction t) {
+  String? text;
+  Color color;
+  switch (t.status) {
+    case TransactionStatus.pending:
+      text = 'pendingShort'.tr();
+      color = pendingColor(context);
+    case TransactionStatus.frozen:
+      text = 'frozenShort'.tr();
+      color = frozenColor(context);
+    case TransactionStatus.refunded:
+      text = 'refundedShort'.tr();
+      color = expenseColor(context);
+    case TransactionStatus.cancelled:
+      text = 'cancelledShort'.tr();
+      color = cancelledColor(context);
+    default:
+      text = t.requireConfirmation ? 'confirmationRequired'.tr() : null;
+      color = frozenColor(context);
+  }
+  if (text == null) return null;
+
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const Gap(4),
+      Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
+    ],
+  );
 }

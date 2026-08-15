@@ -3785,6 +3785,9 @@
   "transactionId": "Transaction ID",
   "transactionType": "Transaction Type",
   "transactions": "Transactions",
+  "noTransactions": "No transactions yet",
+  "noTransactionsHint": "Transfers, payments and fund payouts will appear here.",
+
   "transfer": "Transfer",
   "transferAmount": "Transfer Amount",
   "transferCreatedSuccessfully": "Transfer created successfully!",

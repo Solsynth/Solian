@@ -3566,6 +3566,9 @@
   "transactionId": "交易 ID",
   "transactionType": "交易型別",
   "transactions": "交易",
+  "noTransactions": "暫無交易記錄",
+  "noTransactionsHint": "轉帳、付款和基金發放記錄會顯示在這裡。",
+
   "transfer": "轉賬",
   "transferAmount": "轉賬金額",
   "transferCreatedSuccessfully": "轉賬成功建立！",

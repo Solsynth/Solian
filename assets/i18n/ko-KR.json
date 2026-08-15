@@ -2273,6 +2273,9 @@
   "transactionDetails": "거래 세부정보",
   "transactionType": "거래 유형",
   "transactions": "거래 내역",
+  "noTransactions": "아직 거래가 없습니다",
+  "noTransactionsHint": "송금, 결제, 펀드 지급 내역이 여기에 표시됩니다.",
+
   "transfer": "이체",
   "transferAmount": "이체 금액",
   "transferCreatedSuccessfully": "이체가 성공적으로 생성되었습니다!",

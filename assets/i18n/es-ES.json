@@ -1916,6 +1916,9 @@
   "transactionDetails": "Transaction Details",
   "transactionType": "Transaction Type",
   "transactions": "Transactions",
+  "noTransactions": "Aún no hay transacciones",
+  "noTransactionsHint": "Los envíos, pagos y repartos de fondos aparecerán aquí.",
+
   "transfer": "Transfer",
   "transferAmount": "Transfer Amount",
   "transferCreatedSuccessfully": "Transfer created successfully!",

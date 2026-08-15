@@ -3782,6 +3782,9 @@
   "transactionId": "交易 ID",
   "transactionType": "交易类型",
   "transactions": "交易",
+  "noTransactions": "暂无交易记录",
+  "noTransactionsHint": "转账、付款和基金发放记录会显示在这里。",
+
   "transfer": "转账",
   "transferAmount": "转账金额",
   "transferCreatedSuccessfully": "转账成功创建！",

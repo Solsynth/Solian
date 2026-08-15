@@ -131,37 +131,18 @@ class _TransactionDetailContent extends ConsumerWidget {
     }
   }
 
-  Color _getStatusColor(int status) {
+  Color _getStatusColor(BuildContext context, int status) {
     switch (status) {
       case 0:
-        return Colors.orange;
+        return pendingColor(context);
       case 1:
-        return Colors.blue;
+        return frozenColor(context);
       case 2:
-        return Colors.green;
+        return incomeColor(context);
       case 3:
-        return Colors.red;
-      case 4:
-        return Colors.grey;
+        return expenseColor(context);
       default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(int status) {
-    switch (status) {
-      case 0:
-        return Symbols.hourglass_empty;
-      case 1:
-        return Symbols.ac_unit;
-      case 2:
-        return Symbols.check_circle;
-      case 3:
-        return Symbols.undo;
-      case 4:
-        return Symbols.cancel;
-      default:
-        return Symbols.help;
+        return cancelledColor(context);
     }
   }
 
@@ -181,56 +162,47 @@ class _TransactionDetailContent extends ConsumerWidget {
     final theme = Theme.of(context);
     final isWide = isWideScreen(context);
     final isIncome = currentWalletId == transaction.payeeWalletId;
-    final amountColor = isIncome ? Colors.green : Colors.red;
+    final amountColor = isIncome ? incomeColor(context) : expenseColor(context);
     final isPending = transaction.status == 0 || transaction.status == 1;
     final isPayee = currentWalletId == transaction.payeeWalletId;
 
     final content = SingleChildScrollView(
       padding: EdgeInsets.all(isWide ? 32 : 24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Amount header
           _buildAmountHeader(context, theme, isIncome, amountColor),
-          const Gap(32),
+          const Gap(24),
 
           // Status badge
-          _buildStatusBadge(context, theme),
-          const Gap(24),
+          Center(child: _buildStatusBadge(context, theme)),
+          const Gap(28),
 
-          // Transaction info section
-          _buildInfoSection(context, theme),
-          const Gap(24),
-
-          // Lifecycle info (if applicable)
-          if (transaction.isFrozen || transaction.requireConfirmation || 
-              transaction.frozenAt != null || transaction.expiresAt != null ||
-              transaction.confirmedAt != null)
-            _buildLifecycleSection(context, theme),
-          if (transaction.isFrozen || transaction.requireConfirmation || 
-              transaction.frozenAt != null || transaction.expiresAt != null ||
-              transaction.confirmedAt != null)
-            const Gap(24),
-
-          // Participants section
-          _buildParticipantsSection(context, theme),
-          const Gap(24),
-
-          // Remarks section
-          if (transaction.remarks != null && transaction.remarks!.isNotEmpty)
-            _buildRemarksSection(context, theme),
-          if (transaction.remarks != null && transaction.remarks!.isNotEmpty)
-            const Gap(24),
-
-          // Confirm/Reject actions for pending transactions
+          // Info sections, paired into two columns on wide screens
+          _buildSectionsGrid(
+            isWide,
+            children: [
+              _buildInfoSection(context, theme),
+              if (transaction.isFrozen || transaction.requireConfirmation ||
+                  transaction.frozenAt != null ||
+                  transaction.expiresAt != null ||
+                  transaction.confirmedAt != null)
+                _buildLifecycleSection(context, theme),
+              _buildParticipantsSection(context, theme),
+              if (transaction.remarks != null &&
+                  transaction.remarks!.isNotEmpty)
+                _buildRemarksSection(context, theme),
+            ],
+          ),
           if (isPending && isPayee) ...[
-            _buildActionButtons(context, ref, theme),
             const Gap(24),
+            _buildActionButtons(context, ref, theme),
           ],
+          const Gap(24),
 
           // Technical details section
           _buildTechnicalSection(context, theme),
-          const Gap(32),
         ],
       ),
     );
@@ -238,7 +210,7 @@ class _TransactionDetailContent extends ConsumerWidget {
     if (isWide) {
       return Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 720),
           child: Card(
             margin: const EdgeInsets.all(16),
             child: content,
@@ -250,49 +222,102 @@ class _TransactionDetailContent extends ConsumerWidget {
     return content;
   }
 
+  Widget _buildSectionsGrid(bool isWide, {required List<Widget> children}) {
+    if (!isWide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const Gap(24),
+            children[i],
+          ],
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i += 2)
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 24),
+            child: i + 1 < children.length
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: children[i]),
+                      const Gap(24),
+                      Expanded(child: children[i + 1]),
+                    ],
+                  )
+                : children[i],
+          ),
+      ],
+    );
+  }
+
   Widget _buildAmountHeader(
     BuildContext context,
     ThemeData theme,
     bool isIncome,
     Color amountColor,
   ) {
+    final colorScheme = theme.colorScheme;
     return Center(
       child: Column(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: amountColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
+              color: colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
             ),
             child: Icon(
-              isIncome ? Symbols.arrow_circle_down : Symbols.arrow_circle_up,
-              color: amountColor,
-              size: 32,
+              isIncome ? Symbols.arrow_downward_alt : Symbols.arrow_upward_alt,
+              color: colorScheme.onSurfaceVariant,
+              size: 28,
             ),
           ),
           const Gap(16),
           Text(
             isIncome ? 'income'.tr() : 'expense'.tr(),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: amountColor,
-              fontWeight: FontWeight.w500,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.0,
             ),
           ),
-          const Gap(4),
-          Text(
-            '${isIncome ? '+' : '-'}${formatAmountWithSuffix(transaction.amount)} ${transaction.currency}',
-            style: theme.textTheme.headlineLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: amountColor,
+          const Gap(6),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text:
+                      '${isIncome ? '+' : '-'}${formatAmountWithSuffix(transaction.amount)} ',
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: amountColor,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                TextSpan(
+                  text: walletCurrencyShort(transaction.currency),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
           const Gap(8),
           Text(
-            DateFormat.yMMMd().add_Hm().format(transaction.createdAt),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            DateFormat.yMMMd().add_Hm().format(transaction.createdAt).toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
             ),
           ),
         ],
@@ -301,35 +326,27 @@ class _TransactionDetailContent extends ConsumerWidget {
   }
 
   Widget _buildStatusBadge(BuildContext context, ThemeData theme) {
-    final statusColor = _getStatusColor(transaction.status);
+    final statusColor = _getStatusColor(context, transaction.status);
 
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: statusColor.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(24),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _getStatusIcon(transaction.status),
-              size: 18,
-              color: statusColor,
-            ),
-            const Gap(8),
-            Text(
-              _getStatusText(transaction.status),
-              style: TextStyle(
-                color: statusColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ],
+        const Gap(6),
+        Text(
+          _getStatusText(transaction.status).toUpperCase(),
+          style: TextStyle(
+            color: statusColor,
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
+            letterSpacing: 1.0,
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -351,7 +368,7 @@ class _TransactionDetailContent extends ConsumerWidget {
         const Gap(12),
         _DetailRow(
           label: 'currency'.tr(),
-          value: transaction.currency,
+          value: walletCurrencyShort(transaction.currency),
           theme: theme,
         ),
       ],
@@ -564,6 +581,7 @@ class _SectionCard extends StatelessWidget {
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 0.5,
             ),
           ),
           const Gap(12),
