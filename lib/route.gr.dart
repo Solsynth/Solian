@@ -31,7 +31,7 @@ import 'package:island/accounts/screens/profile.dart' as _i5;
 import 'package:island/accounts/screens/progress.dart' as _i53;
 import 'package:island/accounts/screens/punishments.dart' as _i55;
 import 'package:island/accounts/screens/relationship.dart' as _i58;
-import 'package:island/accounts/screens/stellar_program.dart' as _i61;
+import 'package:island/accounts/screens/store.dart' as _i63;
 import 'package:island/auth/authorize_screen.dart' as _i13;
 import 'package:island/auth/captcha.dart' as _i19;
 import 'package:island/auth/create_account.dart' as _i25;
@@ -79,8 +79,8 @@ import 'package:island/posts/screens/publisher_profile.dart' as _i54;
 import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i52;
 import 'package:island/realms/screens/realm_detail.dart' as _i56;
 import 'package:island/realms/screens/realms.dart' as _i57;
-import 'package:island/stickers/screens/pack_detail.dart' as _i62;
-import 'package:island/stickers/screens/sticker_marketplace.dart' as _i63;
+import 'package:island/stickers/screens/pack_detail.dart' as _i61;
+import 'package:island/stickers/screens/sticker_marketplace.dart' as _i62;
 import 'package:island/surveys/screens/survey_editor.dart' as _i64;
 import 'package:island/surveys/widgets/survey_feedback.dart' as _i65;
 import 'package:island/surveys/widgets/survey_submit_page.dart' as _i66;
@@ -2493,23 +2493,7 @@ class SettingsRoute extends _i74.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i61.StellarProgramScreen]
-class StellarProgramRoute extends _i74.PageRouteInfo<void> {
-  const StellarProgramRoute({List<_i74.PageRouteInfo>? children})
-    : super(StellarProgramRoute.name, initialChildren: children);
-
-  static const String name = 'StellarProgramRoute';
-
-  static _i74.PageInfo page = _i74.PageInfo(
-    name,
-    builder: (data) {
-      return const _i61.StellarProgramScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i62.StickerMarketplacePackDetailScreen]
+/// [_i61.StickerMarketplacePackDetailScreen]
 class StickerMarketplacePackDetailRoute
     extends _i74.PageRouteInfo<StickerMarketplacePackDetailRouteArgs> {
   StickerMarketplacePackDetailRoute({
@@ -2534,7 +2518,7 @@ class StickerMarketplacePackDetailRoute
           id: pathParams.getString('id'),
         ),
       );
-      return _i62.StickerMarketplacePackDetailScreen(
+      return _i61.StickerMarketplacePackDetailScreen(
         key: args.key,
         id: args.id,
       );
@@ -2566,7 +2550,7 @@ class StickerMarketplacePackDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i63.StickerMarketplaceScreen]
+/// [_i62.StickerMarketplaceScreen]
 class StickerMarketplaceRoute extends _i74.PageRouteInfo<void> {
   const StickerMarketplaceRoute({List<_i74.PageRouteInfo>? children})
     : super(StickerMarketplaceRoute.name, initialChildren: children);
@@ -2576,7 +2560,23 @@ class StickerMarketplaceRoute extends _i74.PageRouteInfo<void> {
   static _i74.PageInfo page = _i74.PageInfo(
     name,
     builder: (data) {
-      return const _i63.StickerMarketplaceScreen();
+      return const _i62.StickerMarketplaceScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [_i63.StoreScreen]
+class StoreRoute extends _i74.PageRouteInfo<void> {
+  const StoreRoute({List<_i74.PageRouteInfo>? children})
+    : super(StoreRoute.name, initialChildren: children);
+
+  static const String name = 'StoreRoute';
+
+  static _i74.PageInfo page = _i74.PageInfo(
+    name,
+    builder: (data) {
+      return const _i63.StoreScreen();
     },
   );
 }

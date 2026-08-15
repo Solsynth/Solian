@@ -48,4 +48,4 @@ final class AuthorizedAppsProvider
   }
 }
 
-String _$authorizedAppsHash() => r'1178875817ef5aa7bf24d7286a557b7546662881';
+String _$authorizedAppsHash() => r'65528e626bb482d3e9317aa024978a779343a1db';

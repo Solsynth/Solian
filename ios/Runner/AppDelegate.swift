@@ -21,6 +21,7 @@ import flutter_callkit_incoming
     private let pendingAcceptedCallKey = "dev.solsynth.solian.callkit.pendingAcceptedCall"
     private let pendingCallbackCallKey = "dev.solsynth.solian.callkit.pendingCallbackCall"
     private let shareSuggestionsChannelName = "dev.solsynth.solian/share_suggestions"
+    private let storePurchaseChannelName = "dev.solsynth.solian/store_purchase"
     private var implicitDeepLinkChannel: FlutterMethodChannel?
     private var nativeCallChannel: FlutterMethodChannel?
     private var callKitAudioSessionActive = false
@@ -49,6 +50,7 @@ import flutter_callkit_incoming
         
         if let controller = window?.rootViewController as? FlutterViewController {
             setupNativeCallChannel(binaryMessenger: controller.binaryMessenger)
+            setupStorePurchaseChannel(binaryMessenger: controller.binaryMessenger)
             LocalCommunicationNotification.install(binaryMessenger: controller.binaryMessenger)
         }
 
@@ -300,6 +302,22 @@ import flutter_callkit_incoming
     func providerDidReset() {
         print("[CallKit] providerDidReset")
         callKitAudioSessionActive = false
+    }
+
+    private func setupStorePurchaseChannel(binaryMessenger: FlutterBinaryMessenger) {
+        let channel = FlutterMethodChannel(
+            name: storePurchaseChannelName,
+            binaryMessenger: binaryMessenger
+        )
+        channel.setMethodCallHandler { call, result in
+            guard call.method == "isSandboxPurchaseEnvironment" else {
+                result(FlutterMethodNotImplemented)
+                return
+            }
+
+            let receiptName = Bundle.main.appStoreReceiptURL?.lastPathComponent
+            result(receiptName == "sandboxReceipt")
+        }
     }
 
     private func setupNativeCallChannel(binaryMessenger: FlutterBinaryMessenger) {

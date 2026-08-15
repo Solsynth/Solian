@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 
 part 'iap_service.g.dart';
 
@@ -108,19 +109,31 @@ class IapService {
 
     try {
       final response = await _inAppPurchase.queryProductDetails(productIds);
-      if (response.error == null) {
-        _products = response.productDetails;
-        return true;
+      if (response.error != null) {
+        debugPrint(
+          'Failed to load IAP products ${productIds.join(', ')}: '
+          '${response.error}',
+        );
+        return false;
       }
-      debugPrint('Error loading products: ${response.error}');
-      return false;
+      if (response.notFoundIDs.isNotEmpty) {
+        debugPrint(
+          'IAP products not found: ${response.notFoundIDs.join(', ')}',
+        );
+      }
+      _products = response.productDetails;
+      return true;
     } catch (e) {
-      debugPrint('Failed to load products: $e');
+      debugPrint('Failed to load IAP products: $e');
       return false;
     }
   }
 
-  Future<IapPurchaseResult?> purchaseProduct(String productId) async {
+  Future<IapPurchaseResult?> purchaseProduct(
+    String productId, {
+    bool consumable = false,
+    int quantity = 1,
+  }) async {
     if (!_isAvailable) {
       return IapPurchaseResult(success: false, error: 'IAP not available');
     }
@@ -131,13 +144,22 @@ class IapService {
     );
 
     try {
-      final purchaseParam = PurchaseParam(
-        productDetails: product,
-        applicationUserName: _userId,
-      );
-      final success = await _inAppPurchase.buyNonConsumable(
-        purchaseParam: purchaseParam,
-      );
+      final purchaseParam = consumable
+          ? AppStorePurchaseParam(
+              productDetails: product,
+              applicationUserName: _userId,
+              quantity: quantity.clamp(1, 99),
+            )
+          : PurchaseParam(
+              productDetails: product,
+              applicationUserName: _userId,
+            );
+      final success = consumable
+          ? await _inAppPurchase.buyConsumable(
+              purchaseParam: purchaseParam,
+              autoConsume: true,
+            )
+          : await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
       if (success) {
         return IapPurchaseResult(success: true, productId: productId);
       }

@@ -139,10 +139,7 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: AccountActivationRoute.page, path: 'me/activation'),
             AutoRoute(page: AccountBoardEditRoute.page, path: 'me/board'),
             AutoRoute(page: LevelingRoute.page, path: 'me/leveling'),
-            AutoRoute(
-              page: StellarProgramRoute.page,
-              path: 'me/stellar-program',
-            ),
+            AutoRoute(page: StoreRoute.page, path: 'me/store'),
             AutoRoute(page: AccountSettingsRoute.page, path: 'me/settings'),
             AutoRoute(page: AccountQrRoute.page, path: 'me/qr'),
             AutoRoute(page: BadgesRoute.page, path: 'me/badges'),

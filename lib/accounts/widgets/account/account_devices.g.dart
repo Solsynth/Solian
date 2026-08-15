@@ -47,7 +47,7 @@ final class AuthDevicesProvider
   }
 }
 
-String _$authDevicesHash() => r'bda95cc18e9ac420379b3679a4d20c9bbbe7076e';
+String _$authDevicesHash() => r'c1d79db6a3d0e65ed8692d01f70ba0591a8c937d';
 
 /// Provider for root sessions only (sessions without parent or with children)
 
@@ -111,7 +111,7 @@ final class AuthSessionsProvider
   }
 }
 
-String _$authSessionsHash() => r'386a68ceb81ba22246ff592001a922c21aaa3891';
+String _$authSessionsHash() => r'7972776de3ad3c47cab3c95def7ba3fbf85a2919';
 
 /// Provider for root sessions only (sessions without parent or with children)
 
@@ -201,7 +201,7 @@ final class SessionChildrenProvider
   }
 }
 
-String _$sessionChildrenHash() => r'70daa628c155405377f863372ae1994a7634c904';
+String _$sessionChildrenHash() => r'7115723dfce5f03945eddb06a7cabb503a331d9f';
 
 /// Provider for child sessions of a specific parent session
 

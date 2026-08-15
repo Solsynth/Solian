@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/restore_purchase_sheet.dart';
+import 'package:island/wallets/wallet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/time.dart';
@@ -26,8 +27,27 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
 part 'stellar_program_tab.g.dart';
+
+const _goldResupplyProductId = 'golds.resupply.pack';
+
+const _storePurchaseChannel = MethodChannel(
+  'dev.solsynth.solian/store_purchase',
+);
+
+Future<bool> _detectSandboxPurchaseEnvironment() async {
+  if (kDebugMode) return true;
+  if (kIsWeb || (!Platform.isIOS && !Platform.isMacOS)) return false;
+
+  try {
+    return await _storePurchaseChannel.invokeMethod<bool>(
+          'isSandboxPurchaseEnvironment',
+        ) ??
+        false;
+  } catch (_) {
+    return false;
+  }
+}
 
 const kDebugShowAfdian = false;
 
@@ -331,7 +351,9 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
 }
 
 class StellarProgramView extends HookConsumerWidget {
-  const StellarProgramView({super.key});
+  final bool showStoreHeader;
+
+  const StellarProgramView({super.key, this.showStoreHeader = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -340,6 +362,16 @@ class StellarProgramView extends HookConsumerWidget {
     final selectedTab = ref.watch(selectedTabProvider);
     final iapProducts = ref.watch(iapProductsProvider);
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
+    final sandboxPurchaseEnvironment = useState<bool?>(null);
+
+    useEffect(() {
+      var disposed = false;
+      _detectSandboxPurchaseEnvironment().then((value) {
+        if (!disposed) sandboxPurchaseEnvironment.value = value;
+      });
+      return () => disposed = true;
+    }, const []);
+
     final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
     final useAfdianCheckout =
@@ -378,7 +410,9 @@ class StellarProgramView extends HookConsumerWidget {
       final appleProductIds = group.catalog.items
           .expand((c) => c.providerMappings.appleStore)
           .toSet();
-
+      if (showStoreHeader) {
+        appleProductIds.add(_goldResupplyProductId);
+      }
       if (appleProductIds.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final iapService = ref.read(iapServiceProvider);
@@ -398,6 +432,14 @@ class StellarProgramView extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (showStoreHeader && sandboxPurchaseEnvironment.value == true) ...[
+            _buildSandboxPurchaseWarning(context),
+            const Gap(16),
+          ],
+          if (showStoreHeader) ...[
+            _buildGoldenPointsStoreCard(context, ref, supportsIap, iapProducts),
+            const Gap(16),
+          ],
           _buildMembershipSection(
             context,
             tabController,
@@ -821,6 +863,108 @@ class StellarProgramView extends HookConsumerWidget {
     );
   }
 
+  Widget _buildSandboxPurchaseWarning(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Symbols.warning, color: scheme.onErrorContainer),
+          const Gap(10),
+          Expanded(
+            child: Text(
+              'storeSandboxWarning'.tr(),
+              style: TextStyle(color: scheme.onErrorContainer),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoldenPointsStoreCard(
+    BuildContext context,
+    WidgetRef ref,
+    bool supportsIap,
+    Map<String, String> iapProducts,
+  ) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final price = iapProducts[_goldResupplyProductId];
+
+    return _buildSectionCard(
+      context,
+      color: scheme.primaryContainer,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Symbols.account_balance,
+                size: 28,
+                color: scheme.onPrimaryContainer,
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'storeGoldenPointsTitle'.tr(),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      'storeGoldenPointsDescription'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.onPrimaryContainer.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Gap(16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (price != null) ...[
+                Text(
+                  price,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Gap(12),
+              ],
+              FilledButton.icon(
+                onPressed: () => supportsIap
+                    ? _purchaseGolds(context, ref)
+                    : _purchaseGoldsWithAfdian(context, ref),
+                icon: Icon(
+                  supportsIap ? Symbols.shopping_bag : Symbols.open_in_new,
+                ),
+                label: Text('purchase'.tr()),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPricingGuideCard(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -1078,11 +1222,11 @@ class StellarProgramView extends HookConsumerWidget {
     final items = useAfdianCheckout
         ? <ButtonSegment<int>>[
             ButtonSegment<int>(value: 0, label: Text('afdian'.tr())),
-            ButtonSegment<int>(value: 1, label: Text('walletExchange'.tr())),
+            ButtonSegment<int>(value: 1, label: Text('sourcePoints'.tr())),
           ]
         : <ButtonSegment<int>>[
             ButtonSegment<int>(value: 0, label: Text('appleIap'.tr())),
-            ButtonSegment<int>(value: 1, label: Text('walletExchange'.tr())),
+            ButtonSegment<int>(value: 1, label: Text('sourcePoints'.tr())),
           ];
 
     return SegmentedButton<int>(
@@ -1148,12 +1292,24 @@ class StellarProgramView extends HookConsumerWidget {
                     currentMembership?.identifier == tiers[i].identifier,
                 effectiveMethod: effectiveMethod,
                 iapProducts: iapProducts,
-                onPurchase: () => _purchaseMembership(
-                  context,
-                  ref,
-                  tiers[i],
-                  effectiveMethod,
-                ),
+                onPurchase: () async {
+                  var quantity = 1;
+                  if (effectiveMethod == 0) {
+                    final selectedQuantity = await _showWalletQuantitySheet(
+                      context,
+                    );
+                    if (selectedQuantity == null || !context.mounted) return;
+                    quantity = selectedQuantity;
+                  }
+                  if (!context.mounted) return;
+                  await _purchaseMembership(
+                    context,
+                    ref,
+                    tiers[i],
+                    effectiveMethod,
+                    quantity: quantity,
+                  );
+                },
               ),
             ],
           ],
@@ -1291,34 +1447,133 @@ class StellarProgramView extends HookConsumerWidget {
     }
   }
 
+  Future<int?> _showWalletQuantitySheet(
+    BuildContext context, {
+    String descriptionKey = 'storeQuantityDescription',
+    String limitKey = 'storeQuantityLimit',
+    int maxQuantity = 12,
+  }) async {
+    final controller = TextEditingController(text: '1');
+    var quantity = 1;
+
+    final result = await showModalBottomSheet<int>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          void updateQuantity(int value) {
+            quantity = value.clamp(1, maxQuantity);
+            controller.text = quantity.toString();
+            controller.selection = TextSelection.collapsed(
+              offset: controller.text.length,
+            );
+            setState(() {});
+          }
+
+          return SheetScaffold(
+            titleText: 'storeQuantityTitle'.tr(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    descriptionKey.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const Gap(20),
+                  Row(
+                    children: [
+                      IconButton.filledTonal(
+                        onPressed: quantity > 1
+                            ? () => updateQuantity(quantity - 1)
+                            : null,
+                        icon: const Icon(Symbols.remove),
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: InputDecoration(
+                            labelText: 'quantity'.tr(),
+                            helperText: limitKey.tr(),
+                          ),
+                          onChanged: (value) {
+                            final parsed = int.tryParse(value);
+                            if (parsed != null && parsed > 0) {
+                              quantity = parsed.clamp(1, maxQuantity);
+                            }
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                      const Gap(12),
+                      IconButton.filledTonal(
+                        onPressed: quantity < maxQuantity
+                            ? () => updateQuantity(quantity + 1)
+                            : null,
+                        icon: const Icon(Symbols.add),
+                      ),
+                    ],
+                  ),
+                  const Gap(20),
+                  FilledButton(
+                    onPressed: () => Navigator.of(context).pop(quantity),
+                    child: Text('confirm'.tr()),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    controller.dispose();
+    return result;
+  }
+
   Future<void> _purchaseMembership(
     BuildContext context,
     WidgetRef ref,
     SnSubscriptionCatalog tier,
-    int method,
-  ) async {
+    int method, {
+    int quantity = 1,
+  }) async {
     if (method == 1) {
       final appleStoreProductIds = tier.providerMappings.appleStore;
       if (appleStoreProductIds.isNotEmpty) {
-        await _purchaseWithIap(context, ref, tier, appleStoreProductIds.first);
+        await _purchaseWithIap(context, ref, appleStoreProductIds.first);
         return;
       }
     }
-
     if (method == 2) {
       await _purchaseWithAfdian(context, ref, tier);
       return;
     }
 
-    await _purchaseWithWallet(context, ref, tier.identifier);
+    await _purchaseWithWallet(
+      context,
+      ref,
+      tier.identifier,
+      quantity: quantity,
+    );
   }
 
   Future<void> _purchaseWithIap(
     BuildContext context,
     WidgetRef ref,
-    SnSubscriptionCatalog tier,
-    String productId,
-  ) async {
+    String productId, {
+    String successMessage = 'membershipPurchaseSuccess',
+    bool consumable = false,
+    int quantity = 1,
+  }) async {
     final iapService = ref.read(iapServiceProvider);
     final userAsync = ref.read(userInfoProvider);
 
@@ -1347,7 +1602,11 @@ class StellarProgramView extends HookConsumerWidget {
         return;
       }
 
-      final result = await iapService.purchaseProduct(productId);
+      final result = await iapService.purchaseProduct(
+        productId,
+        consumable: consumable,
+        quantity: quantity,
+      );
 
       if (context.mounted) hideLoadingModal(context);
 
@@ -1356,14 +1615,70 @@ class StellarProgramView extends HookConsumerWidget {
       } else if (result.error != null) {
         showErrorAlert(result.error);
       } else if (result.success) {
-        // Wait for a while to let the backend process the purchase and update the subscription status
-        showSnackBar('坐与放宽，我们正在处理您的购买...');
+        showSnackBar('paymentVerification'.tr());
         await Future.delayed(const Duration(seconds: 2));
-        // Invalidate subscription to refresh status
         await _refreshSubscriptionState(ref);
         if (context.mounted) {
-          showSnackBar('membershipPurchaseSuccess'.tr());
+          showSnackBar(successMessage.tr());
         }
+      }
+    } catch (err) {
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+    }
+  }
+
+  Future<void> _purchaseGolds(BuildContext context, WidgetRef ref) async {
+    final quantity = await _showWalletQuantitySheet(
+      context,
+      descriptionKey: 'storeGoldQuantityDescription',
+      limitKey: 'storeGoldQuantityLimit',
+      maxQuantity: 99,
+    );
+    if (quantity == null || !context.mounted) return;
+    await _purchaseGoldsWithIap(context, ref, quantity);
+  }
+
+  Future<void> _purchaseGoldsWithIap(
+    BuildContext context,
+    WidgetRef ref,
+    int quantity,
+  ) async {
+    await _purchaseWithIap(
+      context,
+      ref,
+      _goldResupplyProductId,
+      successMessage: 'storeGoldPurchaseSuccess',
+      consumable: true,
+      quantity: quantity,
+    );
+  }
+
+  Future<void> _purchaseGoldsWithAfdian(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final client = ref.watch(apiClientProvider);
+    try {
+      showLoadingModal(context);
+      final response = await client.post(
+        '/wallet-products/golds-resupply-pack/checkout/afdian',
+      );
+      final checkoutUrl = response.data['checkout_url'] as String?;
+      if (context.mounted) hideLoadingModal(context);
+
+      if (checkoutUrl == null) {
+        if (context.mounted) {
+          showErrorAlert('Failed to get checkout URL');
+        }
+        return;
+      }
+
+      await launchUrlString(checkoutUrl, mode: LaunchMode.externalApplication);
+      if (context.mounted) {
+        showSnackBar('storeGoldPurchaseExternalHint'.tr());
       }
     } catch (err) {
       if (context.mounted) {
@@ -1376,8 +1691,9 @@ class StellarProgramView extends HookConsumerWidget {
   Future<void> _purchaseWithWallet(
     BuildContext context,
     WidgetRef ref,
-    String tierId,
-  ) async {
+    String tierId, {
+    int quantity = 1,
+  }) async {
     final client = ref.watch(apiClientProvider);
     try {
       showLoadingModal(context);
@@ -1385,9 +1701,8 @@ class StellarProgramView extends HookConsumerWidget {
         '/wallet/subscriptions',
         data: {
           'identifier': tierId,
-          'payment_method': 'solian.wallet',
-          'payment_details': {'currency': 'golds'},
-          'cycle_duration_days': 30,
+          'cycle_duration_days': 30 * quantity.clamp(1, 12),
+          'payment_details': {'currency': 'points'},
         },
         options: Options(headers: {'X-Noop': true}),
       );
@@ -1467,6 +1782,9 @@ class StellarProgramView extends HookConsumerWidget {
   Future<void> _refreshSubscriptionState(WidgetRef ref) async {
     ref.invalidate(accountSubscriptionGroupProvider);
     ref.invalidate(accountStellarSubscriptionProvider);
+    ref.invalidate(walletCurrentProvider);
+    ref.invalidate(walletListProvider);
+    ref.invalidate(walletStatsProvider);
     await ref.read(userInfoProvider.notifier).fetchUser();
   }
 

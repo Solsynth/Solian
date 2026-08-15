@@ -261,10 +261,10 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.star,
-                    'title': 'stellarProgram',
+                    'icon': Symbols.storefront,
+                    'title': 'store',
                     'onTap': () {
-                      context.router.push(const StellarProgramRoute());
+                      context.router.push(const StoreRoute());
                     },
                   },
                   {

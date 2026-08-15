@@ -64,7 +64,7 @@ final class SearchAccountsProvider
   }
 }
 
-String _$searchAccountsHash() => r'e0920a060255706f4b10781be432a8acd4949658';
+String _$searchAccountsHash() => r'70960eded34048df04dafd0da30752752f06b1ad';
 
 final class SearchAccountsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccount>>, String> {
