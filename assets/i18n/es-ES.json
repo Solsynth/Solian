@@ -1853,6 +1853,7 @@
   "quotaPurchase": "Comprar cuota extra",
   "quotaPurchaseDescription": "Compra cuota de almacenamiento extra de una sola vez",
   "quotaPurchaseExtraQuota": "Cuota extra",
+  "freeSpace": "Espacio libre",
   "quotaPurchaseRecords": "Historial de compras",
   "quotaPurchaseRecordsEmpty": "Aún no hay compras",
   "quotaPurchaseConfirmTitle": "Confirmar compra",
@@ -3510,7 +3511,6 @@
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
   "settingsDatabaseExport": "Exportar base de datos SQLite",
-
   "settingsDesktopIdleStatusEnabled": "Enable Idle Status Monitoring",
   "settingsDesktopIdleStatusEnabledHelper": "Send idle/active status to the server",
   "settingsDesktopIdleStatusPreview": "Current Idle Status",

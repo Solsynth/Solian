@@ -44,6 +44,15 @@ quotaGaugeFractions({
   );
 }
 
+/// Shared quota-status convention: healthy below 50% full, moderate below
+/// 80%, critical at or above 80%. Returns the chip/figure color and the
+/// i18n label key.
+({Color color, String labelKey}) quotaUsageStatus(double ratio) {
+  if (ratio < 0.5) return (color: Colors.green, labelKey: 'healthy');
+  if (ratio < 0.8) return (color: Colors.orange, labelKey: 'moderate');
+  return (color: Colors.red, labelKey: 'critical');
+}
+
 /// A compact quota overview widget designed for sidebar display.
 ///
 /// The usage card is drawn as a measuring instrument: a tick-marked gauge
@@ -331,7 +340,7 @@ class QuotaSidebarWidget extends StatelessWidget {
         height: 14,
         width: double.infinity,
         child: CustomPaint(
-          painter: _QuotaGaugePainter(
+          painter: QuotaGaugePainter(
             baseFraction: metrics.baseFraction,
             baseUsed: metrics.baseUsed,
             extraUsed: metrics.extraUsed,
@@ -372,7 +381,7 @@ class QuotaSidebarWidget extends StatelessWidget {
             context,
             swatch: CustomPaint(
               size: const Size(10, 10),
-              painter: _HatchSwatchPainter(
+              painter: HatchSwatchPainter(
                 fill: colorScheme.tertiary.withValues(alpha: 0.35),
                 hatch: colorScheme.tertiary,
               ),
@@ -417,42 +426,26 @@ class QuotaSidebarWidget extends StatelessWidget {
   }
 
   Widget _buildUsageStatus(BuildContext context, double ratio) {
-    String statusKey;
-    Color statusColor;
-
-    if (ratio < 0.5) {
-      statusKey = 'healthy';
-      statusColor = Colors.green;
-    } else if (ratio < 0.8) {
-      statusKey = 'moderate';
-      statusColor = Colors.orange;
-    } else {
-      statusKey = 'critical';
-      statusColor = Colors.red;
-    }
+    final status = quotaUsageStatus(ratio);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: status.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        statusKey,
+        status.labelKey,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w500,
-          color: statusColor,
+          color: status.color,
         ),
       ).tr(),
     );
   }
 
-  Color _getUsageColor(double ratio) {
-    if (ratio < 0.5) return Colors.green;
-    if (ratio < 0.8) return Colors.orange;
-    return Colors.red;
-  }
+  Color _getUsageColor(double ratio) => quotaUsageStatus(ratio).color;
 
   Widget _buildStatsRow(
     BuildContext context,
@@ -661,7 +654,7 @@ class QuotaSidebarWidget extends StatelessWidget {
 
 /// Draws the quota instrument: track, base/extra bands, used fill (solid in
 /// base, hatched in extra), a taller boundary tick and quarter scale ticks.
-class _QuotaGaugePainter extends CustomPainter {
+class QuotaGaugePainter extends CustomPainter {
   final double baseFraction;
   final double baseUsed;
   final double extraUsed;
@@ -673,7 +666,7 @@ class _QuotaGaugePainter extends CustomPainter {
   final Color tickColor;
   final Color boundaryColor;
 
-  const _QuotaGaugePainter({
+  const QuotaGaugePainter({
     required this.baseFraction,
     required this.baseUsed,
     required this.extraUsed,
@@ -774,7 +767,7 @@ class _QuotaGaugePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_QuotaGaugePainter oldDelegate) {
+  bool shouldRepaint(QuotaGaugePainter oldDelegate) {
     return oldDelegate.baseFraction != baseFraction ||
         oldDelegate.baseUsed != baseUsed ||
         oldDelegate.extraUsed != extraUsed ||
@@ -789,11 +782,11 @@ class _QuotaGaugePainter extends CustomPainter {
 }
 
 /// Tiny hatched swatch for the legend, matching the gauge's extra band.
-class _HatchSwatchPainter extends CustomPainter {
+class HatchSwatchPainter extends CustomPainter {
   final Color fill;
   final Color hatch;
 
-  const _HatchSwatchPainter({required this.fill, required this.hatch});
+  const HatchSwatchPainter({required this.fill, required this.hatch});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -814,7 +807,7 @@ class _HatchSwatchPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_HatchSwatchPainter oldDelegate) {
+  bool shouldRepaint(HatchSwatchPainter oldDelegate) {
     return oldDelegate.fill != fill || oldDelegate.hatch != hatch;
   }
 }

@@ -1941,6 +1941,7 @@
   "quotaPurchase": "追加クォータを購入",
   "quotaPurchaseDescription": "一回限りの追加ストレージクォータを購入",
   "quotaPurchaseExtraQuota": "追加クォータ",
+  "freeSpace": "空き容量",
   "quotaPurchaseRecords": "購入履歴",
   "quotaPurchaseRecordsEmpty": "購入履歴はまだありません",
   "quotaPurchaseConfirmTitle": "購入を確認",
@@ -3516,7 +3517,6 @@
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
   "settingsDatabaseExport": "SQLite データベースをエクスポート",
-
   "settingsDesktopIdleStatusEnabled": "Enable Idle Status Monitoring",
   "settingsDesktopIdleStatusEnabledHelper": "Send idle/active status to the server",
   "settingsDesktopIdleStatusPreview": "Current Idle Status",

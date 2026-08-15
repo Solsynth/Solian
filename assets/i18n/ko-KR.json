@@ -2177,6 +2177,7 @@
   "quotaPurchase": "추가 할당량 구매",
   "quotaPurchaseDescription": "일회성 추가 저장 할당량 구매",
   "quotaPurchaseExtraQuota": "추가 할당량",
+  "freeSpace": "남은 공간",
   "quotaPurchaseRecords": "구매 기록",
   "quotaPurchaseRecordsEmpty": "아직 구매 기록이 없습니다",
   "quotaPurchaseConfirmTitle": "구매 확인",
@@ -3565,7 +3566,6 @@
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
   "settingsDatabaseExport": "SQLite 데이터베이스 내보내기",
-
   "settingsDesktopIdleStatusEnabled": "Enable Idle Status Monitoring",
   "settingsDesktopIdleStatusEnabledHelper": "Send idle/active status to the server",
   "settingsDesktopIdleStatusPreview": "Current Idle Status",

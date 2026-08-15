@@ -3315,7 +3315,6 @@
   "settingsDatabaseResetSuccess": "数据库重置成功",
   "settingsDatabaseSize": "数据库大小",
   "settingsDatabaseExport": "导出 SQLite 数据库",
-
   "settingsDefaultPool": "选择文件池",
   "settingsDefaultPoolHelper": "为文件上传选择一个默认池",
   "settingsDefaultScreen": "默认起始页面",
@@ -3643,6 +3642,7 @@
   "quotaPurchase": "购买额外配额",
   "quotaPurchaseDescription": "购买一次性额外存储配额",
   "quotaPurchaseExtraQuota": "额外配额",
+  "freeSpace": "可用空间",
   "quotaPurchaseRecords": "购买记录",
   "quotaPurchaseRecordsEmpty": "暂无购买记录",
   "quotaPurchaseConfirmTitle": "确认购买",

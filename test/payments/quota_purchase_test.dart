@@ -57,21 +57,29 @@ void main() {
   test('parses quota purchase records with optional expiry', () {
     final expiring = QuotaPurchaseRecord.fromJson({
       'id': 'record-1',
-      'product_identifier': 'dysonfs.quota.10gb',
-      'quota_mb': 10240,
+      'name': '1 GB Extra Quota',
+      'description': 'Extra storage purchased via Wallet order',
+      'quota': 1024,
       'order_id': 'order-123',
       'expired_at': '2026-09-14T12:00:00Z',
     });
 
-    expect(expiring.quotaMb, 10240);
+    expect(expiring.name, '1 GB Extra Quota');
+    expect(expiring.description, 'Extra storage purchased via Wallet order');
+    expect(expiring.quotaMb, 1024);
     expect(expiring.orderId, 'order-123');
     expect(expiring.expiredAt, isNotNull);
 
     final permanent = QuotaPurchaseRecord.fromJson({
       'id': 'record-2',
-      'quota_mb': 10240,
+      'name': '荆州刺使',
+      'description': '朝廷配给',
+      'quota': 102400,
       'order_id': 'order-456',
     });
+    expect(permanent.name, '荆州刺使');
+    expect(permanent.description, '朝廷配给');
+    expect(permanent.quotaMb, 102400);
     expect(permanent.expiredAt, isNull);
   });
 }

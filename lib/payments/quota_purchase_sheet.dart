@@ -34,7 +34,10 @@ final quotaPurchaseRecordsProvider = FutureProvider<List<QuotaPurchaseRecord>>((
 /// A single quota purchase record (raw shape from the drive billing API).
 class QuotaPurchaseRecord {
   final String id;
-  final String productIdentifier;
+
+  /// Display name of the granted quota, e.g. "1 GB Extra Quota".
+  final String name;
+  final String? description;
   final int quotaMb;
   final String? orderId;
   final DateTime? createdAt;
@@ -42,7 +45,8 @@ class QuotaPurchaseRecord {
 
   const QuotaPurchaseRecord({
     required this.id,
-    required this.productIdentifier,
+    required this.name,
+    required this.description,
     required this.quotaMb,
     required this.orderId,
     required this.createdAt,
@@ -52,8 +56,15 @@ class QuotaPurchaseRecord {
   factory QuotaPurchaseRecord.fromJson(Map<String, dynamic> json) {
     return QuotaPurchaseRecord(
       id: json['id']?.toString() ?? '',
-      productIdentifier: json['product_identifier']?.toString() ?? '',
-      quotaMb: (json['quota_mb'] as num?)?.toInt() ?? 0,
+      name:
+          json['name']?.toString() ??
+          json['product_identifier']?.toString() ??
+          '',
+      description: json['description']?.toString(),
+      quotaMb:
+          (json['quota'] as num?)?.toInt() ??
+          (json['quota_mb'] as num?)?.toInt() ??
+          0,
       orderId: json['order_id']?.toString(),
       createdAt: _parseDate(json['created_at']),
       expiredAt: _parseDate(json['expired_at']),
@@ -401,7 +412,19 @@ class _QuotaPurchaseSheetState extends ConsumerState<QuotaPurchaseSheet> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Symbols.storage, color: colorScheme.onPrimaryContainer),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Symbols.storage,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+            ),
             const Gap(12),
             Expanded(
               child: Text(
@@ -554,8 +577,8 @@ class _QuotaPurchaseSheetState extends ConsumerState<QuotaPurchaseSheet> {
           ),
         ),
         title: Text(
-          record.productIdentifier.isNotEmpty
-              ? record.productIdentifier
+          record.name.trim().isNotEmpty
+              ? record.name
               : formatFileSize(record.quotaMb * 1024 * 1024),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -565,19 +588,16 @@ class _QuotaPurchaseSheetState extends ConsumerState<QuotaPurchaseSheet> {
         ),
         subtitle: Text(
           [
-            if (record.orderId != null && record.orderId!.isNotEmpty)
-              record.orderId!,
+            if (record.description?.trim().isNotEmpty ?? false)
+              record.description!,
             if (record.expiredAt != null)
               DateFormat.yMd().add_Hm().format(record.expiredAt!),
           ].join(' · '),
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontFamily: record.orderId?.isNotEmpty ?? false
-                ? 'monospace'
-                : null,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         trailing: Text(
           formatFileSize(record.quotaMb * 1024 * 1024),

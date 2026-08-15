@@ -3434,6 +3434,7 @@
   "quotaPurchase": "購買額外配額",
   "quotaPurchaseDescription": "購買一次性額外儲存配額",
   "quotaPurchaseExtraQuota": "額外配額",
+  "freeSpace": "可用空間",
   "quotaPurchaseRecords": "購買記錄",
   "quotaPurchaseRecordsEmpty": "暫無購買記錄",
   "quotaPurchaseConfirmTitle": "確認購買",

@@ -3318,7 +3318,6 @@
   "settingsDatabaseResetSuccess": "Database reset successfully",
   "settingsDatabaseSize": "Database Size",
   "settingsDatabaseExport": "Export SQLite Database",
-
   "settingsDefaultPool": "Default file pool",
   "settingsDefaultPoolHelper": "Select the default storage pool for file uploads",
   "settingsDefaultScreen": "Default Screen",
@@ -3646,6 +3645,7 @@
   "quotaPurchase": "Buy Extra Quota",
   "quotaPurchaseDescription": "Purchase one-time extra storage quota",
   "quotaPurchaseExtraQuota": "Extra quota",
+  "freeSpace": "Free space",
   "quotaPurchaseRecords": "Purchase records",
   "quotaPurchaseRecordsEmpty": "No purchase records yet",
   "quotaPurchaseConfirmTitle": "Confirm purchase",
