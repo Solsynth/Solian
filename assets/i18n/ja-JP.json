@@ -563,6 +563,7 @@
   "connectionReconnecting": "再接続中",
   "connectionInternetChanged": "回線が切り替わりました",
   "connectionServerDown": "接続できません",
+  "connectionUnauthorized": "セッションが期限切れです。再度サインインしてください",
   "weakInternetMode": "不安定回線モード",
   "weather": "天気",
   "weatherClear": "晴れ",

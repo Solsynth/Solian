@@ -232,6 +232,7 @@ ws.send = function(type, data, endpoint) {
       internetChanged: () => statusName = 'internet_changed',
       serverDown: () => statusName = 'server_down',
       duplicateDevice: () => statusName = 'duplicate_device',
+      unauthorized: () => statusName = 'unauthorized',
       error: (message) {
         statusName = 'error';
         errorMessage = message;

@@ -120,6 +120,20 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
           );
           Error.throwWithStackTrace(error, stackTrace);
         }
+        // Session logged out or expired (401): retrying cannot succeed, so
+        // surface the failure immediately instead of exhausting the retry
+        // timeouts. Do not log the user out automatically.
+        if (error.response?.statusCode == 401) {
+          _handleFetchError(
+            error,
+            stackTrace,
+            showErrorDialog: showErrorDialog,
+          );
+          if (throwOnFailure) {
+            Error.throwWithStackTrace(error, stackTrace);
+          }
+          return null;
+        }
         lastError = error;
         lastStackTrace = stackTrace;
         Logger.root.warning(

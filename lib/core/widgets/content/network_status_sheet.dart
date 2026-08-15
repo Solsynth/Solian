@@ -141,6 +141,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
                   duplicateDevice: () => Text(
                     'Another device has connected with the same account.',
                   ),
+                  unauthorized: () => Text('connectionUnauthorized').tr(),
                   error: (message) => Text('Connection error: $message'),
                 ),
                 if (ws.heartbeatDelay != null)
@@ -163,6 +164,8 @@ class NetworkStatusSheet extends HookConsumerWidget {
                         Icon(Symbols.cloud_off, color: Colors.red, size: 16),
                     duplicateDevice: () =>
                         Icon(Symbols.devices, color: Colors.orange, size: 16),
+                    unauthorized: () =>
+                        Icon(Symbols.lock, color: Colors.red, size: 16),
                     error: (message) =>
                         Icon(Symbols.error, color: Colors.red, size: 16),
                   ),
@@ -240,6 +243,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
                       internetChanged: () => false,
                       serverDown: () => false,
                       duplicateDevice: () => false,
+                      unauthorized: () => true,
                       error: (_) => true,
                     ))
                   FilledButton.icon(

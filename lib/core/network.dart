@@ -527,7 +527,9 @@ final stargateApiClientProvider = Provider<Dio>((ref) {
         Duration(milliseconds: 500),
         Duration(milliseconds: 1000),
       ],
-      retryEvaluator: (err, _) => err.requestOptions.method == 'GET',
+      retryEvaluator: (err, _) =>
+          err.requestOptions.method == 'GET' &&
+          err.response?.statusCode != 401,
     ),
   ]);
 
@@ -658,7 +660,9 @@ final apiClientProvider = Provider<Dio>((ref) {
         Duration(milliseconds: 500),
         Duration(milliseconds: 1000),
       ],
-      retryEvaluator: (err, _) => err.requestOptions.method == 'GET',
+      retryEvaluator: (err, _) =>
+          err.requestOptions.method == 'GET' &&
+          err.response?.statusCode != 401,
     ),
   ]);
 

@@ -22,6 +22,9 @@ sealed class WebSocketState with _$WebSocketState {
   const factory WebSocketState.internetChanged() = _InternetChanged;
   const factory WebSocketState.serverDown() = _ServerDown;
   const factory WebSocketState.duplicateDevice() = _DuplicateDevice;
+  /// Session logged out or expired: the gateway rejected the handshake with
+  /// HTTP 401. Terminal — no automatic reconnect until the user signs in again.
+  const factory WebSocketState.unauthorized() = _Unauthorized;
   const factory WebSocketState.error(String message) = _Error;
 }
 
@@ -221,9 +224,28 @@ class WebSocketService {
       if (connectionGeneration != _connectionGeneration || _isClosing) return;
       _isConnecting = false;
       Logger.root.severe('[WebSocket] Failed to connect: $err');
+      // Session logged out or expired (HTTP 401 handshake rejection): treat
+      // as terminal — no automatic reconnect, no automatic logout. Retrying
+      // can never succeed until the user signs in again, and the login flows
+      // call connect() explicitly.
+      if (_isUnauthorizedConnectError(err)) {
+        _isClosing = true;
+        _cancelTimers();
+        _addStatus(WebSocketState.unauthorized());
+        _channel?.sink.close();
+        return;
+      }
       _addStatus(WebSocketState.error(err.toString()));
       _scheduleReconnect();
     }
+  }
+
+  /// Whether a connect failure is an auth rejection (HTTP 401 during the
+  /// WebSocket upgrade handshake), i.e. the session is logged out or expired.
+  bool _isUnauthorizedConnectError(Object error) {
+    final message = error.toString();
+    return message.contains('HTTP status code: 401') ||
+        RegExp(r'status[^\d]*401').hasMatch(message);
   }
 
   void _addStatus(WebSocketState state) {

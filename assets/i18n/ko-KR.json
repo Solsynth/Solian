@@ -579,6 +579,7 @@
   "connectionReconnecting": "재연결 중",
   "connectionInternetChanged": "인터넷이 변경됨",
   "connectionServerDown": "연결할 수 없음",
+  "connectionUnauthorized": "세션이 만료되었습니다. 다시 로그인하세요",
   "weakInternetMode": "약한 인터넷 모드",
   "weather": "날씨",
   "weatherClear": "맑음",

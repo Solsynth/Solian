@@ -854,6 +854,7 @@
   "connectionReconnecting": "Reconnecting",
   "connectionInternetChanged": "Internet changed",
   "connectionServerDown": "Unable to Connect",
+  "connectionUnauthorized": "Session expired, sign in again",
   "weakInternetMode": "Weak internet mode",
   "weather": "Weather",
   "weatherCardSummary": "Feels like {}° · {}% · {}",

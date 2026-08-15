@@ -496,6 +496,7 @@
   "connectionReconnecting": "復聯中",
   "connectionInternetChanged": "網變矣",
   "connectionServerDown": "不得聯",
+  "connectionUnauthorized": "會期已終，請再登",
   "weakInternetMode": "弱網式",
   "weather": "天氣",
   "weatherClear": "晴",

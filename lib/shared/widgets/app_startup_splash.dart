@@ -183,6 +183,7 @@ class StartupSplashScreen extends HookConsumerWidget {
     final isBusy = useState(true);
     final isErrored = useState(false);
     final isDismissable = useState(true);
+    final sessionExpiredWarning = useState(false);
     final isWaitingForConnectivity = useState(false);
     final isUpdateRequired = useState(false);
     final periodCursor = useState(0);
@@ -205,6 +206,7 @@ class StartupSplashScreen extends HookConsumerWidget {
       subtitle.value = null;
       showSkip.value = false;
       warnings.value = [];
+      sessionExpiredWarning.value = false;
 
       for (var idx = 0; idx < stages.length; idx++) {
         if (phaseNonce.value != phase) return;
@@ -254,6 +256,13 @@ class StartupSplashScreen extends HookConsumerWidget {
             warning = isUpdateRequired.value
                 ? 'startupServerUpdateRequired'.tr()
                 : 'startupServerIncompatible'.tr();
+          } else if (error is DioException &&
+              error.response?.statusCode == 401) {
+            // Session logged out or expired: show a specific, dismissable
+            // message instead of the generic retry-failure notice. No retries,
+            // no automatic logout.
+            sessionExpiredWarning.value = true;
+            warning = 'failedToLoadUserInfoUnauthorized'.tr();
           } else {
             warning = 'startupStageFailedAfterRetries'.tr(args: [stage.label]);
           }
@@ -273,9 +282,11 @@ class StartupSplashScreen extends HookConsumerWidget {
       } else {
         isErrored.value = true;
         isDismissable.value = true;
-        subtitle.value = 'startupStagesSkipped'.tr(
-          args: ['${warnings.value.length}'],
-        );
+        subtitle.value = sessionExpiredWarning.value
+            ? 'failedToLoadUserInfoUnauthorized'.tr()
+            : 'startupStagesSkipped'.tr(
+                args: ['${warnings.value.length}'],
+              );
       }
     }
 

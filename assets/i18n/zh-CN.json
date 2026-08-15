@@ -854,6 +854,7 @@
   "connectionReconnecting": "重新连接中",
   "connectionInternetChanged": "网络已变更",
   "connectionServerDown": "无法连接",
+  "connectionUnauthorized": "会话已过期，请重新登录",
   "weakInternetMode": "弱网模式",
   "weather": "天气",
   "weatherCardSummary": "体感 {}° · {}% · {}",

@@ -818,6 +818,7 @@
   "connectionReconnecting": "重新連線中",
   "connectionInternetChanged": "網路已變更",
   "connectionServerDown": "無法連線",
+  "connectionUnauthorized": "會話已過期，請重新登入",
   "weakInternetMode": "弱網模式",
   "weather": "天氣",
   "weatherClear": "晴",
