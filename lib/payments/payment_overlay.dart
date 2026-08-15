@@ -23,12 +23,14 @@ class PaymentOverlayOrderInfo {
   final PaymentOverlayOrderApp? app;
   final PaymentOverlayOrderDeveloper? developer;
   final List<PaymentOverlayOrderItem> items;
+  final bool isSystemApp;
 
   const PaymentOverlayOrderInfo({
     this.productIdentifier,
     this.app,
     this.developer,
     this.items = const [],
+    this.isSystemApp = false,
   });
 
   factory PaymentOverlayOrderInfo.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,10 @@ class PaymentOverlayOrderInfo {
             ),
           )
           .toList(),
+      isSystemApp:
+          json['is_system_app'] as bool? ??
+          json['isSystemApp'] as bool? ??
+          false,
     );
   }
 }
@@ -371,6 +377,10 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Future<void> _loadEnrichment() async {
+    if (widget.orderInfo?.isSystemApp == true) {
+      return;
+    }
+
     final appSlug = widget.orderInfo?.app?.slug;
     final publisherName = widget.orderInfo?.developer?.publisherName;
     if ((appSlug == null || appSlug.isEmpty) &&
@@ -584,7 +594,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   @override
   Widget build(BuildContext context) {
-    final hasAppId = widget.orderInfo?.app?.id.isNotEmpty == true;
+    final hasApp = widget.orderInfo?.app != null;
 
     return SafeArea(
       child: Padding(
@@ -597,9 +607,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (hasAppId) _buildContextInfoCard(),
+                    if (hasApp) _buildContextInfoCard(),
                     if (widget.orderInfo?.items.isNotEmpty ?? false) ...[
-                      if (hasAppId) const Gap(16),
+                      if (hasApp) const Gap(16),
                       _buildItemsCard(),
                     ],
                     const Gap(16),
@@ -720,6 +730,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Widget _buildContextInfoCard() {
     final app = _appDetails;
+    final orderApp = widget.orderInfo?.app;
+    final isSystemApp = widget.orderInfo?.isSystemApp == true;
+    final description = app?.description ?? orderApp?.description;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -763,16 +776,16 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (app != null || widget.orderInfo?.app != null) ...[
+                          if (app != null || orderApp != null) ...[
                             Text(
-                              app?.name ?? widget.orderInfo!.app!.name,
+                              app?.name ?? orderApp!.name,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
-                            if ((app?.slug ?? widget.orderInfo?.app?.slug ?? '')
-                                .isNotEmpty)
+                            if (!isSystemApp &&
+                                (app?.slug ?? orderApp?.slug ?? '').isNotEmpty)
                               Text(
-                                app?.slug ?? widget.orderInfo!.app!.slug,
+                                app?.slug ?? orderApp!.slug,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Theme.of(
@@ -782,32 +795,55 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
                               ),
                           ],
                           const Gap(4),
-                          Row(
-                            spacing: 4,
-                            children: [
-                              Text(
-                                'from',
-                                style: TextStyle(fontSize: 11),
-                              ).opacity(0.8),
-                              ProfilePictureWidget(
-                                file: _publisher?.picture,
-                                radius: 8,
-                              ),
-                              Text(
-                                _publisher?.nick ?? 'unknown'.tr(),
-                                style: TextStyle(fontSize: 11),
-                              ).opacity(0.8),
-                            ],
-                          ),
+                          if (isSystemApp)
+                            Row(
+                              spacing: 4,
+                              children: [
+                                Icon(
+                                  Symbols.verified,
+                                  size: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    description ?? 'Built-in platform services',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Row(
+                              spacing: 4,
+                              children: [
+                                Text(
+                                  'from',
+                                  style: TextStyle(fontSize: 11),
+                                ).opacity(0.8),
+                                ProfilePictureWidget(
+                                  file: _publisher?.picture,
+                                  radius: 8,
+                                ),
+                                Text(
+                                  _publisher?.nick ?? 'unknown'.tr(),
+                                  style: TextStyle(fontSize: 11),
+                                ).opacity(0.8),
+                              ],
+                            ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                if (_appDetails?.description?.isNotEmpty ?? false) ...[
+                if (!isSystemApp && (description?.isNotEmpty ?? false)) ...[
                   const Gap(12),
                   Text(
-                    _appDetails!.description!,
+                    description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
