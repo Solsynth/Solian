@@ -1,45 +1,31 @@
-/// A purchasable extra-quota pack advertised by the drive billing API
-/// (`GET /drive/billing/quota/products`).
-class SnQuotaProduct {
-  /// Stable identifier sent back when creating an order, e.g. `dysonfs.quota.10gb`.
-  final String productIdentifier;
+/// Purchase configuration for extra quota packs, from
+/// `GET /drive/billing/quota/purchase`.
+class SnQuotaPurchaseConfig {
+  /// Price per gigabyte, in [currency] (e.g. 0.05).
+  final double pricePerGb;
 
-  /// Human-readable pack name, e.g. "10 GB Extra Quota".
-  final String displayName;
-
-  final String? description;
-
-  /// Storage granted by the pack, in megabytes.
-  final int quotaMb;
-
-  /// Price as formatted by the server, e.g. "120".
-  final String price;
-
-  /// Currency of [price], e.g. "golds".
+  /// Currency of [pricePerGb], e.g. "golds".
   final String currency;
 
-  /// Validity duration string, e.g. `720h`. Null when the pack is permanent.
-  final String? expiresIn;
+  /// Minimum purchasable quantity in GB.
+  final int minGb;
 
-  const SnQuotaProduct({
-    required this.productIdentifier,
-    required this.displayName,
-    required this.description,
-    required this.quotaMb,
-    required this.price,
+  /// Total cap in GB — the user cannot hold more extra quota than this.
+  final int maxGb;
+
+  const SnQuotaPurchaseConfig({
+    required this.pricePerGb,
     required this.currency,
-    required this.expiresIn,
+    required this.minGb,
+    required this.maxGb,
   });
 
-  factory SnQuotaProduct.fromJson(Map<String, dynamic> json) {
-    return SnQuotaProduct(
-      productIdentifier: json['product_identifier'] as String? ?? '',
-      displayName: json['display_name'] as String? ?? '',
-      description: json['description'] as String?,
-      quotaMb: (json['quota_mb'] as num?)?.toInt() ?? 0,
-      price: _stringify(json['price']),
+  factory SnQuotaPurchaseConfig.fromJson(Map<String, dynamic> json) {
+    return SnQuotaPurchaseConfig(
+      pricePerGb: _toDouble(json['price_per_gb']) ?? 0,
       currency: json['currency'] as String? ?? '',
-      expiresIn: json['expires_in'] as String?,
+      minGb: (json['min_gb'] as num?)?.toInt() ?? 1,
+      maxGb: (json['max_gb'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -50,16 +36,24 @@ class SnQuotaOrder {
   /// Wallet order id; pay it via `POST /wallet/orders/{orderId}/pay`.
   final String orderId;
 
-  /// Order amount as formatted by the server, e.g. "120".
+  /// Order amount as formatted by the server, e.g. "0.5".
   final String amount;
 
   /// Currency of [amount], e.g. "golds".
   final String currency;
 
+  /// Purchased quantity in GB.
+  final int quantityGb;
+
+  /// Storage granted by this order, in megabytes.
+  final int quotaMb;
+
   const SnQuotaOrder({
     required this.orderId,
     required this.amount,
     required this.currency,
+    required this.quantityGb,
+    required this.quotaMb,
   });
 
   factory SnQuotaOrder.fromJson(Map<String, dynamic> json) {
@@ -67,12 +61,19 @@ class SnQuotaOrder {
       orderId: json['order_id'] as String? ?? '',
       amount: _stringify(json['amount']),
       currency: json['currency'] as String? ?? '',
+      quantityGb: (json['quantity_gb'] as num?)?.toInt() ?? 0,
+      quotaMb: (json['quota_mb'] as num?)?.toInt() ?? 0,
     );
   }
 }
 
 String _stringify(dynamic value) {
   if (value == null) return '';
-  if (value is num) return value.toString();
   return value.toString();
+}
+
+double? _toDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
 }

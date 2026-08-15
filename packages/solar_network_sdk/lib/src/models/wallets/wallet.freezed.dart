@@ -959,7 +959,7 @@ as SnTransaction,
 @override
 @pragma('vm:prefer-inline')
 $SnTransactionCopyWith<$Res> get debitTransaction {
-
+  
   return $SnTransactionCopyWith<$Res>(_self.debitTransaction, (value) {
     return _then(_self.copyWith(debitTransaction: value));
   });
@@ -968,7 +968,7 @@ $SnTransactionCopyWith<$Res> get debitTransaction {
 @override
 @pragma('vm:prefer-inline')
 $SnTransactionCopyWith<$Res> get creditTransaction {
-
+  
   return $SnTransactionCopyWith<$Res>(_self.creditTransaction, (value) {
     return _then(_self.copyWith(creditTransaction: value));
   });
@@ -1183,7 +1183,7 @@ as SnTransaction,
 @override
 @pragma('vm:prefer-inline')
 $SnTransactionCopyWith<$Res> get debitTransaction {
-
+  
   return $SnTransactionCopyWith<$Res>(_self.debitTransaction, (value) {
     return _then(_self.copyWith(debitTransaction: value));
   });
@@ -1192,7 +1192,7 @@ $SnTransactionCopyWith<$Res> get debitTransaction {
 @override
 @pragma('vm:prefer-inline')
 $SnTransactionCopyWith<$Res> get creditTransaction {
-
+  
   return $SnTransactionCopyWith<$Res>(_self.creditTransaction, (value) {
     return _then(_self.copyWith(creditTransaction: value));
   });
@@ -2464,7 +2464,7 @@ as String,
 /// @nodoc
 mixin _$SnWalletOrder {
 
- String get id; int get status; String get currency; String? get remarks; String get appIdentifier; Map<String, dynamic> get meta; int get amount; DateTime get expiredAt; String? get payeeWalletId; String? get transactionId; String? get issuerAppId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get status; String get currency; String? get remarks; String get appIdentifier; Map<String, dynamic> get meta; double get amount; DateTime get expiredAt; String? get payeeWalletId; String? get transactionId; String? get issuerAppId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnWalletOrder
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2497,7 +2497,7 @@ abstract mixin class $SnWalletOrderCopyWith<$Res>  {
   factory $SnWalletOrderCopyWith(SnWalletOrder value, $Res Function(SnWalletOrder) _then) = _$SnWalletOrderCopyWithImpl;
 @useResult
 $Res call({
- String id, int status, String currency, String? remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, String? transactionId, String? issuerAppId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int status, String currency, String? remarks, String appIdentifier, Map<String, dynamic> meta, double amount, DateTime expiredAt, String? payeeWalletId, String? transactionId, String? issuerAppId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -2523,7 +2523,7 @@ as String,remarks: freezed == remarks ? _self.remarks : remarks // ignore: cast_
 as String?,appIdentifier: null == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as int,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as double,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime,payeeWalletId: freezed == payeeWalletId ? _self.payeeWalletId : payeeWalletId // ignore: cast_nullable_to_non_nullable
 as String?,transactionId: freezed == transactionId ? _self.transactionId : transactionId // ignore: cast_nullable_to_non_nullable
 as String?,issuerAppId: freezed == issuerAppId ? _self.issuerAppId : issuerAppId // ignore: cast_nullable_to_non_nullable
@@ -2612,7 +2612,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  double amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnWalletOrder() when $default != null:
 return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.transactionId,_that.issuerAppId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -2633,7 +2633,7 @@ return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIden
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  double amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnWalletOrder():
 return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.transactionId,_that.issuerAppId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -2650,7 +2650,7 @@ return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIden
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  int amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int status,  String currency,  String? remarks,  String appIdentifier,  Map<String, dynamic> meta,  double amount,  DateTime expiredAt,  String? payeeWalletId,  String? transactionId,  String? issuerAppId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnWalletOrder() when $default != null:
 return $default(_that.id,_that.status,_that.currency,_that.remarks,_that.appIdentifier,_that.meta,_that.amount,_that.expiredAt,_that.payeeWalletId,_that.transactionId,_that.issuerAppId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -2680,7 +2680,7 @@ class _SnWalletOrder implements SnWalletOrder {
   return EqualUnmodifiableMapView(_meta);
 }
 
-@override final  int amount;
+@override final  double amount;
 @override final  DateTime expiredAt;
 @override final  String? payeeWalletId;
 @override final  String? transactionId;
@@ -2722,7 +2722,7 @@ abstract mixin class _$SnWalletOrderCopyWith<$Res> implements $SnWalletOrderCopy
   factory _$SnWalletOrderCopyWith(_SnWalletOrder value, $Res Function(_SnWalletOrder) _then) = __$SnWalletOrderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int status, String currency, String? remarks, String appIdentifier, Map<String, dynamic> meta, int amount, DateTime expiredAt, String? payeeWalletId, String? transactionId, String? issuerAppId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int status, String currency, String? remarks, String appIdentifier, Map<String, dynamic> meta, double amount, DateTime expiredAt, String? payeeWalletId, String? transactionId, String? issuerAppId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -2748,7 +2748,7 @@ as String,remarks: freezed == remarks ? _self.remarks : remarks // ignore: cast_
 as String?,appIdentifier: null == appIdentifier ? _self.appIdentifier : appIdentifier // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as int,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as double,expiredAt: null == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime,payeeWalletId: freezed == payeeWalletId ? _self.payeeWalletId : payeeWalletId // ignore: cast_nullable_to_non_nullable
 as String?,transactionId: freezed == transactionId ? _self.transactionId : transactionId // ignore: cast_nullable_to_non_nullable
 as String?,issuerAppId: freezed == issuerAppId ? _self.issuerAppId : issuerAppId // ignore: cast_nullable_to_non_nullable

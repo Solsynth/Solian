@@ -298,7 +298,7 @@ _SnWalletOrder _$SnWalletOrderFromJson(Map<String, dynamic> json) =>
       remarks: json['remarks'] as String?,
       appIdentifier: json['app_identifier'] as String,
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
-      amount: (json['amount'] as num).toInt(),
+      amount: (json['amount'] as num).toDouble(),
       expiredAt: DateTime.parse(json['expired_at'] as String),
       payeeWalletId: json['payee_wallet_id'] as String?,
       transactionId: json['transaction_id'] as String?,

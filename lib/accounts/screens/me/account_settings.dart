@@ -704,26 +704,22 @@ class AccountSettingsScreen extends HookConsumerWidget {
           );
         },
       ),
-      if (serverFeatureEnabled(
-        ref.watch(serverCapabilitiesProvider).value,
-        'quota.purchase',
-      ))
-        ListTile(
-          minLeadingWidth: 48,
-          leading: const Icon(Symbols.add_card),
-          title: Text('quotaPurchase').tr(),
-          subtitle: Text('quotaPurchaseDescription').tr().fontSize(12),
-          contentPadding: const EdgeInsets.only(left: 24, right: 17),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              builder: (context) => const QuotaPurchaseSheet(),
-            );
-          },
-        ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.add_card),
+        title: Text('quotaPurchase').tr(),
+        subtitle: Text('quotaPurchaseDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => const QuotaPurchaseSheet(),
+          );
+        },
+      ),
     ];
 
     // Create a responsive layout based on screen width

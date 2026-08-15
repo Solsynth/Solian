@@ -3,48 +3,55 @@ import 'package:island/payments/quota_purchase_sheet.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 void main() {
-  test('parses purchasable quota products from the billing API', () {
-    final products = [
-      SnQuotaProduct.fromJson({
-        'product_identifier': 'dysonfs.quota.10gb',
-        'display_name': '10 GB Extra Quota',
-        'description': 'One-time extra storage, +10 GB for 30 days',
-        'quota_mb': 10240,
-        'price': '120',
-        'currency': 'golds',
-        'expires_in': '720h',
-      }),
-      // Permanent pack: expires_in omitted, numeric price tolerated.
-      SnQuotaProduct.fromJson({
-        'product_identifier': 'dysonfs.quota.50gb',
-        'display_name': '50 GB Extra Quota',
-        'quota_mb': 51200,
-        'price': 500,
-        'currency': 'golds',
-      }),
-    ];
+  test('parses the purchase config from the billing API', () {
+    final config = SnQuotaPurchaseConfig.fromJson({
+      'price_per_gb': '0.05',
+      'currency': 'golds',
+      'min_gb': 1,
+      'max_gb': 1024,
+    });
 
-    expect(products[0].productIdentifier, 'dysonfs.quota.10gb');
-    expect(products[0].displayName, '10 GB Extra Quota');
-    expect(products[0].quotaMb, 10240);
-    expect(products[0].price, '120');
-    expect(products[0].currency, 'golds');
-    expect(products[0].expiresIn, '720h');
-
-    expect(products[1].expiresIn, isNull);
-    expect(products[1].price, '500');
+    expect(config.pricePerGb, 0.05);
+    expect(config.currency, 'golds');
+    expect(config.minGb, 1);
+    expect(config.maxGb, 1024);
   });
 
   test('parses the order creation response', () {
     final order = SnQuotaOrder.fromJson({
       'order_id': 'order-123',
-      'amount': '120',
+      'amount': '0.5',
       'currency': 'golds',
+      'quantity_gb': 10,
+      'quota_mb': 10240,
     });
 
     expect(order.orderId, 'order-123');
-    expect(order.amount, '120');
+    expect(order.amount, '0.5');
     expect(order.currency, 'golds');
+    expect(order.quantityGb, 10);
+    expect(order.quotaMb, 10240);
+  });
+
+  test('wallet order amount tolerates fractional golds', () {
+    final order = SnWalletOrder.fromJson({
+      'id': 'order-123',
+      'status': 0,
+      'currency': 'golds',
+      'remarks': null,
+      'app_identifier': 'dysonfs',
+      'meta': <String, dynamic>{},
+      'amount': 0.5,
+      'expired_at': '2026-08-16T12:00:00Z',
+      'payee_wallet_id': null,
+      'transaction_id': null,
+      'issuer_app_id': null,
+      'created_at': '2026-08-15T12:00:00Z',
+      'updated_at': '2026-08-15T12:00:00Z',
+      'deleted_at': null,
+    });
+
+    expect(order.amount, 0.5);
   });
 
   test('parses quota purchase records with optional expiry', () {

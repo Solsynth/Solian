@@ -20,6 +20,7 @@ import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/screens/upload_tasks.dart';
 import 'package:island/drive/widgets/quota_sidebar.dart';
+import 'package:island/payments/quota_purchase_sheet.dart';
 import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -106,7 +107,7 @@ class _DriveQuotaExceededSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SheetScaffold(
-      titleText: 'Storage quota',
+      titleText: 'storageQuota'.tr(),
       heightFactor: 0.74,
       child: Column(
         children: [
@@ -131,7 +132,7 @@ class _DriveQuotaExceededSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Upload blocked',
+                        'uploadBlocked'.tr(),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.onErrorContainer,
@@ -156,6 +157,14 @@ class _DriveQuotaExceededSheet extends StatelessWidget {
               quota: quota,
               pools: pools,
               showPoolFilter: false,
+              onBuyExtraQuota: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  builder: (sheetContext) => const QuotaPurchaseSheet(),
+                );
+              },
             ),
           ),
         ],
@@ -584,15 +593,15 @@ class FileUploader {
           }(),
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const SheetScaffold(
-                titleText: 'Storage quota',
-                child: Center(child: CircularProgressIndicator()),
+              return SheetScaffold(
+                titleText: 'storageQuota'.tr(),
+                child: const Center(child: CircularProgressIndicator()),
               );
             }
 
             if (snapshot.hasError) {
               return SheetScaffold(
-                titleText: 'Storage quota',
+                titleText: 'storageQuota'.tr(),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: SelectableText(
@@ -889,8 +898,8 @@ class FileUploader {
     final prepareTimer = Stopwatch()..start();
     Map<String, dynamic> prepared;
     try {
-      final resolvedParentId = parentId ??
-          await resolveParentIdFromPath(path: path, poolId: poolId);
+      final resolvedParentId =
+          parentId ?? await resolveParentIdFromPath(path: path, poolId: poolId);
       final response = await _guardUploadQuotaExceeded(
         () => _client.post(
           '/drive/files/upload/prepare',
@@ -939,8 +948,8 @@ class FileUploader {
       );
     }
     final preparedContentType = prepared['content_type']?.toString();
-    final resolvedContentType = (preparedContentType == null ||
-            preparedContentType.isEmpty)
+    final resolvedContentType =
+        (preparedContentType == null || preparedContentType.isEmpty)
         ? contentType
         : preparedContentType;
 
@@ -1102,8 +1111,8 @@ class FileUploader {
       );
     }
     final preparedContentType = prepared['content_type']?.toString();
-    final resolvedContentType = (preparedContentType == null ||
-            preparedContentType.isEmpty)
+    final resolvedContentType =
+        (preparedContentType == null || preparedContentType.isEmpty)
         ? contentType
         : preparedContentType;
 
@@ -1122,9 +1131,11 @@ class FileUploader {
     final putTimer = Stopwatch()..start();
     final limiter = _ConcurrencyLimiter(driveChunkUploadConcurrency);
     var sent = 0;
-    for (var batchStart = 1;
-        batchStart <= partCount;
-        batchStart += driveChunkUploadConcurrency) {
+    for (
+      var batchStart = 1;
+      batchStart <= partCount;
+      batchStart += driveChunkUploadConcurrency
+    ) {
       final batchEnd = (batchStart + driveChunkUploadConcurrency > partCount)
           ? partCount + 1
           : batchStart + driveChunkUploadConcurrency;
@@ -1140,17 +1151,18 @@ class FileUploader {
             }()
           else
             limiter.run(
-              () => _uploadS3Part(
-                xfile: xfile,
-                taskId: taskId,
-                partNumber: partNumber,
-                partSize: partSize,
-                fileSize: fileSize,
-                contentType: resolvedContentType,
-              ).then((bytes) {
-                sent += bytes;
-                onProgress?.call(sent / fileSize, Duration.zero);
-              }),
+              () =>
+                  _uploadS3Part(
+                    xfile: xfile,
+                    taskId: taskId,
+                    partNumber: partNumber,
+                    partSize: partSize,
+                    fileSize: fileSize,
+                    contentType: resolvedContentType,
+                  ).then((bytes) {
+                    sent += bytes;
+                    onProgress?.call(sent / fileSize, Duration.zero);
+                  }),
             ),
       ]);
     }
@@ -1257,7 +1269,9 @@ class FileUploader {
       await request
           .addStream(progressStream)
           .timeout(const Duration(minutes: 30));
-      final response = await request.close().timeout(const Duration(minutes: 5));
+      final response = await request.close().timeout(
+        const Duration(minutes: 5),
+      );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final errorBody = await response
@@ -2026,11 +2040,7 @@ class FileUploader {
   }
 
   /// Moves a file to a different folder or to root. Owner only.
-  Future<void> moveFile(
-    String fileId, {
-    String? parentId,
-    bool? indexed,
-  }) {
+  Future<void> moveFile(String fileId, {String? parentId, bool? indexed}) {
     return moveFiles([fileId], parentId: parentId, indexed: indexed);
   }
 
@@ -2043,11 +2053,7 @@ class FileUploader {
     if (fileIds.isEmpty) return;
     await _client.post(
       '/drive/files/move/batch',
-      data: {
-        'file_ids': fileIds,
-        'parent_id': ?parentId,
-        'indexed': ?indexed,
-      },
+      data: {'file_ids': fileIds, 'parent_id': ?parentId, 'indexed': ?indexed},
     );
   }
 

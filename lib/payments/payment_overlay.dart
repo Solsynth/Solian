@@ -570,9 +570,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     }
   }
 
-  String _formatCurrency(int amount, String currency) {
-    final value = amount;
-    return '${value.toStringAsFixed(2)} $currency';
+  String _formatCurrency(num amount, String currency) {
+    return '${amount.toStringAsFixed(2)} $currency';
   }
 
   String _formatProductIdentifier(String value) {

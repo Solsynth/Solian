@@ -798,28 +798,29 @@ class DriveApi extends BaseApi {
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Lists purchasable extra-quota packs.
+  /// Returns the quota purchase configuration (price per GB, min/max
+  /// quantities).
   ///
   /// Only available when the `quota.purchase` feature is enabled on the
   /// server; otherwise the route does not exist.
-  Future<List<SnQuotaProduct>> getQuotaProducts() async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/billing/quota/products',
+  Future<SnQuotaPurchaseConfig> getQuotaPurchaseConfig() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/billing/quota/purchase',
     );
-    return parseList(response, SnQuotaProduct.fromJson);
+    return SnQuotaPurchaseConfig.fromJson(response.data!);
   }
 
-  /// Creates a quota purchase order for [productIdentifier].
+  /// Creates a quota purchase order for [quantityGb] gigabytes.
   ///
   /// The returned order must be paid through the Wallet API
   /// (`POST /wallet/orders/{orderId}/pay`); the granted quota lands
   /// automatically once the payment event is consumed.
-  Future<SnQuotaOrder> createQuotaPurchaseOrder(
-    String productIdentifier,
-  ) async {
+  Future<SnQuotaOrder> createQuotaPurchaseOrder({
+    required int quantityGb,
+  }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/billing/quota/purchase',
-      data: {'product_identifier': productIdentifier},
+      data: {'quantity_gb': quantityGb},
     );
     return SnQuotaOrder.fromJson(response.data!);
   }

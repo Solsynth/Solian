@@ -186,7 +186,7 @@ sealed class SnWalletOrder with _$SnWalletOrder {
     required String? remarks,
     required String appIdentifier,
     @Default({}) Map<String, dynamic> meta,
-    required int amount,
+    required double amount,
     required DateTime expiredAt,
     required String? payeeWalletId,
     required String? transactionId,
