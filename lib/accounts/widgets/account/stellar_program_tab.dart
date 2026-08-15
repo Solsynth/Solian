@@ -228,6 +228,32 @@ class GoldResupplyOffer {
     }
     return null;
   }
+
+  List<PaymentMethodTab> availablePaymentMethods({
+    required bool supportsIap,
+  }) {
+    final methods = <PaymentMethodTab>[];
+    if (supportsIap &&
+        offerFor(const ['AppleStore', 'apple_store', 'apple']) != null) {
+      methods.add(PaymentMethodTab.appleIap);
+    }
+    if (offerFor(const ['Afdian', 'afdian']) != null &&
+        (!supportsIap || _offerAfdianInDebug)) {
+      methods.add(PaymentMethodTab.afdian);
+    }
+    return methods;
+  }
+
+  int pointsFor(PaymentMethodTab method) {
+    return switch (method) {
+      PaymentMethodTab.appleIap =>
+        offerFor(const ['AppleStore', 'apple_store', 'apple'])?.value ??
+            applePointsPerUnit,
+      PaymentMethodTab.afdian =>
+        offerFor(const ['Afdian', 'afdian'])?.value ?? applePointsPerUnit,
+      PaymentMethodTab.wallet => applePointsPerUnit,
+    };
+  }
 }
 
 final walletProductCatalogProvider =
@@ -771,7 +797,7 @@ class StellarProgramView extends HookConsumerWidget {
               )
             : isActive
             ? null
-            : 'Every subscription lasts 30 days',
+            : 'stellarDurationNote'.tr(),
         trailingAction: IconButton.filledTonal(
           onPressed: () {
             showModalBottomSheet(
@@ -963,6 +989,33 @@ class StellarProgramView extends HookConsumerWidget {
     final showPaymentTabs = paymentMethods.length > 1;
     final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
+    final footerActions = <Widget>[
+      if (supportsIap)
+        _buildFooterActionButton(
+          context,
+          icon: Symbols.restore,
+          label: 'restorePurchase'.tr(),
+          onPressed: () => _restorePurchaseIap(context, ref),
+        ),
+      if (!supportsIap || kDebugMode)
+        _buildFooterActionButton(
+          context,
+          icon: Symbols.restore,
+          label: supportsIap && kDebugMode
+              ? '${'restorePurchase'.tr()} (3rd party)'
+              : 'restorePurchase'.tr(),
+          onPressed: () => _showRestorePurchaseSheet(context, ref),
+        ),
+      _buildFooterActionButton(
+        context,
+        label: 'termsLink'.tr(),
+        onPressed: () => launchUrlString(
+          'https://solsynth.dev/terms/user-agreement',
+          mode: LaunchMode.externalApplication,
+        ),
+      ),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -975,7 +1028,7 @@ class StellarProgramView extends HookConsumerWidget {
           ),
           const Gap(4),
           Text(
-            'Every subscription lasts 30 days',
+            'stellarDurationNote'.tr(),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -998,50 +1051,53 @@ class StellarProgramView extends HookConsumerWidget {
           iapProducts,
           paymentMethods,
         ),
-        const Gap(16),
-        if (supportsIap)
-          TextButton.icon(
-            onPressed: () => _restorePurchaseIap(context, ref),
-            icon: const Icon(Icons.restore, size: 18),
-            label: Text('restorePurchase'.tr()),
-          ),
-        if (!supportsIap || kDebugMode)
-          TextButton.icon(
-            onPressed: () => _showRestorePurchaseSheet(context, ref),
-            icon: const Icon(Icons.restore, size: 18),
-            label: Text(
-              supportsIap && kDebugMode
-                  ? '${'restorePurchase'.tr()} (3rd party)'
-                  : 'restorePurchase'.tr(),
-            ),
-          ),
-
-        const Gap(12),
-        Text(
-          'Every subscription lasts 30 days',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: scheme.onSurfaceVariant,
-          ),
+        const Gap(20),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: scheme.outlineVariant.withOpacity(0.6),
         ),
-        const Gap(4),
-        Center(
-          child: InkWell(
-            onTap: () => launchUrlString(
-              'https://solsynth.dev/terms/user-agreement',
-              mode: LaunchMode.externalApplication,
+        const Gap(16),
+        // One subscription = one 30-day orbit around the Solar Network.
+        Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: scheme.primary.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Symbols.orbit_rounded,
+                size: 17,
+                color: scheme.primary,
+              ),
             ),
-            borderRadius: BorderRadius.circular(999),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            const Gap(10),
+            Expanded(
               child: Text(
-                'termsLink'.tr(),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.primary,
+                'stellarDurationNote'.tr(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.35,
                 ),
               ),
             ),
-          ),
+          ],
+        ).padding(horizontal: 24),
+        const Gap(12),
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 2,
+          children: [
+            for (var i = 0; i < footerActions.length; i++) ...[
+              if (i > 0) _buildFooterDot(context),
+              footerActions[i],
+            ],
+          ],
         ),
       ],
     );
@@ -1296,12 +1352,8 @@ class StellarProgramView extends HookConsumerWidget {
       description: 'storeGoldenPointsDescription'.tr(),
       meta: price == null ? pointsLabel : '$price · $pointsLabel',
       footer: FilledButton.icon(
-        onPressed: () => supportsIap
-            ? _purchaseGolds(context, ref)
-            : _purchaseGoldsWithAfdian(context, ref),
-        icon: Icon(
-          supportsIap ? Symbols.shopping_bag : Symbols.open_in_new,
-        ),
+        onPressed: () => _showGoldPurchaseSheet(context, ref),
+        icon: const Icon(Symbols.shopping_bag),
         label: Text('purchase'.tr()),
         style: FilledButton.styleFrom(
           minimumSize: const Size(double.infinity, 48),
@@ -1560,6 +1612,48 @@ class StellarProgramView extends HookConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFooterActionButton(
+    BuildContext context, {
+    required String label,
+    required VoidCallback onPressed,
+    IconData? icon,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: scheme.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        minimumSize: const Size(0, 36),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
+      child: icon == null
+          ? Text(label, style: theme.textTheme.labelLarge)
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 16, color: scheme.primary),
+                const Gap(6),
+                Text(label, style: theme.textTheme.labelLarge),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildFooterDot(BuildContext context) {
+    return Container(
+      width: 3,
+      height: 3,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.outlineVariant,
+        shape: BoxShape.circle,
       ),
     );
   }
@@ -1879,188 +1973,25 @@ class StellarProgramView extends HookConsumerWidget {
     return result;
   }
 
-  Future<int?> _showGoldQuantitySheet(
+  Future<void> _showGoldPurchaseSheet(
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final goldOffer = ref.read(goldResupplyOfferProvider);
-    final controller = TextEditingController(text: '1');
-    var quantity = 1;
-    const maxQuantity = 99;
-    final unitPriceLabel =
-        ref.read(iapProductsProvider)[goldOffer.appleProductId];
-    final pointsPerUnit = goldOffer.applePointsPerUnit;
-
-    final result = await showModalBottomSheet<int>(
+    final result = await showModalBottomSheet<({PaymentMethodTab method, int quantity})>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          final theme = Theme.of(context);
-          final scheme = theme.colorScheme;
-          final receivedPoints = quantity * pointsPerUnit;
-
-          void updateQuantity(int value) {
-            quantity = value.clamp(1, maxQuantity);
-            controller.text = quantity.toString();
-            controller.selection = TextSelection.collapsed(
-              offset: controller.text.length,
-            );
-            setState(() {});
-          }
-
-          return SheetScaffold(
-            titleText: 'storeGoldenPointsTitle'.tr(),
-            heightFactor: 0.72,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'storeGoldQuantityDescription'.tr(),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Gap(18),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8B84A).withOpacity(0.14),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: const Color(0xFFE8B84A).withOpacity(0.35),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'You will spend',
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              unitPriceLabel == null
-                                  ? '×$quantity'
-                                  : '$unitPriceLabel × $quantity',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Gap(12),
-                        const Divider(height: 1),
-                        const Gap(12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'You will receive',
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              '$receivedPoints Golden Points',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFFB8860B),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (unitPriceLabel != null) ...[
-                          const Gap(8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              '$pointsPerUnit points per unit · $unitPriceLabel each',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const Gap(20),
-                  Row(
-                    children: [
-                      IconButton.filledTonal(
-                        onPressed: quantity > 1
-                            ? () => updateQuantity(quantity - 1)
-                            : null,
-                        icon: const Icon(Symbols.remove),
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: TextField(
-                          controller: controller,
-                          textAlign: TextAlign.center,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          decoration: InputDecoration(
-                            labelText: 'quantity'.tr(),
-                            helperText: 'storeGoldQuantityLimit'.tr(),
-                          ),
-                          onChanged: (value) {
-                            final parsed = int.tryParse(value);
-                            if (parsed != null && parsed > 0) {
-                              quantity = parsed.clamp(1, maxQuantity);
-                            }
-                            setState(() {});
-                          },
-                        ),
-                      ),
-                      const Gap(12),
-                      IconButton.filledTonal(
-                        onPressed: quantity < maxQuantity
-                            ? () => updateQuantity(quantity + 1)
-                            : null,
-                        icon: const Icon(Symbols.add),
-                      ),
-                    ],
-                  ),
-                  const Gap(20),
-                  FilledButton.icon(
-                    onPressed: () => Navigator.of(context).pop(quantity),
-                    icon: const Icon(Symbols.shopping_bag),
-                    label: Text(
-                      unitPriceLabel == null
-                          ? 'purchase'.tr()
-                          : '${'purchase'.tr()} · $unitPriceLabel × $quantity',
-                    ),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: const Color(0xFFE8B84A),
-                      foregroundColor: const Color(0xFF2A1B00),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+      builder: (context) => const _GoldPurchaseSheet(),
     );
-    controller.dispose();
-    return result;
+    if (result == null || !context.mounted) return;
+
+    if (result.method == PaymentMethodTab.appleIap) {
+      await _purchaseGoldsWithIap(context, ref, result.quantity);
+    } else if (result.method == PaymentMethodTab.afdian) {
+      await _purchaseGoldsWithAfdian(context, ref);
+    }
   }
+
   Future<void> _purchaseMembership(
     BuildContext context,
     WidgetRef ref,
@@ -2152,11 +2083,6 @@ class StellarProgramView extends HookConsumerWidget {
     }
   }
 
-  Future<void> _purchaseGolds(BuildContext context, WidgetRef ref) async {
-    final quantity = await _showGoldQuantitySheet(context, ref);
-    if (quantity == null || !context.mounted) return;
-    await _purchaseGoldsWithIap(context, ref, quantity);
-  }
   Future<void> _purchaseGoldsWithIap(
     BuildContext context,
     WidgetRef ref,
@@ -2180,7 +2106,7 @@ class StellarProgramView extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final response = await client.post(
-        '/wallet-products/golds-resupply-pack/checkout/afdian',
+        '/wallet/wallet-products/golds-resupply-pack/checkout/afdian',
       );
       final checkoutUrl = response.data['checkout_url'] as String?;
       if (context.mounted) hideLoadingModal(context);
@@ -2888,6 +2814,259 @@ class StellarProgramView extends HookConsumerWidget {
       if (context.mounted) hideLoadingModal(context);
       showErrorAlert(err);
     }
+  }
+}
+
+class _GoldPurchaseSheet extends HookConsumerWidget {
+  const _GoldPurchaseSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final goldOffer = ref.watch(goldResupplyOfferProvider);
+    final iapProducts = ref.watch(iapProductsProvider);
+    ref.watch(walletProductCatalogProvider);
+
+    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+    final paymentMethods = goldOffer.availablePaymentMethods(
+      supportsIap: supportsIap,
+    );
+    final selectedMethod = useState<PaymentMethodTab>(
+      paymentMethods.isNotEmpty
+          ? paymentMethods.first
+          : (supportsIap ? PaymentMethodTab.appleIap : PaymentMethodTab.afdian),
+    );
+    final quantity = useState(1);
+    final controller = useTextEditingController(text: '1');
+    const maxQuantity = 99;
+
+    useEffect(() {
+      if (paymentMethods.isEmpty) return null;
+      if (!paymentMethods.contains(selectedMethod.value)) {
+        selectedMethod.value = paymentMethods.first;
+      }
+      return null;
+    }, [paymentMethods.map((m) => m.name).join('|')]);
+
+    final method = selectedMethod.value;
+    final pointsPerUnit = goldOffer.pointsFor(method);
+    final receivedPoints = quantity.value * pointsPerUnit;
+    final unitPriceLabel = method == PaymentMethodTab.appleIap
+        ? iapProducts[goldOffer.appleProductId]
+        : null;
+    final isApple = method == PaymentMethodTab.appleIap;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    void updateQuantity(int value) {
+      quantity.value = value.clamp(1, maxQuantity);
+      controller.text = quantity.value.toString();
+      controller.selection = TextSelection.collapsed(
+        offset: controller.text.length,
+      );
+    }
+
+    void confirmPurchase() {
+      if (!context.mounted || paymentMethods.isEmpty) return;
+      Navigator.of(context).pop((
+        method: method,
+        quantity: quantity.value,
+      ));
+    }
+
+    return SheetScaffold(
+      titleText: 'storeGoldenPointsTitle'.tr(),
+      heightFactor: 0.82,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'storeGoldQuantityDescription'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            if (paymentMethods.length > 1) ...[
+              const Gap(16),
+              Text(
+                'Payment method',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Gap(8),
+              SegmentedButton<PaymentMethodTab>(
+                segments: [
+                  for (final m in paymentMethods)
+                    ButtonSegment<PaymentMethodTab>(
+                      value: m,
+                      label: Text(_paymentMethodLabel(m)),
+                    ),
+                ],
+                selected: {method},
+                showSelectedIcon: false,
+                onSelectionChanged: (selection) {
+                  selectedMethod.value = selection.first;
+                },
+              ),
+            ] else if (paymentMethods.length == 1) ...[
+              const Gap(12),
+              Text(
+                _paymentMethodLabel(paymentMethods.first),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            const Gap(18),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8B84A).withOpacity(0.14),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: const Color(0xFFE8B84A).withOpacity(0.35),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'You will spend',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        isApple
+                            ? (unitPriceLabel == null
+                                  ? '×${quantity.value}'
+                                  : '$unitPriceLabel × ${quantity.value}')
+                            : 'Afdian checkout',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(12),
+                  const Divider(height: 1),
+                  const Gap(12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'You will receive',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        isApple
+                            ? '$receivedPoints Golden Points'
+                            : '${goldOffer.pointsFor(PaymentMethodTab.afdian)} Golden Points / pack',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFFB8860B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isApple && unitPriceLabel != null) ...[
+                    const Gap(8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '$pointsPerUnit points per unit · $unitPriceLabel each',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (isApple) ...[
+              const Gap(20),
+              Row(
+                children: [
+                  IconButton.filledTonal(
+                    onPressed: quantity.value > 1
+                        ? () => updateQuantity(quantity.value - 1)
+                        : null,
+                    icon: const Icon(Symbols.remove),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'quantity'.tr(),
+                        helperText: 'storeGoldQuantityLimit'.tr(),
+                      ),
+                      onChanged: (value) {
+                        final parsed = int.tryParse(value);
+                        if (parsed != null && parsed > 0) {
+                          quantity.value = parsed.clamp(1, maxQuantity);
+                        }
+                      },
+                    ),
+                  ),
+                  const Gap(12),
+                  IconButton.filledTonal(
+                    onPressed: quantity.value < maxQuantity
+                        ? () => updateQuantity(quantity.value + 1)
+                        : null,
+                    icon: const Icon(Symbols.add),
+                  ),
+                ],
+              ),
+            ] else ...[
+              const Gap(12),
+              Text(
+                'Complete the purchase in your browser. Quantity is handled on Afdian.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const Gap(20),
+            FilledButton.icon(
+              onPressed: paymentMethods.isEmpty ? null : confirmPurchase,
+              icon: Icon(
+                isApple ? Symbols.shopping_bag : Symbols.open_in_new,
+              ),
+              label: Text(
+                isApple
+                    ? (unitPriceLabel == null
+                          ? 'purchase'.tr()
+                          : '${'purchase'.tr()} · $unitPriceLabel × ${quantity.value}')
+                    : 'purchase'.tr(),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: const Color(0xFFE8B84A),
+                foregroundColor: const Color(0xFF2A1B00),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
