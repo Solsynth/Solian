@@ -688,27 +688,20 @@ class _StickerInlineContent extends ConsumerWidget {
               onSecondaryTap: () {
                 Clipboard.setData(ClipboardData(text: stickerCode));
               },
-              child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                child: Container(
-                  width: dimension,
-                  height: dimension,
-                  decoration: BoxDecoration(
-                    color: backgroundColor.withOpacity(0.1),
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  ),
-                  child: renderSticker == null
-                      ? Icon(
-                          Symbols.emoji_symbols,
-                          size: dimension * 0.45,
-                          color: foregroundColor,
-                        )
-                      : CloudImageWidget(
-                          file: renderSticker.image,
-                          fit: BoxFit.contain,
-                          noBlurhash: true,
-                        ),
-                ),
+              child: SizedBox(
+                width: dimension,
+                height: dimension,
+                child: renderSticker == null
+                    ? Icon(
+                        Symbols.emoji_symbols,
+                        size: dimension * 0.45,
+                        color: foregroundColor,
+                      )
+                    : CloudImageWidget(
+                        file: renderSticker.image,
+                        fit: BoxFit.contain,
+                        noBlurhash: true,
+                      ),
               ),
             ),
           ),

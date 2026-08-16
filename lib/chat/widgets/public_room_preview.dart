@@ -77,14 +77,19 @@ class PublicRoomPreview extends HookConsumerWidget {
             final nextMessage = index < messageList.length - 1
                 ? messageList[index + 1]
                 : null;
-            final isLastInGroup =
-                nextMessage == null ||
-                nextMessage.senderId != message.senderId ||
-                nextMessage.createdAt
-                        .difference(message.createdAt)
-                        .inMinutes
-                        .abs() >
-                    3;
+            final previousMessage = index > 0 ? messageList[index - 1] : null;
+            bool sameSenderGroup(LocalChatMessage? other) {
+              return other != null &&
+                  other.senderId == message.senderId &&
+                  other.createdAt
+                          .difference(message.createdAt)
+                          .inMinutes
+                          .abs() <=
+                      3;
+            }
+
+            final isLastInGroup = !sameSenderGroup(nextMessage);
+            final isFirstInGroup = !sameSenderGroup(previousMessage);
 
             return MessageItem(
               message: message,
@@ -93,6 +98,8 @@ class PublicRoomPreview extends HookConsumerWidget {
               onJump: (_) {}, // No jump functionality in preview
               progress: null,
               showAvatar: isLastInGroup,
+              isFirstInGroup: isFirstInGroup,
+              isLastInGroup: isLastInGroup,
             );
           },
         );

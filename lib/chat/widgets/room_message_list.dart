@@ -299,7 +299,8 @@ class RoomMessageList extends HookConsumerWidget {
         Widget buildMessage(
           LocalChatMessage item,
           int itemIndex, {
-          required bool showItemAvatar,
+          required bool isFirstInGroup,
+          required bool isLastInGroup,
           required bool drawBubbleAvatar,
           required bool drawColumnAvatar,
           GlobalKey<State<StatefulWidget>>? avatarAnchorKey,
@@ -308,7 +309,8 @@ class RoomMessageList extends HookConsumerWidget {
             message: item,
             index: itemIndex,
             roomId: roomId,
-            isLastInGroup: showItemAvatar,
+            isLastInGroup: isLastInGroup,
+            isFirstInGroup: isFirstInGroup,
             showBubbleAvatar: drawBubbleAvatar,
             showColumnAvatar: drawColumnAvatar,
             avatarAnchorKey: avatarAnchorKey,
@@ -347,7 +349,8 @@ class RoomMessageList extends HookConsumerWidget {
                     buildMessage(
                       groupedMessages[i],
                       index + i,
-                      showItemAvatar: i == groupedMessages.length - 1,
+                      isFirstInGroup: i == 0,
+                      isLastInGroup: i == groupedMessages.length - 1,
                       drawBubbleAvatar: false,
                       drawColumnAvatar: false,
                       avatarAnchorKey: i == groupedMessages.length - 1
@@ -359,7 +362,8 @@ class RoomMessageList extends HookConsumerWidget {
             : buildMessage(
                 message,
                 index,
-                showItemAvatar: isLastInGroup,
+                isFirstInGroup: isFirstInGroup,
+                isLastInGroup: isLastInGroup,
                 drawBubbleAvatar: true,
                 drawColumnAvatar: true,
               );

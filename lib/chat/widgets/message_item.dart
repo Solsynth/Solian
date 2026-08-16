@@ -12,6 +12,7 @@ import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/chat/models/redirect_data.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
+import 'package:island/chat/widgets/message_bubble_shape.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
@@ -83,6 +84,13 @@ class MessageItem extends HookConsumerWidget {
   final bool showAvatar;
   final bool showBubbleAvatar;
   final bool showColumnAvatar;
+  /// Whether this message is the newest message of its sender group: no
+  /// same-sender message sits below it on screen.
+  final bool isFirstInGroup;
+
+  /// Whether this message is the oldest message of its sender group: no
+  /// same-sender message sits above it on screen. Equal to [showAvatar].
+  final bool isLastInGroup;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
   final bool isSelectionMode;
@@ -99,6 +107,8 @@ class MessageItem extends HookConsumerWidget {
     required this.showAvatar,
     this.showBubbleAvatar = true,
     this.showColumnAvatar = true,
+    required this.isFirstInGroup,
+    required this.isLastInGroup,
     this.avatarAnchorKey,
     required this.onJump,
     this.isSelectionMode = false,
@@ -602,6 +612,8 @@ class MessageItem extends HookConsumerWidget {
                                 progress: progress,
                                 showAvatar: showAvatar,
                                 showBubbleAvatar: showBubbleAvatar,
+                                isFirstInGroup: isFirstInGroup,
+                                isLastInGroup: isLastInGroup,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
                                 translatedText: translatedText.value,
@@ -1495,6 +1507,12 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final bool showBubbleAvatar;
+  /// Newest message of its sender group: no same-sender bubble below.
+  final bool isFirstInGroup;
+
+  /// Oldest message of its sender group: no same-sender bubble above. The
+  /// avatar sits next to this bubble, so it carries the tail.
+  final bool isLastInGroup;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
   final String? translatedText;
@@ -1507,6 +1525,8 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     required this.showBubbleAvatar,
+    required this.isFirstInGroup,
+    required this.isLastInGroup,
     this.avatarAnchorKey,
     required this.onJump,
     required this.translatedText,
@@ -1521,6 +1541,19 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     final containerColor = isCurrentUser
         ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
         : Theme.of(context).colorScheme.surfaceContainer;
+
+    // Group geometry: the avatar sits at the top of the group, so the corner
+    // closest to it is the top-left of the oldest bubble. The corners where
+    // consecutive bubbles of the group meet are squared so the group reads as
+    // one connected unit, and the bubble that carries the avatar gets the
+    // tail pointing at it.
+    final connectsAbove = !isLastInGroup; // Older group bubble above.
+    final connectsBelow = !isFirstInGroup; // Newer group bubble below.
+    final bubbleShape = MessageBubbleShape(
+      connectsAbove: connectsAbove,
+      connectsBelow: connectsBelow,
+      showTail: isLastInGroup,
+    );
 
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
@@ -1565,27 +1598,32 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
         (remoteMessage.meta['embeds'] != null &&
             kMessageEnableEmbedTypes.contains(message.type));
     final hasProgress = progress != null && progress!.isNotEmpty;
+    // The attachment sits at the top of the bubble, so its corners must
+    // follow the group connection state: squared where a bubble of the same
+    // group meets, rounded elsewhere. The tail and any remaining outline is
+    // applied by the bubble's outer clip.
     final attachmentBorderRadius = hasBodyContent || hasProgress
-        ? const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
+        ? BorderRadius.only(
+            topLeft: Radius.circular(connectsAbove ? 0 : 16),
+            topRight: const Radius.circular(16),
           )
-        : BorderRadius.circular(16);
+        : bubbleShape.borderRadius;
     final attachmentItemBorderRadius = hasBodyContent || hasProgress
         ? 0.0
         : 16.0;
 
     Widget buildMessageBody() {
-      return Container(
-        decoration: BoxDecoration(
-          color: containerColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      return ClipPath(
+        clipper: MessageBubbleClipper(bubbleShape),
+        child: CustomPaint(
+          painter: MessageBubblePainter(
+            color: containerColor,
+            shape: bubbleShape,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
             if (!isRedirect && remoteMessage.attachments.isNotEmpty)
               ClipRRect(
                 borderRadius: attachmentBorderRadius,
@@ -1599,11 +1637,11 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               ),
             if (hasBodyContent || hasProgress)
               Padding(
-                padding: const EdgeInsets.only(
+                padding: EdgeInsets.only(
                   left: 10,
                   right: 10,
                   top: 6,
-                  bottom: 6,
+                  bottom: isMentioningCurrentUser ? 2 : 6,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1661,7 +1699,13 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                   ],
                 ),
               ),
-          ],
+            if (isMentioningCurrentUser)
+              Padding(
+                padding: const EdgeInsets.only(left: 10, right: 10, bottom: 6),
+                child: _MentionHint(textColor: textColor),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -1669,7 +1713,15 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        // Group members sit close together (2px total gap) so the squared
+        // corners read as connected; the group's outer edges keep the
+        // standard 5px breathing room.
+        padding: EdgeInsets.only(
+          left: 12,
+          right: 12,
+          top: isLastInGroup ? 5 : 1,
+          bottom: isFirstInGroup ? 5 : 1,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -1710,11 +1762,6 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                 ],
               ),
             ),
-            if (isMentioningCurrentUser)
-              Padding(
-                padding: const EdgeInsets.only(left: _contentOffset, top: 4),
-                child: _MentionHint(textColor: textColor),
-              ),
           ],
         ),
       ),

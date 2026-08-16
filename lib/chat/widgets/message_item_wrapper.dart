@@ -34,6 +34,8 @@ class MessageItemWrapper extends HookConsumerWidget {
   final int index;
   final String roomId;
   final bool isLastInGroup;
+  /// Newest message of its sender group: no same-sender bubble below it.
+  final bool isFirstInGroup;
   final bool showBubbleAvatar;
   final bool showColumnAvatar;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
@@ -51,6 +53,7 @@ class MessageItemWrapper extends HookConsumerWidget {
     required this.index,
     required this.roomId,
     required this.isLastInGroup,
+    required this.isFirstInGroup,
     this.showBubbleAvatar = true,
     this.showColumnAvatar = true,
     this.avatarAnchorKey,
@@ -88,6 +91,8 @@ class MessageItemWrapper extends HookConsumerWidget {
       onJump: onJump,
       progress: progress,
       showAvatar: isLastInGroup,
+      isFirstInGroup: isFirstInGroup,
+      isLastInGroup: isLastInGroup,
       showBubbleAvatar: showBubbleAvatar,
       showColumnAvatar: showColumnAvatar,
       avatarAnchorKey: avatarAnchorKey,
@@ -158,6 +163,8 @@ class MessageItemWrapper extends HookConsumerWidget {
       onAction: null,
       progress: null,
       showAvatar: false,
+      isFirstInGroup: false,
+      isLastInGroup: false,
       onJump: (_) {},
     );
   }
