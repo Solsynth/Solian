@@ -28,6 +28,9 @@ class CloudFileList extends HookConsumerWidget {
   final bool disableConstraint;
   final EdgeInsets? padding;
   final bool isColumn;
+  final bool isFullBleed;
+  final double fullBleedFraction;
+  final ValueChanged<int>? onIndexChanged;
   final bool initiallyCollapsed;
   final String heroTagPrefix;
   final double borderRadius;
@@ -42,6 +45,9 @@ class CloudFileList extends HookConsumerWidget {
     this.disableConstraint = false,
     this.padding,
     this.isColumn = false,
+    this.isFullBleed = false,
+    this.fullBleedFraction = 0.9,
+    this.onIndexChanged,
     this.initiallyCollapsed = true,
     this.heroTagPrefix = 'cloud-file',
     this.borderRadius = 8,
@@ -158,6 +164,24 @@ class CloudFileList extends HookConsumerWidget {
 
   void _openFileDetail(BuildContext context, String fileId) {
     context.router.push(FileDetailRoute(id: fileId, sourcePost: sourcePost));
+  }
+
+  Widget _buildCarouselEntry(int index) {
+    final entry = _CloudFileListEntry(
+      file: files[index],
+      heroTag: _heroTag(files[index].id),
+      isImage: files[index].mimeType.startsWith('image'),
+      disableZoomIn: disableZoomIn,
+      sourcePost: sourcePost,
+    );
+    // Inter-item gap in full-bleed peek mode. Applied to the card itself (not
+    // the CarouselView padding, which is uniform) so the last page carries no
+    // trailing inset and snaps flush to the right border. Full-width pages
+    // (fraction >= 1) have no peek, so cards stay flush on both edges.
+    if (!isFullBleed || index == files.length - 1 || fullBleedFraction >= 1) {
+      return entry;
+    }
+    return Padding(padding: const EdgeInsets.only(right: 8), child: entry);
   }
 
   @override
@@ -398,68 +422,58 @@ class CloudFileList extends HookConsumerWidget {
         constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
         child: AspectRatio(
           aspectRatio: calculateAspectRatio(),
-          child: Padding(
-            padding: padding ?? EdgeInsets.zero,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final availableWidth = constraints.maxWidth.isFinite
-                    ? constraints.maxWidth
-                    : MediaQuery.of(context).size.width;
-                final itemExtent = math.min(
-                  math.min(availableWidth * 0.75, maxWidth * 0.75).toDouble(),
-                  640.0,
-                );
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : MediaQuery.of(context).size.width;
+              // Keep a peek of the next attachment: each page takes
+              // [fullBleedFraction] of the viewport (1.0 = full width). The
+              // inter-item gap is applied on the cards themselves — never the
+              // CarouselView padding, which is uniform per card and would
+              // leave a permanent edge gap.
+              final itemExtent = isFullBleed
+                  ? availableWidth * fullBleedFraction
+                  : math.min(
+                      math.min(availableWidth * 0.75, maxWidth * 0.75)
+                          .toDouble(),
+                      640.0,
+                    );
 
-                return _HoverCarouselGallery(
-                  itemExtent: itemExtent,
-                  itemCount: files.length,
-                  borderRadius: borderRadius,
-                  children: [
-                    for (var i = 0; i < files.length; i++)
-                      Stack(
-                        children: [
-                          _CloudFileListEntry(
-                            file: files[i],
-                            heroTag: _heroTag(files[i].id),
-                            isImage: files[i].mimeType.startsWith('image'),
-                            disableZoomIn: disableZoomIn,
-                            sourcePost: sourcePost,
-                          ),
-                          Positioned(
-                            bottom: 12,
-                            left: 16,
-                            child: Text('${i + 1}/${files.length}')
-                                .textColor(Colors.white)
-                                .textShadow(
-                                  color: Colors.black54,
-                                  offset: Offset(1, 1),
-                                  blurRadius: 3,
-                                ),
-                          ),
-                        ],
+              final itemPadding = isFullBleed
+                  ? (padding ?? EdgeInsets.zero).copyWith(left: 0, right: 0)
+                  : padding;
+
+              return _HoverCarouselGallery(
+                itemExtent: itemExtent,
+                itemCount: files.length,
+                borderRadius: isFullBleed ? 0 : borderRadius,
+                padding: itemPadding,
+                onIndexChanged: onIndexChanged,
+                children: [
+                  for (var i = 0; i < files.length; i++)
+                    _buildCarouselEntry(i),
+                ],
+                onTap: (index) {
+                  if (files[index].isFolder) {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => FolderContentsSheet(
+                        folderId: files[index].id,
+                        folderName: files[index].name,
                       ),
-                  ],
-                  onTap: (index) {
-                    if (files[index].isFolder) {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (_) => FolderContentsSheet(
-                          folderId: files[index].id,
-                          folderName: files[index].name,
-                        ),
-                      );
-                      return;
-                    }
-                    if (isLightboxMedia(files[index])) {
-                      openLightbox(index);
-                      return;
-                    }
-                    _openFileDetail(context, files[index].id);
-                  },
-                );
-              },
-            ),
+                    );
+                    return;
+                  }
+                  if (isLightboxMedia(files[index])) {
+                    openLightbox(index);
+                    return;
+                  }
+                  _openFileDetail(context, files[index].id);
+                },
+              );
+            },
           ),
         ),
       );
@@ -475,39 +489,24 @@ class CloudFileList extends HookConsumerWidget {
             for (var index = 0; index < files.length; index++)
               AspectRatio(
                 aspectRatio: files[index].ratio ?? 1.0,
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(borderRadius),
-                      ),
-                      child: _CloudFileListEntry(
-                        file: files[index],
-                        heroTag: _heroTag(files[index].id),
-                        isImage: files[index].mimeType.startsWith('image'),
-                        disableZoomIn: disableZoomIn,
-                        sourcePost: sourcePost,
-                        onTap: () {
-                          if (isLightboxMedia(files[index])) {
-                            openLightbox(index);
-                            return;
-                          }
-                          _openFileDetail(context, files[index].id);
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 12,
-                      left: 16,
-                      child: Text('${index + 1}/${files.length}')
-                          .textColor(Colors.white)
-                          .textShadow(
-                            color: Colors.black54,
-                            offset: Offset(1, 1),
-                            blurRadius: 3,
-                          ),
-                    ),
-                  ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(borderRadius),
+                  ),
+                  child: _CloudFileListEntry(
+                    file: files[index],
+                    heroTag: _heroTag(files[index].id),
+                    isImage: files[index].mimeType.startsWith('image'),
+                    disableZoomIn: disableZoomIn,
+                    sourcePost: sourcePost,
+                    onTap: () {
+                      if (isLightboxMedia(files[index])) {
+                        openLightbox(index);
+                        return;
+                      }
+                      _openFileDetail(context, files[index].id);
+                    },
+                  ),
                 ),
               ),
           ],
@@ -625,14 +624,18 @@ class _HoverCarouselGallery extends HookWidget {
   final double itemExtent;
   final int itemCount;
   final ValueChanged<int>? onTap;
+  final ValueChanged<int>? onIndexChanged;
   final double borderRadius;
+  final EdgeInsets? padding;
 
   const _HoverCarouselGallery({
     required this.children,
     required this.itemExtent,
     required this.itemCount,
     this.onTap,
+    this.onIndexChanged,
     this.borderRadius = 16,
+    this.padding,
   });
 
   @override
@@ -692,10 +695,12 @@ class _HoverCarouselGallery extends HookWidget {
                 controller: controller,
                 itemSnapping: true,
                 itemExtent: itemExtent,
+                padding: padding,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
                 ),
                 onTap: onTap,
+                onIndexChanged: onIndexChanged,
                 children: children,
               ),
             ),

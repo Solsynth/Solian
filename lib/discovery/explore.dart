@@ -934,32 +934,57 @@ class ExploreScreen extends HookConsumerWidget {
       ),
     );
 
+    final hasPublisherSubscriptions =
+        ref.watch(publishersSubscriptionsLiveProvider).value?.isNotEmpty ??
+        false;
+    final hasCategoryTagSubscriptions =
+        ref.watch(categoriesSubscriptionsProvider).value?.isNotEmpty ?? false;
+
     final subscriptionPane = Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      child: PostSubscriptionFilterWidget(
-        initialSelectedPublishers: selectedPublishers.value,
-        initialSelectedCategories: selectedCategories.value,
-        initialSelectedTags: selectedTags.value,
-        collapsible: true,
-        onSelectedPublishersChanged: (names) {
-          selectedPublishers.value = names;
-          appSettingsNotifier.setExploreSettings(
-            exploreSettings.copyWith(selectedPublisherNames: names),
-          );
-        },
-        onSelectedCategoriesChanged: (ids) {
-          selectedCategories.value = ids;
-          appSettingsNotifier.setExploreSettings(
-            exploreSettings.copyWith(selectedCategoryIds: ids),
-          );
-        },
-        onSelectedTagsChanged: (ids) {
-          selectedTags.value = ids;
-          appSettingsNotifier.setExploreSettings(
-            exploreSettings.copyWith(selectedTagIds: ids),
-          );
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SubscribedPublishersStrip(
+            selectedPublisherNames: selectedPublishers.value,
+            onSelectedPublishersChanged: (names) {
+              applyPublisherStripSelection(
+                names: names,
+                selectedPublishers: selectedPublishers,
+                selectedCategories: selectedCategories,
+                selectedTags: selectedTags,
+                exploreSettings: exploreSettings,
+                appSettingsNotifier: appSettingsNotifier,
+              );
+            },
+          ),
+          if (hasCategoryTagSubscriptions)
+            PostCategoryTagFilterSection(
+              initialSelectedCategories: selectedCategories.value,
+              initialSelectedTags: selectedTags.value,
+              onSelectedCategoriesChanged: (ids) {
+                selectedCategories.value = ids;
+                appSettingsNotifier.setExploreSettings(
+                  exploreSettings.copyWith(selectedCategoryIds: ids),
+                );
+              },
+              onSelectedTagsChanged: (ids) {
+                selectedTags.value = ids;
+                appSettingsNotifier.setExploreSettings(
+                  exploreSettings.copyWith(selectedTagIds: ids),
+                );
+              },
+              onPublisherSelectionCleared: () {
+                selectedPublishers.value = [];
+                appSettingsNotifier.setExploreSettings(
+                  exploreSettings.copyWith(
+                    selectedPublisherNames: const <String>[],
+                  ),
+                );
+              },
+            ).padding(top: 8),
+        ],
       ),
     );
 
@@ -1041,8 +1066,11 @@ class ExploreScreen extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const PostFeaturedList(maxHeight: 400, emphasizeHeader: false),
-                const Gap(12),
-                subscriptionPane,
+                if (hasPublisherSubscriptions ||
+                    hasCategoryTagSubscriptions) ...[
+                  const Gap(12),
+                  subscriptionPane,
+                ],
                 const Gap(12),
                 const _ExplorePopularCategoriesCard(),
                 const Gap(12),

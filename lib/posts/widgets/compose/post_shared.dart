@@ -2101,6 +2101,7 @@ class PostBody extends ConsumerWidget {
             files: item.attachments,
             sourcePost: item,
             isColumn: !isInteractive,
+            isFullBleed: true,
             padding: EdgeInsets.symmetric(
               horizontal: renderingPadding.horizontal,
               vertical: 4,

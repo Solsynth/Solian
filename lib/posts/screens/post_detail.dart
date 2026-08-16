@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
-import 'package:dismissible_page/dismissible_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -41,7 +40,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
-import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
+import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -1289,34 +1288,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
-    final pageController = usePageController();
     final focusedIndex = useState(0);
-    final mediaFiles = useMemoized(
-      () => post.attachments.where(isLightboxMedia).toList(),
-      [post.attachments],
-    );
-
-    void openMediaAt(int index) {
-      final file = post.attachments[index];
-      if (isLightboxMedia(file)) {
-        final viewableIndex = mediaFiles.indexWhere(
-          (item) => item.id == file.id,
-        );
-        if (viewableIndex != -1) {
-          context.pushTransparentRoute(
-            CloudFileLightbox(
-              items: mediaFiles,
-              initialIndex: viewableIndex,
-              heroTag: 'post-detail-media-${post.id}-${file.id}',
-              sourcePost: post,
-            ),
-            rootNavigator: true,
-          );
-          return;
-        }
-      }
-      context.router.push(FileDetailRoute(id: file.id, sourcePost: post));
-    }
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
@@ -1586,21 +1558,17 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               _DesktopMediaBackground(
                 file: post.attachments[focusedIndex.value],
               ),
-              PageView.builder(
-                controller: pageController,
-                itemCount: post.attachments.length,
-                onPageChanged: (index) => focusedIndex.value = index,
-                itemBuilder: (context, index) {
-                  final file = post.attachments[index];
-                  return _DesktopMediaPage(
-                    file: file,
-                    heroTag: 'post-detail-media-${post.id}-${file.id}',
-                    sourcePost: post,
-                    onTap: () => openMediaAt(index),
-                  );
-                },
+              CloudFileList(
+                files: post.attachments,
+                sourcePost: post,
+                isFullBleed: true,
+                fullBleedFraction: 1.0,
+                maxHeight: double.infinity,
+                padding: EdgeInsets.zero,
+                heroTagPrefix: 'post-detail-media-${post.id}',
+                onIndexChanged: (index) => focusedIndex.value = index,
               ),
-              if (post.attachments.length > 1) ...[
+              if (post.attachments.length > 1)
                 Positioned(
                   left: 20,
                   top: 20,
@@ -1609,51 +1577,6 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                     total: post.attachments.length,
                   ),
                 ),
-                Positioned(
-                  left: 20,
-                  top: 0,
-                  bottom: 0,
-                  child: _DesktopMediaArrowButton(
-                    icon: Symbols.chevron_left,
-                    onTap: focusedIndex.value > 0
-                        ? () => pageController.previousPage(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                          )
-                        : null,
-                  ),
-                ),
-                Positioned(
-                  right: 20,
-                  top: 0,
-                  bottom: 0,
-                  child: _DesktopMediaArrowButton(
-                    icon: Symbols.chevron_right,
-                    onTap: focusedIndex.value < post.attachments.length - 1
-                        ? () => pageController.nextPage(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                          )
-                        : null,
-                  ),
-                ),
-                Positioned(
-                  left: 24,
-                  right: 24,
-                  bottom: 20,
-                  child: _DesktopMediaStrip(
-                    files: post.attachments,
-                    currentIndex: focusedIndex.value,
-                    onSelect: (index) {
-                      pageController.animateToPage(
-                        index,
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
-                      );
-                    },
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -1946,82 +1869,6 @@ class _DesktopMediaBackground extends ConsumerWidget {
   }
 }
 
-class _DesktopMediaPage extends StatelessWidget {
-  final IDisplayableCloudFile file;
-  final String heroTag;
-  final SnPost sourcePost;
-  final VoidCallback onTap;
-
-  const _DesktopMediaPage({
-    required this.file,
-    required this.heroTag,
-    required this.sourcePost,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final ratio = file.ratio?.toDouble() ?? 1.0;
-    final isAudio = file.mimeType.startsWith('audio');
-
-    Widget content = CloudFileWidget(
-      item: file,
-      heroTag: heroTag,
-      fit: BoxFit.contain,
-      noBlurhash: true,
-      useInternalGate: false,
-      sourcePost: sourcePost,
-    );
-
-    if (isAudio) {
-      content = SizedBox(height: 160, child: content);
-    } else {
-      content = AspectRatio(
-        aspectRatio: ratio <= 0 ? 1.0 : ratio,
-        child: content,
-      );
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Center(child: content),
-      ),
-    );
-  }
-}
-
-class _DesktopMediaArrowButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _DesktopMediaArrowButton({required this.icon, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 180),
-        opacity: onTap == null ? 0.35 : 1,
-        child: Material(
-          color: Colors.black45,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Icon(icon, color: Colors.white, size: 22),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _DesktopMediaCountBadge extends StatelessWidget {
   final int current;
   final int total;
@@ -2043,112 +1890,6 @@ class _DesktopMediaCountBadge extends StatelessWidget {
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DesktopMediaStrip extends ConsumerWidget {
-  final List<IDisplayableCloudFile> files;
-  final int currentIndex;
-  final ValueChanged<int> onSelect;
-
-  const _DesktopMediaStrip({
-    required this.files,
-    required this.currentIndex,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      height: 76,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.black38,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.all(10),
-          itemCount: files.length,
-          separatorBuilder: (_, _) => const Gap(10),
-          itemBuilder: (context, index) {
-            final file = files[index];
-            final isActive = index == currentIndex;
-            return GestureDetector(
-              onTap: () => onSelect(index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                width: 96,
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: isActive ? Colors.white : Colors.white24,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: isActive
-                      ? const [
-                          BoxShadow(
-                            color: Colors.black45,
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: ColoredBox(
-                    color: Colors.black,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Positioned.fill(
-                          child: file.mimeType.startsWith('video')
-                              ? Consumer(
-                                  builder: (context, ref, _) {
-                                    final serverUrl = ref.watch(
-                                      serverUrlProvider,
-                                    );
-                                    final uri =
-                                        file.storageUrl ??
-                                        '$serverUrl/drive/files/${file.id}';
-                                    return UniversalImage(
-                                      uri: '$uri?thumbnail=true',
-                                      fit: BoxFit.cover,
-                                    );
-                                  },
-                                )
-                              : CloudFileWidget(
-                                  item: file,
-                                  fit: BoxFit.cover,
-                                  noBlurhash: true,
-                                  useInternalGate: false,
-                                ),
-                        ),
-                        if (file.mimeType.startsWith('video'))
-                          const Center(
-                            child: Icon(
-                              Symbols.play_arrow,
-                              color: Colors.white,
-                              size: 24,
-                              shadows: [
-                                BoxShadow(
-                                  color: Colors.black54,
-                                  offset: Offset(1, 1),
-                                  spreadRadius: 8,
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
         ),
       ),
     );

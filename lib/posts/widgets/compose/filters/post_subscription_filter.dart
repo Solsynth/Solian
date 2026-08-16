@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -399,20 +400,13 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
     final selectedPublishers = useState<List<String>>(
       initialSelectedPublishers,
     );
-    final selectedCategories = useState<List<String>>(
-      initialSelectedCategories,
-    );
-    final selectedTags = useState<List<String>>(initialSelectedTags);
     final isMarkingAll = useState(false);
     final isExpanded = useState(true);
 
     final publishersAsync = ref.watch(publishersSubscriptionsLiveProvider);
-    final categoriesAsync = ref.watch(categoriesSubscriptionsProvider);
 
     void updateSelection() {
       onSelectedPublishersChanged(selectedPublishers.value);
-      onSelectedCategoriesChanged(selectedCategories.value);
-      onSelectedTagsChanged(selectedTags.value);
     }
 
     final unreadCount =
@@ -605,8 +599,8 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                                     selectedPublishers.value = [
                                       subscription.publisher.name,
                                     ];
-                                    selectedCategories.value = [];
-                                    selectedTags.value = [];
+                                    onSelectedCategoriesChanged(const []);
+                                    onSelectedTagsChanged(const []);
                                     try {
                                       await ref
                                           .read(
@@ -664,95 +658,142 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                       const Divider(height: 1).padding(vertical: 8),
 
                     // Categories Section
-                    categoriesAsync.when(
-                      data: (subscriptions) {
-                        if (subscriptions.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'categoriesAndTags'.tr(),
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ).padding(bottom: 8, horizontal: 16),
-                            ...subscriptions.map((subscription) {
-                              final category = subscription.category;
-                              final tag = subscription.tag;
-                              final slug = category?.slug ?? tag?.slug;
-                              final displayTitle =
-                                  category?.categoryTranslationKey.tr() ??
-                                  tag?.name ??
-                                  slug ??
-                                  '';
-                              final isCategorySelected = selectedCategories
-                                  .value
-                                  .contains(slug);
-                              final isTagSelected = selectedTags.value.contains(
-                                slug,
-                              );
-
-                              return CheckboxListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.trailing,
-                                title: Text(displayTitle),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(8),
-                                  ),
-                                ),
-                                secondary: category != null
-                                    ? Icon(Symbols.category)
-                                    : Icon(Symbols.tag),
-                                value: category != null
-                                    ? isCategorySelected
-                                    : isTagSelected,
-                                onChanged: (value) {
-                                  if (value == true) {
-                                    selectedPublishers.value = [];
-                                    if (category != null) {
-                                      selectedCategories.value = [
-                                        ...selectedCategories.value,
-                                        slug!,
-                                      ];
-                                    } else if (tag != null) {
-                                      selectedTags.value = [
-                                        ...selectedTags.value,
-                                        slug!,
-                                      ];
-                                    }
-                                  } else {
-                                    if (category != null) {
-                                      selectedCategories.value =
-                                          selectedCategories.value
-                                              .where((id) => id != slug)
-                                              .toList();
-                                    } else if (tag != null) {
-                                      selectedTags.value = selectedTags.value
-                                          .where((id) => id != slug)
-                                          .toList();
-                                    }
-                                  }
-                                  updateSelection();
-                                },
-                                dense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                              );
-                            }),
-                          ],
-                        );
+                    PostCategoryTagFilterSection(
+                      initialSelectedCategories: initialSelectedCategories,
+                      initialSelectedTags: initialSelectedTags,
+                      onSelectedCategoriesChanged: onSelectedCategoriesChanged,
+                      onSelectedTagsChanged: onSelectedTagsChanged,
+                      onPublisherSelectionCleared: () {
+                        selectedPublishers.value = [];
+                        updateSelection();
                       },
-                      loading: () => const SizedBox.shrink(),
-                      error: (error, stack) => const SizedBox.shrink(),
                     ),
                   ],
                 ),
         ),
       ],
+    );
+  }
+}
+
+/// Categories and tags subscription filters rendered as checkbox list tiles.
+///
+/// Used inside [PostSubscriptionFilterWidget] and standalone beneath the
+/// publisher strip in the wide explore layout.
+class PostCategoryTagFilterSection extends HookConsumerWidget {
+  final List<String> initialSelectedCategories;
+  final List<String> initialSelectedTags;
+  final ValueChanged<List<String>> onSelectedCategoriesChanged;
+  final ValueChanged<List<String>> onSelectedTagsChanged;
+
+  /// Called when a category or tag is selected so the parent can clear
+  /// publisher filters (mirrors the publisher-section behavior).
+  final VoidCallback onPublisherSelectionCleared;
+
+  const PostCategoryTagFilterSection({
+    super.key,
+    required this.initialSelectedCategories,
+    required this.initialSelectedTags,
+    required this.onSelectedCategoriesChanged,
+    required this.onSelectedTagsChanged,
+    required this.onPublisherSelectionCleared,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedCategories = useState<List<String>>(
+      initialSelectedCategories,
+    );
+    final selectedTags = useState<List<String>>(initialSelectedTags);
+    final categoriesAsync = ref.watch(categoriesSubscriptionsProvider);
+
+    // Keep the checkbox state in sync when the parent resets these filters
+    // from elsewhere (e.g. the publisher strip clears category/tag selection).
+    useEffect(() {
+      if (!listEquals(selectedCategories.value, initialSelectedCategories)) {
+        selectedCategories.value = List<String>.from(initialSelectedCategories);
+      }
+      if (!listEquals(selectedTags.value, initialSelectedTags)) {
+        selectedTags.value = List<String>.from(initialSelectedTags);
+      }
+      return null;
+    }, [initialSelectedCategories, initialSelectedTags]);
+
+    return categoriesAsync.when(
+      data: (subscriptions) {
+        if (subscriptions.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'categoriesAndTags'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ).padding(bottom: 8, horizontal: 16),
+            ...subscriptions.map((subscription) {
+              final category = subscription.category;
+              final tag = subscription.tag;
+              final slug = category?.slug ?? tag?.slug;
+              final displayTitle =
+                  category?.categoryTranslationKey.tr() ??
+                  tag?.name ??
+                  slug ??
+                  '';
+              final isCategorySelected = selectedCategories.value.contains(
+                slug,
+              );
+              final isTagSelected = selectedTags.value.contains(slug);
+
+              return CheckboxListTile(
+                controlAffinity: ListTileControlAffinity.trailing,
+                title: Text(displayTitle),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                secondary: category != null
+                    ? const Icon(Symbols.category)
+                    : const Icon(Symbols.tag),
+                value: category != null ? isCategorySelected : isTagSelected,
+                onChanged: (value) {
+                  if (value == true) {
+                    onPublisherSelectionCleared();
+                    if (category != null) {
+                      selectedCategories.value = [
+                        ...selectedCategories.value,
+                        slug!,
+                      ];
+                      onSelectedCategoriesChanged(selectedCategories.value);
+                    } else if (tag != null) {
+                      selectedTags.value = [...selectedTags.value, slug!];
+                      onSelectedTagsChanged(selectedTags.value);
+                    }
+                  } else {
+                    if (category != null) {
+                      selectedCategories.value = selectedCategories.value
+                          .where((id) => id != slug)
+                          .toList();
+                      onSelectedCategoriesChanged(selectedCategories.value);
+                    } else if (tag != null) {
+                      selectedTags.value = selectedTags.value
+                          .where((id) => id != slug)
+                          .toList();
+                      onSelectedTagsChanged(selectedTags.value);
+                    }
+                  }
+                },
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              );
+            }),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
     );
   }
 }

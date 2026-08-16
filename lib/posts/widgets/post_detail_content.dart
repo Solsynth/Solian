@@ -233,7 +233,7 @@ class _PostDetailMediaCarousel extends HookConsumerWidget {
             : maxHeight;
         final height = currentIsAudio
             ? 160.0
-            : (availableWidth / ratio).clamp(280.0, effectiveMaxHeight);
+            : (availableWidth / ratio).clamp(0.0, effectiveMaxHeight);
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 220),
