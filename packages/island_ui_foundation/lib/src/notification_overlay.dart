@@ -285,6 +285,20 @@ class AnimatedNotificationItem<T extends OverlayNotificationItem>
       return null;
     }, [item.dismissed]);
 
+    // An item refreshed in place (e.g. a friend-status toast updated with a
+    // newer event) carries a new duration: restart the auto-dismiss timer so
+    // the updated content gets a full display window.
+    useEffect(() {
+      if (item.dismissed) return null;
+      progressController
+        ..duration = item.duration
+        ..value = 0;
+      if (!pauseAutoDismiss) {
+        progressController.forward();
+      }
+      return null;
+    }, [item.duration]);
+
     return SlideTransition(
       position: slideTween.animate(curvedAnimation),
       child: SizeTransition(

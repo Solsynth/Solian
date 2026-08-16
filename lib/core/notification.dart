@@ -116,6 +116,26 @@ class NotificationState extends _$NotificationState {
   }
 
   void addFriendStatus(FriendStatusChangeEvent event, {Duration? duration}) {
+    // Keep at most one live toast per account: refresh the existing toast with
+    // the newest event instead of stacking a new one. A fresh duration makes
+    // the overlay restart the auto-dismiss timer for the updated content.
+    final existingIndex = state.indexWhere(
+      (item) =>
+          item.type == NotificationItemType.friendStatus &&
+          !item.dismissed &&
+          item.friendStatusEvent?.account.id == event.account.id,
+    );
+
+    if (existingIndex != -1) {
+      final updated = state[existingIndex].copyWith(
+        friendStatusEvent: event,
+        createdAt: DateTime.now(),
+        duration: duration ?? kNotificationBaseDuration,
+      );
+      state = List.from(state)..[existingIndex] = updated;
+      return;
+    }
+
     final newItem = NotificationItem.friendStatus(
       event: event,
       index: state.length,
