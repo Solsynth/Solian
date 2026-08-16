@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -130,6 +131,24 @@ class _EmptyResponseAdapter implements HttpClientAdapter {
   );
 }
 
+/// Adapter that holds the request in flight until the test completes it,
+/// simulating a slow/weak network.
+class _BlockingResponseAdapter implements HttpClientAdapter {
+  final Completer<ResponseBody> completer = Completer<ResponseBody>();
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions _,
+    Stream<Uint8List>? _,
+    Future<void>? _,
+  ) {
+    return completer.future;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -212,6 +231,44 @@ void main() {
               .map((item) => item.id),
           contains(remote.id),
         );
+      },
+    );
+
+    test(
+      'global syncing flag clears when the room notifier is disposed '
+      'mid-load (slow network, user leaves the room)',
+      () async {
+        // Hold the room's message fetch in flight so the load outlives the
+        // room-scoped notifier.
+        final blocking = _BlockingResponseAdapter();
+        container.read(apiClientProvider).httpClientAdapter = blocking;
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        final load = notifier.loadInitial(forceRemoteRefresh: true);
+
+        await pumpEventQueue();
+        expect(container.read(chatSyncingProvider), isTrue);
+
+        // Drop the last listener while the request is still pending, which
+        // disposes the room-scoped notifier.
+        subscription.close();
+        await pumpEventQueue();
+
+        // The slow request eventually resolves, but the notifier is already
+        // disposed: the global syncing flag must still be cleared.
+        blocking.completer.complete(
+          ResponseBody.fromString(
+            '[]',
+            200,
+            headers: {
+              Headers.contentTypeHeader: ['application/json'],
+            },
+          ),
+        );
+        await load;
+        await pumpEventQueue();
+
+        expect(container.read(chatSyncingProvider), isFalse);
       },
     );
   });

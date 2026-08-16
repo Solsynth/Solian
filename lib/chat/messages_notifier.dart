@@ -45,6 +45,12 @@ class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
   late SnChatMember _identity;
+  /// Keep-alive global sync notifier, captured at build time. Room-scoped
+  /// providers like this one can be disposed mid-operation (user leaves the
+  /// room while a load is in flight); the captured instance stays valid so the
+  /// matching [ChatSyncingNotifier.end] always runs and the global sync
+  /// indicator can't stick in the "syncing" state.
+  ChatSyncingNotifier? _globalSyncNotifier;
   int _roomEncryptionMode = 0;
   String? _mlsGroupId;
 
@@ -605,6 +611,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.read(apiClientProvider);
     _database = ref.read(databaseProvider);
+    _globalSyncNotifier = ref.read(chatSyncingProvider.notifier);
     _messageCache = MessageCache(maxSize: PaginationConfig.maxCacheSize);
     _pendingCache = PendingMessageCache();
     _repository = MessageRepository(ref, roomId, _messageCache);
@@ -1074,9 +1081,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   List<LocalChatMessage> get _currentMessages => _messages;
 
   void _setGlobalSyncing(bool value) {
-    if (!ref.mounted) return;
+    final notifier = _globalSyncNotifier;
+    if (notifier == null) return;
     Future.microtask(() {
-      final notifier = ref.read(chatSyncingProvider.notifier);
       if (value) {
         notifier.begin();
       } else {
