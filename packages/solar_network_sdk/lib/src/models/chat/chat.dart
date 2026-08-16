@@ -30,6 +30,7 @@ sealed class SnChatRoom with _$SnChatRoom {
     required String id,
     required String? name,
     required String? description,
+    String? slug,
     required int type,
     @JsonKey(name: 'encryption_mode') @Default(0) int encryptionMode,
     @JsonKey(name: 'mls_group_id') String? mlsGroupId,

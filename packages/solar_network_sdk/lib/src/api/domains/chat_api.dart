@@ -42,19 +42,42 @@ class ChatApi extends BaseApi {
     return SnChatRoom.fromJson(response.data!);
   }
 
+  /// Resolves a chat room by its share slug.
+  ///
+  /// [scope] - The owner account name or the realm slug.
+  /// [chatSlug] - The room slug.
+  Future<SnChatRoom?> getRoomBySlug(String scope, String chatSlug) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '$_basePath/chat/by-slug/$scope/$chatSlug',
+      );
+      return SnChatRoom.fromJson(response.data!);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
   /// Creates a new chat room.
   ///
   /// [name] - The room name.
   /// [type] - The room type (e.g., 'group', 'direct').
   /// [memberIds] - Initial member IDs.
+  /// [slug] - Optional shareable slug, unique per realm or owner account.
   Future<SnChatRoom> createRoom({
     required String name,
     required String type,
     List<String>? memberIds,
+    String? slug,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/chat/rooms',
-      data: {'name': name, 'type': type, 'member_ids': ?memberIds},
+      data: {
+        'name': name,
+        'type': type,
+        'member_ids': ?memberIds,
+        'slug': ?slug,
+      },
     );
     return SnChatRoom.fromJson(response.data!);
   }
