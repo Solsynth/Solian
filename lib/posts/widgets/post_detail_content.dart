@@ -242,7 +242,9 @@ class _PostDetailMediaCarousel extends HookConsumerWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Positioned.fill(child: _PostDetailMediaBackdrop(file: currentFile)),
+              Positioned.fill(
+                child: _PostDetailMediaBackdrop(file: currentFile),
+              ),
               PageView.builder(
                 controller: pageController,
                 itemCount: post.attachments.length,
@@ -267,7 +269,10 @@ class _PostDetailMediaCarousel extends HookConsumerWidget {
                   if (isAudio) {
                     content = SizedBox(height: 160, child: content);
                   } else {
-                    content = AspectRatio(aspectRatio: itemRatio, child: content);
+                    content = AspectRatio(
+                      aspectRatio: itemRatio,
+                      child: content,
+                    );
                   }
 
                   return Material(
@@ -332,6 +337,7 @@ class PostDetailContent extends HookConsumerWidget {
   final Widget? realmSection;
   final Widget interactionsSection;
   final PostDetailActionBuilder actionBuilder;
+  final Widget? headerSliver;
 
   const PostDetailContent({
     super.key,
@@ -342,6 +348,7 @@ class PostDetailContent extends HookConsumerWidget {
     required this.onReplyPosted,
     required this.interactionsSection,
     required this.actionBuilder,
+    this.headerSliver,
     this.trailing,
     this.onPostTap,
     this.maxWidth = postDetailMaxWidth,
@@ -396,6 +403,7 @@ class PostDetailContent extends HookConsumerWidget {
           onRefresh: onRefresh,
           child: CustomScrollView(
             slivers: [
+              ?headerSliver,
               if (isMediaPost)
                 SliverToBoxAdapter(
                   child: wrapContent(
@@ -433,7 +441,7 @@ class PostDetailContent extends HookConsumerWidget {
                     textScale: post.type == 1 ? 1.2 : 1.1,
                     padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
                     onUpdate: onUpdate,
-                    trailing: trailing,
+                    trailing: headerSliver != null ? null : trailing,
                     onPostTap: onPostTap,
                   ),
                 ),

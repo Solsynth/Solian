@@ -488,51 +488,7 @@ class PostActionButtons extends HookConsumerWidget {
       buildRailSlot(
         icon: Symbols.share,
         label: 'share'.tr(),
-        onPressed: () {
-          if (kIsWeb) {
-            showShareSheetLink(
-              context: context,
-              link: 'https://solian.app/posts/${post.id}',
-              title: 'sharePost'.tr(),
-              toSystem: true,
-            );
-            return;
-          }
-          // Both ways of sharing a post behind one action: the link via the
-          // share sheet, or a screenshot of the post itself.
-          showModalBottomSheet(
-            context: context,
-            useRootNavigator: true,
-            builder: (sheetContext) => SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(Symbols.link),
-                    title: Text('sharePost'.tr()),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      showShareSheetLink(
-                        context: context,
-                        link: 'https://solian.app/posts/${post.id}',
-                        title: 'sharePost'.tr(),
-                        toSystem: true,
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Symbols.share_reviews),
-                    title: Text('sharePostPhoto'.tr()),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      sharePostAsScreenshot(context, ref, post);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+        onPressed: () => _showPostShareSheet(context, ref, post),
       ),
     ];
 
@@ -1387,6 +1343,156 @@ class _PostThreadSheetState extends ConsumerState<_PostThreadSheet> {
   }
 }
 
+/// Both ways of sharing a post behind one action: the link via the share
+/// sheet, or a screenshot of the post itself. On web only the link exists,
+/// so the chooser is skipped there.
+Future<void> _showPostShareSheet(
+  BuildContext context,
+  WidgetRef ref,
+  SnPost post,
+) {
+  if (kIsWeb) {
+    showShareSheetLink(
+      context: context,
+      link: 'https://solian.app/posts/${post.id}',
+      title: 'sharePost'.tr(),
+      toSystem: true,
+    );
+    return Future.value();
+  }
+  return showModalBottomSheet(
+    context: context,
+    useRootNavigator: true,
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Symbols.link),
+            title: Text('sharePost'.tr()),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              showShareSheetLink(
+                context: context,
+                link: 'https://solian.app/posts/${post.id}',
+                title: 'sharePost'.tr(),
+                toSystem: true,
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Symbols.share_reviews),
+            title: Text('sharePostPhoto'.tr()),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              sharePostAsScreenshot(context, ref, post);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Save action for the detail app bars: live bookmark state, toggle on tap.
+class _PostBarBookmarkButton extends ConsumerWidget {
+  final SnPost post;
+
+  const _PostBarBookmarkButton({required this.post});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBookmarked = ref
+        .watch(bookmarkStatusProvider(post.id))
+        .when(
+          data: (bookmark) => bookmark != null,
+          loading: () => post.isBookmarked,
+          error: (_, _) => post.isBookmarked,
+        );
+    return IconButton(
+      tooltip: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+      color: Theme.of(context).colorScheme.onPrimary,
+      onPressed: () async {
+        try {
+          await toggleBookmark(
+            ref,
+            postId: post.id,
+            currentlyBookmarked: isBookmarked,
+          );
+        } catch (err) {
+          showErrorAlert(err);
+        }
+      },
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        child: Icon(
+          isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+          key: ValueKey(isBookmarked),
+          fill: isBookmarked ? 1 : 0,
+        ),
+      ),
+    );
+  }
+}
+
+/// Share action for the detail app bars: same chooser as the action rail.
+class _PostBarShareButton extends ConsumerWidget {
+  final SnPost post;
+
+  const _PostBarShareButton({required this.post});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IconButton(
+      tooltip: 'share'.tr(),
+      color: Theme.of(context).colorScheme.onPrimary,
+      onPressed: () => _showPostShareSheet(context, ref, post),
+      icon: const Icon(Symbols.share),
+    );
+  }
+}
+
+/// Pinned sliver app bar for the full-screen post detail. It names the post
+/// (its title, when it has one) and keeps the save/share/more actions
+/// reachable while the conversation scrolls underneath.
+SliverAppBar buildPostDetailSliverAppBar({
+  required BuildContext context,
+  required SnPost post,
+  required Widget trailing,
+  Widget leading = const AutoLeadingButton(),
+}) {
+  final theme = Theme.of(context);
+  final title = post.title?.trim();
+  final hasTitle = title != null && title.isNotEmpty;
+  return SliverAppBar(
+    pinned: true,
+    // Opaque on purpose: this bar stays pinned over scrolling content, so it
+    // must not inherit the "transparent app bar" user setting.
+    backgroundColor: theme.colorScheme.primary,
+    centerTitle: true,
+    leading: leading,
+    title: hasTitle
+        ? Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          )
+        : null,
+    actions: [
+      _PostBarBookmarkButton(post: post),
+      _PostBarShareButton(post: post),
+      trailing,
+      const Gap(8),
+    ],
+  );
+}
+
 class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   final SnPost post;
   final String postId;
@@ -1413,7 +1519,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
-        children: [Icon(icon), const SizedBox(width: 12), Text(label)],
+        children: [
+          Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Text(label),
+        ],
       );
     }
 
@@ -1716,6 +1826,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                       Expanded(
                         child: CustomScrollView(
                           slivers: [
+                            buildPostDetailSliverAppBar(
+                              context: context,
+                              post: post,
+                              trailing: trailing,
+                            ),
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
@@ -1738,7 +1853,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           isFullPost: true,
                                           isCompact: false,
                                           renderingPadding: EdgeInsets.zero,
-                                          trailing: trailing,
+                                          trailing: null,
                                         ),
                                         const Gap(8),
                                         PostBody(
@@ -2026,7 +2141,6 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
   final Future<void> Function(String) onTranslate;
   final VoidCallback onRefresh;
   final ValueChanged<SnPost> onUpdate;
-  final ValueChanged<bool> onAppBarVisibilityChanged;
 
   const _BlogPostDetailLayout({
     required this.post,
@@ -2037,14 +2151,12 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
     required this.onTranslate,
     required this.onRefresh,
     required this.onUpdate,
-    required this.onAppBarVisibilityChanged,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider).value;
     final mediaQuery = MediaQuery.of(context);
-    final lastScrollOffset = useRef(0.0);
     final availableHeight =
         mediaQuery.size.height -
         mediaQuery.padding.top -
@@ -2058,20 +2170,6 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
     const quickReplyRevealHeight = 320.0;
     final showQuickReply =
         user != null && panelHeight.value >= quickReplyRevealHeight;
-
-    void handleWebViewScroll(double offsetY) {
-      final previous = lastScrollOffset.value;
-      lastScrollOffset.value = offsetY;
-      if (offsetY <= 8) {
-        onAppBarVisibilityChanged(true);
-        return;
-      }
-      if (offsetY - previous > 12) {
-        onAppBarVisibilityChanged(false);
-      } else if (previous - offsetY > 12) {
-        onAppBarVisibilityChanged(true);
-      }
-    }
 
     return Stack(
       children: [
@@ -2090,10 +2188,7 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
             maxPanelHeight,
           ],
           backgroundColor: theme.colorScheme.surface.withOpacity(0.97),
-          body: _BlogPostWebView(
-            url: _getBlogUrl(post),
-            onScrollChanged: handleWebViewScroll,
-          ),
+          body: _BlogPostWebView(url: _getBlogUrl(post)),
           child: Column(
             children: [
               Expanded(
@@ -2247,9 +2342,8 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
 
 class _BlogPostWebView extends HookWidget {
   final String? url;
-  final ValueChanged<double>? onScrollChanged;
 
-  const _BlogPostWebView({required this.url, this.onScrollChanged});
+  const _BlogPostWebView({required this.url});
 
   @override
   Widget build(BuildContext context) {
@@ -2292,9 +2386,6 @@ class _BlogPostWebView extends HookWidget {
           },
           onLoadHttpError: (_, _, _, _) {
             isLoading.value = false;
-          },
-          onScrollChanged: (_, _, y) {
-            onScrollChanged?.call(y.toDouble());
           },
           shouldOverrideUrlLoading: (_, navigationAction) async {
             final target = navigationAction.request.url?.toString();
@@ -2424,10 +2515,7 @@ class _PostDetailBody extends HookConsumerWidget {
     final postState = ref.watch(postStateProvider(id));
     final translating = useState(false);
     final translatedText = useState<String?>(null);
-    final isBlogAppBarVisible = useState(true);
     final currentLanguage = context.locale.toString();
-    final currentPost = postState.asData?.value;
-    final isBlogPost = currentPost?.type == 2;
 
     Future<void> translatePost(String text) async {
       if (translatedText.value != null) {
@@ -2450,14 +2538,6 @@ class _PostDetailBody extends HookConsumerWidget {
       }
     }
 
-    if (isEmbedded && isBlogPost) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (isBlogAppBarVisible.value) {
-          isBlogAppBarVisible.value = false;
-        }
-      });
-    }
-
     return postState.when(
       data: (post) {
         final postItem = post!;
@@ -2467,7 +2547,7 @@ class _PostDetailBody extends HookConsumerWidget {
         Widget buildMenuItem({required String label, required IconData icon}) {
           return Row(
             children: [
-              Icon(icon, size: 18),
+              Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(width: 12),
               Text(label),
             ],
@@ -2752,11 +2832,6 @@ class _PostDetailBody extends HookConsumerWidget {
                         translatedText: translatedText.value,
                         isTranslating: translating.value,
                         onTranslate: translatePost,
-                        onAppBarVisibilityChanged: (visible) {
-                          if (!isEmbedded) {
-                            isBlogAppBarVisible.value = visible;
-                          }
-                        },
                         onRefresh: refreshPost,
                         onUpdate: (newItem) {
                           ref
@@ -2783,6 +2858,13 @@ class _PostDetailBody extends HookConsumerWidget {
                 postId: id,
                 post: postItem,
                 trailing: trailing,
+                headerSliver: isEmbedded
+                    ? null
+                    : buildPostDetailSliverAppBar(
+                        context: context,
+                        post: postItem,
+                        trailing: trailing,
+                      ),
                 onRefresh: () async {
                   refreshPost();
                 },
@@ -2840,12 +2922,29 @@ class PostDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final post = ref.watch(postStateProvider(id)).asData?.value;
+    final title = post?.title?.trim();
+    final hasTitle = title != null && title.isNotEmpty;
+    final isBlog = post?.type == 2;
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        leading: const AutoLeadingButton(),
-        title: Text('postDetail').tr(),
-      ),
+      // Blog posts keep a static bar: their webview sheet needs persistent
+      // chrome. Every other layout owns its app bar inside the scroll view.
+      appBar: isBlog && post != null
+          ? AppBar(
+              leading: const AutoLeadingButton(),
+              title: Text(
+                hasTitle ? title : 'postDetail'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              actions: [
+                _PostBarBookmarkButton(post: post),
+                _PostBarShareButton(post: post),
+                const Gap(8),
+              ],
+            )
+          : null,
       body: _PostDetailBody(id: id),
     );
   }
