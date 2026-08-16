@@ -6,19 +6,6 @@ void main() {
   group('MessageBubbleShape', () {
     const size = Size(200, 44);
 
-    test('tail protrudes from the left edge only when requested', () {
-      final withTail = MessageBubbleShape(showTail: true).path(size);
-      expect(withTail.getBounds().left, closeTo(-5, 0.001));
-      // Compact arrow: apex near the avatar's vertical center, base merged
-      // into the bubble (nothing floating above or below the triangle).
-      expect(withTail.contains(const Offset(-2, 17)), isTrue);
-      expect(withTail.contains(const Offset(-3, 5)), isFalse);
-      expect(withTail.contains(const Offset(-3, 33)), isFalse);
-
-      final withoutTail = MessageBubbleShape().path(size);
-      expect(withoutTail.getBounds().left, 0);
-    });
-
     test('connecting corners are square, free corners stay rounded', () {
       final connected = MessageBubbleShape(
         connectsAbove: true,
@@ -45,20 +32,10 @@ void main() {
         isFalse,
       );
     });
-
-    test('tail survives the connected state (first bubble of a group)', () {
-      final firstInGroup = MessageBubbleShape(
-        showTail: true,
-        connectsBelow: true,
-      ).path(size);
-      expect(firstInGroup.getBounds().left, closeTo(-5, 0.001));
-    });
   });
 
-  testWidgets('golden: single bubble and connected group with tail', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(320, 280));
+  testWidgets('golden: single bubble and connected group', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 240));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     Widget avatar() => Container(
@@ -70,34 +47,28 @@ void main() {
           ),
         );
 
-    Widget bubble(MessageBubbleShape shape) => ClipPath(
-          clipper: MessageBubbleClipper(shape),
-          child: CustomPaint(
-            painter: MessageBubblePainter(
-              color: const Color(0xFFE4E8F0),
-              shape: shape,
-            ),
-            child: const SizedBox(
-              width: 200,
-              height: 44,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    'Message text',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
-                ),
+    Widget bubble(MessageBubbleShape shape) => Container(
+          width: 200,
+          height: 44,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE4E8F0),
+            borderRadius: shape.borderRadius,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'Message text',
+                style: TextStyle(fontSize: 14, color: Colors.black),
               ),
             ),
           ),
         );
 
-    // Mirrors the app layout: avatar occupies the 32px gutter (0-32), the
-    // bubble starts 40px in (32 + 8 gap), so the tail apex at -8 lands right
-    // at the avatar's edge. Group members sit 2px apart so the squared
-    // corners connect.
+    // Mirrors the app layout: avatar in the 32px gutter, bubble 40px in,
+    // group members 2px apart so the squared corners connect.
     Widget messageRow({
       required MessageBubbleShape shape,
       required bool showAvatar,
@@ -130,20 +101,16 @@ void main() {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Single message: tail, all corners rounded.
+                // Single message: all corners rounded.
                 messageRow(
-                  shape: const MessageBubbleShape(showTail: true),
+                  shape: const MessageBubbleShape(),
                   showAvatar: true,
                   bottomGap: 8,
                 ),
-                // Group of three: tail + squared bottom-left on the first,
-                // squared both sides in the middle, squared top-left on the
-                // last.
+                // Group of three: squared bottom-left on the first, squared
+                // both sides in the middle, squared top-left on the last.
                 messageRow(
-                  shape: const MessageBubbleShape(
-                    showTail: true,
-                    connectsBelow: true,
-                  ),
+                  shape: const MessageBubbleShape(connectsBelow: true),
                   showAvatar: true,
                 ),
                 messageRow(
@@ -174,26 +141,22 @@ void main() {
   testWidgets('golden: attachment bubbles follow the connected shape', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(320, 240));
+    await tester.binding.setSurfaceSize(const Size(320, 220));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    // Production structure: the attachment (ClipRRect with fixed 16px
-    // corners) sits inside the bubble shape clip.
-    Widget attachmentBubble(MessageBubbleShape shape) => ClipPath(
-          clipper: MessageBubbleClipper(shape),
-          child: CustomPaint(
-            painter: MessageBubblePainter(
-              color: const Color(0xFFE4E8F0),
-              shape: shape,
-            ),
-            child: ClipRRect(
-              borderRadius: shape.borderRadius,
-              child: const SizedBox(
-                width: 200,
-                height: 60,
-                child: ColoredBox(color: Color(0xFFC7D0E0)),
-              ),
-            ),
+    // Production structure: the attachment keeps the bubble's connection
+    // radii, and the bubble body clips to the same shape.
+    Widget attachmentBubble(MessageBubbleShape shape) => Container(
+          width: 200,
+          height: 60,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE4E8F0),
+            borderRadius: shape.borderRadius,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: ClipRRect(
+            borderRadius: shape.borderRadius,
+            child: const ColoredBox(color: Color(0xFFC7D0E0)),
           ),
         );
 
@@ -209,10 +172,7 @@ void main() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 attachmentBubble(
-                  const MessageBubbleShape(
-                    showTail: true,
-                    connectsBelow: true,
-                  ),
+                  const MessageBubbleShape(connectsBelow: true),
                 ),
                 const SizedBox(height: 2),
                 attachmentBubble(

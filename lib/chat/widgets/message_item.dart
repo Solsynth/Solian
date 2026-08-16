@@ -1545,14 +1545,12 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     // Group geometry: the avatar sits at the top of the group, so the corner
     // closest to it is the top-left of the oldest bubble. The corners where
     // consecutive bubbles of the group meet are squared so the group reads as
-    // one connected unit, and the bubble that carries the avatar gets the
-    // tail pointing at it.
+    // one connected unit.
     final connectsAbove = !isLastInGroup; // Older group bubble above.
     final connectsBelow = !isFirstInGroup; // Newer group bubble below.
     final bubbleShape = MessageBubbleShape(
       connectsAbove: connectsAbove,
       connectsBelow: connectsBelow,
-      showTail: isLastInGroup,
     );
 
     final remoteMessage = message.toRemoteMessage();
@@ -1600,8 +1598,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     final hasProgress = progress != null && progress!.isNotEmpty;
     // The attachment sits at the top of the bubble, so its corners must
     // follow the group connection state: squared where a bubble of the same
-    // group meets, rounded elsewhere. The tail and any remaining outline is
-    // applied by the bubble's outer clip.
+    // group meets, rounded elsewhere.
     final attachmentBorderRadius = hasBodyContent || hasProgress
         ? BorderRadius.only(
             topLeft: Radius.circular(connectsAbove ? 0 : 16),
@@ -1613,17 +1610,16 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
         : 16.0;
 
     Widget buildMessageBody() {
-      return ClipPath(
-        clipper: MessageBubbleClipper(bubbleShape),
-        child: CustomPaint(
-          painter: MessageBubblePainter(
-            color: containerColor,
-            shape: bubbleShape,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+      return Container(
+        decoration: BoxDecoration(
+          color: containerColor,
+          borderRadius: bubbleShape.borderRadius,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
             if (!isRedirect && remoteMessage.attachments.isNotEmpty)
               ClipRRect(
                 borderRadius: attachmentBorderRadius,
@@ -1706,7 +1702,6 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               ),
             ],
           ),
-        ),
       );
     }
 
