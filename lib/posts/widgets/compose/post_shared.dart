@@ -964,10 +964,9 @@ class PostReplyPreview extends HookConsumerWidget {
                   if (post.repliesCount > children.length)
                     Padding(
                       padding: const EdgeInsets.only(left: 32),
-                      child: Text('repliesCount')
-                          .plural(post.repliesCount)
-                          .fontSize(12)
-                          .opacity(0.7),
+                      child: Text(
+                        'repliesCount',
+                      ).plural(post.repliesCount).fontSize(12).opacity(0.7),
                     ),
                 ],
               ),
@@ -1088,10 +1087,9 @@ class PostReplyPreview extends HookConsumerWidget {
                       if (post.repliesCount > 0)
                         Padding(
                           padding: const EdgeInsets.only(left: 32),
-                          child: Text('repliesCount')
-                              .plural(post.repliesCount)
-                              .fontSize(12)
-                              .opacity(0.7),
+                          child: Text(
+                            'repliesCount',
+                          ).plural(post.repliesCount).fontSize(12).opacity(0.7),
                         ),
                     ],
                     if (parent.repliesCount > data.value.length)
@@ -1971,6 +1969,19 @@ class PostBody extends ConsumerWidget {
             const Icon(Symbols.emoji_events, size: 16),
             Text(
               'awardPoints'.tr(args: [item.awardedScore.toString()]),
+            ).fontSize(13),
+          ],
+        ),
+      );
+    }
+    if (item.viewsTotal != 0 && isFullPost) {
+      metadataChildren.add(
+        Row(
+          spacing: 8,
+          children: [
+            const Icon(Symbols.visibility, size: 16),
+            Text(
+              'postViewsCount'.tr(args: [item.viewsTotal.toString()]),
             ).fontSize(13),
           ],
         ),

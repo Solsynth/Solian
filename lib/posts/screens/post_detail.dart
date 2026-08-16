@@ -144,6 +144,9 @@ final collectionNeighborProvider = FutureProvider.autoDispose
 
 const _postDetailMaxWidth = 640.0;
 
+/// Posts shorter than this are not worth a translate action.
+const _minTranslatableLength = 20;
+
 String? _getBlogUrl(SnPost post) {
   final candidates = [post.content, post.embedView?.uri];
   for (final candidate in candidates) {
@@ -314,39 +317,102 @@ class PostActionButtons extends HookConsumerWidget {
       error: (_, _) => false,
     );
 
-    Widget buildActionButton({
+    final hairline = theme.colorScheme.outline.withOpacity(0.12);
+    final idleColor = theme.colorScheme.onSurfaceVariant;
+
+    /// A slot on the response rail: icon + label, with an optional live
+    /// counter in tabular figures. The rail reads as a meter for the post's
+    /// circulation rather than a toolbar.
+    Widget buildRailSlot({
       required IconData icon,
       required String label,
       required VoidCallback? onPressed,
       VoidCallback? onLongPress,
       bool isSelected = false,
-      Color? color,
+      String? count,
+      String? tooltip,
     }) {
+      final inkColor = isSelected ? theme.colorScheme.primary : idleColor;
       return Tooltip(
-        message: label,
+        message: tooltip ?? label,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(10),
           onTap: onPressed,
           onLongPress: onLongPress,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 15),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  child: Icon(
+                    icon,
+                    key: ValueKey(icon),
+                    size: 18,
+                    color: inkColor,
+                  ),
+                ),
+                const Gap(6),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: inkColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (count != null) ...[
+                  const Gap(4),
+                  Text(
+                    count,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    /// Quiet icon + text action for the context strip and author console.
+    /// A null [onPressed] renders the action disabled and dimmed.
+    Widget buildGhostAction({
+      required IconData icon,
+      required String label,
+      required VoidCallback? onPressed,
+      VoidCallback? onLongPress,
+      Color? color,
+      String? tooltip,
+    }) {
+      final enabled = onPressed != null;
+      final inkColor = enabled
+          ? (color ?? idleColor)
+          : theme.colorScheme.onSurfaceVariant.withOpacity(0.38);
+      return Tooltip(
+        message: tooltip ?? label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onPressed,
+          onLongPress: onLongPress,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: 6,
               children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : color ?? theme.colorScheme.onSurfaceVariant,
-                ),
+                Icon(icon, size: 16, color: inkColor),
                 Text(
                   label,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : color ?? theme.colorScheme.onSurfaceVariant,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: inkColor,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -356,10 +422,14 @@ class PostActionButtons extends HookConsumerWidget {
       );
     }
 
-    final primaryActions = <Widget>[
-      buildActionButton(
+    // ---- Band 1: the response rail. Five equal slots, hairline-divided
+    // when the width allows; Reply carries the live conversation count and
+    // Award carries the points earned.
+    final railSlots = <Widget>[
+      buildRailSlot(
         icon: Symbols.reply,
         label: 'reply'.tr(),
+        count: post.repliesCount > 0 ? formatScore(post.repliesCount) : null,
         onPressed: () {
           PostComposeDialog.show(
             context,
@@ -367,7 +437,7 @@ class PostActionButtons extends HookConsumerWidget {
           );
         },
       ),
-      buildActionButton(
+      buildRailSlot(
         icon: Symbols.forward,
         label: 'forward'.tr(),
         onPressed: () {
@@ -377,47 +447,12 @@ class PostActionButtons extends HookConsumerWidget {
           );
         },
       ),
-      buildActionButton(
-        icon: isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
-        label: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
-        isSelected: isBookmarked,
-        onPressed: () async {
-          try {
-            await toggleBookmark(
-              ref,
-              postId: post.id,
-              currentlyBookmarked: isBookmarked,
-            );
-          } catch (err) {
-            showErrorAlert(err);
-          }
-        },
-      ),
-      buildActionButton(
-        icon: Symbols.share,
-        label: 'share'.tr(),
-        onPressed: () {
-          showShareSheetLink(
-            context: context,
-            link: 'https://solian.app/posts/${post.id}',
-            title: 'sharePost'.tr(),
-            toSystem: true,
-          );
-        },
-      ),
-    ];
-
-    final secondaryActions = <Widget>[
-      buildActionButton(
-        icon: Symbols.forum,
-        label: 'fullThread'.tr(),
-        onPressed: () => _showPostThreadSheet(context, post),
-      ),
-      buildActionButton(
+      buildRailSlot(
         icon: Symbols.emoji_events,
         label: post.awardedScore > 0
             ? '${formatScore(post.awardedScore)} pts'
             : 'award'.tr(),
+        tooltip: 'award'.tr(),
         onPressed: () {
           showModalBottomSheet(
             context: context,
@@ -434,27 +469,104 @@ class PostActionButtons extends HookConsumerWidget {
           );
         },
       ),
-      buildActionButton(
-        icon: Symbols.collections,
+      buildRailSlot(
+        icon: isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+        label: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+        isSelected: isBookmarked,
+        onPressed: () async {
+          try {
+            await toggleBookmark(
+              ref,
+              postId: post.id,
+              currentlyBookmarked: isBookmarked,
+            );
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        },
+      ),
+      buildRailSlot(
+        icon: Symbols.share,
+        label: 'share'.tr(),
+        onPressed: () {
+          if (kIsWeb) {
+            showShareSheetLink(
+              context: context,
+              link: 'https://solian.app/posts/${post.id}',
+              title: 'sharePost'.tr(),
+              toSystem: true,
+            );
+            return;
+          }
+          // Both ways of sharing a post behind one action: the link via the
+          // share sheet, or a screenshot of the post itself.
+          showModalBottomSheet(
+            context: context,
+            useRootNavigator: true,
+            builder: (sheetContext) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Symbols.link),
+                    title: Text('sharePost'.tr()),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      showShareSheetLink(
+                        context: context,
+                        link: 'https://solian.app/posts/${post.id}',
+                        title: 'sharePost'.tr(),
+                        toSystem: true,
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Symbols.share_reviews),
+                    title: Text('sharePostPhoto'.tr()),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      sharePostAsScreenshot(context, ref, post);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ];
+
+    // ---- Band 2: context strip. Understanding the post, not acting on it.
+    // ---- Band 2: context strip. Understanding the post, not acting on it.
+    final translatableText = post.content?.trim() ?? '';
+    final isTranslatable = translatableText.length >= _minTranslatableLength;
+    final contextActions = <Widget>[
+      buildGhostAction(
+        icon: Symbols.forum,
+        label: 'thread'.tr(),
+        onPressed: () => _showPostThreadSheet(context, post),
+      ),
+      if (post.publisherCollections.isNotEmpty)
+        buildGhostAction(
+          icon: Symbols.collections,
           label: 'collections'.tr(),
           onPressed: () => showPostCollectionBrowserAttentionModal(post),
         ),
-      if (post.content != null && onTranslate != null)
-        buildActionButton(
+      if (onTranslate != null)
+        buildGhostAction(
           icon: Symbols.translate,
           label: 'translate'.tr(),
-          onPressed: () => onTranslate!(post.content!),
-        ),
-      if (!kIsWeb)
-        buildActionButton(
-          icon: Symbols.share_reviews,
-          label: 'sharePostPhoto'.tr(),
-          onPressed: () => sharePostAsScreenshot(context, ref, post),
+          tooltip: isTranslatable ? null : 'untranslatable'.tr(),
+          onPressed: isTranslatable
+              ? () => onTranslate!(translatableText)
+              : null,
         ),
     ];
 
+    // ---- Band 3: author console. Rare management, kept out of the social
+    // rail; delete sits apart in the danger color.
     final authorActions = <Widget>[
-      buildActionButton(
+      buildGhostAction(
         icon: Symbols.edit,
         label: 'edit'.tr(),
         onPressed: () {
@@ -479,7 +591,7 @@ class PostActionButtons extends HookConsumerWidget {
           }
         },
       ),
-      buildActionButton(
+      buildGhostAction(
         icon: post.pinMode == null ? Symbols.keep : Symbols.keep_off,
         label: post.pinMode == null ? 'pinPost'.tr() : 'unpinPost'.tr(),
         onPressed: () {
@@ -513,7 +625,7 @@ class PostActionButtons extends HookConsumerWidget {
           }
         },
       ),
-      buildActionButton(
+      buildGhostAction(
         icon: Symbols.delete,
         label: 'delete'.tr(),
         color: theme.colorScheme.error,
@@ -547,40 +659,49 @@ class PostActionButtons extends HookConsumerWidget {
               bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
             ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 8,
         children: [
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            alignment: WrapAlignment.start,
-            runAlignment: WrapAlignment.start,
-            children: primaryActions,
-          ),
-          if (secondaryActions.isNotEmpty)
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              alignment: WrapAlignment.start,
-              runAlignment: WrapAlignment.start,
-              children: secondaryActions,
+          // The instrument plate: the response rail.
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth >= 500) {
+                  return SizedBox(
+                    height: 48,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < railSlots.length; i++) ...[
+                          if (i > 0) Container(width: 1, color: hairline),
+                          Expanded(
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: railSlots[i],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }
+                return Wrap(spacing: 2, runSpacing: 2, children: railSlots);
+              },
+            ),
+          ),
+          if (contextActions.isNotEmpty)
+            Wrap(spacing: 2, runSpacing: 2, children: contextActions),
           if (isAuthor && authorActions.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(
-                  0.3,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                alignment: WrapAlignment.start,
-                runAlignment: WrapAlignment.start,
-                children: authorActions,
-              ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(spacing: 2, runSpacing: 2, children: authorActions),
             ),
         ],
       ),

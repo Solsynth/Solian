@@ -4946,5 +4946,8 @@
   "errorCode_WEBFINGER_PUBLISHER_NOT_FOUND": "發布者未得",
   "errorCode_WEBFINGER_RESOURCE_INVALID": "資源不當",
   "errorCode_WEBFINGER_RESOURCE_INVALID_FORMAT": "資源格式不當",
-  "errorCode_WEBFINGER_RESOURCE_REQUIRED": "資源必具"
+  "errorCode_WEBFINGER_RESOURCE_REQUIRED": "資源必具",
+  "postViewsCount": "閱 {} 次",
+  "thread": "論串",
+  "untranslatable": "過短不可譯"
 }

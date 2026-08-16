@@ -4970,6 +4970,9 @@
   "nameChangeCardUseFailed": "카드를 사용할 수 없습니다. 카드는 소비되지 않았습니다. 다른 이름으로 다시 시도하세요.",
   "nameChangeCardInvalidName": "사용할 수 없는 이름입니다.",
   "nameChangeCardSelectTarget": "대상을 선택하세요.",
+  "postViewsCount": "{}회 조회",
   "storeNameChangeCardTitle": "이름 변경 카드",
-  "storeNameChangeCardDescription": "100포인트로 계정, 렐름 또는 퍼블리셔 이름을 변경하세요."
+  "storeNameChangeCardDescription": "100포인트로 계정, 렐름 또는 퍼블리셔 이름을 변경하세요.",
+  "thread": "스레드",
+  "untranslatable": "번역하기엔 너무 짧습니다"
 }

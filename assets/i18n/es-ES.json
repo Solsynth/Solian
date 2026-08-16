@@ -4977,6 +4977,9 @@
   "nameChangeCardUseFailed": "No se pudo usar la tarjeta. No se ha consumido: prueba con otro nombre.",
   "nameChangeCardInvalidName": "Ese nombre no está permitido.",
   "nameChangeCardSelectTarget": "Elige un objetivo.",
+  "postViewsCount": "{} vistas",
   "storeNameChangeCardTitle": "Tarjeta de cambio de nombre",
-  "storeNameChangeCardDescription": "Renombra tu cuenta, reino o publicador por 100 puntos."
+  "storeNameChangeCardDescription": "Renombra tu cuenta, reino o publicador por 100 puntos.",
+  "thread": "Hilo",
+  "untranslatable": "Demasiado corto para traducir"
 }

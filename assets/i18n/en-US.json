@@ -5292,6 +5292,9 @@
   "nameChangeCardUseFailed": "Could not use the card. It was not consumed — try a different name.",
   "nameChangeCardInvalidName": "That name is not allowed.",
   "nameChangeCardSelectTarget": "Choose a target.",
+  "postViewsCount": "{} views",
   "storeNameChangeCardTitle": "Name Change Card",
-  "storeNameChangeCardDescription": "Rename your account, realm, or publisher for 100 points."
+  "storeNameChangeCardDescription": "Rename your account, realm, or publisher for 100 points.",
+  "thread": "Thread",
+  "untranslatable": "Too short to translate"
 }

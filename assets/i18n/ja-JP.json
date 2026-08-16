@@ -4977,6 +4977,9 @@
   "nameChangeCardUseFailed": "カードを使用できませんでした。カードは消費されていません。別の名前でお試しください。",
   "nameChangeCardInvalidName": "その名前は使用できません。",
   "nameChangeCardSelectTarget": "対象を選択してください。",
+  "postViewsCount": "{} 回の閲覧",
   "storeNameChangeCardTitle": "名前変更カード",
-  "storeNameChangeCardDescription": "100 ポイントでアカウント・レルム・パブリッシャーの名前を変更できます。"
+  "storeNameChangeCardDescription": "100 ポイントでアカウント・レルム・パブリッシャーの名前を変更できます。",
+  "thread": "スレッド",
+  "untranslatable": "短すぎて翻訳できません"
 }

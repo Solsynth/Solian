@@ -5215,6 +5215,9 @@
   "nameChangeCardUseFailed": "無法使用卡片。卡片未被消耗——請換一個名稱重試。",
   "nameChangeCardInvalidName": "該名稱不可用。",
   "nameChangeCardSelectTarget": "請選擇目標。",
+  "postViewsCount": "{} 次瀏覽",
   "storeNameChangeCardTitle": "改名卡",
-  "storeNameChangeCardDescription": "花費 100 積分重新命名你的帳號、領域或發布者。"
+  "storeNameChangeCardDescription": "花費 100 積分重新命名你的帳號、領域或發布者。",
+  "thread": "討論串",
+  "untranslatable": "內容太短，無法翻譯"
 }
