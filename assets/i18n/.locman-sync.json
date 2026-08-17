@@ -15511,18 +15511,6 @@
         "en-US": "6f8ed7c44001f1a4"
       }
     },
-    "reactionJustOkay": {
-      "sourceHash": "5f091421f7f509b3",
-      "translations": {
-        "zh-OG": "8b9cefa38e83e2fd",
-        "ko-KR": "8b9cefa38e83e2fd",
-        "es-ES": "8b9cefa38e83e2fd",
-        "ja-JP": "8b9cefa38e83e2fd",
-        "zh-CN": "8b9cefa38e83e2fd",
-        "zh-TW": "8b9cefa38e83e2fd",
-        "en-US": "8b9cefa38e83e2fd"
-      }
-    },
     "reactionLaugh": {
       "sourceHash": "978b5b54cb15c11b",
       "translations": {

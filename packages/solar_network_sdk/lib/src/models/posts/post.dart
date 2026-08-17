@@ -120,14 +120,18 @@ sealed class ReactInfo with _$ReactInfo {
 const Map<String, ReactInfo> kReactionTemplates = {
   'thumb_up': ReactInfo(icon: '👍', attitude: 0),
   'thumb_down': ReactInfo(icon: '👎', attitude: 2),
-  'just_okay': ReactInfo(icon: '😅', attitude: 1),
   'cry': ReactInfo(icon: '😭', attitude: 1),
   'confuse': ReactInfo(icon: '🧐', attitude: 1),
+  'hello': ReactInfo(icon: '👋', attitude: 1),
+  'shock': ReactInfo(icon: '😱', attitude: 1),
+  'speechless': ReactInfo(icon: '😶', attitude: 1),
+  'ridicule': ReactInfo(icon: '😏', attitude: 1),
+  'salute': ReactInfo(icon: '🫡', attitude: 0),
   'clap': ReactInfo(icon: '👏', attitude: 0),
   'laugh': ReactInfo(icon: '😂', attitude: 0),
   'angry': ReactInfo(icon: '😡', attitude: 2),
   'party': ReactInfo(icon: '🎉', attitude: 0),
-  'pray': ReactInfo(icon: '🙏', attitude: 0),
+  'pray': ReactInfo(icon: '🙏', attitude: 1),
   'heart': ReactInfo(icon: '❤️', attitude: 0),
 };
 

@@ -1723,7 +1723,7 @@ class StellarProgramView extends HookConsumerWidget {
             Tab(text: _paymentMethodLabel(method)),
         ],
       ),
-    );
+    ).padding(horizontal: 16);
   }
 
   Widget _buildMembershipTiers(

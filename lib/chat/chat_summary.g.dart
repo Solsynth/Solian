@@ -78,7 +78,7 @@ final class ChatSummaryProvider
   ChatSummary create() => ChatSummary();
 }
 
-String _$chatSummaryHash() => r'c4f397cea3559d0e9ad06fef9c6c41af6659ce5f';
+String _$chatSummaryHash() => r'2f469b629ae79baea1124f916766eea3a7a89c33';
 
 abstract class _$ChatSummary
     extends $AsyncNotifier<Map<String, SnChatSummary>> {

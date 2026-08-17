@@ -79,12 +79,14 @@ const kAvailableReactionStickers = {
   'clap',
   'confuse',
   'pray',
+  'ridicule',
   'thumb_up',
   'party',
   'sorry',
   'laugh',
   'cry',
   'thumb_down',
+  'speechless',
 };
 
 bool getReactionImageAvailable(String symbol) {

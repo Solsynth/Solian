@@ -20,6 +20,7 @@ const kAvailableStickers = {
   'clap',
   'confuse',
   'pray',
+  'ridicule',
   'thumb_up',
   'party',
   'laugh',
@@ -27,6 +28,7 @@ const kAvailableStickers = {
   'cry',
   'thumb_down',
   'heart',
+  'speechless',
 };
 
 bool _getReactionImageAvailable(String symbol) {

@@ -21,19 +21,23 @@ enum ReactionAttitude: Int {
 let kReactionTemplates: [String: ReactionInfo] = [
     "thumb_up": ReactionInfo(icon: "👍", attitude: 0),
     "thumb_down": ReactionInfo(icon: "👎", attitude: 2),
-    "just_okay": ReactionInfo(icon: "😅", attitude: 1),
     "cry": ReactionInfo(icon: "😭", attitude: 1),
     "confuse": ReactionInfo(icon: "🧐", attitude: 1),
+    "hello": ReactionInfo(icon: "👋", attitude: 1),
+    "shock": ReactionInfo(icon: "😱", attitude: 1),
+    "speechless": ReactionInfo(icon: "😶", attitude: 1),
+    "ridicule": ReactionInfo(icon: "😏", attitude: 1),
+    "salute": ReactionInfo(icon: "🫡", attitude: 0),
     "clap": ReactionInfo(icon: "👏", attitude: 0),
     "laugh": ReactionInfo(icon: "😂", attitude: 0),
     "angry": ReactionInfo(icon: "😡", attitude: 2),
     "party": ReactionInfo(icon: "🎉", attitude: 0),
-    "pray": ReactionInfo(icon: "🙏", attitude: 0),
+    "pray": ReactionInfo(icon: "🙏", attitude: 1),
     "heart": ReactionInfo(icon: "❤️", attitude: 0),
 ]
 
-let kPositiveReactions = ["thumb_up", "clap", "laugh", "party", "pray", "heart"]
-let kNeutralReactions = ["just_okay", "cry", "confuse"]
+let kPositiveReactions = ["thumb_up", "clap", "laugh", "party", "salute", "heart"]
+let kNeutralReactions = ["cry", "confuse", "hello", "shock", "speechless", "ridicule", "pray"]
 let kNegativeReactions = ["thumb_down", "angry"]
 
 func getReactionIcon(_ symbol: String) -> String {
