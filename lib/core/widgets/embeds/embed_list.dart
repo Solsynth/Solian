@@ -41,22 +41,24 @@ class EmbedListWidget extends ConsumerStatefulWidget {
   ConsumerState<EmbedListWidget> createState() => _EmbedListWidgetState();
 }
 
-class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
+class _EmbedListWidgetState extends ConsumerState<EmbedListWidget>
+    with AutomaticKeepAliveClientMixin<EmbedListWidget> {
   bool _isExpanded = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settings = ref.read(appSettingsProvider);
-      setState(() {
-        _isExpanded = settings.linkCollapseMode == 'expand';
-      });
-    });
+    // Read the initial mode synchronously. Deferring this to the first frame
+    // makes every newly mounted chat row animate from collapsed to expanded.
+    _isExpanded = ref.read(appSettingsProvider).linkCollapseMode == 'expand';
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final linkEmbeds = widget.embeds.where((e) => e['type'] == 'link').toList();
     final otherEmbeds = widget.embeds
         .where((e) => e['type'] != 'link')
