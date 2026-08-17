@@ -1851,7 +1851,7 @@
   "storageSettings": "Almacenamiento y Acceso",
   "storageSettingsDescription": "Administrar tokens WebDAV, claves S3 y pools de almacenamiento",
   "quotaPurchase": "Comprar cuota extra",
-  "quotaPurchaseDescription": "Compra cuota de almacenamiento extra de una sola vez",
+  "quotaPurchaseDescription": "Compra cuota de almacenamiento extra válida durante 30 días con puntos dorados",
   "quotaPurchaseExtraQuota": "Cuota extra",
   "freeSpace": "Espacio libre",
   "quotaPurchaseRecords": "Historial de compras",

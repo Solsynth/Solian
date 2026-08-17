@@ -2175,7 +2175,7 @@
   "storageSettings": "스토리지 및 액세스",
   "storageSettingsDescription": "WebDAV 토큰, S3 키, 스토리지 풀 관리",
   "quotaPurchase": "추가 할당량 구매",
-  "quotaPurchaseDescription": "일회성 추가 저장 할당량 구매",
+  "quotaPurchaseDescription": "골든 포인트로 30일 동안 유효한 추가 저장 공간 할당량 구매",
   "quotaPurchaseExtraQuota": "추가 할당량",
   "freeSpace": "남은 공간",
   "quotaPurchaseRecords": "구매 기록",

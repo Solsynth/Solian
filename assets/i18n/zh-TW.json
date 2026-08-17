@@ -3432,7 +3432,7 @@
   "storageSettings": "儲存與訪問",
   "storageSettingsDescription": "管理 WebDAV 令牌、S3 金鑰和儲存池",
   "quotaPurchase": "購買額外配額",
-  "quotaPurchaseDescription": "購買一次性額外儲存配額",
+  "quotaPurchaseDescription": "使用金點購買有效期 30 天的額外儲存配額",
   "quotaPurchaseExtraQuota": "額外配額",
   "freeSpace": "可用空間",
   "quotaPurchaseRecords": "購買記錄",

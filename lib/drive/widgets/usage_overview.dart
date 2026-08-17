@@ -4,6 +4,7 @@ import 'package:island/core/utils/format.dart';
 import 'package:island/drive/widgets/quota_sidebar.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 /// Full-size storage panel, opened from the drive list.
 ///
@@ -95,7 +96,7 @@ class UsageOverviewWidget extends StatelessWidget {
             ),
           ],
         ],
-      ),
+      ).padding(horizontal: 8),
     );
   }
 
@@ -250,11 +251,13 @@ class UsageOverviewWidget extends StatelessWidget {
         ),
         if (extraMb > 0)
           _LegendItem(
-            swatch: CustomPaint(
-              size: const Size(10, 10),
-              painter: HatchSwatchPainter(
-                fill: scheme.tertiary.withValues(alpha: 0.35),
-                hatch: scheme.tertiary,
+            swatch: ClipRect(
+              child: CustomPaint(
+                size: const Size(10, 10),
+                painter: HatchSwatchPainter(
+                  fill: scheme.tertiary.withValues(alpha: 0.35),
+                  hatch: scheme.tertiary,
+                ),
               ),
             ),
             label: 'quotaPurchaseExtraQuota'.tr(),

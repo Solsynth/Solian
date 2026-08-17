@@ -3643,7 +3643,7 @@
   "storageSettings": "Storage & Access",
   "storageSettingsDescription": "Manage WebDAV tokens, S3 keys, and storage pools",
   "quotaPurchase": "Buy Extra Quota",
-  "quotaPurchaseDescription": "Purchase one-time extra storage quota",
+  "quotaPurchaseDescription": "Buy extra storage quota valid for 30 days with Golden Points",
   "quotaPurchaseExtraQuota": "Extra quota",
   "freeSpace": "Free space",
   "quotaPurchaseRecords": "Purchase records",

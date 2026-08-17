@@ -330,6 +330,16 @@ class AccountFeatureWidget extends HookConsumerWidget {
             ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
+              leading: const Icon(Symbols.report),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              dense: true,
+              title: Text('tickets').tr(),
+              onTap: () {
+                context.router.push(const TicketListRoute());
+              },
+            ),
+            ListTile(
               leading: const Icon(Symbols.settings),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),

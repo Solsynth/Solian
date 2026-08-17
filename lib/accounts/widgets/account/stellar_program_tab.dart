@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/shared/hooks/material_hooks.dart';
@@ -19,7 +20,9 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/payments/quota_purchase_sheet.dart';
 import 'package:island/payments/payment_overlay.dart';
 import 'package:island/payments/iap_service.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -638,7 +641,7 @@ class StellarProgramView extends HookConsumerWidget {
       }
     }
 
-    return SingleChildScrollView(
+    final content = SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -661,10 +664,6 @@ class StellarProgramView extends HookConsumerWidget {
               supportsIap,
             )
           else ...[
-            _buildGoldenPointsStoreCard(context, ref, supportsIap, iapProducts),
-            const Gap(12),
-            _buildNameChangeCardStoreCard(context),
-            const Gap(12),
             _buildMembershipSection(
               context,
               tabController,
@@ -675,6 +674,10 @@ class StellarProgramView extends HookConsumerWidget {
               paymentMethods,
               compactPurchase: false,
             ),
+            _buildGoldenPointsStoreCard(context, ref, supportsIap, iapProducts),
+            const Gap(12),
+            _buildNameChangeCardStoreCard(context),
+            const Gap(12),
           ],
           if (showStoreHeader) ...[
             const Gap(28),
@@ -693,6 +696,17 @@ class StellarProgramView extends HookConsumerWidget {
         ],
       ),
     );
+
+    if (showStoreHeader) {
+      return AppScaffold(
+        appBar: AppBar(
+          title: Text('store').tr(),
+          leading: const AutoLeadingButton(),
+        ),
+        body: content,
+      );
+    }
+    return content;
   }
 
   Widget _buildStoreProductGrid(
@@ -716,17 +730,10 @@ class StellarProgramView extends HookConsumerWidget {
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: 3,
+          itemCount: 4,
           itemBuilder: (context, index) {
             return switch (index) {
-              0 => _buildGoldenPointsStoreCard(
-                context,
-                ref,
-                supportsIap,
-                iapProducts,
-              ),
-              1 => _buildNameChangeCardStoreCard(context),
-              _ => _buildMembershipSection(
+              0 => _buildMembershipSection(
                 context,
                 tabController,
                 ref,
@@ -736,6 +743,14 @@ class StellarProgramView extends HookConsumerWidget {
                 paymentMethods,
                 compactPurchase: true,
               ),
+              1 => _buildGoldenPointsStoreCard(
+                context,
+                ref,
+                supportsIap,
+                iapProducts,
+              ),
+              2 => _buildNameChangeCardStoreCard(context),
+              _ => _buildQuotaPurchaseCard(context),
             };
           },
         );
@@ -828,21 +843,16 @@ class StellarProgramView extends HookConsumerWidget {
     }
 
     if (compactPurchase) {
-      final tierName = isActive && currentSubscription != null
-          ? _getMembershipTierName(currentSubscription.identifier)
-          : null;
       final tierColor = isActive && currentSubscription != null
           ? _getMembershipTierColor(context, currentSubscription.identifier)
           : scheme.secondary;
 
-      return _StoreProductCard(
+      return StoreProductCard(
+        image: Image.asset("assets/images/store/stellar-program.webp"),
         accent: tierColor,
-        icon: isActive ? Icons.auto_awesome : Icons.star_border_rounded,
-        eyebrow: 'stellarProgram'.tr().toUpperCase(),
+        backgroundColor: const Color(0xFF2A3048),
         title: 'stellarMembership'.tr(),
-        description: isActive
-            ? 'currentMembership'.tr(args: [tierName!])
-            : 'stellarProgramAbout'.tr(),
+        description: 'stellarProgramAbout'.tr(),
         meta: isActive && currentSubscription?.endedAt != null
             ? 'membershipExpires'.tr(
                 args: [currentSubscription!.endedAt!.formatSystem()],
@@ -850,29 +860,6 @@ class StellarProgramView extends HookConsumerWidget {
             : isActive
             ? null
             : 'stellarDurationNote'.tr(),
-        trailingAction: IconButton.filledTonal(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              builder: (context) {
-                return SheetScaffold(
-                  titleText: 'stellarProgram'.tr(),
-                  child: Column(
-                    spacing: 12,
-                    children: [
-                      Text('stellarProgramAbout'.tr()),
-                      Text('stellarProgramAboutPricing'.tr()),
-                    ],
-                  ).padding(horizontal: 24, vertical: 16),
-                );
-              },
-            );
-          },
-          icon: const Icon(Symbols.help, size: 18),
-          visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-        ),
         footer: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -948,32 +935,6 @@ class StellarProgramView extends HookConsumerWidget {
                       ),
                     ),
                   ],
-                ),
-              ),
-              IconButton.filledTonal(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useRootNavigator: true,
-                    builder: (context) {
-                      return SheetScaffold(
-                        titleText: 'stellarProgram'.tr(),
-                        child: Column(
-                          spacing: 12,
-                          children: [
-                            Text('stellarProgramAbout'.tr()),
-                            Text('stellarProgramAboutPricing'.tr()),
-                          ],
-                        ).padding(horizontal: 24, vertical: 16),
-                      );
-                    },
-                  );
-                },
-                icon: const Icon(Symbols.help, size: 20),
-                visualDensity: const VisualDensity(
-                  horizontal: -4,
-                  vertical: -4,
                 ),
               ),
             ],
@@ -1373,10 +1334,11 @@ class StellarProgramView extends HookConsumerWidget {
     bool supportsIap,
     Map<String, String> iapProducts,
   ) {
-    return _StoreProductCard(
+    return StoreProductCard(
       accent: const Color(0xFFE8B84A),
-      icon: Symbols.account_balance_wallet,
-      eyebrow: 'GOLDEN POINTS',
+      image: Image.asset('assets/images/store/golden-points.webp'),
+      backgroundColor: const Color(0xFFF8F3E4),
+      imageAspectRatio: 16 / 9,
       title: 'storeGoldenPointsTitle'.tr(),
       description: 'storeGoldenPointsDescription'.tr(),
       footer: FilledButton.icon(
@@ -1393,10 +1355,11 @@ class StellarProgramView extends HookConsumerWidget {
   Widget _buildNameChangeCardStoreCard(BuildContext context) {
     const accent = Color(0xFF4C6EF5);
 
-    return _StoreProductCard(
+    return StoreProductCard(
+      image: Image.asset('assets/images/store/change-name-card.webp'),
       accent: accent,
-      icon: Symbols.badge,
-      eyebrow: 'NAME',
+      backgroundColor: const Color(0xFFCCC3C4),
+      imageAspectRatio: 16 / 9,
       title: 'storeNameChangeCardTitle'.tr(),
       description: 'storeNameChangeCardDescription'.tr(),
       footer: FilledButton.icon(
@@ -1465,6 +1428,32 @@ class StellarProgramView extends HookConsumerWidget {
                   Icon(Icons.chevron_right_rounded, color: scheme.outline),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuotaPurchaseCard(BuildContext context) {
+    return StoreProductCard(
+      accent: const Color(0xFF2E8B8B),
+      image: Image.asset('assets/images/store/extra-storage.webp'),
+      backgroundColor: const Color(0xFFB6B6CB),
+      imageAspectRatio: 16 / 9,
+      title: 'quotaPurchase'.tr(),
+      description: 'quotaPurchaseDescription'.tr(),
+      footer: FilledButton.icon(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => const QuotaPurchaseSheet(),
+          );
+        },
+        icon: const Icon(Symbols.add_card),
+        label: Text('purchase'.tr()),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(double.infinity, 48),
         ),
       ),
     );
@@ -3270,112 +3259,159 @@ class _StellarPurchaseSheet extends HookConsumerWidget {
   }
 }
 
-class _StoreProductCard extends StatelessWidget {
+class StoreProductCard extends StatelessWidget {
   final Color accent;
-  final IconData icon;
-  final String eyebrow;
+  final Color? backgroundColor;
   final String title;
   final String description;
+  final Widget? image;
+  final double imageAspectRatio;
   final String? meta;
-  final Widget? trailingAction;
   final Widget footer;
 
-  const _StoreProductCard({
+  const StoreProductCard({
+    super.key,
     required this.accent,
-    required this.icon,
-    required this.eyebrow,
     required this.title,
     required this.description,
     required this.footer,
     this.meta,
-    this.trailingAction,
+    this.image,
+    this.backgroundColor,
+    this.imageAspectRatio = 1,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final cardColor = backgroundColor ?? scheme.surfaceContainerLow;
+    final isDarkBackground = cardColor.computeLuminance() < 0.5;
+    final titleColor = isDarkBackground ? Colors.white : Colors.black87;
+    final secondaryTextColor = isDarkBackground
+        ? Colors.white70
+        : Colors.black54;
 
     return Card(
-      color: scheme.surfaceContainerLow,
+      color: cardColor,
       elevation: 0,
       margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: scheme.outlineVariant.withOpacity(0.7)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (image != null)
+            AspectRatio(
+              aspectRatio: imageAspectRatio,
+              child: Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(child: image!),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: -1,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [0.28, 1],
+                          colors: [
+                            Colors.transparent,
+                            cardColor.withOpacity(0.98),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: Alignment.topRight,
+                        radius: 1.2,
+                        colors: [
+                          accent.withOpacity(0.12),
+                          accent.withOpacity(0),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 18,
+                    right: 18,
+                    bottom: -18,
+                    child: Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: titleColor,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                        shadows: [
+                          Shadow(
+                            color: Colors.white.withOpacity(0.72),
+                            blurRadius: 12,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: image == null
+                ? const EdgeInsets.all(18)
+                : const EdgeInsets.fromLTRB(18, 28, 18, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
+                if (image == null) ...[
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: titleColor,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                    ),
                   ),
-                  child: Icon(icon, color: accent, size: 26),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        eyebrow,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w800,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const Gap(4),
-                      Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
+                  const Gap(12),
+                ],
+                Text(
+                  description,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: secondaryTextColor,
+                    height: 1.4,
                   ),
                 ),
-                ?trailingAction,
+                if (meta != null) ...[
+                  const Gap(8),
+                  Text(
+                    meta!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+                const Gap(16),
+                footer,
               ],
             ),
-            const Gap(12),
-            Text(
-              description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-                height: 1.4,
-              ),
-            ),
-            if (meta != null) ...[
-              const Gap(8),
-              Text(
-                meta!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-            const Gap(16),
-            footer,
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -234,6 +234,7 @@ flutter:
     - assets/images/oidc/
     - assets/images/stickers/
     - assets/images/michan/
+    - assets/images/store/
     - assets/icons/
     - assets/audio/
 

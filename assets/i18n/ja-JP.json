@@ -1939,7 +1939,7 @@
   "storageSettings": "ストレージとアクセス",
   "storageSettingsDescription": "WebDAV トークン、S3 キー、ストレージプールを管理",
   "quotaPurchase": "追加クォータを購入",
-  "quotaPurchaseDescription": "一回限りの追加ストレージクォータを購入",
+  "quotaPurchaseDescription": "ゴールデンポイントで有効期間30日の追加ストレージクォータを購入",
   "quotaPurchaseExtraQuota": "追加クォータ",
   "freeSpace": "空き容量",
   "quotaPurchaseRecords": "購入履歴",
