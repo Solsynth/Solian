@@ -27,6 +27,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 part 'stellar_program_tab.g.dart';
 
@@ -230,15 +231,12 @@ class GoldResupplyOffer {
     return null;
   }
 
-  List<PaymentMethodTab> availablePaymentMethods({
-    required bool supportsIap,
-  }) {
+  List<PaymentMethodTab> availablePaymentMethods({required bool supportsIap}) {
     final methods = <PaymentMethodTab>[];
-    if (supportsIap &&
-        offerFor(const ['AppleStore', 'apple_store', 'apple']) != null) {
+    if (supportsIap && offerFor(const ['apple_store']) != null) {
       methods.add(PaymentMethodTab.appleIap);
     }
-    if (offerFor(const ['Afdian', 'afdian']) != null &&
+    if (offerFor(const ['afdian']) != null &&
         (!supportsIap || _offerAfdianInDebug)) {
       methods.add(PaymentMethodTab.afdian);
     }
@@ -248,10 +246,9 @@ class GoldResupplyOffer {
   int pointsFor(PaymentMethodTab method) {
     return switch (method) {
       PaymentMethodTab.appleIap =>
-        offerFor(const ['AppleStore', 'apple_store', 'apple'])?.value ??
-            applePointsPerUnit,
+        offerFor(const ['apple_store'])?.value ?? applePointsPerUnit,
       PaymentMethodTab.afdian =>
-        offerFor(const ['Afdian', 'afdian'])?.value ?? applePointsPerUnit,
+        offerFor(const ['afdian'])?.value ?? applePointsPerUnit,
       PaymentMethodTab.wallet => applePointsPerUnit,
     };
   }
@@ -284,7 +281,9 @@ final walletProductCatalogProvider =
       return const [];
     });
 
-final goldResupplyOfferProvider = Provider<GoldResupplyOffer>((ref) {
+final goldResupplyOfferProvider = Provider.autoDispose<GoldResupplyOffer>((
+  ref,
+) {
   final catalog = ref.watch(walletProductCatalogProvider).asData?.value;
   if (catalog == null || catalog.isEmpty) {
     return GoldResupplyOffer.fallback;
@@ -297,11 +296,7 @@ final goldResupplyOfferProvider = Provider<GoldResupplyOffer>((ref) {
     orElse: () => catalog.first,
   );
 
-  final apple = product.productOfferFor(const [
-    'AppleStore',
-    'apple_store',
-    'apple',
-  ]);
+  final apple = product.productOfferFor(const ['apple_store']);
 
   return GoldResupplyOffer(
     appleProductId: apple?.key ?? _goldResupplyFallbackAppleProductId,
@@ -648,33 +643,39 @@ class StellarProgramView extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildStoreIntro(context),
           if (showStoreHeader && sandboxPurchaseEnvironment.value == true) ...[
-            _buildSandboxPurchaseWarning(context),
             const Gap(16),
+            _buildSandboxPurchaseWarning(context),
           ],
-          if (showStoreHeader) ...[
-            _buildStoreIntro(context),
-            const Gap(18),
-            _buildGoldenPointsStoreCard(
+          const Gap(18),
+          if (showStoreHeader)
+            _buildStoreProductGrid(
               context,
               ref,
-              supportsIap,
+              stellarSubscription,
+              tabController,
+              safeSelectedTab,
               iapProducts,
-            ),
+              paymentMethods,
+              supportsIap,
+            )
+          else ...[
+            _buildGoldenPointsStoreCard(context, ref, supportsIap, iapProducts),
             const Gap(12),
             _buildNameChangeCardStoreCard(context),
             const Gap(12),
+            _buildMembershipSection(
+              context,
+              tabController,
+              ref,
+              stellarSubscription,
+              safeSelectedTab,
+              iapProducts,
+              paymentMethods,
+              compactPurchase: false,
+            ),
           ],
-          _buildMembershipSection(
-            context,
-            tabController,
-            ref,
-            stellarSubscription,
-            safeSelectedTab,
-            iapProducts,
-            paymentMethods,
-            compactPurchase: showStoreHeader,
-          ),
           if (showStoreHeader) ...[
             const Gap(28),
             _buildStoreUtilitiesHeader(context),
@@ -691,6 +692,54 @@ class StellarProgramView extends HookConsumerWidget {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildStoreProductGrid(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<SnWalletSubscription?> stellarSubscription,
+    TabController tabController,
+    int selectedTab,
+    Map<String, String> iapProducts,
+    List<PaymentMethodTab> paymentMethods,
+    bool supportsIap,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth >= 560 ? 2 : 1;
+
+        return MasonryGridView.count(
+          crossAxisCount: crossAxisCount,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 3,
+          itemBuilder: (context, index) {
+            return switch (index) {
+              0 => _buildGoldenPointsStoreCard(
+                context,
+                ref,
+                supportsIap,
+                iapProducts,
+              ),
+              1 => _buildNameChangeCardStoreCard(context),
+              _ => _buildMembershipSection(
+                context,
+                tabController,
+                ref,
+                stellarSubscription,
+                selectedTab,
+                iapProducts,
+                paymentMethods,
+                compactPurchase: true,
+              ),
+            };
+          },
+        );
+      },
     );
   }
 
@@ -829,9 +878,7 @@ class StellarProgramView extends HookConsumerWidget {
           children: [
             if (isActive && isWalletSubscription) ...[
               FilledButton.tonalIcon(
-                style: FilledButton.styleFrom(
-                  foregroundColor: scheme.error,
-                ),
+                style: FilledButton.styleFrom(foregroundColor: scheme.error),
                 onPressed: membershipCancel,
                 icon: const Icon(Symbols.cancel),
                 label: Text('membershipCancel'.tr()),
@@ -840,9 +887,7 @@ class StellarProgramView extends HookConsumerWidget {
             ],
             FilledButton.icon(
               onPressed: openPurchaseSheet,
-              icon: Icon(
-                isActive ? Symbols.swap_horiz : Symbols.shopping_bag,
-              ),
+              icon: Icon(isActive ? Symbols.swap_horiz : Symbols.shopping_bag),
               label: Text(
                 isActive ? 'chooseYourPlan'.tr() : 'subscribeNow'.tr(),
               ),
@@ -1039,11 +1084,7 @@ class StellarProgramView extends HookConsumerWidget {
           const Gap(16),
         ],
         if (showPaymentTabs) ...[
-          _buildPaymentMethodTabBar(
-            context,
-            tabController,
-            paymentMethods,
-          ),
+          _buildPaymentMethodTabBar(context, tabController, paymentMethods),
           const Gap(16),
         ],
         _buildMembershipTiers(
@@ -1232,14 +1273,6 @@ class StellarProgramView extends HookConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'SOLAR NETWORK',
-          style: theme.textTheme.labelLarge?.copyWith(
-            letterSpacing: 1.4,
-            fontWeight: FontWeight.w700,
-            color: scheme.primary,
-          ),
-        ),
         const Gap(6),
         Text(
           'store'.tr(),
@@ -1277,9 +1310,7 @@ class StellarProgramView extends HookConsumerWidget {
         ),
         Text(
           'Manage purchases & gifts',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: scheme.outline,
-          ),
+          style: theme.textTheme.labelMedium?.copyWith(color: scheme.outline),
         ),
       ],
     );
@@ -1342,26 +1373,18 @@ class StellarProgramView extends HookConsumerWidget {
     bool supportsIap,
     Map<String, String> iapProducts,
   ) {
-    final goldOffer = ref.watch(goldResupplyOfferProvider);
-    final price = iapProducts[goldOffer.appleProductId];
-    final pointsLabel =
-        '${goldOffer.applePointsPerUnit} Golden Points / unit';
-
     return _StoreProductCard(
       accent: const Color(0xFFE8B84A),
       icon: Symbols.account_balance_wallet,
       eyebrow: 'GOLDEN POINTS',
       title: 'storeGoldenPointsTitle'.tr(),
       description: 'storeGoldenPointsDescription'.tr(),
-      meta: price == null ? pointsLabel : '$price · $pointsLabel',
       footer: FilledButton.icon(
         onPressed: () => _showGoldPurchaseSheet(context, ref),
         icon: const Icon(Symbols.shopping_bag),
         label: Text('purchase'.tr()),
         style: FilledButton.styleFrom(
           minimumSize: const Size(double.infinity, 48),
-          backgroundColor: const Color(0xFFE8B84A),
-          foregroundColor: const Color(0xFF2A1B00),
         ),
       ),
     );
@@ -1373,18 +1396,15 @@ class StellarProgramView extends HookConsumerWidget {
     return _StoreProductCard(
       accent: accent,
       icon: Symbols.badge,
-      eyebrow: 'NAME CHANGE CARD',
+      eyebrow: 'NAME',
       title: 'storeNameChangeCardTitle'.tr(),
       description: 'storeNameChangeCardDescription'.tr(),
-      meta: 'nameChangeCardPrice'.tr(),
       footer: FilledButton.icon(
         onPressed: () => showNameChangeCardSheet(context),
         icon: const Icon(Symbols.add_card),
         label: Text('nameChangeCardPurchase'.tr()),
         style: FilledButton.styleFrom(
           minimumSize: const Size(double.infinity, 48),
-          backgroundColor: accent,
-          foregroundColor: Colors.white,
         ),
       ),
     );
@@ -1524,12 +1544,8 @@ class StellarProgramView extends HookConsumerWidget {
       description: 'subscriptionRecordsSubtitle'.tr(
         args: [queuedSubscriptions.length.toString()],
       ),
-      onTap: () => _showSubscriptionQueueSheet(
-        context,
-        ref,
-        group,
-        queuedSubscriptions,
-      ),
+      onTap: () =>
+          _showSubscriptionQueueSheet(context, ref, group, queuedSubscriptions),
     );
   }
 
@@ -1708,9 +1724,9 @@ class StellarProgramView extends HookConsumerWidget {
         ),
         labelColor: scheme.onPrimaryContainer,
         unselectedLabelColor: scheme.onSurfaceVariant,
-        labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
+        labelStyle: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
         unselectedLabelStyle: Theme.of(context).textTheme.labelLarge,
         padding: const EdgeInsets.all(4),
         tabs: [
@@ -1742,20 +1758,18 @@ class StellarProgramView extends HookConsumerWidget {
             : paymentMethods[selectedTab.clamp(0, paymentMethods.length - 1)];
         final effectiveMethod = _paymentMethodCode(method);
 
-        final tiers =
-            group.catalog.items.where((tier) {
-              if (effectiveMethod == 0) {
-                return tier.allowedPaymentMethods.contains('solian.wallet');
-              }
-              if (effectiveMethod == 1) {
-                return tier.allowedPaymentMethods.contains('apple_store');
-              }
-              if (effectiveMethod == 2) {
-                return tier.allowedPaymentMethods.contains('afdian');
-              }
-              return false;
-            }).toList()
-              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+        final tiers = group.catalog.items.where((tier) {
+          if (effectiveMethod == 0) {
+            return tier.allowedPaymentMethods.contains('solian.wallet');
+          }
+          if (effectiveMethod == 1) {
+            return tier.allowedPaymentMethods.contains('apple_store');
+          }
+          if (effectiveMethod == 2) {
+            return tier.allowedPaymentMethods.contains('afdian');
+          }
+          return false;
+        }).toList()..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
         if (tiers.isEmpty) {
           return Center(child: Text('noTiersAvailable'.tr()));
@@ -1827,7 +1841,6 @@ class StellarProgramView extends HookConsumerWidget {
         return colorScheme.primary;
     }
   }
-
 
   Future<void> _showRestorePurchaseSheet(
     BuildContext context,
@@ -2003,12 +2016,13 @@ class StellarProgramView extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final result = await showModalBottomSheet<({PaymentMethodTab method, int quantity})>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      builder: (context) => const _GoldPurchaseSheet(),
-    );
+    final result =
+        await showModalBottomSheet<({PaymentMethodTab method, int quantity})>(
+          context: context,
+          useRootNavigator: true,
+          isScrollControlled: true,
+          builder: (context) => const _GoldPurchaseSheet(),
+        );
     if (result == null || !context.mounted) return;
 
     if (result.method == PaymentMethodTab.appleIap) {
@@ -2055,6 +2069,11 @@ class StellarProgramView extends HookConsumerWidget {
   }) async {
     final iapService = ref.read(iapServiceProvider);
     final userAsync = ref.read(userInfoProvider);
+
+    // Solar Network use all caps in the Product ID
+    // The backend will transform the map keys to snake case so they became lower case
+    // We convert them back here.
+    productId = productId.toUpperCase();
 
     try {
       showLoadingModal(context);
@@ -2290,10 +2309,7 @@ class StellarProgramView extends HookConsumerWidget {
     );
   }
 
-  Future<void> _showGiftPlanSheet(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  Future<void> _showGiftPlanSheet(BuildContext context, WidgetRef ref) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -2307,7 +2323,6 @@ class StellarProgramView extends HookConsumerWidget {
       },
     );
   }
-
 
   Widget _buildGiftRedeemSection(BuildContext context, WidgetRef ref) {
     final codeController = useTextEditingController();
@@ -2893,10 +2908,7 @@ class _GoldPurchaseSheet extends HookConsumerWidget {
 
     void confirmPurchase() {
       if (!context.mounted || paymentMethods.isEmpty) return;
-      Navigator.of(context).pop((
-        method: method,
-        quantity: quantity.value,
-      ));
+      Navigator.of(context).pop((method: method, quantity: quantity.value));
     }
 
     return SheetScaffold(
@@ -3037,9 +3049,7 @@ class _GoldPurchaseSheet extends HookConsumerWidget {
                       controller: controller,
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: 'quantity'.tr(),
                         helperText: 'storeGoldQuantityLimit'.tr(),
@@ -3073,9 +3083,7 @@ class _GoldPurchaseSheet extends HookConsumerWidget {
             const Gap(20),
             FilledButton.icon(
               onPressed: paymentMethods.isEmpty ? null : confirmPurchase,
-              icon: Icon(
-                isApple ? Symbols.shopping_bag : Symbols.open_in_new,
-              ),
+              icon: Icon(isApple ? Symbols.shopping_bag : Symbols.open_in_new),
               label: Text(
                 isApple
                     ? (unitPriceLabel == null
@@ -3150,13 +3158,19 @@ class _GiftPlanSheet extends HookConsumerWidget {
                   Center(child: Text('Error loading gift options: $error')),
             ),
             const Gap(24),
-            view._buildSectionHeader(context, title: 'redeemAGift'.tr()).padding(horizontal: 24),
+            view
+                ._buildSectionHeader(context, title: 'redeemAGift'.tr())
+                .padding(horizontal: 24),
             const Gap(8),
             view._buildGiftRedeemSection(context, ref).padding(horizontal: 24),
             const Gap(16),
-            view._buildSectionHeader(context, title: 'giftHistory'.tr()).padding(horizontal: 24),
+            view
+                ._buildSectionHeader(context, title: 'giftHistory'.tr())
+                .padding(horizontal: 24),
             const Gap(8),
-            view._buildGiftHistory(context, ref, sentGifts, receivedGifts).padding(horizontal: 24),
+            view
+                ._buildGiftHistory(context, ref, sentGifts, receivedGifts)
+                .padding(horizontal: 24),
           ],
         ),
       ),
@@ -3282,25 +3296,13 @@ class _StoreProductCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.alphaBlend(accent.withOpacity(0.22), scheme.surface),
-            Color.alphaBlend(accent.withOpacity(0.08), scheme.surfaceContainerLow),
-          ],
-        ),
-        border: Border.all(color: accent.withOpacity(0.28)),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withOpacity(0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+    return Card(
+      color: scheme.surfaceContainerLow,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: scheme.outlineVariant.withOpacity(0.7)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -3314,7 +3316,7 @@ class _StoreProductCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: accent.withOpacity(0.18),
+                    color: scheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(icon, color: accent, size: 26),
@@ -3329,12 +3331,14 @@ class _StoreProductCard extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           letterSpacing: 1.2,
                           fontWeight: FontWeight.w800,
-                          color: accent,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                       const Gap(4),
                       Text(
                         title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                           height: 1.1,
@@ -3349,13 +3353,25 @@ class _StoreProductCard extends StatelessWidget {
             const Gap(12),
             Text(
               description,
-              maxLines: 3,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurface.withOpacity(0.78),
+                color: scheme.onSurfaceVariant,
                 height: 1.4,
               ),
             ),
+            if (meta != null) ...[
+              const Gap(8),
+              Text(
+                meta!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
             const Gap(16),
             footer,
           ],
@@ -3551,6 +3567,7 @@ class _PlanHoverArrowButton extends StatelessWidget {
     );
   }
 }
+
 class _MembershipTierCard extends StatelessWidget {
   final SnSubscriptionCatalog tier;
   final bool isCurrentTier;
