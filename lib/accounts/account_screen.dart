@@ -350,6 +350,16 @@ class AccountFeatureWidget extends HookConsumerWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Symbols.workspaces),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              dense: true,
+              title: Text('workspaceManagement').tr(),
+              onTap: () {
+                context.router.push(const WorkspaceManagementRoute());
+              },
+            ),
+            ListTile(
               leading: const Icon(Symbols.manage_accounts),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),

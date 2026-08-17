@@ -135,6 +135,11 @@ class AppRouter extends RootStackRouter {
             ),
 
             AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
+            AutoRoute(page: WorkspaceManagementRoute.page, path: 'workspaces'),
+            AutoRoute(
+              page: WorkspaceDetailRoute.page,
+              path: 'workspaces/:slug',
+            ),
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
             AutoRoute(page: AccountActivationRoute.page, path: 'me/activation'),
             AutoRoute(page: AccountBoardEditRoute.page, path: 'me/board'),
