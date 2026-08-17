@@ -2035,6 +2035,27 @@ class TransactionListNotifier
   }
 }
 
+final walletBillingRecordsProvider = AsyncNotifierProvider.autoDispose(
+  WalletBillingRecordsNotifier.new,
+);
+
+class WalletBillingRecordsNotifier
+    extends AsyncNotifier<PaginationState<SnWalletBillingRecord>>
+    with AsyncPaginationController<SnWalletBillingRecord> {
+  static const int pageSize = 20;
+
+  @override
+  Future<List<SnWalletBillingRecord>> fetch() async {
+    final client = ref.read(solarNetworkClientProvider);
+    final result = await client.wallet.getBillingRecords(
+      offset: fetchedCount,
+      take: pageSize,
+    );
+    totalCount = result.totalCount;
+    return result.items;
+  }
+}
+
 final walletFundsProvider = AsyncNotifierProvider.autoDispose(
   WalletFundsNotifier.new,
 );
@@ -2541,7 +2562,7 @@ class WalletScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wallets = ref.watch(walletListProvider);
     final realmsAsync = ref.watch(realmsJoinedProvider);
-    final tabController = useMaterialTabController(initialLength: 2);
+    final tabController = useMaterialTabController(initialLength: 3);
     final currentTabIndex = useState(0);
     final selectedCurrency = useState<String>('points');
     final isBalanceVisible = useState<bool>(true);
@@ -3017,6 +3038,7 @@ class WalletScreen extends HookConsumerWidget {
                   tabs: [
                     Tab(text: 'transactions'.tr()),
                     Tab(text: 'myFunds'.tr()),
+                    Tab(text: 'order'.tr()),
                   ],
                 ),
               ),
@@ -3033,6 +3055,7 @@ class WalletScreen extends HookConsumerWidget {
                   createTransfer,
                 ),
                 _buildFundsList(context, ref),
+                _buildBillingRecordsList(context, ref),
               ],
             ),
           );
@@ -3684,9 +3707,9 @@ class WalletScreen extends HookConsumerWidget {
               showSelectedIcon: false,
               style: SegmentedButton.styleFrom(
                 visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
-                textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                textStyle: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               onSelectionChanged: (values) {
                 final value = values.first;
@@ -3731,10 +3754,7 @@ class WalletScreen extends HookConsumerWidget {
                     if (day == null) return item;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildDayHeader(context, day),
-                        item,
-                      ],
+                      children: [_buildDayHeader(context, day), item],
                     );
                   },
                 ),
@@ -3899,10 +3919,8 @@ class WalletScreen extends HookConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final amountColor =
-        isIncome ? incomeColor(context) : expenseColor(context);
-    final description =
-        (transaction.remarks?.isNotEmpty ?? false)
+    final amountColor = isIncome ? incomeColor(context) : expenseColor(context);
+    final description = (transaction.remarks?.isNotEmpty ?? false)
         ? transaction.remarks!
         : (transaction.type == 0 ? 'transfer'.tr() : 'payment'.tr());
     final statusLabel = _buildTransactionStatusLabel(context, transaction);
@@ -3980,10 +3998,7 @@ class WalletScreen extends HookConsumerWidget {
                   ],
                 ),
               ),
-              if (statusLabel != null) ...[
-                const Gap(3),
-                statusLabel,
-              ],
+              if (statusLabel != null) ...[const Gap(3), statusLabel],
             ],
           ),
         ],
@@ -4020,6 +4035,112 @@ class WalletScreen extends HookConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBillingRecordsList(BuildContext context, WidgetRef ref) {
+    final provider = walletBillingRecordsProvider;
+    final records = ref.watch(provider);
+    final items = records.value?.items ?? const <SnWalletBillingRecord>[];
+
+    if (items.isEmpty &&
+        records.hasValue &&
+        !records.isLoading &&
+        !records.hasError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.receipt_long,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const Gap(16),
+            Text(
+              'noPurchasesToRestore'.tr(),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return PaginationList(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      provider: provider,
+      notifier: provider.notifier,
+      itemBuilder: (context, index, record) {
+        final order = record.orders.firstOrNull;
+        final subscription = record.subscriptions.firstOrNull;
+        final title =
+            subscription?.identifier ??
+            order?.productIdentifier ??
+            record.productIdentifier ??
+            record.provider;
+        final detail = [
+          record.provider.toUpperCase(),
+          if (record.externalId.isNotEmpty) record.externalId,
+          DateFormat.yMMMd().format(record.begunAt),
+        ].join(' · ');
+        final status = order?.status;
+        final statusText = switch (status) {
+          0 => 'pending'.tr(),
+          1 => 'paymentSuccess'.tr(),
+          2 => 'cancel'.tr(),
+          3 => 'done'.tr(),
+          4 => 'expired'.tr(),
+          _ =>
+            subscription != null
+                ? (subscription.isActive ? 'active'.tr() : 'inactive'.tr())
+                : null,
+        };
+        final statusColor = switch (status) {
+          0 => Colors.orange,
+          1 => Colors.green,
+          2 => Colors.grey,
+          3 => Colors.blue,
+          4 => Colors.red,
+          _ => Theme.of(context).colorScheme.onSurfaceVariant,
+        };
+
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Icon(
+              Symbols.receipt_long,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+          ),
+          title: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (order != null)
+                Text(
+                  '${formatAmountWithSuffix(order.amount)} ${walletCurrencyShort(order.currency)}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              if (statusText != null)
+                Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -4691,12 +4812,17 @@ Map<String, ({double inAmount, double outAmount})> _sumDay(
   final sums = <String, ({double inAmount, double outAmount})>{};
   for (final i in indexes) {
     final transaction = items[i];
-    final acc = sums[transaction.currency] ??
-        (inAmount: 0.0, outAmount: 0.0);
+    final acc = sums[transaction.currency] ?? (inAmount: 0.0, outAmount: 0.0);
     final isIncome = walletId == transaction.payeeWalletId;
     sums[transaction.currency] = isIncome
-        ? (inAmount: acc.inAmount + transaction.amount, outAmount: acc.outAmount)
-        : (inAmount: acc.inAmount, outAmount: acc.outAmount + transaction.amount);
+        ? (
+            inAmount: acc.inAmount + transaction.amount,
+            outAmount: acc.outAmount,
+          )
+        : (
+            inAmount: acc.inAmount,
+            outAmount: acc.outAmount + transaction.amount,
+          );
   }
   return sums;
 }
@@ -4704,32 +4830,32 @@ Map<String, ({double inAmount, double outAmount})> _sumDay(
 /// Green used for money coming in (income amounts, confirmed states).
 Color incomeColor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF81C784)
-        : const Color(0xFF2E7D32);
+    ? const Color(0xFF81C784)
+    : const Color(0xFF2E7D32);
 
 /// Red used for money going out (expense amounts, refunded states).
 Color expenseColor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFE57373)
-        : const Color(0xFFC62828);
+    ? const Color(0xFFE57373)
+    : const Color(0xFFC62828);
 
 /// Amber used for pending states.
 Color pendingColor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFFFB74D)
-        : const Color(0xFFEF6C00);
+    ? const Color(0xFFFFB74D)
+    : const Color(0xFFEF6C00);
 
 /// Blue used for frozen/escrow states.
 Color frozenColor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF64B5F6)
-        : const Color(0xFF1565C0);
+    ? const Color(0xFF64B5F6)
+    : const Color(0xFF1565C0);
 
 /// Grey used for cancelled states.
 Color cancelledColor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFBDBDBD)
-        : const Color(0xFF757575);
+    ? const Color(0xFFBDBDBD)
+    : const Color(0xFF757575);
 
 String _transactionCounterparty(SnTransaction transaction, bool isIncome) {
   final wallet = isIncome ? transaction.payerWallet : transaction.payeeWallet;

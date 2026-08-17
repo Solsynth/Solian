@@ -373,3 +373,171 @@ sealed class SnActiveSubscription with _$SnActiveSubscription {
   factory SnActiveSubscription.fromJson(Map<String, dynamic> json) =>
       _$SnActiveSubscriptionFromJson(json);
 }
+
+class SnWalletBillingRecord {
+  final String id;
+  final String provider;
+  final String externalId;
+  final String? correlationId;
+  final String? providerReferenceId;
+  final String? productIdentifier;
+  final DateTime begunAt;
+  final bool isTesting;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final List<SnWalletBillingOrder> orders;
+  final List<SnWalletBillingSubscription> subscriptions;
+
+  const SnWalletBillingRecord({
+    required this.id,
+    required this.provider,
+    required this.externalId,
+    required this.correlationId,
+    required this.providerReferenceId,
+    required this.productIdentifier,
+    required this.begunAt,
+    required this.isTesting,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.orders,
+    required this.subscriptions,
+  });
+
+  factory SnWalletBillingRecord.fromJson(Map<String, dynamic> json) {
+    return SnWalletBillingRecord(
+      id: json['id'].toString(),
+      provider: json['provider']?.toString() ?? 'unknown',
+      externalId: json['external_id']?.toString() ?? '',
+      correlationId: json['correlation_id']?.toString(),
+      providerReferenceId: json['provider_reference_id']?.toString(),
+      productIdentifier: json['product_identifier']?.toString(),
+      begunAt: _parseBillingDate(json['begun_at']),
+      isTesting: json['is_testing'] as bool? ?? false,
+      createdAt: _parseBillingDate(json['created_at']),
+      updatedAt: _parseBillingDate(json['updated_at']),
+      orders: (json['orders'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(SnWalletBillingOrder.fromJson)
+          .toList(growable: false),
+      subscriptions: (json['subscriptions'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(SnWalletBillingSubscription.fromJson)
+          .toList(growable: false),
+    );
+  }
+}
+
+class SnWalletBillingOrder {
+  final String id;
+  final int status;
+  final String currency;
+  final String? remarks;
+  final String? appIdentifier;
+  final String? productIdentifier;
+  final double amount;
+  final DateTime expiredAt;
+  final String? payeeWalletId;
+  final String? transactionId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const SnWalletBillingOrder({
+    required this.id,
+    required this.status,
+    required this.currency,
+    required this.remarks,
+    required this.appIdentifier,
+    required this.productIdentifier,
+    required this.amount,
+    required this.expiredAt,
+    required this.payeeWalletId,
+    required this.transactionId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory SnWalletBillingOrder.fromJson(Map<String, dynamic> json) {
+    return SnWalletBillingOrder(
+      id: json['id'].toString(),
+      status: _parseBillingInt(json['status']),
+      currency: json['currency']?.toString() ?? '',
+      remarks: json['remarks']?.toString(),
+      appIdentifier: json['app_identifier']?.toString(),
+      productIdentifier: json['product_identifier']?.toString(),
+      amount: _parseBillingDouble(json['amount']),
+      expiredAt: _parseBillingDate(json['expired_at']),
+      payeeWalletId: json['payee_wallet_id']?.toString(),
+      transactionId: json['transaction_id']?.toString(),
+      createdAt: _parseBillingDate(json['created_at']),
+      updatedAt: _parseBillingDate(json['updated_at']),
+    );
+  }
+}
+
+class SnWalletBillingSubscription {
+  final String id;
+  final DateTime begunAt;
+  final DateTime? endedAt;
+  final String identifier;
+  final String? groupIdentifier;
+  final bool isActive;
+  final bool isFreeTrial;
+  final int status;
+  final String? paymentMethod;
+  final double? basePrice;
+  final DateTime? renewalAt;
+  final bool isTesting;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const SnWalletBillingSubscription({
+    required this.id,
+    required this.begunAt,
+    required this.endedAt,
+    required this.identifier,
+    required this.groupIdentifier,
+    required this.isActive,
+    required this.isFreeTrial,
+    required this.status,
+    required this.paymentMethod,
+    required this.basePrice,
+    required this.renewalAt,
+    required this.isTesting,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory SnWalletBillingSubscription.fromJson(Map<String, dynamic> json) {
+    return SnWalletBillingSubscription(
+      id: json['id'].toString(),
+      begunAt: _parseBillingDate(json['begun_at']),
+      endedAt: _parseBillingNullableDate(json['ended_at']),
+      identifier: json['identifier']?.toString() ?? '',
+      groupIdentifier: json['group_identifier']?.toString(),
+      isActive: json['is_active'] as bool? ?? false,
+      isFreeTrial: json['is_free_trial'] as bool? ?? false,
+      status: _parseBillingInt(json['status']),
+      paymentMethod: json['payment_method']?.toString(),
+      basePrice: _parseBillingNullableDouble(json['base_price']),
+      renewalAt: _parseBillingNullableDate(json['renewal_at']),
+      isTesting: json['is_testing'] as bool? ?? false,
+      createdAt: _parseBillingDate(json['created_at']),
+      updatedAt: _parseBillingDate(json['updated_at']),
+    );
+  }
+}
+
+DateTime _parseBillingDate(dynamic value) =>
+    DateTime.parse(value.toString()).toLocal();
+
+DateTime? _parseBillingNullableDate(dynamic value) =>
+    value == null ? null : _parseBillingDate(value);
+
+int _parseBillingInt(dynamic value) =>
+    value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+
+double _parseBillingDouble(dynamic value) =>
+    value is num ? value.toDouble() : double.tryParse(value.toString()) ?? 0;
+
+double? _parseBillingNullableDouble(dynamic value) =>
+    value == null ? null : _parseBillingDouble(value);

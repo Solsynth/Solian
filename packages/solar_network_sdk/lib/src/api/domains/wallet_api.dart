@@ -473,6 +473,24 @@ class WalletApi extends BaseApi {
   }
 
   // ==========================================
+  // Billing endpoints
+  // ==========================================
+
+  /// Gets unified provider billing records for the current account.
+  Future<PaginatedResult<SnWalletBillingRecord>> getBillingRecords({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/subscriptions/billing',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnWalletBillingRecord.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  // ==========================================
   // Gift endpoints
   // ==========================================
 
