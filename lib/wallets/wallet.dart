@@ -4073,13 +4073,16 @@ class WalletScreen extends HookConsumerWidget {
       itemBuilder: (context, index, record) {
         final order = record.orders.firstOrNull;
         final subscription = record.subscriptions.firstOrNull;
-        final title =
+        final providerName = walletBillingProviderName(record.provider);
+        final rawTitle =
             subscription?.identifier ??
             order?.productIdentifier ??
-            record.productIdentifier ??
-            record.provider;
+            record.productIdentifier;
+        final title = rawTitle == null
+            ? providerName
+            : walletBillingProviderName(rawTitle);
         final detail = [
-          record.provider.toUpperCase(),
+          providerName,
           if (record.externalId.isNotEmpty) record.externalId,
           DateFormat.yMMMd().format(record.begunAt),
         ].join(' · ');
@@ -4770,6 +4773,22 @@ String walletCurrencyShort(String currency) {
       'walletCurrencyShort${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
   final localized = key.tr();
   return localized == key ? currency : localized;
+}
+
+/// Localized provider name for billing records, with a raw-code fallback.
+String walletBillingProviderName(String provider) {
+  switch (provider.trim().toLowerCase()) {
+    case 'gdp':
+      return 'walletBillingProviderGdp'.tr();
+    case 'apple_store':
+    case 'apple-store':
+    case 'applestore':
+      return 'walletBillingProviderAppleStore'.tr();
+    case 'order':
+      return 'walletBillingProviderOrder'.tr();
+    default:
+      return provider;
+  }
 }
 
 /// A single day in the transaction ledger, with per-currency in/out sums.
