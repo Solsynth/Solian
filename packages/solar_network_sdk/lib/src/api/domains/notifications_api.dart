@@ -41,6 +41,10 @@ class NotificationsApi extends BaseApi {
       topic: 'subscriptions.begun',
       description: 'Subscription started',
     ),
+    SnNotificationTopic(
+      topic: 'subscriptions.orders',
+      description: 'Provider orders',
+    ),
     SnNotificationTopic(topic: 'gifts.claimed', description: 'Gift claimed'),
     SnNotificationTopic(
       topic: 'wallets.transactions',
