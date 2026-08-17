@@ -234,7 +234,8 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
     final summary = ref
         .watch(chatSummaryProvider)
         .whenData((summaries) => summaries[room.id]);
-    final hasUnread = (summary.value?.unreadCount ?? 0) > 0;
+    final unreadCount = summary.value?.unreadCount ?? 0;
+    final hasUnread = summary.value?.hasUnread ?? unreadCount > 0;
 
     final userInfo = ref.watch(userInfoProvider);
     final validMembers = _getValidMembers(room, userInfo.value);
@@ -527,6 +528,16 @@ int _totalUnreadForRooms(
     0,
     (sum, room) => sum + (summaries[room.id]?.unreadCount ?? 0),
   );
+}
+
+bool _hasUnreadForRooms(
+  Iterable<SnChatRoom> rooms,
+  Map<String, SnChatSummary> summaries,
+) {
+  return rooms.any((room) {
+    final summary = summaries[room.id];
+    return summary?.hasUnread ?? (summary?.unreadCount ?? 0) > 0;
+  });
 }
 
 List<SnChatGroup> _normalizeChatGroups(List<SnChatGroup> groups) {
@@ -822,10 +833,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                           ref
                                               .read(chatSummaryProvider.future)
                                               .then((summary) {
-                                                if ((summary[room.id]
-                                                            ?.unreadCount ??
-                                                        0) >
-                                                    0) {
+                                                if (summary[room.id]
+                                                        ?.hasUnread ??
+                                                    false) {
                                                   ref
                                                       .read(
                                                         chatSummaryProvider
@@ -1556,7 +1566,9 @@ class _CollapsedChatListBody extends HookConsumerWidget {
             .toList();
 
         Widget buildRoomIconButton(SnChatRoom room) {
-          final unread = summariesData[room.id]?.unreadCount ?? 0;
+          final summary = summariesData[room.id];
+          final unread = summary?.unreadCount ?? 0;
+          final hasUnread = summary?.hasUnread ?? unread > 0;
           final validMembers = _getValidMembers(room, userInfo.value);
           final title = getRoomTitle(room, validMembers);
           return withSelectedIndicator(
@@ -1580,8 +1592,8 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                 ),
                 splashRadius: 24,
                 icon: Badge(
-                  isLabelVisible: unread > 0,
-                  label: Text(unread.toString()),
+                  isLabelVisible: hasUnread,
+                  label: unread > 0 ? Text(unread.toString()) : null,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   textColor: Theme.of(context).colorScheme.onPrimary,
                   child: buildRoundAvatar(
@@ -1609,6 +1621,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
           for (final section in groupedSections.customGroups) {
             final rooms = section.rooms;
             final totalUnread = _totalUnreadForRooms(rooms, summariesData);
+            final totalHasUnread = _hasUnreadForRooms(rooms, summariesData);
             final groupColor =
                 chatGroupColorFromHex(section.group.color) ??
                 Theme.of(context).colorScheme.primary;
@@ -1642,7 +1655,9 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                       ).padding(horizontal: 8),
                     ),
                     ...rooms.map((room) {
-                      final unread = summariesData[room.id]?.unreadCount ?? 0;
+                      final summary = summariesData[room.id];
+                      final unread = summary?.unreadCount ?? 0;
+                      final hasUnread = summary?.hasUnread ?? unread > 0;
                       final validMembers = _getValidMembers(
                         room,
                         userInfo.value,
@@ -1667,9 +1682,11 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (unread > 0)
+                            if (hasUnread)
                               Badge(
-                                label: Text(unread.toString()),
+                                label: unread > 0
+                                    ? Text(unread.toString())
+                                    : null,
                                 backgroundColor: Theme.of(
                                   context,
                                 ).colorScheme.primary,
@@ -1688,8 +1705,10 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                     height: 48,
                     child: Center(
                       child: Badge(
-                        isLabelVisible: totalUnread > 0,
-                        label: Text(totalUnread.toString()),
+                        isLabelVisible: totalHasUnread,
+                        label: totalUnread > 0
+                            ? Text(totalUnread.toString())
+                            : null,
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         textColor: Theme.of(context).colorScheme.onPrimary,
                         child: buildRoundedRectAvatar(
@@ -1715,6 +1734,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
             final realm = section.realm;
             final rooms = section.rooms;
             final totalUnread = _totalUnreadForRooms(rooms, summariesData);
+            final totalHasUnread = _hasUnreadForRooms(rooms, summariesData);
             avatarTiles.add(
               withSelectedIndicator(
                 isSelected: rooms.any((room) => room.id == activeChatId),
@@ -1740,7 +1760,9 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                       ).padding(horizontal: 8),
                     ),
                     ...rooms.map((room) {
-                      final unread = summariesData[room.id]?.unreadCount ?? 0;
+                      final summary = summariesData[room.id];
+                      final unread = summary?.unreadCount ?? 0;
+                      final hasUnread = summary?.hasUnread ?? unread > 0;
                       final validMembers = _getValidMembers(
                         room,
                         userInfo.value,
@@ -1765,9 +1787,11 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (unread > 0)
+                            if (hasUnread)
                               Badge(
-                                label: Text(unread.toString()),
+                                label: unread > 0
+                                    ? Text(unread.toString())
+                                    : null,
                                 backgroundColor: Theme.of(
                                   context,
                                 ).colorScheme.primary,
@@ -1786,8 +1810,10 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                     height: 48,
                     child: Center(
                       child: Badge(
-                        isLabelVisible: totalUnread > 0,
-                        label: Text(totalUnread.toString()),
+                        isLabelVisible: totalHasUnread,
+                        label: totalUnread > 0
+                            ? Text(totalUnread.toString())
+                            : null,
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         textColor: Theme.of(context).colorScheme.onPrimary,
                         child: buildRoundedRectAvatar(

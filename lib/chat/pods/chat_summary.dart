@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
+import 'package:island/core/database.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -121,7 +123,11 @@ class ChatSummary extends _$ChatSummary {
       return MapEntry(
         key,
         _tryParseSummary(value) ??
-            const SnChatSummary(unreadCount: 0, lastMessage: null),
+            const SnChatSummary(
+              unreadCount: 0,
+              hasUnread: false,
+              lastMessage: null,
+            ),
       );
     });
 
@@ -196,6 +202,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: 0,
+            hasUnread: false,
             lastMessage: summary.lastMessage,
           ),
         });
@@ -209,6 +216,7 @@ class ChatSummary extends _$ChatSummary {
         for (final entry in summaries.entries)
           entry.key: SnChatSummary(
             unreadCount: 0,
+            hasUnread: false,
             lastMessage: entry.value.lastMessage,
           ),
       });
@@ -216,20 +224,40 @@ class ChatSummary extends _$ChatSummary {
     });
   }
 
+  Future<bool> _shouldCountMessage(String chatId, SnChatMessage message) async {
+    final accountId = ref.read(userInfoProvider).value?.id;
+    if (accountId == null) return true;
+
+    final member = await ref
+        .read(databaseProvider)
+        .getMemberByRoomAndAccount(chatId, accountId);
+    if (member == null) return true;
+
+    return switch (member.notify) {
+      0 => true,
+      1 => message.membersMentioned.contains(accountId),
+      _ => false,
+    };
+  }
+
   void updateLastMessage(String chatId, SnChatMessage message) {
-    state.whenData((summaries) {
-      final summary = summaries[chatId];
-      if (summary != null) {
-        final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
-        final increment = (chatId != currentSubscribed) ? 1 : 0;
-        state = AsyncData({
-          ...summaries,
-          chatId: SnChatSummary(
-            unreadCount: summary.unreadCount + increment,
-            lastMessage: message,
-          ),
-        });
-      }
+    _shouldCountMessage(chatId, message).then((shouldCount) {
+      state.whenData((summaries) {
+        final summary = summaries[chatId];
+        if (summary != null) {
+          final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
+          final isUnread = chatId != currentSubscribed;
+          final increment = isUnread && shouldCount ? 1 : 0;
+          state = AsyncData({
+            ...summaries,
+            chatId: SnChatSummary(
+              unreadCount: summary.unreadCount + increment,
+              hasUnread: summary.hasUnread || isUnread,
+              lastMessage: message,
+            ),
+          });
+        }
+      });
     });
   }
 
@@ -241,6 +269,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: summary.unreadCount + 1,
+            hasUnread: true,
             lastMessage: summary.lastMessage,
           ),
         });
@@ -256,6 +285,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: summary.unreadCount,
+            hasUnread: summary.hasUnread,
             lastMessage: message,
           ),
         });

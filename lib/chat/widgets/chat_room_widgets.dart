@@ -43,13 +43,12 @@ class ChatRoomAvatar extends StatelessWidget {
           )
         : ProfilePictureWidget(file: room.picture, radius: radius ?? 20);
 
+    final summaryData = summary.value;
+    final unreadCount = summaryData?.unreadCount ?? 0;
+    final hasUnread = summaryData?.hasUnread ?? unreadCount > 0;
     final badgeChild = Badge(
-      isLabelVisible: summary.when(
-        data: (data) => (data?.unreadCount ?? 0) > 0,
-        loading: () => false,
-        error: (_, _) => false,
-      ),
-      label: Text('${summary.value?.unreadCount ?? 0}'),
+      isLabelVisible: hasUnread,
+      label: unreadCount > 0 ? Text('$unreadCount') : null,
       child: avatarChild,
     );
 
@@ -364,8 +363,10 @@ class ChatRoomSubtitle extends HookConsumerWidget {
             },
           ),
         ),
-        error: (_, _) =>
-            Container(key: const ValueKey('error'), child: fallbackDescription()),
+        error: (_, _) => Container(
+          key: const ValueKey('error'),
+          child: fallbackDescription(),
+        ),
       ),
     );
   }

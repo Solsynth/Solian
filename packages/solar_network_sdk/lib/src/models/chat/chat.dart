@@ -178,6 +178,7 @@ sealed class SnChatMember with _$SnChatMember {
 sealed class SnChatSummary with _$SnChatSummary {
   const factory SnChatSummary({
     required int unreadCount,
+    required bool hasUnread,
     required SnChatMessage? lastMessage,
   }) = _SnChatSummary;
 

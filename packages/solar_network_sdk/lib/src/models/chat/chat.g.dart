@@ -338,6 +338,7 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
 _SnChatSummary _$SnChatSummaryFromJson(Map<String, dynamic> json) =>
     _SnChatSummary(
       unreadCount: (json['unread_count'] as num).toInt(),
+      hasUnread: json['has_unread'] as bool,
       lastMessage: json['last_message'] == null
           ? null
           : SnChatMessage.fromJson(
@@ -348,6 +349,7 @@ _SnChatSummary _$SnChatSummaryFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SnChatSummaryToJson(_SnChatSummary instance) =>
     <String, dynamic>{
       'unread_count': instance.unreadCount,
+      'has_unread': instance.hasUnread,
       'last_message': instance.lastMessage?.toJson(),
     };
 

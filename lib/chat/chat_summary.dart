@@ -147,6 +147,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: 0,
+            hasUnread: false,
             lastMessage: summary.lastMessage,
           ),
         });
@@ -164,6 +165,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: summary.unreadCount + increment,
+            hasUnread: summary.hasUnread || increment > 0,
             lastMessage: message,
           ),
         });
@@ -179,6 +181,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: summary.unreadCount + 1,
+            hasUnread: true,
             lastMessage: summary.lastMessage,
           ),
         });
@@ -194,6 +197,7 @@ class ChatSummary extends _$ChatSummary {
           ...summaries,
           chatId: SnChatSummary(
             unreadCount: summary.unreadCount,
+            hasUnread: summary.hasUnread,
             lastMessage: message,
           ),
         });

@@ -2432,7 +2432,7 @@ $SnRealmLabelCopyWith<$Res>? get realmLabel {
 /// @nodoc
 mixin _$SnChatSummary {
 
- int get unreadCount; SnChatMessage? get lastMessage;
+ int get unreadCount; bool get hasUnread; SnChatMessage? get lastMessage;
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2445,16 +2445,16 @@ $SnChatSummaryCopyWith<SnChatSummary> get copyWith => _$SnChatSummaryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatSummary&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatSummary&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.hasUnread, hasUnread) || other.hasUnread == hasUnread)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,unreadCount,lastMessage);
+int get hashCode => Object.hash(runtimeType,unreadCount,hasUnread,lastMessage);
 
 @override
 String toString() {
-  return 'SnChatSummary(unreadCount: $unreadCount, lastMessage: $lastMessage)';
+  return 'SnChatSummary(unreadCount: $unreadCount, hasUnread: $hasUnread, lastMessage: $lastMessage)';
 }
 
 
@@ -2465,7 +2465,7 @@ abstract mixin class $SnChatSummaryCopyWith<$Res>  {
   factory $SnChatSummaryCopyWith(SnChatSummary value, $Res Function(SnChatSummary) _then) = _$SnChatSummaryCopyWithImpl;
 @useResult
 $Res call({
- int unreadCount, SnChatMessage? lastMessage
+ int unreadCount, bool hasUnread, SnChatMessage? lastMessage
 });
 
 
@@ -2482,10 +2482,11 @@ class _$SnChatSummaryCopyWithImpl<$Res>
 
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? unreadCount = null,Object? lastMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? unreadCount = null,Object? hasUnread = null,Object? lastMessage = freezed,}) {
   return _then(SnChatSummary(
 unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
-as int,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
+as int,hasUnread: null == hasUnread ? _self.hasUnread : hasUnread // ignore: cast_nullable_to_non_nullable
+as bool,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
 as SnChatMessage?,
   ));
 }
@@ -2580,10 +2581,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int unreadCount,  SnChatMessage? lastMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int unreadCount,  bool hasUnread,  SnChatMessage? lastMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatSummary() when $default != null:
-return $default(_that.unreadCount,_that.lastMessage);case _:
+return $default(_that.unreadCount,_that.hasUnread,_that.lastMessage);case _:
   return orElse();
 
 }
@@ -2601,10 +2602,10 @@ return $default(_that.unreadCount,_that.lastMessage);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int unreadCount,  SnChatMessage? lastMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int unreadCount,  bool hasUnread,  SnChatMessage? lastMessage)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatSummary():
-return $default(_that.unreadCount,_that.lastMessage);}
+return $default(_that.unreadCount,_that.hasUnread,_that.lastMessage);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2618,10 +2619,10 @@ return $default(_that.unreadCount,_that.lastMessage);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int unreadCount,  SnChatMessage? lastMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int unreadCount,  bool hasUnread,  SnChatMessage? lastMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatSummary() when $default != null:
-return $default(_that.unreadCount,_that.lastMessage);case _:
+return $default(_that.unreadCount,_that.hasUnread,_that.lastMessage);case _:
   return null;
 
 }
@@ -2633,10 +2634,11 @@ return $default(_that.unreadCount,_that.lastMessage);case _:
 @JsonSerializable()
 
 class _SnChatSummary implements SnChatSummary {
-  const _SnChatSummary({required this.unreadCount, required this.lastMessage});
+  const _SnChatSummary({required this.unreadCount, required this.hasUnread, required this.lastMessage});
   factory _SnChatSummary.fromJson(Map<String, dynamic> json) => _$SnChatSummaryFromJson(json);
 
 @override final  int unreadCount;
+@override final  bool hasUnread;
 @override final  SnChatMessage? lastMessage;
 
 /// Create a copy of SnChatSummary
@@ -2652,16 +2654,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatSummary&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatSummary&&(identical(other.unreadCount, unreadCount) || other.unreadCount == unreadCount)&&(identical(other.hasUnread, hasUnread) || other.hasUnread == hasUnread)&&(identical(other.lastMessage, lastMessage) || other.lastMessage == lastMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,unreadCount,lastMessage);
+int get hashCode => Object.hash(runtimeType,unreadCount,hasUnread,lastMessage);
 
 @override
 String toString() {
-  return 'SnChatSummary(unreadCount: $unreadCount, lastMessage: $lastMessage)';
+  return 'SnChatSummary(unreadCount: $unreadCount, hasUnread: $hasUnread, lastMessage: $lastMessage)';
 }
 
 
@@ -2672,7 +2674,7 @@ abstract mixin class _$SnChatSummaryCopyWith<$Res> implements $SnChatSummaryCopy
   factory _$SnChatSummaryCopyWith(_SnChatSummary value, $Res Function(_SnChatSummary) _then) = __$SnChatSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- int unreadCount, SnChatMessage? lastMessage
+ int unreadCount, bool hasUnread, SnChatMessage? lastMessage
 });
 
 
@@ -2689,10 +2691,11 @@ class __$SnChatSummaryCopyWithImpl<$Res>
 
 /// Create a copy of SnChatSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? unreadCount = null,Object? lastMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? unreadCount = null,Object? hasUnread = null,Object? lastMessage = freezed,}) {
   return _then(_SnChatSummary(
 unreadCount: null == unreadCount ? _self.unreadCount : unreadCount // ignore: cast_nullable_to_non_nullable
-as int,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
+as int,hasUnread: null == hasUnread ? _self.hasUnread : hasUnread // ignore: cast_nullable_to_non_nullable
+as bool,lastMessage: freezed == lastMessage ? _self.lastMessage : lastMessage // ignore: cast_nullable_to_non_nullable
 as SnChatMessage?,
   ));
 }

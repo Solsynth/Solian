@@ -48,7 +48,7 @@ class ChatRoomListTile extends HookConsumerWidget {
       ),
     );
     final unreadCount = summary.value?.unreadCount ?? 0;
-    final hasUnread = unreadCount > 0;
+    final hasUnread = summary.value?.hasUnread ?? unreadCount > 0;
     final lastMessageAt = summary.value?.lastMessage?.createdAt;
 
     final currentUserId = ref.watch(
@@ -63,8 +63,8 @@ class ChatRoomListTile extends HookConsumerWidget {
         isDirect &&
         ref.watch(
           friendsOverviewProvider.select(
-        (friends) =>
-            friends.value?.any(
+            (friends) =>
+                friends.value?.any(
                   (friend) =>
                       memberIds.contains(friend.account.id) &&
                       showsOnlinePresence(friend.status),
@@ -121,7 +121,7 @@ class ChatRoomListTile extends HookConsumerWidget {
           onLongPress: onLongPress,
           onTap: () async {
             ref.read(chatSummaryProvider.future).then((summaryMap) {
-              if ((summaryMap[room.id]?.unreadCount ?? 0) > 0) {
+              if (summaryMap[room.id]?.hasUnread ?? false) {
                 ref
                     .read(chatSummaryProvider.notifier)
                     .clearUnreadCount(room.id);
