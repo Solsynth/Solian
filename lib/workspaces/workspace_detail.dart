@@ -59,6 +59,7 @@ class WorkspaceDetailScreen extends HookConsumerWidget {
           }
           return _WorkspaceDetailBody(
             workspace: workspace,
+            storageQuota: ref.watch(workspaceStorageQuotaProvider(slug)),
             onEdit: () async {
               final changed = await showModalBottomSheet<bool>(
                 context: context,
@@ -88,12 +89,14 @@ class WorkspaceDetailScreen extends HookConsumerWidget {
 
 class _WorkspaceDetailBody extends StatelessWidget {
   final WorkspaceSummary workspace;
+  final AsyncValue<WorkspaceStorageQuota?> storageQuota;
   final VoidCallback onMembers;
   final VoidCallback onEdit;
   final AsyncValue<List<WorkspaceMemberSummary>> members;
 
   const _WorkspaceDetailBody({
     required this.workspace,
+    required this.storageQuota,
     required this.onMembers,
     required this.onEdit,
     required this.members,
@@ -149,6 +152,7 @@ class _WorkspaceDetailBody extends StatelessWidget {
               children: [
                 _WorkspaceOverviewPanel(
                   workspace: workspace,
+                  storageQuota: storageQuota,
                   members: members,
                   onMembers: onMembers,
                   onEdit: onEdit,
@@ -167,12 +171,14 @@ class _WorkspaceDetailBody extends StatelessWidget {
 /// Overview: the workspace identity plate.
 class _WorkspaceOverviewPanel extends StatelessWidget {
   final WorkspaceSummary workspace;
+  final AsyncValue<WorkspaceStorageQuota?> storageQuota;
   final VoidCallback onMembers;
   final VoidCallback onEdit;
   final AsyncValue<List<WorkspaceMemberSummary>> members;
 
   const _WorkspaceOverviewPanel({
     required this.workspace,
+    required this.storageQuota,
     required this.members,
     required this.onMembers,
     required this.onEdit,
@@ -310,6 +316,8 @@ class _WorkspaceOverviewPanel extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        _CenteredContent(child: _WorkspaceStoragePanel(quota: storageQuota)),
       ],
     );
   }
@@ -355,6 +363,110 @@ class _WorkspaceOverviewPanel extends StatelessWidget {
       ],
     );
   }
+}
+
+class _WorkspaceStoragePanel extends StatelessWidget {
+  final AsyncValue<WorkspaceStorageQuota?> quota;
+
+  const _WorkspaceStoragePanel({required this.quota});
+
+  @override
+  Widget build(BuildContext context) {
+    return quota.when(
+      loading: () => const _MeterSkeleton(),
+      error: (_, _) => _Panel(
+        child: Text(
+          'errorLoadingQuota'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+      data: (value) {
+        if (value == null) {
+          return _PanelEmpty(message: 'errorLoadingQuota'.tr());
+        }
+        return _Panel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionHeader(title: 'storageQuota'.tr()),
+              const SizedBox(height: 12),
+              _UsageMeter(
+                label: 'storage'.tr(),
+                used: value.usedBytes,
+                limit: value.limitBytes,
+                remaining: value.remainingBytes,
+                formatBytes: true,
+              ),
+              if (value.services.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Text(
+                  'serviceUsage'.tr(),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                for (var i = 0; i < value.services.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 8),
+                  _WorkspaceServiceUsageRow(service: value.services[i]),
+                ],
+              ],
+              if (value.calculatedAt case final timestamp?
+                  when timestamp.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'quotaCalculatedAt'.tr(
+                    args: [_formatQuotaTimestamp(timestamp)],
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WorkspaceServiceUsageRow extends StatelessWidget {
+  final WorkspaceStorageServiceUsage service;
+
+  const _WorkspaceServiceUsageRow({required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            service.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          _formatBytes(service.usedBytes),
+          style: GoogleFonts.robotoMono(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String _formatQuotaTimestamp(String value) {
+  final date = DateTime.tryParse(value);
+  if (date == null) return value;
+  return DateFormat.yMMMd().add_jm().format(date.toLocal());
 }
 
 /// Plan: current tier plus the upgrades still on the table.

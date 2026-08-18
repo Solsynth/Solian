@@ -116,8 +116,8 @@ void main() {
     expect(find.text('700.00 MB'), findsOneWidget);
     expect(find.text('/ 1.00 GB'), findsOneWidget);
     expect(find.text('Service usage'), findsOneWidget);
-    expect(find.text('drive'), findsOneWidget);
-    expect(find.text('postal'), findsOneWidget);
+    expect(find.text('Drive'), findsOneWidget);
+    expect(find.text('Postal'), findsOneWidget);
     expect(find.text('500.00 MB'), findsOneWidget);
     expect(find.text('200.00 MB'), findsOneWidget);
     expect(find.textContaining('Calculated'), findsOneWidget);

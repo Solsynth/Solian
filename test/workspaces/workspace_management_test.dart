@@ -6,6 +6,17 @@ import 'package:island/core/config.dart';
 import 'package:island/workspaces/workspace_management.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _storageQuota = WorkspaceStorageQuota(
+  usedBytes: 734003200,
+  limitBytes: 1073741824,
+  remainingBytes: 340787624,
+  calculatedAt: '2026-08-19T00:20:00Z',
+  services: [
+    WorkspaceStorageServiceUsage(name: 'drive', usedBytes: 524288000),
+    WorkspaceStorageServiceUsage(name: 'postal', usedBytes: 209715200),
+  ],
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late SharedPreferences preferences;
@@ -56,7 +67,7 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    expect(find.text('Your workspaces'), findsOneWidget);
+    expect(find.text('Workspaces'), findsOneWidget);
     expect(find.text('Studio'), findsOneWidget);
     expect(find.text('A shared creative space'), findsOneWidget);
     expect(find.byTooltip('Create organization'), findsOneWidget);
@@ -155,6 +166,9 @@ void main() {
                     currency: 'USD',
                   ),
                 ),
+                workspaceStorageQuotaProvider.overrideWith(
+                  (ref, slug) async => _storageQuota,
+                ),
               ],
               child: const WorkspaceDetailScreen(slug: 'studio'),
             ),
@@ -166,6 +180,9 @@ void main() {
       () async => await Future<void>.delayed(const Duration(milliseconds: 100)),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Storage quota'), findsOneWidget);
+    expect(find.text('Drive'), findsOneWidget);
+    expect(find.text('Postal'), findsOneWidget);
 
     expect(find.text('Overview'), findsOneWidget);
     expect(find.byType(Tab), findsNWidgets(3));
@@ -237,6 +254,9 @@ void main() {
                     enterprisePrice: 48,
                     currency: 'USD',
                   ),
+                ),
+                workspaceStorageQuotaProvider.overrideWith(
+                  (ref, slug) async => _storageQuota,
                 ),
                 workspaceMailboxesProvider.overrideWith(
                   (ref, workspaceId) async => const [mailbox],
@@ -454,6 +474,7 @@ void main() {
       'services': [
         {'name': 'drive', 'used_bytes': 524288000},
         {'name': 'postal', 'used_bytes': 209715200},
+        {'name': 'flywheel', 'used_bytes': 1024},
       ],
     });
 
@@ -461,9 +482,15 @@ void main() {
     expect(quota.limitBytes, 1073741824);
     expect(quota.remainingBytes, 340787624);
     expect(quota.calculatedAt, '2026-08-19T00:20:00Z');
-    expect(quota.services.map((service) => service.name), ['drive', 'postal']);
-    expect(quota.services.last.usedBytes, 209715200);
+    expect(quota.services.map((service) => service.name), [
+      'drive',
+      'postal',
+      'flywheel',
+    ]);
+    expect(quota.services.first.displayName, 'Drive');
+    expect(quota.services[1].displayName, 'Postal');
+    expect(quota.services.last.displayName, 'Cloud sync');
     expect(quota.toUsageMap()['used_bytes'], 734003200);
-    expect((quota.toUsageMap()['service_usages'] as List).length, 2);
+    expect((quota.toUsageMap()['service_usages'] as List).length, 3);
   });
 }

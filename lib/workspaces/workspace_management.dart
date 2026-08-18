@@ -101,6 +101,18 @@ class WorkspaceSummary {
   }
 }
 
+/// Converts Valve service identifiers into user-facing localized names.
+String localizedWorkspaceServiceName(String serviceName) {
+  final key = switch (serviceName.trim().toLowerCase()) {
+    'drive' => 'workspaceServiceDrive',
+    'postal' => 'workspaceServicePostal',
+    'distribution' => 'workspaceServiceDistribution',
+    'flywheel' => 'workspaceServiceFlywheel',
+    _ => null,
+  };
+  return key == null ? serviceName : key.tr();
+}
+
 /// Storage usage retained in a workspace snapshot by Valve.
 class WorkspaceStorageServiceUsage {
   final String name;
@@ -110,6 +122,9 @@ class WorkspaceStorageServiceUsage {
     required this.name,
     required this.usedBytes,
   });
+
+  /// Localized label for [name], while [name] remains the server identifier.
+  String get displayName => localizedWorkspaceServiceName(name);
 
   factory WorkspaceStorageServiceUsage.fromJson(dynamic value) {
     final json = Map<String, dynamic>.from(value as Map);
@@ -253,6 +268,20 @@ final workspaceListProvider =
       return (response.data as List)
           .map(WorkspaceSummary.fromJson)
           .toList(growable: false);
+    });
+final workspaceStorageQuotaProvider = FutureProvider.autoDispose
+    .family<WorkspaceStorageQuota?, String?>((ref, slug) async {
+      if (slug == null || slug.isEmpty) return null;
+      final client = ref.read(solarNetworkClientProvider);
+      final response = await client.dio.get(
+        '/valve/workspaces/${Uri.encodeComponent(slug)}/quota/storage',
+      );
+      if (response.data is! Map) {
+        throw StateError(
+          'Workspace storage quota returned an invalid response.',
+        );
+      }
+      return WorkspaceStorageQuota.fromJson(response.data);
     });
 
 final workspaceMembersProvider = FutureProvider.autoDispose
@@ -829,7 +858,7 @@ class WorkspaceManagementScreen extends HookConsumerWidget {
 
     return AppScaffold(
       appBar: AppBar(
-        title: Text('workspaceManagementTitle').tr(),
+        title: const Text('workspaceManagement').tr(),
         leading: IconButton(
           icon: const Icon(Symbols.menu),
           onPressed: () => rootScaffoldKey.currentState?.openDrawer(),
@@ -3153,10 +3182,19 @@ class _InviteMemberDialogState extends State<_InviteMemberDialog> {
             DropdownButtonFormField<int>(
               value: _role,
               decoration: InputDecoration(labelText: 'workspaceRole'.tr()),
-              items: const [
-                DropdownMenuItem(value: 25, child: Text('Viewer')),
-                DropdownMenuItem(value: 50, child: Text('Member')),
-                DropdownMenuItem(value: 75, child: Text('Admin')),
+              items: [
+                DropdownMenuItem(
+                  value: 25,
+                  child: Text('workspaceRoleViewer'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 50,
+                  child: Text('workspaceRoleMember'.tr()),
+                ),
+                DropdownMenuItem(
+                  value: 75,
+                  child: Text('workspaceRoleAdmin'.tr()),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) setState(() => _role = value);

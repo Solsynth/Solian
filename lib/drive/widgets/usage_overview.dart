@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/workspaces/workspace_management.dart';
 import 'package:island/drive/widgets/quota_sidebar.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -398,7 +399,9 @@ class UsageOverviewWidget extends StatelessWidget {
           if (i > 0) const Gap(8),
           _PoolLegendRow(
             swatchColor: colors[i],
-            name: services[i]['name']?.toString() ?? 'unknown'.tr(),
+            name: localizedWorkspaceServiceName(
+              services[i]['name']?.toString() ?? 'unknown'.tr(),
+            ),
             size: formatFileSize(
               (services[i]['used_bytes'] as num?)?.toInt() ?? 0,
             ),

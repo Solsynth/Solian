@@ -38,19 +38,10 @@ import 'package:island/drive/widgets/usage_overview.dart';
 
 final workspaceQuotaProvider = FutureProvider.autoDispose
     .family<Map<String, dynamic>?, String?>((ref, workspaceSlug) async {
-      if (workspaceSlug == null || workspaceSlug.isEmpty) return null;
-      final response = await ref
-          .read(solarNetworkClientProvider)
-          .dio
-          .get(
-            '/valve/workspaces/${Uri.encodeComponent(workspaceSlug)}/quota/storage',
-          );
-      if (response.data is! Map) {
-        throw StateError(
-          'Workspace storage quota returned an invalid response.',
-        );
-      }
-      return WorkspaceStorageQuota.fromJson(response.data).toUsageMap();
+      final quota = await ref.watch(
+        workspaceStorageQuotaProvider(workspaceSlug).future,
+      );
+      return quota?.toUsageMap();
     });
 
 class _DriveFileTab {
