@@ -2,10 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/screens/file_pool.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Structured drive list filters — no key:value advanced-search syntax.
 @immutable
@@ -16,7 +13,6 @@ class DriveFileFilters {
   /// High-level media kind mapped to `content_type` prefixes.
   final DriveMediaKind? mediaKind;
 
-  final bool hasThumbnail;
   final String? extension;
   final DateTime? createdAfter;
   final DateTime? createdBefore;
@@ -26,7 +22,6 @@ class DriveFileFilters {
   const DriveFileFilters({
     this.isFolder,
     this.mediaKind,
-    this.hasThumbnail = false,
     this.extension,
     this.createdAfter,
     this.createdBefore,
@@ -41,7 +36,6 @@ class DriveFileFilters {
     return [
       isFolder != null,
       mediaKind != null,
-      hasThumbnail,
       extension != null && extension!.trim().isNotEmpty,
       createdAfter != null,
       createdBefore != null,
@@ -77,7 +71,6 @@ class DriveFileFilters {
     bool clearIsFolder = false,
     DriveMediaKind? mediaKind,
     bool clearMediaKind = false,
-    bool? hasThumbnail,
     String? extension,
     bool clearExtension = false,
     DateTime? createdAfter,
@@ -90,7 +83,6 @@ class DriveFileFilters {
     return DriveFileFilters(
       isFolder: clearIsFolder ? null : (isFolder ?? this.isFolder),
       mediaKind: clearMediaKind ? null : (mediaKind ?? this.mediaKind),
-      hasThumbnail: hasThumbnail ?? this.hasThumbnail,
       extension: clearExtension ? null : (extension ?? this.extension),
       createdAfter: clearCreatedAfter
           ? null
@@ -109,7 +101,6 @@ class DriveFileFilters {
       other is DriveFileFilters &&
           isFolder == other.isFolder &&
           mediaKind == other.mediaKind &&
-          hasThumbnail == other.hasThumbnail &&
           extension == other.extension &&
           createdAfter == other.createdAfter &&
           createdBefore == other.createdBefore &&
@@ -120,7 +111,6 @@ class DriveFileFilters {
   int get hashCode => Object.hash(
     isFolder,
     mediaKind,
-    hasThumbnail,
     extension,
     createdAfter,
     createdBefore,
@@ -131,10 +121,9 @@ class DriveFileFilters {
 
 enum DriveMediaKind { image, video, audio, document }
 
-class DriveFilterBar extends HookConsumerWidget {
+class DriveFilterBar extends HookWidget {
   final DriveFileFilters filters;
   final ValueChanged<DriveFileFilters> onChanged;
-  final ValueNotifier<SnFilePool?> selectedPool;
   final Future<void> Function() onRefresh;
   final bool enabled;
 
@@ -142,21 +131,18 @@ class DriveFilterBar extends HookConsumerWidget {
     super.key,
     required this.filters,
     required this.onChanged,
-    required this.selectedPool,
     required this.onRefresh,
     this.enabled = true,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final showAdvanced = useState(filters.hasActiveFilters);
     final extensionController = useTextEditingController(
       text: filters.extension ?? '',
     );
-    final pool = useValueListenable(selectedPool);
-    final poolsAsync = ref.watch(poolsProvider);
 
     useEffect(() {
       final next = filters.extension ?? '';
@@ -225,32 +211,6 @@ class DriveFilterBar extends HookConsumerWidget {
                             : filters.copyWith(mediaKind: value),
                       );
                     },
-                  ),
-                  _FilterChipButton(
-                    icon: Symbols.image,
-                    label: 'driveFilterHasThumbnail'.tr(),
-                    stateIcon: filters.hasThumbnail
-                        ? Symbols.check_circle
-                        : Symbols.radio_button_unchecked,
-                    emphasized: filters.hasThumbnail,
-                    enabled: enabled,
-                    onTap: () {
-                      onChanged(
-                        filters.copyWith(hasThumbnail: !filters.hasThumbnail),
-                      );
-                    },
-                  ),
-                  poolsAsync.maybeWhen(
-                    data: (pools) {
-                      if (pools.isEmpty) return const SizedBox.shrink();
-                      return _PoolFilterChip(
-                        pools: pools,
-                        selected: pool,
-                        enabled: enabled,
-                        onSelected: (value) => selectedPool.value = value,
-                      );
-                    },
-                    orElse: () => const SizedBox.shrink(),
                   ),
                   _FilterChipButton(
                     icon: Symbols.refresh,
@@ -534,7 +494,6 @@ class DriveFilterBar extends HookConsumerWidget {
 class _FilterChipButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final IconData? stateIcon;
   final bool emphasized;
   final bool enabled;
   final VoidCallback onTap;
@@ -542,7 +501,6 @@ class _FilterChipButton extends StatelessWidget {
   const _FilterChipButton({
     required this.icon,
     required this.label,
-    this.stateIcon,
     required this.emphasized,
     required this.enabled,
     required this.onTap,
@@ -579,10 +537,6 @@ class _FilterChipButton extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-              if (stateIcon != null) ...[
-                const Gap(6),
-                Icon(stateIcon, size: 16, color: foreground),
-              ],
             ],
           ),
         ),
@@ -789,110 +743,6 @@ class _MediaKindChip extends StatelessWidget {
 }
 
 enum _MediaKindFilterOption { all, image, video, audio, document }
-
-class _PoolFilterChip extends StatelessWidget {
-  final List<SnFilePool> pools;
-  final SnFilePool? selected;
-  final bool enabled;
-  final ValueChanged<SnFilePool?> onSelected;
-
-  const _PoolFilterChip({
-    required this.pools,
-    required this.selected,
-    required this.enabled,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final active = selected != null;
-
-    return PopupMenuButton<_PoolFilterOption>(
-      enabled: enabled,
-      initialValue: _PoolFilterOption(selected?.id),
-      tooltip: 'filterByPool'.tr(),
-      onSelected: (option) => onSelected(
-        option.poolId == null
-            ? null
-            : pools.cast<SnFilePool?>().firstWhere(
-                (pool) => pool?.id == option.poolId,
-                orElse: () => null,
-              ),
-      ),
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: const _PoolFilterOption(null),
-          child: Text('all'.tr()),
-        ),
-        ...pools.map(
-          (pool) => PopupMenuItem(
-            value: _PoolFilterOption(pool.id),
-            child: Text(pool.name),
-          ),
-        ),
-      ],
-      child: Material(
-        color: active
-            ? colorScheme.secondaryContainer
-            : colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Symbols.database,
-                size: 16,
-                color: active
-                    ? colorScheme.onSecondaryContainer
-                    : colorScheme.onSurfaceVariant,
-              ),
-              const Gap(6),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 120),
-                child: Text(
-                  selected?.name ?? 'filterByPool'.tr(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: active
-                        ? colorScheme.onSecondaryContainer
-                        : colorScheme.onSurface,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              const Gap(6),
-              Icon(
-                Symbols.expand_more,
-                size: 16,
-                color: active
-                    ? colorScheme.onSecondaryContainer
-                    : colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-@immutable
-class _PoolFilterOption {
-  final String? poolId;
-
-  const _PoolFilterOption(this.poolId);
-
-  @override
-  bool operator ==(Object other) =>
-      other is _PoolFilterOption && other.poolId == poolId;
-
-  @override
-  int get hashCode => poolId.hashCode;
-}
 
 class _DateFieldButton extends StatelessWidget {
   final String label;

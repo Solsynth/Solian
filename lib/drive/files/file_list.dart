@@ -83,7 +83,7 @@ class FileListScreen extends HookConsumerWidget {
     final activeTabId = useState<String?>(null);
     final selectedWorkspaceId = useState<String?>(null);
     final showSidebar = useState<bool>(false);
-    final showFilters = useState(true);
+    final showFilters = useState(false);
     final dragging = useState(false);
     final searchDebounceTimer = useRef<Timer?>(null);
 
@@ -865,11 +865,10 @@ class FileListScreen extends HookConsumerWidget {
           leading: Icon(
             Symbols.search,
             size: 20,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         actions: [
-          // Filter panel toggle (file browser tabs only)
           IconButton(
             icon: Icon(
               showFilters.value ? Symbols.filter_list_off : Symbols.filter_list,
@@ -881,8 +880,6 @@ class FileListScreen extends HookConsumerWidget {
                 ? 'hideFilters'.tr()
                 : 'showFilters'.tr(),
           ),
-
-          // Selection mode toggle
           IconButton(
             icon: Icon(
               isSelectionModeValue ? Symbols.close : Symbols.select_check_box,
@@ -894,8 +891,6 @@ class FileListScreen extends HookConsumerWidget {
                 ? 'exitSelectionMode'.tr()
                 : 'enterSelectionMode'.tr(),
           ),
-
-          // Recycle toggle (only in unindexed mode)
           if (modeValue == FileListMode.unindexed)
             IconButton(
               icon: Icon(
@@ -916,7 +911,6 @@ class FileListScreen extends HookConsumerWidget {
                   ? 'showActiveFiles'.tr()
                   : 'showRecycleBin'.tr(),
             ),
-
           const Gap(8),
         ],
       ),
@@ -1761,7 +1755,7 @@ class _DriveTabItem extends StatelessWidget {
           }
         },
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 120, maxWidth: 220),
+          constraints: const BoxConstraints(minWidth: 132, maxWidth: 228),
           child: Material(
             color: isSelected ? scheme.surface : Colors.transparent,
             child: InkWell(
@@ -1774,9 +1768,9 @@ class _DriveTabItem extends StatelessWidget {
                         ? BorderSide(color: border)
                         : BorderSide.none,
                     // Selected tab sits on the content surface: hide bar bottom
-                    // edge and draw a thin top accent.
+                    // edge and draw a thin primary accent.
                     top: isSelected
-                        ? BorderSide(color: scheme.tertiary, width: 2)
+                        ? BorderSide(color: scheme.primary, width: 2)
                         : BorderSide.none,
                     right: isSelected
                         ? BorderSide(color: border)
@@ -2092,9 +2086,9 @@ class _DriveStorageStatusBar extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             16,
-            2,
             8,
-            2 + MediaQuery.paddingOf(context).bottom,
+            8,
+            8 + MediaQuery.paddingOf(context).bottom,
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -2183,9 +2177,9 @@ class _DriveSelectionStatusBar extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             16,
-            2,
             8,
-            2 + MediaQuery.paddingOf(context).bottom,
+            8,
+            8 + MediaQuery.paddingOf(context).bottom,
           ),
           child: Row(
             children: [

@@ -65,7 +65,6 @@ class DriveBrowserPathKey {
   final bool orderDesc;
   final bool? isFolder;
   final String? contentType;
-  final bool? hasThumbnail;
   final String? extension;
   final String? createdAfter;
   final String? createdBefore;
@@ -80,7 +79,6 @@ class DriveBrowserPathKey {
     this.orderDesc = true,
     this.isFolder,
     this.contentType,
-    this.hasThumbnail,
     this.extension,
     this.createdAfter,
     this.createdBefore,
@@ -99,7 +97,6 @@ class DriveBrowserPathKey {
           orderDesc == other.orderDesc &&
           isFolder == other.isFolder &&
           contentType == other.contentType &&
-          hasThumbnail == other.hasThumbnail &&
           extension == other.extension &&
           createdAfter == other.createdAfter &&
           createdBefore == other.createdBefore &&
@@ -115,7 +112,6 @@ class DriveBrowserPathKey {
     orderDesc,
     isFolder,
     contentType,
-    hasThumbnail,
     extension,
     createdAfter,
     createdBefore,
@@ -182,7 +178,6 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
           query: key.query,
           isFolder: key.isFolder,
           contentType: key.contentType,
-          hasThumbnail: key.hasThumbnail,
           extension: key.extension,
           createdAfter: key.createdAfter,
           createdBefore: key.createdBefore,
@@ -198,7 +193,6 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
           query: key.query,
           isFolder: key.isFolder,
           contentType: key.contentType,
-          hasThumbnail: key.hasThumbnail,
           extension: key.extension,
           createdAfter: key.createdAfter,
           createdBefore: key.createdBefore,
@@ -231,7 +225,6 @@ class IndexedCloudFileListNotifier
   String? _extension;
   String? _contentType;
   bool? _isFolder;
-  bool? _hasThumbnail;
   String? _createdAfter;
   String? _createdBefore;
   String? _order;
@@ -280,7 +273,6 @@ class IndexedCloudFileListNotifier
   void setStructuredFilters({
     bool? isFolder,
     String? contentType,
-    bool? hasThumbnail,
     String? extension,
     String? createdAfter,
     String? createdBefore,
@@ -291,7 +283,6 @@ class IndexedCloudFileListNotifier
     final nextOrderDesc = orderDesc ?? _orderDesc;
     if (_isFolder == isFolder &&
         _contentType == contentType &&
-        _hasThumbnail == hasThumbnail &&
         _extension == extension &&
         _createdAfter == createdAfter &&
         _createdBefore == createdBefore &&
@@ -301,7 +292,6 @@ class IndexedCloudFileListNotifier
     }
     _isFolder = isFolder;
     _contentType = contentType;
-    _hasThumbnail = hasThumbnail;
     _extension = extension;
     _createdAfter = createdAfter;
     _createdBefore = createdBefore;
@@ -362,7 +352,6 @@ class IndexedCloudFileListNotifier
         poolId: _poolId,
         contentType: _contentType,
         isFolder: _isFolder,
-        hasThumbnail: _hasThumbnail,
         createdAfter: _createdAfter,
         createdBefore: _createdBefore,
       );
@@ -379,7 +368,6 @@ class IndexedCloudFileListNotifier
         poolId: _poolId,
         contentType: _contentType,
         isFolder: _isFolder,
-        hasThumbnail: _hasThumbnail,
         createdAfter: _createdAfter,
         createdBefore: _createdBefore,
       );
@@ -471,7 +459,6 @@ class UnindexedFileListNotifier
   String? _extension;
   String? _contentType;
   bool? _isFolder;
-  bool? _hasThumbnail;
   String? _createdAfter;
   String? _createdBefore;
   String? _order;
@@ -520,7 +507,6 @@ class UnindexedFileListNotifier
   void setStructuredFilters({
     bool? isFolder,
     String? contentType,
-    bool? hasThumbnail,
     String? extension,
     String? createdAfter,
     String? createdBefore,
@@ -531,7 +517,6 @@ class UnindexedFileListNotifier
     final nextOrderDesc = orderDesc ?? _orderDesc;
     if (_isFolder == isFolder &&
         _contentType == contentType &&
-        _hasThumbnail == hasThumbnail &&
         _extension == extension &&
         _createdAfter == createdAfter &&
         _createdBefore == createdBefore &&
@@ -541,7 +526,6 @@ class UnindexedFileListNotifier
     }
     _isFolder = isFolder;
     _contentType = contentType;
-    _hasThumbnail = hasThumbnail;
     _extension = extension;
     _createdAfter = createdAfter;
     _createdBefore = createdBefore;
@@ -591,7 +575,6 @@ class UnindexedFileListNotifier
       orderDesc: _orderDesc,
       contentType: _contentType,
       isFolder: _isFolder,
-      hasThumbnail: _hasThumbnail,
       createdAfter: _createdAfter,
       createdBefore: _createdBefore,
     );

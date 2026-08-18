@@ -366,7 +366,7 @@ class FileListView extends HookConsumerWidget {
     required this.quota,
     required this.currentPath,
     required this.selectedPool,
-    this.showFilters = true,
+    this.showFilters = false,
     required this.onPickAndUpload,
     required this.onShowCreateFolder,
     required this.onOpenFolderInNewTab,
@@ -571,7 +571,6 @@ class FileListView extends HookConsumerWidget {
           notifier.setStructuredFilters(
             isFolder: filtersSnapshot.isFolder,
             contentType: filtersSnapshot.contentTypeParam,
-            hasThumbnail: filtersSnapshot.hasThumbnail ? true : null,
             extension: filtersSnapshot.extensionParam,
             createdAfter: filtersSnapshot.createdAfterParam,
             createdBefore: filtersSnapshot.createdBeforeParam,
@@ -586,7 +585,6 @@ class FileListView extends HookConsumerWidget {
           notifier.setStructuredFilters(
             isFolder: filtersSnapshot.isFolder,
             contentType: filtersSnapshot.contentTypeParam,
-            hasThumbnail: filtersSnapshot.hasThumbnail ? true : null,
             extension: filtersSnapshot.extensionParam,
             createdAfter: filtersSnapshot.createdAfterParam,
             createdBefore: filtersSnapshot.createdBeforeParam,
@@ -865,7 +863,6 @@ class FileListView extends HookConsumerWidget {
             children: [
               DriveFilterBar(
                 filters: filters.value,
-                selectedPool: selectedPool,
                 enabled: !isRefreshing,
                 onChanged: (next) => filters.value = next,
                 onRefresh: () async {
@@ -2977,7 +2974,6 @@ class _DriveColumnBrowser extends HookConsumerWidget {
                   orderDesc: filters.orderDesc,
                   isFolder: filters.isFolder,
                   contentType: filters.contentTypeParam,
-                  hasThumbnail: filters.hasThumbnail ? true : null,
                   extension: filters.extensionParam,
                   createdAfter: filters.createdAfterParam,
                   createdBefore: filters.createdBeforeParam,
@@ -3534,6 +3530,8 @@ class _FileListLeadingPreview extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final kind = file.mimeType.split('/').firstOrNull;
+    final serverUrl = ref.watch(serverUrlProvider);
+    final uri = file.storageUrl ?? '$serverUrl/drive/files/${file.id}';
 
     Widget preview = Container(
       color: colorScheme.surfaceContainerHighest,
@@ -3541,10 +3539,12 @@ class _FileListLeadingPreview extends HookConsumerWidget {
     );
 
     if (kind == 'image') {
-      preview = CloudImageWidget(file: file, fit: BoxFit.cover, aspectRatio: 1);
+      preview = UniversalImage(
+        uri: '$uri?thumbnail=true',
+        blurHash: file.blurhash,
+        fit: BoxFit.cover,
+      );
     } else if (kind == 'video') {
-      final serverUrl = ref.watch(serverUrlProvider);
-      final uri = file.storageUrl ?? '$serverUrl/drive/files/${file.id}';
       preview = Stack(
         fit: StackFit.expand,
         children: [

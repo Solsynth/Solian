@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/core/utils/file_icon_utils.dart';
 import 'package:island/drive/file_permissions.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -34,77 +35,137 @@ class FileInfoSheet extends ConsumerWidget {
     final mimeTypeLabel = file?.isFolder == true
         ? 'folder'.tr()
         : item.mimeType;
-
     return SheetScaffold(
       onClose: onClose,
-      titleText: 'fileInfoTitle'.tr(),
+      title: Row(
+        children: [
+          Icon(Symbols.info, color: theme.colorScheme.primary),
+          const SizedBox(width: 10),
+          Text('fileInfoTitle'.tr()),
+        ],
+      ),
       child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('mimeType').tr(),
-                      Text(
-                        mimeTypeLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.55,
                   ),
                 ),
-                SizedBox(height: 28, child: const VerticalDivider()),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('fileSize').tr(),
-                      Text(
-                        formatFileSize(item.size),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: file == null
+                        ? Icon(
+                            Symbols.insert_drive_file,
+                            size: 30,
+                            color: theme.colorScheme.primary,
+                          )
+                        : getFileIcon(file, size: 30, tinyPreview: false),
                   ),
-                ),
-                if (hash != null && hash.isNotEmpty)
-                  SizedBox(height: 28, child: const VerticalDivider()),
-                if (hash != null && hash.isNotEmpty)
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: GestureDetector(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('fileHash').tr(),
-                          Text(
-                            hash.length > 6
-                                ? '${hash.substring(0, 6)}...'
-                                : hash,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          mimeTypeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
                           ),
-                        ],
-                      ),
-                      onLongPress: () {
-                        Clipboard.setData(ClipboardData(text: hash));
-                        showSnackBar('fileHashCopied'.tr());
-                      },
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.name.isEmpty ? 'untitled'.tr() : item.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            _FileInfoBadge(
+                              icon: Symbols.data_usage,
+                              label: formatFileSize(item.size),
+                            ),
+                            if (permissionStatus != null)
+                              _FileInfoBadge(
+                                icon: permissionStatus.readable
+                                    ? Symbols.lock_open
+                                    : Symbols.lock,
+                                label: permissionStatus.visibility.tr(),
+                              ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-              ],
-            ).padding(horizontal: 16, vertical: 12),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _FileInfoMetric(
+                      label: 'mimeType'.tr(),
+                      value: mimeTypeLabel,
+                    ),
+                  ),
+                  const SizedBox(height: 36, child: VerticalDivider()),
+                  Expanded(
+                    child: _FileInfoMetric(
+                      label: 'fileSize'.tr(),
+                      value: formatFileSize(item.size),
+                    ),
+                  ),
+                  if (hash != null && hash.isNotEmpty) ...[
+                    const SizedBox(height: 36, child: VerticalDivider()),
+                    Expanded(
+                      child: GestureDetector(
+                        onLongPress: () {
+                          Clipboard.setData(ClipboardData(text: hash));
+                          showSnackBar('fileHashCopied'.tr());
+                        },
+                        child: _FileInfoMetric(
+                          label: 'fileHash'.tr(),
+                          value: hash.length > 6
+                              ? '${hash.substring(0, 6)}...'
+                              : hash,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Symbols.tag),
@@ -180,7 +241,12 @@ class FileInfoSheet extends ConsumerWidget {
                   ),
                 ),
               ListTile(
-                leading: const Icon(Symbols.lock),
+                leading: Icon(
+                  permissionStatus?.readable == true
+                      ? Symbols.lock_open
+                      : Symbols.lock,
+                  color: theme.colorScheme.primary,
+                ),
                 title: Text('permissions').tr(),
                 subtitle: Text(
                   [
@@ -383,6 +449,173 @@ class FileInfoSheet extends ConsumerWidget {
   }
 }
 
+class _FileInfoBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _FileInfoBadge({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: scheme.onSurface),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FileInfoMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _FileInfoMetric({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            letterSpacing: 0.4,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PermissionRuleTile extends StatelessWidget {
+  final SnFilePermission permission;
+  final VoidCallback onRemove;
+
+  const _PermissionRuleTile({required this.permission, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final subjectLabel = permission.subjectId.isEmpty
+        ? permission.subjectType.tr()
+        : permission.subjectId;
+    final icon = switch (permission.permission) {
+      'manage' => Symbols.admin_panel_settings,
+      'write' => Symbols.edit,
+      _ => Symbols.visibility,
+    };
+    final permissionLabel = switch (permission.permission) {
+      'read' => 'filePermissionRead'.tr(),
+      'write' => 'filePermissionWrite'.tr(),
+      _ => permission.permission.tr(),
+    };
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      leading: Icon(icon, color: scheme.primary),
+      title: Text(subjectLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text('${permission.subjectType.tr()} · $permissionLabel'),
+      trailing: IconButton(
+        tooltip: 'delete'.tr(),
+        onPressed: onRemove,
+        icon: const Icon(Symbols.close, size: 19),
+      ),
+    );
+  }
+}
+
+class _PermissionSectionLabel extends StatelessWidget {
+  final String title;
+  final String? trailing;
+
+  const _PermissionSectionLabel({required this.title, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (trailing != null) ...[
+            const Spacer(),
+            Text(
+              trailing!,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PermissionEmptyState extends StatelessWidget {
+  const _PermissionEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 30, 24, 34),
+      child: Column(
+        children: [
+          Icon(Symbols.rule, size: 34, color: scheme.onSurfaceVariant),
+          const SizedBox(height: 10),
+          Text(
+            'private'.tr(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class FilePermissionEditorSheet extends HookConsumerWidget {
   final SnCloudFile file;
 
@@ -390,6 +623,7 @@ class FilePermissionEditorSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     final permissionsAsync = ref.watch(driveFilePermissionsProvider(file.id));
     final workingItems = useState<List<SnFilePermission>>([]);
     final loaded = useState(false);
@@ -487,146 +721,182 @@ class FilePermissionEditorSheet extends HookConsumerWidget {
       }
     }
 
+    final inherited = file.permissionStatus?.inheritedFrom != null;
+    final visibility = file.permissionStatus?.visibility.tr() ?? 'public'.tr();
+
     return SheetScaffold(
-      titleText: 'permissions'.tr(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      title: Row(
+        children: [
+          Icon(Symbols.lock, color: scheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'permissions'.tr(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            leading: Icon(
+              file.isFolder ? Symbols.folder : Symbols.insert_drive_file,
+              color: scheme.primary,
+            ),
+            title: Text(
+              file.name.isEmpty ? 'untitled'.tr() : file.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              [
+                visibility,
+                if (inherited) 'inheritedFromParent'.tr(),
+              ].join(' · '),
+            ),
+          ),
+          _PermissionSectionLabel(title: 'filePermissionAddRule'.tr()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Text(
-                  file.permissionStatus?.visibility.tr() ?? 'public'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                ChoiceChip(
+                  avatar: const Icon(Symbols.public, size: 17),
+                  label: Text('public').tr(),
+                  selected: subjectType.value == 'public',
+                  onSelected: (_) => subjectType.value = 'public',
                 ),
-                const SizedBox(height: 8),
-                if (file.permissionStatus?.inheritedFrom != null)
-                  Text(
-                    'inheritedFromParent'.tr(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ChoiceChip(
-                      label: Text('public').tr(),
-                      selected: subjectType.value == 'public',
-                      onSelected: (_) => subjectType.value = 'public',
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: Text('private').tr(),
-                      selected: subjectType.value == 'private',
-                      onSelected: (_) => subjectType.value = 'private',
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: const Text('account'),
-                      selected: subjectType.value == 'account',
-                      onSelected: (_) => subjectType.value = 'account',
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: const Text('scope'),
-                      selected: subjectType.value == 'scope',
-                      onSelected: (_) => subjectType.value = 'scope',
-                    ),
-                  ],
+                ChoiceChip(
+                  avatar: const Icon(Symbols.lock, size: 17),
+                  label: Text('private').tr(),
+                  selected: subjectType.value == 'private',
+                  onSelected: (_) => subjectType.value = 'private',
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('read'),
-                      selected: permission.value == 'read',
-                      onSelected: (_) => permission.value = 'read',
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: const Text('write'),
-                      selected: permission.value == 'write',
-                      onSelected: (_) => permission.value = 'write',
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: const Text('manage'),
-                      selected: permission.value == 'manage',
-                      onSelected: (_) => permission.value = 'manage',
-                    ),
-                  ],
+                ChoiceChip(
+                  avatar: const Icon(Symbols.person, size: 17),
+                  label: Text('account').tr(),
+                  selected: subjectType.value == 'account',
+                  onSelected: (_) => subjectType.value = 'account',
                 ),
-                if (subjectType.value == 'scope') ...[
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: subjectIdController,
-                    decoration: const InputDecoration(
-                      hintText: 'files.manage',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: addRule,
-                      icon: const Icon(Symbols.add),
-                      label: Text('add').tr(),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('cancel').tr(),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton(onPressed: save, child: Text('save').tr()),
-                  ],
+                ChoiceChip(
+                  avatar: const Icon(Symbols.key, size: 17),
+                  label: Text('scope').tr(),
+                  selected: subjectType.value == 'scope',
+                  onSelected: (_) => subjectType.value = 'scope',
                 ),
               ],
-            ).padding(horizontal: 20),
-            const SizedBox(height: 12),
-            const Divider(),
-            Expanded(
-              child: permissionsAsync.when(
-                data: (_) => ListView.builder(
-                  itemCount: workingItems.value.length,
-                  itemBuilder: (context, index) {
-                    final perm = workingItems.value[index];
-                    return ListTile(
-                      title: Text('${perm.subjectType} · ${perm.permission}'),
-                      subtitle: Text(
-                        perm.subjectId.isEmpty ? 'all' : perm.subjectId,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Symbols.close),
-                        onPressed: () {
-                          workingItems.value = List.of(workingItems.value)
-                            ..removeAt(index);
-                        },
-                      ),
-                    );
-                  },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ChoiceChip(
+                  label: Text('filePermissionRead').tr(),
+                  selected: permission.value == 'read',
+                  onSelected: (_) => permission.value = 'read',
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Text(error.toString()),
+                ChoiceChip(
+                  label: Text('filePermissionWrite').tr(),
+                  selected: permission.value == 'write',
+                  onSelected: (_) => permission.value = 'write',
+                ),
+                ChoiceChip(
+                  label: Text('manage').tr(),
+                  selected: permission.value == 'manage',
+                  onSelected: (_) => permission.value = 'manage',
+                ),
+              ],
+            ),
+          ),
+          if (subjectType.value == 'scope') ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: subjectIdController,
+                decoration: InputDecoration(
+                  labelText: 'scope'.tr(),
+                  hintText: 'files.manage',
+                  prefixIcon: const Icon(Symbols.key),
+                  isDense: true,
+                ),
               ),
             ),
           ],
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: OutlinedButton.icon(
+              onPressed: addRule,
+              icon: const Icon(Symbols.add),
+              label: Text('add').tr(),
+            ),
+          ),
+          const Divider(height: 24),
+          _PermissionSectionLabel(
+            title: 'filePermissionCurrentRules'.tr(),
+            trailing: '${workingItems.value.length}',
+          ),
+          Expanded(
+            child: permissionsAsync.when(
+              data: (_) => workingItems.value.isEmpty
+                  ? const SingleChildScrollView(child: _PermissionEmptyState())
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      itemCount: workingItems.value.length,
+                      itemBuilder: (context, index) {
+                        final perm = workingItems.value[index];
+                        return _PermissionRuleTile(
+                          permission: perm,
+                          onRemove: () {
+                            workingItems.value = List.of(workingItems.value)
+                              ..removeAt(index);
+                          },
+                        );
+                      },
+                    ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(error.toString(), textAlign: TextAlign.center),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('cancel').tr(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: save,
+                      child: Text('save').tr(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
