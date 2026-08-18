@@ -10,6 +10,8 @@ import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/drive/screens/upload_tasks.dart';
+import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -192,6 +194,10 @@ class _FakeS3Server {
 
   String get base => 'http://127.0.0.1:${server.port}';
 }
+
+final _enhancedFileUploaderProvider = Provider<EnhancedFileUploader>(
+  (ref) => EnhancedFileUploader(ref),
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -385,6 +391,62 @@ void main() {
     expect(s3.objects['/single']!.length, source.length);
     expect(s3.objects['/single'], equals(source));
   });
+  test('enhanced upload tracks task progress during direct PUT', () async {
+    final file = File(
+      '${Directory.systemTemp.path}/'
+      's3_task_${DateTime.now().microsecondsSinceEpoch}.bin',
+    );
+    final source = Uint8List(1024 * 1024);
+    await file.writeAsBytes(source, flush: true);
+    addTearDown(() => file.deleteSync());
+
+    dyson.singlePut = true;
+    final observedProgress = <double>[];
+    final subscription = container.listen(tasksProvider, (_, next) {
+      if (next.isNotEmpty) observedProgress.add(next.last.progress);
+    });
+    addTearDown(subscription.close);
+
+    final uploader = container.read(_enhancedFileUploaderProvider);
+    final result = await uploader.uploadFile(
+      fileData: XFile(file.path),
+      fileName: 'task.bin',
+      contentType: 'application/octet-stream',
+      parentId: 'parent-1',
+    );
+
+    expect(result.id, 'cloud-file-1');
+    expect(observedProgress, contains(0.82));
+    expect(observedProgress.last, 1.0);
+    final task = container.read(tasksProvider).single;
+    expect(task.status, AppTaskStatus.completed);
+    expect(task.metadata?['stage'], DriveUploadStage.completed);
+  });
+  test(
+    'audio upload preserves fallback when local probing is unavailable',
+    () async {
+      final file = File(
+        '${Directory.systemTemp.path}/'
+        's3_audio_${DateTime.now().microsecondsSinceEpoch}.mp3',
+      );
+      final source = Uint8List(64 * 1024);
+      await file.writeAsBytes(source, flush: true);
+      addTearDown(() => file.deleteSync());
+
+      dyson.singlePut = true;
+      final uploader = container.read(driveFileUploaderProvider);
+      final result = await uploader.tryUploadViaS3Direct(
+        fileData: XFile(file.path),
+        fileName: 'audio.mp3',
+        contentType: 'audio/mpeg',
+        parentId: 'parent-1',
+      );
+
+      expect(result, isNotNull);
+      expect(dyson.lastPrepareMultipart, isFalse);
+      expect(s3.objects['/single'], equals(source));
+    },
+  );
 
   test(
     'byte-backed upload (editor flow) sends displayName as file_name',

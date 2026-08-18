@@ -59,6 +59,20 @@ class EnhancedFileUploader extends FileUploader {
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     final overallTimer = Stopwatch()..start();
+    final tasks = ref.read(tasksProvider.notifier);
+    final taskId = tasks.addTask(
+      title: fileName,
+      type: AppTaskType.driveUpload,
+      status: AppTaskStatus.inProgress,
+      metadata: DriveUploadTaskMeta(
+        fileSize: 0,
+        totalChunks: 1,
+        stage: DriveUploadStage.preparing,
+        poolId: poolId,
+        encryptPassword: encryptPassword,
+        expiredAt: expiredAt,
+      ).toMap(),
+    );
     dynamic uploadData = fileData;
     String? encryptionScheme;
     String? encryptionHeader;
@@ -92,9 +106,16 @@ class EnhancedFileUploader extends FileUploader {
     }
 
     final totalSize = await resolveUploadDataSize(uploadData);
-    final tasks = ref.read(tasksProvider.notifier);
-
-    String? fallbackTaskId;
+    tasks.updateTask(
+      taskId,
+      metadata: {
+        ...?tasks.getTask(taskId)?.metadata,
+        'fileSize': totalSize,
+        'stage': DriveUploadStage.preparing,
+        'stageProgress': 0.0,
+      },
+      statusMessage: DriveUploadStage.label(DriveUploadStage.preparing),
+    );
     // cannot issue signed URLs. XFiles of any size are eligible (multipart
     // above the threshold, single PUT below); in-memory payloads are capped by
     // the single-PUT object limit. E2EE payloads and explicit chunk sizes stay
@@ -103,32 +124,18 @@ class EnhancedFileUploader extends FileUploader {
         customChunkSize == null &&
         (uploadData is XFile ||
             totalSize <= driveS3DirectUploadMaxFileSizeBytes)) {
-      final s3TaskId = tasks.addTask(
-        title: fileName,
-        type: AppTaskType.driveUpload,
-        status: AppTaskStatus.inProgress,
-        metadata: DriveUploadTaskMeta(
-          fileSize: totalSize,
-          totalChunks: 1,
-          stage: DriveUploadStage.preparing,
-          poolId: poolId,
-          encryptPassword: encryptPassword,
-          expiredAt: expiredAt,
-        ).toMap(),
-      );
-
       void reportStage(String stage, double stageProgress) {
-        final current = tasks.getTask(s3TaskId)?.metadata ?? {};
+        final current = tasks.getTask(taskId)?.metadata ?? {};
         final progress = switch (stage) {
           DriveUploadStage.uploadingSource => stageProgress * 0.82,
           DriveUploadStage.uploadingThumbnail => 0.82 + stageProgress * 0.06,
           DriveUploadStage.uploadingCompression => 0.88 + stageProgress * 0.07,
           DriveUploadStage.finalizing => 0.95 + stageProgress * 0.05,
           DriveUploadStage.completed => 1.0,
-          _ => (tasks.getTask(s3TaskId)?.progress ?? 0).clamp(0.0, 1.0),
+          _ => (tasks.getTask(taskId)?.progress ?? 0).clamp(0.0, 1.0),
         };
         tasks.updateTask(
-          s3TaskId,
+          taskId,
           progress: progress,
           statusMessage: DriveUploadStage.label(stage),
           metadata: {
@@ -162,11 +169,7 @@ class EnhancedFileUploader extends FileUploader {
           onProgress: (progress, estimate) {
             onProgress?.call(progress, estimate);
             if (progress != null) {
-              final current = tasks.getTask(s3TaskId)?.metadata ?? {};
-              tasks.updateTask(
-                s3TaskId,
-                metadata: {...current, 'transmissionProgress': progress},
-              );
+              reportStage(DriveUploadStage.uploadingSource, progress);
             }
           },
         );
@@ -174,7 +177,7 @@ class EnhancedFileUploader extends FileUploader {
         if (s3Uploaded != null) {
           reportStage(DriveUploadStage.completed, 1);
           tasks.updateTask(
-            s3TaskId,
+            taskId,
             status: AppTaskStatus.completed,
             progress: 1.0,
           );
@@ -187,10 +190,9 @@ class EnhancedFileUploader extends FileUploader {
         }
 
         reportStage(DriveUploadStage.fallingBack, 1);
-        fallbackTaskId = s3TaskId;
       } catch (err) {
         tasks.updateTask(
-          s3TaskId,
+          taskId,
           status: AppTaskStatus.failed,
           errorMessage: err.toString(),
         );
@@ -202,20 +204,6 @@ class EnhancedFileUploader extends FileUploader {
       totalSize: totalSize,
       customChunkSize: customChunkSize,
     )) {
-      final taskId = tasks.addTask(
-        title: fileName,
-        type: AppTaskType.driveUpload,
-        status: AppTaskStatus.inProgress,
-        metadata: DriveUploadTaskMeta(
-          fileSize: totalSize,
-          totalChunks: 1,
-          stage: DriveUploadStage.preparing,
-          poolId: poolId,
-          encryptPassword: encryptPassword,
-          expiredAt: expiredAt,
-        ).toMap(),
-      );
-
       onProgress?.call(null, Duration.zero);
       try {
         tasks.updateTask(
@@ -304,6 +292,15 @@ class EnhancedFileUploader extends FileUploader {
     }
 
     // Step 1: Create upload task
+    tasks.updateTask(
+      taskId,
+      statusMessage: DriveUploadStage.label(DriveUploadStage.hashing),
+      metadata: {
+        ...?tasks.getTask(taskId)?.metadata,
+        'stage': DriveUploadStage.hashing,
+        'stageProgress': 0.0,
+      },
+    );
     onProgress?.call(null, Duration.zero);
     final createTimer = Stopwatch()..start();
     final createResponse = await createUploadTask(
@@ -323,27 +320,22 @@ class EnhancedFileUploader extends FileUploader {
     debugPrint(
       '[DriveUpload] Step 1 (Create upload task) total took: ${createTimer.elapsedMilliseconds}ms',
     );
-
     if (createResponse['file_exists'] == true) {
       final existingFile = SnCloudFile.fromJson(createResponse['file']);
-
-      tasks.addTask(
-        title: fileName,
-        type: AppTaskType.driveUpload,
+      tasks.updateTask(
+        taskId,
         status: AppTaskStatus.completed,
-        metadata: DriveUploadTaskMeta(
-          fileSize: totalSize,
-          totalChunks: 1,
-          uploadedChunks: 1,
-          stage: DriveUploadStage.completed,
-          stageProgress: 1,
-          sourceProgress: 1,
-          poolId: poolId,
-          encryptPassword: encryptPassword,
-          expiredAt: expiredAt,
-        ).toMap(),
+        statusMessage: DriveUploadStage.label(DriveUploadStage.completed),
+        progress: 1.0,
+        metadata: {
+          ...?tasks.getTask(taskId)?.metadata,
+          'stage': DriveUploadStage.completed,
+          'stageProgress': 1.0,
+          'uploadedChunks': 1,
+          'totalChunks': 1,
+          'sourceProgress': 1.0,
+        },
       );
-
       return existingFile;
     }
 
@@ -352,37 +344,18 @@ class EnhancedFileUploader extends FileUploader {
     final chunksCount = createResponse['chunks_count'] as int;
 
     // Local task progress is driven directly by Dio's send-progress callbacks.
-    final taskId =
-        fallbackTaskId ??
-        tasks.addTask(
-          title: fileName,
-          type: AppTaskType.driveUpload,
-          status: AppTaskStatus.inProgress,
-          metadata: DriveUploadTaskMeta(
-            serverTaskId: serverTaskId,
-            fileSize: totalSize,
-            totalChunks: chunksCount,
-            stage: DriveUploadStage.uploadingSource,
-            poolId: poolId,
-            encryptPassword: encryptPassword,
-            expiredAt: expiredAt,
-          ).toMap(),
-        );
-    if (fallbackTaskId != null) {
-      tasks.updateTask(
-        taskId,
-        statusMessage: DriveUploadStage.label(DriveUploadStage.uploadingSource),
-        metadata: DriveUploadTaskMeta(
-          serverTaskId: serverTaskId,
-          fileSize: totalSize,
-          totalChunks: chunksCount,
-          stage: DriveUploadStage.uploadingSource,
-          poolId: poolId,
-          encryptPassword: encryptPassword,
-          expiredAt: expiredAt,
-        ).toMap(),
-      );
-    }
+    tasks.updateTask(
+      taskId,
+      statusMessage: DriveUploadStage.label(DriveUploadStage.uploadingSource),
+      metadata: {
+        ...?tasks.getTask(taskId)?.metadata,
+        'serverTaskId': serverTaskId,
+        'fileSize': totalSize,
+        'totalChunks': chunksCount,
+        'stage': DriveUploadStage.uploadingSource,
+        'stageProgress': 0.0,
+      },
+    );
 
     // Step 2: Upload chunks
     final chunkTimer = Stopwatch()..start();
