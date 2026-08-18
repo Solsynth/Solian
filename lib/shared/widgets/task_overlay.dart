@@ -309,16 +309,13 @@ class _TaskOverlayBar extends ConsumerWidget {
                   width: isDesktop ? 3 : 4,
                   child: ColoredBox(color: statusColor),
                 ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: backgroundProgress,
-                ),
+                Align(alignment: Alignment.topLeft, child: backgroundProgress),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     _contentHorizontalPadding(context),
-                    0,
-                    _contentHorizontalPadding(context),
                     3,
+                    _contentHorizontalPadding(context),
+                    0,
                   ),
                   child: Row(
                     children: [
