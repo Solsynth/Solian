@@ -381,6 +381,74 @@ class PostActionButtons extends HookConsumerWidget {
       );
     }
 
+    /// Icon-first response rail for compact screens. Labels stay available
+    /// through semantics/tooltips, while the fixed slots avoid wrapping the
+    /// primary actions into an uneven grid.
+    Widget buildCompactRailSlot({
+      required IconData icon,
+      required String label,
+      required VoidCallback? onPressed,
+      VoidCallback? onLongPress,
+      bool isSelected = false,
+      String? count,
+      String? tooltip,
+    }) {
+      final inkColor = isSelected ? theme.colorScheme.primary : idleColor;
+      return Expanded(
+        child: Tooltip(
+          message: tooltip ?? label,
+          child: Semantics(
+            button: true,
+            label: label,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onPressed,
+              onLongPress: onLongPress,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                height: 58,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.colorScheme.primary.withOpacity(0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 20, color: inkColor),
+                    const SizedBox(height: 1),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: inkColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (count != null)
+                      Text(
+                        count,
+                        maxLines: 1,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: inkColor.withOpacity(0.8),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     /// Quiet icon + text action for the context strip and author console.
     /// A null [onPressed] renders the action disabled and dimmed.
     Widget buildGhostAction({
@@ -492,7 +560,73 @@ class PostActionButtons extends HookConsumerWidget {
       ),
     ];
 
-    // ---- Band 2: context strip. Understanding the post, not acting on it.
+    final compactRailSlots = <Widget>[
+      buildCompactRailSlot(
+        icon: Symbols.reply,
+        label: 'reply'.tr(),
+        count: post.repliesCount > 0 ? formatScore(post.repliesCount) : null,
+        onPressed: () {
+          PostComposeDialog.show(
+            context,
+            initialState: PostComposeInitialState(replyingTo: post),
+          );
+        },
+      ),
+      buildCompactRailSlot(
+        icon: Symbols.forward,
+        label: 'forward'.tr(),
+        onPressed: () {
+          PostComposeDialog.show(
+            context,
+            initialState: PostComposeInitialState(forwardingTo: post),
+          );
+        },
+      ),
+      buildCompactRailSlot(
+        icon: Symbols.emoji_events,
+        label: 'award'.tr(),
+        count: post.awardedScore > 0
+            ? '${formatScore(post.awardedScore)} pts'
+            : null,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => PostAwardSheet(post: post),
+          );
+        },
+        onLongPress: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => PostSupportHistorySheet(postId: post.id),
+          );
+        },
+      ),
+      buildCompactRailSlot(
+        icon: isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+        label: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+        isSelected: isBookmarked,
+        onPressed: () async {
+          try {
+            await toggleBookmark(
+              ref,
+              postId: post.id,
+              currentlyBookmarked: isBookmarked,
+            );
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        },
+      ),
+      buildCompactRailSlot(
+        icon: Symbols.share,
+        label: 'share'.tr(),
+        onPressed: () => _showPostShareSheet(context, ref, post),
+      ),
+    ];
+
     // ---- Band 2: context strip. Understanding the post, not acting on it.
     final translatableText = post.content?.trim() ?? '';
     final isTranslatable = translatableText.length >= _minTranslatableLength;
@@ -618,47 +752,102 @@ class PostActionButtons extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 8,
         children: [
-          // The instrument plate: the response rail.
-          Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth >= 500) {
-                  return SizedBox(
-                    height: 48,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = 0; i < railSlots.length; i++) ...[
-                          if (i > 0) Container(width: 1, color: hairline),
-                          Expanded(
-                            child: Center(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: railSlots[i],
+          // The compact rail keeps the five primary actions on one calm,
+          // predictable row instead of wrapping labels into a second grid.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= 500) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 8,
+                  children: [
+                    Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: SizedBox(
+                        height: 48,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (var i = 0; i < railSlots.length; i++) ...[
+                              if (i > 0) Container(width: 1, color: hairline),
+                              Expanded(
+                                child: Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: railSlots[i],
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ],
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  );
-                }
-                return Wrap(spacing: 2, runSpacing: 2, children: railSlots);
-              },
-            ),
+                    if (contextActions.isNotEmpty)
+                      Wrap(spacing: 2, runSpacing: 2, children: contextActions),
+                    if (isAuthor && authorActions.isNotEmpty)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Wrap(
+                          spacing: 2,
+                          runSpacing: 2,
+                          children: authorActions,
+                        ),
+                      ),
+                  ],
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 6,
+                children: [
+                  Container(
+                    clipBehavior: Clip.antiAlias,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant.withOpacity(
+                          0.45,
+                        ),
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(children: compactRailSlots),
+                  ),
+                  if (contextActions.isNotEmpty)
+                    Material(
+                      type: MaterialType.transparency,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Row(spacing: 2, children: contextActions),
+                      ),
+                    ),
+                  if (isAuthor && authorActions.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.only(top: 6),
+                      decoration: BoxDecoration(
+                        border: Border(top: BorderSide(color: hairline)),
+                      ),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Row(spacing: 2, children: authorActions),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
-          if (contextActions.isNotEmpty)
-            Wrap(spacing: 2, runSpacing: 2, children: contextActions),
-          if (isAuthor && authorActions.isNotEmpty)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(spacing: 2, runSpacing: 2, children: authorActions),
-            ),
         ],
       ),
     );
