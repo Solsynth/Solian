@@ -429,6 +429,7 @@ class _CreateSpellSheetState extends State<CreateSpellSheet> {
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
+        payerWalletId: order.payerWalletId,
         enableBiometric: true,
       );
       if (paidOrder == null) {

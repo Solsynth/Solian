@@ -2199,6 +2199,7 @@ class StellarProgramView extends HookConsumerWidget {
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
+        payerWalletId: order.payerWalletId,
         enableBiometric: true,
       );
 
@@ -2667,6 +2668,7 @@ class StellarProgramView extends HookConsumerWidget {
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
+        payerWalletId: order.payerWalletId,
         enableBiometric: true,
       );
 

@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:island/shared/hooks/material_hooks.dart';
+import 'package:gap/gap.dart';
+import 'package:island/shared/hooks/material_hooks.dart' as material_hooks;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -145,7 +146,7 @@ class PostSupportHistorySheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = useMaterialTabController(
+    final tabController = material_hooks.useMaterialTabController(
       initialLength: 2,
       initialIndex: initialMode == SupportMode.sponsor ? 1 : 0,
     );
@@ -165,8 +166,10 @@ class PostSupportHistorySheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'supportHistory'.tr(),
+      heightFactor: 0.88,
       actions: [
         IconButton(
+          tooltip: 'refresh'.tr(),
           icon: const Icon(Symbols.refresh),
           style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
           onPressed: () {
@@ -181,15 +184,42 @@ class PostSupportHistorySheet extends HookConsumerWidget {
       ],
       child: Column(
         children: [
-          TabBar(
-            controller: tabController,
-            tabs: [
-              Tab(icon: const Icon(Symbols.star), text: 'award'.tr()),
-              Tab(icon: const Icon(Symbols.trending_up), text: 'sponsor'.tr()),
-            ],
-            tabAlignment: TabAlignment.fill,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+            child: Material(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+              child: TabBar(
+                controller: tabController,
+                tabs: [
+                  Tab(
+                    icon: const Icon(Symbols.star, size: 19),
+                    text: 'award'.tr(),
+                  ),
+                  Tab(
+                    icon: const Icon(Symbols.trending_up, size: 19),
+                    text: 'sponsor'.tr(),
+                  ),
+                ],
+                indicator: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                indicatorPadding: const EdgeInsets.all(4),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                labelColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                unselectedLabelColor: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant,
+                labelStyle: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                unselectedLabelStyle: Theme.of(context).textTheme.labelLarge,
+                splashBorderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
-          const Divider(height: 1),
           Expanded(
             child: TabBarView(
               controller: tabController,
@@ -205,34 +235,179 @@ class PostSupportHistorySheet extends HookConsumerWidget {
   }
 }
 
-class _AwardHistoryBody extends StatelessWidget {
+class _AwardHistoryBody extends HookConsumerWidget {
   final String postId;
   const _AwardHistoryBody({required this.postId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final provider = postAwardListNotifierProvider(postId);
-    return PaginationList(
-      provider: provider,
-      notifier: provider.notifier,
-      itemBuilder: (context, index, award) => PostAwardItem(award: award),
-      seperatorBuilder: (_, _, _) => const Divider(height: 1),
+    final data = ref.watch(provider);
+    final state = data.value;
+    final count = state?.totalCount ?? state?.items.length ?? 0;
+
+    return Column(
+      children: [
+        _HistoryOverview(
+          icon: Symbols.star,
+          accent: Theme.of(context).colorScheme.primary,
+          stat: 'awardCount'.tr(args: ['$count']),
+        ),
+        Expanded(
+          child:
+              state != null &&
+                  !data.isLoading &&
+                  !data.hasError &&
+                  state.items.isEmpty
+              ? _HistoryEmptyState(
+                  icon: Symbols.star_outline,
+                  message: 'noAwardsYet'.tr(),
+                )
+              : PaginationList(
+                  provider: provider,
+                  notifier: provider.notifier,
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  spacing: 10,
+                  itemBuilder: (context, index, award) =>
+                      PostAwardItem(award: award),
+                ),
+        ),
+      ],
     );
   }
 }
 
-class _SponsorHistoryBody extends StatelessWidget {
+class _SponsorHistoryBody extends HookConsumerWidget {
   final String postId;
   const _SponsorHistoryBody({required this.postId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final provider = postSponsorBidListNotifierProvider(postId);
-    return PaginationList(
-      provider: provider,
-      notifier: provider.notifier,
-      itemBuilder: (context, index, bid) => PostSponsorBidItem(bid: bid),
-      seperatorBuilder: (_, _, _) => const Divider(height: 1),
+    final data = ref.watch(provider);
+    final total = ref.watch(postSponsorTotalProvider(postId));
+    final state = data.value;
+    final amount = total.maybeWhen(
+      data: (value) => value.toStringAsFixed(0),
+      orElse: () => '—',
+    );
+
+    return Column(
+      children: [
+        _HistoryOverview(
+          icon: Symbols.trending_up,
+          accent: Theme.of(context).colorScheme.tertiary,
+          stat: 'sponsorBidAmount'.tr(args: [amount]),
+        ),
+        Expanded(
+          child:
+              state != null &&
+                  !data.isLoading &&
+                  !data.hasError &&
+                  state.items.isEmpty
+              ? _HistoryEmptyState(
+                  icon: Symbols.trending_up,
+                  message: 'sponsorHistoryEmpty'.tr(),
+                )
+              : PaginationList(
+                  provider: provider,
+                  notifier: provider.notifier,
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  spacing: 10,
+                  itemBuilder: (context, index, bid) =>
+                      PostSponsorBidItem(bid: bid),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HistoryOverview extends StatelessWidget {
+  final IconData icon;
+  final Color accent;
+  final String stat;
+
+  const _HistoryOverview({
+    required this.icon,
+    required this.accent,
+    required this.stat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 4, 20, 2),
+      padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border(
+          left: BorderSide(color: accent, width: 3),
+          top: BorderSide(color: accent.withOpacity(0.12)),
+          right: BorderSide(color: accent.withOpacity(0.12)),
+          bottom: BorderSide(color: accent.withOpacity(0.12)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: accent),
+          const Gap(10),
+          Text(
+            stat,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const Spacer(),
+          Text(
+            'supportHistory'.tr(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const _HistoryEmptyState({required this.icon, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(icon, size: 28, color: colorScheme.onSurfaceVariant),
+            ),
+            const Gap(14),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -281,42 +456,87 @@ class PostAwardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final color = _getAttitudeColor(award.attitude, context);
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.12),
-        child: Icon(_getAttitudeIcon(award.attitude), color: color),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.14)),
       ),
-      title: Text(
-        'awardPoints'.tr(args: [award.amount.toStringAsFixed(0)]),
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            _getAttitudeText(award.attitude),
-            style: TextStyle(color: color, fontWeight: FontWeight.w500),
-          ),
-          if (award.message != null && award.message!.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(award.message!, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-          if (award.createdAt != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              award.createdAt!.toLocal().toString().split('.')[0],
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+          Container(
+            width: 4,
+            height: 92,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(16),
               ),
             ),
-          ],
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          _getAttitudeIcon(award.attitude),
+                          size: 17,
+                          color: color,
+                        ),
+                      ),
+                      const Gap(9),
+                      Expanded(
+                        child: Text(
+                          'awardPoints'.tr(
+                            args: [award.amount.toStringAsFixed(0)],
+                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Text(
+                        _getAttitudeText(award.attitude),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: color,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
+                  ),
+                  if (award.message != null && award.message!.isNotEmpty) ...[
+                    const Gap(10),
+                    Text(
+                      award.message!,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(height: 1.35),
+                    ),
+                  ],
+                  if (award.createdAt != null) ...[
+                    const Gap(9),
+                    _HistoryDate(date: award.createdAt!),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ],
       ),
-      isThreeLine: award.message != null && award.message!.isNotEmpty,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
   }
 }
@@ -329,44 +549,103 @@ class PostSponsorBidItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: colorScheme.tertiaryContainer,
-        child: Icon(
-          Symbols.trending_up,
-          color: colorScheme.onTertiaryContainer,
-        ),
+    final color = colorScheme.tertiary;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.14)),
       ),
-      title: Text(
-        'sponsorBidAmount'.tr(args: [bid.amount.toStringAsFixed(0)]),
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (bid.expiresAt != null)
-            Text(
-              'sponsorBidExpires'.tr(
-                args: [bid.expiresAt!.toLocal().toString().split('.')[0]],
-              ),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          if (bid.createdAt != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              bid.createdAt!.toLocal().toString().split('.')[0],
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          Container(
+            width: 4,
+            height: 92,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(16),
               ),
             ),
-          ],
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Symbols.trending_up,
+                          size: 18,
+                          color: color,
+                        ),
+                      ),
+                      const Gap(9),
+                      Expanded(
+                        child: Text(
+                          'sponsorBidAmount'.tr(
+                            args: [bid.amount.toStringAsFixed(0)],
+                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (bid.expiresAt != null) ...[
+                    const Gap(9),
+                    Text(
+                      'sponsorBidExpires'.tr(
+                        args: [
+                          bid.expiresAt!.toLocal().toString().split('.')[0],
+                        ],
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  if (bid.createdAt != null) ...[
+                    const Gap(8),
+                    _HistoryDate(date: bid.createdAt!),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ],
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    );
+  }
+}
+
+class _HistoryDate extends StatelessWidget {
+  final DateTime date;
+
+  const _HistoryDate({required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Row(
+      children: [
+        Icon(Symbols.schedule, size: 14, color: color),
+        const Gap(5),
+        Text(
+          date.toLocal().toString().split('.')[0],
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+        ),
+      ],
     );
   }
 }

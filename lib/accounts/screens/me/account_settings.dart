@@ -22,6 +22,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -81,6 +82,27 @@ Future<List<SnNotificationPushSubscription>> notificationSubscriptions(
 ) async {
   final client = ref.read(solarNetworkClientProvider);
   return await client.notifications.getSubscriptions();
+}
+
+final accountBillingRecordsProvider = AsyncNotifierProvider.autoDispose(
+  AccountBillingRecordsNotifier.new,
+);
+
+class AccountBillingRecordsNotifier
+    extends AsyncNotifier<PaginationState<SnWalletBillingRecord>>
+    with AsyncPaginationController<SnWalletBillingRecord> {
+  static const int pageSize = 20;
+
+  @override
+  Future<List<SnWalletBillingRecord>> fetch() async {
+    final client = ref.read(solarNetworkClientProvider);
+    final result = await client.wallet.getBillingRecords(
+      offset: fetchedCount,
+      take: pageSize,
+    );
+    totalCount = result.totalCount;
+    return result.items;
+  }
 }
 
 @riverpod
@@ -653,6 +675,25 @@ class AccountSettingsScreen extends HookConsumerWidget {
         ),
     ];
 
+    final billingSettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.receipt_long),
+        title: const Text('Billing'),
+        subtitle: const Text('Inbound purchase orders').fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => const AccountBillingSheet(),
+          );
+        },
+      ),
+    ];
+
     final dangerZoneSettings = [
       ListTile(
         minLeadingWidth: 48,
@@ -741,6 +782,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
             title: 'accountIntegrationsTitle',
             children: integrationsSettings,
           ),
+          _SettingsSection(title: 'Billing', children: billingSettings),
           _SettingsSection(
             title: 'accountDangerZoneTitle',
             children: dangerZoneSettings,
@@ -858,6 +900,136 @@ class _SettingsSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class AccountBillingSheet extends ConsumerWidget {
+  const AccountBillingSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = accountBillingRecordsProvider;
+    final records = ref.watch(provider);
+    final items = records.value?.items ?? const <SnWalletBillingRecord>[];
+
+    if (items.isEmpty &&
+        records.hasValue &&
+        records.isLoading == false &&
+        records.hasError == false) {
+      return SheetScaffold(
+        titleText: 'Billing',
+        heightFactor: 0.8,
+        child: Center(
+          child: Text(
+            'noPurchasesToRestore'.tr(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+      );
+    }
+
+    return SheetScaffold(
+      titleText: 'Billing',
+      heightFactor: 0.8,
+      child: PaginationList(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        provider: provider,
+        notifier: provider.notifier,
+        itemBuilder: (context, index, record) {
+          final order = record.orders.firstOrNull;
+          final subscription = record.subscriptions.firstOrNull;
+          final providerName = _billingProviderName(record.provider);
+          final rawTitle =
+              subscription?.identifier ??
+              order?.productIdentifier ??
+              record.productIdentifier;
+          final title = rawTitle == null
+              ? providerName
+              : _billingProviderName(rawTitle);
+          final detail = [
+            providerName,
+            if (record.externalId.isNotEmpty) record.externalId,
+            DateFormat.yMMMd().format(record.begunAt),
+          ].join(' · ');
+          final status = order?.status;
+          final statusText = switch (status) {
+            0 => 'pending'.tr(),
+            1 => 'paymentSuccess'.tr(),
+            2 => 'cancel'.tr(),
+            3 => 'done'.tr(),
+            4 => 'expired'.tr(),
+            _ =>
+              subscription != null
+                  ? (subscription.isActive ? 'active'.tr() : 'inactive'.tr())
+                  : null,
+          };
+          final statusColor = switch (status) {
+            0 => Colors.orange,
+            1 => Colors.green,
+            2 => Colors.grey,
+            3 => Colors.blue,
+            4 => Colors.red,
+            _ => Theme.of(context).colorScheme.onSurfaceVariant,
+          };
+
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: Icon(
+                Symbols.receipt_long,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            title: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              detail,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (order != null)
+                  Text(
+                    '${order.amount.toStringAsFixed(2)} ${order.currency.toUpperCase()}',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                if (statusText != null)
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+String _billingProviderName(String provider) {
+  switch (provider.trim().toLowerCase()) {
+    case 'gdp':
+      return 'walletBillingProviderGdp'.tr();
+    case 'apple_store':
+    case 'apple-store':
+    case 'applestore':
+      return 'walletBillingProviderAppleStore'.tr();
+    case 'order':
+      return 'walletBillingProviderOrder'.tr();
+    default:
+      return provider;
   }
 }
 

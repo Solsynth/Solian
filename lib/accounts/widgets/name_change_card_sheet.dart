@@ -72,9 +72,9 @@ class _NameChangeCardSheetState extends ConsumerState<NameChangeCardSheet> {
 
       SnWalletOrder order;
       try {
-        order = (await client.wallet.getOrder(created.orderId)).copyWith(
-          amount: created.amount,
-        );
+        order = (await client.wallet.getOrder(
+          created.orderId,
+        )).copyWith(amount: created.amount);
       } catch (_) {
         // Order not yet visible in Wallet; synthesize from the creation
         // response so payment can still proceed. Unpaid orders expire in
@@ -89,6 +89,7 @@ class _NameChangeCardSheetState extends ConsumerState<NameChangeCardSheet> {
           meta: const {},
           amount: created.amount,
           expiredAt: now.add(const Duration(hours: 24)),
+          payerWalletId: null,
           payeeWalletId: null,
           transactionId: null,
           issuerAppId: null,
@@ -102,6 +103,7 @@ class _NameChangeCardSheetState extends ConsumerState<NameChangeCardSheet> {
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
+        payerWalletId: order.payerWalletId,
         enableBiometric: true,
       );
       if (paidOrder == null || !mounted) return;
@@ -181,11 +183,7 @@ class _NameChangeCardSheetState extends ConsumerState<NameChangeCardSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 32),
                     child: Column(
                       children: [
-                        Icon(
-                          Symbols.badge,
-                          size: 44,
-                          color: scheme.outline,
-                        ),
+                        Icon(Symbols.badge, size: 44, color: scheme.outline),
                         const Gap(12),
                         Text(
                           'nameChangeCardNoCards'.tr(),
@@ -285,7 +283,9 @@ class _NameChangeCardSheetState extends ConsumerState<NameChangeCardSheet> {
       title = card.oldName != null && card.newName != null
           ? '${card.oldName} → ${card.newName}'
           : 'nameChangeCardConsumed'.tr();
-      subtitle = card.targetType != null ? _targetLabel(card.targetType!) : null;
+      subtitle = card.targetType != null
+          ? _targetLabel(card.targetType!)
+          : null;
     } else if (isReady) {
       icon = Symbols.card_membership;
       iconColor = scheme.primary;
@@ -342,8 +342,7 @@ class _NameChangeCardSheetState extends ConsumerState<NameChangeCardSheet> {
 
   String _targetLabel(SnNameChangeCardTargetType target) {
     return switch (target) {
-      SnNameChangeCardTargetType.account =>
-        'nameChangeCardTargetAccount'.tr(),
+      SnNameChangeCardTargetType.account => 'nameChangeCardTargetAccount'.tr(),
       SnNameChangeCardTargetType.realm => 'nameChangeCardTargetRealm'.tr(),
       SnNameChangeCardTargetType.publisher =>
         'nameChangeCardTargetPublisher'.tr(),
@@ -366,7 +365,8 @@ class NameChangeCardUseSheet extends ConsumerStatefulWidget {
       _NameChangeCardUseSheetState();
 }
 
-class _NameChangeCardUseSheetState extends ConsumerState<NameChangeCardUseSheet> {
+class _NameChangeCardUseSheetState
+    extends ConsumerState<NameChangeCardUseSheet> {
   final _nameController = TextEditingController();
   SnNameChangeCardTargetType _target = SnNameChangeCardTargetType.account;
   String? _targetId;
@@ -407,8 +407,9 @@ class _NameChangeCardUseSheetState extends ConsumerState<NameChangeCardUseSheet>
 
   bool _validateName(String name) {
     return switch (_target) {
-      SnNameChangeCardTargetType.account =>
-        RegExp(r'^[A-Za-z0-9_-]{2,256}$').hasMatch(name),
+      SnNameChangeCardTargetType.account => RegExp(
+        r'^[A-Za-z0-9_-]{2,256}$',
+      ).hasMatch(name),
       SnNameChangeCardTargetType.realm => name.isNotEmpty,
       SnNameChangeCardTargetType.publisher =>
         name.isNotEmpty && name.length <= 256,
@@ -427,8 +428,7 @@ class _NameChangeCardUseSheetState extends ConsumerState<NameChangeCardUseSheet>
 
   String _targetName(SnNameChangeCardTargetType target) {
     return switch (target) {
-      SnNameChangeCardTargetType.account =>
-        'nameChangeCardTargetAccount'.tr(),
+      SnNameChangeCardTargetType.account => 'nameChangeCardTargetAccount'.tr(),
       SnNameChangeCardTargetType.realm => 'nameChangeCardTargetRealm'.tr(),
       SnNameChangeCardTargetType.publisher =>
         'nameChangeCardTargetPublisher'.tr(),
@@ -536,7 +536,9 @@ class _NameChangeCardUseSheetState extends ConsumerState<NameChangeCardUseSheet>
                 accountName != null) ...[
               const Gap(8),
               Text(
-                'nameChangeCardCurrentName'.tr(namedArgs: {'name': accountName}),
+                'nameChangeCardCurrentName'.tr(
+                  namedArgs: {'name': accountName},
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
@@ -566,9 +568,7 @@ class _NameChangeCardUseSheetState extends ConsumerState<NameChangeCardUseSheet>
         : null;
     return DropdownButtonFormField<String>(
       value: selected,
-      decoration: InputDecoration(
-        labelText: 'nameChangeCardSelectRealm'.tr(),
-      ),
+      decoration: InputDecoration(labelText: 'nameChangeCardSelectRealm'.tr()),
       items: [
         for (final realm in realms)
           DropdownMenuItem(

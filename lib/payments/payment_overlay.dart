@@ -1,3 +1,4 @@
+import 'package:island/core/utils/text.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,7 +17,6 @@ import 'package:pinput/pinput.dart';
 import 'package:island/developers/models/custom_app.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/wallets/pin_status.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 class PaymentOverlayOrderInfo {
   final String? productIdentifier;
@@ -215,26 +215,23 @@ class PaymentOverlay extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Padding(
-        padding: EdgeInsets.only(bottom: bottomPadding),
-        child: SheetScaffold(
-          titleText: 'Solarpay',
-          heightFactor: 0.7,
-          child: _PaymentContent(
-            order: order,
-            orderInfo: orderInfo,
-            payerWalletId: payerWalletId,
-            onPaymentSuccess: onPaymentSuccess,
-            onPaymentError: onPaymentError,
-            onCancel: onCancel,
-            enableBiometric: enableBiometric,
-          ),
+      child: SheetScaffold(
+        titleText: 'Solarpay',
+        heightFactor: 0.82,
+        child: _PaymentContent(
+          order: order,
+          orderInfo: orderInfo,
+          payerWalletId: payerWalletId,
+          onPaymentSuccess: onPaymentSuccess,
+          onPaymentError: onPaymentError,
+          onCancel: onCancel,
+          enableBiometric: enableBiometric,
         ),
       ),
     );
@@ -314,13 +311,15 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   CustomApp? _appDetails;
   List<PaymentOverlayAppProduct> _products = const [];
 
-  bool get _isOrderExpired => widget.order.expiredAt.isBefore(DateTime.now());
-  bool get _isOrderPayable => widget.order.status == 0 && !_isOrderExpired;
+  bool get _isOrderPayable => switch (widget.order.status) {
+    0 => widget.order.expiredAt.isAfter(DateTime.now()),
+    _ => false,
+  };
 
   @override
   void initState() {
     super.initState();
-    if (!_isOrderPayable) {
+    if (_isOrderPayable == false) {
       _isInitializingAuth = false;
     } else {
       _initializeBiometric();
@@ -377,11 +376,14 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Future<void> _loadEnrichment() async {
-    if (widget.orderInfo?.isSystemApp == true) {
-      return;
-    }
-
-    final appSlug = widget.orderInfo?.app?.slug;
+    final orderAppSlug = widget.orderInfo?.app?.slug;
+    final fallbackAppSlug = widget.order.appIdentifier.trim();
+    final appSlug = orderAppSlug != null && orderAppSlug.trim().isNotEmpty
+        ? orderAppSlug.trim()
+        : fallbackAppSlug.isNotEmpty
+        ? fallbackAppSlug
+        : null;
+    final isInternalApp = appSlug?.toLowerCase() == 'internal';
     final publisherName = widget.orderInfo?.developer?.publisherName;
     if ((appSlug == null || appSlug.isEmpty) &&
         (publisherName == null || publisherName.isEmpty)) {
@@ -395,11 +397,11 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           client.sphere.getPublisher(publisherName)
         else
           Future<SnPublisher?>.value(null),
-        if (appSlug != null && appSlug.isNotEmpty)
+        if (!isInternalApp && appSlug != null && appSlug.isNotEmpty)
           client.dio.get('/develop/apps/$appSlug')
         else
           Future<Response<dynamic>?>.value(null),
-        if (appSlug != null && appSlug.isNotEmpty)
+        if (!isInternalApp && appSlug != null && appSlug.isNotEmpty)
           client.dio.get('/develop/apps/$appSlug/products')
         else
           Future<Response<dynamic>?>.value(null),
@@ -571,7 +573,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   String _formatCurrency(num amount, String currency) {
-    return '${amount.toStringAsFixed(2)} $currency';
+    final localizationKey =
+        'walletCurrencyShort${currency.capitalizeEachWord()}';
+    return '${amount.toStringAsFixed(2)} ${localizationKey.tr()}';
   }
 
   String _formatProductIdentifier(String value) {
@@ -593,365 +597,318 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   @override
   Widget build(BuildContext context) {
-    final hasApp = widget.orderInfo?.app != null;
+    final hasItems = widget.orderInfo?.items.isNotEmpty ?? false;
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (hasApp) _buildContextInfoCard(),
-                    if (widget.orderInfo?.items.isNotEmpty ?? false) ...[
-                      if (hasApp) const Gap(16),
-                      _buildItemsCard(),
-                    ],
-                    const Gap(16),
-                    _buildOrderSummary(),
-                    const Gap(24),
-                    _buildAuthenticationContent(),
-                  ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      _buildOrderSummary(),
+                      if (hasItems) ...[const Gap(20), _buildItemsCard()],
+                      const Gap(20),
+                    ]),
+                  ),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  sliver: SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildAuthenticationContent(),
+                  ),
+                ),
+              ],
             ),
-            const Gap(16),
-            _buildActionButtons(),
-          ],
-        ),
+          ),
+          _buildActionButtons(),
+        ],
       ),
     );
   }
 
   Widget _buildOrderSummary() {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainerHigh,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Symbols.receipt, color: colorScheme.primary),
-                const Gap(8),
-                Text(
-                  'paymentSummary'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+    final textTheme = Theme.of(context).textTheme;
+    final hasApp =
+        widget.orderInfo?.app != null ||
+        _appDetails != null ||
+        widget.order.appIdentifier.trim().isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withOpacity(0.72),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasApp) ...[
+            _buildContextInfoCard(),
+            const Gap(18),
+            Divider(
+              height: 1,
+              color: colorScheme.onPrimaryContainer.withOpacity(0.16),
             ),
-            const Gap(12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'amount'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium,
+            const Gap(18),
+          ],
+          Row(
+            children: [
+              Icon(Symbols.payments, size: 22, color: colorScheme.primary),
+              const Gap(10),
+              Text(
+                'paymentSummary'.tr().toUpperCase(),
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
                 ),
-                Text(
-                  _formatCurrency(widget.order.amount, widget.order.currency),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const Gap(8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'orderId'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                Flexible(
-                  child: Text(
-                    widget.order.id,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
-            ),
-            const Gap(8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'expired'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                Text(
-                  DateFormat.yMd().add_Hm().format(widget.order.expiredAt),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-            if (widget.order.remarks != null) ...[
-              const Gap(8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'description'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      widget.order.remarks!,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.end,
-                    ),
-                  ),
-                ],
               ),
             ],
+          ),
+          const Gap(18),
+          Text(
+            'amount'.tr(),
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+            ),
+          ),
+          const Gap(2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              _formatCurrency(widget.order.amount, widget.order.currency),
+              style: textTheme.displaySmall?.copyWith(
+                color: colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1.2,
+              ),
+            ),
+          ),
+          if (widget.order.remarks?.trim().isNotEmpty ?? false) ...[
+            const Gap(12),
+            Text(
+              widget.order.remarks!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onPrimaryContainer.withOpacity(0.84),
+              ),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContextInfoCard() {
-    final app = _appDetails;
-    final orderApp = widget.orderInfo?.app;
-    final isSystemApp = widget.orderInfo?.isSystemApp == true;
-    final description = app?.description ?? orderApp?.description;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          if (_publisher?.background != null || _appDetails?.background != null)
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.18,
-                child: CloudImageWidget(
-                  file: _appDetails?.background ?? _publisher?.background,
+          const Gap(18),
+          Row(
+            children: [
+              Icon(
+                Symbols.schedule,
+                size: 16,
+                color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+              ),
+              const Gap(6),
+              Text(
+                DateFormat.yMd().add_Hm().format(
+                  widget.order.expiredAt.toLocal(),
+                ),
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withOpacity(0.72),
                 ),
               ),
-            ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-                  Theme.of(context).colorScheme.surface,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ProfilePictureWidget(
-                      file: _appDetails?.picture,
-                      fallbackIcon: Symbols.apps,
-                      borderRadius: 8,
-                    ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (app != null || orderApp != null) ...[
-                            Text(
-                              app?.name ?? orderApp!.name,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            if (!isSystemApp &&
-                                (app?.slug ?? orderApp?.slug ?? '').isNotEmpty)
-                              Text(
-                                app?.slug ?? orderApp!.slug,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                          ],
-                          const Gap(4),
-                          if (isSystemApp)
-                            Row(
-                              spacing: 4,
-                              children: [
-                                Icon(
-                                  Symbols.verified,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    description ?? 'Built-in platform services',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
-                            Row(
-                              spacing: 4,
-                              children: [
-                                Text(
-                                  'from',
-                                  style: TextStyle(fontSize: 11),
-                                ).opacity(0.8),
-                                ProfilePictureWidget(
-                                  file: _publisher?.picture,
-                                  radius: 8,
-                                ),
-                                Text(
-                                  _publisher?.nick ?? 'unknown'.tr(),
-                                  style: TextStyle(fontSize: 11),
-                                ).opacity(0.8),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (!isSystemApp && (description?.isNotEmpty ?? false)) ...[
-                  const Gap(12),
-                  Text(
-                    description!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  Widget _buildContextInfoCard() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final app = _appDetails;
+    final orderApp = widget.orderInfo?.app;
+    final appIdentifier = widget.order.appIdentifier.trim();
+    final appSlug = app?.slug ?? orderApp?.slug ?? appIdentifier;
+    final isInternalApp = appSlug.trim().toLowerCase() == 'internal';
+    final isSystemApp = widget.orderInfo?.isSystemApp == true || isInternalApp;
+    final description = app?.description ?? orderApp?.description;
+    final appName = isInternalApp
+        ? 'Solar Network'
+        : app?.name ?? orderApp?.name ?? (appSlug.isNotEmpty ? appSlug : null);
+    final appSource = _publisher?.nick ?? appSlug;
+    final appPicture = app?.picture ?? orderApp?.picture;
+    final appIcon = isInternalApp && appPicture == null
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              'assets/icons/icon.webp',
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+            ),
+          )
+        : ProfilePictureWidget(
+            file: appPicture,
+            fallbackIcon: Symbols.apps,
+            borderRadius: 12,
+          );
+
+    return Row(
+      children: [
+        appIcon,
+        const Gap(12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (appName?.isNotEmpty ?? false)
+                Text(
+                  appName!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              const Gap(3),
+              Row(
+                children: [
+                  Icon(
+                    isSystemApp ? Symbols.verified : Symbols.storefront,
+                    size: 14,
+                    color: colorScheme.primary,
+                  ),
+                  const Gap(5),
+                  Expanded(
+                    child: Text(
+                      isSystemApp
+                          ? (description ?? 'Built-in platform services')
+                          : (appSource.isNotEmpty ? appSource : 'unknown'.tr()),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isSystemApp && (description?.isNotEmpty ?? false)) ...[
+                const Gap(5),
+                Text(
+                  description!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildItemsCard() {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...widget.orderInfo!.items.map((item) {
-              final product = _findProduct(item);
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: product?.picture != null
-                          ? CloudFileWidget(
-                              item: product!.picture!,
-                              noBlurhash: true,
-                            )
-                          : Icon(
-                              Symbols.package_2,
-                              size: 20,
-                              color: colorScheme.primary,
-                            ),
-                    ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product?.displayName?.trim().isNotEmpty == true
-                                ? product!.displayName!
-                                : _formatProductIdentifier(
-                                    item.productIdentifier,
-                                  ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const Gap(2),
-                          if (product?.description?.trim().isNotEmpty == true)
-                            Text(
-                              product!.description!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          Text(
-                            '${item.quantity} × ${_formatCurrency(item.unitPrice, item.currency)}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      _formatCurrency(
-                        item.unitPrice * item.quantity,
-                        item.currency,
-                      ),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+    final textTheme = Theme.of(context).textTheme;
+    final items = widget.orderInfo!.items;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < items.length; index++) ...[
+            if (index > 0)
+              Divider(
+                height: 1,
+                color: colorScheme.outlineVariant.withOpacity(0.7),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: _buildItemRow(items[index], textTheme, colorScheme),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
 
+  Widget _buildItemRow(
+    PaymentOverlayOrderItem item,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    final product = _findProduct(item);
+    final name = product?.displayName?.trim().isNotEmpty == true
+        ? product!.displayName!
+        : _formatProductIdentifier(item.productIdentifier);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: product?.picture != null
+              ? CloudFileWidget(item: product!.picture!, noBlurhash: true)
+              : Icon(Symbols.package_2, size: 20, color: colorScheme.primary),
+        ),
+        const Gap(12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Gap(3),
+              Text(
+                '${item.quantity} × ${_formatCurrency(item.unitPrice, item.currency)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Gap(12),
+        Text(
+          _formatCurrency(item.unitPrice * item.quantity, item.currency),
+          textAlign: TextAlign.end,
+          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAuthenticationContent() {
-    if (!_isOrderPayable) {
+    if (_isOrderPayable == false) {
       return _buildOrderStateContent();
     }
 
@@ -968,6 +925,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Widget _buildOrderStateContent() {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final (IconData icon, String message) = switch (widget.order.status) {
       1 => (Symbols.check_circle, 'paymentSuccess'.tr()),
       2 => (Symbols.task_alt, 'completed'.tr()),
@@ -983,9 +941,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           const Gap(16),
           Text(
             message,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -995,54 +951,56 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Widget _buildPinInput() {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final defaultPinTheme = PinTheme(
       width: 48,
       height: 56,
-      textStyle: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      textStyle: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.outline),
       ),
     );
 
-    return Column(
-      children: [
-        Text(
-          'enterPinToConfirmPayment'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
-          textAlign: TextAlign.center,
-        ),
-        const Gap(24),
-        Pinput(
-          length: 6,
-          obscureText: true,
-          keyboardType: TextInputType.number,
-          defaultPinTheme: defaultPinTheme,
-          focusedPinTheme: defaultPinTheme.copyDecorationWith(
-            border: Border.all(color: colorScheme.primary, width: 2),
-            borderRadius: BorderRadius.circular(12),
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'enterPinToConfirmPayment'.tr(),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
           ),
-          submittedPinTheme: defaultPinTheme.copyDecorationWith(
-            color: colorScheme.surfaceContainerHighest,
-            border: Border.all(color: colorScheme.outlineVariant),
-            borderRadius: BorderRadius.circular(12),
+          const Gap(24),
+          Pinput(
+            length: 6,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            defaultPinTheme: defaultPinTheme,
+            focusedPinTheme: defaultPinTheme.copyDecorationWith(
+              border: Border.all(color: colorScheme.primary, width: 2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            submittedPinTheme: defaultPinTheme.copyDecorationWith(
+              color: colorScheme.surfaceContainerHighest,
+              border: Border.all(color: colorScheme.outlineVariant),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            onSubmitted: _onPinSubmit,
+            onChanged: (String code) {
+              _pin = code;
+              setState(() {});
+            },
           ),
-          onSubmitted: _onPinSubmit,
-          onChanged: (String code) {
-            _pin = code;
-            setState(() {});
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildNoPinConfirmation() {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1051,15 +1009,13 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           const Gap(16),
           Text(
             'paymentSummary'.tr(),
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
           const Gap(8),
           Text(
             'paymentNoPinRequired'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
@@ -1071,6 +1027,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Widget _buildBiometricAuth() {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1080,15 +1038,13 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           const Gap(16),
           Text(
             'useBiometricToConfirm'.tr(),
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
           ),
           const Gap(4),
           Text(
             'The biometric data will only be processed on your device',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
@@ -1109,35 +1065,68 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: widget.onCancel,
-            child: Text(_isOrderPayable ? 'cancel'.tr() : 'close'.tr()),
-          ),
+    final buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    );
+
+    Widget cancelButton(String label) {
+      return FilledButton.tonal(
+        onPressed: widget.onCancel,
+        style: FilledButton.styleFrom(shape: buttonShape),
+        child: Text(label),
+      );
+    }
+
+    if (_isOrderPayable == false) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        child: SizedBox(
+          height: 52,
+          width: double.infinity,
+          child: cancelButton('close'.tr()),
         ),
-        if (_isOrderPayable &&
-            !_isInitializingAuth &&
-            !_requiresPinValidation) ...[
-          const Gap(12),
+      );
+    }
+
+    final Widget? primaryAction;
+    if (!_isInitializingAuth && !_requiresPinValidation) {
+      primaryAction = FilledButton(
+        onPressed: _processPaymentWithoutPin,
+        style: FilledButton.styleFrom(shape: buttonShape),
+        child: Text('confirm'.tr()),
+      );
+    } else if (_isPinMode && !_isInitializingAuth) {
+      primaryAction = FilledButton(
+        onPressed: _pin.length == 6 ? () => _processPaymentWithPin(_pin) : null,
+        style: FilledButton.styleFrom(shape: buttonShape),
+        child: Text('confirm'.tr()),
+      );
+    } else {
+      primaryAction = null;
+    }
+
+    if (primaryAction == null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        child: SizedBox(
+          height: 52,
+          width: double.infinity,
+          child: cancelButton('cancel'.tr()),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      child: Row(
+        children: [
           Expanded(
-            child: FilledButton(
-              onPressed: _processPaymentWithoutPin,
-              child: Text('confirm'.tr()),
-            ),
+            child: SizedBox(height: 52, child: cancelButton('cancel'.tr())),
           ),
-        ],
-        if (_isOrderPayable && _isPinMode && _pin.length == 6) ...[
           const Gap(12),
-          Expanded(
-            child: FilledButton(
-              onPressed: () => _processPaymentWithPin(_pin),
-              child: Text('confirm'.tr()),
-            ),
-          ),
+          Expanded(child: SizedBox(height: 52, child: primaryAction)),
         ],
-      ],
+      ),
     );
   }
 }

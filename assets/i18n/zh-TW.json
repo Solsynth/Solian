@@ -2383,7 +2383,7 @@
   "paymentError": "付款失敗: {error}",
   "paymentFailed": "付款失敗，請重試。",
   "paymentMethodNotSupported": "不可用",
-  "paymentSuccess": "付款成功完成！",
+  "paymentSuccess": "付款成功",
   "paymentSummary": "付款摘要",
   "paymentVerification": "支付驗證",
   "paymentWallet": "支付錢包",
@@ -2806,6 +2806,7 @@
   "reactionParty": "派對",
   "reactionPositive": "正面",
   "reactionRidicule": "嘲諷",
+  "reactionPray": "祈禱",
   "reactionThumbDown": "踩",
   "reactionThumbUp": "贊",
   "reactions": {

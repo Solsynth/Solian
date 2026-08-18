@@ -144,6 +144,7 @@ class _QuotaPurchaseSheetState extends ConsumerState<QuotaPurchaseSheet> {
           meta: const {},
           amount: double.parse(created.amount),
           expiredAt: now.add(const Duration(hours: 24)),
+          payerWalletId: null,
           payeeWalletId: null,
           transactionId: null,
           issuerAppId: null,
@@ -157,6 +158,7 @@ class _QuotaPurchaseSheetState extends ConsumerState<QuotaPurchaseSheet> {
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
+        payerWalletId: order.payerWalletId,
         enableBiometric: true,
       );
       if (!mounted) return;

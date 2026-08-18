@@ -27,11 +27,13 @@ class PostFeaturedList extends HookConsumerWidget {
   final bool collapsable;
   final double? maxHeight;
   final bool emphasizeHeader;
+  final double borderRadius;
   const PostFeaturedList({
     super.key,
     this.collapsable = true,
     this.maxHeight,
     this.emphasizeHeader = true,
+    this.borderRadius = 8,
   });
 
   @override
@@ -106,127 +108,126 @@ class PostFeaturedList extends HookConsumerWidget {
       margin: EdgeInsets.zero,
       // Clip content to the rounded corners without clipping the elevation
       // shadow; an outer ClipRRect would cut the shadow (visible at the bottom).
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: 48,
-              child: Row(
-                spacing: 8,
-                children: [
-                  Icon(
-                    Symbols.highlight,
-                    size: 20,
-                    color: emphasizeHeader
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  Expanded(
-                    child: Text(
-                      'highlightPost'.tr(),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: emphasizeHeader
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 48,
+            child: Row(
+              spacing: 8,
+              children: [
+                Icon(
+                  Symbols.highlight,
+                  size: 20,
+                  color: emphasizeHeader
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                Expanded(
+                  child: Text(
+                    'highlightPost'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: emphasizeHeader
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      pageViewController.animateToPage(
-                        pageViewCurrent.value - 1,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    icon: const Icon(Symbols.arrow_left),
-                  ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      pageViewController.animateToPage(
-                        pageViewCurrent.value + 1,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    icon: const Icon(Symbols.arrow_right),
-                  ),
-                  if (collapsable)
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      constraints: const BoxConstraints(),
-                      onPressed: () {
-                        isCollapsed.value = !isCollapsed.value;
-                        Logger.root.info(
-                          'Manual toggle. isCollapsed set to ${isCollapsed.value}',
-                        );
-                        if (isCollapsed.value &&
-                            featuredPostsAsync.hasValue &&
-                            featuredPostsAsync.value!.isNotEmpty) {
-                          prefs.setString(
-                            kFeaturedPostsCollapsedId,
-                            featuredPostsAsync.value!.first.id,
-                          );
-                          Logger.root.info(
-                            'Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
-                          );
-                        } else {
-                          prefs.remove(kFeaturedPostsCollapsedId);
-                          Logger.root.info('Removed stored collapsed ID.');
-                        }
-                      },
-                      icon: Icon(
-                        isCollapsed.value
-                            ? Symbols.expand_more
-                            : Symbols.expand_less,
-                      ),
-                    ),
-                ],
-              ).padding(horizontal: 16, vertical: 8),
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: Visibility(
-                visible: collapsable ? !isCollapsed.value : true,
-                child: featuredPostsAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
-                  data: (posts) {
-                    return SizedBox(
-                      height: maxHeight == null ? 344 : (maxHeight! - 48),
-                      child: PageView.builder(
-                        controller: pageViewController,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: posts.length,
-                        itemBuilder: (context, index) {
-                          return SingleChildScrollView(
-                            child: PostActionableItem(
-                              item: posts[index],
-                              borderRadius: 8,
-                            ),
-                          );
-                        },
-                      ),
+                ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    pageViewController.animateToPage(
+                      pageViewCurrent.value - 1,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
                     );
                   },
+                  icon: const Icon(Symbols.arrow_left),
                 ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    pageViewController.animateToPage(
+                      pageViewCurrent.value + 1,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  icon: const Icon(Symbols.arrow_right),
+                ),
+                if (collapsable)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      isCollapsed.value = !isCollapsed.value;
+                      Logger.root.info(
+                        'Manual toggle. isCollapsed set to ${isCollapsed.value}',
+                      );
+                      if (isCollapsed.value &&
+                          featuredPostsAsync.hasValue &&
+                          featuredPostsAsync.value!.isNotEmpty) {
+                        prefs.setString(
+                          kFeaturedPostsCollapsedId,
+                          featuredPostsAsync.value!.first.id,
+                        );
+                        Logger.root.info(
+                          'Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
+                        );
+                      } else {
+                        prefs.remove(kFeaturedPostsCollapsedId);
+                        Logger.root.info('Removed stored collapsed ID.');
+                      }
+                    },
+                    icon: Icon(
+                      isCollapsed.value
+                          ? Symbols.expand_more
+                          : Symbols.expand_less,
+                    ),
+                  ),
+              ],
+            ).padding(horizontal: 16, vertical: 8),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: Visibility(
+              visible: collapsable ? !isCollapsed.value : true,
+              child: featuredPostsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+                data: (posts) {
+                  return SizedBox(
+                    height: maxHeight == null ? 344 : (maxHeight! - 48),
+                    child: PageView.builder(
+                      controller: pageViewController,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: posts.length,
+                      itemBuilder: (context, index) {
+                        return SingleChildScrollView(
+                          child: PostActionableItem(
+                            item: posts[index],
+                            borderRadius: 8,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }

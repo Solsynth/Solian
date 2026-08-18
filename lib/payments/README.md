@@ -22,20 +22,16 @@ import 'package:flutter/material.dart';
 import 'package:solian/models/wallet.dart';
 import 'package:solian/widgets/payment/payment_overlay.dart';
 
-// Create an order
-final order = SnWalletOrder(
-  id: 'order_123',
-  amount: 2500, // $25.00 in cents
-  currency: 'USD',
-  description: 'Premium Subscription',
-  remarks: 'Monthly billing',
-  status: 'pending',
-);
+// Load an order associated with the authenticated user's wallet.
+final order = await client.wallet.getMyOrder(orderId);
+
+// Show the order and pay it with its reserved wallet.
 
 // Show payment overlay
 PaymentOverlay.show(
   context: context,
   order: order,
+  payerWalletId: order.payerWalletId,
   onPaymentSuccess: (completedOrder) {
     // Handle successful payment
     print('Payment completed: ${completedOrder.id}');

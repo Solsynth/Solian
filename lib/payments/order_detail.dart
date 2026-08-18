@@ -36,21 +36,24 @@ class _WalletOrderDetailScreenState
   }
 
   Future<void> _openOverlay() async {
-    if (_handled || !mounted) return;
+    if (_handled || mounted == false) return;
     _handled = true;
 
     try {
       final client = ref.read(solarNetworkClientProvider);
-      final response = await client.dio.get('/wallet/orders/${widget.orderId}');
+      final response = await client.dio.get(
+        '/wallet/orders/mine/${widget.orderId}',
+      );
       final data = Map<String, dynamic>.from(response.data as Map);
       final order = SnWalletOrder.fromJson(data);
       final orderInfo = PaymentOverlayOrderInfo.fromJson(data);
-      if (!mounted) return;
+      if (mounted == false) return;
 
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
         orderInfo: orderInfo,
+        payerWalletId: order.payerWalletId,
       );
       if (paidOrder != null) {
         ref.invalidate(walletCurrentProvider);

@@ -2485,7 +2485,7 @@
   "paymentFailed": "付款失败，请重试。",
   "paymentMethodNotSupported": "不可用",
   "paymentNoPinRequired": "此付款无需 PIN 码确认。",
-  "paymentSuccess": "付款成功完成！",
+  "paymentSuccess": "付款成功",
   "paymentSummary": "付款摘要",
   "paymentVerification": "支付验证",
   "paymentWallet": "支付钱包",
@@ -2931,6 +2931,7 @@
   "reactionParty": "派对",
   "reactionPositive": "正面",
   "reactionRidicule": "嘲讽",
+  "reactionPray": "祈祷",
   "reactionThumbDown": "踩",
   "reactionThumbUp": "赞",
   "reactions": {
