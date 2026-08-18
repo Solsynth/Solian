@@ -14,7 +14,13 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class PostRepliesSheet extends HookConsumerWidget {
   final SnPost post;
 
-  const PostRepliesSheet({super.key, required this.post});
+  /// When provided, this sheet is embedded inline (e.g. in a tunable sidebar
+  /// panel) instead of shown as a modal: [onClose] dismisses it, opening a
+  /// nested reply dismisses it, and the quick-reply launch keeps the panel
+  /// open while the compose dialog opens on top.
+  final VoidCallback? onClose;
+
+  const PostRepliesSheet({super.key, required this.post, this.onClose});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,6 +36,8 @@ class PostRepliesSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'repliesCount'.plural(post.repliesCount),
+      onClose: onClose,
+      heightFactor: onClose != null ? 1 : 0.8,
       actions: [
         PopupMenuButton<String>(
           tooltip: 'Sort replies',
@@ -125,7 +133,7 @@ class PostRepliesSheet extends HookConsumerWidget {
                 postId: query.postId,
                 order: query.order,
                 orderDesc: query.orderDesc,
-                onOpen: () {
+                onOpen: onClose ?? () {
                   Navigator.pop(context);
                 },
               ),
@@ -144,9 +152,11 @@ class PostRepliesSheet extends HookConsumerWidget {
                       repliesKey.value++;
                       ref.read(postRepliesProvider(query).notifier).refresh();
                     },
-                    onLaunch: () {
-                      Navigator.of(context).pop();
-                    },
+                    onLaunch: onClose != null
+                        ? null
+                        : () {
+                            Navigator.of(context).pop();
+                          },
                   ).padding(
                     bottom: MediaQuery.of(context).padding.bottom + 16,
                     top: 8,

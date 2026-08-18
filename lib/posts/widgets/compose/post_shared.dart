@@ -17,6 +17,7 @@ import 'package:island/core/services/time.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_replies_sheet.dart';
+import 'package:island/shared/widgets/layouts/sidebar_panel_host.dart';
 import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -1159,12 +1160,23 @@ class PostReplyPreview extends HookConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          useRootNavigator: true,
-          builder: (context) => PostRepliesSheet(post: parent),
-        );
+        final host = SidebarPanelHost.maybeOf(context);
+        if (host != null) {
+          host.show(
+            PostRepliesSheet(
+              key: ValueKey('replies-${parent.id}'),
+              post: parent,
+              onClose: host.clear,
+            ),
+          );
+        } else {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => PostRepliesSheet(post: parent),
+          );
+        }
       },
       child: contentWidget,
     );

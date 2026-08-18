@@ -27,6 +27,7 @@ import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/layouts/sidebar_panel_host.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -64,6 +65,7 @@ class ExploreScreen extends HookConsumerWidget {
     final notifier = ref.watch(activityListProvider.notifier);
     final filterTabController = useMaterialTabController(initialLength: 3);
     final selectedPostId = useState<String?>(null);
+    final sidebarPanel = useState<Widget?>(null);
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
       notifier.applyFilter(filter);
@@ -107,7 +109,9 @@ class ExploreScreen extends HookConsumerWidget {
       return AppScaffold(
         isNoBackground: false,
         appBar: null,
-        floatingActionButton: userInfo.value != null && !isDetailOpen
+        floatingActionButton: userInfo.value != null &&
+                !isDetailOpen &&
+                sidebarPanel.value == null
             ? FloatingActionButton(
                 heroTag: 'explore-fab',
                 child: const Icon(Symbols.create),
@@ -178,6 +182,7 @@ class ExploreScreen extends HookConsumerWidget {
           exploreSettings,
           ref.read(appSettingsProvider.notifier),
           selectedPostId,
+          sidebarPanel,
         ),
       );
     }
@@ -845,6 +850,7 @@ class ExploreScreen extends HookConsumerWidget {
     ExploreSettings exploreSettings,
     AppSettingsNotifier appSettingsNotifier,
     ValueNotifier<String?> selectedPostId,
+    ValueNotifier<Widget?> sidebarPanel,
   ) {
     final sliverRefreshInset =
         MediaQuery.paddingOf(context).top + kToolbarHeight + 48;
@@ -1042,44 +1048,166 @@ class ExploreScreen extends HookConsumerWidget {
             ),
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: SizedBox.expand(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+    return SidebarPanelHost(
+      controller: sidebarPanel,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: SizedBox.expand(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: mainContent,
               ),
-              child: mainContent,
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 1,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 12, right: 12, bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const PostFeaturedList(maxHeight: 400, emphasizeHeader: false),
-                if (hasPublisherSubscriptions ||
-                    hasCategoryTagSubscriptions) ...[
-                  const Gap(12),
-                  subscriptionPane,
-                ],
-                const Gap(12),
-                const _ExplorePopularCategoriesCard(),
-                const Gap(12),
-                const _ExplorePopularTagsCard(),
-              ],
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 1,
+            child: ValueListenableBuilder<Widget?>(
+              valueListenable: sidebarPanel,
+              builder: (context, panel, _) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  reverseDuration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  layoutBuilder: (currentChild, previousChildren) {
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [...previousChildren, ?currentChild],
+                    );
+                  },
+                  transitionBuilder: (child, animation) {
+                    final isLeaving =
+                        animation.status == AnimationStatus.reverse;
+                    // Leaving: slide toward the right edge while fading out
+                    // fast. Entering: fade in only after the leaving child
+                    // is mostly gone, so the exit stays visible.
+                    final curved = animation.drive(
+                      CurveTween(curve: Curves.easeOutCubic),
+                    );
+                    final offset = isLeaving
+                        ? curved.drive(
+                            Tween(
+                              begin: Offset.zero,
+                              end: const Offset(0.06, 0),
+                            ),
+                          )
+                        : curved.drive(
+                            Tween(
+                              begin: const Offset(0.06, 0),
+                              end: Offset.zero,
+                            ),
+                          );
+                    final opacity = isLeaving
+                        ? animation.drive(
+                            CurveTween(curve: Curves.easeInCubic),
+                          )
+                        : CurvedAnimation(
+                            parent: animation,
+                            curve: const Interval(
+                              0.25,
+                              1.0,
+                              curve: Curves.easeOutCubic,
+                            ),
+                          );
+                    return FadeTransition(
+                      opacity: opacity,
+                      child: SlideTransition(
+                        position: offset,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: panel == null
+                      ? KeyedSubtree(
+                          key: const ValueKey('explore-sidebar-default'),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              top: 12,
+                              right: 12,
+                              bottom: 12,
+                            ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const PostFeaturedList(
+                                    maxHeight: 400,
+                                    emphasizeHeader: false,
+                                  ),
+                                  if (hasPublisherSubscriptions ||
+                                      hasCategoryTagSubscriptions) ...[
+                                    const Gap(12),
+                                    subscriptionPane,
+                                  ],
+                                  const Gap(12),
+                                  const _ExplorePopularCategoriesCard(),
+                                  const Gap(12),
+                                  const _ExplorePopularTagsCard(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      : KeyedSubtree(
+                          // Keep the panel's own key so switching between
+                          // different posts still transitions.
+                          key:
+                              panel.key ??
+                              const ValueKey('explore-sidebar-panel'),
+                          child: Padding(
+                            // Panel runs to the screen edge like the left
+                            // pane: no bottom padding.
+                            padding: const EdgeInsets.only(top: 12, right: 12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                // Outline only on top and sides; the bottom
+                                // edge is open to the screen edge.
+                                border: Border(
+                                  top: BorderSide(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outline
+                                        .withOpacity(0.18),
+                                    width: 1,
+                                  ),
+                                  left: BorderSide(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outline
+                                        .withOpacity(0.18),
+                                    width: 1,
+                                  ),
+                                  right: BorderSide(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outline
+                                        .withOpacity(0.18),
+                                    width: 1,
+                                  ),
+                                ),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(14),
+                                  topRight: Radius.circular(14),
+                                ),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: panel,
+                            ),
+                          ),
+                        ),
+                );
+              },
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
