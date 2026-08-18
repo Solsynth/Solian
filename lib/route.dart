@@ -150,7 +150,6 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: StoreRoute.page, path: 'me/store'),
             AutoRoute(page: AccountSettingsRoute.page, path: 'me/settings'),
             AutoRoute(page: AccountQrRoute.page, path: 'me/qr'),
-            AutoRoute(page: BadgesRoute.page, path: 'me/badges'),
             AutoRoute(page: ProgressRoute.page, path: 'me/progress'),
             AutoRoute(page: MeetRoute.page, path: 'me/meet'),
             AutoRoute(page: MeetDetailRoute.page, path: 'me/meet/:id'),

@@ -3,32 +3,31 @@ import 'package:collection/collection.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart' as flutter;
 import 'package:flutter/services.dart';
-import 'package:flutter_highlight/themes/a11y-dark.dart';
-import 'package:flutter_highlight/themes/a11y-light.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
-import 'package:island/core/network.dart';
 import 'package:island/core/database.dart';
-import 'package:island/shared/widgets/content/markdown_remote_image.dart';
-import 'package:island/posts/screens/post_detail.dart';
-import 'package:island/route.dart';
+import 'package:island/core/network.dart';
 import 'package:island/core/services/deeplink_service.dart';
-import 'package:island/posts/screens/publisher_profile.dart';
-import 'package:island/shared/widgets/alert.dart';
-import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/posts/screens/post_detail.dart';
+import 'package:island/posts/screens/publisher_profile.dart';
+import 'package:island/route.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown_latex.dart';
+import 'package:island/shared/widgets/content/markdown_remote_image.dart';
 import 'package:island/shared/widgets/content/sticker_sheet.dart';
-import 'package:markdown/markdown.dart' as markdown;
-import 'package:markdown_widget/markdown_widget.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/stickers/models/sticker.dart';
+import 'package:markdown/markdown.dart' as markdown;
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 final _stickerLookupCache = <String, SnSticker>{};
 
@@ -115,7 +114,7 @@ class MarkdownTextContent extends HookConsumerWidget {
   final List<IDisplayableCloudFile>? attachments;
   final List<markdown.InlineSyntax> extraInlineSyntaxList;
   final List<markdown.BlockSyntax> extraBlockSyntaxList;
-  final List<dynamic> extraGenerators;
+  final Map<String, MarkdownElementBuilder> extraBuilders;
   final bool noMentionChip;
 
   const MarkdownTextContent({
@@ -129,16 +128,22 @@ class MarkdownTextContent extends HookConsumerWidget {
     this.attachments,
     this.extraInlineSyntaxList = const [],
     this.extraBlockSyntaxList = const [],
-    this.extraGenerators = const [],
+    this.extraBuilders = const {},
     this.noMentionChip = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final config = isDark
-        ? MarkdownConfig.darkConfig
-        : MarkdownConfig.defaultConfig;
+    final theme = flutter.Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final baseStyle = MarkdownStyleSheet.fromTheme(theme);
+    final bodyStyle = textStyle ?? baseStyle.p;
+    final codeStyle = GoogleFonts.robotoMono(
+      fontSize: 14,
+      color: bodyStyle?.color,
+    );
+    final blockSpacing = linesMargin?.vertical ?? 4;
 
     final onMentionTap = useCallback((String type, String id) {
       if (type == 'accounts') {
@@ -149,192 +154,135 @@ class MarkdownTextContent extends HookConsumerWidget {
         showPublisherProfileAttentionModal(id);
         return;
       }
-      final fullPath = '/$type/$id';
-      context.router.navigatePath(fullPath);
+      context.router.navigatePath('/$type/$id');
     }, [context]);
 
-    final mentionGenerator = MentionChipGenerator(
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      foregroundColor: Theme.of(context).colorScheme.onSecondary,
-      onTap: onMentionTap,
-    );
-
-    final highlightGenerator = SolarHighlightGenerator(
-      highlightColor: Theme.of(context).colorScheme.primaryContainer,
-    );
-
     final spoilerRevealed = useState(false);
+    final builders = <String, MarkdownElementBuilder>{
+      if (!noMentionChip)
+        'mention-chip': MentionChipGenerator(
+          backgroundColor: scheme.secondary,
+          foregroundColor: scheme.onSecondary,
+          onTap: onMentionTap,
+        ),
+      'highlight': SolarHighlightGenerator(
+        highlightColor: scheme.primaryContainer,
+      ),
+      'spoiler': SolarSpoilerGenerator(
+        revealed: spoilerRevealed.value,
+        onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
+      ),
+      'sticker': StickerGenerator(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        content: content,
+      ),
+      latexTag: LatexBuilder(isDark: isDark),
+      ...extraBuilders,
+    };
 
-    final spoilerGenerator = SolarSpoilerGenerator(
-      revealed: spoilerRevealed.value,
-      onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
-    );
-
-    final stickerGenerator = StickerGenerator(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      content: content,
-    );
-
-    return MarkdownBlock(
+    return MarkdownBody(
       data: content,
       selectable: isSelectable,
-      config: config.copy(
-        configs: [
-          isDark
-              ? PreConfig.darkConfig.copy(textStyle: textStyle)
-              : PreConfig().copy(textStyle: textStyle),
-          PConfig(
-            textStyle: (textStyle ?? Theme.of(context).textTheme.bodyMedium!),
-          ),
-          Heading1Config(),
-          Heading2Config(),
-          Heading3Config(),
-          PreConfig(
-            theme: isDark ? a11yDarkTheme : a11yLightTheme,
-            textStyle: GoogleFonts.robotoMono(fontSize: 14),
-            styleNotMatched: GoogleFonts.robotoMono(fontSize: 14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.all(Radius.circular(8.0)),
-            ),
-          ),
-          TableConfig(
-            wrapper: (child) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: child,
-            ),
-          ),
-          LinkConfig(
-            style:
-                linkStyle ??
-                TextStyle(color: Theme.of(context).colorScheme.primary),
-            onTap: (href) async {
-              final url = Uri.tryParse(href);
-              if (url != null) {
-                if (openPostDetailAttentionModalForUri(url)) {
-                  return;
-                }
-                final routePath = solianLinkToRoutePath(url);
-                // Only navigate in-app when the path maps to a real route —
-                // otherwise the 404 catch-all page would open. Unknown Solian
-                // pages fall through to the external browser instead.
-                if (routePath != null &&
-                    tryNavigateToRoutePath(
-                      ref.read(routerProvider),
-                      routePath,
-                    )) {
-                  return;
-                }
-                await openExternalLink(url, ref);
-              } else {
-                showSnackBar(
-                  'brokenLink'.tr(args: [href]),
-                  action: SnackBarAction(
-                    label: 'copyToClipboard'.tr(),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: href));
-                    },
-                  ),
-                );
-              }
-            },
-          ),
-          ImgConfig(
-            builder: (url, attributes) {
-              final uri = Uri.parse(url);
-              if (uri.scheme == 'solian') {
-                switch (uri.host) {
-                  case 'files':
-                    final file = attachments?.firstWhereOrNull(
-                      (file) => file.id == uri.pathSegments[0],
-                    );
-                    if (file == null) {
-                      return const SizedBox.shrink();
-                    }
-
-                    return InkWell(
-                      onTap: () {
-                        context.pushTransparentRoute(
-                          CloudFileLightbox(
-                            items: [file],
-                            initialIndex: 0,
-                            heroTag: 'cloud-file-markdown-${file.id}',
-                          ),
-                          rootNavigator: true,
-                        );
-                      },
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(8),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainer,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                          ),
-                          child: CloudFileWidget(
-                            item: file,
-                            heroTag: 'cloud-file-markdown-${file.id}',
-                            fit: BoxFit.cover,
-                          ).clipRRect(all: 8),
-                        ),
-                      ),
-                    );
-                }
-              }
-              return MarkdownRemoteImage(uri: uri);
-            },
-          ),
-        ],
-      ),
-      generator: MarkdownTextContent.buildGenerator(
-        isDark: isDark,
-        linesMargin: linesMargin,
-        generators: [
-          if (!noMentionChip) mentionGenerator,
-          highlightGenerator,
-          spoilerGenerator,
-          stickerGenerator,
-          ...extraGenerators,
-        ],
-        extraInlineSyntaxList: extraInlineSyntaxList,
-        extraBlockSyntaxList: extraBlockSyntaxList,
-      ),
-    );
-  }
-
-  static MarkdownGenerator buildGenerator({
-    bool isDark = false,
-    EdgeInsets? linesMargin,
-    List<dynamic> generators = const [],
-    List<markdown.InlineSyntax> extraInlineSyntaxList = const [],
-    List<markdown.BlockSyntax> extraBlockSyntaxList = const [],
-  }) {
-    return MarkdownGenerator(
-      generators: [
-        latexGenerator,
-        ...generators,
-        SpanNodeGeneratorWithTag(
-          tag: MarkdownTag.hr.name,
-          generator: (e, config, visitor) => DividerNode(),
+      softLineBreak: true,
+      styleSheet: baseStyle.copyWith(
+        a: linkStyle ?? baseStyle.a?.copyWith(color: scheme.primary),
+        p: bodyStyle,
+        pPadding: EdgeInsets.zero,
+        h1Padding: EdgeInsets.zero,
+        h2Padding: EdgeInsets.zero,
+        h3Padding: EdgeInsets.zero,
+        h4Padding: EdgeInsets.zero,
+        h5Padding: EdgeInsets.zero,
+        h6Padding: EdgeInsets.zero,
+        blockSpacing: blockSpacing,
+        code: codeStyle,
+        codeblockDecoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest,
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
-      ],
-      inlineSyntaxList: [
+        codeblockPadding: const EdgeInsets.all(8),
+      ),
+      inlineSyntaxes: [
         SolarMentionInlineSyntax(),
         SolarHighlightInlineSyntax(),
         SolarSpoilerInlineSyntax(),
         _StickerInlineSyntax(),
-        LatexSyntax(isDark),
+        LatexSyntax(),
         ...extraInlineSyntaxList,
       ],
-      blockSyntaxList: extraBlockSyntaxList,
-      linesMargin: linesMargin ?? EdgeInsets.symmetric(vertical: 4),
+      blockSyntaxes: extraBlockSyntaxList,
+      builders: builders,
+      onTapLink: (text, href, title) async {
+        if (href == null) {
+          _showBrokenLinkSnackBar(context, text);
+          return;
+        }
+        final url = Uri.tryParse(href);
+        if (url == null) {
+          _showBrokenLinkSnackBar(context, href);
+          return;
+        }
+        if (openPostDetailAttentionModalForUri(url)) return;
+
+        final routePath = solianLinkToRoutePath(url);
+        if (routePath != null &&
+            tryNavigateToRoutePath(ref.read(routerProvider), routePath)) {
+          return;
+        }
+        await openExternalLink(url, ref);
+      },
+      imageBuilder: (uri, title, alt) {
+        if (uri.scheme == 'solian' &&
+            uri.host == 'files' &&
+            uri.pathSegments.isNotEmpty) {
+          final file = attachments?.firstWhereOrNull(
+            (file) => file.id == uri.pathSegments.first,
+          );
+          if (file == null) return const SizedBox.shrink();
+
+          return InkWell(
+            onTap: () {
+              context.pushTransparentRoute(
+                CloudFileLightbox(
+                  items: [file],
+                  initialIndex: 0,
+                  heroTag: 'cloud-file-markdown-${file.id}',
+                ),
+                rootNavigator: true,
+              );
+            },
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainer,
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                child: CloudFileWidget(
+                  item: file,
+                  heroTag: 'cloud-file-markdown-${file.id}',
+                  fit: BoxFit.cover,
+                ).clipRRect(all: 8),
+              ),
+            ),
+          );
+        }
+        return MarkdownRemoteImage(uri: uri);
+      },
+    );
+  }
+
+  void _showBrokenLinkSnackBar(BuildContext context, String href) {
+    showSnackBar(
+      'brokenLink'.tr(args: [href]),
+      action: SnackBarAction(
+        label: 'copyToClipboard'.tr(),
+        onPressed: () {
+          Clipboard.setData(ClipboardData(text: href));
+        },
+      ),
     );
   }
 }
@@ -344,63 +292,41 @@ class _StickerInlineSyntax extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    final placeholder = match[1]!;
-    final element = markdown.Element('sticker', [markdown.Text(placeholder)]);
-    parser.addNode(element);
-
+    parser.addNode(markdown.Element('sticker', [markdown.Text(match[1]!)]));
     return true;
   }
 }
 
-class MentionSpanNodeGenerator {
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final void Function(String type, String id) onTap;
-
-  MentionSpanNodeGenerator({
+class MentionChipGenerator extends MarkdownElementBuilder {
+  MentionChipGenerator({
     required this.backgroundColor,
     required this.foregroundColor,
     required this.onTap,
   });
 
-  SpanNode? call(
-    String tag,
-    Map<String, String> attributes,
-    List<SpanNode> children,
-  ) {
-    if (tag == 'mention-chip') {
-      return MentionChipSpanNode(
-        attributes: attributes,
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        onTap: onTap,
-      );
-    }
-    return null;
-  }
-}
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final void Function(String type, String id) onTap;
 
-class MentionChipGenerator extends SpanNodeGeneratorWithTag {
-  MentionChipGenerator({
-    required Color backgroundColor,
-    required Color foregroundColor,
-    required void Function(String type, String id) onTap,
-  }) : super(
-         tag: 'mention-chip',
-         generator:
-             (
-               markdown.Element element,
-               MarkdownConfig config,
-               WidgetVisitor visitor,
-             ) {
-               return MentionChipSpanNode(
-                 attributes: element.attributes,
-                 backgroundColor: backgroundColor,
-                 foregroundColor: foregroundColor,
-                 onTap: onTap,
-               );
-             },
-       );
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final attributes = element.attributes;
+    final type = attributes['type'] ?? '';
+    final id = attributes['id'] ?? '';
+    return _MentionChipContent(
+      mentionType: type,
+      id: id,
+      alias: attributes['alias'] ?? '',
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      onTap: () => onTap(type, id),
+    );
+  }
 }
 
 class _MentionChipContent extends HookConsumerWidget {
@@ -437,33 +363,38 @@ class _MentionChipContent extends HookConsumerWidget {
           final icon = mentionType == 'accounts'
               ? Symbols.person_rounded
               : Symbols.design_services_rounded;
-
           return _buildChip(
             ProfilePictureWidget(file: picture, fallbackIcon: icon, radius: 9),
             id,
             isHovered,
           );
         },
-        error: (_, _) => Text(
-          alias,
-          style: TextStyle(
-            color: backgroundColor,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        loading: () => Text(
-          alias,
-          style: TextStyle(
-            color: backgroundColor,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        error: (_, _) => _buildFallback(),
+        loading: _buildFallback,
       );
     }
 
-    return _buildStaticChip(mentionType, id);
+    final icon = switch (mentionType) {
+      'chat' => Symbols.forum_rounded,
+      'realms' => Symbols.group_rounded,
+      _ => Symbols.person_rounded,
+    };
+    return _buildChip(
+      Icon(icon, size: 14, color: foregroundColor, fill: 1).padding(all: 2),
+      id,
+      isHovered,
+    );
+  }
+
+  Widget _buildFallback() {
+    return Text(
+      alias,
+      style: TextStyle(
+        color: backgroundColor,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+    );
   }
 
   Widget _buildChip(
@@ -511,79 +442,33 @@ class _MentionChipContent extends HookConsumerWidget {
       ),
     );
   }
-
-  Widget _buildStaticChip(String type, String id) {
-    final icon = switch (type) {
-      'chat' => Symbols.forum_rounded,
-      'realms' => Symbols.group_rounded,
-      _ => Symbols.person_rounded,
-    };
-
-    return _buildChip(
-      Icon(icon, size: 14, color: foregroundColor, fill: 1).padding(all: 2),
-      id,
-      useState(false),
-    );
-  }
 }
 
-class MentionChipSpanNode extends SpanNode {
-  final Map<String, String> attributes;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final void Function(String type, String id) onTap;
-
-  MentionChipSpanNode({
-    required this.attributes,
+class StickerGenerator extends MarkdownElementBuilder {
+  StickerGenerator({
     required this.backgroundColor,
     required this.foregroundColor,
-    required this.onTap,
+    required this.content,
   });
 
-  @override
-  InlineSpan build() {
-    final alias = attributes['alias'] ?? '';
-    final type = attributes['type'] ?? '';
-    final id = attributes['id'] ?? '';
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final String content;
 
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.middle,
-      child: _MentionChipContent(
-        mentionType: type,
-        id: id,
-        alias: alias,
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        onTap: () => onTap(type, id),
-      ),
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    return StickerSpanNode(
+      placeholder: element.textContent,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      isStandalone: _isStandaloneStickerInContent(content, element.textContent),
     );
   }
-}
-
-class StickerGenerator extends SpanNodeGeneratorWithTag {
-  StickerGenerator({
-    required Color backgroundColor,
-    required Color foregroundColor,
-    required String content,
-  }) : super(
-         tag: 'sticker',
-         generator:
-             (
-               markdown.Element element,
-               MarkdownConfig config,
-               WidgetVisitor visitor,
-             ) {
-               return StickerSpanNode(
-                 placeholder: element.textContent,
-                 backgroundColor: backgroundColor,
-                 foregroundColor: foregroundColor,
-                 isStandalone: _isStandaloneStickerInContent(
-                   content,
-                   element.textContent,
-                 ),
-               );
-             },
-       );
 }
 
 enum _StickerRenderSize { small, medium, large }
@@ -614,13 +499,14 @@ _StickerRenderSize _resolveStickerRenderSize(
   return isStandalone ? _StickerRenderSize.large : _StickerRenderSize.medium;
 }
 
-class StickerSpanNode extends SpanNode {
+class StickerSpanNode extends StatelessWidget {
   final String placeholder;
   final Color backgroundColor;
   final Color foregroundColor;
   final bool isStandalone;
 
-  StickerSpanNode({
+  const StickerSpanNode({
+    super.key,
     required this.placeholder,
     required this.backgroundColor,
     required this.foregroundColor,
@@ -628,19 +514,12 @@ class StickerSpanNode extends SpanNode {
   });
 
   @override
-  InlineSpan build() {
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.middle,
-      child: Builder(
-        builder: (context) {
-          return _StickerInlineContent(
-            placeholder: placeholder,
-            backgroundColor: backgroundColor,
-            foregroundColor: foregroundColor,
-            isStandalone: isStandalone,
-          );
-        },
-      ),
+  Widget build(BuildContext context) {
+    return _StickerInlineContent(
+      placeholder: placeholder,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      isStandalone: isStandalone,
     );
   }
 }
@@ -668,14 +547,13 @@ class _StickerInlineContent extends ConsumerWidget {
         final packPrefix =
             sticker?.pack?.prefix ?? (parts.isNotEmpty ? parts[0] : '');
         final stickerCode = ':$placeholder:';
-        final renderSticker = sticker;
-        final renderSize = renderSticker == null
+        final renderSize = sticker == null
             ? _StickerRenderSize.medium
-            : _resolveStickerRenderSize(renderSticker, isStandalone);
+            : _resolveStickerRenderSize(sticker, isStandalone);
         final dimension = _stickerRenderDimension(renderSize);
-        final label = renderSticker?.name?.trim().isNotEmpty == true
-            ? renderSticker!.name!
-            : renderSticker?.slug ?? placeholder;
+        final label = sticker?.name?.trim().isNotEmpty == true
+            ? sticker!.name!
+            : sticker?.slug ?? placeholder;
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
@@ -691,14 +569,14 @@ class _StickerInlineContent extends ConsumerWidget {
               child: SizedBox(
                 width: dimension,
                 height: dimension,
-                child: renderSticker == null
+                child: sticker == null
                     ? Icon(
                         Symbols.emoji_symbols,
                         size: dimension * 0.45,
                         color: foregroundColor,
                       )
                     : CloudImageWidget(
-                        file: renderSticker.image,
+                        file: sticker.image,
                         fit: BoxFit.contain,
                         noBlurhash: true,
                       ),
@@ -751,88 +629,4 @@ class _StickerLoadingPlaceholder extends StatelessWidget {
       ),
     );
   }
-}
-
-class DividerNode extends SpanNode {
-  DividerNode();
-
-  @override
-  InlineSpan build() {
-    return WidgetSpan(child: const Divider());
-  }
-}
-
-class Heading1Config extends HeadingConfig {
-  @override
-  final TextStyle style;
-
-  const Heading1Config({
-    this.style = const TextStyle(
-      fontSize: 32,
-      height: 40 / 32,
-      fontWeight: FontWeight.bold,
-    ),
-  });
-
-  @override
-  String get tag => MarkdownTag.h1.name;
-
-  static Heading1Config get darkConfig => const Heading1Config(
-    style: TextStyle(
-      fontSize: 32,
-      height: 40 / 32,
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  );
-}
-
-class Heading2Config extends HeadingConfig {
-  @override
-  final TextStyle style;
-
-  const Heading2Config({
-    this.style = const TextStyle(
-      fontSize: 24,
-      height: 30 / 24,
-      fontWeight: FontWeight.bold,
-    ),
-  });
-
-  @override
-  String get tag => MarkdownTag.h2.name;
-
-  static Heading2Config get darkConfig => const Heading2Config(
-    style: TextStyle(
-      fontSize: 24,
-      height: 30 / 24,
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  );
-}
-
-class Heading3Config extends HeadingConfig {
-  @override
-  final TextStyle style;
-
-  const Heading3Config({
-    this.style = const TextStyle(
-      fontSize: 20,
-      height: 25 / 20,
-      fontWeight: FontWeight.bold,
-    ),
-  });
-
-  @override
-  String get tag => MarkdownTag.h3.name;
-
-  static Heading3Config get darkConfig => const Heading3Config(
-    style: TextStyle(
-      fontSize: 20,
-      height: 25 / 20,
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    ),
-  );
 }

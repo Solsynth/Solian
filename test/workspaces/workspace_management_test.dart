@@ -445,4 +445,25 @@ void main() {
     expect(bare.pictureId, isNull);
     expect(bare.backgroundId, isNull);
   });
+  test('parses workspace storage snapshots and preserves service usage', () {
+    final quota = WorkspaceStorageQuota.fromJson({
+      'used_bytes': 734003200,
+      'limit_bytes': 1073741824,
+      'remaining_bytes': 340787624,
+      'calculated_at': '2026-08-19T00:20:00Z',
+      'services': [
+        {'name': 'drive', 'used_bytes': 524288000},
+        {'name': 'postal', 'used_bytes': 209715200},
+      ],
+    });
+
+    expect(quota.usedBytes, 734003200);
+    expect(quota.limitBytes, 1073741824);
+    expect(quota.remainingBytes, 340787624);
+    expect(quota.calculatedAt, '2026-08-19T00:20:00Z');
+    expect(quota.services.map((service) => service.name), ['drive', 'postal']);
+    expect(quota.services.last.usedBytes, 209715200);
+    expect(quota.toUsageMap()['used_bytes'], 734003200);
+    expect((quota.toUsageMap()['service_usages'] as List).length, 2);
+  });
 }

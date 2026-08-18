@@ -1,7 +1,6 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:markdown/markdown.dart' as markdown;
-import 'package:markdown_widget/markdown_widget.dart';
 
 /// Parses Solar Network-style mentions into a `mention-chip` element.
 class SolarMentionInlineSyntax extends markdown.InlineSyntax {
@@ -50,122 +49,101 @@ class SolarSpoilerInlineSyntax extends markdown.InlineSyntax {
   }
 }
 
-/// Builds highlight nodes for [SolarHighlightInlineSyntax].
-class SolarHighlightGenerator extends SpanNodeGeneratorWithTag {
-  SolarHighlightGenerator({required Color highlightColor})
-    : super(
-        tag: 'highlight',
-        generator: (element, config, visitor) => SolarHighlightSpanNode(
-          text: element.textContent,
-          highlightColor: highlightColor,
-        ),
-      );
-}
+/// Builds widgets for [SolarHighlightInlineSyntax].
+class SolarHighlightGenerator extends MarkdownElementBuilder {
+  SolarHighlightGenerator({required this.highlightColor});
 
-class SolarHighlightSpanNode extends SpanNode {
-  SolarHighlightSpanNode({required this.text, required this.highlightColor});
-
-  final String text;
   final Color highlightColor;
 
   @override
-  InlineSpan build() => TextSpan(
-    text: text,
-    style: TextStyle(backgroundColor: highlightColor),
-  );
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    return SolarHighlightSpanNode(
+      text: element.textContent,
+      highlightColor: highlightColor,
+      style: parentStyle ?? preferredStyle,
+    );
+  }
 }
 
-/// Builds tappable spoiler nodes for [SolarSpoilerInlineSyntax].
-class SolarSpoilerGenerator extends SpanNodeGeneratorWithTag {
-  SolarSpoilerGenerator({
-    required bool revealed,
-    required VoidCallback onToggle,
-  }) : super(
-         tag: 'spoiler',
-         generator: (element, config, visitor) => SolarSpoilerSpanNode(
-           text: element.textContent,
-           revealed: revealed,
-           onToggle: onToggle,
-         ),
-       );
+class SolarHighlightSpanNode extends StatelessWidget {
+  const SolarHighlightSpanNode({
+    super.key,
+    required this.text,
+    required this.highlightColor,
+    this.style,
+  });
+
+  final String text;
+  final Color highlightColor;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text, style: style?.copyWith(backgroundColor: highlightColor));
+  }
 }
 
-class SolarSpoilerSpanNode extends SpanNode {
-  SolarSpoilerSpanNode({
+/// Builds tappable widgets for [SolarSpoilerInlineSyntax].
+class SolarSpoilerGenerator extends MarkdownElementBuilder {
+  SolarSpoilerGenerator({required this.revealed, required this.onToggle});
+
+  final bool revealed;
+  final VoidCallback onToggle;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    return SolarSpoilerSpanNode(
+      text: element.textContent,
+      revealed: revealed,
+      onToggle: onToggle,
+      style: parentStyle ?? preferredStyle,
+    );
+  }
+}
+
+class SolarSpoilerSpanNode extends StatelessWidget {
+  const SolarSpoilerSpanNode({
+    super.key,
     required this.text,
     required this.revealed,
     required this.onToggle,
+    this.style,
   });
 
   final String text;
   final bool revealed;
   final VoidCallback onToggle;
+  final TextStyle? style;
 
   @override
-  InlineSpan build() {
-    final recognizer = TapGestureRecognizer()..onTap = onToggle;
-    return TextSpan(children: _buildSegments(recognizer));
-  }
-
-  List<InlineSpan> _buildSegments(TapGestureRecognizer recognizer) {
-    final parts = text.split(RegExp(r'(\s+)'));
-    return parts.where((part) => part.isNotEmpty).map((part) {
-      if (part.trim().isEmpty) {
-        return TextSpan(
-          text: part,
-          recognizer: recognizer,
-          style: revealed
-              ? null
-              : const TextStyle(
-                  color: Colors.transparent,
-                  backgroundColor: Colors.black,
-                ),
-        );
-      }
-
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.baseline,
-        baseline: TextBaseline.alphabetic,
-        child: Builder(
-          builder: (context) {
-            final baseStyle = DefaultTextStyle.of(context).style;
-            final hiddenStyle = baseStyle.copyWith(
-              color: Colors.transparent,
-              backgroundColor: Colors.black,
-            );
-            return GestureDetector(
-              onTap: onToggle,
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.08),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                ),
-                child: revealed
-                    ? Text(
-                        part,
-                        key: ValueKey('revealed-$part'),
-                        style: baseStyle,
-                      )
-                    : Text(
-                        part,
-                        key: ValueKey('hidden-$part'),
-                        style: hiddenStyle,
-                      ),
-              ),
-            );
-          },
+  Widget build(BuildContext context) {
+    final hiddenStyle = style?.copyWith(
+      color: Colors.transparent,
+      backgroundColor: Colors.black,
+    );
+    return GestureDetector(
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        child: Text(
+          text,
+          key: ValueKey('${revealed ? 'revealed' : 'hidden'}-$text'),
+          style: revealed ? style : hiddenStyle,
         ),
-      );
-    }).toList();
+      ),
+    );
   }
 }

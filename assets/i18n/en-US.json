@@ -3767,6 +3767,9 @@
   "quotaPurchaseDescription": "Buy extra storage quota valid for 30 days with Golden Points",
   "quotaPurchaseExtraQuota": "Extra quota",
   "freeSpace": "Free space",
+  "serviceUsage": "Service usage",
+  "quotaRemaining": "Remaining",
+  "quotaCalculatedAt": "Calculated {}",
   "quotaPurchaseRecords": "Purchase records",
   "quotaPurchaseRecordsEmpty": "No purchase records yet",
   "quotaPurchaseConfirmTitle": "Confirm purchase",
@@ -5419,5 +5422,6 @@
   "storeNameChangeCardTitle": "Name Change Card",
   "storeNameChangeCardDescription": "Rename your account, realm, or publisher for 100 points.",
   "thread": "Thread",
-  "untranslatable": "Too short to translate"
+  "untranslatable": "Too short to translate",
+  "walletOrder": "Order"
 }

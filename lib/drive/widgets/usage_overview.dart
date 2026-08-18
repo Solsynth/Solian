@@ -30,14 +30,24 @@ class UsageOverviewWidget extends StatelessWidget {
 
     final usageData = usage!;
     final baseMb = usageData['total_quota'] as int? ?? 0;
-    final usedMb = (usageData['used_quota'] as num? ?? 0).toDouble();
     final extraMb = (quota?['extra_quota'] as num?)?.toInt() ?? 0;
     final fileCount = usageData['total_file_count'] as int? ?? 0;
-
+    final legacyUsedMb = (usageData['used_quota'] as num? ?? 0).toDouble();
+    final usedBytes =
+        (usageData['used_bytes'] as num?)?.toInt() ??
+        (legacyUsedMb * 1024 * 1024).round();
+    final usedMb = usedBytes / (1024 * 1024);
     final availableMb = baseMb + extraMb;
-    final availableBytes = availableMb * 1024 * 1024;
-    final usedBytes = (usedMb * 1024 * 1024).round();
-    final ratio = availableMb > 0 ? (usedMb / availableMb).clamp(0.0, 1.0) : 0.0;
+    final availableBytes =
+        (usageData['limit_bytes'] as num?)?.toInt() ??
+        (usageData['total_bytes'] as num?)?.toInt() ??
+        availableMb * 1024 * 1024;
+    final remainingBytes =
+        (usageData['remaining_bytes'] as num?)?.toInt() ??
+        (availableBytes - usedBytes).clamp(0, availableBytes).toInt();
+    final ratio = availableBytes > 0
+        ? (usedBytes / availableBytes).clamp(0.0, 1.0)
+        : 0.0;
     final status = quotaUsageStatus(ratio);
     final metrics = quotaGaugeFractions(
       baseMb: baseMb,
@@ -45,8 +55,15 @@ class UsageOverviewWidget extends StatelessWidget {
       usedMb: usedMb,
     );
     final pools = (usageData['pool_usages'] as List<dynamic>? ?? [])
-        .whereType<Map<String, dynamic>>()
-        .toList();
+        .whereType<Map>()
+        .map((pool) => Map<String, dynamic>.from(pool))
+        .toList(growable: false);
+    final serviceUsages = (usageData['service_usages'] as List<dynamic>? ?? [])
+        .whereType<Map>()
+        .map((service) => Map<String, dynamic>.from(service))
+        .where((service) => (service['name'] as String?)?.isNotEmpty == true)
+        .toList(growable: false);
+    final calculatedAt = usageData['calculated_at']?.toString();
     final animate = !MediaQuery.of(context).disableAnimations;
 
     return SingleChildScrollView(
@@ -57,7 +74,13 @@ class UsageOverviewWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildReadout(context, usedBytes, availableBytes, ratio, status),
+                _buildReadout(
+                  context,
+                  usedBytes,
+                  availableBytes,
+                  ratio,
+                  status,
+                ),
                 const Gap(16),
                 _buildQuotaGauge(
                   context,
@@ -73,6 +96,12 @@ class UsageOverviewWidget extends StatelessWidget {
                 const Divider(height: 1),
                 const Gap(12),
                 _buildFilesRow(context, fileCount),
+                const Gap(10),
+                _buildRemainingRow(context, remainingBytes),
+                if (calculatedAt != null && calculatedAt.isNotEmpty) ...[
+                  const Gap(8),
+                  _buildCalculatedAt(context, calculatedAt),
+                ],
               ],
             ),
           ),
@@ -91,6 +120,23 @@ class UsageOverviewWidget extends StatelessWidget {
                   _buildPoolTank(context, pools, availableBytes, animate),
                   const Gap(14),
                   _buildPoolLegend(context, pools, availableBytes),
+                ],
+              ),
+            ),
+          ],
+          if (serviceUsages.isNotEmpty) ...[
+            const Gap(12),
+            _Panel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    context,
+                    Symbols.apps,
+                    'serviceUsage'.tr(),
+                  ),
+                  const Gap(12),
+                  _buildServiceLegend(context, serviceUsages, availableBytes),
                 ],
               ),
             ),
@@ -294,6 +340,80 @@ class UsageOverviewWidget extends StatelessWidget {
     );
   }
 
+  Widget _buildRemainingRow(BuildContext context, int remainingBytes) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(Symbols.storage, size: 18, color: scheme.onSurfaceVariant),
+        const Gap(10),
+        Text(
+          'quotaRemaining'.tr(),
+          style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+        ),
+        const Spacer(),
+        Text(
+          formatFileSize(remainingBytes),
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalculatedAt(BuildContext context, String value) {
+    final scheme = Theme.of(context).colorScheme;
+    final date = DateTime.tryParse(value);
+    final formatted = date == null
+        ? value
+        : DateFormat.yMMMd().add_jm().format(date.toLocal());
+    return Row(
+      children: [
+        Icon(Symbols.schedule, size: 16, color: scheme.onSurfaceVariant),
+        const Gap(10),
+        Expanded(
+          child: Text(
+            'quotaCalculatedAt'.tr(args: [formatted]),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceLegend(
+    BuildContext context,
+    List<Map<String, dynamic>> services,
+    int availableBytes,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = _poolSegmentColors(scheme, services.length);
+    return Column(
+      children: [
+        for (var i = 0; i < services.length; i++) ...[
+          if (i > 0) const Gap(8),
+          _PoolLegendRow(
+            swatchColor: colors[i],
+            name: services[i]['name']?.toString() ?? 'unknown'.tr(),
+            size: formatFileSize(
+              (services[i]['used_bytes'] as num?)?.toInt() ?? 0,
+            ),
+            share: _percentOf(
+              availableBytes > 0
+                  ? ((services[i]['used_bytes'] as num?)?.toInt() ?? 0) /
+                        availableBytes
+                  : 0,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   /// The signature instrument: pools as tonal segments on the capacity
   /// span, free space as the quiet track remainder, a fill-level marker
   /// where the stored data ends.
@@ -393,10 +513,18 @@ class UsageOverviewWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, IconData icon, String label) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    IconData icon,
+    String label,
+  ) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        Icon(
+          icon,
+          size: 18,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         const Gap(8),
         Text(
           label,
@@ -602,7 +730,10 @@ class _PoolTankPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final trackRRect = RRect.fromRectAndRadius(rect, const Radius.circular(999));
+    final trackRRect = RRect.fromRectAndRadius(
+      rect,
+      const Radius.circular(999),
+    );
     final width = size.width;
 
     canvas.save();
@@ -615,8 +746,7 @@ class _PoolTankPainter extends CustomPainter {
       if (segmentWidth <= 0) continue;
       canvas.drawRect(
         Rect.fromLTWH(x, 0, segmentWidth, size.height),
-        Paint()
-          ..color = segmentColors[i % segmentColors.length],
+        Paint()..color = segmentColors[i % segmentColors.length],
       );
       x += segmentWidth;
     }

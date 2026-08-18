@@ -37,22 +37,20 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/drive/widgets/usage_overview.dart';
 
 final workspaceQuotaProvider = FutureProvider.autoDispose
-    .family<Map<String, dynamic>?, String?>((ref, workspaceId) async {
-      if (workspaceId == null || workspaceId.isEmpty) return null;
-      final quota = await ref
+    .family<Map<String, dynamic>?, String?>((ref, workspaceSlug) async {
+      if (workspaceSlug == null || workspaceSlug.isEmpty) return null;
+      final response = await ref
           .read(solarNetworkClientProvider)
-          .drive
-          .getWorkspaceQuota(workspaceId);
-      final usedBytes = (quota['used_bytes'] as num?)?.toInt() ?? 0;
-      final totalBytes = (quota['total_bytes'] as num?)?.toInt() ?? 0;
-      return {
-        'total_quota': totalBytes ~/ (1024 * 1024),
-        'used_quota': usedBytes / (1024 * 1024),
-        'total_file_count': quota['total_file_count'] ?? 0,
-        'used_bytes': usedBytes,
-        'total_bytes': totalBytes,
-        'remaining_bytes': quota['remaining_bytes'] ?? 0,
-      };
+          .dio
+          .get(
+            '/valve/workspaces/${Uri.encodeComponent(workspaceSlug)}/quota/storage',
+          );
+      if (response.data is! Map) {
+        throw StateError(
+          'Workspace storage quota returned an invalid response.',
+        );
+      }
+      return WorkspaceStorageQuota.fromJson(response.data).toUsageMap();
     });
 
 class _DriveFileTab {
@@ -332,6 +330,12 @@ class FileListScreen extends HookConsumerWidget {
     final activeWorkspaceId = activeTab == null
         ? selectedWorkspaceId.value
         : ref.watch(driveWorkspaceIdProvider(activeTab.id));
+    final activeWorkspaceSlug = activeWorkspaceId == null
+        ? null
+        : workspaceListAsync.asData?.value
+              .where((workspace) => workspace.id == activeWorkspaceId)
+              .firstOrNull
+              ?.slug;
     void changeWorkspace(String? workspaceId) {
       selectedWorkspaceId.value = workspaceId;
       final tab = activeTab;
@@ -375,7 +379,7 @@ class FileListScreen extends HookConsumerWidget {
     final currentPathValue = useValueListenable(currentPath ?? fallbackPath);
     final modeValue = useValueListenable(mode ?? fallbackMode);
     final workspaceQuotaAsync = ref.watch(
-      workspaceQuotaProvider(activeWorkspaceId),
+      workspaceQuotaProvider(activeWorkspaceSlug),
     );
     final activeUsageAsync = activeWorkspaceId == null
         ? usageAsync
@@ -2068,8 +2072,13 @@ class _DriveStorageStatusBar extends StatelessWidget {
     final nonNullUsage = usage!;
     final totalQuotaMb = nonNullUsage['total_quota'] as int? ?? 0;
     final usedQuotaMb = nonNullUsage['used_quota'] as num? ?? 0;
-    final usedBytes = (usedQuotaMb * 1024 * 1024).round();
-    final totalBytes = totalQuotaMb * 1024 * 1024;
+    final usedBytes =
+        (nonNullUsage['used_bytes'] as num?)?.toInt() ??
+        (usedQuotaMb * 1024 * 1024).round();
+    final totalBytes =
+        (nonNullUsage['limit_bytes'] as num?)?.toInt() ??
+        (nonNullUsage['total_bytes'] as num?)?.toInt() ??
+        totalQuotaMb * 1024 * 1024;
     final ratio = totalBytes > 0
         ? (usedBytes / totalBytes).clamp(0.0, 1.0)
         : 0.0;

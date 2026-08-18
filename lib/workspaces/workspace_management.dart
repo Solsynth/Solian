@@ -101,6 +101,78 @@ class WorkspaceSummary {
   }
 }
 
+/// Storage usage retained in a workspace snapshot by Valve.
+class WorkspaceStorageServiceUsage {
+  final String name;
+  final int usedBytes;
+
+  const WorkspaceStorageServiceUsage({
+    required this.name,
+    required this.usedBytes,
+  });
+
+  factory WorkspaceStorageServiceUsage.fromJson(dynamic value) {
+    final json = Map<String, dynamic>.from(value as Map);
+    return WorkspaceStorageServiceUsage(
+      name: json['name']?.toString() ?? '',
+      usedBytes: (json['used_bytes'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'name': name, 'used_bytes': usedBytes};
+}
+
+/// Effective workspace storage quota and the latest per-service snapshot.
+class WorkspaceStorageQuota {
+  final int usedBytes;
+  final int limitBytes;
+  final int remainingBytes;
+  final String? calculatedAt;
+  final List<WorkspaceStorageServiceUsage> services;
+
+  const WorkspaceStorageQuota({
+    required this.usedBytes,
+    required this.limitBytes,
+    required this.remainingBytes,
+    required this.calculatedAt,
+    required this.services,
+  });
+
+  factory WorkspaceStorageQuota.fromJson(dynamic value) {
+    final json = Map<String, dynamic>.from(value as Map);
+    final usedBytes = (json['used_bytes'] as num?)?.toInt() ?? 0;
+    final limitBytes = (json['limit_bytes'] as num?)?.toInt() ?? 0;
+    final remainingBytes =
+        (json['remaining_bytes'] as num?)?.toInt() ??
+        (limitBytes - usedBytes).clamp(0, limitBytes).toInt();
+    final services = (json['services'] as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map(WorkspaceStorageServiceUsage.fromJson)
+        .toList(growable: false);
+    return WorkspaceStorageQuota(
+      usedBytes: usedBytes,
+      limitBytes: limitBytes,
+      remainingBytes: remainingBytes,
+      calculatedAt: json['calculated_at']?.toString(),
+      services: services,
+    );
+  }
+
+  /// Adapts the workspace snapshot to the drive usage view's data contract.
+  Map<String, dynamic> toUsageMap() => {
+    'total_usage_bytes': usedBytes,
+    'total_file_count': 0,
+    'total_quota': limitBytes ~/ (1024 * 1024),
+    'used_quota': usedBytes / (1024 * 1024),
+    'used_bytes': usedBytes,
+    'limit_bytes': limitBytes,
+    'total_bytes': limitBytes,
+    'remaining_bytes': remainingBytes,
+    'calculated_at': calculatedAt,
+    'service_usages': [for (final service in services) service.toJson()],
+  };
+}
+
 class WorkspaceMemberSummary {
   final String accountId;
   final int role;

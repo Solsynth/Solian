@@ -782,7 +782,7 @@ Widget buildPostTranslationSection({
               isSelectable: isTextSelectable,
               attachments: item.attachments,
               noMentionChip: item.fediverseUri != null,
-            ),
+            ).padding(bottom: 16),
           ],
         )
       : null;

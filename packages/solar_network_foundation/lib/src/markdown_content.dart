@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:markdown_widget/markdown_widget.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 /// Portable renderer for user-authored Markdown.
 ///
@@ -23,71 +23,47 @@ class SolarMarkdownContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final config = theme.brightness == Brightness.dark
-        ? MarkdownConfig.darkConfig
-        : MarkdownConfig.defaultConfig;
+    final baseStyle = MarkdownStyleSheet.fromTheme(theme);
 
-    return MarkdownBlock(
+    return MarkdownBody(
       data: content,
       selectable: selectable,
-      config: config.copy(
-        configs: [
-          PConfig(textStyle: textStyle ?? theme.textTheme.bodyMedium!),
-          PreConfig(
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
+      styleSheet: baseStyle.copyWith(
+        p: textStyle ?? baseStyle.p,
+        a: baseStyle.a?.copyWith(color: scheme.primary),
+        code: baseStyle.code?.copyWith(fontFamily: 'monospace'),
+        codeblockDecoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        codeblockPadding: const EdgeInsets.all(8),
+      ),
+      onTapLink: (text, href, title) async {
+        final uri = href == null ? null : Uri.tryParse(href);
+        if (uri != null) await onLinkTap?.call(uri);
+      },
+      imageBuilder: (uri, title, alt) {
+        final isNetworkImage = uri.scheme == 'https' || uri.scheme == 'http';
+        if (!isNetworkImage) {
+          return _MarkdownImageFallback(alt: alt ?? 'Image unavailable');
+        }
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 360),
+            child: Image.network(
+              uri.toString(),
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) =>
+                  _MarkdownImageFallback(alt: alt ?? 'Image unavailable'),
             ),
           ),
-          TableConfig(
-            wrapper: (child) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: child,
-            ),
-          ),
-          LinkConfig(
-            style: TextStyle(color: scheme.primary),
-            onTap: (href) async {
-              final uri = Uri.tryParse(href);
-              if (uri != null) await onLinkTap?.call(uri);
-            },
-          ),
-          ImgConfig(
-            builder: (url, attributes) {
-              final width = double.tryParse(attributes['width'] ?? '');
-              final height = double.tryParse(attributes['height'] ?? '');
-              final isNetworkImage =
-                  url.startsWith('https://') || url.startsWith('http://');
-              if (!isNetworkImage) {
-                return _MarkdownImageFallback(
-                  alt: attributes['alt'] ?? 'Image unavailable',
-                );
-              }
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 360),
-                  child: Image.network(
-                    url,
-                    width: width,
-                    height: height,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => _MarkdownImageFallback(
-                      alt: attributes['alt'] ?? 'Image unavailable',
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          CheckBoxConfig(
-            builder: (checked) => Icon(
-              checked ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 20,
-              color: checked ? scheme.primary : scheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+        );
+      },
+      checkboxBuilder: (checked) => Icon(
+        checked ? Icons.check_box : Icons.check_box_outline_blank,
+        size: 20,
+        color: checked ? scheme.primary : scheme.onSurfaceVariant,
       ),
     );
   }

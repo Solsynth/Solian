@@ -3038,7 +3038,7 @@ class WalletScreen extends HookConsumerWidget {
                   tabs: [
                     Tab(text: 'transactions'.tr()),
                     Tab(text: 'myFunds'.tr()),
-                    Tab(text: 'order'.tr()),
+                    Tab(text: 'walletOrder'.tr()),
                   ],
                 ),
               ),

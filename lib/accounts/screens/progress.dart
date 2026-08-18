@@ -5,9 +5,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/badge.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/text.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -82,6 +84,13 @@ final questsProvider = FutureProvider.autoDispose<List<SnQuestState>>((
   return [];
 });
 
+final badgesProvider = FutureProvider.autoDispose<List<SnAccountBadge>>((
+  ref,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getMyBadges();
+});
+
 final rewardGrantsNotifierProvider =
     AsyncNotifierProvider.autoDispose<
       RewardGrantsNotifier,
@@ -124,49 +133,276 @@ class RewardGrantsNotifier
 
 @RoutePage()
 class ProgressScreen extends ConsumerWidget {
-  const ProgressScreen({super.key});
+  final int initialTab;
+
+  const ProgressScreen({super.key, this.initialTab = 0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final tabIndex = initialTab < 0
+        ? 0
+        : initialTab > 3
+        ? 3
+        : initialTab;
+
     return DefaultTabController(
-      length: 3,
+      length: 4,
+      initialIndex: tabIndex,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('progress').tr(),
           leading: const AutoLeadingButton(),
           bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            dividerColor: theme.colorScheme.outlineVariant,
+            indicatorColor: theme.colorScheme.primary,
+            indicatorWeight: 2,
+            labelColor: theme.colorScheme.primary,
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+            labelStyle: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
             tabs: [
-              Tab(
-                child: Text(
-                  'achievements',
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ).tr(),
-              ),
-              Tab(
-                child: Text(
-                  'quests',
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ).tr(),
-              ),
-              Tab(
-                child: Text(
-                  'rewards',
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ).tr(),
-              ),
+              Tab(text: 'achievements'.tr()),
+              Tab(text: 'quests'.tr()),
+              Tab(text: 'rewards'.tr()),
+              Tab(text: 'badges'.tr()),
             ],
           ),
         ),
         body: TabBarView(
-          children: [_AchievementsTab(), _QuestsTab(), _RewardsTab()],
+          children: [
+            _AchievementsTab(),
+            _QuestsTab(),
+            _RewardsTab(),
+            _BadgesTab(),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _BadgesTab extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final badgesAsync = ref.watch(badgesProvider);
+
+    return badgesAsync.when(
+      data: (badges) {
+        if (badges.isEmpty) {
+          return _EmptyState(icon: Symbols.stars, message: 'noBadges'.tr());
+        }
+
+        return CustomScrollView(
+          slivers: [
+            const SliverToBoxAdapter(child: _BadgeIntro()),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+              sliver: SliverList.separated(
+                itemCount: badges.length,
+                separatorBuilder: (_, _) => const Gap(10),
+                itemBuilder: (context, index) {
+                  final badge = badges[index];
+                  return _BadgeCard(
+                    badge: badge,
+                    onActivate: () => _activateBadge(context, ref, badge.id),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => ResponseErrorWidget(
+        error: error,
+        onRetry: () => ref.invalidate(badgesProvider),
+      ),
+    );
+  }
+
+  Future<void> _activateBadge(
+    BuildContext context,
+    WidgetRef ref,
+    String badgeId,
+  ) async {
+    showLoadingModal(context);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.accounts.activateBadge(badgeId);
+      ref.invalidate(badgesProvider);
+    } catch (error) {
+      if (context.mounted) showErrorAlert(error);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+}
+
+class _BadgeIntro extends StatelessWidget {
+  const _BadgeIntro();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        color: colors.surfaceContainerLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colors.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 18, 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Symbols.info,
+                size: 20,
+                color: colors.onSurfaceVariant,
+              ).padding(top: 2),
+              const Gap(12),
+              Expanded(
+                child: Text(
+                  'badgeInfoDescription'.tr(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BadgeCard extends ConsumerWidget {
+  final SnAccountBadge badge;
+  final VoidCallback onActivate;
+
+  const _BadgeCard({required this.badge, required this.onActivate});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isActive = badge.activatedAt != null;
+    final manifest = ref.watch(badgeManifestMapProvider);
+    final name = getBadgeName(badge, manifest: manifest).tr();
+    final description = getBadgeDescription(badge, manifest: manifest);
+    final badgeColor = getBadgeColor(badge, manifest: manifest);
+    final iconUrl = getBadgeIconUrl(badge, manifest: manifest);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: colors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: isActive ? null : onActivate,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Center(
+                  child: CachedBadgeIcon(
+                    iconUrl: iconUrl,
+                    color: isActive ? colors.primary : badgeColor,
+                    fallbackIcon:
+                        kBadgeTemplates[badge.type]?.icon ?? Symbols.stars,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (description != null && description.isNotEmpty) ...[
+                      const Gap(3),
+                      Text(
+                        description.trExists() ? description.tr() : description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const Gap(10),
+              _BadgeStatus(isActive: isActive, onActivate: onActivate),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BadgeStatus extends StatelessWidget {
+  final bool isActive;
+  final VoidCallback onActivate;
+
+  const _BadgeStatus({required this.isActive, required this.onActivate});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    if (isActive) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        decoration: BoxDecoration(
+          color: colors.primary.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(Symbols.check, size: 17, color: colors.primary),
+      );
+    }
+
+    return FilledButton.tonal(
+      onPressed: onActivate,
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(horizontal: 11),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Text('activate').tr(),
     );
   }
 }
@@ -416,9 +652,16 @@ class _ProgressHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = total > 0 ? completed / total : 0.0;
+    final colors = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      elevation: 0,
+      color: colors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -463,6 +706,12 @@ class _AchievementStatsCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -582,8 +831,14 @@ class _AchievementCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _showAchievementDetails(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -661,13 +916,13 @@ class _AchievementCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
+                        color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         '${achievement.seriesCompletedSteps}/${achievement.seriesTotalSteps}',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSecondaryContainer,
+                          color: theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.bold,
                           fontSize: 10,
                         ),
@@ -912,8 +1167,14 @@ class _QuestCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _showQuestDetails(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -993,13 +1254,13 @@ class _QuestCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer,
+                            color: theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             '${quest.seriesCompletedSteps}/${quest.seriesTotalSteps}',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSecondaryContainer,
+                              color: theme.colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.bold,
                               fontSize: 10,
                             ),
@@ -1061,7 +1322,7 @@ class _QuestCard extends StatelessWidget {
                         args: [quest.nextResetAt!.formatRelative(context)],
                       ),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.secondary,
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
                     ),
@@ -1313,6 +1574,12 @@ class _RewardGrantCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

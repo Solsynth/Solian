@@ -19,6 +19,18 @@ const _usage = <String, dynamic>{
 };
 
 const _quota = <String, dynamic>{'based_quota': 20000, 'extra_quota': 5000};
+const _workspaceUsage = <String, dynamic>{
+  'total_quota': 1024,
+  'used_quota': 10.0,
+  'used_bytes': 700 * 1024 * 1024,
+  'limit_bytes': 1024 * 1024 * 1024,
+  'remaining_bytes': 324 * 1024 * 1024,
+  'service_usages': [
+    {'name': 'drive', 'used_bytes': 500 * 1024 * 1024},
+    {'name': 'postal', 'used_bytes': 200 * 1024 * 1024},
+  ],
+  'calculated_at': '2026-08-19T00:20:00Z',
+};
 
 Widget _wrap(
   Map<String, dynamic>? usage,
@@ -57,9 +69,7 @@ Future<void> _pump(
   Brightness brightness = Brightness.light,
 }) async {
   await tester.runAsync(() async {
-    await tester.pumpWidget(
-      _wrap(usage, quota, brightness: brightness),
-    );
+    await tester.pumpWidget(_wrap(usage, quota, brightness: brightness));
     await Future<void>.delayed(const Duration(milliseconds: 100));
   });
   await tester.pumpAndSettle();
@@ -99,12 +109,22 @@ void main() {
     expect(find.text('4.88 GB'), findsOneWidget);
   });
 
+  testWidgets('uses endpoint bytes and shows service breakdown', (
+    tester,
+  ) async {
+    await _pump(tester, _workspaceUsage, null);
+    expect(find.text('700.00 MB'), findsOneWidget);
+    expect(find.text('/ 1.00 GB'), findsOneWidget);
+    expect(find.text('Service usage'), findsOneWidget);
+    expect(find.text('drive'), findsOneWidget);
+    expect(find.text('postal'), findsOneWidget);
+    expect(find.text('500.00 MB'), findsOneWidget);
+    expect(find.text('200.00 MB'), findsOneWidget);
+    expect(find.textContaining('Calculated'), findsOneWidget);
+  });
+
   testWidgets('omits extra quota legend when none purchased', (tester) async {
-    await _pump(
-      tester,
-      _usage,
-      const {'based_quota': 20000, 'extra_quota': 0},
-    );
+    await _pump(tester, _usage, const {'based_quota': 20000, 'extra_quota': 0});
     expect(find.text('Extra quota'), findsNothing);
   });
 

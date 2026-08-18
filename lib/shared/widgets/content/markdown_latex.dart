@@ -1,79 +1,69 @@
-import 'package:material_ui/material_ui.dart';
-import 'package:markdown_widget/markdown_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import 'package:markdown/markdown.dart' as m;
+import 'package:markdown/markdown.dart' as markdown;
 
-SpanNodeGeneratorWithTag latexGenerator = SpanNodeGeneratorWithTag(
-  tag: _latexTag,
-  generator: (e, config, visitor) =>
-      LatexNode(e.attributes, e.textContent, config),
-);
+const latexTag = 'latex';
 
-const _latexTag = 'latex';
-
-class LatexSyntax extends m.InlineSyntax {
-  final bool isDark;
-  LatexSyntax(this.isDark) : super(r'(\$\$[\s\S]+\$\$)|(\$.+?\$)');
+class LatexSyntax extends markdown.InlineSyntax {
+  LatexSyntax() : super(r'(\$\$[\s\S]+\$\$)|(\$.+?\$)');
 
   @override
-  bool onMatch(m.InlineParser parser, Match match) {
-    final input = match.input;
-    final matchValue = input.substring(match.start, match.end);
+  bool onMatch(markdown.InlineParser parser, Match match) {
+    final matchValue = match.input.substring(match.start, match.end);
     String content = '';
     bool isInline = true;
-    const blockSyntax = '\$\$';
-    const inlineSyntax = '\$';
-    if (matchValue.startsWith(blockSyntax) &&
-        matchValue.endsWith(blockSyntax) &&
-        (matchValue != blockSyntax)) {
+    if (matchValue.startsWith(r'$$') &&
+        matchValue.endsWith(r'$$') &&
+        matchValue != r'$$') {
       content = matchValue.substring(2, matchValue.length - 2);
       isInline = false;
-    } else if (matchValue.startsWith(inlineSyntax) &&
-        matchValue.endsWith(inlineSyntax) &&
-        matchValue != inlineSyntax) {
+    } else if (matchValue.startsWith(r'$') &&
+        matchValue.endsWith(r'$') &&
+        matchValue != r'$') {
       content = matchValue.substring(1, matchValue.length - 1);
     }
-    m.Element el = m.Element.text(_latexTag, matchValue);
-    el.attributes['content'] = content;
-    el.attributes['isInline'] = '$isInline';
-    el.attributes['isDark'] = isDark.toString();
-    parser.addNode(el);
+
+    final element = markdown.Element.text(latexTag, matchValue)
+      ..attributes['content'] = content
+      ..attributes['isInline'] = '$isInline';
+    parser.addNode(element);
     return true;
   }
 }
 
-class LatexNode extends SpanNode {
-  final Map<String, String> attributes;
-  final String textContent;
-  final MarkdownConfig config;
+class LatexBuilder extends MarkdownElementBuilder {
+  LatexBuilder({required this.isDark});
 
-  LatexNode(this.attributes, this.textContent, this.config);
+  final bool isDark;
 
   @override
-  InlineSpan build() {
-    final content = attributes['content'] ?? '';
-    final isInline = attributes['isInline'] == 'true';
-    final isDark = attributes['isDark'] == 'true';
-    final style = parentStyle ?? config.p.textStyle;
-    if (content.isEmpty) return TextSpan(style: style, text: textContent);
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final content = element.attributes['content'] ?? '';
+    final isInline = element.attributes['isInline'] == 'true';
+    final style =
+        parentStyle ?? preferredStyle ?? DefaultTextStyle.of(context).style;
+    if (content.isEmpty) return Text(element.textContent, style: style);
+
     final latex = Math.tex(
       content,
       mathStyle: MathStyle.text,
       textStyle: style.copyWith(color: isDark ? Colors.white : Colors.black),
       textScaleFactor: 1,
-      onErrorFallback: (error) {
-        return Text(textContent, style: style.copyWith(color: Colors.red));
-      },
+      onErrorFallback: (error) =>
+          Text(element.textContent, style: style.copyWith(color: Colors.red)),
     );
-    return WidgetSpan(
-      alignment: PlaceholderAlignment.middle,
-      child: !isInline
-          ? SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: latex),
-            )
-          : latex,
+    if (isInline) return latex;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(child: latex),
     );
   }
 }
