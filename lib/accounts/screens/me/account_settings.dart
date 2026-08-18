@@ -441,7 +441,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
         ],
       ),
       ListTile(
-        leading: const Icon(Symbols.nfc),
+        leading: const Icon(Symbols.nfc).alignment(Alignment.centerLeft).width(48),
         title: Text('physicalPassports').tr(),
         subtitle: Text('physicalPassportsEmptyDescription').tr().fontSize(12),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
