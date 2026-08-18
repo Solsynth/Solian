@@ -30,6 +30,7 @@ import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:island/core/media_kit_init.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:image/image.dart' as img;
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -57,6 +58,28 @@ const int driveS3DirectUploadMaxFileSizeBytes = 5 * 1024 * 1024 * 1024;
 /// a single presigned `PUT`: parts upload in parallel and a failed part only
 /// needs that part re-sent. Smaller files keep the simpler single-PUT path.
 const int driveS3DirectMultipartMinFileSizeBytes = 100 * 1024 * 1024;
+
+Future<void> _localProbeQueue = Future<void>.value();
+Player? _localProbePlayer;
+
+Future<T> _withSerializedLocalMediaProbe<T>(
+  Future<T> Function(Player player) operation,
+) {
+  final previous = _localProbeQueue;
+  final release = Completer<void>();
+  _localProbeQueue = release.future;
+  return previous.then((_) async {
+    try {
+      if (!ensureMediaKitInitialized()) {
+        throw StateError('bundled media player is unavailable');
+      }
+      final player = _localProbePlayer ??= Player();
+      return await operation(player);
+    } finally {
+      if (!release.isCompleted) release.complete();
+    }
+  });
+}
 
 class _ClientMediaUpload {
   final Map<String, dynamic> analysis;
@@ -763,7 +786,7 @@ class FileUploader {
         );
       } catch (_) {}
       final analysis = await _inspectLocalVideo(fileData.path);
-      if (thumbnail == null || analysis.isEmpty) return null;
+      if (analysis.isEmpty) return null;
       return _ClientMediaUpload(analysis: analysis, thumbnail: thumbnail);
     }
     if (normalizedType.startsWith('audio/')) {
@@ -832,35 +855,35 @@ class FileUploader {
 
   Future<Map<String, dynamic>> _inspectLocalAudio(String path) async {
     try {
-      MediaKit.ensureInitialized();
-      final player = Player();
-      try {
-        final durationFuture = player.stream.duration
-            .firstWhere((duration) => duration > Duration.zero)
-            .timeout(const Duration(seconds: 8));
-        final paramsFuture = player.stream.audioParams
-            .firstWhere(
-              (params) =>
-                  (params.sampleRate ?? 0) > 0 ||
-                  (params.channelCount ?? 0) > 0,
-            )
-            .timeout(const Duration(seconds: 8));
-        await player.open(Media(path), play: false);
-        final duration = await durationFuture;
-        final params = await paramsFuture;
-        final metadata = <String, dynamic>{
-          'duration_ms': duration.inMilliseconds,
-        };
-        if ((params.sampleRate ?? 0) > 0) {
-          metadata['sample_rate'] = params.sampleRate;
+      return await _withSerializedLocalMediaProbe((player) async {
+        try {
+          final durationFuture = player.stream.duration
+              .firstWhere((duration) => duration > Duration.zero)
+              .timeout(const Duration(seconds: 8));
+          final paramsFuture = player.stream.audioParams
+              .firstWhere(
+                (params) =>
+                    (params.sampleRate ?? 0) > 0 ||
+                    (params.channelCount ?? 0) > 0,
+              )
+              .timeout(const Duration(seconds: 8));
+          await player.open(Media(path), play: false);
+          final duration = await durationFuture;
+          final params = await paramsFuture;
+          final metadata = <String, dynamic>{
+            'duration_ms': duration.inMilliseconds,
+          };
+          if ((params.sampleRate ?? 0) > 0) {
+            metadata['sample_rate'] = params.sampleRate;
+          }
+          if ((params.channelCount ?? 0) > 0) {
+            metadata['channels'] = params.channelCount;
+          }
+          return metadata;
+        } finally {
+          await player.stop();
         }
-        if ((params.channelCount ?? 0) > 0) {
-          metadata['channels'] = params.channelCount;
-        }
-        return metadata;
-      } finally {
-        await player.dispose();
-      }
+      });
     } catch (_) {
       return const {};
     }
@@ -868,35 +891,38 @@ class FileUploader {
 
   Future<Map<String, dynamic>> _inspectLocalVideo(String path) async {
     try {
-      MediaKit.ensureInitialized();
-      final player = Player();
-      try {
-        final paramsFuture = player.stream.videoParams
-            .firstWhere((params) => (params.w ?? 0) > 0 && (params.h ?? 0) > 0)
-            .timeout(const Duration(seconds: 8));
-        final durationFuture = player.stream.duration
-            .firstWhere((duration) => duration > Duration.zero)
-            .timeout(const Duration(seconds: 8));
-        await player.open(Media(path), play: false);
-        final params = await paramsFuture;
-        final duration = await durationFuture;
-        final metadata = <String, dynamic>{};
-        if (params.w != null && params.w! > 0) metadata['width'] = params.w;
-        if (params.h != null && params.h! > 0) metadata['height'] = params.h;
-        if (duration > Duration.zero) {
-          metadata['duration_ms'] = duration.inMilliseconds;
+      return await _withSerializedLocalMediaProbe((player) async {
+        try {
+          final paramsFuture = player.stream.videoParams
+              .firstWhere(
+                (params) => (params.w ?? 0) > 0 && (params.h ?? 0) > 0,
+              )
+              .timeout(const Duration(seconds: 8));
+          final durationFuture = player.stream.duration
+              .firstWhere((duration) => duration > Duration.zero)
+              .timeout(const Duration(seconds: 8));
+          await player.open(Media(path), play: false);
+          final params = await paramsFuture;
+          final duration = await durationFuture;
+          final metadata = <String, dynamic>{};
+          if (params.w != null && params.w! > 0) metadata['width'] = params.w;
+          if (params.h != null && params.h! > 0) metadata['height'] = params.h;
+          if (duration > Duration.zero) {
+            metadata['duration_ms'] = duration.inMilliseconds;
+          }
+          if (params.rotate != null) metadata['rotation'] = params.rotate;
+          final width = params.w ?? 0;
+          final height = params.h ?? 0;
+          if (width > 0 && height > 0) {
+            final divisor = _greatestCommonDivisor(width, height);
+            metadata['aspect_ratio'] =
+                '${width ~/ divisor}:${height ~/ divisor}';
+          }
+          return metadata;
+        } finally {
+          await player.stop();
         }
-        if (params.rotate != null) metadata['rotation'] = params.rotate;
-        final width = params.w ?? 0;
-        final height = params.h ?? 0;
-        if (width > 0 && height > 0) {
-          final divisor = _greatestCommonDivisor(width, height);
-          metadata['aspect_ratio'] = '${width ~/ divisor}:${height ~/ divisor}';
-        }
-        return metadata;
-      } finally {
-        await player.dispose();
-      }
+      });
     } catch (_) {
       return const {};
     }
@@ -1146,7 +1172,9 @@ class FileUploader {
             'application_type': applicationType,
             'client_analysis': clientMedia?.analysis,
             'want_thumbnail': clientMedia?.thumbnail != null,
-            'want_compression': clientMedia?.compression != null,
+            'want_compression':
+                clientMedia?.compression != null &&
+                !contentType.toLowerCase().startsWith('video/'),
           },
           options: Options(
             sendTimeout: const Duration(minutes: 2),
@@ -1347,7 +1375,9 @@ class FileUploader {
             'multipart': true,
             'client_analysis': clientMedia?.analysis,
             'want_thumbnail': clientMedia?.thumbnail != null,
-            'want_compression': clientMedia?.compression != null,
+            'want_compression':
+                clientMedia?.compression != null &&
+                !contentType.toLowerCase().startsWith('video/'),
           },
           options: Options(
             sendTimeout: const Duration(minutes: 2),
@@ -1413,7 +1443,27 @@ class FileUploader {
     onStage?.call('uploading_source', 0);
     final putTimer = Stopwatch()..start();
     final limiter = _ConcurrencyLimiter(driveChunkUploadConcurrency);
+    final partProgress = <int, int>{};
     var sent = 0;
+
+    int bytesForPart(int partNumber) {
+      return (partNumber == partCount)
+          ? fileSize - (partCount - 1) * partSize
+          : partSize;
+    }
+
+    void reportPartProgress(int partNumber, int bytes) {
+      final maximum = bytesForPart(partNumber);
+      final current = bytes.clamp(0, maximum).toInt();
+      final previous = partProgress[partNumber] ?? 0;
+      if (current == previous) return;
+      partProgress[partNumber] = current;
+      sent += current - previous;
+      final progress = sent / fileSize;
+      onStage?.call('uploading_source', progress);
+      onProgress?.call(progress, Duration.zero);
+    }
+
     for (
       var batchStart = 1;
       batchStart <= partCount;
@@ -1426,12 +1476,7 @@ class FileUploader {
         for (var partNumber = batchStart; partNumber < batchEnd; partNumber++)
           if (uploadedParts.contains(partNumber))
             () async {
-              final partBytes = (partNumber == partCount)
-                  ? fileSize - (partCount - 1) * partSize
-                  : partSize;
-              sent += partBytes;
-              onStage?.call('uploading_source', sent / fileSize);
-              onProgress?.call(sent / fileSize, Duration.zero);
+              reportPartProgress(partNumber, bytesForPart(partNumber));
             }()
           else
             limiter.run(
@@ -1443,10 +1488,10 @@ class FileUploader {
                     partSize: partSize,
                     fileSize: fileSize,
                     contentType: resolvedContentType,
+                    onProgress: (bytes) =>
+                        reportPartProgress(partNumber, bytes),
                   ).then((bytes) {
-                    sent += bytes;
-                    onStage?.call('uploading_source', sent / fileSize);
-                    onProgress?.call(sent / fileSize, Duration.zero);
+                    reportPartProgress(partNumber, bytes);
                   }),
             ),
       ]);
@@ -1496,6 +1541,7 @@ class FileUploader {
     required int partSize,
     required int fileSize,
     required String contentType,
+    void Function(int bytesSent)? onProgress,
   }) async {
     final presignResponse = await _guardUploadQuotaExceeded(
       () => _client.post(
@@ -1531,6 +1577,11 @@ class FileUploader {
           sendTimeout: const Duration(minutes: 10),
           receiveTimeout: const Duration(minutes: 5),
         ),
+        onSendProgress: (sent, total) {
+          if (onProgress == null) return;
+          final progressBytes = total > 0 ? sent.clamp(0, body.length) : sent;
+          onProgress(progressBytes.toInt());
+        },
       );
     } finally {
       putClient.close();

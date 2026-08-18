@@ -462,6 +462,37 @@ class WalletApi extends BaseApi {
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
+  /// Gets orders associated with one of the authenticated user's wallets.
+  Future<PaginatedResult<SnWalletOrder>> getMyOrders({
+    int offset = 0,
+    int take = 50,
+    String? status,
+    String? appIdentifier,
+    String? productIdentifier,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/orders/mine',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        'status': ?status,
+        'app_identifier': ?appIdentifier,
+        'product_identifier': ?productIdentifier,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnWalletOrder.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Gets one order associated with the authenticated user's wallets.
+  Future<SnWalletOrder> getMyOrder(String orderId) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/orders/mine/$orderId',
+    );
+    return SnWalletOrder.fromJson(response.data!);
+  }
+
   /// Gets a specific order by ID.
   ///
   /// [orderId] - The order ID.

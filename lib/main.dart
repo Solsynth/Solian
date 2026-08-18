@@ -24,6 +24,7 @@ import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/media_kit_init.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
@@ -44,7 +45,6 @@ import 'package:image_picker_platform_interface/image_picker_platform_interface.
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 // ponytail: desktop_multi_window for call window support
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -161,7 +161,7 @@ void main(List<String> args) async {
     }
   }
 
-  MediaKit.ensureInitialized();
+  ensureMediaKitInitialized();
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     Logger.root.info(

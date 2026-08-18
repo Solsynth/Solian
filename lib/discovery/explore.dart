@@ -109,7 +109,8 @@ class ExploreScreen extends HookConsumerWidget {
       return AppScaffold(
         isNoBackground: false,
         appBar: null,
-        floatingActionButton: userInfo.value != null &&
+        floatingActionButton:
+            userInfo.value != null &&
                 !isDetailOpen &&
                 sidebarPanel.value == null
             ? FloatingActionButton(
@@ -948,6 +949,9 @@ class ExploreScreen extends HookConsumerWidget {
 
     final subscriptionPane = Card(
       margin: EdgeInsets.zero,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1105,9 +1109,7 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                           );
                     final opacity = isLeaving
-                        ? animation.drive(
-                            CurveTween(curve: Curves.easeInCubic),
-                          )
+                        ? animation.drive(CurveTween(curve: Curves.easeInCubic))
                         : CurvedAnimation(
                             parent: animation,
                             curve: const Interval(
@@ -1118,21 +1120,14 @@ class ExploreScreen extends HookConsumerWidget {
                           );
                     return FadeTransition(
                       opacity: opacity,
-                      child: SlideTransition(
-                        position: offset,
-                        child: child,
-                      ),
+                      child: SlideTransition(position: offset, child: child),
                     );
                   },
                   child: panel == null
                       ? KeyedSubtree(
                           key: const ValueKey('explore-sidebar-default'),
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 12,
-                              right: 12,
-                              bottom: 12,
-                            ),
+                            padding: const EdgeInsets.only(top: 12, right: 12),
                             child: SingleChildScrollView(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1140,6 +1135,7 @@ class ExploreScreen extends HookConsumerWidget {
                                   const PostFeaturedList(
                                     maxHeight: 400,
                                     emphasizeHeader: false,
+                                    borderRadius: 12,
                                   ),
                                   if (hasPublisherSubscriptions ||
                                       hasCategoryTagSubscriptions) ...[
@@ -1171,30 +1167,27 @@ class ExploreScreen extends HookConsumerWidget {
                                 // edge is open to the screen edge.
                                 border: Border(
                                   top: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline
-                                        .withOpacity(0.18),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline.withOpacity(0.18),
                                     width: 1,
                                   ),
                                   left: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline
-                                        .withOpacity(0.18),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline.withOpacity(0.18),
                                     width: 1,
                                   ),
                                   right: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline
-                                        .withOpacity(0.18),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline.withOpacity(0.18),
                                     width: 1,
                                   ),
                                 ),
                                 borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(14),
-                                  topRight: Radius.circular(14),
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
                                 ),
                               ),
                               clipBehavior: Clip.antiAlias,
@@ -1229,7 +1222,7 @@ class _ExplorePopularCategoriesCard extends ConsumerWidget {
                 dense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
                 leading: const Icon(Symbols.category, size: 18),
                 title: Text(category.categoryTranslationKey).tr(),
@@ -1269,7 +1262,7 @@ class _ExplorePopularTagsCard extends ConsumerWidget {
                 dense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
                 leading: Icon(
                   tag.isProtected ? Symbols.lock : Symbols.label,
@@ -1315,6 +1308,9 @@ class _ExplorePopularCardState extends State<_ExplorePopularCard> {
     final theme = Theme.of(context);
     return Card(
       margin: EdgeInsets.zero,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

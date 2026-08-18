@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/media_kit_init.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/content/video.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -80,7 +81,7 @@ class MediaPlaybackController extends Notifier<MediaPlaybackState> {
 
   @override
   MediaPlaybackState build() {
-    MediaKit.ensureInitialized();
+    ensureMediaKitInitialized();
     player = Player(
       configuration: const PlayerConfiguration(bufferSize: 8 * 1024 * 1024),
     );

@@ -1071,6 +1071,7 @@ class AppWrapper extends HookConsumerWidget {
         final paidOrder = await PaymentOverlay.show(
           context: context,
           order: order,
+          payerWalletId: order.payerWalletId,
           orderInfo: orderInfo,
         );
         if (paidOrder != null) {
@@ -1444,7 +1445,7 @@ class _AppWrapperBackdrop extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-       ColoredBox(color: Theme.of(context).colorScheme.surface,),
+        ColoredBox(color: Theme.of(context).colorScheme.surface),
         const Positioned(
           top: -120,
           left: -80,

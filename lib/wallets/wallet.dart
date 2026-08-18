@@ -2035,19 +2035,19 @@ class TransactionListNotifier
   }
 }
 
-final walletBillingRecordsProvider = AsyncNotifierProvider.autoDispose(
-  WalletBillingRecordsNotifier.new,
+final walletMyOrdersProvider = AsyncNotifierProvider.autoDispose(
+  WalletMyOrdersNotifier.new,
 );
 
-class WalletBillingRecordsNotifier
-    extends AsyncNotifier<PaginationState<SnWalletBillingRecord>>
-    with AsyncPaginationController<SnWalletBillingRecord> {
+class WalletMyOrdersNotifier
+    extends AsyncNotifier<PaginationState<SnWalletOrder>>
+    with AsyncPaginationController<SnWalletOrder> {
   static const int pageSize = 20;
 
   @override
-  Future<List<SnWalletBillingRecord>> fetch() async {
+  Future<List<SnWalletOrder>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
-    final result = await client.wallet.getBillingRecords(
+    final result = await client.wallet.getMyOrders(
       offset: fetchedCount,
       take: pageSize,
     );
@@ -3055,7 +3055,7 @@ class WalletScreen extends HookConsumerWidget {
                   createTransfer,
                 ),
                 _buildFundsList(context, ref),
-                _buildBillingRecordsList(context, ref),
+                _buildOrdersList(context, ref, selectedWallet.id),
               ],
             ),
           );
@@ -3689,7 +3689,10 @@ class WalletScreen extends HookConsumerWidget {
     final items = data.value?.items ?? const <SnTransaction>[];
     final dayHeaders = groupTransactionsByDay(items, wallet?.id);
     final isEmptyState =
-        items.isEmpty && data.hasValue && !data.isLoading && !data.hasError;
+        items.isEmpty &&
+        data.hasValue &&
+        data.isLoading == false &&
+        data.hasError == false;
 
     return Column(
       children: [
@@ -4038,15 +4041,19 @@ class WalletScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildBillingRecordsList(BuildContext context, WidgetRef ref) {
-    final provider = walletBillingRecordsProvider;
-    final records = ref.watch(provider);
-    final items = records.value?.items ?? const <SnWalletBillingRecord>[];
+  Widget _buildOrdersList(
+    BuildContext context,
+    WidgetRef ref,
+    String selectedWalletId,
+  ) {
+    final provider = walletMyOrdersProvider;
+    final orders = ref.watch(provider);
+    final items = orders.value?.items ?? const <SnWalletOrder>[];
 
     if (items.isEmpty &&
-        records.hasValue &&
-        !records.isLoading &&
-        !records.hasError) {
+        orders.hasValue &&
+        orders.isLoading == false &&
+        orders.hasError == false) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -4070,35 +4077,45 @@ class WalletScreen extends HookConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       provider: provider,
       notifier: provider.notifier,
-      itemBuilder: (context, index, record) {
-        final order = record.orders.firstOrNull;
-        final subscription = record.subscriptions.firstOrNull;
-        final providerName = walletBillingProviderName(record.provider);
-        final rawTitle =
-            subscription?.identifier ??
-            order?.productIdentifier ??
-            record.productIdentifier;
-        final title = rawTitle == null
-            ? providerName
-            : walletBillingProviderName(rawTitle);
-        final detail = [
-          providerName,
-          if (record.externalId.isNotEmpty) record.externalId,
-          DateFormat.yMMMd().format(record.begunAt),
+      itemBuilder: (context, index, order) {
+        final app = _walletOrderApp(order);
+        final appIdentifier = order.appIdentifier.trim();
+        final appName = app?.name.trim();
+        final productIdentifier =
+            order.meta['product_identifier']?.toString() ??
+            order.meta['productIdentifier']?.toString();
+        final title = [
+          if (appName != null && appName.isNotEmpty) appName,
+          if (app == null && appIdentifier.isNotEmpty) appIdentifier,
+          if (productIdentifier != null && productIdentifier.isNotEmpty)
+            productIdentifier,
         ].join(' · ');
-        final status = order?.status;
-        final statusText = switch (status) {
+        final appSlug = (app?.slug ?? appIdentifier).trim().toLowerCase();
+        final isInternalApp = appSlug == 'internal';
+        final appIcon = isInternalApp && app?.picture == null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/icons/icon.webp',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : ProfilePictureWidget(
+                file: app?.picture,
+                radius: 20,
+                fallbackIcon: Symbols.apps,
+              );
+        final statusText = switch (order.status) {
           0 => 'pending'.tr(),
           1 => 'paymentSuccess'.tr(),
           2 => 'cancel'.tr(),
           3 => 'done'.tr(),
           4 => 'expired'.tr(),
-          _ =>
-            subscription != null
-                ? (subscription.isActive ? 'active'.tr() : 'inactive'.tr())
-                : null,
+          _ => 'order'.tr(),
         };
-        final statusColor = switch (status) {
+        final statusColor = switch (order.status) {
           0 => Colors.orange,
           1 => Colors.green,
           2 => Colors.grey,
@@ -4108,40 +4125,63 @@ class WalletScreen extends HookConsumerWidget {
         };
 
         return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: Icon(
-              Symbols.receipt_long,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ),
+          leading: appIcon,
           title: Text(
-            title,
+            title.isEmpty ? 'order'.tr() : title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-          subtitle: Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis),
+          subtitle: Text(
+            '${DateFormat.yMMMd().format(order.createdAt)} · ${order.id}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (order != null)
-                Text(
-                  '${formatAmountWithSuffix(order.amount)} ${walletCurrencyShort(order.currency)}',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+              Text(
+                '${formatAmountWithSuffix(order.amount)} ${walletCurrencyShort(order.currency)}',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              Text(
+                statusText,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
-              if (statusText != null)
-                Text(
-                  statusText,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              ),
             ],
           ),
+          onTap: () async {
+            try {
+              final client = ref.read(solarNetworkClientProvider);
+              final response = await client.dio.get(
+                '/wallet/orders/mine/${order.id}',
+              );
+              final data = Map<String, dynamic>.from(response.data as Map);
+              final detail = SnWalletOrder.fromJson(data);
+              final orderInfo = PaymentOverlayOrderInfo.fromJson(data);
+              if (context.mounted == false) return;
+              final paidOrder = await PaymentOverlay.show(
+                context: context,
+                order: detail,
+                orderInfo: orderInfo,
+                payerWalletId: detail.payerWalletId ?? selectedWalletId,
+                enableBiometric: true,
+              );
+              if (paidOrder != null) {
+                ref.invalidate(walletMyOrdersProvider);
+                ref.invalidate(walletCurrentProvider);
+                ref.invalidate(walletListProvider);
+                ref.invalidate(walletStatsProvider);
+              }
+            } catch (err) {
+              if (context.mounted) showErrorAlert(err);
+            }
+          },
         );
       },
     );
@@ -4339,6 +4379,7 @@ class WalletScreen extends HookConsumerWidget {
       final paidOrder = await PaymentOverlay.show(
         context: context,
         order: order,
+        payerWalletId: order.payerWalletId,
         enableBiometric: true,
       );
 
@@ -4750,6 +4791,17 @@ class _StatsErrorCard extends StatelessWidget {
   }
 }
 
+PaymentOverlayOrderApp? _walletOrderApp(SnWalletOrder order) {
+  final rawApp = order.app ?? order.meta['app'];
+  if (rawApp is! Map) return null;
+
+  try {
+    return PaymentOverlayOrderApp.fromJson(Map<String, dynamic>.from(rawApp));
+  } catch (_) {
+    return null;
+  }
+}
+
 const Map<String, IconData> kCurrencyIconData = {
   'points': Symbols.save,
   'golds': Symbols.account_balance,
@@ -4773,22 +4825,6 @@ String walletCurrencyShort(String currency) {
       'walletCurrencyShort${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
   final localized = key.tr();
   return localized == key ? currency : localized;
-}
-
-/// Localized provider name for billing records, with a raw-code fallback.
-String walletBillingProviderName(String provider) {
-  switch (provider.trim().toLowerCase()) {
-    case 'gdp':
-      return 'walletBillingProviderGdp'.tr();
-    case 'apple_store':
-    case 'apple-store':
-    case 'applestore':
-      return 'walletBillingProviderAppleStore'.tr();
-    case 'order':
-      return 'walletBillingProviderOrder'.tr();
-    default:
-      return provider;
-  }
 }
 
 /// A single day in the transaction ledger, with per-currency in/out sums.

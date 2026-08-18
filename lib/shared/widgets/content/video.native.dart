@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:island/core/media_kit_init.dart';
 import 'package:island/shared/widgets/content/media_playback.dart';
 
 /// Sentinel default for [UniversalVideo.controls]: replaced in [build] with
@@ -92,10 +93,11 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   }
 
   Future<void> _initPlayer() async {
-    MediaKit.ensureInitialized();
+    ensureMediaKitInitialized();
 
-    final controller =
-        _playbackController ??= ref.read(mediaPlaybackProvider.notifier);
+    final controller = _playbackController ??= ref.read(
+      mediaPlaybackProvider.notifier,
+    );
     final usePersistentPlayer =
         widget.externalPlayer == null && widget.persistent;
     final player =

@@ -295,7 +295,11 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Symbols.info, size: 16, color: theme.colorScheme.primary),
+                      Icon(
+                        Symbols.info,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
                       const Gap(8),
                       Text(
                         'roleSystemGuide'.tr(),
@@ -327,7 +331,9 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                 child: Text('Error: $error', style: theme.textTheme.bodySmall),
               ),
               data: (permissions) {
-                final allEntries = permissions.map((p) => _RoleEntry(p)).toList();
+                final allEntries = permissions
+                    .map((p) => _RoleEntry(p))
+                    .toList();
                 allEntries.sort((a, b) => b.level.compareTo(a.level));
 
                 return Column(
@@ -357,25 +363,30 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'roleDisplay'.tr(
-                                          namedArgs: {'level': entry.level.toString()},
+                                          namedArgs: {
+                                            'level': entry.level.toString(),
+                                          },
                                         ),
-                                        style: theme.textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                        style: theme.textTheme.titleSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                       ),
                                       Text(
                                         _getRoleName(entry.level),
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: entry.level >= 100
-                                              ? theme.colorScheme.error
-                                              : entry.level >= 50
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: entry.level >= 100
+                                                  ? theme.colorScheme.error
+                                                  : entry.level >= 50
                                                   ? theme.colorScheme.tertiary
                                                   : theme.colorScheme.outline,
-                                        ),
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -397,7 +408,7 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                                       );
                                       if (confirm != true) return;
                                       try {
-                                        if(!context.mounted) return;
+                                        if (!context.mounted) return;
                                         showLoadingModal(context);
                                         final client = ref.read(
                                           solarNetworkClientProvider,
@@ -406,7 +417,9 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                                           '/passport/realms/$realmSlug/permissions/roles/${entry.level}',
                                         );
                                         ref.invalidate(
-                                          realmRolePermissionsProvider(realmSlug),
+                                          realmRolePermissionsProvider(
+                                            realmSlug,
+                                          ),
                                         );
                                         if (context.mounted) {
                                           hideLoadingModal(context);
@@ -503,7 +516,9 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                             builder: (_) => _RealmRolePermissionEditorSheet(
                               realmSlug: realmSlug,
                               rolePermission: null,
-                              existingLevels: permissions.map((p) => p.roleLevel).toList(),
+                              existingLevels: permissions
+                                  .map((p) => p.roleLevel)
+                                  .toList(),
                             ),
                           );
                         },
@@ -736,9 +751,7 @@ class _RealmRolePermissionEditorSheet extends HookConsumerWidget {
                 }
               },
               icon: Icon(isCreating ? Symbols.add : Symbols.save),
-              label: Text(
-                isCreating ? 'Create' : 'saveChanges'.tr(),
-              ),
+              label: Text(isCreating ? 'Create' : 'saveChanges'.tr()),
             ),
           ],
         ),
@@ -849,7 +862,11 @@ class _RealmUserPermissionEditorSheet extends HookConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Symbols.info, size: 16, color: theme.colorScheme.primary),
+                      Icon(
+                        Symbols.info,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
                       const Gap(8),
                       Text(
                         'permissionOverrideGuide'.tr(),
@@ -2939,7 +2956,11 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Symbols.info, size: 16, color: theme.colorScheme.primary),
+                      Icon(
+                        Symbols.info,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
                       const Gap(8),
                       Text(
                         'roleLevels'.tr(),
@@ -3490,6 +3511,7 @@ class _RealmBoostSheet extends HookConsumerWidget {
                   final paidOrder = await PaymentOverlay.show(
                     context: context,
                     order: order,
+                    payerWalletId: order.payerWalletId,
                     enableBiometric: true,
                   );
 
