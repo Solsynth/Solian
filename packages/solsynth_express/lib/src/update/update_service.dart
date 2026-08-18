@@ -59,6 +59,8 @@ class UpdateService {
     if (!enabled || !kEnableBuiltInUpdate || kIsWeb || !_api.isConfigured) {
       return;
     }
+    // Resolve synchronously so the locale survives the async gaps below.
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     try {
       final info = await PackageInfo.fromPlatform();
       final target = await _currentTarget();
@@ -70,6 +72,8 @@ class UpdateService {
         architecture: target.architecture,
         channel: channel,
         clientVersion: currentVersion,
+        osVersion: target.osVersion.isEmpty ? null : target.osVersion,
+        locale: localeTag,
       );
       if (!result.updateAvailable ||
           result.release == null ||
@@ -249,8 +253,37 @@ class UpdateService {
         ? 'ios'
         : '';
     final architecture = await _currentArchitecture();
+    final osVersion = await _currentOSVersion();
     if (platform.isEmpty || architecture.isEmpty) return null;
-    return _UpdateTarget(platform, architecture);
+    return _UpdateTarget(platform, architecture, osVersion);
+  }
+
+  /// Best-effort OS version for update-check telemetry. Platform channels are
+  /// unavailable in some environments (tests, web), so failures degrade to an
+  /// empty string rather than blocking the update check.
+  Future<String> _currentOSVersion() async {
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        return (await deviceInfo.androidInfo).version.release;
+      }
+      if (Platform.isIOS) {
+        return (await deviceInfo.iosInfo).systemVersion;
+      }
+      if (Platform.isMacOS) {
+        return (await deviceInfo.macOsInfo).osRelease;
+      }
+      if (Platform.isLinux) {
+        return (await deviceInfo.linuxInfo).version ?? '';
+      }
+      if (Platform.isWindows) {
+        final info = await deviceInfo.windowsInfo;
+        return '${info.majorVersion}.${info.minorVersion}.${info.buildNumber}';
+      }
+    } catch (error) {
+      Logger.root.fine('[Solsynth Express] OS version unavailable: $error');
+    }
+    return '';
   }
 
   Future<String> _currentArchitecture() async {
@@ -420,9 +453,10 @@ class UpdateService {
 }
 
 class _UpdateTarget {
-  const _UpdateTarget(this.platform, this.architecture);
+  const _UpdateTarget(this.platform, this.architecture, this.osVersion);
   final String platform;
   final String architecture;
+  final String osVersion;
 }
 
 class _InstallProgressDialog extends StatefulWidget {
