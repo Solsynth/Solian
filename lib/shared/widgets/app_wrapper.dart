@@ -1444,28 +1444,7 @@ class _AppWrapperBackdrop extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                scheme.surface,
-                Color.lerp(
-                  scheme.surface,
-                  scheme.surfaceContainerHighest,
-                  isDark ? 0.65 : 0.85,
-                )!,
-                Color.lerp(
-                  scheme.surface,
-                  scheme.primary.withOpacity(isDark ? 0.14 : 0.08),
-                  0.5,
-                )!,
-              ],
-              stops: const [0, 0.55, 1],
-            ),
-          ),
-        ),
+       ColoredBox(color: Theme.of(context).colorScheme.surface,),
         const Positioned(
           top: -120,
           left: -80,

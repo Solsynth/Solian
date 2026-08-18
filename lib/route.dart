@@ -66,6 +66,7 @@ class AppRouter extends RootStackRouter {
     ),
 
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
+    AutoRoute(page: WorkspaceDetailRoute.page, path: '/workspaces/:slug'),
     AutoRoute(page: SurveySubmitRoute.page, path: '/surveys/:id'),
     AutoRoute(
       page: TransactionDetailRoute.page,
@@ -120,6 +121,13 @@ class AppRouter extends RootStackRouter {
           maintainState: false,
         ),
 
+        // Workspaces tab
+        AutoRoute(
+          page: WorkspaceManagementRoute.page,
+          path: 'workspaces',
+          maintainState: false,
+        ),
+
         // Account tab with nested shell
         AutoRoute(
           page: AccountRoute.page,
@@ -135,11 +143,6 @@ class AppRouter extends RootStackRouter {
             ),
 
             AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
-            AutoRoute(page: WorkspaceManagementRoute.page, path: 'workspaces'),
-            AutoRoute(
-              page: WorkspaceDetailRoute.page,
-              path: 'workspaces/:slug',
-            ),
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
             AutoRoute(page: AccountActivationRoute.page, path: 'me/activation'),
             AutoRoute(page: AccountBoardEditRoute.page, path: 'me/board'),

@@ -568,25 +568,61 @@ class IslandApp extends HookConsumerWidget {
         return MaterialUiCompatibilityBridge(
           // Legacy packages still read Theme.of(context) from Flutter's
           // material.dart library.
-          child: legacy_material.Material(
-            type: legacy_material.MaterialType.transparency,
-            child: Overlay(
-              key: globalOverlay,
-              initialEntries: [
-                OverlayEntry(
-                  builder: (_) {
-                    return WindowScaffold(
-                      child: AppWrapper(
-                        child: child ?? const SizedBox.shrink(),
-                      ),
-                    );
-                  },
+          //
+          // The bridge maps only colorScheme/textTheme/platform into the
+          // legacy ThemeData, dropping every other customization — including
+          // inputDecorationTheme — so legacy widgets (sheets, dialogs, any
+          // flutter/material subtree) fall back to the Material 3 default
+          // underline fields. Re-apply the app's input decoration on top of
+          // the bridged theme so the outline border covers those too.
+          child: Builder(
+            builder: (bridgeContext) {
+              final legacyTheme = legacy_material.Theme.of(bridgeContext);
+              return legacy_material.Theme(
+                data: legacyTheme.copyWith(
+                  inputDecorationTheme: _toLegacyInputDecoration(
+                    Theme.of(bridgeContext).inputDecorationTheme,
+                  ),
                 ),
-              ],
-            ),
+                child: legacy_material.Material(
+                  type: legacy_material.MaterialType.transparency,
+                  child: Overlay(
+                    key: globalOverlay,
+                    initialEntries: [
+                      OverlayEntry(
+                        builder: (_) {
+                          return WindowScaffold(
+                            child: AppWrapper(
+                              child: child ?? const SizedBox.shrink(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         );
       },
     );
   }
+}
+
+/// Maps the app theme's input decoration (material_ui fork types) onto the
+/// legacy `flutter/material` ThemeData the compatibility bridge produces.
+legacy_material.InputDecorationThemeData _toLegacyInputDecoration(
+  InputDecorationThemeData? input,
+) {
+  return legacy_material.InputDecorationThemeData(
+    border: switch (input?.border) {
+      OutlineInputBorder(:final borderRadius, :final borderSide) =>
+        legacy_material.OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: borderSide,
+        ),
+      _ => null,
+    },
+  );
 }

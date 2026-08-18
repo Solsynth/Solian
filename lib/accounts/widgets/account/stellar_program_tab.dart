@@ -32,6 +32,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+
 part 'stellar_program_tab.g.dart';
 
 const _goldResupplyCatalogKey = 'golds_resupply_pack';

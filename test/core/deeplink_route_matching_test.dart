@@ -16,6 +16,8 @@ void main() {
         '/chat/room-1/search',
         '/chat/search',
         '/realms',
+        '/workspaces',
+        '/workspaces/studio',
         '/realms/foo',
         '/account/me/leveling',
         '/account/me/meet/7',
@@ -46,6 +48,7 @@ void main() {
         '/posts/123/extra',
         '/realms/foo/bar',
         '/wallet/transactions',
+        '/account/workspaces',
         '/account/me/leveling/extra',
         '/chat/room-1/unknown',
       ]) {

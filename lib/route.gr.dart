@@ -33,7 +33,6 @@ import 'package:island/accounts/screens/progress.dart' as _i53;
 import 'package:island/accounts/screens/punishments.dart' as _i55;
 import 'package:island/accounts/screens/relationship.dart' as _i58;
 import 'package:island/accounts/screens/store.dart' as _i63;
-import 'package:island/accounts/workspace_management.dart' as _i74;
 import 'package:island/auth/authorize_screen.dart' as _i13;
 import 'package:island/auth/captcha.dart' as _i19;
 import 'package:island/auth/create_account.dart' as _i25;
@@ -90,6 +89,7 @@ import 'package:island/tickets/screens/ticket_detail.dart' as _i68;
 import 'package:island/tickets/screens/ticket_list.dart' as _i69;
 import 'package:island/wallets/transaction_detail.dart' as _i70;
 import 'package:island/wallets/wallet.dart' as _i73;
+import 'package:island/workspaces/workspace_management.dart' as _i74;
 import 'package:material_ui/material_ui.dart' as _i76;
 import 'package:solar_network_sdk/solar_network_sdk.dart' as _i77;
 
