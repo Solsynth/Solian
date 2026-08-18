@@ -27,7 +27,7 @@ import 'package:island/accounts/screens/me/account_settings.dart' as _i7;
 import 'package:island/accounts/screens/me/board_edit.dart' as _i3;
 import 'package:island/accounts/screens/me/profile_update.dart' as _i8;
 import 'package:island/accounts/screens/meet.dart' as _i44;
-import 'package:island/accounts/screens/physical_passport.dart' as _i46;
+import 'package:island/accounts/screens/me/account_settings.dart' as _i46;
 import 'package:island/accounts/screens/profile.dart' as _i5;
 import 'package:island/accounts/screens/progress.dart' as _i53;
 import 'package:island/accounts/screens/punishments.dart' as _i55;

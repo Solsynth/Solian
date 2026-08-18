@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ndef/records/well_known/uri.dart';
+import 'package:island/accounts/screens/me/account_settings.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
+import 'package:island/core/services/nfc_scan_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -12,6 +16,7 @@ import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/auth/models/authorize_client_info.dart';
@@ -36,6 +41,17 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+Color _monoInk(ThemeData theme) {
+  return theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+}
+
+Color _monoSurface(ThemeData theme, double opacity) {
+  return Color.alphaBlend(
+    _monoInk(theme).withOpacity(opacity),
+    theme.colorScheme.surface,
+  );
+}
+
 @RoutePage()
 class AccountQrScreen extends HookConsumerWidget {
   const AccountQrScreen({super.key});
@@ -44,9 +60,12 @@ class AccountQrScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
     final wallet = ref.watch(walletCurrentProvider);
+    final supportsPhysicalPassportScan =
+        !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     final theme = Theme.of(context);
     final activeTransferRequest = useState<WalletTransferRequestData?>(null);
     final selectedSection = useState<_QrSectionId?>(_QrSectionId.profile);
+    final modeController = useMaterialTabController(initialLength: 3);
     final profileQrShot = useMemoized(ScreenshotController.new);
     final transferQrShot = useMemoized(ScreenshotController.new);
 
@@ -259,236 +278,512 @@ class AccountQrScreen extends HookConsumerWidget {
       showSnackBar('accountQrScanUnsupported'.tr());
     }
 
+    Future<void> openNfcScanner() async {
+      if (!supportsPhysicalPassportScan) return;
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder: (context) => const _PhysicalPassportScanSheet(),
+      );
+    }
+
+    Widget buildProfileMode() {
+      return Screenshot(
+        controller: profileQrShot,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _QrPanel(
+              data: profileUrl,
+              theme: theme,
+              embedImage: account.profilePicture != null
+                  ? CloudImageWidget.provider(
+                      file: account.profilePicture!,
+                      serverUrl: ref.watch(serverUrlProvider),
+                    )
+                  : null,
+            ),
+            const Gap(16),
+            Row(
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => shareQrImage(
+                      profileQrShot,
+                      fileName: 'profile-qr',
+                      fallbackText: profileUrl,
+                    ),
+                    icon: const Icon(Symbols.share),
+                    label: Text('share').tr(),
+                  ),
+                ),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: () =>
+                        saveQrImage(profileQrShot, fileName: 'profile-qr'),
+                    icon: const Icon(Symbols.download),
+                    label: Text('save').tr(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildTransferMode() {
+      return Screenshot(
+        controller: transferQrShot,
+        child: wallet.when(
+          data: (currentWallet) {
+            if (currentWallet == null) {
+              return _TransferUnavailableCard(
+                theme: theme,
+                onOpenWallet: () => context.router.push(const WalletRoute()),
+                messageKey: 'accountQrWalletUnavailable',
+              );
+            }
+            if (currentWallet.publicId == null) {
+              return _TransferUnavailableCard(
+                theme: theme,
+                onOpenWallet: () => context.router.push(const WalletRoute()),
+                onEnableWalletId: () => enableWalletId(currentWallet.id),
+                messageKey: 'accountQrTransferUnavailable',
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (transferQrData != null)
+                  _QrPanel(
+                    data: transferQrData,
+                    theme: theme,
+                    embedImage: const AssetImage('assets/icons/icon.webp'),
+                  ),
+                const Gap(16),
+                _QrDataStrip(
+                  label: activeTransferRequest.value != null
+                      ? 'accountQrTransferRequestLabel'.tr()
+                      : 'walletPublicId'.tr(),
+                  value: activeTransferRequest.value != null
+                      ? transferShareLink!
+                      : currentWallet.publicId!,
+                  detail: activeTransferRequest.value != null
+                      ? 'accountQrTransferRequestSummary'.tr(
+                          namedArgs: {
+                            'amount': activeTransferRequest.value!.amount
+                                .toStringAsFixed(2),
+                            'currency': activeTransferRequest.value!.currency,
+                            'expiry': DateFormat.yMd().add_Hm().format(
+                              activeTransferRequest.value!.expiresAt,
+                            ),
+                          },
+                        )
+                      : null,
+                ),
+                const Gap(16),
+                FilledButton.icon(
+                  onPressed: () => createTransferRequestFlow(currentWallet),
+                  icon: const Icon(Symbols.request_quote),
+                  label: Text(
+                    activeTransferRequest.value != null
+                        ? 'accountQrRequestRefresh'.tr()
+                        : 'accountQrRequestCreate'.tr(),
+                  ),
+                ),
+                if (activeTransferRequest.value != null)
+                  OutlinedButton.icon(
+                    onPressed: () => activeTransferRequest.value = null,
+                    icon: const Icon(Symbols.qr_code_2),
+                    label: Text('accountQrRequestClear').tr(),
+                  ).padding(top: 12),
+              ],
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          ),
+          error: (_, _) => _TransferUnavailableCard(
+            theme: theme,
+            onOpenWallet: () => context.router.push(const WalletRoute()),
+            messageKey: 'accountQrTransferUnavailable',
+          ),
+        ),
+      );
+    }
+
+    final modeContent = switch (selectedSection.value) {
+      _QrSectionId.profile => buildProfileMode(),
+      _QrSectionId.transfer => buildTransferMode(),
+      _QrSectionId.deviceAuth => const _DeviceAuthSection(),
+      null => buildProfileMode(),
+    };
+
     return AppScaffold(
       appBar: AppBar(
         title: Text('accountQrCodeTitle').tr(),
         leading: const AutoLeadingButton(),
+        actions: [
+          if (supportsPhysicalPassportScan)
+            IconButton(
+              onPressed: openNfcScanner,
+              tooltip: 'scanPhysicalPassport'.tr(),
+              icon: const Icon(Symbols.nfc),
+            ),
+          IconButton(
+            onPressed: openScanner,
+            tooltip: 'accountQrScannerTitle'.tr(),
+            icon: const Icon(Symbols.qr_code_scanner),
+          ),
+          const Gap(8),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openScanner,
-        child: const Icon(Symbols.qr_code_scanner),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: [
-          _QrModeSection(
-            sectionId: _QrSectionId.profile,
-            title: 'accountQrProfileSectionTitle'.tr(),
-            subtitle: 'accountQrCodeHint'.tr(),
-            icon: Symbols.person,
-            isExpanded: selectedSection.value == _QrSectionId.profile,
-            onExpansionChanged: (value) {
-              selectedSection.value = value ? _QrSectionId.profile : null;
-            },
-            child: Screenshot(
-              controller: profileQrShot,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _QrPanel(
-                      data: profileUrl,
-                      theme: theme,
-                      embedImage: user.value?.profilePicture != null
-                          ? CloudImageWidget.provider(
-                              file: user.value!.profilePicture!,
-                              serverUrl: ref.watch(serverUrlProvider),
-                            )
-                          : null,
-                    ),
-                    const Gap(20),
-                    Row(
-                      spacing: 12,
-                      children: [
-                        Expanded(
-                          child: FilledButton.tonalIcon(
-                            onPressed: () => shareQrImage(
-                              profileQrShot,
-                              fileName: 'profile-qr',
-                              fallbackText: profileUrl,
-                            ),
-                            icon: const Icon(Symbols.share),
-                            label: Text('share').tr(),
-                          ),
-                        ),
-                        Expanded(
-                          child: FilledButton.tonalIcon(
-                            onPressed: () => saveQrImage(
-                              profileQrShot,
-                              fileName: 'profile-qr',
-                            ),
-                            icon: const Icon(Symbols.download),
-                            label: Text('save').tr(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          _QrIdentityHero(
+            account: account,
+            profileUrl: profileUrl,
+            theme: theme,
           ),
           const Gap(20),
-          _QrModeSection(
-            sectionId: _QrSectionId.deviceAuth,
-            title: 'accountQrDeviceAuthSectionTitle'.tr(),
-            subtitle: 'accountQrDeviceAuthHint'.tr(),
-            icon: Symbols.phonelink_lock,
-            isExpanded: selectedSection.value == _QrSectionId.deviceAuth,
-            onExpansionChanged: (value) {
-              selectedSection.value = value ? _QrSectionId.deviceAuth : null;
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _DeviceAuthSection(),
-            ),
-          ),
-          const Gap(20),
-          _QrModeSection(
-            sectionId: _QrSectionId.transfer,
-            title: activeTransferRequest.value != null
+          _QrModeTabBar(
+            controller: modeController,
+            transferLabel: activeTransferRequest.value != null
                 ? 'accountQrTransferRequestSectionTitle'.tr()
                 : 'accountQrTransferSectionTitle'.tr(),
-            subtitle: activeTransferRequest.value != null
-                ? 'accountQrTransferRequestHint'.tr()
-                : 'accountQrTransferHint'.tr(),
-            icon: Symbols.swap_horiz,
-            isExpanded: selectedSection.value == _QrSectionId.transfer,
-            onExpansionChanged: (value) {
-              selectedSection.value = value ? _QrSectionId.transfer : null;
+            onTap: (index) {
+              selectedSection.value = _QrSectionId.values[index];
             },
-            child: Screenshot(
-              controller: transferQrShot,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: wallet.when(
-                  data: (currentWallet) {
-                    if (currentWallet == null) {
-                      return _TransferUnavailableCard(
-                        theme: theme,
-                        onOpenWallet: () {
-                          context.router.push(const WalletRoute());
-                        },
-                        messageKey: 'accountQrWalletUnavailable',
-                      );
-                    }
-
-                    if (currentWallet.publicId == null) {
-                      return _TransferUnavailableCard(
-                        theme: theme,
-                        onOpenWallet: () {
-                          context.router.push(const WalletRoute());
-                        },
-                        onEnableWalletId: () =>
-                            enableWalletId(currentWallet.id),
-                        messageKey: 'accountQrTransferUnavailable',
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (transferQrData != null)
-                          _QrPanel(
-                            data: transferQrData,
-                            theme: theme,
-                            embedImage: AssetImage("assets/icons/icon.webp"),
-                          ),
-                        const Gap(16),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                activeTransferRequest.value != null
-                                    ? 'accountQrTransferRequestLabel'.tr()
-                                    : 'walletPublicId'.tr(),
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const Gap(6),
-                              SelectableText(
-                                activeTransferRequest.value != null
-                                    ? transferShareLink!
-                                    : currentWallet.publicId!,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              if (activeTransferRequest.value != null) ...[
-                                const Gap(10),
-                                Text(
-                                  'accountQrTransferRequestSummary'.tr(
-                                    namedArgs: {
-                                      'amount': activeTransferRequest
-                                          .value!
-                                          .amount
-                                          .toStringAsFixed(2),
-                                      'currency':
-                                          activeTransferRequest.value!.currency,
-                                      'expiry': DateFormat.yMd()
-                                          .add_Hm()
-                                          .format(
-                                            activeTransferRequest
-                                                .value!
-                                                .expiresAt,
-                                          ),
-                                    },
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const Gap(16),
-                        FilledButton.icon(
-                          onPressed: () =>
-                              createTransferRequestFlow(currentWallet),
-                          icon: const Icon(Symbols.request_quote),
-                          label: Text(
-                            activeTransferRequest.value != null
-                                ? 'accountQrRequestRefresh'.tr()
-                                : 'accountQrRequestCreate'.tr(),
-                          ),
-                        ),
-                        if (activeTransferRequest.value != null)
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              activeTransferRequest.value = null;
-                            },
-                            icon: const Icon(Symbols.qr_code_2),
-                            label: Text('accountQrRequestClear').tr(),
-                          ).padding(top: 16),
-                      ],
-                    );
-                  },
-                  loading: () => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: CircularProgressIndicator.adaptive()),
-                  ),
-                  error: (_, _) => _TransferUnavailableCard(
-                    theme: theme,
-                    onOpenWallet: () {
-                      context.router.push(const WalletRoute());
-                    },
-                    messageKey: 'accountQrTransferUnavailable',
-                  ),
-                ),
+          ),
+          const Gap(16),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 260),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: KeyedSubtree(
+              key: ValueKey(selectedSection.value),
+              child: _QrContentFrame(
+                title: switch (selectedSection.value) {
+                  _QrSectionId.profile => 'accountQrProfileSectionTitle'.tr(),
+                  _QrSectionId.transfer =>
+                    activeTransferRequest.value != null
+                        ? 'accountQrTransferRequestSectionTitle'.tr()
+                        : 'accountQrTransferSectionTitle'.tr(),
+                  _QrSectionId.deviceAuth =>
+                    'accountQrDeviceAuthSectionTitle'.tr(),
+                  null => 'accountQrProfileSectionTitle'.tr(),
+                },
+                subtitle: switch (selectedSection.value) {
+                  _QrSectionId.profile => 'accountQrCodeHint'.tr(),
+                  _QrSectionId.transfer =>
+                    activeTransferRequest.value != null
+                        ? 'accountQrTransferRequestHint'.tr()
+                        : 'accountQrTransferHint'.tr(),
+                  _QrSectionId.deviceAuth => 'accountQrDeviceAuthHint'.tr(),
+                  null => 'accountQrCodeHint'.tr(),
+                },
+                child: modeContent,
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QrIdentityHero extends StatelessWidget {
+  final SnAccount account;
+  final String profileUrl;
+  final ThemeData theme;
+
+  const _QrIdentityHero({
+    required this.account,
+    required this.profileUrl,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasBackground = account.profile.background != null;
+    final ink = hasBackground ? Colors.white : _monoInk(theme);
+    final heroColor = _monoSurface(theme, 0.08);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        color: heroColor,
+        child: Stack(
+          children: [
+            if (hasBackground)
+              Positioned.fill(
+                child: CloudImageWidget(
+                  file: account.profile.background!,
+                  fit: BoxFit.cover,
+                  imageOnly: true,
+                ),
+              ),
+            if (hasBackground)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.12),
+                        Colors.black.withOpacity(0.78),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Symbols.qr_code_2, size: 20, color: ink),
+                      const Gap(8),
+                      Text(
+                        'Solarpass',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: ink.withOpacity(0.82),
+                          letterSpacing: 1.6,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(Symbols.verified_user, size: 18, color: ink),
+                    ],
+                  ),
+                  const Gap(48),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (account.profile.picture != null)
+                        ClipOval(
+                          child: SizedBox(
+                            width: 52,
+                            height: 52,
+                            child: CloudImageWidget(
+                              file: account.profile.picture!,
+                              fit: BoxFit.cover,
+                              imageOnly: true,
+                            ),
+                          ),
+                        ),
+                      if (account.profile.picture != null) const Gap(12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              account.nick,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: ink,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const Gap(3),
+                            Text(
+                              '@${account.name}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: ink.withOpacity(0.72),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(18),
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.link,
+                        size: 16,
+                        color: ink.withOpacity(0.82),
+                      ),
+                      const Gap(8),
+                      Expanded(
+                        child: Text(
+                          profileUrl,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: ink.withOpacity(0.78),
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QrModeTabBar extends StatelessWidget {
+  final TabController controller;
+  final String transferLabel;
+  final ValueChanged<int> onTap;
+
+  const _QrModeTabBar({
+    required this.controller,
+    required this.transferLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ink = _monoInk(theme);
+
+    return Material(
+      color: _monoSurface(theme, 0.06),
+      borderRadius: BorderRadius.circular(16),
+      child: TabBar(
+        controller: controller,
+        onTap: onTap,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: BoxDecoration(
+          color: _monoSurface(theme, 0.14),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        labelColor: ink,
+        unselectedLabelColor: ink.withOpacity(0.58),
+        labelStyle: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: theme.textTheme.labelLarge,
+        padding: const EdgeInsets.all(4),
+        tabs: [
+          Tab(
+            icon: const Icon(Symbols.person, size: 18),
+            text: 'accountQrProfileSectionTitle'.tr(),
+          ),
+          Tab(
+            icon: const Icon(Symbols.swap_horiz, size: 18),
+            text: transferLabel,
+          ),
+          Tab(
+            icon: const Icon(Symbols.phonelink_lock, size: 18),
+            text: 'accountQrDeviceAuthSectionTitle'.tr(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QrContentFrame extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget child;
+
+  const _QrContentFrame({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ink = _monoInk(theme);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+      decoration: BoxDecoration(
+        color: _monoSurface(theme, 0.045),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: ink.withOpacity(0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const Gap(4),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: ink.withOpacity(0.62),
+            ),
+          ),
+          const Gap(18),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _QrDataStrip extends StatelessWidget {
+  final String label;
+  final String value;
+  final String? detail;
+
+  const _QrDataStrip({required this.label, required this.value, this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ink = _monoInk(theme);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _monoSurface(theme, 0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: ink.withOpacity(0.62),
+            ),
+          ),
+          const Gap(6),
+          SelectableText(
+            value,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: ink,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'monospace',
+            ),
+          ),
+          if (detail != null) ...[
+            const Gap(10),
+            Text(
+              detail!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: ink.withOpacity(0.62),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -534,112 +829,6 @@ class _QrPanel extends StatelessWidget {
 }
 
 enum _QrSectionId { profile, transfer, deviceAuth }
-
-class _QrModeSection extends StatelessWidget {
-  final _QrSectionId sectionId;
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Widget child;
-  final bool isExpanded;
-  final ValueChanged<bool>? onExpansionChanged;
-
-  const _QrModeSection({
-    required this.sectionId,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.child,
-    required this.isExpanded,
-    this.onExpansionChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card.filled(
-      clipBehavior: Clip.antiAlias,
-      color: theme.colorScheme.surfaceContainerLow,
-      child: InkWell(
-        onTap: () => onExpansionChanged?.call(!isExpanded),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                title,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            const Gap(12),
-                            AnimatedRotation(
-                              turns: isExpanded ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeInOut,
-                              child: Icon(
-                                Symbols.keyboard_arrow_down,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Gap(4),
-                        Text(
-                          subtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(14),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeInOut,
-                alignment: Alignment.topCenter,
-                child: isExpanded
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: child,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _TransferUnavailableCard extends StatelessWidget {
   final ThemeData theme;
@@ -758,9 +947,7 @@ class _TransferRequestSheetState extends State<_TransferRequestSheet> {
     final dropdownButtonStyle = const FormFieldButtonStyleData(height: 24);
     final dropdownMenuStyle = MenuItemStyleData(
       // padding: EdgeInsets.zero,
-      overlayColor: WidgetStatePropertyAll(
-        theme.colorScheme.primary.withOpacity(0.08),
-      ),
+      overlayColor: WidgetStatePropertyAll(_monoInk(theme).withOpacity(0.08)),
     );
     final dropdownPopupStyle = DropdownStyleData(
       maxHeight: 240,
@@ -992,7 +1179,7 @@ class _AccountQrScannerSheetState extends State<_AccountQrScannerSheet> {
                       height: 260,
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: theme.colorScheme.primary,
+                          color: _monoInk(theme).withOpacity(0.84),
                           width: 3,
                         ),
                         borderRadius: BorderRadius.circular(24),
@@ -1215,6 +1402,8 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final ink = _monoInk(theme);
     final isBusy = useState(false);
     final remaining = useState<int?>(null);
 
@@ -1290,9 +1479,7 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primaryContainer,
+                                color: _monoSurface(theme, 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -1300,9 +1487,7 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
                                   currentChallenge?.platform ??
                                       snapshot.platform,
                                 ),
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
+                                color: ink.withOpacity(0.84),
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -1369,20 +1554,16 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer
-                              .withAlpha((255 * 0.3).round()),
+                          color: _monoSurface(theme, 0.08),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.primary
-                                .withAlpha((255 * 0.3).round()),
-                          ),
+                          border: Border.all(color: ink.withOpacity(0.16)),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Symbols.info,
                               size: 20,
-                              color: Theme.of(context).colorScheme.primary,
+                              color: ink.withOpacity(0.84),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -1663,6 +1844,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final ink = _monoInk(theme);
     final picture = clientInfo.picture;
     final isBusy = useState(false);
     final remaining = useState<int?>(null);
@@ -1733,7 +1915,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
+                                color: _monoSurface(theme, 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: ClipRRect(
@@ -1750,9 +1932,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                                       )
                                     : Icon(
                                         Symbols.extension,
-                                        color: theme
-                                            .colorScheme
-                                            .onPrimaryContainer,
+                                        color: ink.withOpacity(0.84),
                                       ),
                               ),
                             ),
@@ -1787,7 +1967,7 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                           child: Text(
                             clientInfo.homeUri!,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.primary,
+                              color: ink.withOpacity(0.72),
                             ),
                           ),
                         ),
@@ -1827,22 +2007,16 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer.withAlpha(
-                            (255 * 0.3).round(),
-                          ),
+                          color: _monoSurface(theme, 0.08),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: theme.colorScheme.primary.withAlpha(
-                              (255 * 0.3).round(),
-                            ),
-                          ),
+                          border: Border.all(color: ink.withOpacity(0.16)),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Symbols.info,
                               size: 20,
-                              color: theme.colorScheme.primary,
+                              color: ink.withOpacity(0.84),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -1925,3 +2099,344 @@ Future<void> handleWalletTransferPayloadDeepLink({
     await submitWalletTransfer(context, ref, result);
   }
 }
+
+class _PhysicalPassportScanSheet extends ConsumerStatefulWidget {
+  const _PhysicalPassportScanSheet();
+
+  @override
+  ConsumerState<_PhysicalPassportScanSheet> createState() =>
+      _PhysicalPassportScanSheetState();
+}
+
+class _PhysicalPassportScanSheetState
+    extends ConsumerState<_PhysicalPassportScanSheet> {
+  bool _isScanning = false;
+  SnScanResult? _scanResult;
+  String? _error;
+  String? _scannedUid; // For claim flow
+  bool _isClaiming = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SheetScaffold(
+      heightFactor: 0.5,
+      titleText: 'scanPhysicalPassport'.tr(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_scanResult == null)
+              ...([
+                Text(
+                  'scanPhysicalPassportDescription'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Gap(24),
+              ]),
+            if (_scanResult == null) ...[
+              FilledButton.tonalIcon(
+                onPressed: _isScanning ? null : _scanPassport,
+                icon: _isScanning
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Symbols.nfc),
+                label: Text(
+                  _isScanning
+                      ? 'scanning'.tr()
+                      : 'scanPhysicalPassportButton'.tr(),
+                ),
+              ),
+              if (_error != null) ...[
+                const Gap(16),
+                Card(
+                  elevation: 0,
+                  color: colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.error,
+                          color: colorScheme.onErrorContainer,
+                          size: 20,
+                        ),
+                        const Gap(8),
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ] else ...[
+              _PhysicalPassportScanResultCard(
+                passport: _scanResult!,
+                onScanAgain: () {
+                  setState(() {
+                    _scanResult = null;
+                    _error = null;
+                    _scannedUid = null;
+                  });
+                },
+              ),
+              if (_scanResult!.actions.contains("claim_tag") &&
+                  _scannedUid != null) ...[
+                const Gap(8),
+                FilledButton.icon(
+                  onPressed: (_isScanning || _isClaiming)
+                      ? null
+                      : () => _claimTag(_scanResult!.id),
+                  icon: _isClaiming
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Symbols.card_membership),
+                  label: Text('claimTag').tr(),
+                ),
+              ],
+            ],
+            const Gap(16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _scanPassport() async {
+    setState(() {
+      _isScanning = true;
+      _error = null;
+    });
+
+    try {
+      final availability = await NfcScanService().checkAvailability();
+      if (availability != NFCAvailability.available) {
+        setState(() {
+          _error = 'nfcNotAvailable'.tr();
+          _isScanning = false;
+        });
+        return;
+      }
+
+      final tag = await NfcScanService().scanTag();
+
+      if (tag.ndefAvailable != true) {
+        setState(() {
+          _error = 'nfcTagNotNdef'.tr();
+          _isScanning = false;
+        });
+        return;
+      }
+
+      final records = await NfcScanService().readNdefRecords(tag);
+      if (records.isEmpty) {
+        setState(() {
+          _error = 'nfcTagEmpty'.tr();
+          _isScanning = false;
+        });
+        return;
+      }
+
+      final firstRecord = records.first;
+      if (firstRecord is! UriRecord || firstRecord.uri == null) {
+        setState(() {
+          _error = 'nfcTagInvalid'.tr();
+          _isScanning = false;
+        });
+        return;
+      }
+      final uri = firstRecord.uri!;
+
+      final client = ref.read(solarNetworkClientProvider);
+      SnScanResult? result;
+
+      // Check if URI has a path segment (unencrypted tag with entry ID)
+      // e.g., solian://phpass/{tag_id}
+      if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
+        final tagId = uri.pathSegments.first;
+        final response = await client.dio.get('/passport/nfc/tags/$tagId');
+        result = SnScanResult.fromJson(response.data);
+      } else {
+        // Forward all query parameters directly to /passport/nfc
+        // This handles both encrypted (e, c, mac) and unencrypted (uid) tags
+        final queryParams = uri.queryParameters;
+        if (queryParams.isEmpty) {
+          setState(() {
+            _error = 'nfcTagInvalid'.tr();
+            _isScanning = false;
+          });
+          return;
+        }
+        final response = await client.dio.get(
+          '/passport/nfc',
+          queryParameters: {...queryParams, 'tag': tag.id},
+        );
+        result = SnScanResult.fromJson(response.data);
+      }
+
+      setState(() {
+        _scanResult = result;
+        _isScanning = false;
+        _scannedUid = tag.id;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isScanning = false;
+      });
+    } finally {
+      // Always finish NFC session to prevent iOS session leak
+      await NfcScanService().finish();
+    }
+  }
+
+  Future<void> _claimTag(String recordId) async {
+    setState(() => _isClaiming = true);
+
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.post(
+        '/passport/nfc/tags/claim',
+        data: {'record_id': recordId},
+      );
+
+      // Refresh the scan result to show claimed status
+      final response = await client.dio.get('/passport/nfc/tags/$recordId');
+      final result = SnScanResult.fromJson(response.data);
+
+      setState(() {
+        _scanResult = result;
+        _isClaiming = false;
+      });
+
+      if (mounted) {
+        showSnackBar('tagClaimed'.tr());
+      }
+    } catch (e) {
+      setState(() => _isClaiming = false);
+      if (mounted) {
+        showErrorAlert(e);
+      }
+    }
+  }
+}
+
+class _PhysicalPassportScanResultCard extends StatelessWidget {
+  final SnScanResult passport;
+  final VoidCallback onScanAgain;
+
+  const _PhysicalPassportScanResultCard({
+    required this.passport,
+    required this.onScanAgain,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ink = _monoInk(theme);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (passport.account != null)
+          Card(
+            margin: EdgeInsets.zero,
+            child: InkWell(
+              child: AccountNameplate(
+                name: passport.account!.name,
+                isOutlined: false,
+              ),
+              onTap: () {
+                context.router.push(
+                  AccountProfileRoute(name: passport.account!.name),
+                );
+              },
+            ),
+          )
+        else
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            color: _monoSurface(theme, 0.08),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.check_circle,
+                        color: ink.withOpacity(0.84),
+                        size: 20,
+                      ),
+                      const Gap(8),
+                      Text(
+                        'physicalPassportScanned'.tr(),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: ink.withOpacity(0.84),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(12),
+                  Text(
+                    'ID: ${passport.id}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
+                  ),
+                  const Gap(12),
+                  Text(
+                    'tagNotClaimed',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ).tr(),
+                ],
+              ),
+            ),
+          ),
+        const Gap(24),
+        OutlinedButton.icon(
+          onPressed: onScanAgain,
+          icon: const Icon(Symbols.nfc),
+          label: Text('scanAnother').tr(),
+        ),
+      ],
+    );
+  }
+}
+
+final scanPhysicalPassportProvider = FutureProvider.autoDispose
+    .family<SnScanResult, String>((ref, id) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get('/passport/nfc/tags/$id');
+      return SnScanResult.fromJson(response.data);
+    });
+
+final scanPhysicalPassportByParamsProvider = FutureProvider.autoDispose
+    .family<SnScanResult, Map<String, String>>((ref, params) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get(
+        '/passport/nfc',
+        queryParameters: params,
+      );
+      return SnScanResult.fromJson(response.data);
+    });

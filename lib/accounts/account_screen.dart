@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -274,14 +271,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const MeetRoute());
                     },
                   },
-                  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
-                    {
-                      'icon': Symbols.nfc,
-                      'title': 'physicalPassport',
-                      'onTap': () {
-                        context.router.push(const PhysicalPassportRoute());
-                      },
-                    },
                   {
                     'icon': Symbols.qr_code_rounded,
                     'title': 'qrCode',

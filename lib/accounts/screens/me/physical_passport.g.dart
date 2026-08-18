@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'physical_passport.dart';
+part of 'account_settings.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
