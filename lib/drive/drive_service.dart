@@ -827,25 +827,10 @@ class FileUploader {
       if (compression.isEmpty || compression.length > 16 * 1024 * 1024) {
         return null;
       }
-      final thumbnailEdge = max(prepared.width, prepared.height);
-      final thumbnailImage = thumbnailEdge > 320
-          ? img.copyResize(
-              prepared,
-              width: prepared.width >= prepared.height
-                  ? 320
-                  : (prepared.width * 320 / prepared.height).round(),
-              height: prepared.height >= prepared.width
-                  ? 320
-                  : (prepared.height * 320 / prepared.width).round(),
-            )
-          : prepared;
-      final thumbnail = img.encodeJpg(thumbnailImage, quality: 70);
-      if (thumbnail.isEmpty || thumbnail.length > 4 * 1024 * 1024) {
-        return null;
-      }
+      // Images only need the WebP compression derivative; do not prepare a
+      // second client-generated thumbnail.
       return _ClientMediaUpload(
         analysis: {'width': image.width, 'height': image.height},
-        thumbnail: thumbnail,
         compression: compression,
       );
     } catch (_) {

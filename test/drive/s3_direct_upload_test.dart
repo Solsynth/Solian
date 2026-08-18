@@ -6,6 +6,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image/image.dart' as img;
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
@@ -26,6 +27,8 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
 
   int prepareCalls = 0;
   bool lastPrepareMultipart = false;
+  bool? lastWantThumbnail;
+  bool? lastWantCompression;
   int completeCalls = 0;
   int lastFileSize = 0;
   String? lastFileName;
@@ -34,6 +37,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
   /// When true, prepare responds with a single `upload_url` (the
   /// pre-multipart contract) instead of multipart session fields.
   bool singlePut = false;
+  bool includeClientDerivativeUrls = false;
 
   /// Part numbers the fake server reports as already uploaded, so prepare
   /// returns a resumed session the client must skip.
@@ -83,6 +87,8 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
       prepareCalls++;
       final body = await _readJsonBody(options, requestStream);
       lastPrepareMultipart = body['multipart'] == true;
+      lastWantThumbnail = body['want_thumbnail'] as bool?;
+      lastWantCompression = body['want_compression'] as bool?;
       lastFileSize = body['file_size'] as int;
       lastFileName = body['file_name']?.toString();
       final size = lastFileSize;
@@ -93,6 +99,12 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
           'status': 1,
           'object_key': 'objects/task-1',
           'upload_url': '$s3Base/single',
+          'compression_upload_url': includeClientDerivativeUrls
+              ? '$s3Base/compression'
+              : null,
+          'thumbnail_upload_url': includeClientDerivativeUrls
+              ? '$s3Base/thumbnail'
+              : null,
           'content_type': body['content_type'],
         });
       }
@@ -445,6 +457,30 @@ void main() {
       expect(result, isNotNull);
       expect(dyson.lastPrepareMultipart, isFalse);
       expect(s3.objects['/single'], equals(source));
+    },
+  );
+
+  test(
+    'image direct upload requests only the compression derivative',
+    () async {
+      dyson.singlePut = true;
+      dyson.includeClientDerivativeUrls = true;
+      final source = Uint8List.fromList(
+        img.encodeJpg(img.Image(width: 2, height: 2)),
+      );
+      final uploader = container.read(driveFileUploaderProvider);
+      final result = await uploader.tryUploadViaS3Direct(
+        fileData: source,
+        fileName: 'image.jpg',
+        contentType: 'image/jpeg',
+        parentId: 'parent-1',
+      );
+
+      expect(result, isNotNull);
+      expect(dyson.lastWantThumbnail, isFalse);
+      expect(dyson.lastWantCompression, isTrue);
+      expect(s3.objects['/thumbnail'], isNull);
+      expect(s3.objects['/compression'], isNotNull);
     },
   );
 
