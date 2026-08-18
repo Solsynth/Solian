@@ -45,6 +45,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
   late SnChatMember _identity;
+
   /// Keep-alive global sync notifier, captured at build time. Room-scoped
   /// providers like this one can be disposed mid-operation (user leaves the
   /// room while a load is in flight); the captured instance stays valid so the
@@ -62,6 +63,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool? _withAttachments;
 
   static const int _pageSize = 20;
+  static const int _backgroundPrefetchTarget = 60;
+  static const int _backgroundPrefetchMaxBatches = 3;
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
@@ -71,6 +74,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _isLoadingInitial = false;
   bool _isLoadingMore = false;
   bool _allRemoteMessagesFetched = false;
+  Future<void>? _olderMessagesPrefetchOperation;
+  bool _olderMessagesPrefetchScheduled = false;
   int? _latestObservedRoomSequence;
   final Set<int> _queuedMissingRoomSequences = <int>{};
   final Set<int> _inFlightMissingRoomSequences = <int>{};
@@ -114,6 +119,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     } finally {
       setOperation(null);
     }
+  }
+
+  Future<void> _waitForOlderMessagesPrefetch() async {
+    while (_olderMessagesPrefetchScheduled) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    final operation = _olderMessagesPrefetchOperation;
+    if (operation != null) await operation;
   }
 
   Future<T> _keepAliveWhileSending<T>(Future<T> Function() task) async {
@@ -911,6 +924,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
     _messages = initial;
     _refreshLatestObservedRoomSequence(initial);
+    _scheduleOlderMessagesPrefetch();
     return _filterActiveMessages(initial);
   }
 
@@ -1267,6 +1281,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       Logger.root.info('Initialization already in progress, skipping.');
       return;
     }
+    await _waitForOlderMessagesPrefetch();
     _isInitializing = true;
     Logger.root.info('Starting consolidated initialization');
     try {
@@ -1333,14 +1348,87 @@ class MessagesNotifier extends _$MessagesNotifier {
         forceRemote: forceRemoteRefresh,
         filter: _activeFilter,
       );
-      final prefetched = await _syncService.eagerPrefetchIfNeeded(
-        initial,
-        filter: _activeFilter,
-      );
       _allRemoteMessagesFetched = _syncService.allRemoteFetched;
       _lastApiFetchOffset = _syncService.lastApiOffset;
       _hasMore = !_allRemoteMessagesFetched;
-      return prefetched;
+      return initial;
+    } finally {
+      _setGlobalSyncing(false);
+    }
+  }
+
+  void _scheduleOlderMessagesPrefetch() {
+    if (_olderMessagesPrefetchScheduled ||
+        _olderMessagesPrefetchOperation != null ||
+        _allRemoteMessagesFetched ||
+        !ref.mounted) {
+      return;
+    }
+
+    _olderMessagesPrefetchScheduled = true;
+    Future<void>.microtask(() {
+      _olderMessagesPrefetchScheduled = false;
+      if (!ref.mounted ||
+          _allRemoteMessagesFetched ||
+          _olderMessagesPrefetchOperation != null) {
+        return;
+      }
+
+      final operation = _prefetchOlderMessages();
+      _olderMessagesPrefetchOperation = operation;
+      unawaited(
+        operation.whenComplete(() {
+          if (identical(_olderMessagesPrefetchOperation, operation)) {
+            _olderMessagesPrefetchOperation = null;
+          }
+        }),
+      );
+    });
+  }
+
+  Future<void> _prefetchOlderMessages() async {
+    _setGlobalSyncing(true);
+    try {
+      var batches = 0;
+      while (ref.mounted &&
+          !_allRemoteMessagesFetched &&
+          _currentMessages.length < _backgroundPrefetchTarget &&
+          batches < _backgroundPrefetchMaxBatches) {
+        final beforeCount = _currentMessages.length;
+        final remaining = _backgroundPrefetchTarget - beforeCount;
+        final take = remaining
+            .clamp(PaginationConfig.pageSize, PaginationConfig.batchSize)
+            .toInt();
+        final more = await _syncService.loadMore(
+          currentCount: beforeCount,
+          take: take,
+          filter: _activeFilter,
+          fetchLimit: take,
+        );
+
+        if (more.isEmpty || !ref.mounted) break;
+
+        _emitMessages([..._currentMessages, ...more]);
+        if (_currentMessages.length <= beforeCount) break;
+
+        _allRemoteMessagesFetched = _syncService.allRemoteFetched;
+        _lastApiFetchOffset = _syncService.lastApiOffset;
+        _hasMore = !_allRemoteMessagesFetched;
+        batches += 1;
+
+        // Let the just-added batch render before fetching older history.
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      _allRemoteMessagesFetched = _syncService.allRemoteFetched;
+      _lastApiFetchOffset = _syncService.lastApiOffset;
+      _hasMore = !_allRemoteMessagesFetched;
+    } catch (err, stackTrace) {
+      Logger.root.info(
+        'Background older-message prefetch failed',
+        err,
+        stackTrace,
+      );
     } finally {
       _setGlobalSyncing(false);
     }
@@ -1361,6 +1449,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> _loadInitialImpl({bool forceRemoteRefresh = true}) async {
+    await _waitForOlderMessagesPrefetch();
     Logger.root.info('Loading initial messages');
     _isLoadingInitial = true;
 
@@ -1389,6 +1478,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           _emitMessages(messages);
         }
       }
+      _scheduleOlderMessagesPrefetch();
     } finally {
       _isLoadingInitial = false;
       trace.finish(arguments: {'messageCount': _currentMessages.length});
@@ -1402,6 +1492,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> loadMore({int? offset}) async {
+    await _waitForOlderMessagesPrefetch();
     if (!_hasMore || state is AsyncLoading || _isLoadingMore) {
       Logger.root.info(
         'Skipping loadMore (hasMore=$_hasMore, isAsyncLoading=${state is AsyncLoading}, isLoadingMore=$_isLoadingMore)',

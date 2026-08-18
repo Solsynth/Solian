@@ -78,11 +78,8 @@ class PendingOperation<T> {
 /// Configuration for pagination.
 class PaginationConfig {
   static const int pageSize = 20;
-  static const int initialFetchSize = 60;
   static const int batchSize = 100;
   static const int maxCacheSize = 100;
-  static const int eagerPrefetchThreshold = 60;
-  static const int maxEagerPrefetchPasses = 3;
 }
 
 /// Event types that affect message display.
@@ -96,21 +93,19 @@ class SystemEventTypes {
       'messages.sync.links' ||
       'messages.delete' ||
       'messages.reaction.added' ||
-      'messages.reaction.removed' =>
-        true,
+      'messages.reaction.removed' => true,
       _ => false,
     };
   }
 
   static bool isImportantEvent(String type) => switch (type) {
-        'call.start' ||
-        'call.ended' ||
-        'messages.update' ||
-        'messages.delete' ||
-        'system.e2ee.enabled' ||
-        'system.call.member.joined' ||
-        'system.call.member.left' =>
-          true,
-        _ => false,
-      };
+    'call.start' ||
+    'call.ended' ||
+    'messages.update' ||
+    'messages.delete' ||
+    'system.e2ee.enabled' ||
+    'system.call.member.joined' ||
+    'system.call.member.left' => true,
+    _ => false,
+  };
 }

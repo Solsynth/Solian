@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -149,6 +150,54 @@ class _BlockingResponseAdapter implements HttpClientAdapter {
   }
 }
 
+class _BatchedMessagesResponseAdapter implements HttpClientAdapter {
+  final List<Map<String, dynamic>> newestMessages;
+  final List<Map<String, dynamic>> olderMessages;
+  final Completer<void> olderRequestStarted = Completer<void>();
+  final Completer<ResponseBody> olderResponse = Completer<ResponseBody>();
+
+  _BatchedMessagesResponseAdapter({
+    required this.newestMessages,
+    required this.olderMessages,
+  });
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? _,
+    Future<void>? _,
+  ) {
+    final offset = int.tryParse(options.queryParameters['offset'].toString());
+    final messages = offset == 0 ? newestMessages : olderMessages;
+    if (offset != 0 && !olderRequestStarted.isCompleted) {
+      olderRequestStarted.complete();
+      return olderResponse.future;
+    }
+
+    return Future.value(
+      ResponseBody.fromString(
+        jsonEncode(messages),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+          'x-total': ['60'],
+        },
+      ),
+    );
+  }
+}
+
+Map<String, dynamic> messageJson(String id, DateTime createdAt) {
+  final json = message('room-1').toJson();
+  json['id'] = id;
+  json['created_at'] = createdAt.toIso8601String();
+  json['updated_at'] = createdAt.toIso8601String();
+  return json;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -233,43 +282,92 @@ void main() {
         );
       },
     );
-
     test(
-      'global syncing flag clears when the room notifier is disposed '
-      'mid-load (slow network, user leaves the room)',
+      'renders newest messages before background older-history prefetch completes',
       () async {
-        // Hold the room's message fetch in flight so the load outlives the
-        // room-scoped notifier.
-        final blocking = _BlockingResponseAdapter();
-        container.read(apiClientProvider).httpClientAdapter = blocking;
+        final now = DateTime.utc(2026, 1, 1, 12);
+        final newest = List.generate(
+          20,
+          (index) =>
+              messageJson('new-$index', now.subtract(Duration(minutes: index))),
+        );
+        final older = List.generate(
+          40,
+          (index) => messageJson(
+            'old-$index',
+            now.subtract(Duration(minutes: 20 + index)),
+          ),
+        );
+        final adapter = _BatchedMessagesResponseAdapter(
+          newestMessages: newest,
+          olderMessages: older,
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
 
         final notifier = container.read(messagesProvider('room-1').notifier);
         final load = notifier.loadInitial(forceRemoteRefresh: true);
 
-        await pumpEventQueue();
-        expect(container.read(chatSyncingProvider), isTrue);
+        await adapter.olderRequestStarted.future;
+        await load;
+        expect(
+          container
+              .read(messagesProvider('room-1'))
+              .value!
+              .map((item) => item.id),
+          orderedEquals(List.generate(20, (index) => 'new-$index')),
+        );
 
-        // Drop the last listener while the request is still pending, which
-        // disposes the room-scoped notifier.
-        subscription.close();
-        await pumpEventQueue();
-
-        // The slow request eventually resolves, but the notifier is already
-        // disposed: the global syncing flag must still be cleared.
-        blocking.completer.complete(
+        adapter.olderResponse.complete(
           ResponseBody.fromString(
-            '[]',
+            jsonEncode(older),
             200,
             headers: {
               Headers.contentTypeHeader: ['application/json'],
+              'x-total': ['60'],
             },
           ),
         );
-        await load;
-        await pumpEventQueue();
+        for (var i = 0; i < 5; i++) {
+          await pumpEventQueue();
+        }
 
-        expect(container.read(chatSyncingProvider), isFalse);
+        expect(container.read(messagesProvider('room-1')).value, hasLength(60));
       },
     );
+
+    test('global syncing flag clears when the room notifier is disposed '
+        'mid-load (slow network, user leaves the room)', () async {
+      // Hold the room's message fetch in flight so the load outlives the
+      // room-scoped notifier.
+      final blocking = _BlockingResponseAdapter();
+      container.read(apiClientProvider).httpClientAdapter = blocking;
+
+      final notifier = container.read(messagesProvider('room-1').notifier);
+      final load = notifier.loadInitial(forceRemoteRefresh: true);
+
+      await pumpEventQueue();
+      expect(container.read(chatSyncingProvider), isTrue);
+
+      // Drop the last listener while the request is still pending, which
+      // disposes the room-scoped notifier.
+      subscription.close();
+      await pumpEventQueue();
+
+      // The slow request eventually resolves, but the notifier is already
+      // disposed: the global syncing flag must still be cleared.
+      blocking.completer.complete(
+        ResponseBody.fromString(
+          '[]',
+          200,
+          headers: {
+            Headers.contentTypeHeader: ['application/json'],
+          },
+        ),
+      );
+      await load;
+      await pumpEventQueue();
+
+      expect(container.read(chatSyncingProvider), isFalse);
+    });
   });
 }

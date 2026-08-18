@@ -74,7 +74,7 @@ class MessageSyncService {
       // Fetch from remote
       final remoteMessages = await _fetchAndCacheRemote(
         offset: 0,
-        limit: PaginationConfig.initialFetchSize,
+        limit: PaginationConfig.pageSize,
       );
 
       if (kIsWeb) {
@@ -99,62 +99,17 @@ class MessageSyncService {
     }
   }
 
-  /// Eagerly prefetches more messages if the initial load is too short.
-  Future<List<LocalChatMessage>> eagerPrefetchIfNeeded(
-    List<LocalChatMessage> current, {
-    required MessageFilter filter,
-  }) async {
-    if (current.length >= PaginationConfig.eagerPrefetchThreshold) {
-      return current;
-    }
-    if (_allRemoteFetched) return current;
-
-    var combined = List<LocalChatMessage>.from(current);
-    var passes = 0;
-
-    while (_computeHasMore(combined.length) &&
-        combined.length < PaginationConfig.eagerPrefetchThreshold &&
-        passes < PaginationConfig.maxEagerPrefetchPasses) {
-      final remaining =
-          PaginationConfig.eagerPrefetchThreshold - combined.length;
-      final take = remaining.clamp(
-        PaginationConfig.pageSize,
-        PaginationConfig.batchSize,
-      );
-
-      _logger.info('Eager prefetch pass $passes: loading $take more messages');
-
-      final more = await loadMore(
-        currentCount: combined.length,
-        take: take,
-        filter: filter,
-      );
-
-      if (more.isEmpty) break;
-
-      final beforeCount = combined.length;
-      combined = _mergeAndDedupe([...combined, ...more]);
-
-      // Stop if no new unique messages were added
-      if (combined.length == beforeCount) {
-        _allRemoteFetched = true;
-        break;
-      }
-
-      passes++;
-    }
-
-    _logger.info('Eager prefetch complete: ${combined.length} messages');
-    return combined;
-  }
-
   // ── Pagination ───────────────────────────────────────────────────────────
 
   /// Loads more messages for pagination.
+  ///
+  /// [fetchLimit] lets the initial background prefetch avoid processing a
+  /// larger cache batch before the first older messages are rendered.
   Future<List<LocalChatMessage>> loadMore({
     required int currentCount,
     required int take,
     required MessageFilter filter,
+    int? fetchLimit,
   }) async {
     _logger.info('Loading more messages: offset=$currentCount, take=$take');
 
@@ -179,7 +134,7 @@ class MessageSyncService {
     if (currentCount > _lastApiOffset) _lastApiOffset = currentCount;
     final remoteMessages = await _fetchAndCacheRemote(
       offset: _lastApiOffset,
-      limit: PaginationConfig.batchSize,
+      limit: fetchLimit ?? PaginationConfig.batchSize,
     );
 
     if (remoteMessages.isEmpty) {
