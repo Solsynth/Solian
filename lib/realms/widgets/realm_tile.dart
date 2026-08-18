@@ -12,7 +12,10 @@ class RealmTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      leading: ProfilePictureWidget(file: realm.picture),
+      leading: ProfilePictureWidget(
+        file: realm.picture,
+        fallbackName: realm.name,
+      ),
       title: Text(realm.name),
       subtitle: Text(
         realm.description,

@@ -120,6 +120,7 @@ class PunishmentCard extends HookWidget {
                   children: [
                     ProfilePictureWidget(
                       file: punishment.creator!.profile.picture,
+                      fallbackName: punishment.creator!.nick,
                       radius: 8,
                     ),
                     const Gap(8),
@@ -146,6 +147,7 @@ class PunishmentCard extends HookWidget {
                   children: [
                     ProfilePictureWidget(
                       file: punishment.account!.profile.picture,
+                      fallbackName: punishment.account!.nick,
                       radius: 8,
                     ),
                     const Gap(8),

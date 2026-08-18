@@ -90,6 +90,8 @@ class ComposeSurveySheet extends HookConsumerWidget {
                                 ? const Icon(Symbols.account_circle)
                                 : ProfilePictureWidget(
                                     file: selectedPublisher.value?.picture,
+                                    fallbackName:
+                                        selectedPublisher.value?.nick,
                                   ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () async {

@@ -1181,10 +1181,11 @@ class _MessageTextSelectionView extends HookConsumerWidget {
                     ChatRoomMemberRegion(
                       roomId: roomId,
                       member: sender,
-                      child: ProfilePictureWidget(
-                        file: sender.account.profile.picture,
-                        radius: 14,
-                      ),
+                    child: ProfilePictureWidget(
+                      file: sender.account.profile.picture,
+                      fallbackName: sender.account.nick,
+                      radius: 14,
+                    ),
                     ),
                     const Gap(8),
                     Expanded(
@@ -1569,6 +1570,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
         accountId: sender.accountId,
         child: ProfilePictureWidget(
           file: sender.account.profile.picture,
+          fallbackName: sender.account.nick,
           radius: _avatarRadius,
         ),
       ),
@@ -1954,6 +1956,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                   accountId: sender.accountId,
                   child: ProfilePictureWidget(
                     file: sender.account.profile.picture,
+                    fallbackName: sender.account.nick,
                     radius: 8,
                   ),
                 ).padding(horizontal: 6, top: isMultiline ? 2 : 0),
@@ -2138,6 +2141,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                                 accountId: sender.accountId,
                                 child: ProfilePictureWidget(
                                   file: sender.account.profile.picture,
+                                  fallbackName: sender.account.nick,
                                   radius: kAvatarRadius,
                                 ),
                               ),

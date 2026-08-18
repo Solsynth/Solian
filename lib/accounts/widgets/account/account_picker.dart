@@ -103,6 +103,7 @@ class AccountPickerSheet extends HookConsumerWidget {
                         return ListTile(
                           leading: ProfilePictureWidget(
                             file: account.profile.picture,
+                            fallbackName: account.nick,
                           ),
                           title: Text(account.nick),
                           subtitle: Text('@${account.name}'),

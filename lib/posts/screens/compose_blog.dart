@@ -303,6 +303,7 @@ class BlogComposeDialog extends HookConsumerWidget {
               return IconButton(
                 icon: ProfilePictureWidget(
                   file: publisher?.picture,
+                  fallbackName: publisher?.nick,
                   radius: 12,
                   fallbackIcon: publisher == null
                       ? Symbols.question_mark
@@ -411,6 +412,7 @@ class _BlogComposeForm extends StatelessWidget {
               children: [
                 ProfilePictureWidget(
                   file: state.currentPublisher.value?.picture,
+                  fallbackName: state.currentPublisher.value?.nick,
                   radius: 16,
                 ),
                 const Gap(8),

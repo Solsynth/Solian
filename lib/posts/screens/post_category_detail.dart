@@ -665,6 +665,7 @@ class _TagDetailCard extends StatelessWidget {
                 children: [
                   ProfilePictureWidget(
                     file: owner.picture,
+                    fallbackName: owner.nick,
                     radius: 18,
                     borderRadius: owner.type == 0 ? null : 8,
                   ),

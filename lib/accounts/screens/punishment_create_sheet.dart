@@ -110,6 +110,7 @@ class PunishmentCreateSheet extends HookConsumerWidget {
                 leading: selectedAccount.value != null
                     ? ProfilePictureWidget(
                         file: selectedAccount.value!.profile.picture,
+                        fallbackName: selectedAccount.value!.nick,
                         radius: 16,
                       )
                     : const Icon(Symbols.person_search),

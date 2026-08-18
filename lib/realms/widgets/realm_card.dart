@@ -79,6 +79,7 @@ class RealmDiscoveryCard extends ConsumerWidget {
                         ),
                         child: ProfilePictureWidget(
                           file: realm.picture,
+                          fallbackName: realm.name,
                           fallbackIcon: Symbols.group,
                           radius: 12,
                         ),

@@ -224,6 +224,7 @@ class _RealmInviteSheet extends HookConsumerWidget {
                   return ListTile(
                     leading: ProfilePictureWidget(
                       file: invite.realm!.picture,
+                      fallbackName: invite.realm!.name,
                       fallbackIcon: Symbols.group,
                     ),
                     title: Text(invite.realm!.name),

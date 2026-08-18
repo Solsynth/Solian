@@ -164,6 +164,7 @@ class _PinnedMessageTile extends StatelessWidget {
             if (sender != null)
               ProfilePictureWidget(
                 file: sender.account.profile.picture,
+                fallbackName: sender.account.nick,
                 radius: 18,
               )
             else

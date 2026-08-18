@@ -257,6 +257,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     child: GestureDetector(
                       child: ProfilePictureWidget(
                         file: user.value!.profile.picture,
+                        fallbackName: user.value!.nick,
                         radius: 40,
                       ),
                       onTap: () {

@@ -1000,7 +1000,10 @@ class ExploreScreen extends HookConsumerWidget {
 
     final selectedId = selectedPostId.value;
 
-    final mainContent = AnimatedSwitcher(
+    // Keep the timeline in the tree while the detail pane is open. Replacing
+    // it as the AnimatedSwitcher child disposes its scroll view and loses the
+    // user's position when the detail pane is closed.
+    final detailPane = AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       reverseDuration: const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOutCubic,
@@ -1024,7 +1027,7 @@ class ExploreScreen extends HookConsumerWidget {
         );
       },
       child: selectedId == null
-          ? KeyedSubtree(key: const ValueKey('timeline'), child: timelinePane)
+          ? const SizedBox.expand(key: ValueKey('no-post-detail'))
           : KeyedSubtree(
               key: ValueKey('post_$selectedId'),
               child: Card(
@@ -1050,6 +1053,14 @@ class ExploreScreen extends HookConsumerWidget {
                 ),
               ),
             ),
+    );
+
+    final mainContent = Stack(
+      fit: StackFit.expand,
+      children: [
+        IgnorePointer(ignoring: selectedId != null, child: timelinePane),
+        Positioned.fill(child: detailPane),
+      ],
     );
 
     return SidebarPanelHost(
@@ -2175,6 +2186,7 @@ class AccountDiscoveryCard extends ConsumerWidget {
                         ),
                         child: ProfilePictureWidget(
                           file: account.profile.picture,
+                          fallbackName: account.nick,
                           radius: 12,
                         ),
                       ),

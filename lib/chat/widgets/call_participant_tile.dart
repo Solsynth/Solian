@@ -89,6 +89,7 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
               child: account.when(
                 data: (value) => ProfilePictureWidget(
                   file: value.profile.picture,
+                  fallbackName: value.nick,
                   radius: size / 2,
                 ),
                 error: (_, _) => CircleAvatar(
@@ -228,6 +229,7 @@ class CallParticipantTile extends HookConsumerWidget {
                         participant: live,
                         child: ProfilePictureWidget(
                           file: value.profile.picture,
+                          fallbackName: value.nick,
                           radius: radius,
                         ),
                       ),

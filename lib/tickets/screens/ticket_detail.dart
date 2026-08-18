@@ -477,6 +477,7 @@ class _TicketBrief extends StatelessWidget {
               children: [
                 ProfilePictureWidget(
                   file: ticket.creator.profile.picture,
+                  fallbackName: ticket.creator.nick,
                   radius: 12,
                 ),
                 const Gap(8),
@@ -622,6 +623,7 @@ class _MessageBubble extends StatelessWidget {
             if (showHeader)
               ProfilePictureWidget(
                 file: message.sender.profile.picture,
+                fallbackName: message.sender.nick,
                 radius: 14,
               )
             else

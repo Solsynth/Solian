@@ -588,6 +588,7 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 children: [
                                   ProfilePictureWidget(
                                     file: publisher.picture,
+                                    fallbackName: publisher.nick,
                                     borderRadius: publisher.type == 0
                                         ? null
                                         : 6,
@@ -616,6 +617,8 @@ class _AccountSearchTab extends HookConsumerWidget {
                                                   .account
                                                   ?.profile
                                                   .picture,
+                                              fallbackName:
+                                                  publisher.account?.nick,
                                             )
                                           : Icon(
                                               publisher.type == 0
@@ -777,6 +780,7 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 children: [
                                   ProfilePictureWidget(
                                     file: account.profile.picture,
+                                    fallbackName: account.nick,
                                   ),
                                 ],
                               ),

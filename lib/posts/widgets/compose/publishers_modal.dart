@@ -62,6 +62,7 @@ class PublisherModal extends HookConsumerWidget {
                             ListTile(
                               leading: ProfilePictureWidget(
                                 file: publisher.picture,
+                                fallbackName: publisher.nick,
                               ),
                               title: Text(publisher.nick),
                               subtitle: Text('@${publisher.name}'),

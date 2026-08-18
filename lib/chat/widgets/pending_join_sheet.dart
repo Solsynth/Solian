@@ -194,6 +194,7 @@ class _ParticipantAvatar extends HookConsumerWidget {
         account.value?.profile.picture != null
             ? ProfilePictureWidget(
                 file: account.value!.profile.picture,
+                fallbackName: account.value!.nick,
                 radius: 42,
               )
             : CircleAvatar(

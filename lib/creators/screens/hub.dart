@@ -366,6 +366,7 @@ class PublisherSelector extends StatelessWidget {
       return ProfilePictureWidget(
         radius: 16,
         file: currentPublisher?.picture,
+        fallbackName: currentPublisher?.nick,
         borderRadius: currentPublisher?.type == 0 ? null : 12,
       ).center().padding(right: 8);
     }
@@ -397,6 +398,7 @@ class PublisherSelector extends StatelessWidget {
               ProfilePictureWidget(
                 radius: 10,
                 file: isValueValid ? currentValue.picture : null,
+                fallbackName: isValueValid ? currentValue.nick : null,
                 borderRadius: isValueValid && currentValue.type != 0
                     ? 12
                     : null,
@@ -546,6 +548,7 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
                         ),
                         leading: ProfilePictureWidget(
                           file: publisher.picture,
+                          fallbackName: publisher.nick,
                           borderRadius: publisher.type == 0 ? null : 12,
                         ),
                         title: Text(publisher.nick),
@@ -674,6 +677,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
                     leading: ProfilePictureWidget(
                       radius: 16,
                       file: item.picture,
+                      fallbackName: item.nick,
                       borderRadius: item.type == 0 ? null : 12,
                     ),
                     title: Text(item.nick),
@@ -1442,6 +1446,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
                   contentPadding: EdgeInsets.only(left: 16, right: 12),
                   leading: ProfilePictureWidget(
                     file: member.account!.profile.picture,
+                    fallbackName: member.account!.nick,
                   ),
                   title: Row(
                     spacing: 6,
@@ -1690,6 +1695,7 @@ class _PublisherInviteSheet extends HookConsumerWidget {
                   return ListTile(
                     leading: ProfilePictureWidget(
                       file: invite.publisher!.picture,
+                      fallbackName: invite.publisher!.nick,
                       borderRadius: invite.publisher!.type == 0 ? null : 12,
                       fallbackIcon: Symbols.group,
                     ),
@@ -2132,6 +2138,7 @@ class _PublisherSubscriberSheet extends HookConsumerWidget {
                             child: ListTile(
                               leading: ProfilePictureWidget(
                                 file: followReq.account?.profile.picture,
+                                fallbackName: followReq.account?.nick,
                               ),
                               title: Text(followReq.account?.nick ?? 'Unknown'),
                               subtitle: Text(
@@ -2202,6 +2209,7 @@ class _PublisherSubscriberSheet extends HookConsumerWidget {
                     return ListTile(
                       leading: ProfilePictureWidget(
                         file: subscriber.account?.profile.picture,
+                        fallbackName: subscriber.account?.nick,
                       ),
                       title: Text(subscriber.account?.nick ?? 'Unknown'),
                       subtitle: Row(

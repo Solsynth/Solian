@@ -641,6 +641,7 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
                   accountId: widget.sender.accountId,
                   child: ProfilePictureWidget(
                     file: widget.sender.account.profile.picture,
+                    fallbackName: widget.sender.account.nick,
                     radius: widget.avatarSize / 2,
                   ),
                 ),

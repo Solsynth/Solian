@@ -141,6 +141,7 @@ class _AccountBasicInfo extends HookWidget {
                   ),
                   child: ProfilePictureWidget(
                     file: data.profile.picture,
+                    fallbackName: data.nick,
                     radius: 32,
                   ),
                 ),

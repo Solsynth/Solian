@@ -519,6 +519,7 @@ class ReactionDetailsPopup extends HookConsumerWidget {
                             )
                           : ProfilePictureWidget(
                               file: reaction.account?.profile.picture,
+                              fallbackName: reaction.account?.nick,
                             ),
                     ),
                     title: Text(

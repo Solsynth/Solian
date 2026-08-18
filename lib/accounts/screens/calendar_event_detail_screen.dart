@@ -526,6 +526,7 @@ class _CalendarEventDetailContent extends HookConsumerWidget {
                     children: [
                       ProfilePictureWidget(
                         file: event.account!.profile.picture,
+                        fallbackName: event.account!.nick,
                       ),
                       const SizedBox(width: 8),
                       Column(

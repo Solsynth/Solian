@@ -1140,6 +1140,7 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                               contentPadding: EdgeInsets.zero,
                               leading: ProfilePictureWidget(
                                 file: recipient.profile.picture,
+                                fallbackName: recipient.nick,
                               ),
                               title: Text(
                                 recipient.nick,
@@ -1647,6 +1648,7 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                               contentPadding: EdgeInsets.zero,
                               leading: ProfilePictureWidget(
                                 file: selectedPayee!.profile.picture,
+                                fallbackName: selectedPayee!.nick,
                               ),
                               title: Text(
                                 selectedPayee!.nick,
@@ -2466,7 +2468,11 @@ class _ParticipantRow extends StatelessWidget {
         ),
         const Gap(8),
         if (account != null) ...[
-          ProfilePictureWidget(file: account!.profile.picture, radius: 12),
+          ProfilePictureWidget(
+            file: account!.profile.picture,
+            fallbackName: account!.nick,
+            radius: 12,
+          ),
           const Gap(8),
           Expanded(
             child: Text(

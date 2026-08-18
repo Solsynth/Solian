@@ -184,7 +184,10 @@ class RelationshipListTile extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 16, right: 12),
       leading: AccountPfcRegion(
         uname: account.name,
-        child: ProfilePictureWidget(file: account.profile.picture),
+        child: ProfilePictureWidget(
+          file: account.profile.picture,
+          fallbackName: account.nick,
+        ),
       ),
       title: Row(
         spacing: 6,

@@ -146,15 +146,11 @@ class _LeaderboardItem extends StatelessWidget {
               ),
             ),
             const Gap(12),
-            if (entry.picture != null)
-              ProfilePictureWidget(file: entry.picture, radius: 18)
-            else
-              CircleAvatar(
-                radius: 18,
-                child: Text(
-                  entry.nick.isNotEmpty ? entry.nick[0].toUpperCase() : '?',
-                ),
-              ),
+            ProfilePictureWidget(
+              file: entry.picture,
+              fallbackName: entry.nick,
+              radius: 18,
+            ),
             const Gap(12),
             Expanded(
               child: Column(

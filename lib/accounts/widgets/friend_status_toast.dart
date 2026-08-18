@@ -257,6 +257,7 @@ class FriendStatusToast extends HookConsumerWidget {
                         ),
                         child: ProfilePictureWidget(
                           file: event.account.profile.picture,
+                          fallbackName: event.account.nick,
                           radius: isActivityToast ? 17 : 18,
                         ),
                       ),

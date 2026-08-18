@@ -41,6 +41,7 @@ class RealmListTile extends StatelessWidget {
                     left: 18,
                     child: ProfilePictureWidget(
                       file: realm.picture,
+                      fallbackName: realm.name,
                       fallbackIcon: Symbols.group,
                       radius: 24,
                     ),

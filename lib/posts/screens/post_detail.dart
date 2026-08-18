@@ -235,17 +235,11 @@ class PostRealmBadge extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         dense: true,
-        leading: realm.picture != null
-            ? ProfilePictureWidget(file: realm.picture, radius: 16)
-            : CircleAvatar(
-                radius: 16,
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: Icon(
-                  Symbols.public,
-                  size: 18,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
+        leading: ProfilePictureWidget(
+          file: realm.picture,
+          fallbackName: realm.name,
+          radius: 16,
+        ),
         title: Text(
           realm.name,
           style: theme.textTheme.bodyMedium?.copyWith(

@@ -384,6 +384,7 @@ class ArticleComposeScreen extends HookConsumerWidget {
                       return IconButton(
                         icon: ProfilePictureWidget(
                           file: publisher?.picture,
+                          fallbackName: publisher?.nick,
                           radius: 12,
                           fallbackIcon: publisher == null
                               ? Symbols.question_mark

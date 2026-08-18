@@ -593,7 +593,11 @@ class _SenderAccountField extends StatelessWidget {
           child: Row(
             children: [
               if (selected)
-                ProfilePictureWidget(file: account!.profile.picture, radius: 16)
+                ProfilePictureWidget(
+                  file: account!.profile.picture,
+                  fallbackName: account!.nick,
+                  radius: 16,
+                )
               else
                 Icon(
                   Symbols.person_search,

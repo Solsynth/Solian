@@ -102,6 +102,7 @@ class PostQuickReply extends HookConsumerWidget {
               GestureDetector(
                 child: ProfilePictureWidget(
                   file: currentPublisher.value?.picture,
+                  fallbackName: currentPublisher.value?.nick,
                   radius: (kInputChipHeight * 0.5) - 6,
                 ),
                 onTap: () {

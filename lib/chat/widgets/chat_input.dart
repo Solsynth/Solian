@@ -2750,6 +2750,7 @@ class ChatInput extends HookConsumerWidget {
                                         title = user.nick;
                                         leading = ProfilePictureWidget(
                                           file: user.profile.picture,
+                                          fallbackName: user.nick,
                                           radius: 18,
                                         );
                                         break;
@@ -2760,6 +2761,7 @@ class ChatInput extends HookConsumerWidget {
                                         title = chatRoom.name ?? 'Chat Room';
                                         leading = ProfilePictureWidget(
                                           file: chatRoom.picture,
+                                          fallbackName: chatRoom.name,
                                           radius: 18,
                                         );
                                         break;
@@ -2770,6 +2772,7 @@ class ChatInput extends HookConsumerWidget {
                                         title = realm.name;
                                         leading = ProfilePictureWidget(
                                           file: realm.picture,
+                                          fallbackName: realm.name,
                                           radius: 18,
                                         );
                                         break;
@@ -2780,6 +2783,7 @@ class ChatInput extends HookConsumerWidget {
                                         title = publisher.name;
                                         leading = ProfilePictureWidget(
                                           file: publisher.picture,
+                                          fallbackName: publisher.nick,
                                           radius: 18,
                                         );
                                         break;

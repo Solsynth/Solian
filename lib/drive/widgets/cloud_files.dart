@@ -733,12 +733,21 @@ class CloudImageWidget extends ConsumerWidget {
   }
 }
 
+String? avatarFallbackText(String? name) {
+  final normalizedName = name?.trim();
+  if (normalizedName == null || normalizedName.isEmpty) return null;
+
+  final characters = normalizedName.runes.take(2).toList();
+  return String.fromCharCodes(characters).toUpperCase();
+}
+
 class ProfilePictureWidget extends ConsumerWidget {
   final String? fileId;
   final IDisplayableCloudFile? file;
   final double radius;
   final double? borderRadius;
   final IconData? fallbackIcon;
+  final String? fallbackName;
   final Color? fallbackColor;
   final ProfileDecoration? decoration;
   const ProfilePictureWidget({
@@ -748,6 +757,7 @@ class ProfilePictureWidget extends ConsumerWidget {
     this.radius = 20,
     this.borderRadius,
     this.fallbackIcon,
+    this.fallbackName,
     this.fallbackColor,
     this.decoration,
   });
@@ -759,11 +769,26 @@ class ProfilePictureWidget extends ConsumerWidget {
 
     final blurHash = file?.blurhash;
 
-    final fallback = Icon(
-      fallbackIcon ?? Symbols.account_circle,
-      size: radius,
-      color: fallbackColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
-    ).center();
+    final fallbackText = avatarFallbackText(fallbackName);
+    final fallback = fallbackText != null
+        ? Text(
+            fallbackText,
+            style: TextStyle(
+              color:
+                  fallbackColor ??
+                  Theme.of(context).colorScheme.onPrimaryContainer,
+              fontSize: radius * 0.72,
+              fontWeight: FontWeight.bold,
+              height: 1,
+            ),
+          ).center()
+        : Icon(
+            fallbackIcon ?? Symbols.account_circle,
+            size: radius,
+            color:
+                fallbackColor ??
+                Theme.of(context).colorScheme.onPrimaryContainer,
+          ).center();
 
     final image = id == null
         ? fallback

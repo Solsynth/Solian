@@ -39,9 +39,15 @@ class ChatRoomAvatar extends StatelessWidget {
         : room.picture == null
         ? CircleAvatar(
             radius: radius,
-            child: Text((room.name ?? 'DM')[0].toUpperCase()),
+            child: Text(
+              avatarFallbackText(room.name ?? 'DM') ?? 'DM',
+            ),
           )
-        : ProfilePictureWidget(file: room.picture, radius: radius ?? 20);
+        : ProfilePictureWidget(
+            file: room.picture,
+            fallbackName: room.name,
+            radius: radius ?? 20,
+          );
 
     final summaryData = summary.value;
     final unreadCount = summaryData?.unreadCount ?? 0;
@@ -74,7 +80,10 @@ class ChatRoomAvatar extends StatelessWidget {
                 ],
               ),
               child: ClipOval(
-                child: ProfilePictureWidget(file: room.realm!.picture),
+                child: ProfilePictureWidget(
+                  file: room.realm!.picture,
+                  fallbackName: room.realm!.name,
+                ),
               ),
             ),
           ),

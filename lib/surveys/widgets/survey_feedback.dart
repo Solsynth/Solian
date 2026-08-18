@@ -332,6 +332,7 @@ class _ParticipantCard extends StatelessWidget {
                         uname: answer.account!.name,
                         child: ProfilePictureWidget(
                           file: answer.account!.profile.picture,
+                          fallbackName: answer.account!.nick,
                         ),
                       ),
                 const Gap(12),

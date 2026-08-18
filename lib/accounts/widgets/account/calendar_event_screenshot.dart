@@ -310,7 +310,11 @@ class CalendarEventScreenshot extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ProfilePictureWidget(file: account.profile.picture, radius: 18),
+          ProfilePictureWidget(
+            file: account.profile.picture,
+            fallbackName: account.nick,
+            radius: 18,
+          ),
           const Gap(10),
           Expanded(
             child: Column(

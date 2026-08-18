@@ -1121,8 +1121,11 @@ class _CallPreviewParticipantAvatar extends HookConsumerWidget {
       callParticipantAccountProvider(participant.identity),
     );
     return account.when(
-      data: (value) =>
-          ProfilePictureWidget(file: value.profile.picture, radius: 17),
+      data: (value) => ProfilePictureWidget(
+        file: value.profile.picture,
+        fallbackName: value.nick,
+        radius: 17,
+      ),
       loading: () => CircleAvatar(
         radius: 14,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,

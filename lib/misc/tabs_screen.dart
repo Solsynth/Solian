@@ -165,9 +165,10 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           return Badge.count(
             count: notificationUnreadCount.value ?? 0,
             isLabelVisible: (notificationUnreadCount.value ?? 0) > 0,
-            child: userInfo.value?.profile.picture != null
+            child: userInfo.value != null
                 ? ProfilePictureWidget(
                     file: userInfo.value!.profile.picture,
+                    fallbackName: userInfo.value!.nick,
                     radius: 12,
                   )
                 : const Icon(Symbols.account_circle_rounded),
@@ -364,10 +365,10 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          if (token != null &&
-                              userInfo.value?.profile.picture != null)
+                          if (token != null && userInfo.value != null)
                             ProfilePictureWidget(
                               file: userInfo.value!.profile.picture,
+                              fallbackName: userInfo.value!.nick,
                               radius: 18,
                             )
                           else

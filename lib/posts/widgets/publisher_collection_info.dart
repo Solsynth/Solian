@@ -120,6 +120,7 @@ class PublisherCollectionPublisherInfo extends StatelessWidget {
                       ),
                       child: ProfilePictureWidget(
                         file: data.picture,
+                        fallbackName: data.nick,
                         radius: 28,
                         borderRadius: data.type == 0 ? null : 12,
                       ),

@@ -1091,7 +1091,10 @@ class _PublisherListTile extends StatelessWidget {
         bottom: 4,
       ),
       leading: publisher != null
-          ? ProfilePictureWidget(file: publisher.picture)
+          ? ProfilePictureWidget(
+              file: publisher.picture,
+              fallbackName: publisher.nick,
+            )
           : const CircleAvatar(child: Icon(Symbols.close)),
       title: Text(title),
       subtitle: Text(
@@ -1187,7 +1190,10 @@ class _PublisherPickerSheet extends StatelessWidget {
                 final publisher = publishers[index - 1];
                 final isSelected = publisher.id == currentId;
                 return ListTile(
-                  leading: ProfilePictureWidget(file: publisher.picture),
+                  leading: ProfilePictureWidget(
+                    file: publisher.picture,
+                    fallbackName: publisher.nick,
+                  ),
                   title: Text(publisher.nick),
                   subtitle: Text('@${publisher.name}'),
                   selected: isSelected,

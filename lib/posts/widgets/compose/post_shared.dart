@@ -604,6 +604,7 @@ class PostReplyPreview extends HookConsumerWidget {
       return ProfilePictureWidget(
         file:
             post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        fallbackName: post.publisher!.nick,
         radius: radius,
       );
     }
@@ -1059,7 +1060,7 @@ class PostReplyPreview extends HookConsumerWidget {
                                 content: _convertContentToMarkdown(post),
                                 attachments: post.attachments,
                                 noMentionChip: post.fediverseUri != null,
-                              ),
+                              ).padding(top: 5),
                             )
                           else if (post.attachments.isNotEmpty)
                             Expanded(
@@ -1527,6 +1528,7 @@ class PostHeader extends HookConsumerWidget {
       return ProfilePictureWidget(
         file:
             post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        fallbackName: post.publisher!.nick,
         radius: radius,
         borderRadius: post.publisher!.type == 0 ? null : 6,
       );

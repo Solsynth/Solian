@@ -81,6 +81,7 @@ class MessageSenderInfo extends HookConsumerWidget {
                 accountId: s.accountId,
                 child: ProfilePictureWidget(
                   file: s.account.profile.picture,
+                  fallbackName: s.account.nick,
                   radius: 14,
                 ),
               ),
@@ -121,6 +122,7 @@ class MessageSenderInfo extends HookConsumerWidget {
               accountId: s.accountId,
               child: ProfilePictureWidget(
                 file: s.account.profile.picture,
+                fallbackName: s.account.nick,
                 radius: 14,
               ),
             ),

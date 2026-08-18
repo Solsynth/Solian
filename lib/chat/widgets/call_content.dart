@@ -79,7 +79,11 @@ class _ToolParticipantListTile extends HookConsumerWidget {
         data: (value) => Stack(
           clipBehavior: Clip.none,
           children: [
-            ProfilePictureWidget(file: value.profile.picture, radius: 18),
+            ProfilePictureWidget(
+              file: value.profile.picture,
+              fallbackName: value.nick,
+              radius: 18,
+            ),
             Positioned(
               right: -2,
               bottom: -2,

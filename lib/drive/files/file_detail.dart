@@ -480,7 +480,11 @@ class FileDetailScreen extends HookConsumerWidget {
             ),
             child: Row(
               children: [
-                ProfilePictureWidget(file: account.profile.picture, radius: 16),
+                ProfilePictureWidget(
+                  file: account.profile.picture,
+                  fallbackName: account.nick,
+                  radius: 16,
+                ),
                 const Gap(10),
                 Expanded(
                   child: Column(

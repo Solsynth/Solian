@@ -422,6 +422,7 @@ class _PurchaseGiftSheetState extends State<PurchaseGiftSheet> {
                             ),
                             leading: ProfilePictureWidget(
                               file: selectedRecipient!.profile.picture,
+                              fallbackName: selectedRecipient!.nick,
                             ),
                             title: Text(
                               selectedRecipient!.nick,
@@ -1336,10 +1337,22 @@ class StellarProgramView extends HookConsumerWidget {
     Map<String, String> iapProducts,
   ) {
     return StoreProductCard(
+      showGradiant: false,
       accent: const Color(0xFFE8B84A),
-      image: Image.asset('assets/images/store/golden-points.webp'),
-      backgroundColor: const Color(0xFFF8F3E4),
-      imageAspectRatio: 16 / 9,
+      image: Container(
+        color: const Color(0xFFF8F3E4),
+        child: Align(
+          alignment: .centerRight,
+          child: const Icon(
+            Symbols.account_balance_wallet,
+            fill: 1,
+            size: 128,
+            color: Color(0xFFE8B84A),
+          ).padding(right: 20, top: 16),
+        ),
+      ),
+      backgroundColor: const Color.fromARGB(255, 248, 231, 178),
+      imageAspectRatio: 16 / 5,
       title: 'storeGoldenPointsTitle'.tr(),
       description: 'storeGoldenPointsDescription'.tr(),
       footer: FilledButton.icon(
@@ -1357,10 +1370,22 @@ class StellarProgramView extends HookConsumerWidget {
     const accent = Color(0xFF4C6EF5);
 
     return StoreProductCard(
-      image: Image.asset('assets/images/store/change-name-card.webp'),
       accent: accent,
-      backgroundColor: const Color(0xFFCCC3C4),
-      imageAspectRatio: 16 / 9,
+      backgroundColor: const Color.fromARGB(255, 233, 227, 228),
+      showGradiant: false,
+      image: Container(
+        color: const Color(0xFFCCC3C4),
+        child: Align(
+          alignment: .centerRight,
+          child: const Icon(
+            Symbols.tag,
+            fill: 1,
+            size: 128,
+            color: accent,
+          ).padding(right: 20, top: 16),
+        ),
+      ),
+      imageAspectRatio: 16 / 5,
       title: 'storeNameChangeCardTitle'.tr(),
       description: 'storeNameChangeCardDescription'.tr(),
       footer: FilledButton.icon(
@@ -1437,9 +1462,21 @@ class StellarProgramView extends HookConsumerWidget {
   Widget _buildQuotaPurchaseCard(BuildContext context) {
     return StoreProductCard(
       accent: const Color(0xFF2E8B8B),
-      image: Image.asset('assets/images/store/extra-storage.webp'),
+      showGradiant: false,
+      image: Container(
+        color: const Color.fromARGB(255, 182, 182, 241),
+        child: Align(
+          alignment: .centerRight,
+          child: const Icon(
+            Symbols.dns,
+            fill: 1,
+            size: 128,
+            color: Colors.indigo,
+          ).padding(right: 20, top: 16),
+        ),
+      ),
+      imageAspectRatio: 16 / 5,
       backgroundColor: const Color(0xFFB6B6CB),
-      imageAspectRatio: 16 / 9,
       title: 'quotaPurchase'.tr(),
       description: 'quotaPurchaseDescription'.tr(),
       footer: FilledButton.icon(
@@ -2467,6 +2504,7 @@ class StellarProgramView extends HookConsumerWidget {
                         uname: gift.redeemer!.name,
                         child: ProfilePictureWidget(
                           file: gift.redeemer!.profile.picture,
+                          fallbackName: gift.redeemer!.nick,
                           radius: 8,
                         ),
                       )
@@ -3271,6 +3309,7 @@ class StoreProductCard extends StatelessWidget {
   final double imageAspectRatio;
   final String? meta;
   final Widget footer;
+  final bool showGradiant;
 
   const StoreProductCard({
     super.key,
@@ -3282,6 +3321,7 @@ class StoreProductCard extends StatelessWidget {
     this.image,
     this.backgroundColor,
     this.imageAspectRatio = 1,
+    this.showGradiant = true,
   });
 
   @override
@@ -3314,42 +3354,44 @@ class StoreProductCard extends StatelessWidget {
                 fit: StackFit.expand,
                 clipBehavior: Clip.none,
                 children: [
-                  Positioned.fill(child: image!),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: -1,
-                    child: DecoratedBox(
+                  Positioned.fill(child: ClipRect(child: image!)),
+                  if (showGradiant) ...[
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: -1,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.28, 1],
+                            colors: [
+                              Colors.transparent,
+                              cardColor.withOpacity(0.98),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [0.28, 1],
+                        gradient: RadialGradient(
+                          center: Alignment.topRight,
+                          radius: 1.2,
                           colors: [
-                            Colors.transparent,
-                            cardColor.withOpacity(0.98),
+                            accent.withOpacity(0.12),
+                            accent.withOpacity(0),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment.topRight,
-                        radius: 1.2,
-                        colors: [
-                          accent.withOpacity(0.12),
-                          accent.withOpacity(0),
-                        ],
-                      ),
-                    ),
-                  ),
+                  ],
                   Positioned(
                     left: 18,
                     right: 18,
-                    bottom: -18,
+                    bottom: showGradiant ? -20 : -40,
                     child: Text(
                       title,
                       maxLines: 2,
@@ -3359,10 +3401,11 @@ class StoreProductCard extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         height: 1.1,
                         shadows: [
-                          Shadow(
-                            color: Colors.white.withOpacity(0.72),
-                            blurRadius: 12,
-                          ),
+                          if (showGradiant)
+                            Shadow(
+                              color: Colors.white.withOpacity(0.72),
+                              blurRadius: 12,
+                            ),
                         ],
                       ),
                     ),
@@ -3373,7 +3416,7 @@ class StoreProductCard extends StatelessWidget {
           Padding(
             padding: image == null
                 ? const EdgeInsets.all(18)
-                : const EdgeInsets.fromLTRB(18, 28, 18, 18),
+                : const EdgeInsets.fromLTRB(18, 46, 18, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

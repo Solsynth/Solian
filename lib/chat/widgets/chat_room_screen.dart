@@ -1653,6 +1653,7 @@ class _PinnedMessagesBarState extends State<_PinnedMessagesBar> {
                                 if (sender != null)
                                   ProfilePictureWidget(
                                     file: sender.account.profile.picture,
+                                    fallbackName: sender.account.nick,
                                     radius: 14,
                                   ),
                                 const SizedBox(width: 8),

@@ -584,7 +584,11 @@ class _ParticipantRow extends StatelessWidget {
         ),
         const Gap(12),
         if (account != null) ...[
-          ProfilePictureWidget(file: account!.profile.picture, radius: 16),
+          ProfilePictureWidget(
+            file: account!.profile.picture,
+            fallbackName: account!.nick,
+            radius: 16,
+          ),
           const Gap(8),
           Expanded(
             child: Text(

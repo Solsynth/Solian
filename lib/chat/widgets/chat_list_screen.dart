@@ -1037,6 +1037,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                       title: buildSectionHeader(
                                         leading: ProfilePictureWidget(
                                           file: realm?.picture,
+                                          fallbackName: realm?.name,
                                           radius: 15,
                                         ),
                                         title: realmName,
@@ -1750,6 +1751,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                         children: [
                           ProfilePictureWidget(
                             file: realm?.picture,
+                            fallbackName: realm?.name,
                             radius: 16,
                           ),
                           Text(
@@ -1819,6 +1821,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                         child: buildRoundedRectAvatar(
                           ProfilePictureWidget(
                             file: realm?.picture,
+                            fallbackName: realm?.name,
                             radius: 18,
                           ),
                         ),
@@ -2169,6 +2172,7 @@ class ChatListWidget extends HookConsumerWidget {
       ),
       appBar: AppBar(
         leading: null,
+        automaticallyImplyLeading: false,
         flexibleSpace: Stack(
           children: [
             _ChatListAppBar(

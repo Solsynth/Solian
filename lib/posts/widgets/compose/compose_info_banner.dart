@@ -135,7 +135,11 @@ class CompactReferencePost extends StatelessWidget {
   Widget _buildProfilePicture(BuildContext context) {
     // Handle publisher case
     if (post.publisher != null) {
-      return ProfilePictureWidget(file: post.publisher!.picture, radius: 16);
+      return ProfilePictureWidget(
+        file: post.publisher!.picture,
+        fallbackName: post.publisher!.nick,
+        radius: 16,
+      );
     }
     // Handle actor case
     if (post.actor != null) {

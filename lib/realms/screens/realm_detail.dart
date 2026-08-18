@@ -831,9 +831,10 @@ class _RealmUserPermissionEditorSheet extends HookConsumerWidget {
           children: [
             Row(
               children: [
-                if (member.account?.profile.picture != null)
+                if (member.account != null)
                   ProfilePictureWidget(
                     file: member.account!.profile.picture,
+                    fallbackName: member.account!.nick,
                     radius: 16,
                   )
                 else
@@ -2750,6 +2751,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                 uname: member.account!.name,
                 child: ProfilePictureWidget(
                   file: member.account!.profile.picture,
+                  fallbackName: member.account!.nick,
                 ),
               ),
               title: Row(
@@ -3646,18 +3648,16 @@ class _RealmBoostLeaderboardSheet extends ConsumerWidget {
                         ),
                       ),
                       const Gap(12),
-                      if (entry.account?.profile.picture != null)
+                      if (entry.account != null)
                         ProfilePictureWidget(
                           file: entry.account!.profile.picture,
+                          fallbackName: entry.account!.nick,
                           radius: 18,
                         )
                       else
                         CircleAvatar(
                           radius: 18,
-                          child: Text(
-                            entry.account?.nick.substring(0, 1).toUpperCase() ??
-                                '?',
-                          ),
+                          child: Text('?'),
                         ),
                       const Gap(12),
                       Expanded(

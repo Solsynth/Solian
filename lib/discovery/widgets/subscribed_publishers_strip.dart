@@ -318,6 +318,7 @@ class _SubscribedPublisherTile extends StatelessWidget {
                       ),
                     ProfilePictureWidget(
                       file: publisher.picture,
+                      fallbackName: publisher.nick,
                       radius: isSelected ? 20 : 22,
                     ),
                     if (hasNewContent)

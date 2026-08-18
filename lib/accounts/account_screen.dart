@@ -116,6 +116,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                           child: GestureDetector(
                             child: ProfilePictureWidget(
                               file: user.value?.profile.picture,
+                              fallbackName: user.value?.nick,
                               radius: 32,
                             ),
                             onTap: () {
@@ -139,6 +140,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                             GestureDetector(
                               child: ProfilePictureWidget(
                                 file: user.value?.profile.picture,
+                                fallbackName: user.value?.nick,
                                 radius: 24,
                               ),
                               onTap: () {

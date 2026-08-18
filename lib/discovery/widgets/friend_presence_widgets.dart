@@ -346,7 +346,11 @@ class FriendPresenceItem extends ConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         if (account != null)
-          ProfilePictureWidget(file: account.profile.picture, radius: 18)
+          ProfilePictureWidget(
+            file: account.profile.picture,
+            fallbackName: account.nick,
+            radius: 18,
+          )
         else
           Container(
             width: 36,
@@ -459,7 +463,11 @@ class FriendStatusItem extends ConsumerWidget {
             clipBehavior: Clip.none,
             children: [
               if (account != null)
-                ProfilePictureWidget(file: account.profile.picture, radius: 18)
+                ProfilePictureWidget(
+                  file: account.profile.picture,
+                  fallbackName: account.nick,
+                  radius: 18,
+                )
               else
                 Container(
                   width: 36,

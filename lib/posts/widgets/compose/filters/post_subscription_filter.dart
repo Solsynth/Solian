@@ -629,6 +629,7 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                                 dense: true,
                                 secondary: ProfilePictureWidget(
                                   file: subscription.publisher.picture,
+                                  fallbackName: subscription.publisher.nick,
                                   radius: 12,
                                 ),
                                 contentPadding: const EdgeInsets.only(

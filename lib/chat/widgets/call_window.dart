@@ -643,6 +643,7 @@ class _CallBody extends HookConsumerWidget {
             return ListTile(
               leading: ProfilePictureWidget(
                 file: m.account.profile.picture,
+                fallbackName: m.account.nick,
                 radius: 18,
               ),
               title: AccountName(account: m.account),

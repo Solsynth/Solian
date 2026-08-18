@@ -277,7 +277,11 @@ class _CheckInScreenshotUserHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ProfilePictureWidget(file: user.profile.picture, radius: 22),
+          ProfilePictureWidget(
+            file: user.profile.picture,
+            fallbackName: user.nick,
+            radius: 22,
+          ),
           const Gap(12),
           Expanded(
             child: Column(

@@ -102,6 +102,11 @@ class AuthRequestSheet extends ConsumerWidget {
                                           .developer
                                           .publisher
                                           ?.picture,
+                                      fallbackName: app
+                                          .project
+                                          .developer
+                                          .publisher
+                                          ?.nick,
                                       radius: 8,
                                     ),
                                     Text(app.project.developer.publisher!.nick),
@@ -143,6 +148,7 @@ class AuthRequestSheet extends ConsumerWidget {
                               ),
                               child: ProfilePictureWidget(
                                 file: userInfo.value?.profile.picture,
+                                fallbackName: userInfo.value?.nick,
                               ),
                             ),
                             const SizedBox(width: 12),

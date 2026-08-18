@@ -28,7 +28,10 @@ class ChatMemberListTile extends StatelessWidget {
       contentPadding: contentPadding,
       leading: AccountPfcRegion(
         uname: member.account.name,
-        child: ProfilePictureWidget(file: member.account.profile.picture),
+        child: ProfilePictureWidget(
+          file: member.account.profile.picture,
+          fallbackName: member.account.nick,
+        ),
       ),
       title: Row(
         spacing: 6,

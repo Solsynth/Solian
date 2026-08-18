@@ -421,7 +421,11 @@ class _RoomAvatar extends StatelessWidget {
                   .toList(),
             )
           : room.picture != null
-          ? ProfilePictureWidget(file: room.picture, fallbackIcon: Symbols.chat)
+          ? ProfilePictureWidget(
+              file: room.picture,
+              fallbackName: room.name,
+              fallbackIcon: Symbols.chat,
+            )
           : CircleAvatar(
               child: Text(
                 room.name![0].toUpperCase(),

@@ -26,6 +26,7 @@ class PostAwardSheet extends HookConsumerWidget {
       return ProfilePictureWidget(
         file:
             post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        fallbackName: post.publisher!.nick,
         radius: radius,
       );
     }

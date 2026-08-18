@@ -87,6 +87,7 @@ class AccountNameplate extends HookConsumerWidget {
                               // Profile picture (equivalent to leading)
                               ProfilePictureWidget(
                                 file: account.profile.picture,
+                                fallbackName: account.nick,
                               ),
                               const SizedBox(width: 16),
                               // Text content (equivalent to title and subtitle)
@@ -131,7 +132,10 @@ class AccountNameplate extends HookConsumerWidget {
                   child: Row(
                     children: [
                       // Profile picture (equivalent to leading)
-                      ProfilePictureWidget(file: account.profile.picture),
+                      ProfilePictureWidget(
+                        file: account.profile.picture,
+                        fallbackName: account.nick,
+                      ),
                       const SizedBox(width: 16),
                       // Text content (equivalent to title and subtitle)
                       Expanded(

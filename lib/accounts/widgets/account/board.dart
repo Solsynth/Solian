@@ -1638,7 +1638,11 @@ class _BoardPublisherTile extends StatelessWidget {
                   color: theme.colorScheme.outline.withOpacity(0.2),
                 ),
               ),
-              child: ProfilePictureWidget(file: publisher.picture, radius: 18),
+              child: ProfilePictureWidget(
+                file: publisher.picture,
+                fallbackName: publisher.nick,
+                radius: 18,
+              ),
             ),
             const Gap(8),
             Expanded(

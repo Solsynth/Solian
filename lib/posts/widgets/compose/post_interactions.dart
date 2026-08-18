@@ -402,7 +402,10 @@ class ReactionListItem extends HookConsumerWidget {
         uname: reaction.account?.name,
         child: reaction.actor != null
             ? ActorPictureWidget(actor: reaction.actor!, radius: 20)
-            : ProfilePictureWidget(file: reaction.account?.profile.picture),
+            : ProfilePictureWidget(
+                file: reaction.account?.profile.picture,
+                fallbackName: reaction.account?.nick,
+              ),
       ),
       title: Text(
         reaction.actor?.displayName ?? reaction.account?.nick ?? 'unknown'.tr(),

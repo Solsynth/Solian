@@ -591,6 +591,7 @@ class ChatReactionHistoryListItem extends StatelessWidget {
         member: sender,
         child: ProfilePictureWidget(
           file: sender.account.profile.picture,
+          fallbackName: sender.account.nick,
           radius: 20,
         ),
       ),

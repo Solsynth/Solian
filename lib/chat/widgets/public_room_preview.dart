@@ -123,6 +123,7 @@ class PublicRoomPreview extends HookConsumerWidget {
               : room.picture != null
               ? ProfilePictureWidget(
                   file: room.picture,
+                  fallbackName: room.name,
                   fallbackIcon: Symbols.chat,
                 )
               : CircleAvatar(
@@ -156,6 +157,7 @@ class PublicRoomPreview extends HookConsumerWidget {
               : room.picture != null
               ? ProfilePictureWidget(
                   file: room.picture,
+                  fallbackName: room.name,
                   fallbackIcon: Symbols.chat,
                 )
               : CircleAvatar(

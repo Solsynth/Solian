@@ -161,6 +161,7 @@ class ChatRoomMemberCard extends HookConsumerWidget {
                     offset: const Offset(4, 28),
                     child: ProfilePictureWidget(
                       file: effectiveMember.account.profile.picture,
+                      fallbackName: effectiveMember.account.nick,
                       radius: 24,
                     ),
                   ),
@@ -751,6 +752,7 @@ class _ChatRoomMemberActionSheet extends HookConsumerWidget {
                 children: [
                   ProfilePictureWidget(
                     file: member.account.profile.picture,
+                    fallbackName: member.account.nick,
                     radius: 20,
                   ),
                   const Gap(12),

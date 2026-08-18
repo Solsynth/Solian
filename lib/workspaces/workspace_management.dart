@@ -1669,6 +1669,7 @@ class _MemberRow extends StatelessWidget {
         children: [
           ProfilePictureWidget(
             fileId: member.profilePictureId,
+            fallbackName: username,
             radius: 18,
             fallbackIcon: Symbols.person,
           ),
@@ -2046,6 +2047,7 @@ class _MemberAvatarStrip extends StatelessWidget {
                 child: ClipOval(
                   child: ProfilePictureWidget(
                     fileId: members[i].profilePictureId,
+                    fallbackName: members[i].username,
                     radius: 12,
                     fallbackIcon: Symbols.person,
                   ),

@@ -406,7 +406,10 @@ class _FriendOverviewListTile extends StatelessWidget {
         uname: friend.account.name,
         child: Stack(
           children: [
-            ProfilePictureWidget(file: friend.account.profile.picture),
+            ProfilePictureWidget(
+              file: friend.account.profile.picture,
+              fallbackName: friend.account.nick,
+            ),
             Positioned(
               bottom: 0,
               right: 0,
@@ -506,6 +509,7 @@ class _FriendTile extends ConsumerWidget {
             children: [
               ProfilePictureWidget(
                 file: friend.account.profile.picture,
+                fallbackName: friend.account.nick,
                 radius: 24,
               ),
               // Online indicator - show play arrow if user has activities, otherwise green dot

@@ -273,6 +273,7 @@ class _PublisherBasisWidget extends HookWidget {
                   ),
                   child: ProfilePictureWidget(
                     file: data.picture,
+                    fallbackName: data.nick,
                     radius: 32,
                     borderRadius: data.type == 0 ? null : 12,
                   ),

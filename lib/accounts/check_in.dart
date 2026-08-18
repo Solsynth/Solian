@@ -191,7 +191,11 @@ class CheckInActivityWidget extends StatelessWidget {
       spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ProfilePictureWidget(file: result.account!.profile.picture, radius: 12),
+        ProfilePictureWidget(
+          file: result.account!.profile.picture,
+          fallbackName: result.account!.nick,
+          radius: 12,
+        ),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

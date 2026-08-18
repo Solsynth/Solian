@@ -80,6 +80,7 @@ class PublisherDiscoveryCard extends ConsumerWidget {
                         ),
                         child: ProfilePictureWidget(
                           file: publisher.picture,
+                          fallbackName: publisher.nick,
                           radius: 12,
                         ),
                       ),

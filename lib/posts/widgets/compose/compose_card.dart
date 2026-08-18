@@ -354,6 +354,8 @@ class PostComposeCard extends HookConsumerWidget {
                       GestureDetector(
                         child: ProfilePictureWidget(
                           file: composeState.currentPublisher.value?.picture,
+                          fallbackName:
+                              composeState.currentPublisher.value?.nick,
                           radius: 20,
                           borderRadius:
                               composeState.currentPublisher.value?.type == 0

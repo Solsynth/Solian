@@ -1200,11 +1200,18 @@ class _MeetDetailInfo extends StatelessWidget {
                 leading: participant.account != null
                     ? ProfilePictureWidget(
                         file: participant.account!.profile.picture,
+                        fallbackName: participant.account!.nick,
                         radius: 20,
                       )
-                    : const CircleAvatar(
+                    : CircleAvatar(
                         radius: 20,
-                        child: Icon(Symbols.person, size: 18),
+                        child: Text(
+                          avatarFallbackText(
+                                participant.account?.nick ??
+                                    participant.fallbackName,
+                              ) ??
+                              '?',
+                        ),
                       ),
                 title: Text(
                   participant.account?.nick.isNotEmpty == true
@@ -2043,6 +2050,7 @@ class _MeetDiscoveryCard extends StatelessWidget {
                       if (meet.host != null) ...[
                         ProfilePictureWidget(
                           file: meet.host!.profile.picture,
+                          fallbackName: meet.host!.nick,
                           radius: 12,
                         ),
                         const Gap(4),
@@ -2383,18 +2391,26 @@ class _MeetHistoryCard extends StatelessWidget {
                                             .account!
                                             .profile
                                             .picture,
+                                        fallbackName:
+                                            participant.account!.nick,
                                         radius: 16,
                                       )
                                     : CircleAvatar(
                                         radius: 16,
                                         backgroundColor:
                                             theme.colorScheme.primaryContainer,
-                                        child: Icon(
-                                          Symbols.person,
-                                          size: 14,
-                                          color: theme
-                                              .colorScheme
-                                              .onPrimaryContainer,
+                                        child: Text(
+                                          avatarFallbackText(
+                                                participant.account?.nick ??
+                                                    participant.fallbackName,
+                                              ) ??
+                                              '?',
+                                          style: TextStyle(
+                                            color: theme
+                                                .colorScheme
+                                                .onPrimaryContainer,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                               ),
@@ -2706,11 +2722,12 @@ class _ParticipantBubble extends HookWidget {
               account != null
                   ? ProfilePictureWidget(
                       file: account.profile.picture,
+                      fallbackName: account.nick,
                       radius: 28,
                     )
-                  : const CircleAvatar(
+                  : CircleAvatar(
                       radius: 28,
-                      child: Icon(Symbols.person, size: 22),
+                      child: Text(avatarFallbackText(label) ?? '?'),
                     ),
               const Gap(8),
               Text(
@@ -2954,7 +2971,11 @@ class _MeetParticipantPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final avatarWidget = avatar != null
-        ? ProfilePictureWidget(file: avatar, radius: 16)
+        ? ProfilePictureWidget(
+            file: avatar,
+            fallbackName: accountName,
+            radius: 16,
+          )
         : Container(
             width: 20,
             height: 20,

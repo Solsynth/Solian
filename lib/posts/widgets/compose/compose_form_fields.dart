@@ -80,6 +80,7 @@ class ComposeFormFields extends HookConsumerWidget {
             onTap: onPublisherTap,
             child: ProfilePictureWidget(
               file: state.currentPublisher.value?.picture,
+              fallbackName: state.currentPublisher.value?.nick,
               radius: 20,
               fallbackIcon: state.currentPublisher.value == null
                   ? Icons.question_mark
@@ -222,6 +223,7 @@ class ComposeFormFields extends HookConsumerWidget {
                         title = user.nick;
                         leading = ProfilePictureWidget(
                           file: user.profile.picture,
+                          fallbackName: user.nick,
                           radius: 18,
                         );
                         break;
@@ -230,6 +232,7 @@ class ComposeFormFields extends HookConsumerWidget {
                         title = chatRoom.name ?? 'Chat Room';
                         leading = ProfilePictureWidget(
                           file: chatRoom.picture,
+                          fallbackName: chatRoom.name,
                           radius: 18,
                         );
                         break;
@@ -238,6 +241,7 @@ class ComposeFormFields extends HookConsumerWidget {
                         title = realm.name;
                         leading = ProfilePictureWidget(
                           file: realm.picture,
+                          fallbackName: realm.name,
                           radius: 18,
                         );
                         break;
@@ -246,6 +250,7 @@ class ComposeFormFields extends HookConsumerWidget {
                         title = publisher.name;
                         leading = ProfilePictureWidget(
                           file: publisher.picture,
+                          fallbackName: publisher.nick,
                           radius: 18,
                         );
                         break;

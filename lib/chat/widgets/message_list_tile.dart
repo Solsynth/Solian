@@ -32,6 +32,7 @@ class MessageListTile extends StatelessWidget {
         backgroundColor: Colors.transparent,
         child: ProfilePictureWidget(
           file: sender.account.profile.picture,
+          fallbackName: sender.account.nick,
           radius: 20,
         ),
       ),
