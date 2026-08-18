@@ -190,6 +190,7 @@ class DriveApi extends BaseApi {
     String? contentType,
     String? mimeType,
     String? parentId,
+    String? workspaceId,
     bool? indexed,
     bool? isFolder,
     bool? hasThumbnail,
@@ -213,6 +214,7 @@ class DriveApi extends BaseApi {
         'order': ?order,
         'orderDesc': orderDesc,
         'pool': ?poolId,
+        'workspace_id': ?workspaceId,
         'usage': ?usage,
         'application_type': ?applicationType,
         'content_type': ?resolvedContentType,
@@ -249,6 +251,7 @@ class DriveApi extends BaseApi {
     String? applicationType,
     String? contentType,
     String? mimeType,
+    String? workspaceId,
     bool? indexed,
     bool? isFolder,
     bool? hasThumbnail,
@@ -272,6 +275,7 @@ class DriveApi extends BaseApi {
         'order': ?order,
         'orderDesc': orderDesc,
         'pool': ?poolId,
+        'workspace_id': ?workspaceId,
         'usage': ?usage,
         'application_type': ?applicationType,
         'content_type': ?resolvedContentType,
@@ -296,10 +300,15 @@ class DriveApi extends BaseApi {
   Future<SnCloudFile> createFolder({
     required String name,
     String? parentId,
+    String? workspaceId,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/files/folders',
-      data: {'name': name, 'parent_id': ?parentId},
+      data: {
+        'name': name,
+        'parent_id': ?parentId,
+        'workspace_id': ?workspaceId,
+      },
     );
     return SnCloudFile.fromJson(response.data!);
   }
@@ -327,6 +336,7 @@ class DriveApi extends BaseApi {
   /// Lists files not part of the folder hierarchy.
   Future<PaginatedResult<SnCloudFile>> listUnindexedFiles({
     String? poolId,
+    String? workspaceId,
     bool recycled = false,
     int offset = 0,
     int take = 20,
@@ -354,6 +364,7 @@ class DriveApi extends BaseApi {
       '$_basePath/files/unindexed',
       queryParameters: {
         'pool': ?poolId,
+        'workspace_id': ?workspaceId,
         'recycled': recycled,
         'offset': offset,
         'take': take,
@@ -475,6 +486,7 @@ class DriveApi extends BaseApi {
     String? expiredAt,
     int? chunkSize,
     String? parentId,
+    String? workspaceId,
     String? usage,
     String? applicationType,
   }) async {
@@ -493,6 +505,7 @@ class DriveApi extends BaseApi {
         'expired_at': ?expiredAt,
         'chunk_size': ?chunkSize,
         'parent_id': ?parentId,
+        'workspace_id': ?workspaceId,
         'usage': ?usage,
         'application_type': ?applicationType,
       },
@@ -528,8 +541,6 @@ class DriveApi extends BaseApi {
 
   // ===========================================================================
   // Upload — direct
-  // ===========================================================================
-
   /// Single-request upload for files ≤ 20MB.
   Future<SnCloudFile> directUpload({
     required List<int> fileBytes,
@@ -542,6 +553,7 @@ class DriveApi extends BaseApi {
     String? encryptionSignature,
     String? expiredAt,
     String? parentId,
+    String? workspaceId,
     String? usage,
     String? applicationType,
     ProgressCallback? onSendProgress,
@@ -556,6 +568,7 @@ class DriveApi extends BaseApi {
       'encryption_signature': ?encryptionSignature,
       'expired_at': ?expiredAt,
       'parent_id': ?parentId,
+      'workspace_id': ?workspaceId,
       'usage': ?usage,
       'application_type': ?applicationType,
     });
@@ -768,6 +781,14 @@ class DriveApi extends BaseApi {
   Future<Map<String, dynamic>> getPoolUsage(String poolId) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/billing/usage/$poolId',
+    );
+    return response.data!;
+  }
+
+  /// Returns storage usage for a workspace.
+  Future<Map<String, dynamic>> getWorkspaceQuota(String workspaceId) async {
+    final response = await get<Map<String, dynamic>>(
+      '/billing/workspaces/$workspaceId/quota',
     );
     return response.data!;
   }

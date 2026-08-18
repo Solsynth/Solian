@@ -22,6 +22,26 @@ final indexedCloudFileListProvider = indexedCloudFileListFamilyProvider(
   'default',
 );
 
+/// Workspace selection state for each drive tab.
+class DriveWorkspaceIdNotifier extends Notifier<String?> {
+  DriveWorkspaceIdNotifier(this.tabId);
+  final String tabId;
+
+  @override
+  String? build() => null;
+
+  void setWorkspaceId(String? workspaceId) {
+    if (state == workspaceId) return;
+    state = workspaceId;
+    ref.invalidateSelf();
+  }
+}
+
+final driveWorkspaceIdProvider =
+    NotifierProvider.family<DriveWorkspaceIdNotifier, String?, String>(
+      DriveWorkspaceIdNotifier.new,
+    );
+
 /// Cache-busting token for the Miller-column browser path providers.
 class DriveBrowserEpoch extends Notifier<int> {
   DriveBrowserEpoch(this.tabId);
@@ -41,6 +61,7 @@ final driveBrowserEpochProvider =
 class DriveBrowserPathKey {
   final String path;
   final String? poolId;
+  final String? workspaceId;
   final String? order;
   final bool orderDesc;
   final bool? isFolder;
@@ -55,6 +76,7 @@ class DriveBrowserPathKey {
   const DriveBrowserPathKey({
     required this.path,
     this.poolId,
+    this.workspaceId,
     this.order,
     this.orderDesc = true,
     this.isFolder,
@@ -73,6 +95,7 @@ class DriveBrowserPathKey {
       other is DriveBrowserPathKey &&
           path == other.path &&
           poolId == other.poolId &&
+          workspaceId == other.workspaceId &&
           order == other.order &&
           orderDesc == other.orderDesc &&
           isFolder == other.isFolder &&
@@ -88,6 +111,7 @@ class DriveBrowserPathKey {
   int get hashCode => Object.hash(
     path,
     poolId,
+    workspaceId,
     order,
     orderDesc,
     isFolder,
@@ -119,6 +143,7 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
         if (parentId == null) {
           result = await driveApi.listRootChildren(
             poolId: key.poolId,
+            workspaceId: key.workspaceId,
             name: part,
             isFolder: true,
             take: 20,
@@ -128,6 +153,7 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
           result = await driveApi.listFolderChildren(
             parentId,
             poolId: key.poolId,
+            workspaceId: key.workspaceId,
             name: part,
             isFolder: true,
             take: 20,
@@ -151,6 +177,7 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
       if (parentId == null) {
         result = await driveApi.listRootChildren(
           poolId: key.poolId,
+          workspaceId: key.workspaceId,
           order: key.order,
           orderDesc: key.orderDesc,
           query: key.query,
@@ -166,6 +193,7 @@ final driveBrowserPathProvider = FutureProvider.autoDispose
         result = await driveApi.listFolderChildren(
           parentId,
           poolId: key.poolId,
+          workspaceId: key.workspaceId,
           order: key.order,
           orderDesc: key.orderDesc,
           query: key.query,
@@ -199,6 +227,7 @@ class IndexedCloudFileListNotifier
 
   String _currentPath = '/';
   String? _poolId;
+  String? _workspaceId;
   String? _query;
   String? _extension;
   String? _contentType;
@@ -218,6 +247,12 @@ class IndexedCloudFileListNotifier
   void setPool(String? poolId) {
     if (_poolId == poolId) return;
     _poolId = poolId;
+    ref.invalidateSelf();
+  }
+
+  void setWorkspaceId(String? workspaceId) {
+    if (_workspaceId == workspaceId) return;
+    _workspaceId = workspaceId;
     ref.invalidateSelf();
   }
 
@@ -319,6 +354,7 @@ class IndexedCloudFileListNotifier
     if (resolution.parentId == null) {
       result = await driveApi.listRootChildren(
         offset: fetchedCount,
+        workspaceId: _workspaceId,
         take: pageSize,
         query: _query,
         extension: _extension,
@@ -336,6 +372,7 @@ class IndexedCloudFileListNotifier
         resolution.parentId!,
         offset: fetchedCount,
         take: pageSize,
+        workspaceId: _workspaceId,
         query: _query,
         extension: _extension,
         order: _order,
@@ -383,6 +420,7 @@ class IndexedCloudFileListNotifier
           isFolder: true,
           take: 20,
           orderDesc: false,
+          workspaceId: _workspaceId,
         );
       } else {
         result = await driveApi.listFolderChildren(
@@ -392,6 +430,7 @@ class IndexedCloudFileListNotifier
           isFolder: true,
           take: 20,
           orderDesc: false,
+          workspaceId: _workspaceId,
         );
       }
 
@@ -427,6 +466,7 @@ class UnindexedFileListNotifier
   UnindexedFileListNotifier(this.tabId);
 
   String? _poolId;
+  String? _workspaceId;
   bool _recycled = false;
   String? _query;
   String? _extension;
@@ -441,6 +481,12 @@ class UnindexedFileListNotifier
   void setPool(String? poolId) {
     if (_poolId == poolId) return;
     _poolId = poolId;
+    ref.invalidateSelf();
+  }
+
+  void setWorkspaceId(String? workspaceId) {
+    if (_workspaceId == workspaceId) return;
+    _workspaceId = workspaceId;
     ref.invalidateSelf();
   }
 
@@ -536,6 +582,7 @@ class UnindexedFileListNotifier
 
     final result = await driveApi.listUnindexedFiles(
       poolId: _poolId,
+      workspaceId: _workspaceId,
       recycled: _recycled,
       offset: fetchedCount,
       take: pageSize,

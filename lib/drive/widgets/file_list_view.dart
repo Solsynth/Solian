@@ -387,6 +387,7 @@ class FileListView extends HookConsumerWidget {
     final modeValue = useValueListenable(mode);
     final viewModeValue = useValueListenable(viewMode);
     final queryValue = useValueListenable(query);
+    final workspaceId = ref.watch(driveWorkspaceIdProvider(tabId));
 
     // Defer provider mutations — useEffect runs during HookWidget build here,
     // and invalidateSelf() during build triggers markNeedsBuild assertions.
@@ -399,6 +400,21 @@ class FileListView extends HookConsumerWidget {
       });
       return null;
     }, [currentPathValue, modeValue]);
+
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (modeValue == FileListMode.normal) {
+          ref
+              .read(indexedCloudFileListFamilyProvider(tabId).notifier)
+              .setWorkspaceId(workspaceId);
+        } else {
+          ref
+              .read(unindexedFileListFamilyProvider(tabId).notifier)
+              .setWorkspaceId(workspaceId);
+        }
+      });
+      return null;
+    }, [modeValue, workspaceId]);
 
     if (usage == null) return const SizedBox.shrink();
 
@@ -487,6 +503,7 @@ class FileListView extends HookConsumerWidget {
         final result = await driveApi.listFolderChildren(
           file.id,
           poolId: selectedPool.value?.id,
+          workspaceId: workspaceId,
         );
         if (result.items.isNotEmpty) {
           treeChildrenCache.value = {
@@ -497,10 +514,10 @@ class FileListView extends HookConsumerWidget {
           if (currentVisibleFileIds != null) {
             final visible = currentVisibleFileIds!;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _writeIfObserved(
-                visible,
-                {...visible.value, ...result.items.map((item) => item.id)},
-              );
+              _writeIfObserved(visible, {
+                ...visible.value,
+                ...result.items.map((item) => item.id),
+              });
             });
           }
         }
@@ -2913,6 +2930,7 @@ class _DriveColumnBrowser extends HookConsumerWidget {
     final selectionMode = useValueListenable(isSelectionMode);
     final selectedIds = useValueListenable(selectedFileIds);
     final epoch = ref.watch(driveBrowserEpochProvider(tabId));
+    final workspaceId = ref.watch(driveWorkspaceIdProvider(tabId));
     final focusedFileId = useState<String?>(null);
     final scrollController = useScrollController();
 
@@ -2954,6 +2972,7 @@ class _DriveColumnBrowser extends HookConsumerWidget {
                 query: DriveBrowserPathKey(
                   path: columnPath,
                   poolId: pool?.id,
+                  workspaceId: workspaceId,
                   order: filters.order,
                   orderDesc: filters.orderDesc,
                   isFolder: filters.isFolder,

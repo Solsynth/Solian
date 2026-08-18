@@ -18,6 +18,7 @@ import 'package:island/core/utils/format.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/workspaces/workspace_management.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -35,12 +36,37 @@ import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/drive/widgets/usage_overview.dart';
 
+final workspaceQuotaProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, String?>((ref, workspaceId) async {
+      if (workspaceId == null || workspaceId.isEmpty) return null;
+      final quota = await ref
+          .read(solarNetworkClientProvider)
+          .drive
+          .getWorkspaceQuota(workspaceId);
+      final usedBytes = (quota['used_bytes'] as num?)?.toInt() ?? 0;
+      final totalBytes = (quota['total_bytes'] as num?)?.toInt() ?? 0;
+      return {
+        'total_quota': totalBytes ~/ (1024 * 1024),
+        'used_quota': usedBytes / (1024 * 1024),
+        'total_file_count': quota['total_file_count'] ?? 0,
+        'used_bytes': usedBytes,
+        'total_bytes': totalBytes,
+        'remaining_bytes': quota['remaining_bytes'] ?? 0,
+      };
+    });
+
 class _DriveFileTab {
   final String id;
   final FileListMode mode;
   final SnCloudFile? file;
+  final String? workspaceId;
 
-  const _DriveFileTab({required this.id, required this.mode, this.file});
+  const _DriveFileTab({
+    required this.id,
+    required this.mode,
+    this.file,
+    this.workspaceId,
+  });
 }
 
 @RoutePage()
@@ -51,9 +77,11 @@ class FileListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final usageAsync = ref.watch(billingUsageProvider);
     final quotaAsync = ref.watch(billingQuotaProvider);
+    final workspaceListAsync = ref.watch(workspaceListProvider);
 
     final tabs = useState<List<_DriveFileTab>>([]);
     final activeTabId = useState<String?>(null);
+    final selectedWorkspaceId = useState<String?>(null);
     final showSidebar = useState<bool>(false);
     final showFilters = useState(true);
     final dragging = useState(false);
@@ -93,7 +121,11 @@ class FileListScreen extends HookConsumerWidget {
 
     void createTab(FileListMode mode) {
       final id = DateTime.now().microsecondsSinceEpoch.toString();
-      tabs.value = [...tabs.value, _DriveFileTab(id: id, mode: mode)];
+      final workspaceId = selectedWorkspaceId.value;
+      tabs.value = [
+        ...tabs.value,
+        _DriveFileTab(id: id, mode: mode, workspaceId: workspaceId),
+      ];
       activeTabId.value = id;
       pathStates[id] = ValueNotifier('/');
       modeStates[id] = ValueNotifier(mode);
@@ -108,11 +140,17 @@ class FileListScreen extends HookConsumerWidget {
       visibleFileIdsStates[id] = ValueNotifier(<String>{});
       recycledStates[id] = ValueNotifier(false);
       queryStates[id] = ValueNotifier(null);
+      ref
+          .read(driveWorkspaceIdProvider(id).notifier)
+          .setWorkspaceId(workspaceId);
     }
 
     void openFileTab(SnCloudFile file) {
+      final workspaceId = selectedWorkspaceId.value;
       final existing = tabs.value
-          .where((tab) => tab.file?.id == file.id)
+          .where(
+            (tab) => tab.file?.id == file.id && tab.workspaceId == workspaceId,
+          )
           .firstOrNull;
       if (existing != null) {
         activeTabId.value = existing.id;
@@ -122,15 +160,29 @@ class FileListScreen extends HookConsumerWidget {
       final id = DateTime.now().microsecondsSinceEpoch.toString();
       tabs.value = [
         ...tabs.value,
-        _DriveFileTab(id: id, mode: FileListMode.normal, file: file),
+        _DriveFileTab(
+          id: id,
+          mode: FileListMode.normal,
+          file: file,
+          workspaceId: workspaceId,
+        ),
       ];
+      ref
+          .read(driveWorkspaceIdProvider(id).notifier)
+          .setWorkspaceId(workspaceId);
       activeTabId.value = id;
     }
 
-    void openFolderTab(String path) {
+    void openFolderTab(String path, {String? workspaceId}) {
       final normalizedPath = path.trim().isEmpty ? '/' : path;
+      final selectedWorkspace = workspaceId ?? selectedWorkspaceId.value;
       final existing = tabs.value
-          .where((tab) => tab.file == null && tab.mode == FileListMode.normal)
+          .where(
+            (tab) =>
+                tab.file == null &&
+                tab.mode == FileListMode.normal &&
+                tab.workspaceId == selectedWorkspace,
+          )
           .where((tab) => pathStates[tab.id]?.value == normalizedPath)
           .firstOrNull;
       if (existing != null) {
@@ -141,7 +193,11 @@ class FileListScreen extends HookConsumerWidget {
       final id = DateTime.now().microsecondsSinceEpoch.toString();
       tabs.value = [
         ...tabs.value,
-        _DriveFileTab(id: id, mode: FileListMode.normal),
+        _DriveFileTab(
+          id: id,
+          mode: FileListMode.normal,
+          workspaceId: selectedWorkspace,
+        ),
       ];
       activeTabId.value = id;
       pathStates[id] = ValueNotifier(normalizedPath);
@@ -153,6 +209,9 @@ class FileListScreen extends HookConsumerWidget {
       visibleFileIdsStates[id] = ValueNotifier(<String>{});
       recycledStates[id] = ValueNotifier(false);
       queryStates[id] = ValueNotifier(null);
+      ref
+          .read(driveWorkspaceIdProvider(id).notifier)
+          .setWorkspaceId(selectedWorkspace);
     }
 
     Future<void> revealParentFolder(SnCloudFile file) async {
@@ -170,9 +229,11 @@ class FileListScreen extends HookConsumerWidget {
         segments.add(parent.name);
         currentParentId = parent.parentId;
       }
-
       final path = segments.reversed.join('/');
-      openFolderTab(path.isEmpty ? '/' : '/$path');
+      openFolderTab(
+        path.isEmpty ? '/' : '/$path',
+        workspaceId: selectedWorkspaceId.value,
+      );
     }
 
     void updateFileTab(SnCloudFile file) {
@@ -184,6 +245,7 @@ class FileListScreen extends HookConsumerWidget {
         id: nextTabs[index].id,
         mode: nextTabs[index].mode,
         file: file,
+        workspaceId: nextTabs[index].workspaceId,
       );
       tabs.value = nextTabs;
     }
@@ -203,6 +265,7 @@ class FileListScreen extends HookConsumerWidget {
       visibleFileIdsStates.remove(tabId)?.dispose();
       recycledStates.remove(tabId)?.dispose();
       queryStates.remove(tabId)?.dispose();
+      ref.invalidate(driveWorkspaceIdProvider(tabId));
       invalidateIndexedDriveViews(ref, tabId);
       ref.invalidate(unindexedFileListFamilyProvider(tabId));
 
@@ -266,6 +329,36 @@ class FileListScreen extends HookConsumerWidget {
         : tabs.value.where((tab) => tab.id == activeTabId.value).firstOrNull;
     final currentPath = activeTab == null ? null : pathStates[activeTab.id];
     final mode = activeTab == null ? null : modeStates[activeTab.id];
+    final activeWorkspaceId = activeTab == null
+        ? selectedWorkspaceId.value
+        : ref.watch(driveWorkspaceIdProvider(activeTab.id));
+    void changeWorkspace(String? workspaceId) {
+      selectedWorkspaceId.value = workspaceId;
+      final tab = activeTab;
+      if (tab == null) return;
+      tabs.value = tabs.value
+          .map(
+            (item) => item.id == tab.id
+                ? _DriveFileTab(
+                    id: item.id,
+                    mode: item.mode,
+                    file: item.file,
+                    workspaceId: workspaceId,
+                  )
+                : item,
+          )
+          .toList();
+      ref
+          .read(driveWorkspaceIdProvider(tab.id).notifier)
+          .setWorkspaceId(workspaceId);
+      pathStates[tab.id]?.value = '/';
+      poolStates[tab.id]?.value = null;
+      selectedFileIdsStates[tab.id]?.value = <String>{};
+      visibleFileIdsStates[tab.id]?.value = <String>{};
+      invalidateIndexedDriveViews(ref, tab.id);
+      ref.invalidate(unindexedFileListFamilyProvider(tab.id));
+    }
+
     final selectedPool = activeTab == null ? null : poolStates[activeTab.id];
     final viewMode = activeTab == null ? null : viewModeStates[activeTab.id];
     final isSelectionMode = activeTab == null
@@ -281,6 +374,15 @@ class FileListScreen extends HookConsumerWidget {
     final query = activeTab == null ? null : queryStates[activeTab.id];
     final currentPathValue = useValueListenable(currentPath ?? fallbackPath);
     final modeValue = useValueListenable(mode ?? fallbackMode);
+    final workspaceQuotaAsync = ref.watch(
+      workspaceQuotaProvider(activeWorkspaceId),
+    );
+    final activeUsageAsync = activeWorkspaceId == null
+        ? usageAsync
+        : workspaceQuotaAsync;
+    final activeQuotaAsync = activeWorkspaceId == null
+        ? quotaAsync
+        : const AsyncValue.data(null);
     final selectedPoolValue = useValueListenable(selectedPool ?? fallbackPool);
     final isSelectionModeValue = useValueListenable(
       isSelectionMode ?? fallbackSelectionMode,
@@ -356,9 +458,8 @@ class FileListScreen extends HookConsumerWidget {
       );
     }
 
-    // Main content widget
-    final bodyContent = usageAsync.when(
-      data: (usage) => quotaAsync.when(
+    final bodyContent = activeUsageAsync.when(
+      data: (usage) => activeQuotaAsync.when(
         data: (quota) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -385,11 +486,20 @@ class FileListScreen extends HookConsumerWidget {
                     },
                     onRenameFile: updateFileTab,
                     onRevealParentFolder: revealParentFolder,
-                    onSelectTab: (tabId) => activeTabId.value = tabId,
+                    onSelectTab: (tabId) {
+                      activeTabId.value = tabId;
+                      final tab = tabs.value
+                          .where((item) => item.id == tabId)
+                          .firstOrNull;
+                      selectedWorkspaceId.value = tab?.workspaceId;
+                    },
                     onCloseTab: closeTab,
                     onReorderTab: reorderTab,
                     onAddIndexedTab: () => createTab(FileListMode.normal),
                     onAddUnindexedTab: () => createTab(FileListMode.unindexed),
+                    workspaces: workspaceListAsync.asData?.value ?? const [],
+                    selectedWorkspaceId: activeWorkspaceId,
+                    onWorkspaceChanged: changeWorkspace,
                     onRefresh: activeTab == null || activeTab.file != null
                         ? null
                         : () async {
@@ -425,6 +535,7 @@ class FileListScreen extends HookConsumerWidget {
                             activeTab.id,
                             currentPathValue,
                             selectedPoolValue?.id,
+                            activeWorkspaceId,
                           ),
                     onUpload:
                         activeTab == null ||
@@ -438,6 +549,7 @@ class FileListScreen extends HookConsumerWidget {
                             activeTab.id,
                             currentPathValue,
                             selectedPoolValue?.id,
+                            activeWorkspaceId,
                           ),
                     uploadIsAsset: modeValue == FileListMode.unindexed,
                   ),
@@ -470,6 +582,7 @@ class FileListScreen extends HookConsumerWidget {
                           ? _DriveFileContentTab(
                               key: ValueKey(activeTab.id),
                               file: activeTab.file!,
+                              workspaceId: activeWorkspaceId,
                               onInspectFile: (file) {
                                 ref
                                     .read(driveInspectorFileProvider.notifier)
@@ -497,13 +610,17 @@ class FileListScreen extends HookConsumerWidget {
                               quota: quota,
                               currentPath: currentPath,
                               selectedPool: selectedPool,
+                              onOpenFolderInNewTab: (path) => openFolderTab(
+                                path,
+                                workspaceId: activeWorkspaceId,
+                              ),
                               showFilters: showFilters.value,
-                              onOpenFolderInNewTab: openFolderTab,
                               onPickAndUpload: () => _pickAndUploadFile(
                                 ref,
                                 activeTab.id,
                                 currentPathValue,
                                 selectedPoolValue?.id,
+                                activeWorkspaceId,
                               ),
                               onShowCreateFolder: () => _showCreateFolderDialog(
                                 context,
@@ -511,6 +628,7 @@ class FileListScreen extends HookConsumerWidget {
                                 activeTab.id,
                                 currentPathValue,
                                 selectedPoolValue?.id,
+                                activeWorkspaceId,
                               ),
                               onInspectFile: (file) {
                                 ref
@@ -662,6 +780,7 @@ class FileListScreen extends HookConsumerWidget {
                 activeTab.id,
                 currentPath.value,
                 selectedPool.value?.id,
+                activeWorkspaceId,
                 details.files,
               );
             },
@@ -813,6 +932,7 @@ class FileListScreen extends HookConsumerWidget {
                 activeTab.id,
                 currentPath,
                 selectedPool,
+                activeWorkspaceId,
               ),
               tooltip: 'addFilesOrCreateDirectory'.tr(),
               child: const Icon(Symbols.add),
@@ -837,6 +957,7 @@ class FileListScreen extends HookConsumerWidget {
     String tabId,
     String currentPath,
     String? poolId,
+    String? workspaceId,
   ) async {
     try {
       final result = await FilePicker.pickFiles(
@@ -850,6 +971,7 @@ class FileListScreen extends HookConsumerWidget {
           tabId,
           currentPath,
           poolId,
+          workspaceId,
           result.files
               .where((file) => file.path != null)
               .map((file) => XFile(file.path!, name: file.name))
@@ -866,13 +988,21 @@ class FileListScreen extends HookConsumerWidget {
     String tabId,
     String currentPath,
     String? poolId,
+    String? workspaceId,
   ) async {
     try {
       final folderPath = await FilePicker.getDirectoryPath(
         dialogTitle: 'uploadFolder'.tr(),
       );
       if (folderPath == null || folderPath.isEmpty) return;
-      await _uploadLocalDirectory(ref, tabId, currentPath, poolId, folderPath);
+      await _uploadLocalDirectory(
+        ref,
+        tabId,
+        currentPath,
+        poolId,
+        workspaceId,
+        folderPath,
+      );
     } catch (e) {
       showSnackBar('failedToUploadFolder'.tr(args: [e.toString()]));
     }
@@ -882,6 +1012,7 @@ class FileListScreen extends HookConsumerWidget {
     WidgetRef ref,
     String drivePath,
     String? poolId,
+    String? workspaceId,
   ) async {
     final normalizedPath = drivePath.trim();
     if (normalizedPath.isEmpty || normalizedPath == '/') return;
@@ -897,15 +1028,24 @@ class FileListScreen extends HookConsumerWidget {
     for (final segment in segments) {
       final nextPath = '$currentPath/$segment';
       try {
-        await uploader.resolveParentIdFromPath(path: nextPath, poolId: poolId);
+        await uploader.resolveParentIdFromPath(
+          path: nextPath,
+          poolId: poolId,
+          workspaceId: workspaceId,
+        );
       } catch (_) {
         final parentId = currentPath.isEmpty
             ? null
             : await uploader.resolveParentIdFromPath(
                 path: currentPath,
                 poolId: poolId,
+                workspaceId: workspaceId,
               );
-        await driveApi.createFolder(name: segment, parentId: parentId);
+        await driveApi.createFolder(
+          name: segment,
+          parentId: parentId,
+          workspaceId: workspaceId,
+        );
       }
       currentPath = nextPath;
     }
@@ -916,6 +1056,7 @@ class FileListScreen extends HookConsumerWidget {
     String tabId,
     String currentPath,
     String? poolId,
+    String? workspaceId,
     String rootDirectoryPath,
   ) async {
     final rootDirectory = Directory(rootDirectoryPath);
@@ -934,7 +1075,7 @@ class FileListScreen extends HookConsumerWidget {
         ? currentPath
         : (currentPath == '/' ? '/$rootName' : '$currentPath/$rootName');
 
-    await _ensureDriveDirectoryPath(ref, baseDrivePath, poolId);
+    await _ensureDriveDirectoryPath(ref, baseDrivePath, poolId, workspaceId);
 
     for (final file in files) {
       final relativePath = file.path.substring(rootDirectory.path.length);
@@ -953,7 +1094,7 @@ class FileListScreen extends HookConsumerWidget {
           ? baseDrivePath
           : '$baseDrivePath/${nestedFolders.join('/')}';
 
-      await _ensureDriveDirectoryPath(ref, targetPath, poolId);
+      await _ensureDriveDirectoryPath(ref, targetPath, poolId, workspaceId);
 
       final completer = ref
           .read(driveFileUploaderProvider)
@@ -965,6 +1106,7 @@ class FileListScreen extends HookConsumerWidget {
             ),
             path: targetPath,
             poolId: poolId,
+            workspaceId: workspaceId,
             onProgress: (progress, _) {
               if (progress != null) {
                 debugPrint('Upload progress: ${(progress * 100).toInt()}%');
@@ -986,6 +1128,7 @@ class FileListScreen extends HookConsumerWidget {
     String tabId,
     String currentPath,
     String? poolId,
+    String? workspaceId,
     List<XFile> files,
   ) async {
     if (files.isEmpty) return;
@@ -999,6 +1142,7 @@ class FileListScreen extends HookConsumerWidget {
             tabId,
             currentPath,
             poolId,
+            workspaceId,
             file.path,
           );
           continue;
@@ -1018,6 +1162,7 @@ class FileListScreen extends HookConsumerWidget {
             fileData: universalFile,
             path: currentPath,
             poolId: poolId,
+            workspaceId: workspaceId,
             onProgress: (progress, _) {
               if (progress != null) {
                 debugPrint('Upload progress: ${(progress * 100).toInt()}%');
@@ -1058,6 +1203,7 @@ class FileListScreen extends HookConsumerWidget {
     String tabId,
     String currentPath,
     String? poolId,
+    String? workspaceId,
   ) async {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
@@ -1102,10 +1248,12 @@ class FileListScreen extends HookConsumerWidget {
                     final parentId = await uploader.resolveParentIdFromPath(
                       path: currentPath,
                       poolId: poolId,
+                      workspaceId: workspaceId,
                     );
                     await driveApi.createFolder(
                       name: nameController.text.trim(),
                       parentId: parentId,
+                      workspaceId: workspaceId,
                     );
                     if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
@@ -1145,10 +1293,12 @@ class FileListScreen extends HookConsumerWidget {
                         final parentId = await uploader.resolveParentIdFromPath(
                           path: currentPath,
                           poolId: poolId,
+                          workspaceId: workspaceId,
                         );
                         await driveApi.createFolder(
                           name: nameController.text.trim(),
                           parentId: parentId,
+                          workspaceId: workspaceId,
                         );
                         if (dialogContext.mounted) {
                           Navigator.of(dialogContext).pop();
@@ -1203,6 +1353,7 @@ class FileListScreen extends HookConsumerWidget {
     String tabId,
     ValueNotifier<String> currentPath,
     ValueNotifier<SnFilePool?> selectedPool,
+    String? workspaceId,
   ) {
     showModalBottomSheet(
       context: context,
@@ -1222,6 +1373,7 @@ class FileListScreen extends HookConsumerWidget {
                   tabId,
                   currentPath.value,
                   selectedPool.value?.id,
+                  workspaceId,
                 );
               },
             ),
@@ -1235,6 +1387,7 @@ class FileListScreen extends HookConsumerWidget {
                   tabId,
                   currentPath.value,
                   selectedPool.value?.id,
+                  workspaceId,
                 );
               },
             ),
@@ -1248,6 +1401,7 @@ class FileListScreen extends HookConsumerWidget {
                   tabId,
                   currentPath.value,
                   selectedPool.value?.id,
+                  workspaceId,
                 );
               },
             ),
@@ -1275,6 +1429,9 @@ class _DriveTabStrip extends StatelessWidget {
   final VoidCallback? onNewFolder;
   final VoidCallback? onUpload;
   final bool uploadIsAsset;
+  final List<WorkspaceSummary> workspaces;
+  final String? selectedWorkspaceId;
+  final ValueChanged<String?> onWorkspaceChanged;
 
   const _DriveTabStrip({
     required this.tabs,
@@ -1291,6 +1448,9 @@ class _DriveTabStrip extends StatelessWidget {
     this.onNewFolder,
     this.onUpload,
     this.uploadIsAsset = false,
+    required this.workspaces,
+    required this.selectedWorkspaceId,
+    required this.onWorkspaceChanged,
   });
 
   IconData _tabIcon(_DriveFileTab tab) {
@@ -1395,6 +1555,70 @@ class _DriveTabStrip extends StatelessWidget {
                           );
                         },
                       ),
+              ),
+              PopupMenuButton<String>(
+                tooltip: 'workspace'.tr(),
+                padding: EdgeInsets.zero,
+                onSelected: (value) =>
+                    onWorkspaceChanged(value == '__personal__' ? null : value),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: '__personal__',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Symbols.person, size: 20),
+                      title: Text('personalFiles'.tr()),
+                    ),
+                  ),
+                  ...workspaces.map(
+                    (workspace) => PopupMenuItem(
+                      value: workspace.id,
+                      child: ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Symbols.workspaces, size: 20),
+                        title: Text(workspace.name),
+                      ),
+                    ),
+                  ),
+                ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        selectedWorkspaceId == null
+                            ? Symbols.person
+                            : Symbols.workspaces,
+                        size: 18,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                      const Gap(4),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 140),
+                        child: Text(
+                          selectedWorkspaceId == null
+                              ? 'personalFiles'.tr()
+                              : workspaces
+                                        .where(
+                                          (workspace) =>
+                                              workspace.id ==
+                                              selectedWorkspaceId,
+                                        )
+                                        .firstOrNull
+                                        ?.name ??
+                                    'workspace'.tr(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                      const Icon(Symbols.arrow_drop_down, size: 18),
+                    ],
+                  ),
+                ),
               ),
               VerticalDivider(width: 1, thickness: 1, color: border),
               PopupMenuButton<String>(
@@ -2007,18 +2231,27 @@ class _DriveSelectionStatusBar extends StatelessWidget {
 
 class _DriveFileContentTab extends ConsumerWidget {
   final SnCloudFile file;
+  final String? workspaceId;
   final void Function(SnCloudFile file) onInspectFile;
 
   const _DriveFileContentTab({
     super.key,
     required this.file,
+    this.workspaceId,
     required this.onInspectFile,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/drive/files/${file.id}';
+    final uri = Uri.parse('$serverUrl/drive/files/${file.id}')
+        .replace(
+          queryParameters: {
+            if (workspaceId != null && workspaceId!.isNotEmpty)
+              'workspace_id': workspaceId!,
+          },
+        )
+        .toString();
 
     return SizedBox.expand(
       child: GestureDetector(
