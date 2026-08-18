@@ -33,7 +33,6 @@ class DriveWorkspaceIdNotifier extends Notifier<String?> {
   void setWorkspaceId(String? workspaceId) {
     if (state == workspaceId) return;
     state = workspaceId;
-    ref.invalidateSelf();
   }
 }
 

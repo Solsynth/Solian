@@ -1070,15 +1070,16 @@ class FileUploader {
     String? usage,
     String? applicationType,
     Function(double? progress, Duration estimate)? onProgress,
+    void Function(String stage, double progress)? onStage,
   }) async {
     final xfile = fileData is XFile ? fileData : null;
     final byteData = fileData is Uint8List ? fileData : null;
     if (xfile == null && byteData == null) {
       throw ArgumentError('Invalid fileData type');
     }
-
     final int fileSize;
     final String hash;
+    onStage?.call('hashing', 0);
     if (xfile != null) {
       fileSize = await xfile.length();
       hash = await _calculateFileHashFromStream(xfile.openRead());
@@ -1086,7 +1087,10 @@ class FileUploader {
       fileSize = byteData!.length;
       hash = _calculateFileHash(byteData);
     }
+    onStage?.call('hashing', 1);
+    onStage?.call('preparing_media', 0);
     final clientMedia = await _prepareClientMediaUpload(fileData, contentType);
+    onStage?.call('preparing_media', 1);
 
     // Large XFiles go through the multipart direct flow (parallel presigned
     // part PUTs, server-side completion). Byte payloads are already
@@ -1109,10 +1113,12 @@ class FileUploader {
         usage: usage,
         applicationType: applicationType,
         onProgress: onProgress,
+        onStage: onStage,
         clientMedia: clientMedia,
       );
     }
 
+    onStage?.call('creating_upload', 0);
     onProgress?.call(null, Duration.zero);
     final prepareTimer = Stopwatch()..start();
     Map<String, dynamic> prepared;
@@ -1175,19 +1181,24 @@ class FileUploader {
         'Direct upload prepare response is missing task_id or upload_url.',
       );
     }
+    onStage?.call('creating_upload', 1);
     final preparedContentType = prepared['content_type']?.toString();
     final resolvedContentType =
         (preparedContentType == null || preparedContentType.isEmpty)
         ? contentType
         : preparedContentType;
 
+    onStage?.call('uploading_source', 0);
     final putTimer = Stopwatch()..start();
     if (xfile != null && !kIsWeb) {
       await _putXFileToPresignedUrl(
         uploadUrl: uploadUrl,
         file: xfile,
         contentType: resolvedContentType,
-        onProgress: onProgress,
+        onProgress: (progress, estimate) {
+          onStage?.call('uploading_source', progress ?? 0);
+          onProgress?.call(progress, estimate);
+        },
       );
     } else {
       final body = xfile != null
@@ -1205,7 +1216,9 @@ class FileUploader {
           ),
           onSendProgress: (sent, total) {
             if (total > 0) {
-              onProgress?.call(sent / total, Duration.zero);
+              final progress = sent / total;
+              onStage?.call('uploading_source', progress);
+              onProgress?.call(progress, Duration.zero);
             }
           },
         );
@@ -1213,30 +1226,37 @@ class FileUploader {
         putClient.close();
       }
     }
+    onStage?.call('uploading_source', 1);
     final thumbnailUploadUrl = prepared['thumbnail_upload_url']?.toString();
     if (clientMedia?.thumbnail != null &&
         thumbnailUploadUrl != null &&
         thumbnailUploadUrl.isNotEmpty) {
+      onStage?.call('uploading_thumbnail', 0);
       await _putClientDerivative(
         thumbnailUploadUrl,
         clientMedia!.thumbnail!,
         'image/jpeg',
       );
+      onStage?.call('uploading_thumbnail', 1);
     }
     final compressionUploadUrl = prepared['compression_upload_url']?.toString();
     if (clientMedia?.compression != null &&
         compressionUploadUrl != null &&
         compressionUploadUrl.isNotEmpty) {
+      onStage?.call('uploading_compression', 0);
       await _putClientDerivative(
         compressionUploadUrl,
         clientMedia!.compression!,
         'image/webp',
       );
+      onStage?.call('uploading_compression', 1);
     }
     putTimer.stop();
     debugPrint('[DriveUpload] S3 PUT took: ${putTimer.elapsedMilliseconds}ms');
-
-    return _completeS3DirectUpload(taskId, onProgress);
+    onStage?.call('finalizing', 0);
+    final result = await _completeS3DirectUpload(taskId, onProgress);
+    onStage?.call('finalizing', 1);
+    return result;
   }
 
   /// Commits a prepared S3 direct upload (single PUT or multipart) and parses
@@ -1296,7 +1316,9 @@ class FileUploader {
     String? usage,
     String? applicationType,
     Function(double? progress, Duration estimate)? onProgress,
+    void Function(String stage, double progress)? onStage,
   }) async {
+    onStage?.call('creating_upload', 0);
     onProgress?.call(null, Duration.zero);
     final prepareTimer = Stopwatch()..start();
     Map<String, dynamic> prepared;
@@ -1369,6 +1391,7 @@ class FileUploader {
         'part_count.',
       );
     }
+    onStage?.call('creating_upload', 1);
     final preparedContentType = prepared['content_type']?.toString();
     final resolvedContentType =
         (preparedContentType == null || preparedContentType.isEmpty)
@@ -1387,6 +1410,7 @@ class FileUploader {
       }
     }
 
+    onStage?.call('uploading_source', 0);
     final putTimer = Stopwatch()..start();
     final limiter = _ConcurrencyLimiter(driveChunkUploadConcurrency);
     var sent = 0;
@@ -1406,6 +1430,7 @@ class FileUploader {
                   ? fileSize - (partCount - 1) * partSize
                   : partSize;
               sent += partBytes;
+              onStage?.call('uploading_source', sent / fileSize);
               onProgress?.call(sent / fileSize, Duration.zero);
             }()
           else
@@ -1420,6 +1445,7 @@ class FileUploader {
                     contentType: resolvedContentType,
                   ).then((bytes) {
                     sent += bytes;
+                    onStage?.call('uploading_source', sent / fileSize);
                     onProgress?.call(sent / fileSize, Duration.zero);
                   }),
             ),
@@ -1435,23 +1461,30 @@ class FileUploader {
     if (clientMedia?.thumbnail != null &&
         thumbnailUploadUrl != null &&
         thumbnailUploadUrl.isNotEmpty) {
+      onStage?.call('uploading_thumbnail', 0);
       await _putClientDerivative(
         thumbnailUploadUrl,
         clientMedia!.thumbnail!,
         'image/jpeg',
       );
+      onStage?.call('uploading_thumbnail', 1);
     }
     final compressionUploadUrl = prepared['compression_upload_url']?.toString();
     if (clientMedia?.compression != null &&
         compressionUploadUrl != null &&
         compressionUploadUrl.isNotEmpty) {
+      onStage?.call('uploading_compression', 0);
       await _putClientDerivative(
         compressionUploadUrl,
         clientMedia!.compression!,
         'image/webp',
       );
+      onStage?.call('uploading_compression', 1);
     }
-    return _completeS3DirectUpload(taskId, onProgress);
+    onStage?.call('finalizing', 0);
+    final result = await _completeS3DirectUpload(taskId, onProgress);
+    onStage?.call('finalizing', 1);
+    return result;
   }
 
   /// Presigns and uploads one part of a multipart direct upload, returning

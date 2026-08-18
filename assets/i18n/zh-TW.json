@@ -2395,6 +2395,7 @@
   "permissionModerator": "版主",
   "permissionOwner": "所有者",
   "personalMessage": "個人訊息",
+  "personalFiles": "個人檔案",
   "personalWallet": "個人錢包",
   "personalWalletHint": "此錢包將是您的個人錢包。",
   "physicalPassport": "實體通行證",

@@ -2499,6 +2499,7 @@
   "permissionOwner": "所有者",
   "permissions": "权限",
   "personalMessage": "个人消息",
+  "personalFiles": "个人文件",
   "personalWallet": "个人钱包",
   "personalWalletHint": "此钱包将是您的个人钱包。",
   "phaseComplete": "完成",

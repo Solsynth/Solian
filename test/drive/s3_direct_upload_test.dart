@@ -242,14 +242,20 @@ void main() {
     final source = Uint8List(driveS3DirectMultipartMinFileSizeBytes);
     await file.writeAsBytes(source, flush: true);
     addTearDown(() => file.deleteSync());
-
     final uploader = container.read(driveFileUploaderProvider);
+
     double? lastProgress;
+    final stages = <String>[];
     final result = await uploader.tryUploadViaS3Direct(
       fileData: XFile(file.path),
       fileName: 'big.bin',
       contentType: 'application/octet-stream',
       parentId: 'parent-1',
+      onStage: (stage, progress) {
+        if (stages.isEmpty || stages.last != stage) {
+          stages.add(stage);
+        }
+      },
       onProgress: (progress, estimate) {
         if (progress != null) {
           lastProgress = progress;
@@ -266,7 +272,8 @@ void main() {
     expect(dyson.completeCalls, 1);
 
     // every part was presigned exactly once, in order.
-    const partCount = driveS3DirectMultipartMinFileSizeBytes ~/ (5 * 1024 * 1024);
+    const partCount =
+        driveS3DirectMultipartMinFileSizeBytes ~/ (5 * 1024 * 1024);
     expect(dyson.partRequests, List.generate(partCount, (index) => index + 1));
 
     // all part PUTs landed on the fake S3, sized correctly, and the
@@ -287,6 +294,16 @@ void main() {
       rebuilt.setRange(offset, offset + part.length, part);
       offset += part.length;
     }
+    expect(
+      stages,
+      containsAllInOrder([
+        'hashing',
+        'preparing_media',
+        'creating_upload',
+        'uploading_source',
+        'finalizing',
+      ]),
+    );
     expect(rebuilt, equals(source));
     expect(offset, source.length);
 
@@ -369,39 +386,41 @@ void main() {
     expect(s3.objects['/single'], equals(source));
   });
 
-  test('byte-backed upload (editor flow) sends displayName as file_name',
-      () async {
-    // Mirrors ImagePickerEditor.startUpload: picked bytes wrapped in an
-    // in-memory XFile whose real name is carried via UniversalFile.displayName
-    // (cross_file's io implementation drops `fromData`'s `name:` argument,
-    // which previously produced an empty `file_name` and a server-side
-    // "file_name and positive file_size are required" rejection).
-    dyson.singlePut = true;
-    final bytes = Uint8List.fromList(
-      List.generate(1024 * 1024, (i) => i % 251),
-    );
-    final uploader = container.read(driveFileUploaderProvider);
-    final result = await uploader
-        .createCloudFile(
-          fileData: UniversalFile(
-            data: XFile.fromData(
-              bytes,
-              name: 'IMG_0001.jpg',
-              mimeType: 'image/jpeg',
+  test(
+    'byte-backed upload (editor flow) sends displayName as file_name',
+    () async {
+      // Mirrors ImagePickerEditor.startUpload: picked bytes wrapped in an
+      // in-memory XFile whose real name is carried via UniversalFile.displayName
+      // (cross_file's io implementation drops `fromData`'s `name:` argument,
+      // which previously produced an empty `file_name` and a server-side
+      // "file_name and positive file_size are required" rejection).
+      dyson.singlePut = true;
+      final bytes = Uint8List.fromList(
+        List.generate(1024 * 1024, (i) => i % 251),
+      );
+      final uploader = container.read(driveFileUploaderProvider);
+      final result = await uploader
+          .createCloudFile(
+            fileData: UniversalFile(
+              data: XFile.fromData(
+                bytes,
+                name: 'IMG_0001.jpg',
+                mimeType: 'image/jpeg',
+              ),
+              type: UniversalFileType.image,
+              displayName: 'IMG_0001.jpg',
             ),
-            type: UniversalFileType.image,
-            displayName: 'IMG_0001.jpg',
-          ),
-        )
-        .future;
+          )
+          .future;
 
-    expect(result, isNotNull);
-    expect(dyson.prepareCalls, 1);
-    expect(dyson.lastFileName, 'IMG_0001.jpg');
-    expect(dyson.lastFileSize, bytes.length);
-    // The in-memory bytes reached the fake S3 intact.
-    expect(s3.objects['/single'], equals(bytes));
-  });
+      expect(result, isNotNull);
+      expect(dyson.prepareCalls, 1);
+      expect(dyson.lastFileName, 'IMG_0001.jpg');
+      expect(dyson.lastFileSize, bytes.length);
+      // The in-memory bytes reached the fake S3 intact.
+      expect(s3.objects['/single'], equals(bytes));
+    },
+  );
 
   test('in-memory XFile without displayName has no file name on io', () async {
     // Documents the cross_file trap that broke profile uploads: on io

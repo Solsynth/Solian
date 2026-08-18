@@ -2615,6 +2615,7 @@
   "permissionOwner": "Owner",
   "permissions": "Permissions",
   "personalMessage": "Personal Message",
+  "personalFiles": "Personal files",
   "personalWallet": "Personal Wallet",
   "personalWalletHint": "This wallet will be your personal wallet.",
   "phaseComplete": "Complete",

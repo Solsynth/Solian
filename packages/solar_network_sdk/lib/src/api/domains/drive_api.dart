@@ -788,7 +788,7 @@ class DriveApi extends BaseApi {
   /// Returns storage usage for a workspace.
   Future<Map<String, dynamic>> getWorkspaceQuota(String workspaceId) async {
     final response = await get<Map<String, dynamic>>(
-      '/billing/workspaces/$workspaceId/quota',
+      '/drive/billing/workspaces/$workspaceId/quota',
     );
     return response.data!;
   }

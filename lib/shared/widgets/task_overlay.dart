@@ -670,26 +670,34 @@ class _DriveUploadDetails extends StatelessWidget {
     final meta = task.metadata;
     final transmissionProgress =
         (meta?['transmissionProgress'] as num?)?.toDouble() ?? 0.0;
-    final uploadedChunks = meta?['uploadedChunks'] as int? ?? 0;
-    final totalChunks = meta?['totalChunks'] as int? ?? 1;
-    final fileSize = meta?['fileSize'] as int? ?? 0;
+    final uploadedChunks = (meta?['uploadedChunks'] as num?)?.toInt() ?? 0;
+    final totalChunks = (meta?['totalChunks'] as num?)?.toInt() ?? 1;
+    final fileSize = (meta?['fileSize'] as num?)?.toInt() ?? 0;
+    final stage = meta?['stage']?.toString();
+    final stageProgress =
+        (meta?['stageProgress'] as num?)?.toDouble() ?? task.progress;
+    final sourceProgress =
+        (meta?['sourceProgress'] as num?)?.toDouble() ?? transmissionProgress;
+    final thumbnailProgress =
+        (meta?['thumbnailProgress'] as num?)?.toDouble() ?? 0.0;
+    final compressionProgress =
+        (meta?['compressionProgress'] as num?)?.toDouble() ?? 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DetailSectionHeader(
-          label: task.statusMessage ?? 'taskProcessing'.tr(),
+          label:
+              task.statusMessage ??
+              (stage == null
+                  ? 'taskProcessing'.tr()
+                  : DriveUploadStage.label(stage)),
           color: colorScheme.primary,
         ),
         const SizedBox(height: 2),
         _ProgressRow(
-          left: '${(task.progress * 100).toStringAsFixed(1)}%',
-          right: 'taskChunksCount'.tr(
-            namedArgs: {
-              'current': '$uploadedChunks',
-              'total': '$totalChunks',
-            },
-          ),
+          left: '${(stageProgress * 100).toStringAsFixed(1)}%',
+          right: stage == null ? '' : DriveUploadStage.label(stage),
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
@@ -697,6 +705,36 @@ class _DriveUploadDetails extends StatelessWidget {
           backgroundColor: colorScheme.surface,
           valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
         ),
+        const SizedBox(height: 8),
+        _ProgressRow(
+          left: '${(task.progress * 100).toStringAsFixed(1)}%',
+          right: 'taskChunksCount'.tr(
+            namedArgs: {'current': '$uploadedChunks', 'total': '$totalChunks'},
+          ),
+        ),
+        const SizedBox(height: 4),
+        _StageProgressBar(
+          label: 'Source',
+          progress: sourceProgress,
+          color: colorScheme.secondary,
+        ),
+        if (thumbnailProgress > 0 || meta?['thumbnailProgress'] != null) ...[
+          const SizedBox(height: 4),
+          _StageProgressBar(
+            label: 'Thumbnail',
+            progress: thumbnailProgress,
+            color: colorScheme.tertiary,
+          ),
+        ],
+        if (compressionProgress > 0 ||
+            meta?['compressionProgress'] != null) ...[
+          const SizedBox(height: 4),
+          _StageProgressBar(
+            label: 'Compression',
+            progress: compressionProgress,
+            color: colorScheme.tertiary,
+          ),
+        ],
         const SizedBox(height: 8),
         _DetailSectionHeader(
           label: 'taskFileTransmission'.tr(),
@@ -873,6 +911,37 @@ class _DetailSectionHeader extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: color,
       ),
+    );
+  }
+}
+
+class _StageProgressBar extends StatelessWidget {
+  final String label;
+  final double progress;
+  final Color color;
+
+  const _StageProgressBar({
+    required this.label,
+    required this.progress,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _ProgressRow(
+          left: label,
+          right: '${(progress * 100).toStringAsFixed(1)}%',
+        ),
+        const SizedBox(height: 2),
+        LinearProgressIndicator(
+          value: progress.clamp(0.0, 1.0),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        ),
+      ],
     );
   }
 }

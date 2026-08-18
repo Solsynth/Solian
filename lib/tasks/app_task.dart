@@ -48,12 +48,43 @@ sealed class AppTask with _$AppTask {
 
 // --- Typed metadata classes for domain-specific data ---
 
+class DriveUploadStage {
+  static const preparing = 'preparing';
+  static const hashing = 'hashing';
+  static const preparingMedia = 'preparing_media';
+  static const creatingUpload = 'creating_upload';
+  static const uploadingSource = 'uploading_source';
+  static const uploadingThumbnail = 'uploading_thumbnail';
+  static const uploadingCompression = 'uploading_compression';
+  static const finalizing = 'finalizing';
+  static const fallingBack = 'falling_back';
+  static const completed = 'completed';
+
+  static String label(String stage) => switch (stage) {
+    hashing => 'Hashing file',
+    preparingMedia => 'Preparing media',
+    creatingUpload => 'Creating upload',
+    uploadingSource => 'Uploading source',
+    uploadingThumbnail => 'Uploading thumbnail',
+    uploadingCompression => 'Uploading compression',
+    finalizing => 'Finalizing upload',
+    fallingBack => 'Switching to standard upload',
+    completed => 'Upload completed',
+    _ => 'Preparing upload',
+  };
+}
+
 class DriveUploadTaskMeta {
   final String? serverTaskId;
   final int fileSize;
   final int totalChunks;
   final int uploadedChunks;
   final double? transmissionProgress;
+  final String? stage;
+  final double stageProgress;
+  final double sourceProgress;
+  final double thumbnailProgress;
+  final double compressionProgress;
   final String? poolId;
   final String? encryptPassword;
   final String? expiredAt;
@@ -64,6 +95,11 @@ class DriveUploadTaskMeta {
     required this.totalChunks,
     this.uploadedChunks = 0,
     this.transmissionProgress,
+    this.stage,
+    this.stageProgress = 0,
+    this.sourceProgress = 0,
+    this.thumbnailProgress = 0,
+    this.compressionProgress = 0,
     this.poolId,
     this.encryptPassword,
     this.expiredAt,
@@ -76,6 +112,11 @@ class DriveUploadTaskMeta {
     'uploadedChunks': uploadedChunks,
     if (transmissionProgress != null)
       'transmissionProgress': transmissionProgress,
+    if (stage != null) 'stage': stage,
+    'stageProgress': stageProgress,
+    'sourceProgress': sourceProgress,
+    'thumbnailProgress': thumbnailProgress,
+    'compressionProgress': compressionProgress,
     if (poolId != null) 'poolId': poolId,
     if (encryptPassword != null) 'encryptPassword': encryptPassword,
     if (expiredAt != null) 'expiredAt': expiredAt,
@@ -84,10 +125,16 @@ class DriveUploadTaskMeta {
   factory DriveUploadTaskMeta.fromMap(Map<String, dynamic> map) =>
       DriveUploadTaskMeta(
         serverTaskId: map['serverTaskId'] as String?,
-        fileSize: map['fileSize'] as int,
-        totalChunks: map['totalChunks'] as int,
-        uploadedChunks: map['uploadedChunks'] as int? ?? 0,
-        transmissionProgress: map['transmissionProgress'] as double?,
+        fileSize: (map['fileSize'] as num).toInt(),
+        totalChunks: (map['totalChunks'] as num).toInt(),
+        uploadedChunks: (map['uploadedChunks'] as num?)?.toInt() ?? 0,
+        transmissionProgress: (map['transmissionProgress'] as num?)?.toDouble(),
+        stage: map['stage'] as String?,
+        stageProgress: (map['stageProgress'] as num?)?.toDouble() ?? 0,
+        sourceProgress: (map['sourceProgress'] as num?)?.toDouble() ?? 0,
+        thumbnailProgress: (map['thumbnailProgress'] as num?)?.toDouble() ?? 0,
+        compressionProgress:
+            (map['compressionProgress'] as num?)?.toDouble() ?? 0,
         poolId: map['poolId'] as String?,
         encryptPassword: map['encryptPassword'] as String?,
         expiredAt: map['expiredAt'] as String?,
