@@ -312,7 +312,9 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   List<PaymentOverlayAppProduct> _products = const [];
 
   bool get _isOrderPayable => switch (widget.order.status) {
-    0 => widget.order.expiredAt.isAfter(DateTime.now()),
+    0 =>
+      widget.order.expiredAt == null ||
+          widget.order.expiredAt!.isAfter(DateTime.now()),
     _ => false,
   };
 
@@ -704,24 +706,25 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
             ),
           ],
           const Gap(18),
-          Row(
-            children: [
-              Icon(
-                Symbols.schedule,
-                size: 16,
-                color: colorScheme.onPrimaryContainer.withOpacity(0.72),
-              ),
-              const Gap(6),
-              Text(
-                DateFormat.yMd().add_Hm().format(
-                  widget.order.expiredAt.toLocal(),
-                ),
-                style: textTheme.labelMedium?.copyWith(
+          if (widget.order.expiredAt != null)
+            Row(
+              children: [
+                Icon(
+                  Symbols.schedule,
+                  size: 16,
                   color: colorScheme.onPrimaryContainer.withOpacity(0.72),
                 ),
-              ),
-            ],
-          ),
+                const Gap(6),
+                Text(
+                  DateFormat.yMd().add_Hm().format(
+                    widget.order.expiredAt!.toLocal(),
+                  ),
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onPrimaryContainer.withOpacity(0.72),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:typed_data';
 
 import 'package:cross_file/cross_file.dart';
@@ -7,7 +9,8 @@ import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
 import 'package:island/drive/drive_service.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/attention_modal.dart';
+import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
@@ -27,31 +30,76 @@ class AttachmentUploadConfig {
   });
 }
 
-class AttachmentUploaderSheet extends StatefulWidget {
+Future<AttachmentUploadConfig?> showAttachmentUploaderModal({
+  required WidgetRef ref,
+  ComposeState? state,
+  List<UniversalFile>? attachments,
+  required int index,
+  bool encryptedUpload = false,
+}) {
+  final completer = Completer<AttachmentUploadConfig?>();
+
+  void complete(AttachmentUploadConfig? config) {
+    if (!completer.isCompleted) {
+      completer.complete(config);
+    }
+  }
+
+  unawaited(
+    showAttentionModal(
+      id: 'attachment-upload',
+      replaceIfExists: true,
+      barrierDismissible: true,
+      builder: (context, dismiss) => AttachmentUploaderModal(
+        ref: ref,
+        state: state,
+        attachments: attachments,
+        index: index,
+        encryptedUpload: encryptedUpload,
+        onConfirm: (config) {
+          complete(config);
+          dismiss();
+        },
+        onDismiss: () {
+          complete(null);
+          dismiss();
+        },
+      ),
+    ).whenComplete(() => complete(null)),
+  );
+
+  return completer.future;
+}
+
+class AttachmentUploaderModal extends StatefulWidget {
   final WidgetRef ref;
   final ComposeState? state;
   final List<UniversalFile>? attachments;
   final int index;
   final bool encryptedUpload;
+  final ValueChanged<AttachmentUploadConfig> onConfirm;
+  final VoidCallback onDismiss;
 
-  const AttachmentUploaderSheet({
+  const AttachmentUploaderModal({
     super.key,
     required this.ref,
     this.state,
     this.attachments,
     required this.index,
     this.encryptedUpload = false,
+    required this.onConfirm,
+    required this.onDismiss,
   }) : assert(
          state != null || attachments != null,
          'Either state or attachments must be provided',
        );
 
   @override
-  State<AttachmentUploaderSheet> createState() =>
-      _AttachmentUploaderSheetState();
+  State<AttachmentUploaderModal> createState() =>
+      _AttachmentUploaderModalState();
 }
 
-class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
+class _AttachmentUploaderModalState extends State<AttachmentUploaderModal> {
   String? selectedPoolId;
 
   @override
@@ -60,8 +108,9 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
         widget.attachments?[widget.index] ??
         widget.state!.attachments.value[widget.index];
 
-    return SheetScaffold(
+    return AttentionModalScaffold(
       titleText: 'uploadAttachment'.tr(),
+      onDismiss: widget.onDismiss,
       child: FutureBuilder<List<SnFilePool>>(
         future: widget.ref.read(poolsProvider.future),
         builder: (context, snapshot) {
@@ -410,7 +459,7 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
   Future<void> _confirmUpload() async {
     final config = await _getUploadConfig();
     if (config != null && mounted) {
-      Navigator.pop(context, config);
+      widget.onConfirm(config);
     }
   }
 

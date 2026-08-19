@@ -738,15 +738,11 @@ class ChatRoomScreen extends HookConsumerWidget {
       final attachment = attachments[index];
       if (attachment.isOnCloud) return;
 
-      final config = await showModalBottomSheet<AttachmentUploadConfig>(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => AttachmentUploaderSheet(
-          ref: ref,
-          attachments: attachments,
-          index: index,
-          encryptedUpload: chatRoom.value?.encryptionMode == 3,
-        ),
+      final config = await showAttachmentUploaderModal(
+        ref: ref,
+        attachments: attachments,
+        index: index,
+        encryptedUpload: chatRoom.value?.encryptionMode == 3,
       );
       if (config == null) return;
 

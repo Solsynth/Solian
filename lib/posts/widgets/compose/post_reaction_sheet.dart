@@ -12,6 +12,8 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
+import 'package:island/shared/widgets/content/image.dart';
+import 'package:island/shared/widgets/hover_scrollable_list.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
@@ -69,6 +71,23 @@ bool _getReactionImageAvailable(String symbol) {
 }
 
 Widget buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
+  if (symbol.contains('+')) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final serverUrl = ref.watch(serverUrlProvider);
+        return SizedBox(
+          width: size,
+          height: size,
+          child: UniversalImage(
+            uri: '$serverUrl/sphere/stickers/lookup/$symbol/open',
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+          ),
+        );
+      },
+    );
+  }
   if (_getReactionImageAvailable(symbol)) {
     return Image.asset(
       'assets/images/stickers/$symbol.webp',
@@ -184,121 +203,111 @@ class PostReactionSheet extends StatelessWidget {
                 Text('customReactions'.tr()).fontSize(17).bold(),
               ],
             ).padding(horizontal: 24, top: 16, bottom: 6),
-            SizedBox(
+            HoverScrollableList(
               height: 120,
-              child: GridView.builder(
-                scrollDirection: Axis.horizontal,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1,
-                  mainAxisExtent: 120,
-                  mainAxisSpacing: 8.0,
-                  crossAxisSpacing: 8.0,
-                  childAspectRatio: 1.0,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: customReactions.length,
-                itemBuilder: (context, index) {
-                  final symbol = customReactions[index];
-                  final count = reactionsCount[symbol] ?? 0;
-                  final stickerUri =
-                      '$baseUrl/sphere/stickers/lookup/$symbol/open';
+              itemExtent: 120,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: customReactions.length,
+              itemBuilder: (context, index) {
+                final symbol = customReactions[index];
+                final count = reactionsCount[symbol] ?? 0;
+                final stickerUri =
+                    '$baseUrl/sphere/stickers/lookup/$symbol/open';
 
-                  return GestureDetector(
-                    onLongPressStart: (details) {
-                      if (count > 0) {
-                        showReactionDetailsPopup(
-                          context,
-                          symbol,
-                          details.localPosition,
-                          postId,
-                          reactionsCount[symbol] ?? 0,
-                        );
-                      }
-                    },
-                    onSecondaryTapUp: (details) {
-                      if (count > 0) {
-                        showReactionDetailsPopup(
-                          context,
-                          symbol,
-                          details.localPosition,
-                          postId,
-                          reactionsCount[symbol] ?? 0,
-                        );
-                      }
-                    },
-                    child: Badge(
-                      label: Text('x$count'),
-                      isLabelVisible: count > 0,
-                      textColor: Theme.of(context).colorScheme.onPrimary,
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      offset: Offset(0, 0),
-                      child: Card(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLowest,
-                        child: InkWell(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(8),
-                          ),
-                          onTap: () {
-                            onReact(
+                return GestureDetector(
+                  onLongPressStart: (details) {
+                    if (count > 0) {
+                      showReactionDetailsPopup(
+                        context,
+                        symbol,
+                        details.localPosition,
+                        postId,
+                        reactionsCount[symbol] ?? 0,
+                      );
+                    }
+                  },
+                  onSecondaryTapUp: (details) {
+                    if (count > 0) {
+                      showReactionDetailsPopup(
+                        context,
+                        symbol,
+                        details.localPosition,
+                        postId,
+                        reactionsCount[symbol] ?? 0,
+                      );
+                    }
+                  },
+                  child: Badge(
+                    label: Text('x$count'),
+                    isLabelVisible: count > 0,
+                    textColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    offset: Offset(0, 0),
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
+                      child: InkWell(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(8),
+                        ),
+                        onTap: () {
+                          onReact(
+                            symbol,
+                            1,
+                          ); // Custom reactions use neutral attitude
+                          Navigator.pop(context);
+                        },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(width: double.infinity),
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: NetworkImage(stickerUri),
+                                  fit: BoxFit.contain,
+                                  colorFilter: (reactionsMade[symbol] ?? false)
+                                      ? ColorFilter.mode(
+                                          Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer
+                                              .withOpacity(0.7),
+                                          BlendMode.srcATop,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            const Gap(8),
+                            Text(
                               symbol,
-                              1,
-                            ); // Custom reactions use neutral attitude
-                            Navigator.pop(context);
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(width: double.infinity),
-                              Container(
-                                width: 64,
-                                height: 64,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  image: DecorationImage(
-                                    image: NetworkImage(stickerUri),
-                                    fit: BoxFit.contain,
-                                    colorFilter:
-                                        (reactionsMade[symbol] ?? false)
-                                        ? ColorFilter.mode(
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .primaryContainer
-                                                .withOpacity(0.7),
-                                            BlendMode.srcATop,
-                                          )
-                                        : null,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 4,
+                                    offset: Offset(0.5, 0.5),
+                                    color: Colors.black,
                                   ),
-                                ),
+                                ],
                               ),
-                              const Gap(8),
-                              Text(
-                                symbol,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 4,
-                                      offset: Offset(0.5, 0.5),
-                                      color: Colors.black,
-                                    ),
-                                  ],
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ],
         );
@@ -325,137 +334,128 @@ class PostReactionSheet extends StatelessWidget {
           spacing: 8,
           children: [Icon(icon), Text(title).fontSize(17).bold()],
         ).padding(horizontal: 24, top: 16, bottom: 6),
-        SizedBox(
+        HoverScrollableList(
           height: 120,
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 1,
-              mainAxisExtent: 120,
-              mainAxisSpacing: 8.0,
-              crossAxisSpacing: 8.0,
-              childAspectRatio: 1.0,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: allReactions.length,
-            itemBuilder: (context, index) {
-              final symbol = allReactions[index];
-              final count = reactionsCount[symbol] ?? 0;
-              final hasImage = _getReactionImageAvailable(symbol);
-              return GestureDetector(
-                onLongPressStart: (details) {
-                  if (count > 0) {
-                    showReactionDetailsPopup(
-                      context,
-                      symbol,
-                      details.localPosition,
-                      postId,
-                      reactionsCount[symbol] ?? 0,
-                    );
-                  }
-                },
-                onSecondaryTapUp: (details) {
-                  if (count > 0) {
-                    showReactionDetailsPopup(
-                      context,
-                      symbol,
-                      details.localPosition,
-                      postId,
-                      reactionsCount[symbol] ?? 0,
-                    );
-                  }
-                },
-                child: Badge(
-                  label: Text('x$count'),
-                  isLabelVisible: count > 0,
-                  textColor: Theme.of(context).colorScheme.onPrimary,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  offset: Offset(0, 0),
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    child: InkWell(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      onTap: () {
-                        onReact(symbol, attitude);
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        decoration: hasImage
-                            ? BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                image: DecorationImage(
-                                  image: AssetImage(
-                                    'assets/images/stickers/$symbol.webp',
-                                  ),
-                                  fit: BoxFit.cover,
-                                  colorFilter: (reactionsMade[symbol] ?? false)
-                                      ? ColorFilter.mode(
-                                          Theme.of(context)
-                                              .colorScheme
-                                              .primaryContainer
-                                              .withOpacity(0.7),
-                                          BlendMode.srcATop,
-                                        )
-                                      : null,
+          itemExtent: 120,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: allReactions.length,
+          itemBuilder: (context, index) {
+            final symbol = allReactions[index];
+            final count = reactionsCount[symbol] ?? 0;
+            final hasImage = _getReactionImageAvailable(symbol);
+            return GestureDetector(
+              onLongPressStart: (details) {
+                if (count > 0) {
+                  showReactionDetailsPopup(
+                    context,
+                    symbol,
+                    details.localPosition,
+                    postId,
+                    reactionsCount[symbol] ?? 0,
+                  );
+                }
+              },
+              onSecondaryTapUp: (details) {
+                if (count > 0) {
+                  showReactionDetailsPopup(
+                    context,
+                    symbol,
+                    details.localPosition,
+                    postId,
+                    reactionsCount[symbol] ?? 0,
+                  );
+                }
+              },
+              child: Badge(
+                label: Text('x$count'),
+                isLabelVisible: count > 0,
+                textColor: Theme.of(context).colorScheme.onPrimary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                offset: Offset(0, 0),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  child: InkWell(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    onTap: () {
+                      onReact(symbol, attitude);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: hasImage
+                          ? BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              image: DecorationImage(
+                                image: AssetImage(
+                                  'assets/images/stickers/$symbol.webp',
                                 ),
-                              )
-                            : null,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            if (hasImage)
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      Theme.of(context)
-                                          .colorScheme
-                                          .surfaceContainerHighest
-                                          .withOpacity(0.7),
-                                      Colors.transparent,
-                                    ],
-                                    stops: [0.0, 0.3],
-                                  ),
+                                fit: BoxFit.cover,
+                                colorFilter: (reactionsMade[symbol] ?? false)
+                                    ? ColorFilter.mode(
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withOpacity(0.7),
+                                        BlendMode.srcATop,
+                                      )
+                                    : null,
+                              ),
+                            )
+                          : null,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (hasImage)
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withOpacity(0.7),
+                                    Colors.transparent,
+                                  ],
+                                  stops: [0.0, 0.3],
                                 ),
                               ),
-                            Column(
-                              mainAxisAlignment: hasImage
-                                  ? MainAxisAlignment.end
-                                  : MainAxisAlignment.center,
-                              children: [
-                                if (!hasImage) buildReactionIcon(symbol, 36),
-                                Text(
-                                  ReactInfo.getTranslationKey(symbol),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: hasImage ? Colors.white : null,
-                                    shadows: hasImage
-                                        ? [
-                                            const Shadow(
-                                              blurRadius: 4,
-                                              offset: Offset(0.5, 0.5),
-                                              color: Colors.black,
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                ).tr(),
-                                if (hasImage) const Gap(4),
-                              ],
                             ),
-                          ],
-                        ),
+                          Column(
+                            mainAxisAlignment: hasImage
+                                ? MainAxisAlignment.end
+                                : MainAxisAlignment.center,
+                            children: [
+                              if (!hasImage) buildReactionIcon(symbol, 36),
+                              Text(
+                                ReactInfo.getTranslationKey(symbol),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: hasImage ? Colors.white : null,
+                                  shadows: hasImage
+                                      ? [
+                                          const Shadow(
+                                            blurRadius: 4,
+                                            offset: Offset(0.5, 0.5),
+                                            color: Colors.black,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ).tr(),
+                              if (hasImage) const Gap(4),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ],
     );

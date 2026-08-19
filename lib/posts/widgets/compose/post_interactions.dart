@@ -4,10 +4,13 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/content/image.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
@@ -39,6 +42,23 @@ bool _getReactionImageAvailable(String symbol) {
 }
 
 Widget buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
+  if (symbol.contains('+')) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final serverUrl = ref.watch(serverUrlProvider);
+        return SizedBox(
+          width: size,
+          height: size,
+          child: UniversalImage(
+            uri: '$serverUrl/sphere/stickers/lookup/$symbol/open',
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+          ),
+        );
+      },
+    );
+  }
   if (_getReactionImageAvailable(symbol)) {
     return Image.asset(
       'assets/images/stickers/$symbol.webp',
@@ -397,6 +417,20 @@ class ReactionListItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isCustom = reaction.symbol.contains('+');
+    final stickerAsync = isCustom
+        ? ref.watch(stickerLookupProvider(reaction.symbol))
+        : null;
+    final sticker = stickerAsync?.maybeWhen(
+      data: (value) => value,
+      orElse: () => null,
+    );
+    final reactionName = isCustom
+        ? sticker?.name?.trim().isNotEmpty == true
+              ? sticker!.name!
+              : sticker?.slug ?? reaction.symbol
+        : null;
+
     return ListTile(
       leading: AccountPfcRegion(
         uname: reaction.account?.name,
@@ -417,7 +451,10 @@ class ReactionListItem extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         spacing: 8,
         children: [
-          Text(ReactInfo.getTranslationKey(reaction.symbol)).tr(),
+          if (isCustom)
+            Text(reactionName!)
+          else
+            Text(ReactInfo.getTranslationKey(reaction.symbol)).tr(),
           buildReactionIcon(reaction.symbol, 32),
         ],
       ),

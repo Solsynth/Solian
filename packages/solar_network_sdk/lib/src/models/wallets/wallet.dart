@@ -4,6 +4,23 @@ import 'package:solar_network_sdk/src/models/accounts/account.dart';
 part 'wallet.freezed.dart';
 part 'wallet.g.dart';
 
+DateTime? _parseNullableWalletOrderDate(dynamic value) {
+  if (value == null) return null;
+
+  final date = value is DateTime ? value : DateTime.parse(value.toString());
+  if (date.year == 1 &&
+      date.month == 1 &&
+      date.day == 1 &&
+      date.hour == 0 &&
+      date.minute == 0 &&
+      date.second == 0 &&
+      date.millisecond == 0 &&
+      date.microsecond == 0) {
+    return null;
+  }
+  return date;
+}
+
 @freezed
 sealed class SnWallet with _$SnWallet {
   const factory SnWallet({
@@ -188,13 +205,15 @@ sealed class SnWalletOrder with _$SnWalletOrder {
     @Default({}) Map<String, dynamic> meta,
     Map<String, dynamic>? app,
     required double amount,
-    required DateTime expiredAt,
+    @JsonKey(fromJson: _parseNullableWalletOrderDate)
+    required DateTime? expiredAt,
     required String? payerWalletId,
     required String? payeeWalletId,
     required String? transactionId,
     required String? issuerAppId,
     required DateTime createdAt,
-    required DateTime updatedAt,
+    @JsonKey(fromJson: _parseNullableWalletOrderDate)
+    required DateTime? updatedAt,
     required DateTime? deletedAt,
   }) = _SnWalletOrder;
 

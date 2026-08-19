@@ -11,7 +11,6 @@ import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/handle_chip.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
@@ -790,39 +789,20 @@ class PostReplyPreview extends HookConsumerWidget {
     int count,
   ) {
     final theme = Theme.of(context);
-    final reactionInfo = kReactionTemplates[symbol];
-    final hasSticker = _getReactionImageAvailable(symbol);
     final isCustom = symbol.contains('+');
-
-    Widget icon;
-    if (isCustom) {
-      // Custom reactions use server-side sticker lookup
-      final serverUrl = ref.read(serverUrlProvider);
-      icon = ClipRRect(
-        borderRadius: BorderRadius.circular(2),
-        child: Image.network(
-          '$serverUrl/sphere/stickers/lookup/$symbol/open',
-          width: 16,
-          height: 16,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) =>
-              const Text('🏷️', style: TextStyle(fontSize: 11)),
-        ),
-      );
-    } else if (hasSticker) {
-      icon = Image.asset(
-        'assets/images/stickers/$symbol.webp',
-        width: 16,
-        height: 16,
-        fit: BoxFit.contain,
-      );
-    } else {
-      // Fall back to emoji icon
-      icon = Text(
-        reactionInfo?.icon ?? '❓',
-        style: const TextStyle(fontSize: 12, height: 1),
-      );
-    }
+    final stickerAsync = isCustom
+        ? ref.watch(stickerLookupProvider(symbol))
+        : null;
+    final sticker = stickerAsync?.maybeWhen(
+      data: (value) => value,
+      orElse: () => null,
+    );
+    final customName = isCustom
+        ? sticker?.name?.trim().isNotEmpty == true
+              ? sticker!.name!
+              : sticker?.slug ?? symbol
+        : null;
+    final icon = buildReactionIcon(symbol, 16, iconSize: 12);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -836,6 +816,17 @@ class PostReplyPreview extends HookConsumerWidget {
         spacing: 4,
         children: [
           icon,
+          if (isCustom)
+            Text(
+              customName!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1,
+              ),
+            ),
           Text(
             count.toString(),
             style: TextStyle(
@@ -871,12 +862,6 @@ class PostReplyPreview extends HookConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// Checks if reaction has a sticker image asset
-  /// Based on kAvailableStickers in post_reaction_sheet.dart
-  bool _getReactionImageAvailable(String symbol) {
-    return kAvailableStickers.contains(symbol);
   }
 
   @override

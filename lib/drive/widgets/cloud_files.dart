@@ -349,7 +349,7 @@ class _CloudImageLoadingIndicator extends StatelessWidget {
                 child: child,
               ),
             ),
-            child: ColoredBox(color: Colors.white.withOpacity(0.78)),
+            child: ColoredBox(color: Colors.white.withOpacity(0.24)),
           ),
         ],
       ),

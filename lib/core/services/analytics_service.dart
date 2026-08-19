@@ -156,7 +156,7 @@ class AnalyticsService {
       'amount': amount,
       'attitude': attitude,
       'has_message': hasMessage ? 'yes' : 'no',
-      'currency': 'NSP',
+      'currency': 'Bits',
     });
   }
 

@@ -12,6 +12,7 @@ import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/hover_scrollable_list.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -220,88 +221,75 @@ class ChatMessageReactionSheet extends StatelessWidget {
                 Text('customReactions'.tr()).fontSize(17).bold(),
               ],
             ).padding(horizontal: 24, top: 16, bottom: 6),
-            SizedBox(
+            HoverScrollableList(
               height: 120,
-              child: GridView.builder(
-                scrollDirection: Axis.horizontal,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1,
-                  mainAxisExtent: 120,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 1,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: customReactions.length,
-                itemBuilder: (context, index) {
-                  final symbol = customReactions[index];
-                  final count = reactionsCount[symbol] ?? 0;
-                  final stickerUri =
-                      '$baseUrl/sphere/stickers/lookup/$symbol/open';
-                  return Badge(
-                    label: Text('x$count'),
-                    isLabelVisible: count > 0,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    offset: const Offset(0, 0),
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerLowest,
-                      child: InkWell(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(8),
-                        ),
-                        onTap: () {
-                          onReact(symbol, 1);
-                          Navigator.pop(context);
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(width: double.infinity),
-                            SizedBox(
+              itemExtent: 120,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: customReactions.length,
+              itemBuilder: (context, index) {
+                final symbol = customReactions[index];
+                final count = reactionsCount[symbol] ?? 0;
+                final stickerUri =
+                    '$baseUrl/sphere/stickers/lookup/$symbol/open';
+                return Badge(
+                  label: Text('x$count'),
+                  isLabelVisible: count > 0,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  offset: const Offset(0, 0),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                    child: InkWell(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      onTap: () {
+                        onReact(symbol, 1);
+                        Navigator.pop(context);
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(width: double.infinity),
+                          SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: UniversalImage(
+                              uri: stickerUri,
                               width: 64,
                               height: 64,
-                              child: UniversalImage(
-                                uri: stickerUri,
-                                width: 64,
-                                height: 64,
-                                fit: BoxFit.contain,
-                              ),
+                              fit: BoxFit.contain,
                             ),
-                            const Gap(8),
-                            Text(
-                              symbol,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 4,
-                                    offset: Offset(0.5, 0.5),
-                                    color: Colors.black,
-                                  ),
-                                ],
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          ),
+                          const Gap(8),
+                          Text(
+                            symbol,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 4,
+                                  offset: Offset(0.5, 0.5),
+                                  color: Colors.black,
+                                ),
+                              ],
                             ),
-                            if (reactionsMade[symbol] == true)
-                              Icon(
-                                Symbols.check_small,
-                                size: 12,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (reactionsMade[symbol] == true)
+                            Icon(
+                              Symbols.check_small,
+                              size: 12,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                        ],
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ],
         );
@@ -328,125 +316,111 @@ class ChatMessageReactionSheet extends StatelessWidget {
           spacing: 8,
           children: [Icon(icon), Text(title).fontSize(17).bold()],
         ).padding(horizontal: 24, top: 16, bottom: 6),
-        SizedBox(
+        HoverScrollableList(
           height: 120,
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 1,
-              mainAxisExtent: 120,
-              mainAxisSpacing: 8.0,
-              crossAxisSpacing: 8.0,
-              childAspectRatio: 1.0,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: allReactions.length,
-            itemBuilder: (context, index) {
-              final symbol = allReactions[index];
-              final count = reactionsCount[symbol] ?? 0;
-              final hasImage = getReactionImageAvailable(symbol);
-              return GestureDetector(
-                onTap: () {
-                  onReact(symbol, attitude);
-                  Navigator.pop(context);
-                },
-                child: Badge(
-                  label: Text('x$count'),
-                  isLabelVisible: count > 0,
-                  textColor: Theme.of(context).colorScheme.onPrimary,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: Card(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerLowest,
-                      child: InkWell(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(8),
-                        ),
-                        onTap: () {
-                          onReact(symbol, attitude);
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          decoration: hasImage
-                              ? BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                      'assets/images/stickers/$symbol.webp',
-                                    ),
-                                    fit: BoxFit.cover,
-                                    colorFilter:
-                                        (reactionsMade[symbol] ?? false)
-                                        ? ColorFilter.mode(
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .primaryContainer
-                                                .withOpacity(0.7),
-                                            BlendMode.srcATop,
-                                          )
-                                        : null,
+          itemExtent: 120,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: allReactions.length,
+          itemBuilder: (context, index) {
+            final symbol = allReactions[index];
+            final count = reactionsCount[symbol] ?? 0;
+            final hasImage = getReactionImageAvailable(symbol);
+            return GestureDetector(
+              onTap: () {
+                onReact(symbol, attitude);
+                Navigator.pop(context);
+              },
+              child: Badge(
+                label: Text('x$count'),
+                isLabelVisible: count > 0,
+                textColor: Theme.of(context).colorScheme.onPrimary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                    child: InkWell(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      onTap: () {
+                        onReact(symbol, attitude);
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        decoration: hasImage
+                            ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                image: DecorationImage(
+                                  image: AssetImage(
+                                    'assets/images/stickers/$symbol.webp',
                                   ),
-                                )
-                              : null,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              if (hasImage)
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.bottomCenter,
-                                      end: Alignment.topCenter,
-                                      colors: [
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHighest
-                                            .withOpacity(0.7),
-                                        Colors.transparent,
-                                      ],
-                                      stops: const [0.0, 0.3],
-                                    ),
+                                  fit: BoxFit.cover,
+                                  colorFilter: (reactionsMade[symbol] ?? false)
+                                      ? ColorFilter.mode(
+                                          Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer
+                                              .withOpacity(0.7),
+                                          BlendMode.srcATop,
+                                        )
+                                      : null,
+                                ),
+                              )
+                            : null,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (hasImage)
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest
+                                          .withOpacity(0.7),
+                                      Colors.transparent,
+                                    ],
+                                    stops: const [0.0, 0.3],
                                   ),
                                 ),
-                              Column(
-                                mainAxisAlignment: hasImage
-                                    ? MainAxisAlignment.end
-                                    : MainAxisAlignment.center,
-                                children: [
-                                  if (!hasImage) buildReactionIcon(symbol, 36),
-                                  Text(
-                                    ReactInfo.getTranslationKey(symbol),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: hasImage ? Colors.white : null,
-                                      shadows: hasImage
-                                          ? const [
-                                              Shadow(
-                                                blurRadius: 4,
-                                                offset: Offset(0.5, 0.5),
-                                                color: Colors.black,
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                  ).tr(),
-                                  if (hasImage) const Gap(4),
-                                ],
                               ),
-                            ],
-                          ),
+                            Column(
+                              mainAxisAlignment: hasImage
+                                  ? MainAxisAlignment.end
+                                  : MainAxisAlignment.center,
+                              children: [
+                                if (!hasImage) buildReactionIcon(symbol, 36),
+                                Text(
+                                  ReactInfo.getTranslationKey(symbol),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: hasImage ? Colors.white : null,
+                                    shadows: hasImage
+                                        ? const [
+                                            Shadow(
+                                              blurRadius: 4,
+                                              offset: Offset(0.5, 0.5),
+                                              color: Colors.black,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                ).tr(),
+                                if (hasImage) const Gap(4),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -487,26 +461,27 @@ class ChatReactionHistoryTab extends HookConsumerWidget {
 
     return Column(
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        HoverScrollableList(
+          height: 52,
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-          child: Row(
-            spacing: 8,
-            children: [
-              _ReactionHistoryFilterChip(
+          itemCount: symbols.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return _ReactionHistoryFilterChip(
                 label: 'all'.tr(),
                 selected: selectedSymbol.value == 'all',
                 onTap: () => selectedSymbol.value = 'all',
-              ),
-              for (final symbol in symbols)
-                _ReactionHistoryFilterChip(
-                  label: 'x${reactionsCount[symbol] ?? 0}',
-                  leading: buildReactionIcon(symbol, 20, iconSize: 14),
-                  selected: selectedSymbol.value == symbol,
-                  onTap: () => selectedSymbol.value = symbol,
-                ),
-            ],
-          ),
+              );
+            }
+
+            final symbol = symbols[index - 1];
+            return _ReactionHistoryFilterChip(
+              label: 'x${reactionsCount[symbol] ?? 0}',
+              leading: buildReactionIcon(symbol, 20, iconSize: 14),
+              selected: selectedSymbol.value == symbol,
+              onTap: () => selectedSymbol.value = symbol,
+            );
+          },
         ),
         Expanded(
           child: PaginationList(

@@ -194,14 +194,6 @@ class PostAwardSheet extends HookConsumerWidget {
       key: const ValueKey('award-form'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _BenefitsCard(
-          icon: Symbols.info,
-          title: 'awardBenefits'.tr(),
-          description: 'awardBenefitsDescription'.tr(),
-          accentColor: colorScheme.primary,
-          containerColor: colorScheme.surfaceContainerLow,
-        ),
-        const Gap(16),
         _FieldLabel(text: 'awardMessage'.tr()),
         const Gap(8),
         TextField(
@@ -234,7 +226,7 @@ class PostAwardSheet extends HookConsumerWidget {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             hintText: 'awardAmountHint'.tr(),
-            suffixText: 'NSP',
+            suffixText: 'Bits',
             filled: true,
             fillColor: colorScheme.surfaceContainerLow,
             border: const OutlineInputBorder(
@@ -274,14 +266,6 @@ class PostAwardSheet extends HookConsumerWidget {
       key: const ValueKey('sponsor-form'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _BenefitsCard(
-          icon: Symbols.trending_up,
-          title: 'sponsorBenefits'.tr(),
-          description: 'sponsorBenefitsDescription'.tr(),
-          accentColor: colorScheme.tertiary,
-          containerColor: colorScheme.surfaceContainerLow,
-        ),
-        const Gap(16),
         _FieldLabel(text: 'sponsorAmount'.tr()),
         const Gap(8),
         TextField(
@@ -322,12 +306,7 @@ class PostAwardSheet extends HookConsumerWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(18),
-        border: Border(
-          left: BorderSide(color: colorScheme.primary, width: 4),
-          top: BorderSide(color: colorScheme.outline.withOpacity(0.12)),
-          right: BorderSide(color: colorScheme.outline.withOpacity(0.12)),
-          bottom: BorderSide(color: colorScheme.outline.withOpacity(0.12)),
-        ),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -803,69 +782,6 @@ class _FieldLabel extends StatelessWidget {
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
       ],
-    );
-  }
-}
-
-class _BenefitsCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String description;
-  final Color accentColor;
-  final Color containerColor;
-
-  const _BenefitsCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.accentColor,
-    required this.containerColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: containerColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border(
-          left: BorderSide(color: accentColor, width: 3),
-          top: BorderSide(color: accentColor.withOpacity(0.16)),
-          right: BorderSide(color: accentColor.withOpacity(0.16)),
-          bottom: BorderSide(color: accentColor.withOpacity(0.16)),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: accentColor),
-          const Gap(10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: accentColor,
-                  ),
-                ),
-                const Gap(5),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

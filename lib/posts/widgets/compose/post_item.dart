@@ -1157,7 +1157,28 @@ class PostReactionList extends HookConsumerWidget {
                 label: Row(
                   spacing: 4,
                   children: [
-                    Text(ReactInfo.getTranslationKey(symbol)).tr(),
+                    if (symbol.contains('+'))
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final sticker = ref.watch(
+                            stickerLookupProvider(symbol),
+                          );
+                          final value = sticker.maybeWhen(
+                            data: (sticker) => sticker,
+                            orElse: () => null,
+                          );
+                          final name = value?.name?.trim();
+                          return Text(
+                            name?.isNotEmpty == true
+                                ? name!
+                                : value?.slug ?? symbol,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        },
+                      )
+                    else
+                      Text(ReactInfo.getTranslationKey(symbol)).tr(),
                     Text('x${reactions[symbol]}').bold(),
                   ],
                 ),

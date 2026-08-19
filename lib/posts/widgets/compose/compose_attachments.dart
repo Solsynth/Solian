@@ -77,12 +77,10 @@ class ComposeAttachments extends ConsumerWidget {
       progress: progressMap[idx],
       isUploading: progressMap.containsKey(idx),
       onRequestUpload: () async {
-        final config = await showModalBottomSheet<AttachmentUploadConfig>(
-          context: ref.context,
-          isScrollControlled: true,
-          useRootNavigator: true,
-          builder: (context) =>
-              AttachmentUploaderSheet(ref: ref, state: state, index: idx),
+        final config = await showAttachmentUploaderModal(
+          ref: ref,
+          state: state,
+          index: idx,
         );
         if (config != null) {
           await ComposeLogic.uploadAttachment(
@@ -246,18 +244,10 @@ class ArticleComposeAttachments extends HookConsumerWidget {
                                               ),
                                           onRequestUpload: () async {
                                             final config =
-                                                await showModalBottomSheet<
-                                                  AttachmentUploadConfig
-                                                >(
-                                                  context: context,
-                                                  isScrollControlled: true,
-                                                  useRootNavigator: true,
-                                                  builder: (context) =>
-                                                      AttachmentUploaderSheet(
-                                                        ref: ref,
-                                                        state: state,
-                                                        index: idx,
-                                                      ),
+                                                await showAttachmentUploaderModal(
+                                                  ref: ref,
+                                                  state: state,
+                                                  index: idx,
                                                 );
                                             if (config != null) {
                                               await ComposeLogic.uploadAttachment(

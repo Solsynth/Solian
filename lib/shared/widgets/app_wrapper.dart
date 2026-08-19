@@ -1067,7 +1067,9 @@ class AppWrapper extends HookConsumerWidget {
       }
       if (!context.mounted) return;
 
-      if (order.status == 0 && !order.expiredAt.isBefore(DateTime.now())) {
+      if (order.status == 0 &&
+          (order.expiredAt == null ||
+              !order.expiredAt!.isBefore(DateTime.now()))) {
         final paidOrder = await PaymentOverlay.show(
           context: context,
           order: order,

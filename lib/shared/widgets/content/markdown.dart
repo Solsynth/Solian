@@ -202,6 +202,14 @@ class MarkdownTextContent extends HookConsumerWidget {
           borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
         codeblockPadding: const EdgeInsets.all(8),
+        horizontalRuleDecoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Theme.of(context).colorScheme.outline,
+              width: 1 / MediaQuery.devicePixelRatioOf(context),
+            ),
+          ),
+        ),
       ),
       inlineSyntaxes: [
         SolarMentionInlineSyntax(),
