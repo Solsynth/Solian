@@ -177,11 +177,13 @@ class AuthSecondaryAction extends StatelessWidget {
 class AuthAltMethodsRow extends StatelessWidget {
   final String label;
   final List<Widget> children;
+  final bool showDivider;
 
   const AuthAltMethodsRow({
     super.key,
     required this.label,
     required this.children,
+    this.showDivider = true,
   });
 
   @override
@@ -201,9 +203,12 @@ class AuthAltMethodsRow extends StatelessWidget {
             ),
           ),
         ),
-        const Gap(12),
-        Expanded(child: Divider(color: theme.colorScheme.outlineVariant)),
-        const Gap(12),
+        if (showDivider) ...[
+          const Gap(12),
+          Expanded(child: Divider(color: theme.colorScheme.outlineVariant)),
+          const Gap(12),
+        ] else
+          const Gap(12),
         for (var i = 0; i < children.length; i++) ...[
           if (i > 0) const Gap(kAuthGapSm),
           children[i],

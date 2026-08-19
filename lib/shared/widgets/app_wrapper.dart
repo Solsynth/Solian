@@ -752,9 +752,19 @@ class AppWrapper extends HookConsumerWidget {
         final shouldShowOnboarding =
             lastShownVersion == null || lastShownVersion != currentVersion;
 
-        onboardingChecked.value = true;
         if (shouldShowOnboarding) {
-          final ctx = ref.read(routerProvider).navigatorKey.currentContext;
+          final router = ref.read(routerProvider);
+          Future<BuildContext?> waitForNavigatorContext([int retry = 0]) async {
+            final ctx = router.navigatorKey.currentContext;
+            if (ctx != null && ctx.mounted) return ctx;
+            if (retry >= 30) return null;
+
+            await WidgetsBinding.instance.endOfFrame;
+            await Future<void>.delayed(const Duration(milliseconds: 16));
+            return waitForNavigatorContext(retry + 1);
+          }
+
+          final ctx = await waitForNavigatorContext();
           if (ctx != null && ctx.mounted) {
             await showAppOnboardingSheet(
               ctx,
@@ -764,9 +774,15 @@ class AppWrapper extends HookConsumerWidget {
               updateChecksEnabled: ref.read(updateChecksEnabledProvider),
               updateChannel: ref.read(updateChannelProvider),
             );
+            await prefs.setString(kOnboardingLastShownVersion, currentVersion);
+          } else {
+            Logger.root.warning(
+              '[AppWrapper] Onboarding skipped: navigator context unavailable',
+            );
           }
         }
 
+        onboardingChecked.value = true;
         autoUpdateChecked.value = true;
 
         Future<void> checkForUpdatesWhenReady([int retry = 0]) async {

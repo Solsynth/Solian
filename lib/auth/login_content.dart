@@ -511,10 +511,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
               ? AutofillHints.password
               : AutofillHints.oneTimeCode,
         ],
-        decoration: InputDecoration(
-          labelText: 'password'.tr(),
-          prefixIcon: const Icon(Symbols.password),
-        ),
+        decoration: InputDecoration(labelText: 'password'.tr()),
         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
       );
@@ -813,20 +810,14 @@ class _LoginLookupScreen extends HookConsumerWidget {
                   controller: accountController,
                   autocorrect: false,
                   enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: 'username'.tr(),
-                    prefixIcon: const Icon(Symbols.person),
-                  ),
+                  decoration: InputDecoration(labelText: 'username'.tr()),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: codeController,
                   autocorrect: false,
                   enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: 'recoveryCode'.tr(),
-                    prefixIcon: const Icon(Symbols.key),
-                  ),
+                  decoration: InputDecoration(labelText: 'recoveryCode'.tr()),
                 ),
               ],
             ),
@@ -1147,13 +1138,13 @@ class _LoginLookupScreen extends HookConsumerWidget {
           decoration: InputDecoration(
             labelText: 'username'.tr(),
             helperText: 'usernameLookupHint'.tr(),
-            prefixIcon: const Icon(Symbols.person),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNewTicket(),
         ),
         AuthAltMethodsRow(
           label: 'loginOr'.tr(),
+          showDivider: !kIsWeb,
           children: [
             AuthMethodIconButton(
               onPressed: () => showModalBottomSheet(

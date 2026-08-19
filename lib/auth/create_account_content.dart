@@ -163,7 +163,11 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
     return AuthFormColumn(
       columnKey: const ValueKey<int>(0),
       children: [
-        AuthFormHeader(icon: Symbols.mail, title: 'createAccount'.tr()),
+        AuthFormHeader(
+          icon: Symbols.mail,
+          title: 'createAccount'.tr(),
+          subtitle: 'createAccountDescription'.tr(),
+        ),
         TextField(
           controller: emailController,
           autocorrect: false,
@@ -171,10 +175,7 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
-          decoration: InputDecoration(
-            labelText: 'email'.tr(),
-            prefixIcon: const Icon(Symbols.mail),
-          ),
+          decoration: InputDecoration(labelText: 'email'.tr()),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
         ),
@@ -185,7 +186,6 @@ class _CreateAccountEmailScreen extends HookConsumerWidget {
           decoration: InputDecoration(
             labelText: 'affiliationSpell'.tr(),
             helperText: 'affiliationSpellHint'.tr(),
-            prefixIcon: const Icon(Symbols.auto_awesome),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
@@ -265,7 +265,11 @@ class _CreateAccountPasswordScreen extends HookConsumerWidget {
     return AuthFormColumn(
       columnKey: const ValueKey<int>(1),
       children: [
-        AuthFormHeader(icon: Symbols.password, title: 'password'.tr()),
+        AuthFormHeader(
+          icon: Symbols.password,
+          title: 'password'.tr(),
+          subtitle: 'authFactorPasswordDescription'.tr(),
+        ),
         TextField(
           controller: passwordController,
           obscureText: true,
@@ -273,10 +277,7 @@ class _CreateAccountPasswordScreen extends HookConsumerWidget {
           enableSuggestions: false,
           textInputAction: TextInputAction.done,
           autofillHints: const [AutofillHints.newPassword],
-          decoration: InputDecoration(
-            labelText: 'password'.tr(),
-            prefixIcon: const Icon(Symbols.password),
-          ),
+          decoration: InputDecoration(labelText: 'password'.tr()),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
         ),
@@ -349,6 +350,7 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
         AuthFormHeader(
           icon: Symbols.person,
           title: 'createAccountProfile'.tr(),
+          subtitle: 'updateYourProfileDescription'.tr(),
         ),
         TextField(
           controller: usernameController,
@@ -362,7 +364,6 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
           decoration: InputDecoration(
             labelText: 'username'.tr(),
             helperText: 'usernameCannotChangeHint'.tr(),
-            prefixIcon: const Icon(Symbols.alternate_email),
           ),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
@@ -372,10 +373,7 @@ class _CreateAccountProfileScreen extends HookConsumerWidget {
           autocorrect: false,
           textInputAction: TextInputAction.done,
           autofillHints: const [AutofillHints.nickname, AutofillHints.name],
-          decoration: InputDecoration(
-            labelText: 'nickname'.tr(),
-            prefixIcon: const Icon(Symbols.badge),
-          ),
+          decoration: InputDecoration(labelText: 'nickname'.tr()),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           onSubmitted: isBusy.value ? null : (_) => performNext(),
         ),
@@ -430,6 +428,7 @@ class _CreateAccountTermsScreen extends HookConsumerWidget {
         AuthFormHeader(
           icon: Symbols.description,
           title: 'createAccountToS'.tr(),
+          subtitle: 'createAccountNotice'.tr(),
         ),
         AuthSectionCard(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),

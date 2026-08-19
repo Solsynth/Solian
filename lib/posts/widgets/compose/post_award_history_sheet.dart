@@ -343,12 +343,7 @@ class _HistoryOverview extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
-        border: Border(
-          left: BorderSide(color: accent, width: 3),
-          top: BorderSide(color: accent.withOpacity(0.12)),
-          right: BorderSide(color: accent.withOpacity(0.12)),
-          bottom: BorderSide(color: accent.withOpacity(0.12)),
-        ),
+        border: Border.all(color: accent.withOpacity(0.12)),
       ),
       child: Row(
         children: [
@@ -464,78 +459,59 @@ class PostAwardItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.14)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 4,
-            height: 92,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.14),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          _getAttitudeIcon(award.attitude),
-                          size: 17,
-                          color: color,
-                        ),
-                      ),
-                      const Gap(9),
-                      Expanded(
-                        child: Text(
-                          'awardPoints'.tr(
-                            args: [award.amount.toStringAsFixed(0)],
-                          ),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      Text(
-                        _getAttitudeText(award.attitude),
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              color: color,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  if (award.message != null && award.message!.isNotEmpty) ...[
-                    const Gap(10),
-                    Text(
-                      award.message!,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(height: 1.35),
+                  child: Icon(
+                    _getAttitudeIcon(award.attitude),
+                    size: 17,
+                    color: color,
+                  ),
+                ),
+                const Gap(9),
+                Expanded(
+                  child: Text(
+                    'awardPoints'.tr(args: [award.amount.toStringAsFixed(0)]),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                  ],
-                  if (award.createdAt != null) ...[
-                    const Gap(9),
-                    _HistoryDate(date: award.createdAt!),
-                  ],
-                ],
-              ),
+                  ),
+                ),
+                Text(
+                  _getAttitudeText(award.attitude),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            if (award.message != null && award.message!.isNotEmpty) ...[
+              const Gap(10),
+              Text(
+                award.message!,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(height: 1.35),
+              ),
+            ],
+            if (award.createdAt != null) ...[
+              const Gap(9),
+              _HistoryDate(date: award.createdAt!),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -556,74 +532,52 @@ class PostSponsorBidItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.14)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 4,
-            height: 92,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.14),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          Symbols.trending_up,
-                          size: 18,
-                          color: color,
-                        ),
-                      ),
-                      const Gap(9),
-                      Expanded(
-                        child: Text(
-                          'sponsorBidAmount'.tr(
-                            args: [bid.amount.toStringAsFixed(0)],
-                          ),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  if (bid.expiresAt != null) ...[
-                    const Gap(9),
-                    Text(
-                      'sponsorBidExpires'.tr(
-                        args: [
-                          bid.expiresAt!.toLocal().toString().split('.')[0],
-                        ],
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                  child: Icon(Symbols.trending_up, size: 18, color: color),
+                ),
+                const Gap(9),
+                Expanded(
+                  child: Text(
+                    'sponsorBidAmount'.tr(
+                      args: [bid.amount.toStringAsFixed(0)],
                     ),
-                  ],
-                  if (bid.createdAt != null) ...[
-                    const Gap(8),
-                    _HistoryDate(date: bid.createdAt!),
-                  ],
-                ],
-              ),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            if (bid.expiresAt != null) ...[
+              const Gap(9),
+              Text(
+                'sponsorBidExpires'.tr(
+                  args: [bid.expiresAt!.toLocal().toString().split('.')[0]],
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (bid.createdAt != null) ...[
+              const Gap(8),
+              _HistoryDate(date: bid.createdAt!),
+            ],
+          ],
+        ),
       ),
     );
   }
