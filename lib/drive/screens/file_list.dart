@@ -233,7 +233,22 @@ class IndexedCloudFileListNotifier
   void setPath(String path) {
     if (_currentPath == path) return;
     _currentPath = path;
+    _resetPagination();
     ref.invalidateSelf();
+  }
+
+  void _resetPagination() {
+    totalCount = null;
+    state = AsyncData(
+      const PaginationState<FileListItem>(
+        items: [],
+        isLoading: true,
+        isReloading: true,
+        totalCount: null,
+        hasMore: true,
+        cursor: null,
+      ),
+    );
   }
 
   void setPool(String? poolId) {

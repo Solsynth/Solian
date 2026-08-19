@@ -53,7 +53,6 @@ class RealmListScreen extends HookConsumerWidget {
     final isCardMode = realmDisplayMode == kRealmDisplayModeCard;
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         title: const Text('realms').tr(),
         leading: IconButton(

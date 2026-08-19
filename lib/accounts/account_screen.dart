@@ -239,13 +239,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.military_tech,
-                    'title': 'badges',
-                    'onTap': () {
-                      context.router.push(ProgressRoute(initialTab: 3));
-                    },
-                  },
-                  {
                     'icon': Symbols.workspace_premium,
                     'title': 'progress',
                     'onTap': () {

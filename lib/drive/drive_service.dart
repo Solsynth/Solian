@@ -33,6 +33,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:island/core/media_kit_init.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:image/image.dart' as img;
+import 'package:island/drive/client_webp_encoder.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -91,6 +92,50 @@ class _ClientMediaUpload {
     this.thumbnail,
     this.compression,
   });
+}
+
+Map<String, dynamic>? _prepareClientImageUploadInBackground(
+  Uint8List bytes,
+) {
+  try {
+    final image = img.decodeImage(bytes);
+    if (image == null || image.width <= 0 || image.height <= 0) return null;
+
+    final maxEdge = max(image.width, image.height);
+    final prepared = maxEdge > 1920
+        ? img.copyResize(
+            image,
+            width: image.width >= image.height
+                ? 1920
+                : (image.width * 1920 / image.height).round(),
+            height: image.height >= image.width
+                ? 1920
+                : (image.height * 1920 / image.width).round(),
+          )
+        : image;
+    final rgba = prepared.getBytes(order: img.ChannelOrder.rgba);
+    // One lossy encode is enough here. Retrying at lower qualities would
+    // spend more CPU to optimize a derivative that may be skipped anyway.
+    final compression = encodeLossyWebP(
+      rgba: rgba,
+      width: prepared.width,
+      height: prepared.height,
+      quality: 80.0,
+    );
+    if (compression == null ||
+        compression.isEmpty ||
+        compression.length >= bytes.length ||
+        compression.length > 16 * 1024 * 1024) {
+      return null;
+    }
+    return {
+      'width': image.width,
+      'height': image.height,
+      'compression': compression,
+    };
+  } catch (_) {
+    return null;
+  }
 }
 
 class DriveQuotaExceededException implements Exception {
@@ -800,42 +845,33 @@ class FileUploader {
   Future<_ClientMediaUpload?> _prepareClientImageUpload(
     dynamic fileData,
   ) async {
-    try {
-      final bytes = fileData is XFile
-          ? await fileData.readAsBytes()
-          : fileData is Uint8List
-          ? fileData
-          : null;
-      if (bytes == null || bytes.isEmpty || bytes.length > 64 * 1024 * 1024) {
-        return null;
-      }
-      final image = img.decodeImage(bytes);
-      if (image == null || image.width <= 0 || image.height <= 0) return null;
-      final maxEdge = max(image.width, image.height);
-      final prepared = maxEdge > 1920
-          ? img.copyResize(
-              image,
-              width: image.width >= image.height
-                  ? 1920
-                  : (image.width * 1920 / image.height).round(),
-              height: image.height >= image.width
-                  ? 1920
-                  : (image.height * 1920 / image.width).round(),
-            )
-          : image;
-      final compression = img.encodeWebP(prepared);
-      if (compression.isEmpty || compression.length > 16 * 1024 * 1024) {
-        return null;
-      }
-      // Images only need the WebP compression derivative; do not prepare a
-      // second client-generated thumbnail.
-      return _ClientMediaUpload(
-        analysis: {'width': image.width, 'height': image.height},
-        compression: compression,
-      );
-    } catch (_) {
+    final bytes = fileData is XFile
+        ? await fileData.readAsBytes()
+        : fileData is Uint8List
+        ? fileData
+        : null;
+    if (bytes == null || bytes.isEmpty || bytes.length > 64 * 1024 * 1024) {
       return null;
     }
+
+    // Decode, resize, pixel conversion, and native WebP encoding are CPU
+    // bound. Keep them off Flutter's UI isolate so large images do not freeze
+    // scrolling or upload progress updates.
+    final prepared = await compute(
+      _prepareClientImageUploadInBackground,
+      bytes,
+    );
+    if (prepared == null) return null;
+
+    final compression = prepared['compression'];
+    if (compression is! Uint8List || compression.isEmpty) return null;
+    return _ClientMediaUpload(
+      analysis: {
+        'width': prepared['width'],
+        'height': prepared['height'],
+      },
+      compression: compression,
+    );
   }
 
   Future<Map<String, dynamic>> _inspectLocalAudio(String path) async {

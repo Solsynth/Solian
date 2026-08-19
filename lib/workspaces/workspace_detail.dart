@@ -14,7 +14,6 @@ class WorkspaceDetailScreen extends HookConsumerWidget {
     final workspaces = ref.watch(workspaceListProvider);
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         centerTitle: true,
         title: workspaces.whenOrNull(

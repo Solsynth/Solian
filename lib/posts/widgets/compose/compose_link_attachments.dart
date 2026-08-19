@@ -19,6 +19,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 final cloudFileListNotifierProvider = AsyncNotifierProvider.autoDispose(
   CloudFileListNotifier.new,
 );
+final _composeIndexedCloudFileListProvider = indexedCloudFileListFamilyProvider(
+  'compose-link-attachment',
+);
 
 class CloudFileListNotifier extends AsyncNotifier<PaginationState<SnCloudFile>>
     with AsyncPaginationController<SnCloudFile> {
@@ -202,7 +205,7 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
     useEffect(() {
       final path = currentPath.value;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(indexedCloudFileListProvider.notifier).setPath(path);
+        ref.read(_composeIndexedCloudFileListProvider.notifier).setPath(path);
       });
       return null;
     }, [currentPath.value]);
@@ -222,8 +225,8 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
     }
 
     return PaginationWidget(
-      provider: indexedCloudFileListProvider,
-      notifier: indexedCloudFileListProvider.notifier,
+      provider: _composeIndexedCloudFileListProvider,
+      notifier: _composeIndexedCloudFileListProvider.notifier,
       isRefreshable: false,
       contentBuilder: (data, footer) {
         final breadcrumbs = buildBreadcrumbs(currentPath.value);

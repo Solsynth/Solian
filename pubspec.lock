@@ -1853,10 +1853,10 @@ packages:
     dependency: transitive
     description:
       name: native_toolchain_c
-      sha256: "8aaead321425bd3f03bd5894aa27c8ea6993eab95531da7e59f5d39c6e5708ec"
+      sha256: "6ba77bb18063eebe9de401f5e6437e95e1438af0a87a3a39084fbd37c90df572"
       url: "https://pub.dev"
     source: hosted
-    version: "0.18.0"
+    version: "0.17.6"
   ndef:
     dependency: "direct main"
     description:
@@ -3026,6 +3026,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
+  swipelab_webp:
+    dependency: "direct main"
+    description:
+      name: swipelab_webp
+      sha256: c5e9aa236bff713ef0d35a61c34bceb335c839ba83dfb39aed8e4dddd2540a08
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   sync_http:
     dependency: transitive
     description:

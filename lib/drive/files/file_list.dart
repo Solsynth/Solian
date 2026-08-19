@@ -20,6 +20,7 @@ import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/workspaces/workspace_management.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -832,7 +833,6 @@ class FileListScreen extends HookConsumerWidget {
         : bodyContent;
 
     final mainContent = AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Symbols.menu),
@@ -1451,6 +1451,7 @@ class _DriveTabStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isCompact = context.isCompactScreen;
     final border = scheme.outlineVariant.withValues(alpha: 0.55);
 
     Widget toolButton({
@@ -1584,27 +1585,29 @@ class _DriveTabStrip extends StatelessWidget {
                         size: 18,
                         color: scheme.onSurfaceVariant,
                       ),
-                      const Gap(4),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 140),
-                        child: Text(
-                          selectedWorkspaceId == null
-                              ? 'personalFiles'.tr()
-                              : workspaces
-                                        .where(
-                                          (workspace) =>
-                                              workspace.id ==
-                                              selectedWorkspaceId,
-                                        )
-                                        .firstOrNull
-                                        ?.name ??
-                                    'workspace'.tr(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium,
+                      if (!isCompact) ...[
+                        const Gap(4),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 140),
+                          child: Text(
+                            selectedWorkspaceId == null
+                                ? 'personalFiles'.tr()
+                                : workspaces
+                                          .where(
+                                            (workspace) =>
+                                                workspace.id ==
+                                                selectedWorkspaceId,
+                                          )
+                                          .firstOrNull
+                                          ?.name ??
+                                      'workspace'.tr(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelMedium,
+                          ),
                         ),
-                      ),
-                      const Icon(Symbols.arrow_drop_down, size: 18),
+                        const Icon(Symbols.arrow_drop_down, size: 18),
+                      ],
                     ],
                   ),
                 ),

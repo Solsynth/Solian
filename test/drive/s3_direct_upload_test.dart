@@ -480,7 +480,11 @@ void main() {
       expect(dyson.lastWantThumbnail, isFalse);
       expect(dyson.lastWantCompression, isTrue);
       expect(s3.objects['/thumbnail'], isNull);
-      expect(s3.objects['/compression'], isNotNull);
+      final compression = s3.objects['/compression'];
+      expect(compression, isNotNull);
+      expect(utf8.decode(compression!.sublist(0, 4)), 'RIFF');
+      expect(utf8.decode(compression.sublist(8, 12)), 'WEBP');
+      expect(compression.length, lessThan(source.length));
     },
   );
 

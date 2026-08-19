@@ -433,6 +433,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Expanded(
                                   child: _buildCurrencyBadge(
@@ -443,15 +444,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                                     emphasize: false,
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                  ),
-                                  child: Icon(
-                                    Symbols.arrow_forward,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
+                                const Gap(16),
                                 Expanded(
                                   child: _buildCurrencyBadge(
                                     context: context,
@@ -3075,7 +3068,6 @@ class WalletScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         title: Text('wallet').tr(),
         leading: !isWideScreen(context)
@@ -3106,7 +3098,7 @@ class WalletScreen extends HookConsumerWidget {
                   ),
                   child: buildBody(),
                 ),
-                const VerticalDivider(width: 1),
+                const Gap(16),
                 // Right column - Transaction detail or placeholder
                 Expanded(
                   child: selectedTransactionId.value != null

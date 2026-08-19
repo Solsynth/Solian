@@ -111,6 +111,7 @@ dependencies:
   pasteboard: ^0.5.0
   flutter_colorpicker: ^1.1.0
   image: ^4.9.1
+  swipelab_webp: ^1.0.0
   record: ^7.1.1
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.4.0

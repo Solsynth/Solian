@@ -3540,7 +3540,7 @@ class _FileListLeadingPreview extends HookConsumerWidget {
 
     if (kind == 'image') {
       preview = UniversalImage(
-        uri: '$uri?thumbnail=true',
+        uri: uri,
         blurHash: file.blurhash,
         fit: BoxFit.cover,
       );
