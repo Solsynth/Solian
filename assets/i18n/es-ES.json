@@ -2133,7 +2133,7 @@
   "walletCreateHint": "You don't have a wallet yet. Create one to start using the Solar Network eWallet.",
   "walletCurrencyGolds": "The Solar Dollars",
   "walletCurrencyPoints": "New Solar Points",
-  "walletCurrencyShortGolds": "NSD",
+  "walletCurrencyShortGolds": "Golds",
   "walletCurrencyShortPoints": "Bits",
   "walletDescription": "Your source point wallet.",
   "walletNotFound": "Wallet not found",

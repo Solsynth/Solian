@@ -2135,7 +2135,7 @@
   "walletCreateHint": "君尚未備荷包，請創之以啟用 Solar Network 電子荷包。",
   "walletCurrencyGolds": "太陽幣",
   "walletCurrencyPoints": "新太陽點",
-  "walletCurrencyShortGolds": "NSD",
+  "walletCurrencyShortGolds": "Golds",
   "walletCurrencyShortPoints": "Bits",
   "walletDescription": "君源點荷包",
   "walletNotFound": "未見荷包",
