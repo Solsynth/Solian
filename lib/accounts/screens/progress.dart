@@ -154,13 +154,12 @@ class ProgressScreen extends ConsumerWidget {
           title: Text('progress').tr(),
           leading: const AutoLeadingButton(),
           bottom: TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
+            tabAlignment: .center,
             dividerColor: theme.colorScheme.outlineVariant,
             indicatorColor: theme.colorScheme.primary,
             indicatorWeight: 2,
-            labelColor: theme.colorScheme.primary,
-            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+            labelColor: theme.appBarTheme.foregroundColor,
+            unselectedLabelColor: theme.appBarTheme.foregroundColor,
             labelStyle: theme.textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w700,
             ),

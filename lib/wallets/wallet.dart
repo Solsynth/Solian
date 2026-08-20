@@ -16,6 +16,7 @@ import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/payments/order_detail.dart';
 import 'package:island/payments/payment_overlay.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/realms/screens/realms.dart';
@@ -26,6 +27,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/core/utils/text.dart';
 import 'package:island/wallets/pin_status.dart';
 import 'package:island/wallets/realtime_wallet.dart';
 import 'package:island/wallets/transaction_detail.dart';
@@ -156,10 +158,11 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            kCurrencyIconData[currency] ?? Symbols.monetization_on,
-            size: 22,
-            color: foregroundColor,
+          WalletCurrencyMedallion(
+            currency: currency,
+            size: 38,
+            iconSize: 20,
+            emphasized: emphasize,
           ),
           const Gap(10),
           Text(
@@ -270,7 +273,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(kSolarRadius),
         border: Border.all(color: colorScheme.primary.withOpacity(0.18)),
       ),
       child: Column(
@@ -331,7 +334,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
           const Gap(4),
           Text(
             hasAmount
-                ? '${_formatAmount(amount)} ${option.sourceCurrency}'
+                ? '${_formatAmount(amount)} ${walletCurrencyShort(option.sourceCurrency)}'
                 : 'amount'.tr(),
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onPrimaryContainer.withOpacity(0.72),
@@ -433,14 +436,14 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
                                   child: _buildCurrencyBadge(
                                     context: context,
                                     currency: selectedOption.sourceCurrency,
                                     amount:
-                                        '${selectedOption.sourceAmount} ${selectedOption.sourceCurrency}',
+                                        '${selectedOption.sourceAmount} ${walletCurrencyShort(selectedOption.sourceCurrency)}',
                                     emphasize: false,
                                   ),
                                 ),
@@ -450,7 +453,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
                                     context: context,
                                     currency: selectedOption.targetCurrency,
                                     amount:
-                                        '${selectedOption.targetAmount} ${selectedOption.targetCurrency}',
+                                        '${selectedOption.targetAmount} ${walletCurrencyShort(selectedOption.targetCurrency)}',
                                     emphasize: true,
                                   ),
                                 ),
@@ -947,6 +950,7 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                   // Raising mode toggle
                   Container(
                     decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
                       border: Border.all(
                         color: theme.colorScheme.outline,
                         width: 1,
@@ -1110,6 +1114,7 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                   ),
                   Container(
                     decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
                       border: Border.all(
                         color: theme.colorScheme.outline,
                         width: 1,
@@ -1605,6 +1610,7 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                   ),
                   Container(
                     decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
                       border: Border.all(
                         color: theme.colorScheme.outline,
                         width: 1,
@@ -1768,6 +1774,7 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                   if (!widget.hideTransferOptions)
                     Container(
                       decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerLow,
                         border: Border.all(
                           color: theme.colorScheme.outline,
                           width: 1,
@@ -2569,6 +2576,7 @@ class WalletScreen extends HookConsumerWidget {
     final transactionFilter = useState<int>(0);
     final selectedWalletId = useState<String?>(null);
     final selectedTransactionId = useState<String?>(null);
+    final selectedOrderId = useState<String?>(null);
 
     final balanceAnimationController = useAnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -3032,14 +3040,40 @@ class WalletScreen extends HookConsumerWidget {
 
               // Tab Bar
               SliverToBoxAdapter(
-                child: TabBar(
-                  controller: tabController,
-                  tabs: [
-                    Tab(text: 'transactions'.tr()),
-                    Tab(text: 'myFunds'.tr()),
-                    Tab(text: 'walletOrder'.tr()),
-                  ],
-                ),
+                child: Material(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(16),
+                  child: TabBar(
+                    controller: tabController,
+                    isScrollable: false,
+                    tabAlignment: TabAlignment.fill,
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    labelColor:
+                        Theme.of(context).colorScheme.onPrimaryContainer,
+                    unselectedLabelColor:
+                        Theme.of(context).colorScheme.onSurfaceVariant,
+                    labelStyle: Theme.of(context)
+                        .textTheme
+                        .labelLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                    unselectedLabelStyle:
+                        Theme.of(context).textTheme.labelLarge,
+                    padding: const EdgeInsets.all(4),
+                    tabs: [
+                      Tab(text: 'transactions'.tr()),
+                      Tab(text: 'myFunds'.tr()),
+                      Tab(text: 'walletOrder'.tr()),
+                    ],
+                  ),
+                ).padding(horizontal: 16),
               ),
             ],
             body: TabBarView(
@@ -3051,10 +3085,16 @@ class WalletScreen extends HookConsumerWidget {
                   selectedWallet,
                   transactionFilter,
                   selectedTransactionId,
+                  selectedOrderId,
                   createTransfer,
                 ),
                 _buildFundsList(context, ref),
-                _buildOrdersList(context, ref, selectedWallet.id),
+                _buildOrdersList(
+                  context,
+                  ref,
+                  selectedOrderId,
+                  selectedTransactionId,
+                ),
               ],
             ),
           );
@@ -3101,12 +3141,14 @@ class WalletScreen extends HookConsumerWidget {
                 const Gap(16),
                 // Right column - Transaction detail or placeholder
                 Expanded(
-                  child: selectedTransactionId.value != null
-                      ? TransactionDetailEmbedded(
-                          transactionId: selectedTransactionId.value!,
-                          currentWalletId: selectedWalletId.value,
-                        )
-                      : _buildEmptyDetailPlaceholder(context),
+                  child: selectedOrderId.value != null
+                      ? WalletOrderDetailView(orderId: selectedOrderId.value!)
+                      : selectedTransactionId.value != null
+                          ? TransactionDetailEmbedded(
+                              transactionId: selectedTransactionId.value!,
+                              currentWalletId: selectedWalletId.value,
+                            )
+                          : _buildEmptyDetailPlaceholder(context),
                 ),
               ],
             )
@@ -3322,10 +3364,18 @@ class WalletScreen extends HookConsumerWidget {
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const Gap(8),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.14),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const Gap(10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3386,9 +3436,17 @@ class WalletScreen extends HookConsumerWidget {
       duration: const Duration(milliseconds: 1200),
       curve: Curves.easeOutCubic,
       builder: (context, animatedValue, child) {
-        return Card(
-          margin: EdgeInsets.zero,
-          color: theme.colorScheme.primaryContainer,
+        return WalletGlow(
+          color: theme.colorScheme.primary,
+          intensity: 0.16,
+          breathing: !MediaQuery.of(context).disableAnimations,
+          borderRadius: BorderRadius.circular(kSolarRadius),
+          child: Card(
+            margin: EdgeInsets.zero,
+            color: theme.colorScheme.primaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(kSolarRadius),
+            ),
           child: Padding(
             padding: EdgeInsets.all(isWide ? 20.0 : 16.0),
             child: Column(
@@ -3404,10 +3462,15 @@ class WalletScreen extends HookConsumerWidget {
                     const Gap(8),
                     Expanded(
                       child: Text(
-                        wallet.name.isNotEmpty ? wallet.name : 'balance'.tr(),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w500,
+                        (wallet.name.isNotEmpty
+                                ? wallet.name
+                                : 'balance'.tr())
+                            .toUpperCase(),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withOpacity(0.72),
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -3573,8 +3636,10 @@ class WalletScreen extends HookConsumerWidget {
                       formatDisplayAmount(animatedValue),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                        fontSize: isWide ? 40 : 32,
+                        fontWeight: FontWeight.w800,
+                        fontSize: isWide ? 44 : 36,
+                        letterSpacing: -1.2,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                     const Gap(8),
@@ -3588,6 +3653,7 @@ class WalletScreen extends HookConsumerWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -3670,6 +3736,7 @@ class WalletScreen extends HookConsumerWidget {
     SnWallet? wallet,
     ValueNotifier<int> filter,
     ValueNotifier<String?> selectedTransactionId,
+    ValueNotifier<String?> selectedOrderId,
     Future<void> Function() onCreateTransfer,
   ) {
     final direction = switch (filter.value) {
@@ -3734,6 +3801,7 @@ class WalletScreen extends HookConsumerWidget {
                       onTap: () {
                         if (isWideScreen(context)) {
                           // On wide screens, update selected transaction for two-column layout
+                          selectedOrderId.value = null;
                           selectedTransactionId.value = transaction.id;
                         } else {
                           // On narrow screens, navigate to detail page
@@ -3935,13 +4003,13 @@ class WalletScreen extends HookConsumerWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
+              color: amountColor.withOpacity(0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isIncome ? Symbols.arrow_downward_alt : Symbols.arrow_upward_alt,
               size: 20,
-              color: colorScheme.onSurfaceVariant,
+              color: amountColor,
             ),
           ),
           const Gap(12),
@@ -4042,7 +4110,8 @@ class WalletScreen extends HookConsumerWidget {
   Widget _buildOrdersList(
     BuildContext context,
     WidgetRef ref,
-    String selectedWalletId,
+    ValueNotifier<String?> selectedOrderId,
+    ValueNotifier<String?> selectedTransactionId,
   ) {
     final provider = walletMyOrdersProvider;
     final orders = ref.watch(provider);
@@ -4153,31 +4222,12 @@ class WalletScreen extends HookConsumerWidget {
               ),
             ],
           ),
-          onTap: () async {
-            try {
-              final client = ref.read(solarNetworkClientProvider);
-              final response = await client.dio.get(
-                '/wallet/orders/mine/${order.id}',
-              );
-              final data = Map<String, dynamic>.from(response.data as Map);
-              final detail = SnWalletOrder.fromJson(data);
-              final orderInfo = PaymentOverlayOrderInfo.fromJson(data);
-              if (context.mounted == false) return;
-              final paidOrder = await PaymentOverlay.show(
-                context: context,
-                order: detail,
-                orderInfo: orderInfo,
-                payerWalletId: detail.payerWalletId ?? selectedWalletId,
-                enableBiometric: true,
-              );
-              if (paidOrder != null) {
-                ref.invalidate(walletMyOrdersProvider);
-                ref.invalidate(walletCurrentProvider);
-                ref.invalidate(walletListProvider);
-                ref.invalidate(walletStatsProvider);
-              }
-            } catch (err) {
-              if (context.mounted) showErrorAlert(err);
+          onTap: () {
+            if (isWideScreen(context)) {
+              selectedTransactionId.value = null;
+              selectedOrderId.value = order.id;
+            } else {
+              context.router.push(WalletOrderDetailRoute(orderId: order.id));
             }
           },
         );
@@ -4468,7 +4518,7 @@ class WalletScreen extends HookConsumerWidget {
 
     return Material(
       color: theme.colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(kSolarRadiusSm),
       clipBehavior: Clip.antiAlias,
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
@@ -4819,8 +4869,7 @@ String formatAmountWithSuffix(double amount) {
 /// raw currency code when no translation exists.
 String walletCurrencyShort(String currency) {
   if (currency.isEmpty) return currency;
-  final key =
-      'walletCurrencyShort${currency[0].toUpperCase()}${currency.substring(1).toLowerCase()}';
+  final key = 'walletCurrencyShort${currency.capitalizeEachWord()}';
   final localized = key.tr();
   return localized == key ? currency : localized;
 }
@@ -4960,4 +5009,132 @@ Widget? _buildTransactionStatusLabel(BuildContext context, SnTransaction t) {
       ),
     ],
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Solar Core — wallet design language
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Solar Core corner radii — the wallet's signature softness.
+const double kSolarRadius = 22.0;
+const double kSolarRadiusSm = 16.0;
+const double kSolarRadiusXs = 12.0;
+
+/// Soft radial "core of light" halo behind the balance hero and other focal
+/// wallet surfaces. It keys off [ColorScheme.primary] so it adapts to the
+/// user's chosen accent and stays coherent across light/dark and custom themes.
+/// When [breathing] is set it slowly pulses; this is disabled under
+/// [MediaQueryData.disableAnimations].
+class WalletGlow extends StatefulWidget {
+  final Widget child;
+  final Color color;
+  final double intensity;
+  final bool breathing;
+  final BorderRadius borderRadius;
+
+  const WalletGlow({
+    super.key,
+    required this.child,
+    required this.color,
+    this.intensity = 0.16,
+    this.breathing = false,
+    this.borderRadius = const BorderRadius.all(Radius.circular(kSolarRadius)),
+  });
+
+  @override
+  State<WalletGlow> createState() => _WalletGlowState();
+}
+
+class _WalletGlowState extends State<WalletGlow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _breath = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 4),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _breath.dispose();
+    super.dispose();
+  }
+
+  Widget _paint(double opacity) => Positioned.fill(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: widget.borderRadius,
+            gradient: RadialGradient(
+              center: const Alignment(-0.35, -0.65),
+              radius: 1.25,
+              colors: [
+                widget.color.withOpacity(widget.intensity * opacity),
+                widget.color.withOpacity(0.0),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.breathing || MediaQuery.of(context).disableAnimations) {
+      return Stack(children: [_paint(1), widget.child]);
+    }
+    return AnimatedBuilder(
+      animation: _breath,
+      builder: (context, _) => Stack(
+        children: [
+          _paint(0.55 + 0.45 * _breath.value),
+          widget.child,
+        ],
+      ),
+    );
+  }
+}
+
+/// Luminous currency token used for the balance currency, exchange legs, and
+/// ledger rows. [emphasized] switches to the primary-container treatment.
+class WalletCurrencyMedallion extends StatelessWidget {
+  final String currency;
+  final double size;
+  final double iconSize;
+  final bool emphasized;
+
+  const WalletCurrencyMedallion({
+    super.key,
+    required this.currency,
+    this.size = 40,
+    this.iconSize = 22,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fg = emphasized ? scheme.onPrimaryContainer : scheme.onSurfaceVariant;
+    final bg = emphasized
+        ? scheme.primaryContainer
+        : scheme.surfaceContainerHighest;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: bg,
+        shape: BoxShape.circle,
+        boxShadow: emphasized
+            ? [
+                BoxShadow(
+                  color: scheme.primary.withOpacity(0.25),
+                  blurRadius: 14,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Icon(
+        kCurrencyIconData[currency] ?? Symbols.monetization_on,
+        size: iconSize,
+        color: fg,
+      ),
+    );
+  }
 }

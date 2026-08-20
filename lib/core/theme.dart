@@ -103,8 +103,8 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
     appBarTheme: AppBarTheme(
       centerTitle: true,
       elevation: hasAppBarTransparent ? 0 : null,
-      backgroundColor: hasAppBarTransparent ? Colors.transparent : null,
-      foregroundColor: hasAppBarTransparent ? colorScheme.onSurface : null,
+      backgroundColor: hasAppBarTransparent ? Colors.transparent : colorScheme.surface,
+      foregroundColor: hasAppBarTransparent ? colorScheme.onSurface : colorScheme.onSurface,
     ),
     cardTheme: CardThemeData(
       color: colorScheme.surfaceContainer.withOpacity(

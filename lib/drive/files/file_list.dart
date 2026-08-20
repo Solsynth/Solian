@@ -1481,7 +1481,10 @@ class _DriveTabStrip extends StatelessWidget {
       color: scheme.surfaceContainerLow,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: border)),
+          border: Border(
+            bottom: BorderSide(color: border),
+            top: BorderSide(color: border),
+          ),
         ),
         child: SizedBox(
           height: 40,
