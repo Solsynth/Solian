@@ -158,17 +158,6 @@
       document.oncontextmenu = (evt) => evt.preventDefault();
     </script>
 
-    <script>
-      {{flutter_js}}
-      {{flutter_build_config}}
-
-      const useCanvasKit = true;
-
-      _flutter.loader.load({
-        config: {
-          renderer: useCanvasKit ? "canvaskit" : "skwasm",
-        },
-      });
-    </script>
+    <script src="flutter_bootstrap.js" async></script>
   </body>
 </html>
