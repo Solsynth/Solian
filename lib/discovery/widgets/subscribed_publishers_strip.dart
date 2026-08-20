@@ -116,11 +116,7 @@ class SubscribedPublishersStrip extends HookConsumerWidget {
                   },
                 ),
               ),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: colorScheme.outlineVariant.withOpacity(0.45),
-              ),
+              Divider(height: 1),
             ],
           ),
         );

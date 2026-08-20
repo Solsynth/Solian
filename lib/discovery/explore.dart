@@ -793,6 +793,7 @@ class ExploreScreen extends HookConsumerWidget {
             appSettingsNotifier: appSettingsNotifier,
             isWide: false,
           ),
+          SliverToBoxAdapter(child: const Divider(height: 1)),
           SliverSubscribedPublishersStrip(
             selectedPublisherNames: selectedPublishers.value,
             onSelectedPublishersChanged: (names) {
