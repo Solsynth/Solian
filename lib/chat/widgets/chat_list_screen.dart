@@ -865,9 +865,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                   },
                                 ),
                               ),
-                              Divider(
-                                height: 1,
-                              ),
+                              Divider(height: 1),
                             ],
                           ),
                         ),
@@ -1313,7 +1311,6 @@ class _ChatListAppBar extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatInvites = ref.watch(chatroomInvitesProvider);
     final isSyncing = ref.watch(chatSyncingProvider);
-    final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
 
     Future<void> openInvites() async {
       await showModalBottomSheet(
@@ -1341,7 +1338,7 @@ class _ChatListAppBar extends HookConsumerWidget {
             error: (_, _) => false,
             loading: () => false,
           ),
-          child: Icon(Symbols.email, color: appbarFeColor),
+          child: Icon(Symbols.email),
         ),
       );
     }
@@ -1367,7 +1364,6 @@ class _ChatListAppBar extends HookConsumerWidget {
                       Symbols.inbox,
                       fill: tabController.index == 0 ? 1 : 0,
                     ),
-                    color: appbarFeColor,
                     onPressed: () => tabController.animateTo(0),
                     tooltip: 'chatTabAll'.tr(),
                   ),
@@ -1376,7 +1372,6 @@ class _ChatListAppBar extends HookConsumerWidget {
                       Symbols.person,
                       fill: tabController.index == 1 ? 1 : 0,
                     ),
-                    color: appbarFeColor,
                     onPressed: () => tabController.animateTo(1),
                     tooltip: 'chatTabDirect'.tr(),
                   ),
@@ -1385,7 +1380,6 @@ class _ChatListAppBar extends HookConsumerWidget {
                       Symbols.group,
                       fill: tabController.index == 2 ? 1 : 0,
                     ),
-                    color: appbarFeColor,
                     onPressed: () => tabController.animateTo(2),
                     tooltip: 'chatTabGroup'.tr(),
                   ),
@@ -1437,16 +1431,10 @@ class _MarkAllReadButton extends ConsumerWidget {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: isWideScreen(context)
-                    ? null
-                    : Theme.of(context).appBarTheme.foregroundColor,
               ),
             )
           : Icon(
               Symbols.done_all,
-              color: isWideScreen(context)
-                  ? null
-                  : Theme.of(context).appBarTheme.foregroundColor,
             ),
       tooltip: 'Mark all as read',
       onPressed: readSyncState.isLoading

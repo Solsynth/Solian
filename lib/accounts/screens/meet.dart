@@ -130,12 +130,16 @@ class MeetScreen extends HookConsumerWidget {
                 placemark.locality,
               ].whereType<String>().where((e) => e.trim().isNotEmpty).toList();
               name = names.isNotEmpty ? names.first : null;
-              address = [
-                placemark.street,
-                placemark.subAdministrativeArea,
-                placemark.administrativeArea,
-                placemark.country,
-              ].whereType<String>().where((e) => e.trim().isNotEmpty).join(', ');
+              address =
+                  [
+                        placemark.street,
+                        placemark.subAdministrativeArea,
+                        placemark.administrativeArea,
+                        placemark.country,
+                      ]
+                      .whereType<String>()
+                      .where((e) => e.trim().isNotEmpty)
+                      .join(', ');
               if (address.isEmpty) address = null;
             }
           } catch (_) {}
@@ -206,8 +210,6 @@ class MeetScreen extends HookConsumerWidget {
       }
     }
 
-
-
     useEffect(() {
       if (initialMeetId.isNotEmpty && !didAutoJoin.value) {
         didAutoJoin.value = true;
@@ -226,22 +228,8 @@ class MeetScreen extends HookConsumerWidget {
           bottom: TabBar(
             controller: tabController,
             tabs: [
-              Tab(
-                child: Text(
-                  'meet'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'meetHistory'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
+              Tab(child: Text('meet'.tr())),
+              Tab(child: Text('meetHistory'.tr())),
             ],
           ),
         ),
@@ -2391,8 +2379,7 @@ class _MeetHistoryCard extends StatelessWidget {
                                             .account!
                                             .profile
                                             .picture,
-                                        fallbackName:
-                                            participant.account!.nick,
+                                        fallbackName: participant.account!.nick,
                                         radius: 16,
                                       )
                                     : CircleAvatar(

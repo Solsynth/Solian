@@ -1594,7 +1594,6 @@ class _PostBarBookmarkButton extends ConsumerWidget {
         );
     return IconButton(
       tooltip: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
-      color: Theme.of(context).colorScheme.onPrimary,
       onPressed: () async {
         try {
           await toggleBookmark(
@@ -1630,7 +1629,6 @@ class _PostBarShareButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       tooltip: 'share'.tr(),
-      color: Theme.of(context).colorScheme.onPrimary,
       onPressed: () => _showPostShareSheet(context, ref, post),
       icon: const Icon(Symbols.share),
     );
@@ -1653,7 +1651,6 @@ SliverAppBar buildPostDetailSliverAppBar({
     pinned: true,
     // Opaque on purpose: this bar stays pinned over scrolling content, so it
     // must not inherit the "transparent app bar" user setting.
-    backgroundColor: theme.colorScheme.primary,
     centerTitle: true,
     leading: leading,
     title: hasTitle
@@ -1662,7 +1659,6 @@ SliverAppBar buildPostDetailSliverAppBar({
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onPrimary,
               fontWeight: FontWeight.w600,
             ),
           )

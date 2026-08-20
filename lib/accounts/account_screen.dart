@@ -83,7 +83,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: isWide,
-      appBar: AppBar(backgroundColor: Colors.transparent, toolbarHeight: 0),
+      appBar: AppBar(toolbarHeight: 0),
       body: SingleChildScrollView(
         child: Column(
           spacing: 4,

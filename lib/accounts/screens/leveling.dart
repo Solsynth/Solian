@@ -87,18 +87,12 @@ class LevelingScreen extends HookConsumerWidget {
                 child: Text(
                   'leveling'.tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
                 ),
               ),
               Tab(
                 child: Text(
                   'socialCredits'.tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor!,
-                  ),
                 ),
               ),
             ],

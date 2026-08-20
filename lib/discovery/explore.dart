@@ -460,10 +460,7 @@ class ExploreScreen extends HookConsumerWidget {
           Row(
             children: [
               PopupMenuButton<_ExploreAction>(
-                icon: Icon(
-                  Symbols.widgets,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
+                icon: Icon(Symbols.widgets),
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: _ExploreAction.categories,
@@ -526,10 +523,7 @@ class ExploreScreen extends HookConsumerWidget {
                 onPressed: () {
                   context.router.push(UniversalSearchRoute());
                 },
-                icon: Icon(
-                  Symbols.search,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
+                icon: Icon(Symbols.search),
                 tooltip: 'search'.tr(),
               ),
             ],
@@ -673,10 +667,7 @@ class ExploreScreen extends HookConsumerWidget {
                   appSettingsNotifier,
                   isWide: isWide,
                 ),
-                icon: Icon(
-                  Symbols.tune,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
+                icon: Icon(Symbols.tune),
                 tooltip: 'settings'.tr(),
               ),
             ),

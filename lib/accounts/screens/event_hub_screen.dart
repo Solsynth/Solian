@@ -538,7 +538,6 @@ class EventHubScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        surfaceTintColor: colorScheme.surfaceTint,
         scrolledUnderElevation: 3,
         centerTitle: true,
         leading: const AutoLeadingButton(),
@@ -607,7 +606,6 @@ class EventHubScreen extends HookConsumerWidget {
             },
             icon: Icon(
               isSearchActive.value ? Symbols.search_off : Symbols.search,
-              color: Theme.of(context).appBarTheme.foregroundColor,
             ),
             tooltip: isSearchActive.value
                 ? 'eventHubSearchClose'.tr()
@@ -616,20 +614,14 @@ class EventHubScreen extends HookConsumerWidget {
           // Filters
           IconButton(
             onPressed: openFilters,
-            icon: Icon(
-              Symbols.tune,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
+            icon: Icon(Symbols.tune),
             tooltip: 'eventHubFilters'.tr(),
           ),
           if (isWide) ...[
             IconButton(
               onPressed: () =>
                   showInspectorSidebar.value = !showInspectorSidebar.value,
-              icon: Icon(
-                Symbols.calendar_today,
-                color: Theme.of(context).appBarTheme.foregroundColor,
-              ),
+              icon: Icon(Symbols.calendar_today),
               tooltip: 'eventHubEvents'.tr(),
             ),
           ],
