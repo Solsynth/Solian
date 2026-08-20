@@ -867,10 +867,6 @@ class ChatListBodyWidget extends HookConsumerWidget {
                               ),
                               Divider(
                                 height: 1,
-                                thickness: 1,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.outlineVariant.withOpacity(0.45),
                               ),
                             ],
                           ),
@@ -2050,6 +2046,7 @@ class ChatListWidget extends HookConsumerWidget {
                             ),
                           ],
                         ).padding(horizontal: 8),
+                        const Divider(height: 1),
                         ListTile(
                           dense: true,
                           tileColor: Theme.of(

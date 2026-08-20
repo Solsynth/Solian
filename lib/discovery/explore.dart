@@ -2275,6 +2275,12 @@ class _TimelineDetailPane extends HookConsumerWidget {
                 context,
               ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
               border: Border(
+                top: BorderSide(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withOpacity(0.12),
+                  width: 1,
+                ),
                 bottom: BorderSide(
                   color: Theme.of(
                     context,
