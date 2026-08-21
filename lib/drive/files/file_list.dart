@@ -1490,7 +1490,10 @@ class _DriveTabStrip extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final tab = tabs[index];
                           final selected = tab.id == activeTabId;
-                          return ReorderableDragStartListener(
+                          final dragStartListener = isCompact
+                              ? ReorderableDelayedDragStartListener.new
+                              : ReorderableDragStartListener.new;
+                          return dragStartListener(
                             key: ValueKey(tab.id),
                             index: index,
                             child: _DriveTabItem(
