@@ -148,12 +148,22 @@ class CloudFilePicker extends HookConsumerWidget {
 
       final newFiles = <UniversalFile>[];
       for (final xfile in results) {
-        final editedImage = !allowMultiple && !skipCrop
-            ? await cropImage(context, image: xfile, replacePath: false)
+        final isEdited = !allowMultiple && !skipCrop;
+        final editedImage = isEdited
+            ? await cropImage(context, image: xfile, replacePath: true)
             : xfile;
         if (editedImage == null) continue;
         newFiles.add(
-          UniversalFile(data: editedImage, type: UniversalFileType.image),
+          UniversalFile(
+            data: editedImage,
+            type: UniversalFileType.image,
+            // Cropping produces PNG bytes in memory. Keep the generated
+            // extension and do not retain the source path, otherwise the
+            // upload metadata can describe a PNG as the original image.
+            displayName: isEdited
+                ? editedImageName(xfile.name)
+                : (xfile.name.isNotEmpty ? xfile.name : null),
+          ),
         );
       }
 

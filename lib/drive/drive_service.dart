@@ -94,12 +94,13 @@ class _ClientMediaUpload {
   });
 }
 
-Map<String, dynamic>? _prepareClientImageUploadInBackground(
-  Uint8List bytes,
-) {
+Map<String, dynamic>? _prepareClientImageUploadInBackground(Uint8List bytes) {
   try {
     final image = img.decodeImage(bytes);
     if (image == null || image.width <= 0 || image.height <= 0) return null;
+    if (image.hasAnimation) {
+      return {'width': image.width, 'height': image.height, 'animated': true};
+    }
 
     final maxEdge = max(image.width, image.height);
     final prepared = maxEdge > 1920
@@ -862,16 +863,16 @@ class FileUploader {
       bytes,
     );
     if (prepared == null) return null;
+    final analysis = {'width': prepared['width'], 'height': prepared['height']};
+    if (prepared['animated'] == true) {
+      // Keep the original animated source; a single-frame WebP derivative
+      // would discard the animation.
+      return _ClientMediaUpload(analysis: analysis);
+    }
 
     final compression = prepared['compression'];
     if (compression is! Uint8List || compression.isEmpty) return null;
-    return _ClientMediaUpload(
-      analysis: {
-        'width': prepared['width'],
-        'height': prepared['height'],
-      },
-      compression: compression,
-    );
+    return _ClientMediaUpload(analysis: analysis, compression: compression);
   }
 
   Future<Map<String, dynamic>> _inspectLocalAudio(String path) async {
@@ -2503,7 +2504,7 @@ class FileDownloadService {
 
   FileDownloadService(this.ref);
 
-  String _getFileExtension(SnCloudFile item) {
+  String _getFileExtension(IDisplayableCloudFile item) {
     var extName = extension(item.name).trim();
     if (extName.isEmpty) {
       extName = item.mimeType.split('/').lastOrNull ?? 'jpeg';
@@ -2511,7 +2512,7 @@ class FileDownloadService {
     return extName.replaceFirst('.', '');
   }
 
-  String _getFileName(SnCloudFile item, String extName) {
+  String _getFileName(IDisplayableCloudFile item, String extName) {
     return item.name.isEmpty ? '${item.id}.$extName' : item.name;
   }
 
@@ -2569,7 +2570,15 @@ class FileDownloadService {
     }
   }
 
-  String _getOriginalUrl(SnCloudFile item, {String? serverUrl}) {
+  String _getOriginalUrl(
+    IDisplayableCloudFile item, {
+    String? serverUrl,
+  }) {
+    // References may point at remote attachments rather than a local drive
+    // object. Their storage URL is already the downloadable original.
+    if (item is! SnCloudFile && item.storageUrl != null) {
+      return item.storageUrl!;
+    }
     if (serverUrl != null && item.storageUrl == null) {
       return '$serverUrl/drive/files/${item.id}?original=true';
     }
@@ -2579,7 +2588,7 @@ class FileDownloadService {
         : '$baseUri?original=true';
   }
 
-  Future<String?> _getCachedOriginalFile(SnCloudFile item) async {
+  Future<String?> _getCachedOriginalFile(IDisplayableCloudFile item) async {
     try {
       final serverUrl = ref.read(serverUrlProvider);
       final url = _getOriginalUrl(item, serverUrl: serverUrl);
@@ -2592,7 +2601,7 @@ class FileDownloadService {
   }
 
   Future<({String filePath, int bytes})> _downloadToTemp(
-    SnCloudFile item,
+    IDisplayableCloudFile item,
     String extName, {
     void Function(int received, int total)? onProgress,
   }) async {
@@ -2604,24 +2613,31 @@ class FileDownloadService {
       await File(cachedPath).copy(filePath);
       final cachedBytes = await File(filePath).length();
       onProgress?.call(cachedBytes, cachedBytes);
-      await _tryDecryptDownloadedFile(filePath, item);
-      final bytes = await File(filePath).length();
-      return (filePath: filePath, bytes: bytes);
+    } else if (item is SnCloudFile || item.storageUrl == null) {
+      await _driveApi.downloadFile(
+        fileId: item.id,
+        savePath: filePath,
+        onReceiveProgress: onProgress,
+      );
+    } else {
+      final source = await DefaultCacheManager().getSingleFile(
+        item.storageUrl!,
+      );
+      await File(source.path).copy(filePath);
+      final downloadedBytes = await File(filePath).length();
+      onProgress?.call(downloadedBytes, downloadedBytes);
     }
 
-    await _driveApi.downloadFile(
-      fileId: item.id,
-      savePath: filePath,
-      onReceiveProgress: onProgress,
-    );
-    await _tryDecryptDownloadedFile(filePath, item);
+    if (item is SnCloudFile) {
+      await _tryDecryptDownloadedFile(filePath, item);
+    }
     final bytes = await File(filePath).length();
-
     return (filePath: filePath, bytes: bytes);
   }
 
   bool get _isDesktop =>
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+
 
   Future<String?> _resolveDownloadDirectory({
     required bool useDownloadsFolder,
@@ -2644,7 +2660,7 @@ class FileDownloadService {
 
   Future<String> _saveTempFileToDirectory(
     String tempFilePath,
-    SnCloudFile item,
+    IDisplayableCloudFile item,
     String extName, {
     required String directoryPath,
   }) async {
@@ -2657,7 +2673,7 @@ class FileDownloadService {
   }
 
   Future<String?> _persistDownloadedFile(
-    SnCloudFile item,
+    IDisplayableCloudFile item,
     String tempFilePath,
     String extName, {
     required bool useDownloadsFolder,
@@ -2686,7 +2702,7 @@ class FileDownloadService {
   }
 
   Future<void> saveToGallery(
-    SnCloudFile item, {
+    IDisplayableCloudFile item, {
     bool useDownloadsFolder = false,
   }) async {
     try {
@@ -2696,8 +2712,16 @@ class FileDownloadService {
       final downloaded = await _downloadToTemp(item, extName);
 
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        await Gal.putImage(downloaded.filePath, album: 'Solar Network');
-        showSnackBar('imageSavedToGallery'.tr());
+        if (item.mimeType.startsWith('video/')) {
+          await Gal.putVideo(downloaded.filePath, album: 'Solar Network');
+        } else {
+          await Gal.putImage(downloaded.filePath, album: 'Solar Network');
+        }
+        showSnackBar(
+          item.mimeType.startsWith('video/')
+              ? 'fileSaved'
+              : 'imageSavedToGallery',
+        );
       } else {
         final savedPath = await _persistDownloadedFile(
           item,
@@ -2715,7 +2739,7 @@ class FileDownloadService {
   }
 
   Future<void> downloadFile(
-    SnCloudFile item, {
+    IDisplayableCloudFile item, {
     bool useDownloadsFolder = false,
   }) async {
     await downloadWithProgress(item, useDownloadsFolder: useDownloadsFolder);
@@ -2820,7 +2844,7 @@ class FileDownloadService {
   }
 
   Future<void> downloadWithProgress(
-    SnCloudFile item, {
+    IDisplayableCloudFile item, {
     bool useDownloadsFolder = false,
     void Function(int received, int total)? onProgress,
   }) async {

@@ -1262,7 +1262,7 @@ class _AttachmentsExpandedTab extends StatelessWidget {
         ),
         Expanded(
           child: CloudFileLinkPicker(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(4),
             recentUploadsSliverHeaders: [
               if (attachments.isNotEmpty)
                 SliverToBoxAdapter(

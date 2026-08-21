@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
@@ -10,11 +11,15 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:island/core/config.dart';
+import 'package:island/route.gr.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CloudFileActionsSheet extends ConsumerWidget {
   final IDisplayableCloudFile item;
   final VoidCallback? onClose;
   final ValueChanged<SnCloudFile>? onRenamed;
+  final SnPost? sourcePost;
   final VoidCallback? onRevealParentFolder;
 
   const CloudFileActionsSheet({
@@ -23,6 +28,7 @@ class CloudFileActionsSheet extends ConsumerWidget {
     this.onClose,
     this.onRenamed,
     this.onRevealParentFolder,
+    this.sourcePost,
   });
 
   static Future<T?> show<T>({
@@ -30,6 +36,7 @@ class CloudFileActionsSheet extends ConsumerWidget {
     required IDisplayableCloudFile item,
     ValueChanged<SnCloudFile>? onRenamed,
     VoidCallback? onRevealParentFolder,
+    SnPost? sourcePost,
   }) {
     return showModalBottomSheet<T>(
       useRootNavigator: true,
@@ -39,14 +46,38 @@ class CloudFileActionsSheet extends ConsumerWidget {
         item: item,
         onRenamed: onRenamed,
         onRevealParentFolder: onRevealParentFolder,
+        sourcePost: sourcePost,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final uploader = ref.read(driveFileUploaderProvider);
     final rootContext = Navigator.of(context, rootNavigator: true).context;
+    final serverUrl = ref.read(serverUrlProvider);
+    final isMedia =
+        item.mimeType.startsWith('image/') || item.mimeType.startsWith('video/');
+
+    String absoluteUrl(String? value) {
+      if (value == null || value.isEmpty) {
+        return '$serverUrl/drive/files/${item.id}';
+      }
+      final parsed = Uri.tryParse(value);
+      if (parsed?.hasScheme == true) return value;
+      if (value.startsWith('/')) return '$serverUrl$value';
+      return '$serverUrl/drive/files/${item.id}';
+    }
+
+    Future<void> closeAndRun(Future<void> Function() action) async {
+      Navigator.pop(context);
+      await Future<void>.delayed(Duration.zero);
+      if (!rootContext.mounted) return;
+      try {
+        await action();
+      } catch (e) {
+        showErrorAlert(e);
+      }
+    }
 
     return SheetScaffold(
       onClose: onClose,
@@ -56,16 +87,26 @@ class CloudFileActionsSheet extends ConsumerWidget {
         shrinkWrap: true,
         children: [
           const Gap(8),
-          _ActionTile(
-            icon: Symbols.save,
-            title: 'saveToGallery'.tr(),
-            onTap: () => Navigator.pop(context, 'save'),
-          ),
+          if (!item.isFolder)
+            _ActionTile(
+              icon: isMedia ? Symbols.save : Symbols.download,
+              title: (isMedia ? 'saveToGallery' : 'download').tr(),
+              onTap: () => closeAndRun(
+                () => isMedia
+                    ? ref
+                          .read(driveFileDownloaderProvider)
+                          .saveToGallery(item)
+                    : ref
+                          .read(driveFileDownloaderProvider)
+                          .downloadFile(item),
+              ),
+            ),
           if (item is SnCloudFile)
             _ActionTile(
               icon: Symbols.edit,
               title: 'rename'.tr(),
               onTap: () async {
+                final uploader = ref.read(driveFileUploaderProvider);
                 Navigator.pop(context);
                 await Future<void>.delayed(Duration.zero);
                 if (!rootContext.mounted) return;
@@ -80,16 +121,28 @@ class CloudFileActionsSheet extends ConsumerWidget {
           _ActionTile(
             icon: Symbols.share,
             title: 'share'.tr(),
-            onTap: () => Navigator.pop(context, 'share'),
+            onTap: () => closeAndRun(() async {
+              final box = rootContext.findRenderObject() as RenderBox?;
+              await SharePlus.instance.share(
+                ShareParams(
+                  uri: Uri.parse(absoluteUrl(item.storageUrl)),
+                  sharePositionOrigin: box == null
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
+                ),
+              );
+            }),
           ),
           _ActionTile(
             icon: Symbols.info,
             title: 'fileInfoTitle'.tr(),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
+              await Future<void>.delayed(Duration.zero);
+              if (!rootContext.mounted) return;
               showModalBottomSheet(
                 useRootNavigator: true,
-                context: context,
+                context: rootContext,
                 isScrollControlled: true,
                 builder: (context) => FileInfoSheet(item: item),
               );
@@ -104,14 +157,14 @@ class CloudFileActionsSheet extends ConsumerWidget {
                 onRevealParentFolder?.call();
               },
             ),
-          if (item.storageUrl != null)
+          if (item.storageUrl != null && item.storageUrl!.isNotEmpty)
             _ActionTile(
               icon: Symbols.open_in_new,
               title: 'openInBrowser'.tr(),
               onTap: () {
                 Navigator.pop(context);
                 launchUrlString(
-                  item.storageUrl!,
+                  absoluteUrl(item.storageUrl),
                   mode: LaunchMode.externalApplication,
                 );
               },
@@ -128,7 +181,11 @@ class CloudFileActionsSheet extends ConsumerWidget {
           _ActionTile(
             icon: Symbols.visibility,
             title: 'openInViewer'.tr(),
-            onTap: () => Navigator.pop(context, 'open_in_viewer'),
+            onTap: () => closeAndRun(
+              () => rootContext.router.push(
+                FileDetailRoute(id: item.id, sourcePost: sourcePost),
+              ),
+            ),
           ),
           const Gap(16),
         ],

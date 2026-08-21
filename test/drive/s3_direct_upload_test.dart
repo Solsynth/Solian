@@ -487,6 +487,29 @@ void main() {
       expect(compression.length, lessThan(source.length));
     },
   );
+  test('animated GIF upload skips the lossy compression derivative', () async {
+    dyson.singlePut = true;
+    dyson.includeClientDerivativeUrls = true;
+    final animated = img.Image(width: 2, height: 2);
+    animated.setPixelRgb(0, 0, 255, 0, 0);
+    final secondFrame = img.Image(width: 2, height: 2);
+    secondFrame.setPixelRgb(0, 0, 0, 0, 255);
+    animated.addFrame(secondFrame);
+    final source = Uint8List.fromList(img.encodeGif(animated));
+    final uploader = container.read(driveFileUploaderProvider);
+
+    final result = await uploader.tryUploadViaS3Direct(
+      fileData: source,
+      fileName: 'animated.gif',
+      contentType: 'image/gif',
+      parentId: 'parent-1',
+    );
+
+    expect(result, isNotNull);
+    expect(dyson.lastWantCompression, isFalse);
+    expect(s3.objects['/compression'], isNull);
+    expect(s3.objects['/single'], equals(source));
+  });
 
   test(
     'byte-backed upload (editor flow) sends displayName as file_name',

@@ -15,7 +15,6 @@ import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/core/widgets/content/image_quality_loading.dart';
-import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/video.dart';
@@ -211,33 +210,11 @@ class CloudFileLightbox extends HookConsumerWidget {
 
     void showActionsSheet() async {
       revealControls();
-      final result = await CloudFileActionsSheet.show(
+      await CloudFileActionsSheet.show(
         context: context,
         item: items[currentIndex.value],
+        sourcePost: sourcePost,
       );
-
-      if (result == null || !context.mounted) return;
-
-      switch (result) {
-        case 'save':
-          final item = items[currentIndex.value];
-          if (item is SnCloudFile) {
-            ref.read(driveFileDownloaderProvider).saveToGallery(item);
-          }
-          break;
-        case 'toggle_original':
-          showOriginal.value = !showOriginal.value;
-          break;
-        case 'share':
-          break;
-        case 'open_in_viewer':
-          final item = items[currentIndex.value];
-          final router = context.router;
-          Navigator.of(context).pop();
-          await Future<void>.delayed(Duration.zero);
-          router.push(FileDetailRoute(id: item.id, sourcePost: sourcePost));
-          break;
-      }
     }
 
     Future<void> openDetail() async {

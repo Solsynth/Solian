@@ -131,7 +131,7 @@ class CloudFileLinkPicker extends HookConsumerWidget {
     this.onToggleSelection,
     this.multiSelectEnabled = false,
     this.selectedFileIds = const {},
-    this.padding = const EdgeInsets.all(12),
+    this.padding = const EdgeInsets.all(4),
     this.recentUploadsSliverHeaders = const [],
   });
 
@@ -377,8 +377,8 @@ class _RecentCloudFilesWaterfall extends StatelessWidget {
                   const SliverSimpleGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 180,
                   ),
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+              crossAxisSpacing: 4,
+              mainAxisSpacing: 4,
               delegate: SliverChildBuilderDelegate((context, index) {
                 if (index == data.length) return footer;
                 return _CloudFileLinkTile(
@@ -413,99 +413,92 @@ class _CloudFileLinkTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ratio = file.ratio ?? 1.0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final ratio = file.ratio;
+    final safeRatio = ratio != null && ratio > 0
+        ? ratio.clamp(0.35, 4.0).toDouble()
+        : 1.0;
     final itemType = file.mimeType.split('/').first;
 
-    final previewWidget = switch (itemType) {
-      'image' => CloudImageWidget(
-        file: file,
-        aspectRatio: ratio,
-        fit: BoxFit.cover,
-      ),
-      'video' => CloudVideoWidget(item: file),
-      _ => getFileIcon(file, size: 48),
-    };
+    final previewWidget = file.isFolder
+        ? ColoredBox(
+            color: colorScheme.primaryContainer.withOpacity(0.35),
+            child: Center(
+              child: Icon(
+                Symbols.folder,
+                fill: 1,
+                size: 56,
+                color: colorScheme.primary,
+              ),
+            ),
+          )
+        : switch (itemType) {
+            'image' => CloudImageWidget(
+              file: file,
+              aspectRatio: safeRatio,
+              fit: BoxFit.cover,
+            ),
+            'video' => CloudVideoWidget(item: file),
+            _ => ColoredBox(
+              color: colorScheme.surfaceContainerHighest,
+              child: Center(child: getFileIcon(file, size: 48)),
+            ),
+          };
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Stack(
+    final label = file.name.isEmpty ? 'untitled'.tr() : file.name;
+    return Tooltip(
+      message: label,
+      child: Material(
+        color: isSelected
+            ? colorScheme.primaryContainer.withOpacity(0.45)
+            : colorScheme.surfaceContainerLow,
+        child: InkWell(
+          onTap: onTap,
+          child: _AttachmentWaterfallHoverFrame(
+            overlay: _AttachmentWaterfallInfoOverlay(file: file, label: label),
+            child: Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: ratio,
-                    child: Container(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      child: previewWidget,
+                AspectRatio(
+                  aspectRatio: file.isFolder ? 1 : safeRatio,
+                  child: previewWidget,
+                ),
+                if (showSelectionState && isSelected)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.primary,
+                            width: 3,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
                 if (showSelectionState)
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isSelected
-                            ? Symbols.check_circle
-                            : Symbols.radio_button_unchecked,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                        size: 22,
+                    child: Material(
+                      color: colorScheme.surface.withOpacity(0.88),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: Icon(
+                          isSelected
+                              ? Symbols.check_circle
+                              : Symbols.radio_button_unchecked,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
               ],
             ),
-            Row(
-              children: [
-                getFileIcon(file, size: 22, tinyPreview: false),
-                const Gap(10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      file.name.isEmpty
-                          ? Text('untitled').tr().italic()
-                          : Text(
-                              file.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                      Text(
-                        formatFileSize(file.size),
-                        maxLines: 1,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall!.copyWith(fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ).padding(horizontal: 10, vertical: 6),
-          ],
+          ),
         ),
       ),
     );
@@ -587,6 +580,141 @@ class _ManualCloudFileLinkForm extends ConsumerWidget {
           ),
         ],
       ).padding(horizontal: 24, vertical: 24),
+    );
+  }
+}
+
+class _AttachmentWaterfallHoverFrame extends StatefulWidget {
+  final Widget child;
+  final Widget overlay;
+
+  const _AttachmentWaterfallHoverFrame({
+    required this.child,
+    required this.overlay,
+  });
+
+  @override
+  State<_AttachmentWaterfallHoverFrame> createState() =>
+      _AttachmentWaterfallHoverFrameState();
+}
+
+class _AttachmentWaterfallHoverFrameState
+    extends State<_AttachmentWaterfallHoverFrame> {
+  bool _hovering = false;
+
+  void _setHovering(bool value) {
+    if (_hovering == value) return;
+    setState(() => _hovering = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => _setHovering(true),
+      onExit: (_) => _setHovering(false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          boxShadow: _hovering
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.28),
+                    blurRadius: 14,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 5),
+                  ),
+                ]
+              : const [],
+        ),
+        child: Stack(
+          fit: StackFit.passthrough,
+          children: [
+            widget.child,
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedSlide(
+                  offset: _hovering ? Offset.zero : const Offset(0, 0.06),
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedOpacity(
+                    opacity: _hovering ? 1 : 0,
+                    duration: const Duration(milliseconds: 140),
+                    curve: Curves.easeOut,
+                    child: widget.overlay,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AttachmentWaterfallInfoOverlay extends StatelessWidget {
+  final SnCloudFile file;
+  final String label;
+
+  const _AttachmentWaterfallInfoOverlay({
+    required this.file,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = file.isFolder ? Symbols.folder : Symbols.insert_drive_file;
+    final metadata = file.isFolder ? 'folder'.tr() : formatFileSize(file.size);
+    final textTheme = Theme.of(context).textTheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.black.withOpacity(0.86)],
+        ),
+      ),
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 36, 10, 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Icon(icon, color: Colors.white, size: 20),
+              const Gap(8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      metadata,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withOpacity(0.78),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

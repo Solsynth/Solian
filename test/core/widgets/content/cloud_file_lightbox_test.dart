@@ -103,6 +103,7 @@ void main() {
 
       expect(find.byTooltip('Compressed quality (SD)'), findsNothing);
     });
+
   });
 
   group('DismissiblePage zoom flip', () {
@@ -204,6 +205,7 @@ class _ProbePageState extends State<_ProbePage> {
 }
 
 class _ToggleHost extends StatefulWidget {
+
   const _ToggleHost({required this.enabledBuilder});
 
   final Widget Function(bool enabled) enabledBuilder;
