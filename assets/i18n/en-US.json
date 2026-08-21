@@ -3376,6 +3376,8 @@
   "settingsCategoryConnection": "Connection",
   "settingsCategoryDesktopPresence": "Desktop Presence",
   "settingsCalls": "Calls",
+  "settingsOutgoingCallKit": "Use CallKit for Outgoing Calls",
+  "settingsOutgoingCallKitHelper": "Show calls you start in the system call interface. Incoming calls remain supported.",
   "settingsCategoryFonts": "Fonts",
   "settingsCategoryGeneral": "General",
   "settingsCategoryLanguage": "Language",

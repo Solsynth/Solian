@@ -77,6 +77,7 @@ class SettingsScreen extends HookConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final isDesktop =
         !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+    final isIos = !kIsWeb && Platform.isIOS;
     final isWide = isWideScreen(context);
     final pools = ref.watch(poolsProvider);
     final user = ref.watch(userInfoProvider);
@@ -852,6 +853,7 @@ class SettingsScreen extends HookConsumerWidget {
           'settingsGroupedChatList',
           'settingsShowChatEventMessages',
           'settingsDesktopUseSeparateCallWindow',
+          'settingsOutgoingCallKit',
           'settingsCalls',
         ],
         children: [
@@ -1057,25 +1059,45 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-          if (isDesktop) ...[
+          if (isDesktop || isIos) ...[
             const Divider(height: 24),
             const _SettingsSubheader('settingsCalls'),
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsDesktopUseSeparateCallWindow').tr(),
-              subtitle: Text('settingsDesktopUseSeparateCallWindowHelper'.tr()),
-              contentPadding: _kSettingsTilePadding,
-              leading: const Icon(Symbols.open_in_new),
-              trailing: Switch(
-                value: ref.watch(desktopUseSeparateCallWindowProvider),
-                onChanged: (value) {
-                  ref
-                      .read(desktopUseSeparateCallWindowProvider.notifier)
-                      .setEnabled(value);
-                  showSnackBar('settingsApplied'.tr());
-                },
+            if (isDesktop)
+              ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsDesktopUseSeparateCallWindow').tr(),
+                subtitle: Text(
+                  'settingsDesktopUseSeparateCallWindowHelper'.tr(),
+                ),
+                contentPadding: _kSettingsTilePadding,
+                leading: const Icon(Symbols.open_in_new),
+                trailing: Switch(
+                  value: ref.watch(desktopUseSeparateCallWindowProvider),
+                  onChanged: (value) {
+                    ref
+                        .read(desktopUseSeparateCallWindowProvider.notifier)
+                        .setEnabled(value);
+                    showSnackBar('settingsApplied'.tr());
+                  },
+                ),
               ),
-            ),
+            if (isIos)
+              ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsOutgoingCallKit').tr(),
+                subtitle: Text('settingsOutgoingCallKitHelper'.tr()),
+                contentPadding: _kSettingsTilePadding,
+                leading: const Icon(Symbols.call),
+                trailing: Switch(
+                  value: settings.outgoingCallKitEnabled,
+                  onChanged: (value) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setOutgoingCallKitEnabled(value);
+                    showSnackBar('settingsApplied'.tr());
+                  },
+                ),
+              ),
           ],
         ],
       ),

@@ -346,6 +346,34 @@ class AppWrapper extends HookConsumerWidget {
       };
     }, []);
 
+    // Keep the floating overlay independent from whichever room screen is
+    // currently mounted. Room-local overlay hosts can disappear during route
+    // transitions while the call itself remains active.
+    useEffect(() {
+      void syncCallOverlay(CallState current) {
+        if (isCallScreenActive()) return;
+        final room = ref.read(callProvider.notifier).chatRoom;
+        if (room == null) return;
+        if (current.isConnected || current.isReconnecting) {
+          showCallOverlay(room);
+        }
+      }
+
+      final subscription = ref.listenManual(callProvider, (previous, current) {
+        final wasVisible =
+            previous?.isConnected == true || previous?.isReconnecting == true;
+        final isVisible = current.isConnected || current.isReconnecting;
+        if (isVisible && !wasVisible) {
+          syncCallOverlay(current);
+        } else if (!isVisible && wasVisible && !current.hasJoined) {
+          hideCallOverlay();
+        }
+      });
+
+      syncCallOverlay(ref.read(callProvider));
+      return subscription.close;
+    }, []);
+
     // Navigate to CallScreen when CallKit call is accepted
     useEffect(() {
       if (!isNativeCallAvailable) return null;

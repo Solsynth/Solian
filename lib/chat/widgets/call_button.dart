@@ -101,6 +101,9 @@ class AudioCallButton extends HookConsumerWidget {
     final nativeBridge = ref.watch(nativeCallBridgeProvider);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
+    final outgoingCallKitEnabled = ref.watch(
+      appSettingsProvider.select((settings) => settings.outgoingCallKitEnabled),
+    );
     final useSeparateCallWindow = ref.watch(
       desktopUseSeparateCallWindowProvider,
     );
@@ -156,7 +159,7 @@ class AudioCallButton extends HookConsumerWidget {
           return;
         }
 
-        if (!kIsWeb && Platform.isIOS) {
+        if (!kIsWeb && Platform.isIOS && outgoingCallKitEnabled) {
           // A user-initiated join is an outgoing system call too.  Starting
           // CallKit before connecting LiveKit gives iOS ownership of the audio
           // session and puts the call in Phone's recents/call UI.
@@ -256,7 +259,7 @@ class AudioCallButton extends HookConsumerWidget {
               return;
             }
 
-            if (!kIsWeb && Platform.isIOS) {
+            if (!kIsWeb && Platform.isIOS && outgoingCallKitEnabled) {
               await ref
                   .read(nativeCallBridgeProvider.notifier)
                   .startOutgoingCall(

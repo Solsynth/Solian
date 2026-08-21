@@ -23,13 +23,13 @@ class CallController {
   // --- LiveKit state ---
   lk.Room? _room;
   lk.LocalParticipant? _localParticipant;
-  List<CallParticipantLive> _participants = [];
+  List<CallParticipantLive> _participants = const [];
+  List<CallParticipantLive> _participantsView = const [];
   final Map<String, CallParticipant> _participantInfoByIdentity = {};
   lk.EventsListener? _roomListener;
   bool _isAdmin = false;
 
-  List<CallParticipantLive> get participants =>
-      List.unmodifiable(_participants);
+  List<CallParticipantLive> get participants => _participantsView;
   lk.LocalParticipant? get localParticipant => _localParticipant;
   lk.Room? get room => _room;
   bool get isAdmin => _isAdmin;
@@ -54,10 +54,12 @@ class CallController {
   set _state(CallState s) => stateNotifier.value = s;
 
   // --- Timers ---
+  static const _participantSyncInterval = Duration(milliseconds: 100);
   Timer? _durationTimer;
   Timer? _reconnectTimer;
   Timer? _connectionHealthTimer;
   Timer? _reconnectGraceTimer;
+  Timer? _participantSyncTimer;
 
   // --- Reconnection ---
   int _reconnectAttempts = 0;
@@ -96,14 +98,17 @@ class CallController {
     _room!.addListener(_onRoomChange);
     _roomListener!
       ..on<lk.ParticipantConnectedEvent>((e) {
-        _syncLiveParticipants();
+        _scheduleParticipantSync();
       })
       ..on<lk.ParticipantDisconnectedEvent>((e) {
-        _syncLiveParticipants();
+        _scheduleParticipantSync();
       })
       ..on<lk.RoomDisconnectedEvent>((e) {
         if (_isManualDisconnect) {
-          _participants = [];
+          _participantSyncTimer?.cancel();
+          _participantSyncTimer = null;
+          _participants = const [];
+          _participantsView = const [];
           _bumpParticipantSync();
           return;
         }
@@ -154,7 +159,44 @@ class CallController {
   }
 
   void _onRoomChange() {
-    _syncLiveParticipants();
+    _scheduleParticipantSync();
+  }
+
+  void _scheduleParticipantSync() {
+    if (_disposed || _participantSyncTimer?.isActive == true) return;
+    _participantSyncTimer = Timer(_participantSyncInterval, () {
+      _participantSyncTimer = null;
+      if (!_disposed) _syncLiveParticipants();
+    });
+  }
+
+  bool _sameParticipantState(
+    CallParticipantLive previous,
+    CallParticipantLive next,
+  ) {
+    final previousRemote = previous.remoteParticipant;
+    final nextRemote = next.remoteParticipant;
+    return previous.participant == next.participant &&
+        previousRemote == nextRemote &&
+        previousRemote.isSpeaking == nextRemote.isSpeaking &&
+        previousRemote.isMuted == nextRemote.isMuted &&
+        previousRemote.isMicrophoneEnabled() ==
+            nextRemote.isMicrophoneEnabled() &&
+        previousRemote.isScreenShareEnabled() ==
+            nextRemote.isScreenShareEnabled() &&
+        previousRemote.isScreenShareAudioEnabled() ==
+            nextRemote.isScreenShareAudioEnabled() &&
+        previousRemote.hasVideo == nextRemote.hasVideo &&
+        previousRemote.hasAudio == nextRemote.hasAudio &&
+        previousRemote.lastSpokeAt == nextRemote.lastSpokeAt;
+  }
+
+  bool _participantListChanged(List<CallParticipantLive> next) {
+    if (_participants.length != next.length) return true;
+    for (var i = 0; i < next.length; i++) {
+      if (!_sameParticipantState(_participants[i], next[i])) return true;
+    }
+    return false;
   }
 
   CallParticipant _buildParticipant({List<CallParticipant>? participants}) {
@@ -182,16 +224,18 @@ class CallController {
       }
     }
     if (_room == null) {
-      _participants = [];
+      if (_participants.isEmpty) return;
+      _participants = const [];
+      _participantsView = const [];
       _bumpParticipantSync();
       return;
     }
 
     final remotes = _room!.remoteParticipants.values.toList();
-    _participants = [];
+    final next = <CallParticipantLive>[];
     if (_localParticipant != null) {
       final localInfo = _buildParticipant(participants: participants);
-      _participants.add(
+      next.add(
         CallParticipantLive(
           participant: localInfo,
           remoteParticipant: _localParticipant!,
@@ -207,11 +251,14 @@ class CallController {
             name: remote.identity,
             joinedAt: DateTime.now(),
           );
-      _participants.add(
+      next.add(
         CallParticipantLive(participant: match, remoteParticipant: remote),
       );
     }
 
+    if (!_participantListChanged(next)) return;
+    _participants = next;
+    _participantsView = List.unmodifiable(next);
     _bumpParticipantSync();
   }
 
@@ -721,9 +768,12 @@ class CallController {
         await room.dispose();
       }
     } finally {
+      _participantSyncTimer?.cancel();
+      _participantSyncTimer = null;
       _room = null;
       _localParticipant = null;
-      _participants = [];
+      _participants = const [];
+      _participantsView = const [];
       _participantInfoByIdentity.clear();
       participantsVolumes = {};
       _isManualDisconnect = false;
@@ -804,6 +854,8 @@ class CallController {
     _reconnectTimer?.cancel();
     _connectionHealthTimer?.cancel();
     _reconnectGraceTimer?.cancel();
+    _participantSyncTimer?.cancel();
+    _participantSyncTimer = null;
     _isReconnecting = false;
     _isManualDisconnect = true;
     _isTerminalDisconnect = false;
@@ -830,7 +882,8 @@ class CallController {
     _cachedEndpoint = null;
     _cachedToken = null;
     _isAdmin = false;
-    _participants = [];
+    _participants = const [];
+    _participantsView = const [];
     _participantInfoByIdentity.clear();
     participantsVolumes = {};
     WakelockPlus.disable();

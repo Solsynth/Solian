@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -26,6 +27,7 @@ import 'package:collection/collection.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 OverlayEntry? _callOverlayEntry;
+Timer? _callOverlayRetryTimer;
 bool _callOverlayInsertionScheduled = false;
 SnChatRoom? _pendingCallOverlayRoom;
 final ProviderContainer _overlayContainer = ProviderContainer();
@@ -143,8 +145,16 @@ class _CallOverlayStateNotifier extends Notifier<_CallOverlayState> {
   }
 }
 
+void _scheduleCallOverlayRetry(SnChatRoom room) {
+  if (_isCallScreenActive) return;
+  _callOverlayRetryTimer?.cancel();
+  _callOverlayRetryTimer = Timer(const Duration(milliseconds: 150), () {
+    _callOverlayRetryTimer = null;
+    if (!_isCallScreenActive) showCallOverlay(room);
+  });
+}
+
 void showCallOverlay(SnChatRoom room) {
-  // Don't show overlay if CallScreen is active
   if (_isCallScreenActive) {
     Logger.root.info(
       '[CallOverlay] Not showing overlay - CallScreen is active',
@@ -152,35 +162,43 @@ void showCallOverlay(SnChatRoom room) {
     return;
   }
 
-  if (_callOverlayEntry != null) {
+  _callOverlayRetryTimer?.cancel();
+  _callOverlayRetryTimer = null;
+
+  final existingEntry = _callOverlayEntry;
+  if (existingEntry != null && existingEntry.mounted) {
+    _pendingCallOverlayRoom = null;
     _overlayContainer.read(_callOverlayStateProvider.notifier).setRoom(room);
-    _callOverlayEntry?.markNeedsBuild();
+    existingEntry.markNeedsBuild();
     return;
   }
+  _callOverlayEntry = null;
 
   _pendingCallOverlayRoom = room;
   if (_callOverlayInsertionScheduled) return;
   _callOverlayInsertionScheduled = true;
 
-  // This can be called from provider listeners as a pointer event is being
-  // handled. Insert at the start of the next frame so layout completes before
-  // the overlay is hit-tested.
-  WidgetsBinding.instance.scheduleFrameCallback((_) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
     _callOverlayInsertionScheduled = false;
     final pendingRoom = _pendingCallOverlayRoom;
     _pendingCallOverlayRoom = null;
     if (pendingRoom == null || _isCallScreenActive) return;
 
-    if (_callOverlayEntry != null) {
-      _overlayContainer
-          .read(_callOverlayStateProvider.notifier)
-          .setRoom(pendingRoom);
-      _callOverlayEntry?.markNeedsBuild();
+    final overlay = globalOverlay.currentState;
+    if (overlay == null) {
+      _scheduleCallOverlayRetry(pendingRoom);
       return;
     }
 
-    final overlay = globalOverlay.currentState;
-    if (overlay == null) return;
+    final existingEntry = _callOverlayEntry;
+    if (existingEntry != null && existingEntry.mounted) {
+      _overlayContainer
+          .read(_callOverlayStateProvider.notifier)
+          .setRoom(pendingRoom);
+      existingEntry.markNeedsBuild();
+      return;
+    }
+    _callOverlayEntry = null;
 
     final state = _overlayContainer.read(_callOverlayStateProvider);
     _overlayContainer
@@ -196,18 +214,22 @@ void showCallOverlay(SnChatRoom room) {
     );
     overlay.insert(_callOverlayEntry!);
   });
+  WidgetsBinding.instance.ensureVisualUpdate();
 }
 
 void hideCallOverlay() {
   _pendingCallOverlayRoom = null;
+  _callOverlayRetryTimer?.cancel();
+  _callOverlayRetryTimer = null;
   _callOverlayEntry?.remove();
   _callOverlayEntry = null;
 }
 
 void toggleCallOverlay(SnChatRoom room) {
-  if (_callOverlayEntry != null) {
+  if (_callOverlayEntry?.mounted == true) {
     hideCallOverlay();
   } else {
+    _callOverlayEntry = null;
     showCallOverlay(room);
   }
 }
@@ -899,18 +921,18 @@ class _CallOverlayBarState extends ConsumerState<CallOverlayBar> {
         callState.isReconnecting ||
         (!callState.hasJoined && hasActiveCall);
 
-    ref.listen(callProvider.select((state) => state.isConnected), (
-      previous,
-      current,
-    ) {
-      if (current && !callState.isConnected && !_isCallScreenActive) {
+    ref.listen(callProvider, (previous, current) {
+      final wasVisible =
+          previous?.isConnected == true || previous?.isReconnecting == true;
+      final isVisible = current.isConnected || current.isReconnecting;
+      if (isVisible && !wasVisible && !_isCallScreenActive) {
         showCallOverlay(widget.room);
       }
     });
 
     if (!_isCallScreenActive && shouldShowOverlay) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_callOverlayEntry == null) {
+        if (_callOverlayEntry?.mounted != true) {
           showCallOverlay(widget.room);
         }
       });

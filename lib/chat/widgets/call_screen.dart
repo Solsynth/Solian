@@ -63,6 +63,15 @@ class CallScreen extends HookConsumerWidget {
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     ref.watch(callProvider.select((state) => state.participantSyncVersion));
     final callNotifier = ref.read(callProvider.notifier);
+    void restoreCallOverlay() {
+      setCallScreenActive(false);
+      final currentState = ref.read(callProvider);
+      if (callNotifier.roomId == room.id &&
+          (currentState.isConnected || currentState.isReconnecting)) {
+        showCallOverlay(room);
+      }
+    }
+
     final controlsVisible = useState(true);
     final topOverlayInset = controlsVisible.value ? 84.0 : 0.0;
     final bottomOverlayInset = controlsVisible.value
@@ -91,10 +100,7 @@ class CallScreen extends HookConsumerWidget {
         Logger.root.info(
           '[Call] Session for ${room.id} is already active, attaching',
         );
-        return () {
-          // Mark CallScreen as inactive when leaving
-          setCallScreenActive(false);
-        };
+        return restoreCallOverlay;
       }
 
       Logger.root.info('[Call] Joining the call...');
@@ -120,10 +126,7 @@ class CallScreen extends HookConsumerWidget {
               );
             });
           });
-      return () {
-        // Mark CallScreen as inactive when leaving
-        setCallScreenActive(false);
-      };
+      return restoreCallOverlay;
     }, []);
 
     useEffect(() {

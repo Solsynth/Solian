@@ -72,7 +72,10 @@ class _DummyCallController extends CallController {
 class CallNotifier extends _$CallNotifier {
   CallController? _controller;
   void _syncState() {
-    if (_controller != null) state = _controller!.stateNotifier.value;
+    final controller = _controller;
+    if (controller == null) return;
+    final next = controller.stateNotifier.value;
+    if (next != state) state = next;
   }
 
   CallController get _ctrl {
@@ -82,6 +85,7 @@ class CallNotifier extends _$CallNotifier {
     }
     return _controller!;
   }
+
   static _DummyCallController? _dummyController;
 
   // ponytail: expose controller for sub-windows that need direct access

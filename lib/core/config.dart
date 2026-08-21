@@ -102,6 +102,7 @@ const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
 const kAppDesktopUseSeparateCallWindow = 'app_desktop_use_separate_call_window';
+const kAppOutgoingCallKitEnabled = 'app_outgoing_callkit_enabled';
 const kAppDesktopNativeWindowFrame = 'app_desktop_native_window_frame';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
@@ -589,6 +590,7 @@ sealed class AppSettings with _$AppSettings {
     required bool imageCompressionEnabled,
     required int imageCompressionQuality,
     required bool friendStatusDesktopNotification,
+    required bool outgoingCallKitEnabled,
   }) = _AppSettings;
 }
 
@@ -646,6 +648,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
           .clamp(10, 100),
       friendStatusDesktopNotification:
           prefs.getBool(kAppFriendStatusDesktopNotification) ?? true,
+      outgoingCallKitEnabled: prefs.getBool(kAppOutgoingCallKitEnabled) ?? true,
     );
   }
 
@@ -970,6 +973,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppFriendStatusDesktopNotification, value);
     state = state.copyWith(friendStatusDesktopNotification: value);
+  }
+
+  void setOutgoingCallKitEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppOutgoingCallKitEnabled, value);
+    state = state.copyWith(outgoingCallKitEnabled: value);
   }
 
   void setIpOverrideMode(IpOverrideMode mode) {
