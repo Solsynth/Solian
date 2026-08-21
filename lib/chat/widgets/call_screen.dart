@@ -77,6 +77,26 @@ class CallScreen extends HookConsumerWidget {
       setCallScreenActive(true);
       hideCallOverlay();
 
+      // Re-entering from the floating overlay: a session for this room may
+      // already be live (connected, connecting or reconnecting). Attach to it
+      // instead of negotiating a new join, which would surface a spurious
+      // 'Call already connected' override prompt.
+      final lkRoom = callNotifier.room;
+      final alreadyAttached =
+          callNotifier.roomId == room.id &&
+          lkRoom != null &&
+          !lkRoom.isDisposed &&
+          lkRoom.connectionState != ConnectionState.disconnected;
+      if (alreadyAttached) {
+        Logger.root.info(
+          '[Call] Session for ${room.id} is already active, attaching',
+        );
+        return () {
+          // Mark CallScreen as inactive when leaving
+          setCallScreenActive(false);
+        };
+      }
+
       Logger.root.info('[Call] Joining the call...');
       callNotifier
           .joinRoom(
@@ -85,21 +105,21 @@ class CallScreen extends HookConsumerWidget {
             microphoneEnabled: microphoneEnabled,
           )
           .catchError((_) {
-        showConfirmAlert(
-          'Seems there already has a call connected, do you want override it?',
-          'Call already connected',
-        ).then((value) {
-          if (value != true) return;
-          Logger.root.info('[Call] Joining the call... with overrides');
-          callNotifier.disconnect();
-          callNotifier.dispose();
-          callNotifier.joinRoom(
-            room,
-            cameraEnabled: cameraEnabled,
-            microphoneEnabled: microphoneEnabled,
-          );
-        });
-      });
+            showConfirmAlert(
+              'Seems there already has a call connected, do you want override it?',
+              'Call already connected',
+            ).then((value) {
+              if (value != true) return;
+              Logger.root.info('[Call] Joining the call... with overrides');
+              callNotifier.disconnect();
+              callNotifier.dispose();
+              callNotifier.joinRoom(
+                room,
+                cameraEnabled: cameraEnabled,
+                microphoneEnabled: microphoneEnabled,
+              );
+            });
+          });
       return () {
         // Mark CallScreen as inactive when leaving
         setCallScreenActive(false);
@@ -286,7 +306,9 @@ class CallScreen extends HookConsumerWidget {
                           const SizedBox(height: 6),
                           Expanded(
                             child: CallContent(
-                              outerMaxHeight: MediaQuery.of(context).size.height,
+                              outerMaxHeight: MediaQuery.of(
+                                context,
+                              ).size.height,
                             ),
                           ),
                         ],

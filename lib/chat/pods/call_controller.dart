@@ -329,9 +329,7 @@ class CallController {
     _startConnectionHealthMonitor();
     _reconnectGraceTimer?.cancel();
 
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      lk.Hardware.instance.setSpeakerphoneOn(true);
-    }
+    _enableSpeakerphoneDelayed();
 
     _room!.addListener(_onConnectionStateChange);
     _state = state.copyWith(
@@ -571,9 +569,7 @@ class CallController {
     _startConnectionHealthMonitor();
     _reconnectGraceTimer?.cancel();
 
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-      lk.Hardware.instance.setSpeakerphoneOn(true);
-    }
+    _enableSpeakerphoneDelayed();
 
     _room!.addListener(_onConnectionStateChange);
     _state = state.copyWith(
@@ -671,6 +667,23 @@ class CallController {
     _state = state.copyWith(isSpeakerphone: !state.isSpeakerphone);
     await lk.Hardware.instance.setSpeakerphoneOn(state.isSpeakerphone);
     _state = state.copyWith();
+  }
+
+  /// Enable the speakerphone only after the system audio session settles.
+  /// On iOS, CallKit owns the AVAudioSession around connect time; forcing
+  /// speakerphone immediately gets reverted by the in-flight activation.
+  void _enableSpeakerphoneDelayed() {
+    if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
+    unawaited(
+      Future<void>.delayed(const Duration(seconds: 1), () async {
+        if (_isManualDisconnect || _isTerminalDisconnect) return;
+        if (_room == null || _room!.isDisposed) return;
+        // Respect a routing choice the user made during the delay window.
+        if (!state.isSpeakerphone) return;
+        Logger.root.info('[Call] Enabling speakerphone after audio settle');
+        await lk.Hardware.instance.setSpeakerphoneOn(true);
+      }),
+    );
   }
 
   Future<void> disconnect() async {

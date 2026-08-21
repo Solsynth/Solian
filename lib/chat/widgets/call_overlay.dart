@@ -459,13 +459,17 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
   ) {
     return GestureDetector(
       onTap: () {
-        if (room == null) return;
+        // The overlay state can be overwritten by whichever room screen was
+        // last focused; always expand into the room the call session
+        // actually belongs to.
+        final target = callNotifier.chatRoom ?? room;
+        if (target == null) return;
         hideCallOverlay();
         if (!kIsWeb &&
             (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
-          createCallWindow(room);
+          createCallWindow(target);
         } else {
-          pushCallScreenOnce(ref, room);
+          pushCallScreenOnce(ref, target);
         }
       },
       child: _buildPanelContainer(
