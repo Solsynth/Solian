@@ -357,6 +357,13 @@ class CallScreen extends HookConsumerWidget {
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black54,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
                           ),
                           Text(
@@ -364,6 +371,13 @@ class CallScreen extends HookConsumerWidget {
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black54,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
                           ),
                         ],
