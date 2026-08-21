@@ -38,6 +38,15 @@ part 'stellar_program_tab.g.dart';
 const _goldResupplyCatalogKey = 'golds_resupply_pack';
 const _goldResupplyFallbackAppleProductId = 'GDP';
 const _goldResupplyFallbackPointsPerUnit = 10;
+const _goldCardBackground = Color(0xFFFFF0C2);
+const _goldCardImage = Color(0xFFFFD86A);
+const _goldCardAccent = Color(0xFFB7791F);
+const _nameCardBackground = Color(0xFFFBE4EC);
+const _nameCardImage = Color(0xFFF4B6C8);
+const _nameCardAccent = Color(0xFFB83262);
+const _quotaCardBackground = Color(0xFFDDF4F2);
+const _quotaCardImage = Color(0xFFA9DCD7);
+const _quotaCardAccent = Color(0xFF0F766E);
 
 const _storePurchaseChannel = MethodChannel(
   'dev.solsynth.solian/store_purchase',
@@ -643,6 +652,9 @@ class StellarProgramView extends HookConsumerWidget {
       }
     }
 
+    final storeUtilities = showStoreHeader
+        ? buildStoreUtilities(context, ref)
+        : null;
     final content = SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
@@ -685,6 +697,7 @@ class StellarProgramView extends HookConsumerWidget {
             const Gap(28),
             _buildStoreUtilitiesHeader(context),
             const Gap(12),
+            if (storeUtilities != null) ...[storeUtilities, const Gap(12)],
           ] else ...[
             const Gap(16),
           ],
@@ -710,6 +723,8 @@ class StellarProgramView extends HookConsumerWidget {
     }
     return content;
   }
+
+  Widget? buildStoreUtilities(BuildContext context, WidgetRef ref) => null;
 
   Widget _buildStoreProductGrid(
     BuildContext context,
@@ -1337,21 +1352,20 @@ class StellarProgramView extends HookConsumerWidget {
     Map<String, String> iapProducts,
   ) {
     return StoreProductCard(
-      showGradiant: false,
-      accent: const Color(0xFFE8B84A),
+      accent: _goldCardAccent,
       image: Container(
-        color: const Color(0xFFF8F3E4),
+        color: _goldCardImage,
         child: Align(
           alignment: .centerRight,
           child: const Icon(
             Symbols.account_balance_wallet,
             fill: 1,
             size: 128,
-            color: Color(0xFFE8B84A),
+            color: _goldCardAccent,
           ).padding(right: 20, top: 16),
         ),
       ),
-      backgroundColor: const Color.fromARGB(255, 248, 231, 178),
+      backgroundColor: _goldCardBackground,
       imageAspectRatio: 16 / 5,
       title: 'storeGoldenPointsTitle'.tr(),
       description: 'storeGoldenPointsDescription'.tr(),
@@ -1367,21 +1381,19 @@ class StellarProgramView extends HookConsumerWidget {
   }
 
   Widget _buildNameChangeCardStoreCard(BuildContext context) {
-    const accent = Color(0xFF4C6EF5);
-
     return StoreProductCard(
-      accent: accent,
-      backgroundColor: const Color.fromARGB(255, 233, 227, 228),
+      accent: _nameCardAccent,
+      backgroundColor: _nameCardBackground,
       showGradiant: false,
       image: Container(
-        color: const Color(0xFFCCC3C4),
+        color: _nameCardImage,
         child: Align(
           alignment: .centerRight,
           child: const Icon(
             Symbols.tag,
             fill: 1,
             size: 128,
-            color: accent,
+            color: _nameCardAccent,
           ).padding(right: 20, top: 16),
         ),
       ),
@@ -1399,7 +1411,7 @@ class StellarProgramView extends HookConsumerWidget {
     );
   }
 
-  Widget _buildUtilityActionTile(
+  Widget buildUtilityActionTile(
     BuildContext context, {
     required IconData icon,
     required String title,
@@ -1461,22 +1473,22 @@ class StellarProgramView extends HookConsumerWidget {
 
   Widget _buildQuotaPurchaseCard(BuildContext context) {
     return StoreProductCard(
-      accent: const Color(0xFF2E8B8B),
+      accent: _quotaCardAccent,
       showGradiant: false,
       image: Container(
-        color: const Color.fromARGB(255, 182, 182, 241),
+        color: _quotaCardImage,
         child: Align(
           alignment: .centerRight,
           child: const Icon(
             Symbols.dns,
             fill: 1,
             size: 128,
-            color: Colors.indigo,
+            color: _quotaCardAccent,
           ).padding(right: 20, top: 16),
         ),
       ),
       imageAspectRatio: 16 / 5,
-      backgroundColor: const Color(0xFFB6B6CB),
+      backgroundColor: _quotaCardBackground,
       title: 'quotaPurchase'.tr(),
       description: 'quotaPurchaseDescription'.tr(),
       footer: FilledButton.icon(
@@ -1498,7 +1510,7 @@ class StellarProgramView extends HookConsumerWidget {
   }
 
   Widget _buildPricingGuideCard(BuildContext context) {
-    return _buildUtilityActionTile(
+    return buildUtilityActionTile(
       context,
       icon: Icons.currency_exchange_rounded,
       title: 'stellarPricingTitle'.tr(),
@@ -1564,7 +1576,7 @@ class StellarProgramView extends HookConsumerWidget {
 
     if (queuedSubscriptions.isEmpty) return const SizedBox.shrink();
 
-    return _buildUtilityActionTile(
+    return buildUtilityActionTile(
       context,
       icon: Icons.schedule,
       title: 'subscriptionRecordsTitle'.tr(),
@@ -2328,7 +2340,7 @@ class StellarProgramView extends HookConsumerWidget {
   }
 
   Widget _buildGiftEntryTile(BuildContext context, WidgetRef ref) {
-    return _buildUtilityActionTile(
+    return buildUtilityActionTile(
       context,
       icon: Icons.card_giftcard,
       title: 'giftSubscriptions'.tr(),
