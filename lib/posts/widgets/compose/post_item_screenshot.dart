@@ -7,6 +7,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
+import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -19,6 +20,7 @@ class PostItemScreenshot extends ConsumerWidget {
   final bool isFullPost;
   final bool isShowReference;
   final PostThreadData? thread;
+  final List<SnPost>? replies;
   final bool showThreadScreenshot;
   const PostItemScreenshot({
     super.key,
@@ -27,6 +29,7 @@ class PostItemScreenshot extends ConsumerWidget {
     this.isFullPost = false,
     this.isShowReference = true,
     this.thread,
+    this.replies,
     this.showThreadScreenshot = true,
   });
 
@@ -126,6 +129,118 @@ class PostItemScreenshot extends ConsumerWidget {
     }
 
     return const SizedBox.shrink();
+  }
+
+  Widget _buildScreenshotReactionChips(BuildContext context, SnPost post) {
+    if (post.reactionsCount.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        for (final symbol in post.reactionsCount.keys)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: (post.reactionsMade[symbol] ?? false)
+                  ? theme.colorScheme.primary.withOpacity(0.2)
+                  : theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                buildReactionIcon(symbol, 20),
+                const Gap(4),
+                Text(
+                  'x${post.reactionsCount[symbol]}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildRepliesScreenshot(
+    BuildContext context,
+    EdgeInsets renderingPadding,
+  ) {
+    final replies = this.replies;
+    if (replies == null || replies.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final visibleReplies = replies.take(3).toList();
+    return Padding(
+      padding: EdgeInsets.only(
+        left: renderingPadding.horizontal,
+        right: renderingPadding.horizontal,
+        top: 8,
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLow,
+          border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'repliesCount'.plural(item.repliesCount),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Gap(8),
+            for (final reply in visibleReplies)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    PostHeader(
+                      item: reply,
+                      isFullPost: false,
+                      isCompact: true,
+                      hideOverlay: true,
+                      isInteractive: false,
+                      renderingPadding: EdgeInsets.zero,
+                      isRelativeTime: false,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 40, top: 4),
+                      child: _buildReplyContent(context, reply),
+                    ),
+                    if (reply.reactionsCount.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, top: 4),
+                        child: _buildScreenshotReactionChips(context, reply),
+                      ),
+                    if (reply.repliesCount > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, top: 4),
+                        child: Text(
+                          'repliesCount',
+                        ).plural(reply.repliesCount).fontSize(12).opacity(0.7),
+                      ),
+                  ],
+                ),
+              ),
+            if (item.repliesCount > visibleReplies.length)
+              Text(
+                'repliesCount',
+              ).plural(item.repliesCount).fontSize(12).opacity(0.8),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildThreadScreenshot(BuildContext context, PostThreadData thread) {
@@ -235,7 +350,11 @@ class PostItemScreenshot extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isShowReference)
+          if (!isShowReference ||
+              !(item.forwardedGone ||
+                  item.repliedGone ||
+                  item.forwardedPost != null ||
+                  item.repliedPost != null))
             Gap(renderingPadding.vertical),
           if (isShowReference)
             ReferencedPostWidget(
@@ -243,6 +362,18 @@ class PostItemScreenshot extends ConsumerWidget {
               isInteractive: false,
               hideOverlay: true,
               renderingPadding: renderingPadding,
+            ),
+          if (item.sponsored)
+            Padding(
+              padding: EdgeInsets.only(
+                left: renderingPadding.horizontal,
+                right: renderingPadding.horizontal,
+                bottom: 6,
+              ),
+              child: const Align(
+                alignment: Alignment.centerLeft,
+                child: SponsoredBadge(),
+              ),
             ),
           PostHeader(
             hideOverlay: true,
@@ -265,6 +396,12 @@ class PostItemScreenshot extends ConsumerWidget {
             hideOverlay: true,
             hideAttachments: true,
           ),
+          if (item.embedView != null)
+            EmbedViewRenderer(
+              embedView: item.embedView!,
+              maxHeight: 400,
+              borderRadius: BorderRadius.circular(12),
+            ).padding(horizontal: renderingPadding.horizontal, vertical: 8),
           if (item.attachments.isNotEmpty)
             _buildScreenshotAttachments(
               context,
@@ -285,41 +422,10 @@ class PostItemScreenshot extends ConsumerWidget {
                 right: renderingPadding.horizontal,
                 top: 8,
               ),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final symbol in item.reactionsCount.keys)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: (item.reactionsMade[symbol] ?? false)
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.2)
-                            : Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          buildReactionIcon(symbol, 20),
-                          const Gap(4),
-                          Text(
-                            'x${item.reactionsCount[symbol]}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
+              child: _buildScreenshotReactionChips(context, item),
             ),
+          if (thread == null)
+            _buildRepliesScreenshot(context, renderingPadding),
           Container(
             color: Theme.of(context).colorScheme.surfaceContainerLow,
             margin: const EdgeInsets.only(top: 8),

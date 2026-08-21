@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/calendar_event_screenshot.dart';
 import 'package:island/accounts/widgets/check_in/check_in_result_screenshot.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/posts/widgets/compose/post_item_screenshot.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
@@ -39,8 +40,25 @@ Future<void> sharePostAsScreenshot(
   if (kIsWeb) return;
 
   final screenshotController = ScreenshotController();
-
   showLoadingModal(context);
+
+  // Detached screenshot trees must not start their own reply fetches. Load the
+  // same compact reply preview data before mounting the capture widget.
+  List<SnPost>? replies;
+  if (thread == null && post.repliesCount > 0) {
+    try {
+      final result = await ref
+          .read(solarNetworkClientProvider)
+          .sphere
+          .getPostReplies(postId: post.id, take: 3, order: 'popularity');
+      replies = result.items;
+    } catch (_) {
+      // Reply previews are optional; sharing the post should still work.
+    }
+  }
+
+  if (!context.mounted) return;
+
   await screenshotController
       .captureFromLongWidget(
         _withProviderScope(
@@ -55,6 +73,7 @@ Future<void> sharePostAsScreenshot(
                   item: post,
                   isFullPost: true,
                   thread: thread,
+                  replies: replies,
                 ),
               ),
             ),
