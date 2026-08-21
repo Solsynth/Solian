@@ -29,6 +29,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
   bool lastPrepareMultipart = false;
   bool? lastWantThumbnail;
   bool? lastWantCompression;
+  Map<String, dynamic>? lastClientAnalysis;
   int completeCalls = 0;
   int lastFileSize = 0;
   String? lastFileName;
@@ -89,6 +90,10 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
       lastPrepareMultipart = body['multipart'] == true;
       lastWantThumbnail = body['want_thumbnail'] as bool?;
       lastWantCompression = body['want_compression'] as bool?;
+      final rawAnalysis = body['client_analysis'];
+      lastClientAnalysis = rawAnalysis is Map
+          ? Map<String, dynamic>.from(rawAnalysis)
+          : null;
       lastFileSize = body['file_size'] as int;
       lastFileName = body['file_name']?.toString();
       final size = lastFileSize;
@@ -479,6 +484,12 @@ void main() {
       expect(result, isNotNull);
       expect(dyson.lastWantThumbnail, isFalse);
       expect(dyson.lastWantCompression, isTrue);
+      final analysis = dyson.lastClientAnalysis;
+      expect(analysis?['width'], 2);
+      expect(analysis?['height'], 2);
+      final blurhash = analysis?['blurhash'] as String?;
+      expect(blurhash, isNotNull);
+      expect(blurhash, hasLength(28));
       expect(s3.objects['/thumbnail'], isNull);
       final compression = s3.objects['/compression'];
       expect(compression, isNotNull);

@@ -94,6 +94,135 @@ class _ClientMediaUpload {
   });
 }
 
+String? _encodeBlurHashFromImage(img.Image image) {
+  try {
+    final maxEdge = max(image.width, image.height);
+    final sample = maxEdge > 32
+        ? img.copyResize(
+            image,
+            width: image.width >= image.height
+                ? 32
+                : (image.width * 32 / image.height).round(),
+            height: image.height >= image.width
+                ? 32
+                : (image.height * 32 / image.width).round(),
+          )
+        : image;
+    final rgba = sample.getBytes(order: img.ChannelOrder.rgba);
+    return _encodeBlurHash(
+      rgba: rgba,
+      width: sample.width,
+      height: sample.height,
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+String _encodeBlurHash({
+  required Uint8List rgba,
+  required int width,
+  required int height,
+  int componentX = 4,
+  int componentY = 3,
+}) {
+  const characters =
+      '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+      r'#$%*+-:;=?@[]^_{|}~';
+
+  String encode83(int value, int length) {
+    final output = StringBuffer();
+    for (var i = length - 1; i >= 0; i--) {
+      final digit = (value ~/ pow(83, i).toInt()) % 83;
+      output.write(characters[digit]);
+    }
+    return output.toString();
+  }
+
+  double toLinear(int value) {
+    final srgb = value / 255;
+    return srgb <= 0.04045
+        ? srgb / 12.92
+        : pow((srgb + 0.055) / 1.055, 2.4).toDouble();
+  }
+
+  double fromLinear(double value) {
+    final clamped = value.clamp(0.0, 1.0).toDouble();
+    return clamped <= 0.0031308
+        ? clamped * 12.92
+        : 1.055 * pow(clamped, 1 / 2.4).toDouble() - 0.055;
+  }
+
+  double signPow(double value, double exponent) {
+    return ((value < 0 ? -1 : 1) * pow(value.abs(), exponent)).toDouble();
+  }
+
+  final factors = <List<double>>[];
+  for (var yComponent = 0; yComponent < componentY; yComponent++) {
+    for (var xComponent = 0; xComponent < componentX; xComponent++) {
+      final normalisation = xComponent == 0 && yComponent == 0 ? 1.0 : 2.0;
+      var red = 0.0;
+      var green = 0.0;
+      var blue = 0.0;
+      for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+          final pixel = (y * width + x) * 4;
+          final basis =
+              cos(pi * xComponent * x / width) *
+              cos(pi * yComponent * y / height);
+          red += basis * toLinear(rgba[pixel]);
+          green += basis * toLinear(rgba[pixel + 1]);
+          blue += basis * toLinear(rgba[pixel + 2]);
+        }
+      }
+      final scale = normalisation / (width * height);
+      factors.add([red * scale, green * scale, blue * scale]);
+    }
+  }
+
+  final sizeFlag = (componentX - 1) + (componentY - 1) * 9;
+  final output = StringBuffer(encode83(sizeFlag, 1));
+  var maximumValue = 0.0;
+  for (final factor in factors.skip(1)) {
+    maximumValue = max(
+      maximumValue,
+      max(factor[0].abs(), max(factor[1].abs(), factor[2].abs())),
+    );
+  }
+  final quantisedMaximumValue = (maximumValue * 166 - 0.5)
+      .floor()
+      .clamp(0, 82)
+      .toInt();
+  maximumValue = (quantisedMaximumValue + 1) / 166;
+  output.write(encode83(quantisedMaximumValue, 1));
+
+  final dc = factors.first;
+  final dcValue =
+      (fromLinear(dc[0]) * 255).floor() << 16 |
+      (fromLinear(dc[1]) * 255).floor() << 8 |
+      (fromLinear(dc[2]) * 255).floor();
+  output.write(encode83(dcValue, 4));
+
+  for (final factor in factors.skip(1)) {
+    final quantisedRed = (signPow(factor[0] / maximumValue, 0.5) * 9 + 9.5)
+        .floor()
+        .clamp(0, 18)
+        .toInt();
+    final quantisedGreen = (signPow(factor[1] / maximumValue, 0.5) * 9 + 9.5)
+        .floor()
+        .clamp(0, 18)
+        .toInt();
+    final quantisedBlue = (signPow(factor[2] / maximumValue, 0.5) * 9 + 9.5)
+        .floor()
+        .clamp(0, 18)
+        .toInt();
+    final acValue =
+        quantisedRed * 19 * 19 + quantisedGreen * 19 + quantisedBlue;
+    output.write(encode83(acValue, 2));
+  }
+  return output.toString();
+}
+
 Map<String, dynamic>? _prepareClientImageUploadInBackground(
   List<Object?> input,
 ) {
@@ -102,11 +231,13 @@ Map<String, dynamic>? _prepareClientImageUploadInBackground(
     final quality = input[1] as int?;
     final image = img.decodeImage(bytes);
     if (image == null || image.width <= 0 || image.height <= 0) return null;
+    final blurhash = _encodeBlurHashFromImage(image);
     if (image.hasAnimation || quality == null) {
       return {
         'width': image.width,
         'height': image.height,
         'animated': image.hasAnimation,
+        'blurhash': blurhash,
       };
     }
 
@@ -131,17 +262,20 @@ Map<String, dynamic>? _prepareClientImageUploadInBackground(
       height: prepared.height,
       quality: quality.toDouble(),
     );
-    if (compression == null ||
-        compression.isEmpty ||
-        compression.length >= bytes.length ||
-        compression.length > 16 * 1024 * 1024) {
-      return null;
-    }
-    return {
+    final compressionIsUsable =
+        compression is Uint8List &&
+        compression.isNotEmpty &&
+        compression.length < bytes.length &&
+        compression.length <= 16 * 1024 * 1024;
+    final result = <String, dynamic>{
       'width': image.width,
       'height': image.height,
-      'compression': compression,
+      'blurhash': blurhash,
     };
+    if (compressionIsUsable) {
+      result['compression'] = compression;
+    }
+    return result;
   } catch (_) {
     return null;
   }
@@ -876,7 +1010,14 @@ class FileUploader {
       [bytes, compressionQuality],
     );
     if (prepared == null) return null;
-    final analysis = {'width': prepared['width'], 'height': prepared['height']};
+    final analysis = <String, dynamic>{
+      'width': prepared['width'],
+      'height': prepared['height'],
+    };
+    final blurhash = prepared['blurhash'];
+    if (blurhash is String && blurhash.isNotEmpty) {
+      analysis['blurhash'] = blurhash;
+    }
     if (prepared['animated'] == true) {
       // Keep the original animated source; a single-frame WebP derivative
       // would discard the animation.
