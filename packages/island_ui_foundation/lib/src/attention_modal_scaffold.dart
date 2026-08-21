@@ -142,12 +142,11 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
           (Platform.isMacOS || Platform.isLinux || Platform.isWindows);
       widthFactor = 1.0;
       effectiveMaxWidth = double.infinity;
-      verticalPadding = EdgeInsets.only(
-        top: isDesktop ? 32 : 0,
-      );
+      verticalPadding = EdgeInsets.only(top: isDesktop ? 32 : 0);
     }
 
     return SafeArea(
+      bottom: showAsCard,
       child: Padding(
         padding: verticalPadding,
         child: Center(
@@ -158,7 +157,7 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
                 maxWidth: effectiveMaxWidth,
                 maxHeight:
                     MediaQuery.of(context).size.height *
-                    (widget.maxHeightFactor ?? 0.85),
+                    (showAsCard ? (widget.maxHeightFactor ?? 0.85) : 1.0),
               ),
               child: Container(
                 decoration: showAsCard
@@ -181,7 +180,7 @@ class _AttentionModalScaffoldState extends State<AttentionModalScaffold> {
                         )
                       : null,
                   clipBehavior: showAsCard ? Clip.antiAlias : Clip.none,
-                  child: cardContent,
+                  child: SafeArea(bottom: !showAsCard, child: cardContent),
                 ),
               ),
             ),
