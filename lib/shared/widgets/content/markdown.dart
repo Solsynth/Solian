@@ -159,6 +159,7 @@ class MarkdownTextContent extends HookConsumerWidget {
 
     final spoilerRevealed = useState(false);
     final builders = <String, MarkdownElementBuilder>{
+      'markdown-line-break': _MarkdownLineBreakBuilder(),
       if (!noMentionChip)
         'mention-chip': MentionChipGenerator(
           backgroundColor: scheme.secondary,
@@ -212,6 +213,7 @@ class MarkdownTextContent extends HookConsumerWidget {
         ),
       ),
       inlineSyntaxes: [
+        _MarkdownLineBreakSyntax(),
         SolarMentionInlineSyntax(),
         SolarHighlightInlineSyntax(),
         SolarSpoilerInlineSyntax(),
@@ -292,6 +294,28 @@ class MarkdownTextContent extends HookConsumerWidget {
         },
       ),
     );
+  }
+}
+
+class _MarkdownLineBreakSyntax extends markdown.InlineSyntax {
+  _MarkdownLineBreakSyntax() : super(r'\n');
+
+  @override
+  bool onMatch(markdown.InlineParser parser, Match match) {
+    parser.addNode(markdown.Element('markdown-line-break', const []));
+    return true;
+  }
+}
+
+class _MarkdownLineBreakBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    return const SizedBox(width: double.infinity, height: 0);
   }
 }
 
@@ -563,45 +587,57 @@ class _StickerInlineContent extends ConsumerWidget {
             ? sticker!.name!
             : sticker?.slug ?? placeholder;
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
-          child: Tooltip(
-            message: label,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () =>
-                  showStickerPackSheet(context, packPrefix, stickerCode),
-              onSecondaryTap: () {
-                Clipboard.setData(ClipboardData(text: stickerCode));
-              },
-              child: SizedBox(
-                width: dimension,
-                height: dimension,
-                child: sticker == null
-                    ? Icon(
-                        Symbols.emoji_symbols,
-                        size: dimension * 0.45,
-                        color: foregroundColor,
-                      )
-                    : CloudImageWidget(
-                        file: sticker.image,
-                        fit: BoxFit.contain,
-                        noBlurhash: true,
-                      ),
+        return Baseline(
+          baseline: dimension * 0.82,
+          baselineType: TextBaseline.alphabetic,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
+            child: Tooltip(
+              message: label,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () =>
+                    showStickerPackSheet(context, packPrefix, stickerCode),
+                onSecondaryTap: () {
+                  Clipboard.setData(ClipboardData(text: stickerCode));
+                },
+                child: SizedBox(
+                  width: dimension,
+                  height: dimension,
+                  child: sticker == null
+                      ? Icon(
+                          Symbols.emoji_symbols,
+                          size: dimension * 0.45,
+                          color: foregroundColor,
+                        )
+                      : CloudImageWidget(
+                          file: sticker.image,
+                          fit: BoxFit.contain,
+                          noBlurhash: true,
+                        ),
+                ),
               ),
             ),
           ),
         );
       },
-      loading: () => _StickerLoadingPlaceholder(
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        dimension: _stickerRenderDimension(_StickerRenderSize.medium),
+      loading: () => Baseline(
+        baseline: 48 * 0.82,
+        baselineType: TextBaseline.alphabetic,
+        child: _StickerLoadingPlaceholder(
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
+          dimension: 48,
+        ),
       ),
-      error: (_, _) => _StickerLoadingPlaceholder(
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        dimension: _stickerRenderDimension(_StickerRenderSize.medium),
+      error: (_, _) => Baseline(
+        baseline: 48 * 0.82,
+        baselineType: TextBaseline.alphabetic,
+        child: _StickerLoadingPlaceholder(
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
+          dimension: 48,
+        ),
       ),
     );
   }

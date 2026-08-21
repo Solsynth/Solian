@@ -111,7 +111,7 @@ class SolarSpoilerGenerator extends MarkdownElementBuilder {
   }
 }
 
-class SolarSpoilerSpanNode extends StatelessWidget {
+class SolarSpoilerSpanNode extends StatefulWidget {
   const SolarSpoilerSpanNode({
     super.key,
     required this.text,
@@ -126,22 +126,49 @@ class SolarSpoilerSpanNode extends StatelessWidget {
   final TextStyle? style;
 
   @override
+  State<SolarSpoilerSpanNode> createState() => _SolarSpoilerSpanNodeState();
+}
+
+class _SolarSpoilerSpanNodeState extends State<SolarSpoilerSpanNode> {
+  late bool _revealed = widget.revealed;
+
+  @override
+  void didUpdateWidget(covariant SolarSpoilerSpanNode oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.revealed != oldWidget.revealed) {
+      _revealed = widget.revealed;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final hiddenStyle = style?.copyWith(
+    final baseStyle = widget.style ?? DefaultTextStyle.of(context).style;
+    final hiddenStyle = baseStyle.copyWith(
       color: Colors.transparent,
       backgroundColor: Colors.black,
     );
-    return GestureDetector(
-      onTap: onToggle,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 180),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: Text(
-          text,
-          key: ValueKey('${revealed ? 'revealed' : 'hidden'}-$text'),
-          style: revealed ? style : hiddenStyle,
+    final textStyle = _revealed ? baseStyle : hiddenStyle;
+    final fontSize = baseStyle.fontSize ?? 14;
+    return Baseline(
+      baseline: fontSize * 0.82,
+      baselineType: TextBaseline.alphabetic,
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _revealed = !_revealed);
+          widget.onToggle();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          child: Text(
+            widget.text,
+            key: ValueKey(
+              '${_revealed ? 'revealed' : 'hidden'}-${widget.text}',
+            ),
+            style: textStyle,
+          ),
         ),
       ),
     );
