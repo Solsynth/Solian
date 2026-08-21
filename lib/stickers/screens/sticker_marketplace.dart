@@ -44,6 +44,40 @@ class MarketplaceStickerPacksNotifier
     byUsage: true,
     query: null,
   );
+  // A slower response from an older filter must not replace newer results.
+  int _filterRequestId = 0;
+
+  @override
+  Future<void> applyFilter(MarketplaceStickerQuery filter) async {
+    if (currentFilter == filter) return;
+
+    final requestId = ++_filterRequestId;
+    state = AsyncData(
+      PaginationState(
+        items: const [],
+        isLoading: true,
+        isReloading: true,
+        totalCount: null,
+        hasMore: true,
+        cursor: null,
+      ),
+    );
+    currentFilter = filter;
+
+    final newItems = await fetch();
+    if (!ref.mounted || requestId != _filterRequestId) return;
+
+    state = AsyncData(
+      PaginationState(
+        items: newItems,
+        isLoading: false,
+        isReloading: false,
+        totalCount: totalCount,
+        hasMore: hasMore,
+        cursor: cursor,
+      ),
+    );
+  }
 
   @override
   Future<List<SnStickerPack>> fetch() async {
