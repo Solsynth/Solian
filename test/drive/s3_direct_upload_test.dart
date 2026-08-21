@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image/image.dart' as img;
 import 'package:island/core/config.dart';
@@ -498,6 +499,58 @@ void main() {
       expect(compression.length, lessThan(source.length));
     },
   );
+  test('image direct upload forwards safe local EXIF analysis', () async {
+    dyson.singlePut = true;
+    final file = File(
+      '${Directory.systemTemp.path}/'
+      's3_exif_${DateTime.now().microsecondsSinceEpoch}.jpg',
+    );
+    await file.writeAsBytes(
+      img.encodeJpg(img.Image(width: 2, height: 2)),
+      flush: true,
+    );
+    addTearDown(() => file.deleteSync());
+
+    const channel = MethodChannel('native_exif');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      return switch (call.method) {
+        'initPath' => 1,
+        'getAttributes' => <String, Object>{
+          'DateTimeOriginal': '2026:08:21 12:34:56',
+          'Model': 'Test Camera',
+          'ISOSpeedRatings': 100,
+          'FNumber': '2.8',
+          'ExposureTime': '1/120',
+          'FocalLength': '50',
+          'GPSLatitude': 1,
+          'GPSLongitude': 2,
+        },
+        _ => null,
+      };
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    final uploader = container.read(driveFileUploaderProvider);
+    final result = await uploader.tryUploadViaS3Direct(
+      fileData: XFile(file.path),
+      fileName: 'image-exif.jpg',
+      contentType: 'image/jpeg',
+      parentId: 'parent-1',
+    );
+
+    expect(result, isNotNull);
+    expect(dyson.lastClientAnalysis?['exif_version'], 2);
+    expect(dyson.lastClientAnalysis?['exif'], {
+      'DateTime': '2026:08:21 12:34:56',
+      'Model': 'Test Camera',
+      'ISOSpeedRatings': 100,
+      'FNumber': '2.8',
+      'ExposureTime': '1/120',
+      'FocalLength': '50',
+    });
+  });
   test('image compression setting can disable the derivative', () async {
     dyson.singlePut = true;
     dyson.includeClientDerivativeUrls = true;

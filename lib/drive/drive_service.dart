@@ -989,6 +989,46 @@ class FileUploader {
     return null;
   }
 
+  Future<Map<String, dynamic>?> _readLocalImageExif(String path) async {
+    if (path.isEmpty) return null;
+
+    Exif? exif;
+    try {
+      exif = await Exif.fromPath(path);
+      final attributes = await exif.getAttributes();
+      if (attributes == null || attributes.isEmpty) return null;
+
+      Object? firstValue(List<String> keys) {
+        for (final key in keys) {
+          final value = attributes[key];
+          if (value == null) continue;
+          if (value is String && value.trim().isEmpty) continue;
+          return value;
+        }
+        return null;
+      }
+
+      final mapped = <String, dynamic>{};
+      final dateTime = firstValue(['DateTime', 'DateTimeOriginal']);
+      final model = firstValue(['Model']);
+      final iso = firstValue(['ISOSpeedRatings']);
+      final fNumber = firstValue(['FNumber']);
+      final exposureTime = firstValue(['ExposureTime']);
+      final focalLength = firstValue(['FocalLength']);
+      if (dateTime != null) mapped['DateTime'] = dateTime;
+      if (model != null) mapped['Model'] = model;
+      if (iso != null) mapped['ISOSpeedRatings'] = iso;
+      if (fNumber != null) mapped['FNumber'] = fNumber;
+      if (exposureTime != null) mapped['ExposureTime'] = exposureTime;
+      if (focalLength != null) mapped['FocalLength'] = focalLength;
+      return mapped.isEmpty ? null : mapped;
+    } catch (_) {
+      return null;
+    } finally {
+      await exif?.close();
+    }
+  }
+
   Future<_ClientMediaUpload?> _prepareClientImageUpload(
     dynamic fileData, {
     int? compressionQuality,
@@ -1014,6 +1054,13 @@ class FileUploader {
       'width': prepared['width'],
       'height': prepared['height'],
     };
+    final localExif = fileData is XFile
+        ? await _readLocalImageExif(fileData.path)
+        : null;
+    if (localExif != null && localExif.isNotEmpty) {
+      analysis['exif_version'] = 2;
+      analysis['exif'] = localExif;
+    }
     final blurhash = prepared['blurhash'];
     if (blurhash is String && blurhash.isNotEmpty) {
       analysis['blurhash'] = blurhash;
