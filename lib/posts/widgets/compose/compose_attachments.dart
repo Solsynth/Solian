@@ -88,6 +88,8 @@ class ComposeAttachments extends ConsumerWidget {
             state,
             idx,
             poolId: config.poolId,
+            imageCompressionEnabled: config.imageCompressionEnabled,
+            imageCompressionQuality: config.imageCompressionQuality,
           );
         }
       },
@@ -255,6 +257,10 @@ class ArticleComposeAttachments extends HookConsumerWidget {
                                                 state,
                                                 idx,
                                                 poolId: config.poolId,
+                                                imageCompressionEnabled: config
+                                                    .imageCompressionEnabled,
+                                                imageCompressionQuality: config
+                                                    .imageCompressionQuality,
                                               );
                                             }
                                           },

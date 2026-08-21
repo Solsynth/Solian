@@ -843,6 +843,8 @@ class ComposeLogic {
     ComposeState state,
     int index, {
     String? poolId,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
   }) async {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud) return;
@@ -870,6 +872,8 @@ class ComposeLogic {
             mode: attachment.type == UniversalFileType.file
                 ? FileUploadMode.generic
                 : FileUploadMode.mediaSafe,
+            imageCompressionEnabled: imageCompressionEnabled,
+            imageCompressionQuality: imageCompressionQuality,
             onProgress: (progress, _) {
               state.attachmentProgress.value = {
                 ...state.attachmentProgress.value,

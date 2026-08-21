@@ -760,6 +760,8 @@ class ChatRoomScreen extends HookConsumerWidget {
               mode: attachment.type == UniversalFileType.file
                   ? FileUploadMode.generic
                   : FileUploadMode.mediaSafe,
+              imageCompressionEnabled: config.imageCompressionEnabled,
+              imageCompressionQuality: config.imageCompressionQuality,
               onProgress: (progress, _) {
                 final latestAttachments = ref
                     .read(chatRoomStateProvider(id))

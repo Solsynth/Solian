@@ -52,6 +52,8 @@ const kAppCustomColorsStoreKey = 'app_custom_colors';
 const kAppNotifyWithHaptic = 'app_notify_with_haptic';
 const kAppCustomFonts = 'app_custom_fonts';
 const kAppDataSavingMode = 'app_data_saving_mode';
+const kAppImageCompressionEnabled = 'app_image_compression_enabled';
+const kAppImageCompressionQuality = 'app_image_compression_quality';
 const kAppWeakConnectionMode = 'app_weak_connection_mode';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppFestivalFeatures = 'app_feastival_features';
@@ -584,6 +586,8 @@ sealed class AppSettings with _$AppSettings {
     required DashboardConfig? dashboardConfig,
     required ExploreSettings exploreSettings,
     required bool mediaProxyEnabled,
+    required bool imageCompressionEnabled,
+    required int imageCompressionQuality,
     required bool friendStatusDesktopNotification,
   }) = _AppSettings;
 }
@@ -636,6 +640,10 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
       exploreSettings: _getExploreSettingsFromPrefs(prefs),
       mediaProxyEnabled: prefs.getBool(kAppMediaProxyEnabled) ?? true,
+      imageCompressionEnabled:
+          prefs.getBool(kAppImageCompressionEnabled) ?? true,
+      imageCompressionQuality: (prefs.getInt(kAppImageCompressionQuality) ?? 80)
+          .clamp(10, 100),
       friendStatusDesktopNotification:
           prefs.getBool(kAppFriendStatusDesktopNotification) ?? true,
     );
@@ -943,6 +951,19 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppMediaProxyEnabled, value);
     state = state.copyWith(mediaProxyEnabled: value);
+  }
+
+  void setImageCompressionEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppImageCompressionEnabled, value);
+    state = state.copyWith(imageCompressionEnabled: value);
+  }
+
+  void setImageCompressionQuality(int value) {
+    final quality = value.clamp(10, 100);
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setInt(kAppImageCompressionQuality, quality);
+    state = state.copyWith(imageCompressionQuality: quality);
   }
 
   void setFriendStatusDesktopNotification(bool value) {

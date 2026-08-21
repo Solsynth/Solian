@@ -1365,6 +1365,10 @@ class SettingsScreen extends HookConsumerWidget {
         searchTerms: [
           'server url',
           'media proxy',
+          'image compression',
+          'compression quality',
+          'compressionSettings',
+          'compressionQuality',
           'default pool',
           'ip override',
           'dns override',
@@ -1448,6 +1452,48 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('compressionSettings').tr(),
+            subtitle: Text('compressionHint').tr(),
+            contentPadding: _kSettingsTilePadding,
+            leading: const Icon(Symbols.compress),
+            trailing: Switch(
+              value: settings.imageCompressionEnabled,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setImageCompressionEnabled(value);
+              },
+            ),
+          ),
+          if (settings.imageCompressionEnabled)
+            ListTile(
+              isThreeLine: true,
+              minLeadingWidth: 48,
+              title: Text('compressionQuality').tr(),
+              contentPadding: _kSettingsTilePadding,
+              leading: const Icon(Symbols.tune),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SliderTheme(
+                  data: SliderThemeData(year2023: true),
+                  child: Slider(
+                    padding: .zero,
+                    value: settings.imageCompressionQuality.toDouble(),
+                    min: 10,
+                    max: 100,
+                    divisions: 18,
+                    label: '${settings.imageCompressionQuality}%',
+                    onChanged: (value) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setImageCompressionQuality(value.round());
+                    },
+                  ),
+                ),
+              ),
+            ),
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsDataSavingMode').tr(),

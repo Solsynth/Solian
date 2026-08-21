@@ -11,6 +11,11 @@ bool isWideScreen(BuildContext context) {
   return MediaQuery.of(context).size.width > kWideScreenWidth;
 }
 
+/// Whether the available width supports a two-pane layout.
+bool isTwoPaneLayout(BuildContext context) {
+  return isWideScreen(context);
+}
+
 bool isWiderScreen(BuildContext context) {
   return MediaQuery.of(context).size.width > kWiderScreenWidth;
 }
@@ -34,7 +39,7 @@ extension ResponsiveLayoutContext on BuildContext {
 
   bool get isMediumScreen => responsiveTier == ResponsiveTier.medium;
 
-  bool get isTwoPaneScreen => responsiveTier != ResponsiveTier.compact;
+  bool get isTwoPaneScreen => isTwoPaneLayout(this);
 
   bool get isDesktopScreen =>
       responsiveTier == ResponsiveTier.wide ||

@@ -94,12 +94,20 @@ class _ClientMediaUpload {
   });
 }
 
-Map<String, dynamic>? _prepareClientImageUploadInBackground(Uint8List bytes) {
+Map<String, dynamic>? _prepareClientImageUploadInBackground(
+  List<Object?> input,
+) {
   try {
+    final bytes = input[0] as Uint8List;
+    final quality = input[1] as int?;
     final image = img.decodeImage(bytes);
     if (image == null || image.width <= 0 || image.height <= 0) return null;
-    if (image.hasAnimation) {
-      return {'width': image.width, 'height': image.height, 'animated': true};
+    if (image.hasAnimation || quality == null) {
+      return {
+        'width': image.width,
+        'height': image.height,
+        'animated': image.hasAnimation,
+      };
     }
 
     final maxEdge = max(image.width, image.height);
@@ -121,7 +129,7 @@ Map<String, dynamic>? _prepareClientImageUploadInBackground(Uint8List bytes) {
       rgba: rgba,
       width: prepared.width,
       height: prepared.height,
-      quality: 80.0,
+      quality: quality.toDouble(),
     );
     if (compression == null ||
         compression.isEmpty ||
@@ -811,12 +819,16 @@ class FileUploader {
 
   Future<_ClientMediaUpload?> _prepareClientMediaUpload(
     dynamic fileData,
-    String contentType,
-  ) async {
+    String contentType, {
+    int? compressionQuality,
+  }) async {
     if (kIsWeb) return null;
     final normalizedType = contentType.toLowerCase();
     if (normalizedType.startsWith('image/')) {
-      return _prepareClientImageUpload(fileData);
+      return _prepareClientImageUpload(
+        fileData,
+        compressionQuality: compressionQuality,
+      );
     }
     if (fileData is! XFile || fileData.path.isEmpty) {
       return null;
@@ -844,8 +856,9 @@ class FileUploader {
   }
 
   Future<_ClientMediaUpload?> _prepareClientImageUpload(
-    dynamic fileData,
-  ) async {
+    dynamic fileData, {
+    int? compressionQuality,
+  }) async {
     final bytes = fileData is XFile
         ? await fileData.readAsBytes()
         : fileData is Uint8List
@@ -858,9 +871,9 @@ class FileUploader {
     // Decode, resize, pixel conversion, and native WebP encoding are CPU
     // bound. Keep them off Flutter's UI isolate so large images do not freeze
     // scrolling or upload progress updates.
-    final prepared = await compute(
+    final prepared = await compute<List<Object?>, Map<String, dynamic>?>(
       _prepareClientImageUploadInBackground,
-      bytes,
+      [bytes, compressionQuality],
     );
     if (prepared == null) return null;
     final analysis = {'width': prepared['width'], 'height': prepared['height']};
@@ -871,7 +884,9 @@ class FileUploader {
     }
 
     final compression = prepared['compression'];
-    if (compression is! Uint8List || compression.isEmpty) return null;
+    if (compression is! Uint8List || compression.isEmpty) {
+      return _ClientMediaUpload(analysis: analysis);
+    }
     return _ClientMediaUpload(analysis: analysis, compression: compression);
   }
 
@@ -1117,6 +1132,8 @@ class FileUploader {
     String? workspaceId,
     String? usage,
     String? applicationType,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
     Function(double? progress, Duration estimate)? onProgress,
     void Function(String stage, double progress)? onStage,
   }) async {
@@ -1137,9 +1154,17 @@ class FileUploader {
     }
     onStage?.call('hashing', 1);
     onStage?.call('preparing_media', 0);
-    final clientMedia = await _prepareClientMediaUpload(fileData, contentType);
+    final appSettings = ref.read(appSettingsProvider);
+    final compressionQuality =
+        (imageCompressionEnabled ?? appSettings.imageCompressionEnabled)
+        ? (imageCompressionQuality ?? appSettings.imageCompressionQuality)
+        : null;
+    final clientMedia = await _prepareClientMediaUpload(
+      fileData,
+      contentType,
+      compressionQuality: compressionQuality,
+    );
     onStage?.call('preparing_media', 1);
-
     // Large XFiles go through the multipart direct flow (parallel presigned
     // part PUTs, server-side completion). Byte payloads are already
     // materialized in memory and web cannot stream ranges, so they stay on
@@ -1947,6 +1972,8 @@ class FileUploader {
     String? workspaceId,
     String? usage,
     String? applicationType,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     final overallTimer = Stopwatch()..start();
@@ -2005,6 +2032,8 @@ class FileUploader {
         workspaceId: workspaceId,
         usage: usage,
         applicationType: applicationType,
+        imageCompressionEnabled: imageCompressionEnabled,
+        imageCompressionQuality: imageCompressionQuality,
         onProgress: onProgress,
       );
       if (s3Uploaded != null) {
@@ -2200,6 +2229,8 @@ class FileUploader {
     FileUploadMode? mode,
     String? usage,
     String? applicationType,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
     Function(double? progress, Duration estimate)? onProgress,
   }) {
     final completer = Completer<SnCloudFile?>();
@@ -2243,8 +2274,9 @@ class FileUploader {
                 encryptPassword,
                 onProgress,
                 completer,
-                usage: usage,
                 applicationType: applicationType,
+                imageCompressionEnabled: imageCompressionEnabled,
+                imageCompressionQuality: imageCompressionQuality,
               ),
             )
             .catchError((e) {
@@ -2258,8 +2290,9 @@ class FileUploader {
                 encryptPassword,
                 onProgress,
                 completer,
-                usage: usage,
                 applicationType: applicationType,
+                imageCompressionEnabled: imageCompressionEnabled,
+                imageCompressionQuality: imageCompressionQuality,
               );
             });
 
@@ -2276,8 +2309,9 @@ class FileUploader {
       encryptPassword,
       onProgress,
       completer,
-      usage: usage,
       applicationType: applicationType,
+      imageCompressionEnabled: imageCompressionEnabled,
+      imageCompressionQuality: imageCompressionQuality,
     );
     return completer;
   }
@@ -2292,8 +2326,9 @@ class FileUploader {
     String? encryptPassword,
     Function(double? progress, Duration estimate)? onProgress,
     Completer<SnCloudFile?> completer, {
-    String? usage,
     String? applicationType,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
   }) {
     String actualMimetype = getMimeType(fileData);
     String actualFilename = fileData.displayName ?? 'randomly_file';
@@ -2314,8 +2349,9 @@ class FileUploader {
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
-        usage: usage,
         applicationType: applicationType,
+        imageCompressionEnabled: imageCompressionEnabled,
+        imageCompressionQuality: imageCompressionQuality,
       );
       return completer;
     } else if (data is List<int> || data is Uint8List) {
@@ -2346,8 +2382,9 @@ class FileUploader {
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
-        usage: usage,
         applicationType: applicationType,
+        imageCompressionEnabled: imageCompressionEnabled,
+        imageCompressionQuality: imageCompressionQuality,
       );
     }
 
@@ -2364,8 +2401,9 @@ class FileUploader {
     String? path,
     String? workspaceId,
     String? encryptPassword,
-    String? usage,
     String? applicationType,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
@@ -2384,8 +2422,9 @@ class FileUploader {
           path: path,
           workspaceId: workspaceId,
           encryptPassword: encryptPassword,
-          usage: usage,
           applicationType: applicationType,
+          imageCompressionEnabled: imageCompressionEnabled,
+          imageCompressionQuality: imageCompressionQuality,
           onProgress: onProgress,
         )
         .then((result) {
@@ -2570,10 +2609,7 @@ class FileDownloadService {
     }
   }
 
-  String _getOriginalUrl(
-    IDisplayableCloudFile item, {
-    String? serverUrl,
-  }) {
+  String _getOriginalUrl(IDisplayableCloudFile item, {String? serverUrl}) {
     // References may point at remote attachments rather than a local drive
     // object. Their storage URL is already the downloadable original.
     if (item is! SnCloudFile && item.storageUrl != null) {
@@ -2637,7 +2673,6 @@ class FileDownloadService {
 
   bool get _isDesktop =>
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
-
 
   Future<String?> _resolveDownloadDirectory({
     required bool useDownloadsFolder,

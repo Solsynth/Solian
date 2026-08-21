@@ -56,6 +56,8 @@ class EnhancedFileUploader extends FileUploader {
     String? workspaceId,
     String? usage,
     String? applicationType,
+    bool? imageCompressionEnabled,
+    int? imageCompressionQuality,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     final overallTimer = Stopwatch()..start();
@@ -163,8 +165,9 @@ class EnhancedFileUploader extends FileUploader {
           parentId: parentId,
           workspaceId: workspaceId,
           path: path,
-          usage: usage,
           applicationType: applicationType,
+          imageCompressionEnabled: imageCompressionEnabled,
+          imageCompressionQuality: imageCompressionQuality,
           onStage: reportStage,
           onProgress: (progress, estimate) {
             onProgress?.call(progress, estimate);

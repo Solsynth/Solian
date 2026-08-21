@@ -487,6 +487,68 @@ void main() {
       expect(compression.length, lessThan(source.length));
     },
   );
+  test('image compression setting can disable the derivative', () async {
+    dyson.singlePut = true;
+    dyson.includeClientDerivativeUrls = true;
+    final source = Uint8List.fromList(
+      img.encodeJpg(img.Image(width: 2, height: 2)),
+    );
+    final uploader = container.read(driveFileUploaderProvider);
+
+    final result = await uploader.tryUploadViaS3Direct(
+      fileData: source,
+      fileName: 'image-disabled.jpg',
+      contentType: 'image/jpeg',
+      parentId: 'parent-1',
+      imageCompressionEnabled: false,
+    );
+
+    expect(result, isNotNull);
+    expect(dyson.lastWantCompression, isFalse);
+    expect(s3.objects['/compression'], isNull);
+  });
+
+  test('image compression quality changes the WebP derivative', () async {
+    dyson.singlePut = true;
+    dyson.includeClientDerivativeUrls = true;
+    final sourceImage = img.Image(width: 128, height: 128);
+    for (var y = 0; y < sourceImage.height; y++) {
+      for (var x = 0; x < sourceImage.width; x++) {
+        sourceImage.setPixelRgb(
+          x,
+          y,
+          (x * 17 + y * 3) % 256,
+          (x * 5 + y * 19) % 256,
+          (x * 11 + y * 7) % 256,
+        );
+      }
+    }
+    final source = Uint8List.fromList(img.encodeJpg(sourceImage, quality: 100));
+    final settings = container.read(appSettingsProvider.notifier);
+    container.listen(appSettingsProvider, (_, _) {});
+    settings.setImageCompressionQuality(20);
+    final uploader = container.read(driveFileUploaderProvider);
+
+    await uploader.tryUploadViaS3Direct(
+      fileData: source,
+      fileName: 'image-low-quality.jpg',
+      contentType: 'image/jpeg',
+      parentId: 'parent-1',
+    );
+    final lowQuality = s3.objects['/compression'];
+    expect(lowQuality, isNotNull);
+    settings.setImageCompressionQuality(100);
+    await uploader.tryUploadViaS3Direct(
+      fileData: source,
+      fileName: 'image-high-quality.jpg',
+      contentType: 'image/jpeg',
+      parentId: 'parent-1',
+    );
+    final highQuality = s3.objects['/compression'];
+    expect(highQuality, isNotNull);
+    expect(highQuality, isNot(equals(lowQuality)));
+  });
+
   test('animated GIF upload skips the lossy compression derivative', () async {
     dyson.singlePut = true;
     dyson.includeClientDerivativeUrls = true;
