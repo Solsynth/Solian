@@ -1296,6 +1296,7 @@
   "deviceId": "设备 ID",
   "directChat": "私信",
   "directMessage": "私信",
+  "directMessageFrom": "来自 {} 的私信",
   "directoryPath": "目录路径",
   "directoryPathHelper": "输入目录路径。当您上传文件到该路径时，目录将被创建。",
   "directoryPathHint": "例如：documents, projects/my-app",

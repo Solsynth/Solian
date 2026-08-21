@@ -1298,6 +1298,7 @@
   "deviceId": "Device ID",
   "directChat": "Direct Chat",
   "directMessage": "Direct Message",
+  "directMessageFrom": "Direct message from {}",
   "directoryPath": "Directory path",
   "directoryPathHelper": "Enter a directory path. The directory will be created when you upload files to it.",
   "directoryPathHint": "e.g., documents, projects/my-app",

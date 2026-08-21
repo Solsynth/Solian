@@ -865,6 +865,7 @@
   "developerPortalDescription": "Solar Network ™ で構築する。",
   "directChat": "ダイレクトチャット",
   "directMessage": "ダイレクトメッセージ",
+  "directMessageFrom": "{} さんからのダイレクトメッセージ",
   "discard": "破棄",
   "disconnected": "切断済み",
   "discover": "発見",

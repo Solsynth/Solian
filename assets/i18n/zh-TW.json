@@ -1245,6 +1245,7 @@
   "deviceId": "裝置 ID",
   "directChat": "私訊",
   "directMessage": "私訊",
+  "directMessageFrom": "來自 {} 的私訊",
   "directoryPath": "目錄路徑",
   "directoryPathHelper": "輸入目錄路徑。當您上傳檔案到該路徑時，目錄將被建立。",
   "directoryPathHint": "例如：documents, projects/my-app",

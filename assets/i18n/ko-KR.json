@@ -930,6 +930,7 @@
   "developerPortalDescription": "Solar Network와 함께 개발하세요.",
   "directChat": "1:1 채팅",
   "directMessage": "쪽지",
+  "directMessageFrom": "{}님이 보낸 쪽지",
   "discard": "버리기",
   "disconnected": "연결 끊김",
   "discover": "탐색",

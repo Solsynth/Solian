@@ -53,6 +53,120 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+class _DirectMessageConfirmationBanner extends HookConsumerWidget {
+  final SnChatRoom chatRoom;
+  final SnChatMember identity;
+  final bool isBlocked;
+  final Future<void> Function()? onBlocked;
+
+  const _DirectMessageConfirmationBanner({
+    required this.chatRoom,
+    required this.identity,
+    required this.isBlocked,
+    this.onBlocked,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBusy = useState(false);
+    final client = ref.read(solarNetworkClientProvider);
+    final peer = (chatRoom.members ?? const <SnChatMember>[])
+        .where((member) => member.accountId != identity.accountId)
+        .firstOrNull;
+
+    Future<void> confirm() async {
+      if (isBusy.value) return;
+      isBusy.value = true;
+      try {
+        if (isBlocked) {
+          await client.chat.unblockDirectChat(chatRoom.id);
+        } else {
+          await client.chat.confirmDirectChat(chatRoom.id);
+        }
+        ref.invalidate(chatRoomJoinedProvider);
+        ref.invalidate(chatRoomProvider(chatRoom.id));
+        ref.invalidate(chatRoomIdentityProvider(chatRoom.id));
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    Future<void> block() async {
+      if (isBusy.value) return;
+      final shouldBlock = await showConfirmAlert(
+        'directMessage'.tr(),
+        'blockUser'.tr(),
+        isDanger: true,
+      );
+      if (!shouldBlock || !context.mounted) return;
+
+      isBusy.value = true;
+      try {
+        await client.chat.blockDirectChat(chatRoom.id);
+        ref.invalidate(chatRoomJoinedProvider);
+        ref.invalidate(chatRoomProvider(chatRoom.id));
+        ref.invalidate(chatRoomIdentityProvider(chatRoom.id));
+        await onBlocked?.call();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final messageLabel = peer == null
+        ? 'directMessage'.tr()
+        : 'directMessageFrom'.tr(args: [peer.account.nick]);
+
+    return Container(
+      key: ValueKey('dm-confirm-${chatRoom.id}'),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: colorScheme.surfaceContainerHigh,
+      child: Row(
+        children: [
+          Icon(Symbols.mark_chat_unread, size: 18, color: colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              messageLabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          FilledButton.tonal(
+            onPressed: isBusy.value ? null : confirm,
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+            child: Text(isBlocked ? 'chatJoin'.tr() : 'confirm'.tr()),
+          ),
+          if (!isBlocked)
+            TextButton(
+              onPressed: isBusy.value ? null : block,
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                minimumSize: const Size(0, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              child: Text('blockUser'.tr()),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 @RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
@@ -887,6 +1001,8 @@ class ChatRoomScreen extends HookConsumerWidget {
 
       jumpAndRevealMessage(targetId);
     }, [savedLastReadAt.value, messages, jumpAndRevealMessage]);
+    final currentRoom = chatRoom.value;
+    final currentIdentity = chatIdentity.value;
 
     return Stack(
       children: [
@@ -944,6 +1060,21 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           body: Column(
             children: [
+              if (currentRoom != null &&
+                  currentIdentity != null &&
+                  currentRoom.type == 1 &&
+                  currentIdentity.joinedAt != null &&
+                  currentIdentity.confirmedAt == null)
+                _DirectMessageConfirmationBanner(
+                  chatRoom: currentRoom,
+                  identity: currentIdentity,
+                  isBlocked: currentIdentity.leaveAt != null,
+                  onBlocked: () async {
+                    if (context.mounted) {
+                      context.router.maybePop();
+                    }
+                  },
+                ),
               const ChatSyncIndicator(),
               if (pinnedPins.value.isNotEmpty)
                 _PinnedMessagesBar(
@@ -1262,11 +1393,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                                           chatStateNotifier.setEmbeds,
                                       isMessageListScrolling:
                                           !isAtLatestMessages.value,
-                                      onDirectMessageBlocked: () async {
-                                        if (context.mounted) {
-                                          context.router.maybePop();
-                                        }
-                                      },
                                       onPickFile: (isPhoto) {
                                         if (isPhoto) {
                                           chatStateNotifier.pickPhotos();

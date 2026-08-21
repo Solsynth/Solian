@@ -798,6 +798,7 @@
   "developerPortalDescription": "築基於 Solar Network™。",
   "directChat": "私談",
   "directMessage": "私信",
+  "directMessageFrom": "來自 {} 的私談",
   "discard": "棄",
   "disconnected": "已絕",
   "discover": "探",

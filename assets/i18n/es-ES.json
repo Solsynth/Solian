@@ -797,6 +797,7 @@
   "developerPortalDescription": "Build with Solar Network™.",
   "directChat": "Direct Chat",
   "directMessage": "Direct Message",
+  "directMessageFrom": "Mensaje directo de {}",
   "discard": "Discard",
   "disconnected": "Disconnected",
   "discover": "Discover",
