@@ -216,7 +216,10 @@ class NotificationModal extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(() async {
         await ref.read(notificationUnreadCountProvider.notifier).refresh();
-        await ref.read(notificationListProvider.notifier).refresh();
+        // The notification list provider fetches its first page from build().
+        // Refreshing it here starts a second request; the API marks a fetched
+        // page as viewed, so that request can replace the unread snapshot with
+        // an already-viewed response.
       });
       return null;
     }, []);

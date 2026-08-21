@@ -503,41 +503,92 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
 }
 
 class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
-  final _key = GlobalKey();
+  final _groupKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      key: _groupKey,
+      clipBehavior: Clip.none,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: widget.children,
+        ),
+        Positioned(
+          left: widget.avatarLeft,
+          top: 0,
+          child: _StickyGroupAvatar(
+            childCount: widget.children.length,
+            groupKey: _groupKey,
+            roomId: widget.roomId,
+            sender: widget.sender,
+            avatarSize: widget.avatarSize,
+            avatarTop: widget.avatarTop,
+            avatarAnchorKey: widget.avatarAnchorKey,
+            stickyEnabled: widget.stickyEnabled,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StickyGroupAvatar extends StatefulWidget {
+  final GlobalKey groupKey;
+  final String roomId;
+  final SnChatMember sender;
+  final double avatarSize;
+  final double avatarTop;
+  final int childCount;
+  final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
+  final bool stickyEnabled;
+
+  const _StickyGroupAvatar({
+    required this.groupKey,
+    required this.roomId,
+    required this.sender,
+    required this.avatarSize,
+    required this.avatarTop,
+    required this.childCount,
+    required this.avatarAnchorKey,
+    required this.stickyEnabled,
+  });
+
+  @override
+  State<_StickyGroupAvatar> createState() => _StickyGroupAvatarState();
+}
+
+class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
   ScrollPosition? _position;
-  bool _framePending = false;
-  double? _stickyOffset;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateScrollPosition();
-    _scheduleOffsetUpdate();
+    _scheduleLayoutRefresh();
   }
 
   @override
-  void didUpdateWidget(covariant _StickyBubbleMessageGroup oldWidget) {
+  void didUpdateWidget(covariant _StickyGroupAvatar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.stickyEnabled != widget.stickyEnabled ||
-        oldWidget.children.length != widget.children.length) {
-      _stickyOffset = null;
-    }
-    _scheduleOffsetUpdate();
-  }
+    _updateScrollPosition();
 
-  @override
-  void dispose() {
-    _position?.removeListener(_handleScroll);
-    super.dispose();
+    // Message heights and the anchor can change when a message is sent,
+    // edited, or replaced by its server version. Recompute after that layout
+    // without rebuilding the whole message group.
+    if (oldWidget.avatarTop != widget.avatarTop ||
+        oldWidget.childCount != widget.childCount ||
+        oldWidget.stickyEnabled != widget.stickyEnabled ||
+        oldWidget.avatarAnchorKey != widget.avatarAnchorKey) {
+      _scheduleLayoutRefresh();
+    }
   }
 
   void _updateScrollPosition() {
     final nextPosition = widget.stickyEnabled ? _readScrollPosition() : null;
     if (identical(_position, nextPosition)) return;
-
-    _position?.removeListener(_handleScroll);
     _position = nextPosition;
-    _position?.addListener(_handleScroll);
   }
 
   ScrollPosition? _readScrollPosition() {
@@ -551,19 +602,10 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     }
   }
 
-  void _handleScroll() => _scheduleOffsetUpdate();
-
-  void _scheduleOffsetUpdate() {
-    if (_framePending || !mounted) return;
-    _framePending = true;
+  void _scheduleLayoutRefresh() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _framePending = false;
       if (!mounted) return;
-
-      final nextOffset = _avatarOffset();
-      final currentOffset = _stickyOffset ?? widget.avatarTop;
-      if ((currentOffset - nextOffset).abs() < 0.5) return;
-      setState(() => _stickyOffset = nextOffset);
+      setState(() {});
     });
   }
 
@@ -583,10 +625,12 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
   }
 
   double _avatarOffset() {
-    final groupBox = _key.currentContext?.findRenderObject() as RenderBox?;
+    final groupBox =
+        widget.groupKey.currentContext?.findRenderObject() as RenderBox?;
     final baseTop = _baseAvatarTop(groupBox);
-    if (groupBox == null || !groupBox.hasSize) return baseTop;
-    if (!widget.stickyEnabled) return baseTop;
+    if (groupBox == null || !groupBox.hasSize || !widget.stickyEnabled) {
+      return baseTop;
+    }
 
     final scrollable = Scrollable.maybeOf(context);
     if (scrollable == null) return baseTop;
@@ -611,45 +655,37 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
     return (baseTop + stickyDelta).clamp(baseTop, maxOffset);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    _updateScrollPosition();
-    final baseTop = _baseAvatarTop(
-      _key.currentContext?.findRenderObject() as RenderBox?,
-    );
-    final offset = widget.stickyEnabled ? (_stickyOffset ?? baseTop) : baseTop;
-
-    return Stack(
-      key: _key,
-      clipBehavior: Clip.none,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: widget.children,
-        ),
-        Positioned(
-          left: widget.avatarLeft,
-          top: 0,
-          child: RepaintBoundary(
-            child: Transform.translate(
-              offset: Offset(0, offset),
-              child: ChatRoomMemberRegion(
-                roomId: widget.roomId,
-                member: widget.sender,
-                child: OnlineAvatarBadge(
-                  roomId: widget.roomId,
-                  accountId: widget.sender.accountId,
-                  child: ProfilePictureWidget(
-                    file: widget.sender.account.profile.picture,
-                    fallbackName: widget.sender.account.nick,
-                    radius: widget.avatarSize / 2,
-                  ),
-                ),
-              ),
+  Widget _buildAvatar(double offset) {
+    return RepaintBoundary(
+      child: Transform.translate(
+        offset: Offset(0, offset),
+        child: ChatRoomMemberRegion(
+          roomId: widget.roomId,
+          member: widget.sender,
+          child: OnlineAvatarBadge(
+            roomId: widget.roomId,
+            accountId: widget.sender.accountId,
+            child: ProfilePictureWidget(
+              file: widget.sender.account.profile.picture,
+              fallbackName: widget.sender.account.nick,
+              radius: widget.avatarSize / 2,
             ),
           ),
         ),
-      ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final position = _position;
+    if (!widget.stickyEnabled || position == null) {
+      return _buildAvatar(_avatarOffset());
+    }
+
+    return AnimatedBuilder(
+      animation: position,
+      builder: (context, _) => _buildAvatar(_avatarOffset()),
     );
   }
 }

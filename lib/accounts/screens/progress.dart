@@ -154,7 +154,6 @@ class ProgressScreen extends ConsumerWidget {
           title: Text('progress').tr(),
           leading: const AutoLeadingButton(),
           bottom: TabBar(
-            tabAlignment: .center,
             dividerColor: theme.colorScheme.outlineVariant,
             indicatorColor: theme.colorScheme.primary,
             indicatorWeight: 2,
@@ -482,13 +481,6 @@ class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
         return CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
-              child: statsAsync.when(
-                data: (stats) => _AchievementStatsCard(stats: stats),
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
-              ),
-            ),
-            SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: SearchBar(
@@ -510,6 +502,13 @@ class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
                   ],
                   onChanged: _performSearch,
                 ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: statsAsync.when(
+                data: (stats) => _AchievementStatsCard(stats: stats),
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
             ),
             if (_searchQuery.isNotEmpty)
