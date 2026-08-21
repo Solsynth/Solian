@@ -11,6 +11,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -239,6 +240,61 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
   }
 }
 
+class _StickerPreviewRow extends StatelessWidget {
+  final List<SnSticker> stickers;
+  final int start;
+  final int count;
+
+  const _StickerPreviewRow({
+    required this.stickers,
+    required this.start,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final itemCount = math.min(count, stickers.length - start);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final spacing = 8.0;
+        final tileSize = math.min(
+          72.0,
+          (constraints.maxWidth - spacing * (itemCount - 1)) / itemCount,
+        );
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            itemCount,
+            (index) => Padding(
+              padding: EdgeInsets.only(
+                right: index < itemCount - 1 ? spacing : 0,
+              ),
+              child: Card.outlined(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: tileSize,
+                    height: 72,
+                    child: CloudImageWidget(
+                      file: stickers[start + index].image,
+                      noBlurhash: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _MarketplacePackCard extends StatelessWidget {
   final SnStickerPack pack;
 
@@ -267,61 +323,13 @@ class _MarketplacePackCard extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        math.min(stickers.length, 4),
-                        (index) => Padding(
-                          padding: EdgeInsets.only(right: index < 3 ? 8 : 0),
-                          child: Card.outlined(
-                            elevation: 0,
-                            margin: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: SizedBox(
-                                width: 72,
-                                height: 72,
-                                child: CloudImageWidget(
-                                  file: stickers[index].image,
-                                  noBlurhash: true,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _StickerPreviewRow(stickers: stickers, start: 0, count: 4),
                     if (stickers.length > 4) ...[
                       const Gap(8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          math.min(stickers.length - 4, 4),
-                          (index) => Padding(
-                            padding: EdgeInsets.only(right: index < 3 ? 8 : 0),
-                            child: Card.outlined(
-                              elevation: 0,
-                              margin: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SizedBox(
-                                  width: 72,
-                                  height: 72,
-                                  child: CloudImageWidget(
-                                    file: stickers[index + 4].image,
-                                    noBlurhash: true,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      _StickerPreviewRow(
+                        stickers: stickers,
+                        start: 4,
+                        count: 4,
                       ),
                     ],
                   ],
@@ -379,57 +387,138 @@ class _MarketplacePackCard extends StatelessWidget {
   }
 }
 
+List<String> _orderedOwnershipIds(List<SnStickerOwnership> ownerships) {
+  final ordered = [...ownerships]..sort((a, b) => a.order.compareTo(b.order));
+  return ordered.map((ownership) => ownership.id).toList();
+}
+
+bool _sameStringList(List<String> left, List<String> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
+}
+
+bool _hasSameOwnershipIds(
+  List<SnStickerOwnership> ownerships,
+  List<String> expectedOrder,
+) {
+  final ownershipIds = ownerships.map((ownership) => ownership.id).toSet();
+  final expectedIds = expectedOrder.toSet();
+  return ownershipIds.length == expectedIds.length &&
+      ownershipIds.containsAll(expectedIds);
+}
+
 class _OwnedStickerPacksPage extends HookConsumerWidget {
   const _OwnedStickerPacksPage();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ownershipsAsync = ref.watch(myStickerOwnershipsProvider);
+    final serverOwnerships = ownershipsAsync.asData?.value;
+    final optimisticOwnerships = useState<List<SnStickerOwnership>?>(null);
+    final pendingOrder = useState<List<String>?>(null);
+    final reorderQueue = useRef<Future<void>?>(null);
 
-    return ownershipsAsync.when(
-      data: (ownerships) {
-        final orderedOwnerships = [...ownerships]
-          ..sort((a, b) => a.order.compareTo(b.order));
-        if (orderedOwnerships.isEmpty) {
-          return Center(child: Text('noStickerPacks'.tr()));
-        }
+    // Keep the optimistic order while the server response catches up.
+    useEffect(() {
+      if (serverOwnerships == null) return null;
+      final expected = pendingOrder.value;
+      final serverMatches =
+          expected != null &&
+          _hasSameOwnershipIds(serverOwnerships, expected) &&
+          _sameStringList(_orderedOwnershipIds(serverOwnerships), expected);
+      final serverChangedItems =
+          expected != null && !_hasSameOwnershipIds(serverOwnerships, expected);
+      if (expected == null || serverMatches || serverChangedItems) {
+        optimisticOwnerships.value = serverOwnerships;
+        pendingOrder.value = null;
+      }
+      return null;
+    }, [serverOwnerships, pendingOrder.value]);
 
-        return RefreshIndicator(
-          onRefresh: () async => ref.invalidate(myStickerOwnershipsProvider),
-          child: ReorderableListView.builder(
-            padding: const EdgeInsets.all(16),
-            buildDefaultDragHandles: false,
-            itemCount: orderedOwnerships.length,
-            onReorder: (oldIndex, newIndex) async {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final reordered = [...orderedOwnerships];
-              final item = reordered.removeAt(oldIndex);
-              reordered.insert(newIndex, item);
-              final client = ref.read(solarNetworkClientProvider);
+    final ownerships = optimisticOwnerships.value ?? serverOwnerships;
+    if (ownerships == null) {
+      return ownershipsAsync.when(
+        data: (_) => const SizedBox.shrink(),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text('Error: $err')),
+      );
+    }
+
+    final orderedOwnerships = [...ownerships]
+      ..sort((a, b) => a.order.compareTo(b.order));
+    if (orderedOwnerships.isEmpty) {
+      return Center(child: Text('noStickerPacks'.tr()));
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(myStickerOwnershipsProvider),
+      child: ReorderableListView.builder(
+        padding: const EdgeInsets.all(16),
+        buildDefaultDragHandles: false,
+        itemCount: orderedOwnerships.length,
+        onReorder: (oldIndex, newIndex) {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final reordered = [...orderedOwnerships];
+          final item = reordered.removeAt(oldIndex);
+          reordered.insert(newIndex, item);
+          final displayOrder = reordered
+              .asMap()
+              .entries
+              .map((entry) => entry.value.copyWith(order: entry.key))
+              .toList();
+          final targetOrder = displayOrder
+              .map((ownership) => ownership.id)
+              .toList();
+          final previousOrder = orderedOwnerships;
+
+          // ReorderableListView keeps its drag result only until the parent
+          // rebuilds. Update the parent state before waiting for the API.
+          optimisticOwnerships.value = displayOrder;
+          pendingOrder.value = targetOrder;
+
+          final client = ref.read(solarNetworkClientProvider);
+          final operation = (reorderQueue.value ?? Future<void>.value()).then((
+            _,
+          ) async {
+            try {
               await client.stickers.reorderOwnedStickerPacks(
-                items: reordered.asMap().entries.map((e) => {'id': e.value.id, 'order': e.key}).toList(),
+                items: displayOrder
+                    .asMap()
+                    .entries
+                    .map((entry) => {'id': entry.value.id, 'order': entry.key})
+                    .toList(),
               );
+              if (context.mounted) {
+                ref.invalidate(myStickerOwnershipsProvider);
+              }
+            } catch (error) {
+              if (_sameStringList(pendingOrder.value ?? [], targetOrder)) {
+                optimisticOwnerships.value = previousOrder;
+                pendingOrder.value = null;
+              }
+              if (context.mounted) showErrorAlert(error);
+            }
+          });
+          reorderQueue.value = operation;
+        },
+        itemBuilder: (context, index) {
+          final ownership = orderedOwnerships[index];
+          final pack = ownership.pack;
+          return _OwnedPackCard(
+            key: ValueKey(ownership.id),
+            index: index,
+            pack: pack,
+            onRemove: () async {
+              final client = ref.read(solarNetworkClientProvider);
+              await client.stickers.releaseStickerPack(ownership.packId);
               ref.invalidate(myStickerOwnershipsProvider);
             },
-            itemBuilder: (context, index) {
-              final ownership = orderedOwnerships[index];
-              final pack = ownership.pack;
-              return _OwnedPackCard(
-                key: ValueKey(ownership.id),
-                index: index,
-                pack: pack,
-                onRemove: () async {
-                  final client = ref.read(solarNetworkClientProvider);
-                  await client.stickers.releaseStickerPack(ownership.packId);
-                  ref.invalidate(myStickerOwnershipsProvider);
-                },
-              );
-            },
-          ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
+          );
+        },
+      ),
     );
   }
 }
