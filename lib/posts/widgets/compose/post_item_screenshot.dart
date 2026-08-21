@@ -98,37 +98,29 @@ class PostItemScreenshot extends ConsumerWidget {
   }
 
   Widget _buildReplyContent(BuildContext context, SnPost post) {
-    if (post.content?.isNotEmpty ?? false) {
-      return MarkdownTextContent(
-        content: post.content!,
-        noMentionChip: post.fediverseUri != null,
-      );
+    final hasContent = post.content?.isNotEmpty ?? false;
+    if (!hasContent && post.attachments.isEmpty) {
+      return const SizedBox.shrink();
     }
 
-    if (post.attachments.isNotEmpty) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Symbols.attach_file,
-            size: 14,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasContent)
+          MarkdownTextContent(
+            content: post.content!,
+            attachments: post.attachments,
+            noMentionChip: post.fediverseUri != null,
           ),
-          const Gap(4),
-          Flexible(
-            child: Text(
-              'postHasAttachments',
-              style: TextStyle(
-                fontSize: 13,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ).plural(post.attachments.length),
+        if (post.attachments.isNotEmpty)
+          _buildScreenshotAttachments(
+            context,
+            post.attachments,
+            maxVisible: _kScreenshotVisibleMainAttachments,
+            padding: EdgeInsets.only(top: hasContent ? 8 : 0),
           ),
-        ],
-      );
-    }
-
-    return const SizedBox.shrink();
+      ],
+    );
   }
 
   Widget _buildScreenshotReactionChips(BuildContext context, SnPost post) {
