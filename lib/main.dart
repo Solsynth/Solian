@@ -124,15 +124,26 @@ void main(List<String> args) async {
               }
             } catch (_) {}
           }
-          WindowOptions windowOptions = WindowOptions(
+          final callTitle = 'Call - ${callArgs.roomName ?? callArgs.roomId}';
+          final usesCustomFrame = Platform.isMacOS;
+          final windowOptions = WindowOptions(
             size: initialSize,
             minimumSize: const Size(720, 520),
             maximumSize: const Size(1200, 900),
             alwaysOnTop: true,
             center: true,
-            backgroundColor: Colors.transparent,
+            // Transparent, frameless windows are only reliable on macOS.
+            // Linux/Windows need an opaque surface and their native frame;
+            // otherwise the secondary engine can remain a gray, undecorated
+            // window before the Flutter surface is ready.
+            backgroundColor: usesCustomFrame
+                ? Colors.transparent
+                : const Color(0xFF111318),
             skipTaskbar: false,
-            titleBarStyle: TitleBarStyle.hidden,
+            title: callTitle,
+            titleBarStyle: usesCustomFrame
+                ? TitleBarStyle.hidden
+                : TitleBarStyle.normal,
             windowButtonVisibility: true,
           );
           await windowManager.waitUntilReadyToShow(windowOptions, () async {

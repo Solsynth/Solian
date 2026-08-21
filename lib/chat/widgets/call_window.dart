@@ -343,44 +343,24 @@ class _TitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Linux and Windows use the native frame configured during startup.
+    // Keeping a second Flutter title bar there leaves no reliable close
+    // affordance when the native frame is hidden.
+    if (!Platform.isMacOS) return const SizedBox.shrink();
+
     return DragToMoveArea(
       child: Container(
         height: 32,
         color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Platform.isMacOS
-            ? Stack(
-                alignment: Alignment.center,
-                children: [
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Symbols.close, size: 16),
-                    padding: const EdgeInsets.all(8),
-                    constraints: const BoxConstraints(),
-                    onPressed: () => _closeWindow(),
-                  ),
-                ],
-              ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
