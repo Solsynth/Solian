@@ -587,57 +587,45 @@ class _StickerInlineContent extends ConsumerWidget {
             ? sticker!.name!
             : sticker?.slug ?? placeholder;
 
-        return Baseline(
-          baseline: dimension * 0.82,
-          baselineType: TextBaseline.alphabetic,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
-            child: Tooltip(
-              message: label,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () =>
-                    showStickerPackSheet(context, packPrefix, stickerCode),
-                onSecondaryTap: () {
-                  Clipboard.setData(ClipboardData(text: stickerCode));
-                },
-                child: SizedBox(
-                  width: dimension,
-                  height: dimension,
-                  child: sticker == null
-                      ? Icon(
-                          Symbols.emoji_symbols,
-                          size: dimension * 0.45,
-                          color: foregroundColor,
-                        )
-                      : CloudImageWidget(
-                          file: sticker.image,
-                          fit: BoxFit.contain,
-                          noBlurhash: true,
-                        ),
-                ),
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
+          child: Tooltip(
+            message: label,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () =>
+                  showStickerPackSheet(context, packPrefix, stickerCode),
+              onSecondaryTap: () {
+                Clipboard.setData(ClipboardData(text: stickerCode));
+              },
+              child: SizedBox(
+                width: dimension,
+                height: dimension,
+                child: sticker == null
+                    ? Icon(
+                        Symbols.emoji_symbols,
+                        size: dimension * 0.45,
+                        color: foregroundColor,
+                      )
+                    : CloudImageWidget(
+                        file: sticker.image,
+                        fit: BoxFit.contain,
+                        noBlurhash: true,
+                      ),
               ),
             ),
           ),
         );
       },
-      loading: () => Baseline(
-        baseline: 48 * 0.82,
-        baselineType: TextBaseline.alphabetic,
-        child: _StickerLoadingPlaceholder(
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          dimension: 48,
-        ),
+      loading: () => _StickerLoadingPlaceholder(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        dimension: 48,
       ),
-      error: (_, _) => Baseline(
-        baseline: 48 * 0.82,
-        baselineType: TextBaseline.alphabetic,
-        child: _StickerLoadingPlaceholder(
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          dimension: 48,
-        ),
+      error: (_, _) => _StickerLoadingPlaceholder(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        dimension: 48,
       ),
     );
   }

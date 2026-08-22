@@ -178,35 +178,39 @@ class CallWindowApp extends HookConsumerWidget {
       path: 'assets/i18n',
       fallbackLocale: const Locale('en', 'US'),
       useFallbackTranslations: true,
-      child: MaterialApp(
-        title: 'Call - ${args.roomName ?? args.roomId}',
-        debugShowCheckedModeBanner: false,
-        theme: theme.light,
-        darkTheme: theme.dark,
-        themeMode: getThemeMode(),
-        localizationsDelegates: [
-          ...context.localizationDelegates,
-          ...material_ui.GlobalMaterialLocalizations.delegates,
-          flutter_localizations.GlobalMaterialLocalizations.delegate,
-          flutter_localizations.GlobalCupertinoLocalizations.delegate,
-        ],
-        builder: (context, child) {
-          // ignore: deprecated_member_use
-          return MaterialUiCompatibilityBridge(
-            child: legacy_material.Material(
-              type: legacy_material.MaterialType.transparency,
-              child: Overlay(
-                key: overlayKey,
-                initialEntries: [
-                  OverlayEntry(
-                    builder: (_) => child ?? const SizedBox.shrink(),
-                  ),
-                ],
+      child: Builder(
+        builder: (context) => MaterialApp(
+          title: 'Call - ${args.roomName ?? args.roomId}',
+          debugShowCheckedModeBanner: false,
+          theme: theme.light,
+          darkTheme: theme.dark,
+          themeMode: getThemeMode(),
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+          localizationsDelegates: [
+            ...context.localizationDelegates,
+            ...material_ui.GlobalMaterialLocalizations.delegates,
+            flutter_localizations.GlobalMaterialLocalizations.delegate,
+            flutter_localizations.GlobalCupertinoLocalizations.delegate,
+          ],
+          builder: (context, child) {
+            // ignore: deprecated_member_use
+            return MaterialUiCompatibilityBridge(
+              child: legacy_material.Material(
+                type: legacy_material.MaterialType.transparency,
+                child: Overlay(
+                  key: overlayKey,
+                  initialEntries: [
+                    OverlayEntry(
+                      builder: (_) => child ?? const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-        home: _CallWindowHome(args: args),
+            );
+          },
+          home: _CallWindowHome(args: args),
+        ),
       ),
     );
   }
