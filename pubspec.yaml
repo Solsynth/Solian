@@ -311,3 +311,8 @@ dependency_overrides:
   # protocol_handler_windows needs local patches for compile issues
   protocol_handler_windows:
     path: packages/protocol_handler_windows
+  # swipelab_webp 1.0.0 (upstream repo deleted) passes all libwebp sources to
+  # cl.exe in one command line, exceeding Windows' 8191-char limit; vendored
+  # with a response-file fix in the hook.
+  swipelab_webp:
+    path: packages/swipelab_webp

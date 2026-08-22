@@ -3029,10 +3029,9 @@ packages:
   swipelab_webp:
     dependency: "direct main"
     description:
-      name: swipelab_webp
-      sha256: c5e9aa236bff713ef0d35a61c34bceb335c839ba83dfb39aed8e4dddd2540a08
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/swipelab_webp"
+      relative: true
+    source: path
     version: "1.0.0"
   sync_http:
     dependency: transitive
