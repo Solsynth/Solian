@@ -201,6 +201,7 @@ class EditChatScreen extends HookConsumerWidget {
                     },
                     onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: descriptionController,
                     decoration: InputDecoration(
