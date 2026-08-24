@@ -1077,7 +1077,10 @@ class AppWrapper extends HookConsumerWidget {
         if (!context.mounted) return;
         hideLoadingModal(context);
         if (room != null) {
-          context.router.push(ChatRoomRoute(id: room.id));
+          // Navigate inside the existing tab shell — pushing from the root
+          // context would stack a second TabsScreen and collide the shared
+          // rootScaffoldKey.
+          context.router.navigatePath('/chat/${room.id}');
         } else {
           showSnackBar('chatRoomNotFound'.tr());
         }
