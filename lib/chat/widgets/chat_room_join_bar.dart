@@ -5,14 +5,16 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/core/network.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/screens/realms.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// The join affordance for a chat room the current user has not joined.
+/// The join affordance for a chat room the current user has not joined,
+/// rendered as a calm inset strip.
 ///
-/// Realm-linked rooms require a realm membership first: the bar explains
+/// Realm-linked rooms require a realm membership first: the strip explains
 /// that and offers to join the realm, chaining into the chat join after.
 /// Non-community rooms cannot be self-joined at all and say so instead.
 class ChatRoomJoinBar extends HookConsumerWidget {
@@ -33,6 +35,7 @@ class ChatRoomJoinBar extends HookConsumerWidget {
             (realm) => realm.id == room.realmId,
           );
     final needsRealmJoin = room.realmId != null && linkedRealm == null;
+    final inviteOnly = !room.isCommunity;
 
     Future<void> joinRoom() async {
       showLoadingModal(context);
@@ -71,38 +74,88 @@ class ChatRoomJoinBar extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final realmName = room.realm?.name.isNotEmpty == true
-        ? room.realm!.name
-        : room.realm?.slug ?? '';
+    final realmName = linkedRealm?.name.isNotEmpty == true
+        ? linkedRealm!.name
+        : linkedRealm?.slug ?? '';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (needsRealmJoin) ...[
-          Text(
-            'chatJoinRealmRequiredHint'.tr(namedArgs: {'realm': realmName}),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.5),
           ),
-          const Gap(12),
-        ],
-        if (!room.isCommunity)
-          Text(
-            'chatJoinInviteOnlyHint'.tr(),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+        ),
+        child: Row(
+          children: [
+            _JoinBadge(
+              picture: needsRealmJoin ? linkedRealm?.picture : room.picture,
+              icon: inviteOnly
+                  ? Symbols.lock
+                  : needsRealmJoin
+                  ? Symbols.public
+                  : Symbols.group,
             ),
-          )
-        else
-          FilledButton.icon(
-            onPressed: needsRealmJoin ? joinRealmThenRoom : joinRoom,
-            icon: Icon(needsRealmJoin ? Symbols.public : Symbols.add),
-            label: Text(needsRealmJoin ? 'joinRealm'.tr() : 'chatJoin'.tr()),
-          ),
-      ],
+            const Gap(12),
+            Expanded(
+              child: Text(
+                inviteOnly
+                    ? 'chatJoinInviteOnlyHint'.tr()
+                    : needsRealmJoin
+                    ? 'chatJoinRealmRequiredHint'.tr(
+                        namedArgs: {'realm': realmName},
+                      )
+                    : 'chatJoinHint'.tr(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const Gap(12),
+            if (!inviteOnly)
+              FilledButton.tonalIcon(
+                onPressed: needsRealmJoin ? joinRealmThenRoom : joinRoom,
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                ),
+                icon: const Icon(Symbols.add, size: 18),
+                label: Text(
+                  needsRealmJoin
+                      ? 'chatJoinRealmAndChat'.tr()
+                      : 'chatJoin'.tr(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _JoinBadge extends StatelessWidget {
+  final IDisplayableCloudFile? picture;
+  final IconData icon;
+
+  const _JoinBadge({required this.icon, this.picture});
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final file = picture;
+    return Container(
+      width: 40,
+      height: 40,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: theme.colorScheme.secondaryContainer,
+      ),
+      child: file == null
+          ? Icon(icon, size: 20, color: theme.colorScheme.onSecondaryContainer)
+          : CloudImageWidget(file: file, fit: BoxFit.cover, imageOnly: true),
     );
   }
 }

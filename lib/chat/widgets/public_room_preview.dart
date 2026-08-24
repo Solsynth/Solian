@@ -204,12 +204,7 @@ class PublicRoomPreview extends HookConsumerWidget {
               ),
             ),
           ),
-          // Join bar at the bottom for public rooms; handles the realm
-          // membership prerequisite for realm-linked rooms.
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: ChatRoomJoinBar(room: room),
-          ),
+          ChatRoomJoinBar(room: room),
         ],
       ),
     );
