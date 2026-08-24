@@ -11,6 +11,7 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/chat_member_list_tile.dart';
 import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
+import 'package:island/chat/widgets/chat_room_join_bar.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/services/deeplink_service.dart';
@@ -333,26 +334,8 @@ class _ChatBasisWidget extends HookConsumerWidget {
                 roomIdentity.when(
                   data: (identity) {
                     if (identity == null) {
-                      // Not joined - show join button
-                      return FilledButton.icon(
-                        onPressed: () async {
-                          try {
-                            final client = ref.read(apiClientProvider);
-                            await client.post('/messager/chat/$roomId/join');
-                            ref.invalidate(chatRoomIdentityProvider(roomId));
-                            ref.invalidate(chatRoomProvider(roomId));
-                            ref.invalidate(chatRoomJoinedProvider);
-                            showSnackBar('chatJoinSuccess'.tr());
-                          } catch (err) {
-                            showErrorAlert(err);
-                          }
-                        },
-                        icon: const Icon(Symbols.add),
-                        label: Text('chatJoin'.tr()),
-                        style: ButtonStyle(
-                          visualDensity: VisualDensity(vertical: -2),
-                        ),
-                      ).padding(top: 12);
+                      // Not joined - show join bar (handles realm prerequisite)
+                      return ChatRoomJoinBar(room: data);
                     }
                     return const SizedBox.shrink();
                   },

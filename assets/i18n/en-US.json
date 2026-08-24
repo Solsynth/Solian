@@ -856,6 +856,8 @@
   "chatRoomPinned": "Chat room pinned successfully.",
   "chatRoomUnpinned": "Chat room unpinned successfully.",
   "chatRoomNotFound": "Chat room not found.",
+  "chatJoinRealmRequiredHint": "This chat belongs to the realm {}. Join the realm first to become a member of this chat.",
+  "chatJoinInviteOnlyHint": "This chat is invite-only. Ask a member for an invitation.",
   "chatRoomShareHint": "Anyone can preview and join this room with the link or QR code.",
   "chatSelectMessages": "Select messages",
   "chatSelectText": "Select text",

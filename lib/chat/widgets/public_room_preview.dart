@@ -6,12 +6,10 @@ import "package:gap/gap.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/widgets/message_item.dart";
 import "package:island/chat/messages_notifier.dart";
+import "package:island/chat/widgets/chat_room_join_bar.dart";
 import "package:island/data/message.dart";
-import "package:island/chat/pods/chat_room.dart";
-import "package:island/core/network.dart";
 import "package:island/core/services/responsive.dart";
 import "package:island/route.gr.dart";
-import "package:island/shared/widgets/alert.dart";
 import "package:island/shared/widgets/app_scaffold.dart" hide PageBackButton;
 import "package:island/drive/widgets/cloud_files.dart";
 import "package:island/shared/widgets/response.dart";
@@ -206,25 +204,11 @@ class PublicRoomPreview extends HookConsumerWidget {
               ),
             ),
           ),
-          // Join button at the bottom for public rooms
+          // Join bar at the bottom for public rooms; handles the realm
+          // membership prerequisite for realm-linked rooms.
           Container(
             padding: const EdgeInsets.all(16),
-            child: FilledButton.tonalIcon(
-              onPressed: () async {
-                try {
-                  showLoadingModal(context);
-                  final apiClient = ref.read(apiClientProvider);
-                  await apiClient.post('/messager/chat/${room.id}/members/me');
-                  ref.invalidate(chatRoomIdentityProvider(id));
-                } catch (err) {
-                  showErrorAlert(err);
-                } finally {
-                  if (context.mounted) hideLoadingModal(context);
-                }
-              },
-              label: Text('chatJoin').tr(),
-              icon: const Icon(Icons.add),
-            ),
+            child: ChatRoomJoinBar(room: room),
           ),
         ],
       ),
