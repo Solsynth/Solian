@@ -364,3 +364,46 @@ Future<bool> handleActionUri(StackRouter router, String rawValue) async {
     mode: LaunchMode.externalApplication,
   );
 }
+
+/// The web URL of a shareable chat room: `https://solian.app/chat/<scope>/<slug>`
+/// where [scope] is the owner account name or the realm slug.
+Uri buildChatRoomShareUrl({required String scope, required String slug}) =>
+    Uri.https('solian.app', 'chat/$scope/$slug');
+
+class ChatRoomShareLink {
+  final String scope;
+  final String slug;
+
+  const ChatRoomShareLink({required this.scope, required this.slug});
+}
+
+/// Parses a chat room share link produced by [buildChatRoomShareUrl].
+/// Accepts the web URL, the `solian://chat/...` custom scheme and bare
+/// `/chat/<scope>/<slug>` paths. Returns null for anything else.
+ChatRoomShareLink? parseChatRoomShareLink(String rawValue) {
+  final value = rawValue.trim();
+  final uri = value.startsWith('/')
+      ? Uri.tryParse('https://solian.app$value')
+      : Uri.tryParse(value);
+  if (uri == null) return null;
+
+  List<String> segments;
+  if (uri.scheme == 'https' || uri.scheme == 'http') {
+    if (uri.host != 'solian.app' && !uri.host.endsWith('.solian.app')) {
+      return null;
+    }
+    segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+  } else if (uri.scheme == 'solian') {
+    // `solian://chat/<scope>/<slug>` puts `chat` in the authority.
+    final full = Uri.parse('/${uri.host}${uri.path}');
+    segments = full.pathSegments.where((s) => s.isNotEmpty).toList();
+  } else {
+    return null;
+  }
+
+  if (segments.length != 3 || segments.first != 'chat') return null;
+  final scope = segments[1].trim();
+  final slug = segments[2].trim();
+  if (scope.isEmpty || slug.isEmpty) return null;
+  return ChatRoomShareLink(scope: scope, slug: slug);
+}

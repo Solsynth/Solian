@@ -13,6 +13,8 @@ import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
+import 'package:island/core/services/deeplink_service.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
 import 'package:island/route.gr.dart';
@@ -23,12 +25,106 @@ import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'chat_detail_screen.freezed.dart';
 part 'chat_detail_screen.g.dart';
+
+
+/// The `<scope>` part of a chat room share link: the realm slug for
+/// realm-linked rooms, otherwise the owner account name.
+String? _chatRoomShareScope(SnChatRoom room) {
+  final realmSlug = room.realm?.slug;
+  if (realmSlug != null && realmSlug.isNotEmpty) return realmSlug;
+  for (final member in room.members ?? const <SnChatMember>[]) {
+    if (member.accountId == room.accountId && member.account.name.isNotEmpty) {
+      return member.account.name;
+    }
+  }
+  return null;
+}
+
+class _ChatRoomShareSheet extends HookConsumerWidget {
+  final String url;
+
+  const _ChatRoomShareSheet({required this.url});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return SheetScaffold(
+      heightFactor: 0.62,
+      titleText: 'shareChatRoom'.tr(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: QrImageView(
+                  data: url,
+                  version: QrVersions.auto,
+                  size: 240,
+                  errorCorrectionLevel: QrErrorCorrectLevel.H,
+                ),
+              ),
+            ),
+            const Gap(16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: SelectableText(
+                url,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
+            const Gap(16),
+            Row(
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: url));
+                      showSnackBar('copied'.tr());
+                    },
+                    icon: const Icon(Symbols.copy_all),
+                    label: Text('copy').tr(),
+                  ),
+                ),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => SharePlus.instance.share(
+                      ShareParams(text: url),
+                    ),
+                    icon: const Icon(Symbols.share),
+                    label: Text('share').tr(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 @riverpod
 Future<int> totalMessagesCount(Ref ref, String roomId) async {
@@ -426,6 +522,39 @@ class ChatDetailScreen extends HookConsumerWidget {
                           value
                               ? 'chatRoomPinned'.tr()
                               : 'chatRoomUnpinned'.tr(),
+                        );
+                      },
+                    ),
+                  // Share room via slug link and QR code
+                  if (currentRoom.type == 0 &&
+                      currentRoom.isPublic &&
+                      currentRoom.slug != null)
+                    Builder(
+                      builder: (context) {
+                        final scope = _chatRoomShareScope(currentRoom);
+                        if (scope == null) return const SizedBox.shrink();
+                        final shareUrl = buildChatRoomShareUrl(
+                          scope: scope,
+                          slug: currentRoom.slug!,
+                        ).toString();
+                        return ListTile(
+                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                          leading: const Icon(Symbols.qr_code_2),
+                          trailing: const Icon(Symbols.chevron_right),
+                          title: const Text('shareChatRoom').tr(),
+                          subtitle: Text(
+                            shareUrl,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) =>
+                                  _ChatRoomShareSheet(url: shareUrl),
+                            );
+                          },
                         );
                       },
                     ),

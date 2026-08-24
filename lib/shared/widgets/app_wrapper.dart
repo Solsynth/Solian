@@ -1065,6 +1065,33 @@ class AppWrapper extends HookConsumerWidget {
       context.router.navigate(const DashboardRoute());
       return;
     }
+    final chatShare = parseChatRoomShareLink(uri.toString());
+    if (chatShare != null) {
+      try {
+        showLoadingModal(context);
+        final client = ref.read(solarNetworkClientProvider);
+        final room = await client.chat.getRoomBySlug(
+          chatShare.scope,
+          chatShare.slug,
+        );
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+        if (room != null) {
+          context.router.push(ChatRoomRoute(id: room.id));
+        } else {
+          showSnackBar('chatRoomNotFound'.tr());
+        }
+      } catch (err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      }
+
+      if (!kIsWeb &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        windowManager.show();
+      }
+      return;
+    }
 
     final bottomNavRoutes = ['/', '/explore', '/chat', '/realms', '/account'];
     if (bottomNavRoutes.contains(path)) {
