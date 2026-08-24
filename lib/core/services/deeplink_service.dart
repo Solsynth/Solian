@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:protocol_handler/protocol_handler.dart';
-
 import 'package:url_launcher/url_launcher_string.dart';
 
 class DeeplinkService {
@@ -407,3 +406,4 @@ ChatRoomShareLink? parseChatRoomShareLink(String rawValue) {
   if (scope.isEmpty || slug.isEmpty) return null;
   return ChatRoomShareLink(scope: scope, slug: slug);
 }
+

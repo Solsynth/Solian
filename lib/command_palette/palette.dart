@@ -536,35 +536,15 @@ class CommandPaletteWidget extends HookConsumerWidget {
     ).hasMatch(query);
 
     if (isSolianLink) {
-      final path = routePath;
       actions.add(
         FallbackAction(
           name: 'Open Link',
           description: 'Open $query in app',
           icon: Symbols.open_in_new,
           action: () {
-            final params = uri!.queryParameters;
-            if (path == '/auth/authorize') {
-              ref
-                  .read(routerProvider)
-                  .push(
-                    AuthorizeRoute(
-                      clientId: params['client_id'],
-                      redirectUri: params['redirect_uri'],
-                      scope: params['scope'],
-                      state: params['state'],
-                      responseType: params['response_type'],
-                      codeChallenge: params['code_challenge'],
-                      codeChallengeMethod: params['code_challenge_method'],
-                    ),
-                  );
-            } else if (path == '/auth/callback' &&
-                params.containsKey('token')) {
-              // Handled via deep link service; just navigate home
-              ref.read(routerProvider).navigatePath('/');
-            } else {
-              ref.read(routerProvider).navigatePath(path);
-            }
+            // Route through the central deep link handler so every entry
+            // point shares the same resolution, loading and error behavior.
+            eventBus.fire(SolianDeepLinkEvent(uri!));
           },
         ),
       );
