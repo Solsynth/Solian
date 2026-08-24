@@ -53,6 +53,7 @@ class EditChatScreen extends HookConsumerWidget {
 
     useEffect(() {
       if (chat.value != null) {
+        nameController.text = chat.value!.name ?? '';
         slugController.text = chat.value!.slug ?? '';
         descriptionController.text = chat.value!.description ?? '';
         picture.value = chat.value!.picture;
