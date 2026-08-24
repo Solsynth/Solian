@@ -15,6 +15,7 @@ import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
 import 'package:island/route.gr.dart';
@@ -34,7 +35,6 @@ import 'package:styled_widget/styled_widget.dart';
 part 'chat_detail_screen.freezed.dart';
 part 'chat_detail_screen.g.dart';
 
-
 /// The `<scope>` part of a chat room share link: the realm slug for
 /// realm-linked rooms, otherwise the owner account name.
 String? _chatRoomShareScope(SnChatRoom room) {
@@ -50,8 +50,9 @@ String? _chatRoomShareScope(SnChatRoom room) {
 
 class _ChatRoomShareSheet extends HookConsumerWidget {
   final String url;
+  final IDisplayableCloudFile? picture;
 
-  const _ChatRoomShareSheet({required this.url});
+  const _ChatRoomShareSheet({required this.url, this.picture});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,6 +65,14 @@ class _ChatRoomShareSheet extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              'chatRoomShareHint'.tr(),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Gap(20),
             Center(
               child: Container(
                 padding: const EdgeInsets.all(18),
@@ -75,7 +84,25 @@ class _ChatRoomShareSheet extends HookConsumerWidget {
                   data: url,
                   version: QrVersions.auto,
                   size: 240,
+                  backgroundColor: theme.colorScheme.surface,
                   errorCorrectionLevel: QrErrorCorrectLevel.H,
+                  embeddedImage: picture == null
+                      ? null
+                      : CloudImageWidget.provider(
+                          file: picture!,
+                          serverUrl: ref.watch(serverUrlProvider),
+                        ),
+                  embeddedImageStyle: const QrEmbeddedImageStyle(
+                    size: Size(40, 40),
+                  ),
+                  eyeStyle: QrEyeStyle(
+                    eyeShape: QrEyeShape.circle,
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.circle,
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
                 ),
               ),
             ),
@@ -87,12 +114,7 @@ class _ChatRoomShareSheet extends HookConsumerWidget {
                 color: theme.colorScheme.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: SelectableText(
-                url,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontFamily: 'monospace',
-                ),
-              ),
+              child: SelectableText(url, style: theme.textTheme.bodyMedium),
             ),
             const Gap(16),
             Row(
@@ -110,9 +132,8 @@ class _ChatRoomShareSheet extends HookConsumerWidget {
                 ),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () => SharePlus.instance.share(
-                      ShareParams(text: url),
-                    ),
+                    onPressed: () =>
+                        SharePlus.instance.share(ShareParams(text: url)),
                     icon: const Icon(Symbols.share),
                     label: Text('share').tr(),
                   ),
@@ -551,8 +572,10 @@ class ChatDetailScreen extends HookConsumerWidget {
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
-                              builder: (context) =>
-                                  _ChatRoomShareSheet(url: shareUrl),
+                              builder: (context) => _ChatRoomShareSheet(
+                                url: shareUrl,
+                                picture: currentRoom.picture,
+                              ),
                             );
                           },
                         );
