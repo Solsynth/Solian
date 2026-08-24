@@ -2885,6 +2885,8 @@
   "public": "Public",
   "publicChat": "Public Chat",
   "publicChatDescription": "Anyone can preview the content of this chat. Including unjoined bots.",
+  "chatRoomSlugHint": "URL-safe identifier for sharing (lowercase letters, numbers, hyphens, underscores, or periods). Leave empty to disable.",
+  "chatRoomSlugInvalid": "Slug must be lowercase letters, numbers, hyphens, underscores, or periods, and cannot start or end with a special character.",
   "publicRealm": "Public Realm",
   "publicRealmDescription": "Anyone can preview the content of this realm.",
   "publicRoomTooltip": "Anyone can join this room",

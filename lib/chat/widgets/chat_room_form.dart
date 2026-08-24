@@ -39,6 +39,7 @@ class EditChatScreen extends HookConsumerWidget {
     final submitting = useState(false);
 
     final nameController = useTextEditingController();
+    final slugController = useTextEditingController();
     final descriptionController = useTextEditingController();
     final picture = useState<IDisplayableCloudFile?>(null);
     final background = useState<IDisplayableCloudFile?>(null);
@@ -52,7 +53,7 @@ class EditChatScreen extends HookConsumerWidget {
 
     useEffect(() {
       if (chat.value != null) {
-        nameController.text = chat.value!.name ?? '';
+        slugController.text = chat.value!.slug ?? '';
         descriptionController.text = chat.value!.description ?? '';
         picture.value = chat.value!.picture;
         background.value = chat.value!.background;
@@ -112,6 +113,7 @@ class EditChatScreen extends HookConsumerWidget {
           data: {
             'name': nameController.text,
             'description': descriptionController.text,
+            'slug': slugController.text.trim().toLowerCase(),
             'background_id': background.value?.id,
             'picture_id': picture.value?.id,
             'realm_id': currentRealm.value?.id,
@@ -182,6 +184,23 @@ class EditChatScreen extends HookConsumerWidget {
                     onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
+                  TextFormField(
+                    controller: slugController,
+                    decoration: InputDecoration(
+                      labelText: 'slug'.tr(),
+                      helperText: 'chatRoomSlugHint'.tr(),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    validator: (value) {
+                      final slug = value?.trim().toLowerCase();
+                      if (slug == null || slug.isEmpty) return null;
+                      if (!RegExp(r'^[a-z0-9](?:[a-z0-9\-_.]*[a-z0-9])?$').hasMatch(slug)) {
+                        return 'chatRoomSlugInvalid'.tr();
+                      }
+                      return null;
+                    },
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
                   TextFormField(
                     controller: descriptionController,
                     decoration: InputDecoration(
