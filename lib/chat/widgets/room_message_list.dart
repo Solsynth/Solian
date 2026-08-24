@@ -217,15 +217,10 @@ class RoomMessageList extends HookConsumerWidget {
     final useColumnDisplay = displayStyle == 'column';
     final useBubbleDisplay = displayStyle != 'compact' && !useColumnDisplay;
     final useStickyGroupedDisplay = useBubbleDisplay || useColumnDisplay;
-    final isSelectionMode = ref.watch(
-      chatRoomStateProvider(roomId).select((state) => state.isSelectionMode),
-    );
-    // Group sticky avatars are positioned absolutely against the group stack.
-    // Selection mode inserts a checkbox gutter inside each row, so the avatar
-    // must shift by the same amount or it will sit on top of the checkmark.
-    final stickyAvatarLeft =
-        12.0 +
-        (isSelectionMode ? MessageItemWrapper.selectionGutterWidth : 0.0);
+    // The group stack already lives after MessageItemWrapper's selection
+    // gutter. Keep the overlay aligned with the message bubble itself; adding
+    // the gutter here would shift the avatar twice in selection mode.
+    const stickyAvatarLeft = 12.0;
 
     final messageIndexById = useMemoized(() {
       return {
@@ -504,32 +499,42 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
 
 class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
   final _groupKey = GlobalKey();
+  final _avatarKey = GlobalKey<_StickyGroupAvatarState>();
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      key: _groupKey,
-      clipBehavior: Clip.none,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: widget.children,
+    return NotificationListener<SizeChangedLayoutNotification>(
+      onNotification: (_) {
+        _avatarKey.currentState?._scheduleLayoutRefresh();
+        return false;
+      },
+      child: SizeChangedLayoutNotifier(
+        child: Stack(
+          key: _groupKey,
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: widget.children,
+            ),
+            Positioned(
+              left: widget.avatarLeft,
+              top: 0,
+              child: _StickyGroupAvatar(
+                key: _avatarKey,
+                childCount: widget.children.length,
+                groupKey: _groupKey,
+                roomId: widget.roomId,
+                sender: widget.sender,
+                avatarSize: widget.avatarSize,
+                avatarTop: widget.avatarTop,
+                avatarAnchorKey: widget.avatarAnchorKey,
+                stickyEnabled: widget.stickyEnabled,
+              ),
+            ),
+          ],
         ),
-        Positioned(
-          left: widget.avatarLeft,
-          top: 0,
-          child: _StickyGroupAvatar(
-            childCount: widget.children.length,
-            groupKey: _groupKey,
-            roomId: widget.roomId,
-            sender: widget.sender,
-            avatarSize: widget.avatarSize,
-            avatarTop: widget.avatarTop,
-            avatarAnchorKey: widget.avatarAnchorKey,
-            stickyEnabled: widget.stickyEnabled,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -545,6 +550,7 @@ class _StickyGroupAvatar extends StatefulWidget {
   final bool stickyEnabled;
 
   const _StickyGroupAvatar({
+    super.key,
     required this.groupKey,
     required this.roomId,
     required this.sender,
@@ -561,6 +567,8 @@ class _StickyGroupAvatar extends StatefulWidget {
 
 class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
   ScrollPosition? _position;
+  bool _framePending = false;
+  double? _avatarOffsetValue;
 
   @override
   void didChangeDependencies() {
@@ -585,10 +593,19 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
     }
   }
 
+  @override
+  void dispose() {
+    _position?.removeListener(_handleScroll);
+    super.dispose();
+  }
+
   void _updateScrollPosition() {
     final nextPosition = widget.stickyEnabled ? _readScrollPosition() : null;
     if (identical(_position, nextPosition)) return;
+
+    _position?.removeListener(_handleScroll);
     _position = nextPosition;
+    _position?.addListener(_handleScroll);
   }
 
   ScrollPosition? _readScrollPosition() {
@@ -602,10 +619,21 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
     }
   }
 
+  void _handleScroll() => _scheduleLayoutRefresh();
+
   void _scheduleLayoutRefresh() {
+    if (_framePending || !mounted) return;
+    _framePending = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _framePending = false;
       if (!mounted) return;
-      setState(() {});
+
+      final nextOffset = _avatarOffset();
+      final currentOffset = _avatarOffsetValue;
+      if (currentOffset != null && (currentOffset - nextOffset).abs() < 0.5) {
+        return;
+      }
+      setState(() => _avatarOffsetValue = nextOffset);
     });
   }
 
@@ -656,9 +684,13 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
   }
 
   Widget _buildAvatar(double offset) {
-    return RepaintBoundary(
-      child: Transform.translate(
-        offset: Offset(0, offset),
+    // Keep the hit-test box at the same position as the painted avatar. A
+    // Transform can paint the avatar outside the positioned child's original
+    // bounds, which makes the member-card gesture intermittently miss while
+    // the avatar is sticky or a message is expanding.
+    return Padding(
+      padding: EdgeInsets.only(top: offset),
+      child: RepaintBoundary(
         child: ChatRoomMemberRegion(
           roomId: widget.roomId,
           member: widget.sender,
@@ -678,14 +710,9 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
 
   @override
   Widget build(BuildContext context) {
-    final position = _position;
-    if (!widget.stickyEnabled || position == null) {
-      return _buildAvatar(_avatarOffset());
-    }
-
-    return AnimatedBuilder(
-      animation: position,
-      builder: (context, _) => _buildAvatar(_avatarOffset()),
-    );
+    final offset = widget.stickyEnabled
+        ? (_avatarOffsetValue ?? _avatarOffset())
+        : _avatarOffset();
+    return _buildAvatar(offset);
   }
 }
