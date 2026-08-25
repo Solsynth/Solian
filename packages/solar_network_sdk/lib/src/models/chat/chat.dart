@@ -36,6 +36,9 @@ sealed class SnChatRoom with _$SnChatRoom {
     @JsonKey(name: 'mls_group_id') String? mlsGroupId,
     @Default(false) bool isPublic,
     @Default(false) bool isCommunity,
+    @JsonKey(name: 'is_read_receipts_public')
+    @Default(true)
+    bool isReadReceiptsPublic,
     required SnCloudFileReference? picture,
     required SnCloudFileReference? background,
     required String? realmId,

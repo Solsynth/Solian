@@ -303,7 +303,7 @@ as DateTime,
 /// @nodoc
 mixin _$SnChatRoom {
 
- String get id; String? get name; String? get description; String? get slug; int get type;@JsonKey(name: 'encryption_mode') int get encryptionMode;@JsonKey(name: 'mls_group_id') String? get mlsGroupId; bool get isPublic; bool get isCommunity; SnCloudFileReference? get picture; SnCloudFileReference? get background; String? get realmId; String? get accountId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members; bool get isPinned;
+ String get id; String? get name; String? get description; String? get slug; int get type;@JsonKey(name: 'encryption_mode') int get encryptionMode;@JsonKey(name: 'mls_group_id') String? get mlsGroupId; bool get isPublic; bool get isCommunity;@JsonKey(name: 'is_read_receipts_public') bool get isReadReceiptsPublic; SnCloudFileReference? get picture; SnCloudFileReference? get background; String? get realmId; String? get accountId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members; bool get isPinned;
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -316,16 +316,16 @@ $SnChatRoomCopyWith<SnChatRoom> get copyWith => _$SnChatRoomCopyWithImpl<SnChatR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&(identical(other.encryptionMode, encryptionMode) || other.encryptionMode == encryptionMode)&&(identical(other.mlsGroupId, mlsGroupId) || other.mlsGroupId == mlsGroupId)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.members, members)&&(identical(other.isPinned, isPinned) || other.isPinned == isPinned));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&(identical(other.encryptionMode, encryptionMode) || other.encryptionMode == encryptionMode)&&(identical(other.mlsGroupId, mlsGroupId) || other.mlsGroupId == mlsGroupId)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.isReadReceiptsPublic, isReadReceiptsPublic) || other.isReadReceiptsPublic == isReadReceiptsPublic)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.members, members)&&(identical(other.isPinned, isPinned) || other.isPinned == isPinned));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,description,slug,type,encryptionMode,mlsGroupId,isPublic,isCommunity,picture,background,realmId,accountId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(members),isPinned]);
+int get hashCode => Object.hashAll([runtimeType,id,name,description,slug,type,encryptionMode,mlsGroupId,isPublic,isCommunity,isReadReceiptsPublic,picture,background,realmId,accountId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(members),isPinned]);
 
 @override
 String toString() {
-  return 'SnChatRoom(id: $id, name: $name, description: $description, slug: $slug, type: $type, encryptionMode: $encryptionMode, mlsGroupId: $mlsGroupId, isPublic: $isPublic, isCommunity: $isCommunity, picture: $picture, background: $background, realmId: $realmId, accountId: $accountId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members, isPinned: $isPinned)';
+  return 'SnChatRoom(id: $id, name: $name, description: $description, slug: $slug, type: $type, encryptionMode: $encryptionMode, mlsGroupId: $mlsGroupId, isPublic: $isPublic, isCommunity: $isCommunity, isReadReceiptsPublic: $isReadReceiptsPublic, picture: $picture, background: $background, realmId: $realmId, accountId: $accountId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members, isPinned: $isPinned)';
 }
 
 
@@ -336,7 +336,7 @@ abstract mixin class $SnChatRoomCopyWith<$Res>  {
   factory $SnChatRoomCopyWith(SnChatRoom value, $Res Function(SnChatRoom) _then) = _$SnChatRoomCopyWithImpl;
 @useResult
 $Res call({
- String id, String? name, String? description, String? slug, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity, SnCloudFileReference? picture, SnCloudFileReference? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
+ String id, String? name, String? description, String? slug, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity,@JsonKey(name: 'is_read_receipts_public') bool isReadReceiptsPublic, SnCloudFileReference? picture, SnCloudFileReference? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
 });
 
 
@@ -353,7 +353,7 @@ class _$SnChatRoomCopyWithImpl<$Res>
 
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? slug = freezed,Object? type = null,Object? encryptionMode = null,Object? mlsGroupId = freezed,Object? isPublic = null,Object? isCommunity = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? accountId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,Object? isPinned = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? slug = freezed,Object? type = null,Object? encryptionMode = null,Object? mlsGroupId = freezed,Object? isPublic = null,Object? isCommunity = null,Object? isReadReceiptsPublic = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? accountId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,Object? isPinned = null,}) {
   return _then(SnChatRoom(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -364,6 +364,7 @@ as int,encryptionMode: null == encryptionMode ? _self.encryptionMode : encryptio
 as int,mlsGroupId: freezed == mlsGroupId ? _self.mlsGroupId : mlsGroupId // ignore: cast_nullable_to_non_nullable
 as String?,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
+as bool,isReadReceiptsPublic: null == isReadReceiptsPublic ? _self.isReadReceiptsPublic : isReadReceiptsPublic // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
@@ -492,10 +493,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  String? slug,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  String? slug,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity, @JsonKey(name: 'is_read_receipts_public')  bool isReadReceiptsPublic,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatRoom() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);case _:
+return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.isReadReceiptsPublic,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);case _:
   return orElse();
 
 }
@@ -513,10 +514,10 @@ return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  String? slug,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  String? slug,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity, @JsonKey(name: 'is_read_receipts_public')  bool isReadReceiptsPublic,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatRoom():
-return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);}
+return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.isReadReceiptsPublic,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -530,10 +531,10 @@ return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? description,  String? slug,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? description,  String? slug,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity, @JsonKey(name: 'is_read_receipts_public')  bool isReadReceiptsPublic,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatRoom() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);case _:
+return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.isReadReceiptsPublic,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);case _:
   return null;
 
 }
@@ -545,7 +546,7 @@ return $default(_that.id,_that.name,_that.description,_that.slug,_that.type,_tha
 @JsonSerializable()
 
 class _SnChatRoom implements SnChatRoom {
-  const _SnChatRoom({required this.id, required this.name, required this.description, this.slug, required this.type, @JsonKey(name: 'encryption_mode') this.encryptionMode = 0, @JsonKey(name: 'mls_group_id') this.mlsGroupId, this.isPublic = false, this.isCommunity = false, required this.picture, required this.background, required this.realmId, required this.accountId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required  List<SnChatMember>? members, this.isPinned = false}): _members = members;
+  const _SnChatRoom({required this.id, required this.name, required this.description, this.slug, required this.type, @JsonKey(name: 'encryption_mode') this.encryptionMode = 0, @JsonKey(name: 'mls_group_id') this.mlsGroupId, this.isPublic = false, this.isCommunity = false, @JsonKey(name: 'is_read_receipts_public') this.isReadReceiptsPublic = true, required this.picture, required this.background, required this.realmId, required this.accountId, required this.realm, required this.createdAt, required this.updatedAt, required this.deletedAt, required  List<SnChatMember>? members, this.isPinned = false}): _members = members;
   factory _SnChatRoom.fromJson(Map<String, dynamic> json) => _$SnChatRoomFromJson(json);
 
 @override final  String id;
@@ -557,6 +558,7 @@ class _SnChatRoom implements SnChatRoom {
 @override@JsonKey(name: 'mls_group_id') final  String? mlsGroupId;
 @override@JsonKey() final  bool isPublic;
 @override@JsonKey() final  bool isCommunity;
+@override@JsonKey(name: 'is_read_receipts_public') final  bool isReadReceiptsPublic;
 @override final  SnCloudFileReference? picture;
 @override final  SnCloudFileReference? background;
 @override final  String? realmId;
@@ -589,16 +591,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&(identical(other.encryptionMode, encryptionMode) || other.encryptionMode == encryptionMode)&&(identical(other.mlsGroupId, mlsGroupId) || other.mlsGroupId == mlsGroupId)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.isPinned, isPinned) || other.isPinned == isPinned));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatRoom&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&(identical(other.encryptionMode, encryptionMode) || other.encryptionMode == encryptionMode)&&(identical(other.mlsGroupId, mlsGroupId) || other.mlsGroupId == mlsGroupId)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.isCommunity, isCommunity) || other.isCommunity == isCommunity)&&(identical(other.isReadReceiptsPublic, isReadReceiptsPublic) || other.isReadReceiptsPublic == isReadReceiptsPublic)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.isPinned, isPinned) || other.isPinned == isPinned));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,description,slug,type,encryptionMode,mlsGroupId,isPublic,isCommunity,picture,background,realmId,accountId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_members),isPinned]);
+int get hashCode => Object.hashAll([runtimeType,id,name,description,slug,type,encryptionMode,mlsGroupId,isPublic,isCommunity,isReadReceiptsPublic,picture,background,realmId,accountId,realm,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_members),isPinned]);
 
 @override
 String toString() {
-  return 'SnChatRoom(id: $id, name: $name, description: $description, slug: $slug, type: $type, encryptionMode: $encryptionMode, mlsGroupId: $mlsGroupId, isPublic: $isPublic, isCommunity: $isCommunity, picture: $picture, background: $background, realmId: $realmId, accountId: $accountId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members, isPinned: $isPinned)';
+  return 'SnChatRoom(id: $id, name: $name, description: $description, slug: $slug, type: $type, encryptionMode: $encryptionMode, mlsGroupId: $mlsGroupId, isPublic: $isPublic, isCommunity: $isCommunity, isReadReceiptsPublic: $isReadReceiptsPublic, picture: $picture, background: $background, realmId: $realmId, accountId: $accountId, realm: $realm, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, members: $members, isPinned: $isPinned)';
 }
 
 
@@ -609,7 +611,7 @@ abstract mixin class _$SnChatRoomCopyWith<$Res> implements $SnChatRoomCopyWith<$
   factory _$SnChatRoomCopyWith(_SnChatRoom value, $Res Function(_SnChatRoom) _then) = __$SnChatRoomCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? name, String? description, String? slug, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity, SnCloudFileReference? picture, SnCloudFileReference? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
+ String id, String? name, String? description, String? slug, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity,@JsonKey(name: 'is_read_receipts_public') bool isReadReceiptsPublic, SnCloudFileReference? picture, SnCloudFileReference? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
 });
 
 
@@ -626,7 +628,7 @@ class __$SnChatRoomCopyWithImpl<$Res>
 
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? slug = freezed,Object? type = null,Object? encryptionMode = null,Object? mlsGroupId = freezed,Object? isPublic = null,Object? isCommunity = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? accountId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,Object? isPinned = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? description = freezed,Object? slug = freezed,Object? type = null,Object? encryptionMode = null,Object? mlsGroupId = freezed,Object? isPublic = null,Object? isCommunity = null,Object? isReadReceiptsPublic = null,Object? picture = freezed,Object? background = freezed,Object? realmId = freezed,Object? accountId = freezed,Object? realm = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? members = freezed,Object? isPinned = null,}) {
   return _then(_SnChatRoom(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -637,6 +639,7 @@ as int,encryptionMode: null == encryptionMode ? _self.encryptionMode : encryptio
 as int,mlsGroupId: freezed == mlsGroupId ? _self.mlsGroupId : mlsGroupId // ignore: cast_nullable_to_non_nullable
 as String?,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
+as bool,isReadReceiptsPublic: null == isReadReceiptsPublic ? _self.isReadReceiptsPublic : isReadReceiptsPublic // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFileReference?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable

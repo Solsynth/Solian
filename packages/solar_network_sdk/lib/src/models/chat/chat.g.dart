@@ -43,6 +43,7 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   mlsGroupId: json['mls_group_id'] as String?,
   isPublic: json['is_public'] as bool? ?? false,
   isCommunity: json['is_community'] as bool? ?? false,
+  isReadReceiptsPublic: json['is_read_receipts_public'] as bool? ?? true,
   picture: json['picture'] == null
       ? null
       : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
@@ -78,6 +79,7 @@ Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
       'mls_group_id': instance.mlsGroupId,
       'is_public': instance.isPublic,
       'is_community': instance.isCommunity,
+      'is_read_receipts_public': instance.isReadReceiptsPublic,
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'realm_id': instance.realmId,

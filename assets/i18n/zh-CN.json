@@ -2662,6 +2662,8 @@
   "pin": "置顶",
   "pinChatRoom": "置顶聊天室",
   "pinChatRoomDescription": "将此聊天室固定到顶部。",
+  "readReceiptsPublic": "已读回执",
+  "readReceiptsPublicDescription": "允许成员看到其他成员何时已读此聊天室中的消息。",
   "pinCode": "PIN 码",
   "pinMessage": "置顶消息",
   "pinPost": "置顶",
@@ -3918,7 +3920,6 @@
   "transactions": "交易",
   "noTransactions": "暂无交易记录",
   "noTransactionsHint": "转账、付款和基金发放记录会显示在这里。",
-
   "transfer": "转账",
   "transferAmount": "转账金额",
   "transferCreatedSuccessfully": "转账成功创建！",
@@ -5496,5 +5497,7 @@
   "aiConsoleCredentialTokenBody": "请立即复制此令牌，之后将无法再次查看。",
   "aiConsoleCredentialCopyToken": "复制令牌",
   "aiConsoleEmpty": "这里还什么都没有。",
-  "aiConsoleUnknown": "未知"
+  "aiConsoleUnknown": "未知",
+  "readReceiptsPublicEnabled": "已读回执已启用",
+  "readReceiptsPublicDisabled": "已读回执已停用"
 }

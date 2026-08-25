@@ -2054,7 +2054,6 @@
   "transactions": "交易",
   "noTransactions": "暫無交易",
   "noTransactionsHint": "轉帳、付款及基金發放記錄會出現在這裡。",
-
   "transfer": "轉",
   "transferAmount": "轉額",
   "transferCreatedSuccessfully": "轉已創！",
@@ -5082,5 +5081,9 @@
   "errorCode_WEBFINGER_RESOURCE_REQUIRED": "資源必具",
   "postViewsCount": "閱 {} 次",
   "thread": "論串",
-  "untranslatable": "過短不可譯"
+  "untranslatable": "過短不可譯",
+  "readReceiptsPublic": "已讀回執",
+  "readReceiptsPublicDescription": "允許成員看到其他成員何時已讀此聊天室中的消息。",
+  "readReceiptsPublicEnabled": "已讀回執已啟用",
+  "readReceiptsPublicDisabled": "已讀回執已停用"
 }

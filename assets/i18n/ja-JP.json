@@ -2145,7 +2145,6 @@
   "transactions": "取引",
   "noTransactions": "取引はまだありません",
   "noTransactionsHint": "送金、支払い、ファンドの支払いはここに表示されます。",
-
   "transfer": "送金",
   "transferAmount": "送金額",
   "transferCreatedSuccessfully": "送金を作成しました！",
@@ -5114,5 +5113,9 @@
   "storeNameChangeCardTitle": "名前変更カード",
   "storeNameChangeCardDescription": "100 ポイントでアカウント・レルム・パブリッシャーの名前を変更できます。",
   "thread": "スレッド",
-  "untranslatable": "短すぎて翻訳できません"
+  "untranslatable": "短すぎて翻訳できません",
+  "readReceiptsPublic": "既読表示",
+  "readReceiptsPublicDescription": "メンバーがこの部屋のメッセージをいつ読んだかを他のメンバーが確認できるようにします。",
+  "readReceiptsPublicEnabled": "既読表示を有効化",
+  "readReceiptsPublicDisabled": "既読表示を無効化"
 }

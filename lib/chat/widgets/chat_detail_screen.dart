@@ -529,6 +529,41 @@ class ChatDetailScreen extends HookConsumerWidget {
                         );
                       },
                     ),
+                  // Read receipts visibility toggle
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                    secondary: Icon(
+                      Symbols.done_all,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    title: const Text('readReceiptsPublic').tr(),
+                    subtitle: const Text('readReceiptsPublicDescription').tr(),
+                    value: currentRoom.isReadReceiptsPublic,
+                    onChanged: (value) async {
+                      try {
+                        final client = ref.read(apiClientProvider);
+                        await client.patch(
+                          '/messager/chat/$id',
+                          data: {'is_read_receipts_public': value},
+                        );
+                        ref.invalidate(chatRoomProvider(id));
+                        final db = ref.read(databaseProvider);
+                        final local = await db.getChatRoomById(id);
+                        if (local != null) {
+                          await db.saveChatRooms([
+                            local.copyWith(isReadReceiptsPublic: value),
+                          ]);
+                        }
+                        showSnackBar(
+                          value
+                              ? 'readReceiptsPublicEnabled'.tr()
+                              : 'readReceiptsPublicDisabled'.tr(),
+                        );
+                      } catch (err) {
+                        showErrorAlert(err);
+                      }
+                    },
+                  ),
                   // Share room via slug link and QR code
                   if (currentRoom.type == 0 &&
                       currentRoom.isPublic &&

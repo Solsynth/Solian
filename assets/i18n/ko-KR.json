@@ -2409,7 +2409,6 @@
   "transactions": "거래 내역",
   "noTransactions": "아직 거래가 없습니다",
   "noTransactionsHint": "송금, 결제, 펀드 지급 내역이 여기에 표시됩니다.",
-
   "transfer": "이체",
   "transferAmount": "이체 금액",
   "transferCreatedSuccessfully": "이체가 성공적으로 생성되었습니다!",
@@ -5107,5 +5106,9 @@
   "storeNameChangeCardTitle": "이름 변경 카드",
   "storeNameChangeCardDescription": "100포인트로 계정, 렐름 또는 퍼블리셔 이름을 변경하세요.",
   "thread": "스레드",
-  "untranslatable": "번역하기엔 너무 짧습니다"
+  "untranslatable": "번역하기엔 너무 짧습니다",
+  "readReceiptsPublic": "읽음 표시",
+  "readReceiptsPublicDescription": "다른 멤버가 이 방의 메시지를 언제 읽었는지 멤버들이 볼 수 있게 합니다.",
+  "readReceiptsPublicEnabled": "읽음 표시 활성화",
+  "readReceiptsPublicDisabled": "읽음 표시 비활성화"
 }

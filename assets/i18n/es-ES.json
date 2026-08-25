@@ -2052,7 +2052,6 @@
   "transactions": "Transactions",
   "noTransactions": "Aún no hay transacciones",
   "noTransactionsHint": "Los envíos, pagos y repartos de fondos aparecerán aquí.",
-
   "transfer": "Transfer",
   "transferAmount": "Transfer Amount",
   "transferCreatedSuccessfully": "Transfer created successfully!",
@@ -5114,5 +5113,9 @@
   "storeNameChangeCardTitle": "Tarjeta de cambio de nombre",
   "storeNameChangeCardDescription": "Renombra tu cuenta, reino o publicador por 100 puntos.",
   "thread": "Hilo",
-  "untranslatable": "Demasiado corto para traducir"
+  "untranslatable": "Demasiado corto para traducir",
+  "readReceiptsPublic": "Read receipts",
+  "readReceiptsPublicDescription": "Let members see when others read messages in this room.",
+  "readReceiptsPublicEnabled": "Read receipts enabled",
+  "readReceiptsPublicDisabled": "Read receipts disabled"
 }
