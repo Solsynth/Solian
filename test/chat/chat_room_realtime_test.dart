@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_subscribe.dart';
 
 void main() {
   group('chat realtime envelope classification', () {
@@ -30,5 +31,24 @@ void main() {
         );
       },
     );
+  });
+
+  group('chat read receipt timestamp parsing', () {
+    test('parses ISO and normalizes to UTC', () {
+      expect(
+        parseChatReadReceiptTimestamp('2026-08-25T10:00:00+02:00'),
+        DateTime.utc(2026, 8, 25, 8),
+      );
+    });
+
+    test('parses epoch milliseconds and rejects invalid values', () {
+      expect(
+        parseChatReadReceiptTimestamp(
+          DateTime.utc(2026, 8, 25).millisecondsSinceEpoch,
+        ),
+        DateTime.utc(2026, 8, 25),
+      );
+      expect(parseChatReadReceiptTimestamp('not-a-timestamp'), isNull);
+    });
   });
 }

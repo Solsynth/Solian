@@ -8,6 +8,7 @@ import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_summary.dart";
 import "package:island/core/lifecycle.dart";
+import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/core/websocket.dart";
@@ -21,6 +22,15 @@ final currentSubscribedChatIdProvider =
     NotifierProvider<CurrentSubscribedChatIdNotifier, String?>(
       CurrentSubscribedChatIdNotifier.new,
     );
+
+DateTime? parseChatReadReceiptTimestamp(dynamic value) {
+  if (value is DateTime) return value.toUtc();
+  if (value is num) {
+    return DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true);
+  }
+  if (value is String) return DateTime.tryParse(value)?.toUtc();
+  return null;
+}
 
 final chatReadSyncProvider = AsyncNotifierProvider<ChatReadSyncNotifier, void>(
   ChatReadSyncNotifier.new,
@@ -53,21 +63,48 @@ class ChatReadSyncNotifier extends AsyncNotifier<void> {
     if (packet.type != 'messages.read') return;
 
     final data = packet.data;
-    if (data is! Map<Object?, Object?>) return;
-    final packetData = data as Map<Object?, Object?>;
+    if (data == null) return;
 
-    final roomId = packetData['chat_room_id']?.toString();
-    if (roomId == null || roomId.isEmpty) return;
-
-    final currentUserId = ref.read(userInfoProvider).value?.id;
-    final accountId = packetData['account_id']?.toString();
-    if (currentUserId != null &&
-        accountId != null &&
-        accountId != currentUserId) {
+    final roomId = data['chat_room_id']?.toString();
+    final accountId = data['account_id']?.toString();
+    if (roomId == null ||
+        roomId.isEmpty ||
+        accountId == null ||
+        accountId.isEmpty) {
       return;
     }
 
-    await ref.read(chatSummaryProvider.notifier).clearUnreadCount(roomId);
+    final currentUserId = ref.read(userInfoProvider).value?.id;
+    if (accountId == currentUserId) {
+      await ref.read(chatSummaryProvider.notifier).clearUnreadCount(roomId);
+    }
+
+    final lastReadAt = parseChatReadReceiptTimestamp(data['last_read_at']);
+    if (lastReadAt == null) return;
+
+    final database = ref.read(databaseProvider);
+    final memberId = data['member_id']?.toString();
+    SnChatMember? member;
+    if (memberId != null && memberId.isNotEmpty) {
+      member = await database.getMemberById(memberId);
+      if (member != null &&
+          (member.chatRoomId != roomId || member.accountId != accountId)) {
+        member = null;
+      }
+    }
+    member ??= await database.getMemberByRoomAndAccount(roomId, accountId);
+    if (member == null ||
+        (member.lastReadAt != null &&
+            !lastReadAt.isAfter(member.lastReadAt!))) {
+      return;
+    }
+
+    await database.saveMember(member.copyWith(lastReadAt: lastReadAt));
+    if (!ref.mounted) return;
+    ref.invalidate(chatRoomProvider(roomId));
+    if (accountId == currentUserId) {
+      ref.invalidate(chatRoomIdentityProvider(roomId));
+    }
   }
 
   Future<void> markAllRead() async {
