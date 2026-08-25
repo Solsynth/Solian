@@ -1742,24 +1742,25 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Flexible(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(child: buildMessageBody()),
-                        const Gap(4),
-                        MessageIndicators(
-                          editedAt: remoteMessage.editedAt,
-                          status: message.status,
-                          isCurrentUser: isCurrentUser,
-                          roomId: message.roomId,
-                          messageId: message.id,
-                          textColor: textColor,
-                        ),
-                      ],
+                                      Flexible(
+                      child: Stack(
+                        children: [
+                          buildMessageBody(),
+                          Positioned(
+                            bottom: 2,
+                            right: 4,
+                            child: MessageIndicators(
+                              editedAt: remoteMessage.editedAt,
+                              status: message.status,
+                              isCurrentUser: isCurrentUser,
+                              roomId: message.roomId,
+                              messageId: message.id,
+                              textColor: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
