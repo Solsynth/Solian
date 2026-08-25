@@ -2,8 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/message.dart';
-import 'package:island/core/database.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/database.dart';
+import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/messages_notifier.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -14,6 +16,7 @@ class MessageIndicators extends StatelessWidget {
   final bool isCurrentUser;
   final String? roomId;
   final String? messageId;
+  final String? senderId;
   final Color textColor;
   final EdgeInsets padding;
 
@@ -24,6 +27,7 @@ class MessageIndicators extends StatelessWidget {
     required this.isCurrentUser,
     this.roomId,
     this.messageId,
+    this.senderId,
     required this.textColor,
     this.padding = const EdgeInsets.only(left: 6),
   });
@@ -53,10 +57,10 @@ class MessageIndicators extends StatelessWidget {
 
     if (messageId != null && roomId != null && status == MessageStatus.sent) {
       children.add(
-        _DmReadIndicator(
+        _ReadIndicator(
           roomId: roomId!,
           messageId: messageId!,
-          isOutgoing: isCurrentUser,
+          senderId: senderId,
           textColor: textColor,
         ),
       );
@@ -107,53 +111,56 @@ class MessageIndicators extends StatelessWidget {
 
 // -- Read receipt indicator -------------------------------------------------
 
-class _DmReadIndicator extends ConsumerWidget {
+class _ReadIndicator extends ConsumerWidget {
   final String roomId;
   final String messageId;
-  final bool isOutgoing;
+  final String? senderId;
   final Color textColor;
 
-  const _DmReadIndicator({
+  const _ReadIndicator({
     required this.roomId,
     required this.messageId,
-    required this.isOutgoing,
+    required this.senderId,
     required this.textColor,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final highWaterMarks = ref
-        .watch(_groupReadHighWaterMarksProvider(roomId))
-        .value;
-
-    if (highWaterMarks == null) {
+    // Never put a read mark on the current user's own sent message — a peer's
+    // high-water mark may land here (it is their latest readable message), but
+    // an avatar stack on your own bubble reads as noise. Compare the sender
+    // directly instead of trusting the isCurrentUser plumbing, which can be
+    // wrong while the room identity is still loading.
+    final currentUserId = ref.read(userInfoProvider).value?.id;
+    if (senderId == null ||
+        currentUserId == null ||
+        senderId == currentUserId) {
       return const SizedBox.shrink();
     }
 
-    if (!isOutgoing) {
-      // Incoming: has current user read this message?
-      final currentUserId = ref.read(userInfoProvider).value?.id;
-      if (currentUserId == null) return const SizedBox.shrink();
-      final hwMessageId = highWaterMarks[currentUserId];
-      final isRead =
-          hwMessageId != null &&
-          (hwMessageId == messageId || hwMessageId != messageId);
-      return Icon(
-        Icons.done_all_rounded,
-        size: 14,
-        color: (isRead ? Colors.blueAccent : textColor).withOpacity(0.8),
-      ).padding(bottom: 1);
-    }
+    final state = ref.watch(_roomReadStateProvider(roomId)).value;
+    if (state == null) return const SizedBox.shrink();
 
-    // Outgoing: show readers whose high water mark is this message
-    final readers = highWaterMarks.entries
+    // Readers whose high water mark is exactly this message — the last
+    // message each of them has read. Their avatars stack here. This includes
+    // the current user's own avatar once they have read up to this message
+    // ("our reading status"), but never on messages they sent themselves.
+    final readerIds = state.lastReadMessage.entries
         .where((e) => e.value == messageId)
         .map((e) => e.key)
         .toList();
 
+    if (readerIds.isEmpty) return const SizedBox.shrink();
+
+    final readerMembers = readerIds
+        .map((id) => state.members.where((m) => m.accountId == id).firstOrNull)
+        .whereType<SnChatMember>()
+        .toList();
+
+    if (readerMembers.isEmpty) return const SizedBox.shrink();
+
     return _GroupReadAvatars(
-      readerIds: readers,
-      roomId: roomId,
+      readerMembers: readerMembers,
       textColor: textColor,
     );
   }
@@ -161,31 +168,17 @@ class _DmReadIndicator extends ConsumerWidget {
 
 // -- Stacked avatars for group read receipts --------------------------------
 
-class _GroupReadAvatars extends ConsumerWidget {
-  final List<String> readerIds;
-  final String roomId;
+class _GroupReadAvatars extends StatelessWidget {
+  final List<SnChatMember> readerMembers;
   final Color textColor;
 
   const _GroupReadAvatars({
-    required this.readerIds,
-    required this.roomId,
+    required this.readerMembers,
     required this.textColor,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (readerIds.isEmpty) return const SizedBox.shrink();
-
-    final members = ref.watch(_roomMembersProvider(roomId)).value;
-    if (members == null) return const SizedBox.shrink();
-
-    final readerMembers = readerIds
-        .map((id) => members.where((m) => m.accountId == id).firstOrNull)
-        .whereType<SnChatMember>()
-        .toList();
-
-    if (readerMembers.isEmpty) return const SizedBox.shrink();
-
+  Widget build(BuildContext context) {
     const avatarRadius = 8.0;
     const overlap = 4.0;
     const maxVisible = 3;
@@ -232,65 +225,48 @@ class _GroupReadAvatars extends ConsumerWidget {
   }
 }
 
-// -- Providers ---------------------------------------------------------------
+// -- Provider ----------------------------------------------------------------
 
-final _roomMembersProvider = FutureProvider.autoDispose
-    .family<List<SnChatMember>, String>((ref, roomId) async {
+/// Per-room read state: for each member, the ID of the last message they've
+/// read (their high water mark), plus the members themselves. The `lastReadAt`
+/// values live on the member records in the DB store — the read-receipt
+/// handler persists them — so recomputation is cheap and always has data.
+final _roomReadStateProvider = FutureProvider.autoDispose
+    .family<_RoomReadState, String>((ref, roomId) async {
+      // Invalidate when read receipts arrive or messages change, but never
+      // depend on those providers' async values (they go null mid-reload).
+      ref.watch(chatRoomProvider(roomId));
+      ref.watch(messagesProvider(roomId));
+
       final db = ref.read(databaseProvider);
-      return db.getMembersByRoomId(roomId);
-    });
-
-/// High water marks: accountId → messageId of the last message they've read.
-final _groupReadHighWaterMarksProvider = FutureProvider.autoDispose
-    .family<Map<String, String>, String>((ref, roomId) async {
-      final db = ref.read(databaseProvider);
-      final room = await db.getChatRoomById(roomId);
-      if (room == null) return {};
-
-      final currentUserId = ref.read(userInfoProvider).value?.id;
-      if (currentUserId == null) return {};
+      final allMessages = await db.getMessagesForRoom(roomId, limit: 10000);
+      allMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
       final members = await db.getMembersByRoomId(roomId);
-      final messages = await db.getMessagesForRoom(roomId, limit: 10000);
 
-      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      // Each member's boundary = newest message at-or-before their lastReadAt.
+      final lastReadMessage = <String, String>{};
+      for (final member in members) {
+        final lastReadAt = member.lastReadAt;
+        if (lastReadAt == null) continue;
 
-      final result = <String, String>{};
-
-      if (room.type == 1) {
-        // DM: compute for the peer
-        final peer = members.firstWhere(
-          (m) => m.accountId != currentUserId,
-          orElse: () => members.first,
-        );
-        if (peer.lastReadAt != null) {
-          String? lastReadMessageId;
-          for (final msg in messages) {
-            if (!msg.createdAt.isAfter(peer.lastReadAt!)) {
-              lastReadMessageId = msg.id;
-            }
-          }
-          if (lastReadMessageId != null) {
-            result[peer.accountId] = lastReadMessageId;
+        String? boundary;
+        for (final m in allMessages) {
+          if (!m.createdAt.isAfter(lastReadAt)) {
+            boundary = m.id;
           }
         }
-      } else {
-        // Group: compute for all other members
-        for (final member in members) {
-          if (member.accountId == currentUserId) continue;
-          if (member.lastReadAt == null) continue;
-
-          String? lastReadMessageId;
-          for (final msg in messages) {
-            if (!msg.createdAt.isAfter(member.lastReadAt!)) {
-              lastReadMessageId = msg.id;
-            }
-          }
-          if (lastReadMessageId != null) {
-            result[member.accountId] = lastReadMessageId;
-          }
+        if (boundary != null) {
+          lastReadMessage[member.accountId] = boundary;
         }
       }
 
-      return result;
+      return _RoomReadState(lastReadMessage: lastReadMessage, members: members);
     });
+
+class _RoomReadState {
+  final Map<String, String> lastReadMessage;
+  final List<SnChatMember> members;
+
+  const _RoomReadState({required this.lastReadMessage, required this.members});
+}

@@ -1740,27 +1740,17 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               avatar: avatar,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                                      Flexible(
-                      child: Stack(
-                        children: [
-                          buildMessageBody(),
-                          Positioned(
-                            bottom: 2,
-                            right: 4,
-                            child: MessageIndicators(
-                              editedAt: remoteMessage.editedAt,
-                              status: message.status,
-                              isCurrentUser: isCurrentUser,
-                              roomId: message.roomId,
-                              messageId: message.id,
-                              textColor: textColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Flexible(child: buildMessageBody()),
+                  MessageIndicators(
+                    editedAt: remoteMessage.editedAt,
+                    status: message.status,
+                    isCurrentUser: isCurrentUser,
+                    roomId: message.roomId,
+                    messageId: message.id,
+                    senderId: message.senderId,
+                    textColor: textColor,
+                  ),
                 ],
               ),
             ),
@@ -1980,7 +1970,6 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Flexible(
@@ -2071,6 +2060,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                       isCurrentUser: isCurrentUser,
                       roomId: message.roomId,
                       messageId: message.id,
+                      senderId: message.senderId,
                       textColor: textColor,
                     ),
                   ],
@@ -2166,7 +2156,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                   ],
                 ),
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Flexible(
@@ -2258,10 +2247,11 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                       isCurrentUser: isCurrentUser,
                       roomId: message.roomId,
                       messageId: message.id,
+                      senderId: message.senderId,
                       textColor: textColor,
                     ),
                   ],
-                ).padding(left: kAvatarRadius * 2 + 8),
+                ),
                 if (isMentioningCurrentUser)
                   Padding(
                     padding: EdgeInsets.only(
@@ -2278,7 +2268,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Flexible(
@@ -2371,6 +2360,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                         isCurrentUser: isCurrentUser,
                         roomId: message.roomId,
                         messageId: message.id,
+                        senderId: message.senderId,
                         textColor: textColor,
                       ),
                     ],
