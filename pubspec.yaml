@@ -111,7 +111,6 @@ dependencies:
   pasteboard: ^0.5.0
   flutter_colorpicker: ^1.1.0
   image: ^4.9.1
-  swipelab_webp: ^1.0.0
   record: ^7.1.1
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.4.0
@@ -187,9 +186,14 @@ dependencies:
   flutter_callkit_incoming: ^3.1.5
   open_meteo: ^3.0.0
   material_ui: ^1.0.0
+  flutter_image_compress: ^2.5.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # flutter_image_compress is a federated plugin; the test registers the
+  # macOS Dart implementation explicitly (the plugin registrant does not run
+  # under flutter test), so the package must be a direct dependency.
+  flutter_image_compress_macos: ^1.1.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -311,8 +315,3 @@ dependency_overrides:
   # protocol_handler_windows needs local patches for compile issues
   protocol_handler_windows:
     path: packages/protocol_handler_windows
-  # swipelab_webp 1.0.0 (upstream repo deleted) passes all libwebp sources to
-  # cl.exe in one command line, exceeding Windows' 8191-char limit; vendored
-  # with a response-file fix in the hook.
-  swipelab_webp:
-    path: packages/swipelab_webp

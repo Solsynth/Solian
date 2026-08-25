@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_image_compress_macos/flutter_image_compress_macos.dart';
 import 'package:image/image.dart' as img;
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
@@ -239,6 +240,35 @@ void main() {
     dyson = _FakeDysonFSAdapter(s3.base);
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
+    // Unit tests don't run the plugin registrant; register the macOS
+    // implementation explicitly so compressWithList reaches the mocked
+    // method channel below.
+    FlutterImageCompressMacos.registerWith();
+    // flutter_image_compress goes through a platform channel; tests run on
+    // the host (macOS), which selects JPEG. Return a real JPEG so the flow
+    // can decode and assert dimensions.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('flutter_image_compress'),
+      (call) async {
+        if (call.method == 'compressWithList') {
+          // macOS sends a Map with the image under 'list' (common sends a
+          // positional List); accept both.
+          final args = call.arguments;
+          final imageBytes = args is Map
+              ? args['list'] as Uint8List
+              : (args as List<dynamic>)[0] as Uint8List;
+          final decoded = img.decodeImage(imageBytes);
+          final quality = args is Map
+              ? (args['quality'] as num?)?.toInt() ?? 80
+              : 80;
+          return Uint8List.fromList(
+            img.encodeJpg(decoded!, quality: quality),
+          );
+        }
+        return null;
+      },
+    );
     container = ProviderContainer(
       retry: (_, _) => null,
       overrides: [
@@ -494,11 +524,61 @@ void main() {
       expect(s3.objects['/thumbnail'], isNull);
       final compression = s3.objects['/compression'];
       expect(compression, isNotNull);
-      expect(utf8.decode(compression!.sublist(0, 4)), 'RIFF');
-      expect(utf8.decode(compression.sublist(8, 12)), 'WEBP');
+      // The test host runs macOS, so the client produces a JPEG derivative
+      // (flutter_image_compress rejects webp off Android/iOS).
+      expect(compression![0], 0xFF);
+      expect(compression[1], 0xD8);
       expect(compression.length, lessThan(source.length));
+      final decoded = img.decodeImage(compression);
+      expect(decoded, isNotNull);
+      expect(decoded!.width, 2);
+      expect(decoded.height, 2);
+      expect(decoded.getPixel(0, 0).r, closeTo(0, 20));
+      expect(decoded.getPixel(0, 0).g, closeTo(0, 20));
+      expect(decoded.getPixel(0, 0).b, closeTo(0, 20));
+      expect(decoded.getPixel(1, 1).r, closeTo(0, 20));
+      expect(decoded.getPixel(1, 1).g, closeTo(0, 20));
+      expect(decoded.getPixel(1, 1).b, closeTo(0, 20));
     },
   );
+  test('portrait image compression preserves large image rows', () async {
+    dyson.singlePut = true;
+    dyson.includeClientDerivativeUrls = true;
+    final sourceImage = img.Image(width: 526, height: 1132);
+    for (var y = 0; y < sourceImage.height; y++) {
+      for (var x = 0; x < sourceImage.width; x++) {
+        sourceImage.setPixelRgb(
+          x,
+          y,
+          (x * 13 + y * 3) % 256,
+          (x * 5 + y * 17) % 256,
+          (x * 19 + y * 7) % 256,
+        );
+      }
+    }
+    final source = Uint8List.fromList(img.encodeJpg(sourceImage, quality: 100));
+    final uploader = container.read(driveFileUploaderProvider);
+
+    await uploader.tryUploadViaS3Direct(
+      fileData: source,
+      fileName: 'portrait.jpg',
+      contentType: 'image/jpeg',
+      parentId: 'parent-1',
+      imageCompressionQuality: 80,
+    );
+
+    final compression = s3.objects['/compression'];
+    expect(compression, isNotNull);
+    final decoded = img.decodeImage(compression!);
+    expect(decoded, isNotNull);
+    expect(decoded!.width, 526);
+    expect(decoded.height, 1132);
+    final top = decoded.getPixel(263, 0);
+    final bottom = decoded.getPixel(263, 1131);
+    expect((top.r - bottom.r).abs() + (top.g - bottom.g).abs() +
+        (top.b - bottom.b).abs(), greaterThan(20));
+  });
+
   test('image direct upload forwards safe local EXIF analysis', () async {
     dyson.singlePut = true;
     final file = File(
