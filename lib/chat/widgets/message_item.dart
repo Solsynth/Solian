@@ -84,6 +84,7 @@ class MessageItem extends HookConsumerWidget {
   final bool showAvatar;
   final bool showBubbleAvatar;
   final bool showColumnAvatar;
+
   /// Whether this message is the newest message of its sender group: no
   /// same-sender message sits below it on screen.
   final bool isFirstInGroup;
@@ -1181,11 +1182,11 @@ class _MessageTextSelectionView extends HookConsumerWidget {
                     ChatRoomMemberRegion(
                       roomId: roomId,
                       member: sender,
-                    child: ProfilePictureWidget(
-                      file: sender.account.profile.picture,
-                      fallbackName: sender.account.nick,
-                      radius: 14,
-                    ),
+                      child: ProfilePictureWidget(
+                        file: sender.account.profile.picture,
+                        fallbackName: sender.account.nick,
+                        radius: 14,
+                      ),
                     ),
                     const Gap(8),
                     Expanded(
@@ -1508,6 +1509,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final bool showBubbleAvatar;
+
   /// Newest message of its sender group: no same-sender bubble below.
   final bool isFirstInGroup;
 
@@ -1702,8 +1704,8 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                 padding: const EdgeInsets.only(left: 10, right: 10, bottom: 6),
                 child: _MentionHint(textColor: textColor),
               ),
-            ],
-          ),
+          ],
+        ),
       );
     }
 
@@ -1751,6 +1753,8 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                           editedAt: remoteMessage.editedAt,
                           status: message.status,
                           isCurrentUser: isCurrentUser,
+                          roomId: message.roomId,
+                          messageCreatedAt: message.createdAt,
                           textColor: textColor,
                         ),
                       ],
@@ -2064,6 +2068,8 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                       editedAt: remoteMessage.editedAt,
                       status: message.status,
                       isCurrentUser: isCurrentUser,
+                      roomId: message.roomId,
+                      messageCreatedAt: message.createdAt,
                       textColor: textColor,
                     ),
                   ],
@@ -2249,6 +2255,8 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                       editedAt: remoteMessage.editedAt,
                       status: message.status,
                       isCurrentUser: isCurrentUser,
+                      roomId: message.roomId,
+                      messageCreatedAt: message.createdAt,
                       textColor: textColor,
                     ),
                   ],
@@ -2360,6 +2368,8 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                         editedAt: remoteMessage.editedAt,
                         status: message.status,
                         isCurrentUser: isCurrentUser,
+                        roomId: message.roomId,
+                        messageCreatedAt: message.createdAt,
                         textColor: textColor,
                       ),
                     ],
