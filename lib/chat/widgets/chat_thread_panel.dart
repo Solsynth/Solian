@@ -89,7 +89,7 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
       await notifier.sendMessage(
         text,
         List<UniversalFile>.of(_attachments),
-        replyingTo: widget.root,
+        threadingTo: widget.root,
       );
       if (!mounted) return;
       _controller.clear();

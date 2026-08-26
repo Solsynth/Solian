@@ -67,6 +67,7 @@ class MessageSender {
     SnChatMessage? editingTo,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
+    SnChatMessage? threadingTo,
     List<Map<String, dynamic>>? embeds,
     Function(LocalChatMessage message)? onPending,
     Function(String messageId, Map<int, double?>)? onProgress,
@@ -126,6 +127,7 @@ class MessageSender {
         isEditing: editingTo != null,
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
+        threadingTo: threadingTo,
         embeds: embeds,
       );
 
@@ -292,6 +294,7 @@ class MessageSender {
     SnChatMessage? editingTo,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
+    SnChatMessage? threadingTo,
     List<Map<String, dynamic>>? embeds,
     Function(LocalChatMessage message)? onPending,
     Function(String messageId, Map<int, double?>)? onProgress,
@@ -331,6 +334,7 @@ class MessageSender {
         isEditing: editingTo != null,
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
+        threadingTo: threadingTo,
         embeds: embeds,
       );
 
@@ -673,6 +677,7 @@ class MessageSender {
     bool isEditing = false,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
+    SnChatMessage? threadingTo,
     List<Map<String, dynamic>>? embeds,
   }) async {
     if (_e2eeService?.isE2eeRoom == true) {
@@ -692,6 +697,7 @@ class MessageSender {
         attachmentIds: attachmentIds,
         repliedMessageId: replyingTo?.id,
         forwardedMessageId: forwardingTo?.id,
+        threadingTo: threadingTo,
         surveyId: surveyId,
         fundId: fundId,
       );
@@ -706,6 +712,7 @@ class MessageSender {
       'content': content,
       'attachments_id': attachmentIds,
       'replied_message_id': replyingTo?.id,
+      'thread_id': threadingTo?.id,
       'forwarded_message_id': forwardingTo?.id,
       if (embeds != null && embeds.isNotEmpty) 'embeds': embeds,
       'meta': meta,

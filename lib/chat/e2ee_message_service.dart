@@ -117,6 +117,7 @@ class E2eeMessageService {
     required List<String> attachmentIds,
     String? repliedMessageId,
     String? forwardedMessageId,
+    SnChatMessage? threadingTo,
     String? surveyId,
     String? fundId,
   }) async {
@@ -130,6 +131,7 @@ class E2eeMessageService {
       messageType: MlsMessageType.fromString(normalizedMessageType),
       repliedMessageId: repliedMessageId,
       forwardedMessageId: forwardedMessageId,
+      threadId: threadingTo?.id,
     );
 
     final plaintextEnvelope =

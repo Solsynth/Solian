@@ -84,21 +84,17 @@ List<LocalChatMessage> _buildDisplayMessages(
   List<LocalChatMessage> messages,
   Map<String, _DisplayMessageCacheEntry> cache,
 ) {
-  // A reply that targets a thread root is an in-thread reply (rendered inside
-  // the thread panel). Regular direct replies target ordinary messages and
-  // keep their normal place in the main timeline. Thread roots get a
-  // reply-count hint derived from the loaded replies here so the hint shows
-  // without first opening the thread (the server does not report the count on
-  // the message-list payload).
+  // Thread membership is explicit via `thread_id`: in-thread replies render
+  // inside the thread panel. Regular (direct) replies carry only
+  // `replied_message_id` and keep their normal place in the main timeline
+  // with their quoted reference.
   final threadRootIds = <String>{};
   final replyCounts = <String, int>{};
   for (final message in messages) {
-    if (message.data['is_thread_root'] == true) {
-      threadRootIds.add(message.id);
-    }
-    final target = message.repliedMessageId;
-    if (target != null) {
-      replyCounts[target] = (replyCounts[target] ?? 0) + 1;
+    final threadId = message.threadId ?? message.data['thread_id'] as String?;
+    if (threadId != null) {
+      threadRootIds.add(threadId);
+      replyCounts[threadId] = (replyCounts[threadId] ?? 0) + 1;
     }
   }
 
@@ -106,8 +102,8 @@ List<LocalChatMessage> _buildDisplayMessages(
   final activeKeys = <String>{};
 
   for (final message in messages) {
-    final targetId = message.repliedMessageId;
-    if (targetId != null && threadRootIds.contains(targetId)) continue;
+    // In-thread replies live in the thread panel, not the main timeline.
+    if (message.threadId != null) continue;
 
     final key = message.clientMessageId ?? message.id;
     activeKeys.add(key);
@@ -129,11 +125,12 @@ List<LocalChatMessage> _buildDisplayMessages(
     }
     if (transformed == null) continue;
 
-    final count = replyCounts[transformed.id];
-    if (count != null &&
-        count > 0 &&
-        transformed.data['is_thread_root'] == true) {
-      transformed.data['thread_replies_count'] = count;
+    // A message with in-thread replies is a thread root and shows the reply
+    // count hint, derived from the loaded replies so it appears without
+    // first opening the thread.
+    if (threadRootIds.contains(transformed.id)) {
+      transformed.data['thread_replies_count'] =
+          replyCounts[transformed.id] ?? 0;
     }
     displayMessages.add(transformed);
   }

@@ -172,6 +172,7 @@ class MlsClient {
     required MlsMessageType messageType,
     String? repliedMessageId,
     String? forwardedMessageId,
+    String? threadId,
   }) async {
     return _messageHandler.encryptMessage(
       mlsGroupId: mlsGroupId,
@@ -180,6 +181,7 @@ class MlsClient {
       messageType: messageType,
       repliedMessageId: repliedMessageId,
       forwardedMessageId: forwardedMessageId,
+      threadId: threadId,
     );
   }
 

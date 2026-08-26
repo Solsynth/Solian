@@ -97,6 +97,10 @@ sealed class SnChatMessage with _$SnChatMessage {
     @JsonKey(name: 'thread_replies_count') @Default(0) int threadRepliesCount,
     @JsonKey(name: 'thread_replies') @Default([]) List<ThreadReplyNode> threadReplies,
     String? repliedMessageId,
+    /// Id of the thread root this message belongs to. Null for top-level
+    /// messages and regular (direct) replies; set for replies created via
+    /// "reply in thread".
+    @JsonKey(name: 'thread_id') String? threadId,
     String? forwardedMessageId,
     required String senderId,
     required SnChatMember sender,

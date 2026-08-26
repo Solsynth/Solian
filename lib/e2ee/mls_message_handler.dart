@@ -106,6 +106,7 @@ class MlsMessageHandler {
     required MlsMessageType messageType,
     String? repliedMessageId,
     String? forwardedMessageId,
+    String? threadId,
     String? surveyId,
     String? fundId,
   }) async {
@@ -127,6 +128,7 @@ class MlsMessageHandler {
       'attachments_id': attachmentIds,
       'client_message_id': clientMessageId,
       'replied_message_id': repliedMessageId,
+      'thread_id': threadId,
       'forwarded_message_id': forwardedMessageId,
       'survey_id': surveyId,
       'fund_id': fundId,

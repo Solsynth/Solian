@@ -23,6 +23,11 @@ class LocalChatMessage {
   final List<Map<String, dynamic>> attachments;
   final List<Map<String, dynamic>> reactions;
   final String? repliedMessageId;
+
+  /// Id of the thread root this message belongs to. Null for top-level
+  /// messages and regular (direct) replies; set for replies created via
+  /// "reply in thread".
+  final String? threadId;
   final String? forwardedMessageId;
   List<UniversalFile>? localAttachments;
 
@@ -47,6 +52,7 @@ class LocalChatMessage {
     required this.attachments,
     required this.reactions,
     this.repliedMessageId,
+    this.threadId,
     this.forwardedMessageId,
     this.localAttachments,
   });
@@ -61,6 +67,7 @@ class LocalChatMessage {
     Map<String, dynamic>? data,
     String? repliedMessageId,
     bool clearRepliedMessageId = false,
+    Map<String, dynamic>? meta,
   }) {
     return LocalChatMessage(
       id: id,
@@ -77,7 +84,7 @@ class LocalChatMessage {
       updatedAt: updatedAt,
       deletedAt: deletedAt,
       type: type,
-      meta: meta,
+      meta: meta ?? this.meta,
       membersMentioned: membersMentioned,
       editedAt: editedAt,
       attachments: attachments,
@@ -85,6 +92,7 @@ class LocalChatMessage {
       repliedMessageId: clearRepliedMessageId
           ? null
           : (repliedMessageId ?? this.repliedMessageId),
+      threadId: threadId ?? data?['thread_id'] as String?,
       forwardedMessageId: forwardedMessageId,
       localAttachments: localAttachments,
     );
@@ -111,6 +119,7 @@ class LocalChatMessage {
       isThreadRoot: data['is_thread_root'] == true,
       threadRepliesCount: _intValue(data['thread_replies_count']),
       repliedMessageId: repliedMessageId,
+      threadId: threadId ?? data['thread_id'] as String?,
       forwardedMessageId: forwardedMessageId,
       createdAt: createdAt,
       updatedAt: updatedAt ?? createdAt,
@@ -131,6 +140,7 @@ class LocalChatMessage {
     final reactionsMade = jsonData.remove('reactions_made');
     final isThreadRoot = jsonData.remove('is_thread_root');
     final threadRepliesCount = jsonData.remove('thread_replies_count');
+    final threadId = jsonData.remove('thread_id');
     if (jsonData['meta'] == null) jsonData['meta'] = <String, dynamic>{};
     if (jsonData['members_mentioned'] == null) {
       jsonData['members_mentioned'] = <String>[];
@@ -156,6 +166,9 @@ class LocalChatMessage {
     if (threadRepliesCount is num) {
       msgData['thread_replies_count'] = threadRepliesCount.toInt();
     }
+    if (threadId is String && threadId.isNotEmpty) {
+      msgData['thread_id'] = threadId;
+    }
     return LocalChatMessage(
       id: message.id,
       roomId: message.chatRoomId,
@@ -177,6 +190,7 @@ class LocalChatMessage {
       attachments: message.attachments.map((e) => e.toJson()).toList(),
       reactions: message.reactions.map((e) => e.toJson()).toList(),
       repliedMessageId: message.repliedMessageId,
+      threadId: message.threadId,
       forwardedMessageId: message.forwardedMessageId,
     );
   }
@@ -204,6 +218,7 @@ class LocalChatMessage {
     'attachments',
     'reactions',
     'replied_message_id',
+    'thread_id',
     'forwarded_message_id',
     'created_at',
     'updated_at',

@@ -1277,8 +1277,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (pending == null) return;
     if (pending.type != 'placeholder') return;
 
-    pending.meta['placeholder_progress'] = progress;
-    _replaceMessage(messageId, pending);
+    final updated = pending.copyWith(
+      meta: Map<String, dynamic>.from(pending.meta)
+        ..['placeholder_progress'] = progress,
+    );
+    _replaceMessage(messageId, updated);
   }
 
   /// Finds the active placeholder for a given sender and updates its progress.
@@ -1294,8 +1297,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
     if (placeholder == null) return;
 
-    placeholder.meta['placeholder_progress'] = progress;
-    _replaceMessage(placeholder.id, placeholder);
+    final updated = placeholder.copyWith(
+      meta: Map<String, dynamic>.from(placeholder.meta)
+        ..['placeholder_progress'] = progress,
+    );
+    _replaceMessage(placeholder.id, updated);
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({
@@ -1781,6 +1787,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? editingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
+    SnChatMessage? threadingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
     await _keepAliveWhileSending(() async {
@@ -1806,6 +1813,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         editingTo: editingTo,
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
+        threadingTo: threadingTo,
         embeds: embeds,
         onPending: editingTo == null
             ? (pending) {

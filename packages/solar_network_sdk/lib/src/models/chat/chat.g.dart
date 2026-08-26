@@ -168,6 +168,7 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       repliedMessageId: json['replied_message_id'] as String?,
+      threadId: json['thread_id'] as String?,
       forwardedMessageId: json['forwarded_message_id'] as String?,
       senderId: json['sender_id'] as String,
       sender: SnChatMember.fromJson(json['sender'] as Map<String, dynamic>),
@@ -196,6 +197,7 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'thread_replies_count': instance.threadRepliesCount,
       'thread_replies': instance.threadReplies.map((e) => e.toJson()).toList(),
       'replied_message_id': instance.repliedMessageId,
+      'thread_id': instance.threadId,
       'forwarded_message_id': instance.forwardedMessageId,
       'sender_id': instance.senderId,
       'sender': instance.sender.toJson(),
