@@ -369,5 +369,67 @@ void main() {
 
       expect(container.read(chatSyncingProvider), isFalse);
     });
+
+    test(
+      'upload progress mutates an unmodifiable-meta placeholder without '
+      'throwing',
+      () async {
+        final notifier = container.read(messagesProvider('room-1').notifier);
+
+        // The SDK freezed getter exposes `meta` through an
+        // EqualUnmodifiableMapView, so a placeholder parsed from the server
+        // (as in MessageSender._sendWithAttachmentPlaceholder) carries an
+        // unmodifiable meta map. In-place progress writes used to throw
+        // "Unsupported operation: Cannot modify unmodifiable map".
+        final placeholderJson = {
+          'id': 'placeholder-1',
+          'type': 'placeholder',
+          'content': null,
+          'meta': {'placeholder_kind': 'uploading'},
+          'created_at': DateTime.utc(2026).toIso8601String(),
+          'updated_at': DateTime.utc(2026).toIso8601String(),
+          'sender_id': 'member-room-1',
+          'sender': member('room-1').toJson(),
+          'chat_room_id': 'room-1',
+        };
+        final placeholderMessage = SnChatMessage.fromJson(placeholderJson);
+        expect(
+          () => placeholderMessage.meta['placeholder_kind'] = 'boom',
+          throwsUnsupportedError,
+        );
+
+        // Same path MessageSender takes: parse into a pending LocalChatMessage.
+        final placeholder = LocalChatMessage.fromRemoteMessage(
+          placeholderMessage,
+          MessageStatus.pending,
+        );
+        await notifier.receiveMessage(
+          placeholderMessage,
+          applySideEffects: false,
+        );
+        expect(
+          container
+              .read(messagesProvider('room-1'))
+              .value!
+              .map((item) => item.id),
+          contains('placeholder-1'),
+        );
+
+        // Own upload progress (sender path)
+        notifier.updatePendingMessageProgress('placeholder-1', 0.42);
+        // Remote upload progress via typing events (receiver path)
+        notifier.updatePlaceholderProgressBySender('member-room-1', 0.66);
+
+        final visible = container
+            .read(messagesProvider('room-1'))
+            .value!
+            .firstWhere((item) => item.id == 'placeholder-1');
+        expect(visible.meta['placeholder_progress'], 0.66);
+        expect(
+          () => placeholder.meta['placeholder_kind'] = 'boom',
+          throwsUnsupportedError,
+        );
+      },
+    );
   });
 }

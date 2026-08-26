@@ -142,7 +142,7 @@ class _DirectMessageStatusBanner extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
           width: 1,
@@ -187,7 +187,7 @@ class _ChatTimeoutBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.75),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Theme.of(context).colorScheme.error.withOpacity(0.2),
           width: 1,
@@ -1622,9 +1622,8 @@ class ChatInput extends HookConsumerWidget {
                       offset: const Offset(0, -4),
                     ),
                 ],
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
+                borderRadius: BorderRadius.vertical(
+                  top: inputBorderRadius.topLeft,
                 ),
                 color: isMessageListScrolling
                     ? Theme.of(context).colorScheme.surfaceContainer
@@ -1635,7 +1634,7 @@ class ChatInput extends HookConsumerWidget {
           ),
           Container(
             margin: EdgeInsets.only(
-              top: 16,
+              top: 10,
               left: leftMargin,
               right: rightMargin,
               bottom: bottomMargin,
@@ -1772,7 +1771,7 @@ class ChatInput extends HookConsumerWidget {
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
@@ -1862,7 +1861,7 @@ class ChatInput extends HookConsumerWidget {
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
@@ -1952,7 +1951,7 @@ class ChatInput extends HookConsumerWidget {
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
@@ -2081,7 +2080,7 @@ class ChatInput extends HookConsumerWidget {
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
@@ -2171,7 +2170,7 @@ class ChatInput extends HookConsumerWidget {
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
@@ -2272,7 +2271,7 @@ class ChatInput extends HookConsumerWidget {
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh,
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
