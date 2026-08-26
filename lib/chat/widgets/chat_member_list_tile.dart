@@ -12,6 +12,7 @@ class ChatMemberListTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry contentPadding;
+  final bool enableProfileCard;
 
   const ChatMemberListTile({
     super.key,
@@ -20,19 +21,24 @@ class ChatMemberListTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.contentPadding = const EdgeInsets.only(left: 16, right: 12),
+    this.enableProfileCard = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget avatar = ProfilePictureWidget(
+      file: member.account.profile.picture,
+      fallbackName: member.account.nick,
+    );
+    if (enableProfileCard) {
+      avatar = AccountPfcRegion(
+        uname: member.account.name,
+        child: avatar,
+      );
+    }
     return ListTile(
       contentPadding: contentPadding,
-      leading: AccountPfcRegion(
-        uname: member.account.name,
-        child: ProfilePictureWidget(
-          file: member.account.profile.picture,
-          fallbackName: member.account.nick,
-        ),
-      ),
+      leading: avatar,
       title: Row(
         spacing: 6,
         children: [

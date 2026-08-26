@@ -14,19 +14,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/widgets/call_content.dart';
+import 'package:island/chat/widgets/call_invite_sheet.dart';
 import 'package:island/chat/widgets/call_overlay.dart'
     show CallControlsBar, hideCallOverlay;
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/theme.dart';
-import 'package:island/drive/widgets/cloud_files.dart'
-    show ProfilePictureWidget;
 import 'package:island/main.dart' show globalOverlay;
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -617,33 +614,7 @@ class _CallBody extends HookConsumerWidget {
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (ctx) => SheetScaffold(
-        titleText: 'inviteToCall'.tr(),
-        heightFactor: 0.6,
-        child: ListView.builder(
-          itemCount: candidates.length,
-          itemBuilder: (_, i) {
-            final m = candidates[i];
-            return ListTile(
-              leading: ProfilePictureWidget(
-                file: m.account.profile.picture,
-                fallbackName: m.account.nick,
-                radius: 18,
-              ),
-              title: AccountName(account: m.account),
-              subtitle: Text(
-                m.account.name,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              trailing: IconButton(
-                icon: const Icon(Symbols.call),
-                onPressed: () => Navigator.pop(ctx, m),
-              ),
-              onTap: () => Navigator.pop(ctx, m),
-            );
-          },
-        ),
-      ),
+      builder: (ctx) => CallInviteSheet(candidates: candidates),
     );
     if (target == null) return;
     try {
@@ -658,8 +629,6 @@ class _CallBody extends HookConsumerWidget {
     }
   }
 }
-
-// ── Invite sheet (uses AccountName + ProfilePicture) ────────────────────────
 
 // ── Listener ────────────────────────────────────────────────────────────────
 

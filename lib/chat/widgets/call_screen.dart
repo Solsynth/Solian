@@ -13,11 +13,10 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
+import 'package:island/chat/widgets/call_invite_sheet.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
-import 'package:island/chat/widgets/chat_member_list_tile.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -217,26 +216,7 @@ class CallScreen extends HookConsumerWidget {
         context: context,
         useSafeArea: true,
         isScrollControlled: true,
-        builder: (ctx) => SheetScaffold(
-          titleText: 'inviteToCall'.tr(),
-          heightFactor: 0.6,
-          child: ListView.separated(
-            itemCount: inviteCandidates.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (_, i) {
-              final m = inviteCandidates[i];
-              return ChatMemberListTile(
-                member: m,
-                trailing: IconButton(
-                  icon: const Icon(Symbols.call),
-                  tooltip: 'inviteToCall'.tr(),
-                  onPressed: () => Navigator.pop(ctx, m),
-                ),
-                onTap: () => Navigator.pop(ctx, m),
-              );
-            },
-          ),
-        ),
+        builder: (ctx) => CallInviteSheet(candidates: inviteCandidates),
       );
       if (target == null) return;
 
