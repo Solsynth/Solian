@@ -407,10 +407,10 @@ class ServerStateNotifier extends Notifier<ServerState> {
 
           addActivity('Activity: ${activity['details'] ?? 'Untitled'}');
           final type = switch (activity['type']) {
-            0 => 1,
-            2 => 2,
-            3 => 2,
-            _ => 1,
+            0 => 'gaming',
+            2 => 'music',
+            3 => 'music',
+            _ => 'gaming',
           };
           final title = activity['name'] ?? activity['assets']?['small_text'];
           final subtitle =
@@ -435,6 +435,9 @@ class ServerStateNotifier extends Notifier<ServerState> {
               'small_image': imageSmall,
               'large_image': imageLarge,
               'meta': activity,
+              'tags': [
+                {'slug': type, 'name': type},
+              ],
               'lease_minutes': kPresenceActivityLease,
             };
 

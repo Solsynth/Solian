@@ -333,10 +333,16 @@ Map<String, dynamic> _$SnEventCalendarEntryToJson(
   'merged_events': instance.mergedEvents?.map((e) => e.toJson()).toList(),
 };
 
+_SnPresenceTag _$SnPresenceTagFromJson(Map<String, dynamic> json) =>
+    _SnPresenceTag(slug: json['slug'] as String, name: json['name'] as String?);
+
+Map<String, dynamic> _$SnPresenceTagToJson(_SnPresenceTag instance) =>
+    <String, dynamic>{'slug': instance.slug, 'name': instance.name};
+
 _SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>
     _SnPresenceActivity(
       id: json['id'] as String,
-      type: (json['type'] as num).toInt(),
+      type: json['type'] as String,
       manualId: json['manual_id'] as String?,
       title: json['title'] as String?,
       subtitle: json['subtitle'] as String?,
@@ -352,6 +358,19 @@ _SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>
       account: json['account'] == null
           ? null
           : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      tags:
+          (json['tags'] as List<dynamic>?)
+              ?.map((e) => SnPresenceTag.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      visibility: presenceVisibilityFromJson(json['visibility']),
+      startedAt: json['started_at'] == null
+          ? null
+          : DateTime.parse(json['started_at'] as String),
+      endedAt: json['ended_at'] == null
+          ? null
+          : DateTime.parse(json['ended_at'] as String),
+      catalogId: json['catalog_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] == null
@@ -376,6 +395,11 @@ Map<String, dynamic> _$SnPresenceActivityToJson(_SnPresenceActivity instance) =>
       'lease_expires_at': instance.leaseExpiresAt.toIso8601String(),
       'account_id': instance.accountId,
       'account': instance.account?.toJson(),
+      'tags': instance.tags.map((e) => e.toJson()).toList(),
+      'visibility': instance.visibility,
+      'started_at': instance.startedAt?.toIso8601String(),
+      'ended_at': instance.endedAt?.toIso8601String(),
+      'catalog_id': instance.catalogId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

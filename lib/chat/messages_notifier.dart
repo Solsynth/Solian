@@ -38,14 +38,50 @@ part 'messages_notifier.g.dart';
 
 enum E2eeRecoveryState { idle, reconnecting, failed }
 
-final referencedChatMessageProvider = FutureProvider.family<
-  LocalChatMessage?,
-  ({String roomId, String messageId})
->((ref, request) {
-  return ref
-      .read(messagesProvider(request.roomId).notifier)
-      .fetchMessageById(request.messageId);
-});
+final referencedChatMessageCacheProvider =
+    NotifierProvider.family<
+      ReferencedChatMessageCache,
+      Map<String, AsyncValue<LocalChatMessage?>>,
+      String
+    >(ReferencedChatMessageCache.new);
+
+class ReferencedChatMessageCache
+    extends Notifier<Map<String, AsyncValue<LocalChatMessage?>>> {
+  final String arg;
+
+  ReferencedChatMessageCache(this.arg);
+
+  @override
+  Map<String, AsyncValue<LocalChatMessage?>> build() => const {};
+
+  Future<void> resolve(String messageId) async {
+    if (state.containsKey(messageId)) return;
+
+    _store(messageId, const AsyncLoading());
+    try {
+      final message = await ref
+          .read(messagesProvider(arg).notifier)
+          .fetchMessageById(messageId);
+      _store(messageId, AsyncData(message));
+    } catch (error, stackTrace) {
+      _store(messageId, AsyncError(error, stackTrace));
+    }
+  }
+
+  void put(LocalChatMessage? message, {required String messageId}) {
+    _store(messageId, AsyncData(message));
+  }
+
+  void _store(String messageId, AsyncValue<LocalChatMessage?> value) {
+    final next = Map<String, AsyncValue<LocalChatMessage?>>.of(state)
+      ..remove(messageId);
+    while (next.length >= PaginationConfig.maxCacheSize) {
+      next.remove(next.keys.first);
+    }
+    next[messageId] = value;
+    state = next;
+  }
+}
 
 const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
 
@@ -663,11 +699,17 @@ class MessagesNotifier extends _$MessagesNotifier {
       e2eeService: _e2eeService,
       onNewMessage: (message, roomSequence) {
         final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        ref
+            .read(referencedChatMessageCacheProvider(roomId).notifier)
+            .put(messageWithSequence, messageId: messageWithSequence.id);
         _observeRoomSequence(roomSequence, message.createdAt);
         _upsertReceivedMessageInState(messageWithSequence);
       },
       onMessageUpdate: (message, roomSequence) {
         final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        ref
+            .read(referencedChatMessageCacheProvider(roomId).notifier)
+            .put(messageWithSequence, messageId: messageWithSequence.id);
         _observeRoomSequence(roomSequence, message.createdAt);
         if (messageWithSequence.status == MessageStatus.sent &&
             messageWithSequence.type != 'placeholder') {
@@ -688,6 +730,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       },
       onMessageDelete: (message, roomSequence) {
         final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        ref
+            .read(referencedChatMessageCacheProvider(roomId).notifier)
+            .put(messageWithSequence, messageId: messageWithSequence.id);
         _observeRoomSequence(roomSequence, message.createdAt);
         final list = [..._currentMessages];
         final index = list.indexWhere((m) => m.id == messageWithSequence.id);

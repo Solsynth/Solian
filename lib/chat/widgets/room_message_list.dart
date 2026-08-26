@@ -84,32 +84,58 @@ List<LocalChatMessage> _buildDisplayMessages(
   List<LocalChatMessage> messages,
   Map<String, _DisplayMessageCacheEntry> cache,
 ) {
+  // A reply that targets a thread root is an in-thread reply (rendered inside
+  // the thread panel). Regular direct replies target ordinary messages and
+  // keep their normal place in the main timeline. Thread roots get a
+  // reply-count hint derived from the loaded replies here so the hint shows
+  // without first opening the thread (the server does not report the count on
+  // the message-list payload).
+  final threadRootIds = <String>{};
+  final replyCounts = <String, int>{};
+  for (final message in messages) {
+    if (message.data['is_thread_root'] == true) {
+      threadRootIds.add(message.id);
+    }
+    final target = message.repliedMessageId;
+    if (target != null) {
+      replyCounts[target] = (replyCounts[target] ?? 0) + 1;
+    }
+  }
+
   final displayMessages = <LocalChatMessage>[];
   final activeKeys = <String>{};
 
   for (final message in messages) {
-    // Thread replies render inside the thread panel, not the main timeline.
-    if (message.repliedMessageId != null) continue;
+    final targetId = message.repliedMessageId;
+    if (targetId != null && threadRootIds.contains(targetId)) continue;
 
     final key = message.clientMessageId ?? message.id;
     activeKeys.add(key);
     final cached = cache[key];
+    LocalChatMessage? transformed;
     if (cached != null &&
         identical(cached.source, message) &&
         cached.status == message.status &&
         identical(cached.localAttachments, message.localAttachments)) {
-      if (cached.display != null) displayMessages.add(cached.display!);
-      continue;
+      transformed = cached.display;
+    } else {
+      transformed = _transformDisplayMessage(message);
+      cache[key] = _DisplayMessageCacheEntry(
+        source: message,
+        display: transformed,
+        status: message.status,
+        localAttachments: message.localAttachments,
+      );
     }
+    if (transformed == null) continue;
 
-    final transformed = _transformDisplayMessage(message);
-    cache[key] = _DisplayMessageCacheEntry(
-      source: message,
-      display: transformed,
-      status: message.status,
-      localAttachments: message.localAttachments,
-    );
-    if (transformed != null) displayMessages.add(transformed);
+    final count = replyCounts[transformed.id];
+    if (count != null &&
+        count > 0 &&
+        transformed.data['is_thread_root'] == true) {
+      transformed.data['thread_replies_count'] = count;
+    }
+    displayMessages.add(transformed);
   }
 
   // Pagination compaction can replace the visible timeline. Drop entries no
@@ -571,7 +597,6 @@ class _StickyGroupAvatar extends StatefulWidget {
 class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
   ScrollPosition? _position;
   bool _framePending = false;
-  double? _avatarOffsetValue;
 
   @override
   void didChangeDependencies() {
@@ -622,21 +647,16 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
     }
   }
 
-  void _handleScroll() => _scheduleLayoutRefresh();
+  void _handleScroll() {
+    if (mounted) setState(() {});
+  }
 
   void _scheduleLayoutRefresh() {
     if (_framePending || !mounted) return;
     _framePending = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _framePending = false;
-      if (!mounted) return;
-
-      final nextOffset = _avatarOffset();
-      final currentOffset = _avatarOffsetValue;
-      if (currentOffset != null && (currentOffset - nextOffset).abs() < 0.5) {
-        return;
-      }
-      setState(() => _avatarOffsetValue = nextOffset);
+      if (mounted) setState(() {});
     });
   }
 
@@ -667,11 +687,13 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
     if (scrollable == null) return baseTop;
 
     final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
-    if (viewportBox == null) return baseTop;
+    if (viewportBox == null || !viewportBox.hasSize) return baseTop;
 
     final double groupTop;
     try {
-      groupTop = groupBox.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+      groupTop =
+          groupBox.localToGlobal(Offset.zero).dy -
+          viewportBox.localToGlobal(Offset.zero).dy;
     } catch (_) {
       return baseTop;
     }
@@ -713,9 +735,6 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
 
   @override
   Widget build(BuildContext context) {
-    final offset = widget.stickyEnabled
-        ? (_avatarOffsetValue ?? _avatarOffset())
-        : _avatarOffset();
-    return _buildAvatar(offset);
+    return _buildAvatar(_avatarOffset());
   }
 }

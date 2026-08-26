@@ -89,7 +89,8 @@ class _ChatThreadSheetState extends ConsumerState<ChatThreadSheet> {
           }
 
           final response = snapshot.data!;
-          final replies = response.replies;
+          final replies = [...response.replies]
+            ..sort((a, b) => a.message.createdAt.compareTo(b.message.createdAt));
 
           return Column(
             children: [

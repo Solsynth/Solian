@@ -601,9 +601,6 @@ class MessageItem extends HookConsumerWidget {
                                 progress: progress,
                                 showAvatar: showAvatar,
                                 onJump: onJump,
-                                onOpenThread: () => onAction?.call(
-                                  MessageItemAction.replyInThread,
-                                ),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -615,9 +612,6 @@ class MessageItem extends HookConsumerWidget {
                                 showColumnAvatar: showColumnAvatar,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
-                                onOpenThread: () => onAction?.call(
-                                  MessageItemAction.replyInThread,
-                                ),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -631,9 +625,6 @@ class MessageItem extends HookConsumerWidget {
                                 isLastInGroup: isLastInGroup,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
-                                onOpenThread: () => onAction?.call(
-                                  MessageItemAction.replyInThread,
-                                ),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -647,6 +638,17 @@ class MessageItem extends HookConsumerWidget {
                               isExpanded: isSystemInfoExpanded.value,
                               submitting: reacting.value,
                               onReact: reactMessage,
+                            ),
+                            ThreadRepliesChip(
+                              roomId: message.roomId,
+                              messageId: message.id,
+                              replyCount: remoteMessage.threadRepliesCount,
+                              rootContent: remoteMessage.content ?? '',
+                              rootSenderName: remoteMessage.sender.account.nick,
+                              onJump: onJump,
+                              onOpenThread: () => onAction?.call(
+                                MessageItemAction.replyInThread,
+                              ),
                             ),
                           ],
                         ),
@@ -1543,7 +1545,6 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
   final bool isLastInGroup;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
-  final VoidCallback? onOpenThread;
   final String? translatedText;
   final bool translating;
 
@@ -1558,7 +1559,6 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     required this.isLastInGroup,
     this.avatarAnchorKey,
     required this.onJump,
-    this.onOpenThread,
     required this.translatedText,
     required this.translating,
   });
@@ -1723,15 +1723,6 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                       textColor: textColor,
                       hasContent: MessageContent.hasContent(remoteMessage),
                     ),
-                    ThreadRepliesChip(
-                      roomId: message.roomId,
-                      messageId: message.id,
-                      replyCount: remoteMessage.threadRepliesCount,
-                      rootContent: remoteMessage.content ?? '',
-                      rootSenderName: remoteMessage.sender.account.nick,
-                      onJump: onJump,
-                      onOpenThread: onOpenThread,
-                    ),
                   ],
                 ),
               ),
@@ -1801,7 +1792,6 @@ class _StickyAvatarMessageRow extends StatefulWidget {
   static const double _size = MessageItemDisplayBubble._avatarSize;
   static const double _contentOffset = MessageItemDisplayBubble._contentOffset;
   static const double _viewportTopMargin = 12;
-  static const Duration _stickDuration = Duration(milliseconds: 70);
 
   final bool showAvatar;
   final Widget avatar;
@@ -1866,11 +1856,18 @@ class _StickyAvatarMessageRowState extends State<_StickyAvatarMessageRow> {
 
     final box = _key.currentContext?.findRenderObject() as RenderBox?;
     final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
-    if (box == null || viewportBox == null || !box.hasSize) return 0;
+    if (box == null ||
+        viewportBox == null ||
+        !box.hasSize ||
+        !viewportBox.hasSize) {
+      return 0;
+    }
 
     final double rowTop;
     try {
-      rowTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+      rowTop =
+          box.localToGlobal(Offset.zero).dy -
+          viewportBox.localToGlobal(Offset.zero).dy;
     } catch (_) {
       return 0;
     }
@@ -1888,7 +1885,6 @@ class _StickyAvatarMessageRowState extends State<_StickyAvatarMessageRow> {
   Widget build(BuildContext context) {
     _updateScrollPosition();
     final offset = widget.showAvatar ? _avatarOffset() : 0.0;
-
     return SizedBox(
       key: _key,
       width: double.infinity,
@@ -1904,22 +1900,13 @@ class _StickyAvatarMessageRowState extends State<_StickyAvatarMessageRow> {
           if (widget.showAvatar)
             Positioned(
               left: 0,
-              top: 0,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(end: offset),
-                duration: MediaQuery.disableAnimationsOf(context)
-                    ? Duration.zero
-                    : _StickyAvatarMessageRow._stickDuration,
-                curve: Curves.easeOutCubic,
-                builder: (context, value, child) =>
-                    Transform.translate(offset: Offset(0, value), child: child),
-                child: SizedBox(
-                  width: _StickyAvatarMessageRow._size,
-                  height: _StickyAvatarMessageRow._size,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: widget.avatar,
-                  ),
+              top: offset,
+              child: SizedBox(
+                width: _StickyAvatarMessageRow._size,
+                height: _StickyAvatarMessageRow._size,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: widget.avatar,
                 ),
               ),
             ),
@@ -1935,7 +1922,6 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
-  final VoidCallback? onOpenThread;
   final String? translatedText;
   final bool translating;
 
@@ -1946,7 +1932,6 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     required this.onJump,
-    this.onOpenThread,
     required this.translatedText,
     required this.translating,
   });
@@ -2089,15 +2074,6 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                               remoteMessage,
                             ),
                           ),
-                          ThreadRepliesChip(
-                            roomId: message.roomId,
-                            messageId: message.id,
-                            replyCount: remoteMessage.threadRepliesCount,
-                            rootContent: remoteMessage.content ?? '',
-                            rootSenderName: remoteMessage.sender.account.nick,
-                            onJump: onJump,
-                            onOpenThread: onOpenThread,
-                          ),
                         ],
                       ),
                     ),
@@ -2134,7 +2110,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
   final bool showColumnAvatar;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
-  final VoidCallback? onOpenThread;
   final String? translatedText;
   final bool translating;
 
@@ -2147,7 +2122,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     required this.showColumnAvatar,
     this.avatarAnchorKey,
     required this.onJump,
-    this.onOpenThread,
     required this.translatedText,
     required this.translating,
   });
@@ -2287,15 +2261,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               remoteMessage,
                             ),
                           ),
-                          ThreadRepliesChip(
-                            roomId: message.roomId,
-                            messageId: message.id,
-                            replyCount: remoteMessage.threadRepliesCount,
-                            rootContent: remoteMessage.content ?? '',
-                            rootSenderName: remoteMessage.sender.account.nick,
-                            onJump: onJump,
-                            onOpenThread: onOpenThread,
-                          ),
                         ],
                       ),
                     ),
@@ -2409,15 +2374,6 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                                 remoteMessage,
                               ),
                             ),
-                            ThreadRepliesChip(
-                              roomId: message.roomId,
-                              messageId: message.id,
-                              replyCount: remoteMessage.threadRepliesCount,
-                              rootContent: remoteMessage.content ?? '',
-                              rootSenderName: remoteMessage.sender.account.nick,
-                              onJump: onJump,
-                              onOpenThread: onOpenThread,
-                            ),
                           ],
                         ),
                       ),
@@ -2492,82 +2448,80 @@ class MessageQuoteWidget extends HookConsumerWidget {
     final quotedMessageId = isReply
         ? message.toRemoteMessage().repliedMessageId!
         : message.toRemoteMessage().forwardedMessageId!;
-    final quotedMessage = ref.watch(
-      referencedChatMessageProvider((
-        roomId: message.roomId,
-        messageId: quotedMessageId,
-      )),
+    final cachedQuote = ref.watch(
+      referencedChatMessageCacheProvider(
+        message.roomId,
+      ).select((cache) => cache[quotedMessageId]),
     );
+    useEffect(() {
+      if (cachedQuote == null) {
+        unawaited(
+          ref
+              .read(referencedChatMessageCacheProvider(message.roomId).notifier)
+              .resolve(quotedMessageId),
+        );
+      }
+      return null;
+    }, [message.roomId, quotedMessageId, cachedQuote]);
 
-    final remoteMessage = quotedMessage.value?.toRemoteMessage();
-    if (remoteMessage != null) {
-      return ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-            child: GestureDetector(
-              onTap: () {
-                final messageId = isReply
-                    ? message.toRemoteMessage().repliedMessageId!
-                    : message.toRemoteMessage().forwardedMessageId!;
-                // Find the nearest MessageItem ancestor and call its onJump method
-                final MessageItem? ancestor = context
-                    .findAncestorWidgetOfExactType<MessageItem>();
-                if (ancestor != null) {
-                  ancestor.onJump(messageId);
-                }
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryFixedDim.withOpacity(0.4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    final remoteMessage = cachedQuote?.value?.toRemoteMessage();
+    if (remoteMessage == null) return const SizedBox.shrink();
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      child: GestureDetector(
+        onTap: () {
+          final ancestor = context.findAncestorWidgetOfExactType<MessageItem>();
+          ancestor?.onJump(quotedMessageId);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+          color: Theme.of(context).colorScheme.primaryFixedDim.withOpacity(0.4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isReply)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
                   children: [
-                    if (isReply)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 4,
-                        children: [
-                          Icon(Symbols.reply, size: 16, color: textColor),
-                          Text(
-                            '${'repliedTo'.tr()} ${remoteMessage.sender.account.nick}',
-                          ).textColor(textColor).bold(),
-                        ],
-                      ).padding(right: 8)
-                    else
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 4,
-                        children: [
-                          Icon(Symbols.forward, size: 16, color: textColor),
-                          Text(
-                            '${'forwarded'.tr()} ${remoteMessage.sender.account.nick}',
-                          ).textColor(textColor).bold(),
-                        ],
-                      ).padding(right: 8),
-                    if (MessageContent.hasContent(remoteMessage))
-                      MessageContent(item: remoteMessage),
-                    if (remoteMessage.attachments.isNotEmpty)
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 180),
-                        child: CloudFileList(
-                          files: remoteMessage.attachments,
-                          maxWidth: 180,
-                          maxHeight: 96,
-                          minWidth: 120,
-                          initiallyCollapsed: false,
-                          heroTagPrefix: 'cloud-file-quote-${message.id}',
-                          padding: const EdgeInsets.only(top: 4),
-                        ),
-                      ),
+                    Icon(Symbols.reply, size: 16, color: textColor),
+                    Text(
+                      '${'repliedTo'.tr()} ${remoteMessage.sender.account.nick}',
+                    ).textColor(textColor).bold(),
                   ],
+                ).padding(right: 8)
+              else
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    Icon(Symbols.forward, size: 16, color: textColor),
+                    Text(
+                      '${'forwarded'.tr()} ${remoteMessage.sender.account.nick}',
+                    ).textColor(textColor).bold(),
+                  ],
+                ).padding(right: 8),
+              if (MessageContent.hasContent(remoteMessage))
+                MessageContent(item: remoteMessage),
+              if (remoteMessage.attachments.isNotEmpty)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 180),
+                  child: CloudFileList(
+                    files: remoteMessage.attachments,
+                    maxWidth: 180,
+                    maxHeight: 96,
+                    minWidth: 120,
+                    initiallyCollapsed: false,
+                    heroTagPrefix: 'cloud-file-quote-${message.id}',
+                    padding: const EdgeInsets.only(top: 4),
+                  ),
                 ),
-              ),
-            ),
-          ).padding(bottom: 4);
-        } else {
-          return SizedBox.shrink();
-        }
+            ],
+          ),
+        ),
+      ),
+    ).padding(bottom: 4);
   }
 }
 

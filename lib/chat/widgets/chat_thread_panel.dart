@@ -245,7 +245,6 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
     return Column(
       children: [
         _ThreadTitleBar(onClose: widget.onClose),
-        const Divider(height: 1),
         Expanded(
           child: FutureBuilder<ThreadReplyListResponse>(
             future: _future,
@@ -278,7 +277,6 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
             },
           ),
         ),
-        const Divider(height: 1),
         _ThreadComposer(
           controller: _controller,
           chatRoom: widget.chatRoom,
@@ -421,6 +419,37 @@ class _ThreadComposer extends StatelessWidget {
   }
 }
 
+/// Builds the thread message list for display: root first, then replies in
+/// chronological (oldest-first) order.
+///
+/// Replies inside a thread are not quoted references — they render as a flat
+/// list — so the `repliedMessageId` (and the resulting reply-preview gap) is
+/// stripped. The root's thread-hint chip is also suppressed because the user
+/// is already inside the thread.
+List<LocalChatMessage> buildThreadDisplayMessages({
+  required SnChatMessage root,
+  required List<ThreadReplyNode> replies,
+}) {
+  final rootLocal = LocalChatMessage.fromRemoteMessage(
+    root,
+    MessageStatus.sent,
+  );
+  // Remove the thread-hint chip from the root's in-thread display copy.
+  final rootData = Map<String, dynamic>.from(rootLocal.data)
+    ..remove('thread_replies_count');
+  final displayRoot = rootLocal.copyWith(data: rootData);
+
+  final repliesOnly = [
+    for (final node in replies)
+      LocalChatMessage.fromRemoteMessage(
+        node.message,
+        MessageStatus.sent,
+      ).copyWith(clearRepliedMessageId: true),
+  ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  return [displayRoot, ...repliesOnly];
+}
+
 /// Renders the thread as a message list using the same [MessageItemWrapper]
 /// as the main timeline: the root message first, then its flattened replies.
 /// Actions (reply, edit, delete, …) route through the room state notifier so
@@ -443,18 +472,7 @@ class _ThreadMessageList extends HookConsumerWidget {
     final chatIdentity = ref.watch(chatRoomIdentityProvider(roomId));
     final stateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
 
-    final rootLocal = LocalChatMessage.fromRemoteMessage(
-      root,
-      MessageStatus.sent,
-    );
-    final replyLocals = [
-      for (final node in replies)
-        LocalChatMessage.fromRemoteMessage(
-          node.message,
-          MessageStatus.sent,
-        ),
-    ];
-    final messages = [rootLocal, ...replyLocals];
+    final messages = buildThreadDisplayMessages(root: root, replies: replies);
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 4),

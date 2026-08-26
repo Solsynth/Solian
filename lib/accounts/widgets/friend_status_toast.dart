@@ -72,9 +72,9 @@ class FriendStatusToast extends HookConsumerWidget {
         event.activities.isNotEmpty) {
       final activity = event.activities.first;
       return switch (activity.type) {
-        1 => Symbols.sports_esports,
-        2 => Symbols.music_note,
-        3 => Symbols.fitness_center,
+        'gaming' => Symbols.sports_esports,
+        'music' => Symbols.music_note,
+        'workout' || 'fitness' => Symbols.fitness_center,
         _ => Symbols.play_arrow,
       };
     }

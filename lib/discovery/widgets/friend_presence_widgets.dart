@@ -39,18 +39,30 @@ Map<String, dynamic> asStringKeyedMap(dynamic value) {
   return const <String, dynamic>{};
 }
 
+/// Normalizes legacy discovery-feed payloads: `type` may arrive as the old int
+/// enum or a PascalCase string; both become the free-form lowercase slug.
 Map<String, dynamic> normalizePresenceActivityJson(Map<String, dynamic> json) {
   final normalized = Map<String, dynamic>.from(json);
   normalized['type'] = switch (normalized['type']) {
-    final int value => value,
     final String value => switch (value) {
-      'Gaming' => 1,
-      'Music' => 2,
-      'Workout' => 3,
-      _ => 0,
+      'Gaming' => 'gaming',
+      'Music' => 'music',
+      'Workout' => 'workout',
+      _ => value.toLowerCase(),
     },
-    final num value => value.toInt(),
-    _ => 0,
+    final int value => switch (value) {
+      1 => 'gaming',
+      2 => 'music',
+      3 => 'workout',
+      _ => 'unknown',
+    },
+    final num value => switch (value.toInt()) {
+      1 => 'gaming',
+      2 => 'music',
+      3 => 'workout',
+      _ => 'unknown',
+    },
+    _ => 'unknown',
   };
   return normalized;
 }
@@ -81,28 +93,29 @@ Map<String, dynamic> normalizeStatusJson(Map<String, dynamic> json) {
   return normalized;
 }
 
-Color _getActivityColor(int type) {
+Color _getActivityColor(String type) {
   switch (type) {
-    case 1:
+    case 'gaming':
       return Colors.purple;
-    case 2:
+    case 'music':
       return Colors.green;
-    case 3:
+    case 'workout':
+    case 'fitness':
       return Colors.orange;
     default:
       return Colors.blue;
   }
 }
 
-String _resolveActivityStatusKey(int type, bool isActive) {
+String _resolveActivityStatusKey(String type, bool isActive) {
   if (!isActive) {
     return switch (type) {
-      1 => 'presenceTypePlayed',
-      2 => 'presenceTypeListened',
-      _ => kPresenceActivityTypes[type],
+      'gaming' => 'presenceTypePlayed',
+      'music' => 'presenceTypeListened',
+      _ => presenceActivityTypeKey(type),
     };
   }
-  return kPresenceActivityTypes[type];
+  return presenceActivityTypeKey(type);
 }
 
 class _SteamHeroImage extends StatelessWidget {
@@ -360,7 +373,7 @@ class FriendPresenceItem extends ConsumerWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              kPresenceActivityIcons[activity.type],
+              presenceActivityIcon(activity.type),
               size: 18,
               color: _getActivityColor(activity.type),
             ),
@@ -377,7 +390,7 @@ class FriendPresenceItem extends ConsumerWidget {
               border: Border.all(color: theme.colorScheme.surface, width: 2),
             ),
             child: Icon(
-              kPresenceActivityIcons[activity.type],
+              presenceActivityIcon(activity.type),
               size: 10,
               color: Colors.white,
             ),

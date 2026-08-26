@@ -939,7 +939,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               activities: [
                 SnPresenceActivity(
                   id: 'activity-1',
-                  type: 1,
+                  type: 'gaming',
                   manualId: 'steam',
                   title: 'Dyson Sphere Program',
                   subtitle: 'Playing Dyson Sphere Program',
@@ -975,7 +975,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               activities: [
                 SnPresenceActivity(
                   id: 'activity-2',
-                  type: 2,
+                  type: 'music',
                   manualId: 'spotify',
                   title: 'Blinding Lights',
                   subtitle: 'The Weeknd - Blinding Lights',
@@ -1715,7 +1715,7 @@ class DebugSheet extends HookConsumerWidget {
                   activities: [
                     SnPresenceActivity(
                       id: 'activity-1',
-                      type: 1,
+                      type: 'gaming',
                       manualId: 'steam',
                       title: 'Dyson Sphere Program',
                       subtitle: 'Playing Dyson Sphere Program',
@@ -1756,7 +1756,7 @@ class DebugSheet extends HookConsumerWidget {
                   activities: [
                     SnPresenceActivity(
                       id: 'activity-2',
-                      type: 2,
+                      type: 'music',
                       manualId: 'spotify',
                       title: 'Blinding Lights',
                       subtitle: 'The Weeknd - Blinding Lights',

@@ -54,19 +54,58 @@ Future<String?> discordAssetsUrl(
   return null;
 }
 
-const kPresenceActivityTypes = [
-  'unknown',
-  'presenceTypeGaming',
-  'presenceTypeMusic',
-  'presenceTypeWorkout',
-];
+/// Localization keys per activity type slug (free-form string type).
+/// Slugs mirror the Solwatch `AppCategory` taxonomy plus the classic set.
+const kPresenceActivityTypes = <String, String>{
+  'gaming': 'presenceTypeGaming',
+  'music': 'presenceTypeMusic',
+  'workout': 'presenceTypeWorkout',
+  'fitness': 'presenceTypeFitness',
+  'coding': 'presenceTypeCoding',
+  'browsing': 'presenceTypeBrowsing',
+  'designing': 'presenceTypeDesigning',
+  'communicating': 'presenceTypeCommunicating',
+  'planning': 'presenceTypePlanning',
+  'writing_docs': 'presenceTypeWritingDocs',
+  'code_reviewing': 'presenceTypeCodeReviewing',
+  'debugging': 'presenceTypeDebugging',
+  'meeting': 'presenceTypeMeeting',
+  'building': 'presenceTypeBuilding',
+  'reading': 'presenceTypeReading',
+  'productivity': 'presenceTypeProductivity',
+  'entertainment': 'presenceTypeEntertainment',
+  'social': 'presenceTypeSocial',
+  'other': 'presenceTypeOther',
+};
 
-const kPresenceActivityIcons = <IconData>[
-  Symbols.question_mark_rounded,
-  Symbols.play_arrow_rounded,
-  Symbols.music_note_rounded,
-  Symbols.running_with_errors,
-];
+/// Icons per activity type slug.
+const kPresenceActivityIcons = <String, IconData>{
+  'gaming': Symbols.sports_esports,
+  'music': Symbols.music_note,
+  'workout': Symbols.running_with_errors,
+  'fitness': Symbols.fitness_center,
+  'coding': Symbols.code,
+  'browsing': Symbols.travel_explore,
+  'designing': Symbols.brush,
+  'communicating': Symbols.chat_bubble,
+  'planning': Symbols.checklist,
+  'writing_docs': Symbols.edit_document,
+  'code_reviewing': Symbols.rule,
+  'debugging': Symbols.bug_report,
+  'meeting': Symbols.groups,
+  'building': Symbols.rocket_launch,
+  'reading': Symbols.menu_book,
+  'productivity': Symbols.task_alt,
+  'entertainment': Symbols.movie,
+  'social': Symbols.groups,
+  'other': Symbols.category,
+};
+
+String presenceActivityTypeKey(String? type) =>
+    kPresenceActivityTypes[type] ?? 'unknown';
+
+IconData presenceActivityIcon(String? type) =>
+    kPresenceActivityIcons[type] ?? Symbols.question_mark_rounded;
 
 class ActivityPresenceWidget extends StatefulWidget {
   final String uname;
@@ -290,11 +329,11 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                           Row(
                             children: [
                               Text(
-                                kPresenceActivityTypes[activity.type],
+                                presenceActivityTypeKey(activity.type),
                                 style: textTheme.labelSmall,
                               ).tr(),
                               Icon(
-                                kPresenceActivityIcons[activity.type],
+                                presenceActivityIcon(activity.type),
                                 size: 15,
                                 fill: 1,
                               ),
@@ -486,11 +525,11 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                                   spacing: 4,
                                   children: [
                                     Text(
-                                      kPresenceActivityTypes[activity.type],
+                                      presenceActivityTypeKey(activity.type),
                                       style: textTheme.bodySmall,
                                     ).tr(),
                                     Icon(
-                                      kPresenceActivityIcons[activity.type],
+                                      presenceActivityIcon(activity.type),
                                       size: 16,
                                       fill: 1,
                                     ),

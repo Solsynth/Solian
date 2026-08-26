@@ -214,11 +214,36 @@ sealed class SnEventCalendarEntry with _$SnEventCalendarEntry {
       _$SnEventCalendarEntryFromJson(json);
 }
 
+/// Server emits `visibility` as the raw `PresenceVisibility` enum int
+/// (0=Unknown, 1=Public, 2=Friends, 3=Private) or, after a future server
+/// change, its string name. Normalize both to a lowercase slug.
+String? presenceVisibilityFromJson(dynamic value) => switch (value) {
+  final String s => s.isEmpty ? null : s.toLowerCase(),
+  final num n => switch (n.toInt()) {
+    1 => 'public',
+    2 => 'friends',
+    3 => 'private',
+    _ => 'unknown',
+  },
+  _ => null,
+};
+
+@freezed
+sealed class SnPresenceTag with _$SnPresenceTag {
+  const factory SnPresenceTag({
+    required String slug,
+    String? name,
+  }) = _SnPresenceTag;
+
+  factory SnPresenceTag.fromJson(Map<String, dynamic> json) =>
+      _$SnPresenceTagFromJson(json);
+}
+
 @freezed
 sealed class SnPresenceActivity with _$SnPresenceActivity {
   const factory SnPresenceActivity({
     required String id,
-    required int type,
+    required String type,
     required String? manualId,
     required String? title,
     required String? subtitle,
@@ -232,6 +257,11 @@ sealed class SnPresenceActivity with _$SnPresenceActivity {
     required DateTime leaseExpiresAt,
     required String accountId,
     SnAccount? account,
+    @Default([]) List<SnPresenceTag> tags,
+    @JsonKey(fromJson: presenceVisibilityFromJson) String? visibility,
+    DateTime? startedAt,
+    DateTime? endedAt,
+    String? catalogId,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

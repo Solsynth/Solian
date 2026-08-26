@@ -51,6 +51,45 @@ class LocalChatMessage {
     this.localAttachments,
   });
 
+  /// Number of direct replies the server attributed to this message as a
+  /// thread root (carried in [data] as `thread_replies_count`).
+  int get threadRepliesCount => _intValue(data['thread_replies_count']);
+
+  /// Returns a copy with a replaced [data] map and/or [repliedMessageId].
+  /// The original instance is never mutated.
+  LocalChatMessage copyWith({
+    Map<String, dynamic>? data,
+    String? repliedMessageId,
+    bool clearRepliedMessageId = false,
+  }) {
+    return LocalChatMessage(
+      id: id,
+      roomId: roomId,
+      senderId: senderId,
+      sender: sender,
+      data: data ?? this.data,
+      createdAt: createdAt,
+      clientMessageId: clientMessageId,
+      nonce: nonce,
+      status: status,
+      content: content,
+      isDeleted: isDeleted,
+      updatedAt: updatedAt,
+      deletedAt: deletedAt,
+      type: type,
+      meta: meta,
+      membersMentioned: membersMentioned,
+      editedAt: editedAt,
+      attachments: attachments,
+      reactions: reactions,
+      repliedMessageId: clearRepliedMessageId
+          ? null
+          : (repliedMessageId ?? this.repliedMessageId),
+      forwardedMessageId: forwardedMessageId,
+      localAttachments: localAttachments,
+    );
+  }
+
   SnChatMessage toRemoteMessage() {
     return SnChatMessage(
       id: id,

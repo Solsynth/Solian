@@ -175,14 +175,20 @@ class AccountTimelineList extends HookConsumerWidget {
         case TimelineFilter.status:
           return item.eventType == 0;
         case TimelineFilter.gaming:
-          return item.eventType == 1 && item.activity?.type == 1;
+          return item.eventType == 1 && item.activity?.type == 'gaming';
         case TimelineFilter.music:
-          return item.eventType == 1 && item.activity?.type == 2;
+          return item.eventType == 1 && item.activity?.type == 'music';
         case TimelineFilter.workout:
-          return item.eventType == 1 && item.activity?.type == 3;
+          return item.eventType == 1 &&
+              (item.activity?.type == 'workout' ||
+                  item.activity?.type == 'fitness');
         case TimelineFilter.other:
           return item.eventType == 1 &&
-              (item.activity == null || item.activity!.type == 0);
+              (item.activity == null ||
+                  (item.activity!.type != 'gaming' &&
+                      item.activity!.type != 'music' &&
+                      item.activity!.type != 'workout' &&
+                      item.activity!.type != 'fitness'));
         default:
           return true;
       }
@@ -727,7 +733,7 @@ class AccountTimelineItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            kPresenceActivityTypes[activity.type],
+                            presenceActivityTypeKey(activity.type),
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: theme.colorScheme.onTertiaryContainer,
                             ),
@@ -789,26 +795,28 @@ class AccountTimelineItem extends ConsumerWidget {
     }
   }
 
-  Color _getActivityColor(int type) {
+  Color _getActivityColor(String type) {
     switch (type) {
-      case 1:
+      case 'gaming':
         return Colors.purple;
-      case 2:
+      case 'music':
         return Colors.green;
-      case 3:
+      case 'workout':
+      case 'fitness':
         return Colors.orange;
       default:
         return Colors.blue;
     }
   }
 
-  IconData _getActivityIcon(int type) {
+  IconData _getActivityIcon(String type) {
     switch (type) {
-      case 1:
+      case 'gaming':
         return Symbols.play_arrow;
-      case 2:
+      case 'music':
         return Symbols.music_note;
-      case 3:
+      case 'workout':
+      case 'fitness':
         return Symbols.fitness_center;
       default:
         return Symbols.category;

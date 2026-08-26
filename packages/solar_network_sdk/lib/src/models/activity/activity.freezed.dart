@@ -3090,9 +3090,269 @@ $SnCheckInResultCopyWith<$Res>? get checkInResult {
 
 
 /// @nodoc
+mixin _$SnPresenceTag {
+
+ String get slug; String? get name;
+/// Create a copy of SnPresenceTag
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPresenceTagCopyWith<SnPresenceTag> get copyWith => _$SnPresenceTagCopyWithImpl<SnPresenceTag>(this as SnPresenceTag, _$identity);
+
+  /// Serializes this SnPresenceTag to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPresenceTag&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,slug,name);
+
+@override
+String toString() {
+  return 'SnPresenceTag(slug: $slug, name: $name)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPresenceTagCopyWith<$Res>  {
+  factory $SnPresenceTagCopyWith(SnPresenceTag value, $Res Function(SnPresenceTag) _then) = _$SnPresenceTagCopyWithImpl;
+@useResult
+$Res call({
+ String slug, String? name
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPresenceTagCopyWithImpl<$Res>
+    implements $SnPresenceTagCopyWith<$Res> {
+  _$SnPresenceTagCopyWithImpl(this._self, this._then);
+
+  final SnPresenceTag _self;
+  final $Res Function(SnPresenceTag) _then;
+
+/// Create a copy of SnPresenceTag
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? slug = null,Object? name = freezed,}) {
+  return _then(SnPresenceTag(
+slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPresenceTag].
+extension SnPresenceTagPatterns on SnPresenceTag {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPresenceTag value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPresenceTag() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPresenceTag value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPresenceTag():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPresenceTag value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPresenceTag() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String slug,  String? name)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPresenceTag() when $default != null:
+return $default(_that.slug,_that.name);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String slug,  String? name)  $default,) {final _that = this;
+switch (_that) {
+case _SnPresenceTag():
+return $default(_that.slug,_that.name);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String slug,  String? name)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPresenceTag() when $default != null:
+return $default(_that.slug,_that.name);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPresenceTag implements SnPresenceTag {
+  const _SnPresenceTag({required this.slug, this.name});
+  factory _SnPresenceTag.fromJson(Map<String, dynamic> json) => _$SnPresenceTagFromJson(json);
+
+@override final  String slug;
+@override final  String? name;
+
+/// Create a copy of SnPresenceTag
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPresenceTagCopyWith<_SnPresenceTag> get copyWith => __$SnPresenceTagCopyWithImpl<_SnPresenceTag>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPresenceTagToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPresenceTag&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,slug,name);
+
+@override
+String toString() {
+  return 'SnPresenceTag(slug: $slug, name: $name)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPresenceTagCopyWith<$Res> implements $SnPresenceTagCopyWith<$Res> {
+  factory _$SnPresenceTagCopyWith(_SnPresenceTag value, $Res Function(_SnPresenceTag) _then) = __$SnPresenceTagCopyWithImpl;
+@override @useResult
+$Res call({
+ String slug, String? name
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPresenceTagCopyWithImpl<$Res>
+    implements _$SnPresenceTagCopyWith<$Res> {
+  __$SnPresenceTagCopyWithImpl(this._self, this._then);
+
+  final _SnPresenceTag _self;
+  final $Res Function(_SnPresenceTag) _then;
+
+/// Create a copy of SnPresenceTag
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? slug = null,Object? name = freezed,}) {
+  return _then(_SnPresenceTag(
+slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnPresenceActivity {
 
- String get id; int get type; String? get manualId; String? get title; String? get subtitle; String? get caption; String? get titleUrl; String? get subtitleUrl; String? get smallImage; String? get largeImage; Map<String, dynamic>? get meta; int get leaseMinutes; DateTime get leaseExpiresAt; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get type; String? get manualId; String? get title; String? get subtitle; String? get caption; String? get titleUrl; String? get subtitleUrl; String? get smallImage; String? get largeImage; Map<String, dynamic>? get meta; int get leaseMinutes; DateTime get leaseExpiresAt; String get accountId; SnAccount? get account; List<SnPresenceTag> get tags;@JsonKey(fromJson: presenceVisibilityFromJson) String? get visibility; DateTime? get startedAt; DateTime? get endedAt; String? get catalogId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnPresenceActivity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3105,16 +3365,16 @@ $SnPresenceActivityCopyWith<SnPresenceActivity> get copyWith => _$SnPresenceActi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPresenceActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.manualId, manualId) || other.manualId == manualId)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.titleUrl, titleUrl) || other.titleUrl == titleUrl)&&(identical(other.subtitleUrl, subtitleUrl) || other.subtitleUrl == subtitleUrl)&&(identical(other.smallImage, smallImage) || other.smallImage == smallImage)&&(identical(other.largeImage, largeImage) || other.largeImage == largeImage)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.leaseMinutes, leaseMinutes) || other.leaseMinutes == leaseMinutes)&&(identical(other.leaseExpiresAt, leaseExpiresAt) || other.leaseExpiresAt == leaseExpiresAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPresenceActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.manualId, manualId) || other.manualId == manualId)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.titleUrl, titleUrl) || other.titleUrl == titleUrl)&&(identical(other.subtitleUrl, subtitleUrl) || other.subtitleUrl == subtitleUrl)&&(identical(other.smallImage, smallImage) || other.smallImage == smallImage)&&(identical(other.largeImage, largeImage) || other.largeImage == largeImage)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.leaseMinutes, leaseMinutes) || other.leaseMinutes == leaseMinutes)&&(identical(other.leaseExpiresAt, leaseExpiresAt) || other.leaseExpiresAt == leaseExpiresAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other.tags, tags)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.catalogId, catalogId) || other.catalogId == catalogId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,manualId,title,subtitle,caption,titleUrl,subtitleUrl,smallImage,largeImage,const DeepCollectionEquality().hash(meta),leaseMinutes,leaseExpiresAt,accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hashAll([runtimeType,id,type,manualId,title,subtitle,caption,titleUrl,subtitleUrl,smallImage,largeImage,const DeepCollectionEquality().hash(meta),leaseMinutes,leaseExpiresAt,accountId,account,const DeepCollectionEquality().hash(tags),visibility,startedAt,endedAt,catalogId,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnPresenceActivity(id: $id, type: $type, manualId: $manualId, title: $title, subtitle: $subtitle, caption: $caption, titleUrl: $titleUrl, subtitleUrl: $subtitleUrl, smallImage: $smallImage, largeImage: $largeImage, meta: $meta, leaseMinutes: $leaseMinutes, leaseExpiresAt: $leaseExpiresAt, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnPresenceActivity(id: $id, type: $type, manualId: $manualId, title: $title, subtitle: $subtitle, caption: $caption, titleUrl: $titleUrl, subtitleUrl: $subtitleUrl, smallImage: $smallImage, largeImage: $largeImage, meta: $meta, leaseMinutes: $leaseMinutes, leaseExpiresAt: $leaseExpiresAt, accountId: $accountId, account: $account, tags: $tags, visibility: $visibility, startedAt: $startedAt, endedAt: $endedAt, catalogId: $catalogId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -3125,7 +3385,7 @@ abstract mixin class $SnPresenceActivityCopyWith<$Res>  {
   factory $SnPresenceActivityCopyWith(SnPresenceActivity value, $Res Function(SnPresenceActivity) _then) = _$SnPresenceActivityCopyWithImpl;
 @useResult
 $Res call({
- String id, int type, String? manualId, String? title, String? subtitle, String? caption, String? titleUrl, String? subtitleUrl, String? smallImage, String? largeImage, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String type, String? manualId, String? title, String? subtitle, String? caption, String? titleUrl, String? subtitleUrl, String? smallImage, String? largeImage, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, SnAccount? account, List<SnPresenceTag> tags,@JsonKey(fromJson: presenceVisibilityFromJson) String? visibility, DateTime? startedAt, DateTime? endedAt, String? catalogId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -3142,11 +3402,11 @@ class _$SnPresenceActivityCopyWithImpl<$Res>
 
 /// Create a copy of SnPresenceActivity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? titleUrl = freezed,Object? subtitleUrl = freezed,Object? smallImage = freezed,Object? largeImage = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? titleUrl = freezed,Object? subtitleUrl = freezed,Object? smallImage = freezed,Object? largeImage = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? account = freezed,Object? tags = null,Object? visibility = freezed,Object? startedAt = freezed,Object? endedAt = freezed,Object? catalogId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(SnPresenceActivity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as int,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
+as String,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
@@ -3159,7 +3419,12 @@ as Map<String, dynamic>?,leaseMinutes: null == leaseMinutes ? _self.leaseMinutes
 as int,leaseExpiresAt: null == leaseExpiresAt ? _self.leaseExpiresAt : leaseExpiresAt // ignore: cast_nullable_to_non_nullable
 as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnAccount?,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as List<SnPresenceTag>,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as String?,startedAt: freezed == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,catalogId: freezed == catalogId ? _self.catalogId : catalogId // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -3256,10 +3521,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String? manualId,  String? title,  String? subtitle,  String? caption,  String? titleUrl,  String? subtitleUrl,  String? smallImage,  String? largeImage,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  String? titleUrl,  String? subtitleUrl,  String? smallImage,  String? largeImage,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  SnAccount? account,  List<SnPresenceTag> tags, @JsonKey(fromJson: presenceVisibilityFromJson)  String? visibility,  DateTime? startedAt,  DateTime? endedAt,  String? catalogId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPresenceActivity() when $default != null:
-return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.titleUrl,_that.subtitleUrl,_that.smallImage,_that.largeImage,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.titleUrl,_that.subtitleUrl,_that.smallImage,_that.largeImage,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.account,_that.tags,_that.visibility,_that.startedAt,_that.endedAt,_that.catalogId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -3277,10 +3542,10 @@ return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String? manualId,  String? title,  String? subtitle,  String? caption,  String? titleUrl,  String? subtitleUrl,  String? smallImage,  String? largeImage,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  String? titleUrl,  String? subtitleUrl,  String? smallImage,  String? largeImage,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  SnAccount? account,  List<SnPresenceTag> tags, @JsonKey(fromJson: presenceVisibilityFromJson)  String? visibility,  DateTime? startedAt,  DateTime? endedAt,  String? catalogId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnPresenceActivity():
-return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.titleUrl,_that.subtitleUrl,_that.smallImage,_that.largeImage,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.titleUrl,_that.subtitleUrl,_that.smallImage,_that.largeImage,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.account,_that.tags,_that.visibility,_that.startedAt,_that.endedAt,_that.catalogId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -3294,10 +3559,10 @@ return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String? manualId,  String? title,  String? subtitle,  String? caption,  String? titleUrl,  String? subtitleUrl,  String? smallImage,  String? largeImage,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String type,  String? manualId,  String? title,  String? subtitle,  String? caption,  String? titleUrl,  String? subtitleUrl,  String? smallImage,  String? largeImage,  Map<String, dynamic>? meta,  int leaseMinutes,  DateTime leaseExpiresAt,  String accountId,  SnAccount? account,  List<SnPresenceTag> tags, @JsonKey(fromJson: presenceVisibilityFromJson)  String? visibility,  DateTime? startedAt,  DateTime? endedAt,  String? catalogId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPresenceActivity() when $default != null:
-return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.titleUrl,_that.subtitleUrl,_that.smallImage,_that.largeImage,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_that.caption,_that.titleUrl,_that.subtitleUrl,_that.smallImage,_that.largeImage,_that.meta,_that.leaseMinutes,_that.leaseExpiresAt,_that.accountId,_that.account,_that.tags,_that.visibility,_that.startedAt,_that.endedAt,_that.catalogId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -3309,11 +3574,11 @@ return $default(_that.id,_that.type,_that.manualId,_that.title,_that.subtitle,_t
 @JsonSerializable()
 
 class _SnPresenceActivity implements SnPresenceActivity {
-  const _SnPresenceActivity({required this.id, required this.type, required this.manualId, required this.title, required this.subtitle, required this.caption, required this.titleUrl, required this.subtitleUrl, required this.smallImage, required this.largeImage, required  Map<String, dynamic>? meta, required this.leaseMinutes, required this.leaseExpiresAt, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnPresenceActivity({required this.id, required this.type, required this.manualId, required this.title, required this.subtitle, required this.caption, required this.titleUrl, required this.subtitleUrl, required this.smallImage, required this.largeImage, required  Map<String, dynamic>? meta, required this.leaseMinutes, required this.leaseExpiresAt, required this.accountId, this.account,  List<SnPresenceTag> tags = const [], @JsonKey(fromJson: presenceVisibilityFromJson) this.visibility, this.startedAt, this.endedAt, this.catalogId, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta,_tags = tags;
   factory _SnPresenceActivity.fromJson(Map<String, dynamic> json) => _$SnPresenceActivityFromJson(json);
 
 @override final  String id;
-@override final  int type;
+@override final  String type;
 @override final  String? manualId;
 @override final  String? title;
 @override final  String? subtitle;
@@ -3335,6 +3600,17 @@ class _SnPresenceActivity implements SnPresenceActivity {
 @override final  DateTime leaseExpiresAt;
 @override final  String accountId;
 @override final  SnAccount? account;
+ final  List<SnPresenceTag> _tags;
+@override@JsonKey() List<SnPresenceTag> get tags {
+  if (_tags is EqualUnmodifiableListView) return _tags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tags);
+}
+
+@override@JsonKey(fromJson: presenceVisibilityFromJson) final  String? visibility;
+@override final  DateTime? startedAt;
+@override final  DateTime? endedAt;
+@override final  String? catalogId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
@@ -3352,16 +3628,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPresenceActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.manualId, manualId) || other.manualId == manualId)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.titleUrl, titleUrl) || other.titleUrl == titleUrl)&&(identical(other.subtitleUrl, subtitleUrl) || other.subtitleUrl == subtitleUrl)&&(identical(other.smallImage, smallImage) || other.smallImage == smallImage)&&(identical(other.largeImage, largeImage) || other.largeImage == largeImage)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.leaseMinutes, leaseMinutes) || other.leaseMinutes == leaseMinutes)&&(identical(other.leaseExpiresAt, leaseExpiresAt) || other.leaseExpiresAt == leaseExpiresAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPresenceActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.manualId, manualId) || other.manualId == manualId)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.titleUrl, titleUrl) || other.titleUrl == titleUrl)&&(identical(other.subtitleUrl, subtitleUrl) || other.subtitleUrl == subtitleUrl)&&(identical(other.smallImage, smallImage) || other.smallImage == smallImage)&&(identical(other.largeImage, largeImage) || other.largeImage == largeImage)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.leaseMinutes, leaseMinutes) || other.leaseMinutes == leaseMinutes)&&(identical(other.leaseExpiresAt, leaseExpiresAt) || other.leaseExpiresAt == leaseExpiresAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&const DeepCollectionEquality().equals(other._tags, _tags)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.catalogId, catalogId) || other.catalogId == catalogId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,manualId,title,subtitle,caption,titleUrl,subtitleUrl,smallImage,largeImage,const DeepCollectionEquality().hash(_meta),leaseMinutes,leaseExpiresAt,accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hashAll([runtimeType,id,type,manualId,title,subtitle,caption,titleUrl,subtitleUrl,smallImage,largeImage,const DeepCollectionEquality().hash(_meta),leaseMinutes,leaseExpiresAt,accountId,account,const DeepCollectionEquality().hash(_tags),visibility,startedAt,endedAt,catalogId,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnPresenceActivity(id: $id, type: $type, manualId: $manualId, title: $title, subtitle: $subtitle, caption: $caption, titleUrl: $titleUrl, subtitleUrl: $subtitleUrl, smallImage: $smallImage, largeImage: $largeImage, meta: $meta, leaseMinutes: $leaseMinutes, leaseExpiresAt: $leaseExpiresAt, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnPresenceActivity(id: $id, type: $type, manualId: $manualId, title: $title, subtitle: $subtitle, caption: $caption, titleUrl: $titleUrl, subtitleUrl: $subtitleUrl, smallImage: $smallImage, largeImage: $largeImage, meta: $meta, leaseMinutes: $leaseMinutes, leaseExpiresAt: $leaseExpiresAt, accountId: $accountId, account: $account, tags: $tags, visibility: $visibility, startedAt: $startedAt, endedAt: $endedAt, catalogId: $catalogId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -3372,7 +3648,7 @@ abstract mixin class _$SnPresenceActivityCopyWith<$Res> implements $SnPresenceAc
   factory _$SnPresenceActivityCopyWith(_SnPresenceActivity value, $Res Function(_SnPresenceActivity) _then) = __$SnPresenceActivityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int type, String? manualId, String? title, String? subtitle, String? caption, String? titleUrl, String? subtitleUrl, String? smallImage, String? largeImage, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String type, String? manualId, String? title, String? subtitle, String? caption, String? titleUrl, String? subtitleUrl, String? smallImage, String? largeImage, Map<String, dynamic>? meta, int leaseMinutes, DateTime leaseExpiresAt, String accountId, SnAccount? account, List<SnPresenceTag> tags,@JsonKey(fromJson: presenceVisibilityFromJson) String? visibility, DateTime? startedAt, DateTime? endedAt, String? catalogId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -3389,11 +3665,11 @@ class __$SnPresenceActivityCopyWithImpl<$Res>
 
 /// Create a copy of SnPresenceActivity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? titleUrl = freezed,Object? subtitleUrl = freezed,Object? smallImage = freezed,Object? largeImage = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? manualId = freezed,Object? title = freezed,Object? subtitle = freezed,Object? caption = freezed,Object? titleUrl = freezed,Object? subtitleUrl = freezed,Object? smallImage = freezed,Object? largeImage = freezed,Object? meta = freezed,Object? leaseMinutes = null,Object? leaseExpiresAt = null,Object? accountId = null,Object? account = freezed,Object? tags = null,Object? visibility = freezed,Object? startedAt = freezed,Object? endedAt = freezed,Object? catalogId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnPresenceActivity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as int,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
+as String,manualId: freezed == manualId ? _self.manualId : manualId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
@@ -3406,7 +3682,12 @@ as Map<String, dynamic>?,leaseMinutes: null == leaseMinutes ? _self.leaseMinutes
 as int,leaseExpiresAt: null == leaseExpiresAt ? _self.leaseExpiresAt : leaseExpiresAt // ignore: cast_nullable_to_non_nullable
 as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
-as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as SnAccount?,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
+as List<SnPresenceTag>,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as String?,startedAt: freezed == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,catalogId: freezed == catalogId ? _self.catalogId : catalogId // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
