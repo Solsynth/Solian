@@ -3167,6 +3167,7 @@
   },
   "repliesLoadMore": "Load more replies",
   "reply": "Reply",
+  "replyInThread": "Reply in thread",
   "replyPage": "Reply Page",
   "requestExpiredIn": "Expired in {}",
   "requestPermission": "Request Permission",
@@ -5447,6 +5448,13 @@
   "storeNameChangeCardTitle": "Name Change Card",
   "storeNameChangeCardDescription": "Rename your account, realm, or publisher for 100 points.",
   "thread": "Thread",
+  "threadRepliesCount": {
+    "zero": "Thread",
+    "one": "{} reply",
+    "other": "{} replies"
+  },
+  "threadNoReplies": "No replies yet. Be the first to reply.",
+  "threadLoadFailed": "Failed to load the thread.",
   "untranslatable": "Too short to translate",
   "walletOrder": "Order",
   "aiConsole": "AI Console",

@@ -5118,5 +5118,13 @@
   "readReceiptsPublicDescription": "メンバーがこの部屋のメッセージをいつ読んだかを他のメンバーが確認できるようにします。",
   "readReceiptsPublicEnabled": "既読表示を有効化",
   "readReceiptsPublicDisabled": "既読表示を無効化",
-  "readUpToHereCount": "{} 人がここまで読みました"
+  "readUpToHereCount": "{} 人がここまで読みました",
+  "threadRepliesCount": {
+    "zero": "スレッド",
+    "one": "{} 件の返信",
+    "other": "{} 件の返信"
+  },
+  "threadNoReplies": "まだ返信がありません。最初に返信してみましょう。",
+  "threadLoadFailed": "スレッドの読み込みに失敗しました。",
+  "replyInThread": "スレッドで返信"
 }

@@ -24,7 +24,9 @@ import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
+import 'package:island/chat/widgets/chat_thread_panel.dart';
 import 'package:island/chat/widgets/pinned_messages_sheet.dart';
+import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -213,6 +215,11 @@ class ChatRoomScreen extends HookConsumerWidget {
         id,
       ).select((state) => state.dismissedLastReadAnchorMessageId),
     );
+    final threadReplyTarget = ref.watch(
+      chatRoomStateProvider(id).select((state) => state.threadReplyTarget),
+    );
+    final showThreadSidebar = useRef(ValueNotifier<bool>(false)).value;
+    final openedThreadTarget = useRef<SnChatMessage?>(null);
     final chatStateNotifier = ref.read(chatRoomStateProvider(id).notifier);
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
     final currentSubscribedChatId = ref.watch(currentSubscribedChatIdProvider);
@@ -421,6 +428,18 @@ class ChatRoomScreen extends HookConsumerWidget {
 
       return null;
     }, [pendingSharePayload]);
+
+    // Open the thread panel when the user picks "Reply in thread".
+    useEffect(() {
+      if (threadReplyTarget == null) return null;
+      openedThreadTarget.value = threadReplyTarget;
+      showThreadSidebar.value = true;
+      // Deferred: modifying a provider during a lifecycle is forbidden.
+      Future.microtask(() {
+        chatStateNotifier.clearThreadReplyTarget();
+      });
+      return null;
+    }, [threadReplyTarget?.id]);
 
     useEffect(() {
       final identity = chatIdentity.value;
@@ -945,6 +964,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, [chatStateNotifier, ref, context, id, chatRoom.value?.encryptionMode]);
 
     final onJump = useCallback((String messageId) {
+      showThreadSidebar.value = false;
       messages.when(
         data: (messageList) {
           chatStateNotifier.scrollToMessage(
@@ -957,7 +977,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         loading: () {},
         error: (_, _) {},
       );
-    }, [messages, chatStateNotifier, messagesNotifier]);
+    }, [messages, chatStateNotifier, messagesNotifier, showThreadSidebar]);
 
     final jumpAndRevealMessage = useCallback(
       (String messageId) => onJump(messageId),
@@ -1031,7 +1051,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final currentRoom = chatRoom.value;
     final currentIdentity = chatIdentity.value;
 
-    return Stack(
+    final mainContent = Stack(
       children: [
         AppScaffold(
           appBar: AppBar(
@@ -1491,6 +1511,25 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+
+    final threadTarget = openedThreadTarget.value;
+    final room = chatRoom.value;
+    final threadSidebarContent = threadTarget != null && room != null
+        ? ChatThreadPanel(
+            roomId: id,
+            chatRoom: room,
+            root: threadTarget,
+            onJump: onJump,
+            onClose: () => showThreadSidebar.value = false,
+          )
+        : null;
+
+    return ResponsiveSidebar(
+      showSidebar: showThreadSidebar,
+      mainContent: mainContent,
+      sidebarContent: threadSidebarContent ?? const SizedBox.shrink(),
+      sidebarWidth: 420,
     );
   }
 }

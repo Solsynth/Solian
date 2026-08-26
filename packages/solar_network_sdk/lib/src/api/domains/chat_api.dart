@@ -138,16 +138,47 @@ class ChatApi extends BaseApi {
   /// [roomId] - The room ID.
   /// [content] - The message content.
   /// [attachments] - Optional attachments.
+  /// [repliedMessageId] - The message this message replies to (quote reply).
+  /// [forwardedMessageId] - The message this message forwards.
+  /// [isThreadRoot] - Whether this reply starts a new thread root.
   Future<SnChatMessage> sendMessage({
     required String roomId,
     required String content,
     List<Map<String, dynamic>>? attachments,
+    String? repliedMessageId,
+    String? forwardedMessageId,
+    bool isThreadRoot = false,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/chat/rooms/$roomId/messages',
-      data: {'content': content, 'attachments': ?attachments},
+      data: {
+        'content': content,
+        'attachments': ?attachments,
+        'replied_message_id': ?repliedMessageId,
+        'forwarded_message_id': ?forwardedMessageId,
+        'is_thread_root': isThreadRoot,
+      },
     );
     return SnChatMessage.fromJson(response.data!);
+  }
+
+  /// Gets the threaded replies of a message.
+  ///
+  /// [roomId] - The room ID.
+  /// [messageId] - The thread-root message ID.
+  /// [offset] - Pagination offset for root replies.
+  /// [take] - Number of root replies to take.
+  Future<ThreadReplyListResponse> getMessageThread({
+    required String roomId,
+    required String messageId,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/chat/rooms/$roomId/messages/$messageId/thread',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+    return ThreadReplyListResponse.fromJson(response.data!);
   }
 
   /// Edits a message.

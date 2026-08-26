@@ -5500,5 +5500,13 @@
   "aiConsoleUnknown": "未知",
   "readReceiptsPublicEnabled": "已读回执已启用",
   "readReceiptsPublicDisabled": "已读回执已停用",
-  "readUpToHereCount": "{} 人读到了这里"
+  "readUpToHereCount": "{} 人读到了这里",
+  "threadRepliesCount": {
+    "zero": "讨论串",
+    "one": "{} 条回复",
+    "other": "{} 条回复"
+  },
+  "threadNoReplies": "还没有回复，来做第一个回复的人吧。",
+  "threadLoadFailed": "加载讨论串失败。",
+  "replyInThread": "在讨论串中回复"
 }

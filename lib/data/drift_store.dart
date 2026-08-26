@@ -300,17 +300,28 @@ class DriftStore {
     String table,
     dynamic values,
   ) async {
-    await _connection.executor.runCustom(
-      'DELETE FROM $table WHERE message_id = ?',
-      [messageId],
-    );
-    if (values is! List) return;
+    // Upsert (rather than delete-then-insert) so concurrent writes of the
+    // same message id (local save racing the realtime MessageNew save)
+    // cannot trip the (message_id, position) UNIQUE constraint.
+    if (values is! List) {
+      await _connection.executor.runCustom(
+        'DELETE FROM $table WHERE message_id = ?',
+        [messageId],
+      );
+      return;
+    }
     for (var index = 0; index < values.length; index++) {
       await _connection.executor.runCustom(
-        'INSERT INTO $table(message_id, position, payload) VALUES (?, ?, ?)',
+        'INSERT INTO $table(message_id, position, payload) VALUES (?, ?, ?) '
+        'ON CONFLICT(message_id, position) DO UPDATE SET payload = excluded.payload',
         [messageId, index, jsonEncode(values[index])],
       );
     }
+    // Drop any leftover rows beyond the current list (positions shrunk).
+    await _connection.executor.runCustom(
+      'DELETE FROM $table WHERE message_id = ? AND position >= ?',
+      [messageId, values.length],
+    );
   }
 
   Future<void> deleteMessage(String id) async {

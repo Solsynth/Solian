@@ -12,6 +12,7 @@ import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/chat/models/redirect_data.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
+import 'package:island/chat/widgets/chat_thread_sheet.dart';
 import 'package:island/chat/widgets/message_bubble_shape.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
@@ -46,6 +47,7 @@ class MessageItemAction {
   static const String edit = "edit";
   static const String delete = "delete";
   static const String reply = "reply";
+  static const String replyInThread = "reply_in_thread";
   static const String forward = "forward";
   static const String resend = "resend";
   static const String redirect = "redirect";
@@ -390,6 +392,12 @@ class MessageItem extends HookConsumerWidget {
                       image: MenuImage.icon(Symbols.reply),
                       callback: () => onAction?.call(MessageItemAction.reply),
                     ),
+                  MenuAction(
+                    title: 'replyInThread'.tr(),
+                    image: MenuImage.icon(Symbols.forum),
+                    callback: () =>
+                        onAction?.call(MessageItemAction.replyInThread),
+                  ),
                   MenuAction(
                     title: 'forward'.tr(),
                     image: MenuImage.icon(Symbols.forward),
@@ -803,6 +811,14 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
         title: Text('reply'.tr()),
         onTap: () {
           widget.onAction!.call(MessageItemAction.reply);
+          Navigator.pop(context);
+        },
+      ),
+      _ActionListTile(
+        leading: const Icon(Symbols.forum),
+        title: Text('replyInThread'.tr()),
+        onTap: () {
+          widget.onAction!.call(MessageItemAction.replyInThread);
           Navigator.pop(context);
         },
       ),
@@ -1696,6 +1712,14 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                       textColor: textColor,
                       hasContent: MessageContent.hasContent(remoteMessage),
                     ),
+                    ThreadRepliesChip(
+                      roomId: message.roomId,
+                      messageId: message.id,
+                      replyCount: remoteMessage.threadRepliesCount,
+                      rootContent: remoteMessage.content ?? '',
+                      rootSenderName: remoteMessage.sender.account.nick,
+                      onJump: onJump,
+                    ),
                   ],
                 ),
               ),
@@ -2051,6 +2075,14 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                               remoteMessage,
                             ),
                           ),
+                          ThreadRepliesChip(
+                            roomId: message.roomId,
+                            messageId: message.id,
+                            replyCount: remoteMessage.threadRepliesCount,
+                            rootContent: remoteMessage.content ?? '',
+                            rootSenderName: remoteMessage.sender.account.nick,
+                            onJump: onJump,
+                          ),
                         ],
                       ),
                     ),
@@ -2238,6 +2270,14 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               remoteMessage,
                             ),
                           ),
+                          ThreadRepliesChip(
+                            roomId: message.roomId,
+                            messageId: message.id,
+                            replyCount: remoteMessage.threadRepliesCount,
+                            rootContent: remoteMessage.content ?? '',
+                            rootSenderName: remoteMessage.sender.account.nick,
+                            onJump: onJump,
+                          ),
                         ],
                       ),
                     ),
@@ -2350,6 +2390,14 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               hasContent: MessageContent.hasContent(
                                 remoteMessage,
                               ),
+                            ),
+                            ThreadRepliesChip(
+                              roomId: message.roomId,
+                              messageId: message.id,
+                              replyCount: remoteMessage.threadRepliesCount,
+                              rootContent: remoteMessage.content ?? '',
+                              rootSenderName: remoteMessage.sender.account.nick,
+                              onJump: onJump,
                             ),
                           ],
                         ),

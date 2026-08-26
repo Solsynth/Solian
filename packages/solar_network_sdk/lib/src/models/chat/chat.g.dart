@@ -160,6 +160,13 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as bool),
           ) ??
           const {},
+      isThreadRoot: json['is_thread_root'] as bool? ?? false,
+      threadRepliesCount: (json['thread_replies_count'] as num?)?.toInt() ?? 0,
+      threadReplies:
+          (json['thread_replies'] as List<dynamic>?)
+              ?.map((e) => ThreadReplyNode.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       repliedMessageId: json['replied_message_id'] as String?,
       forwardedMessageId: json['forwarded_message_id'] as String?,
       senderId: json['sender_id'] as String,
@@ -185,6 +192,9 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'reactions': instance.reactions.map((e) => e.toJson()).toList(),
       'reactions_count': instance.reactionsCount,
       'reactions_made': instance.reactionsMade,
+      'is_thread_root': instance.isThreadRoot,
+      'thread_replies_count': instance.threadRepliesCount,
+      'thread_replies': instance.threadReplies.map((e) => e.toJson()).toList(),
       'replied_message_id': instance.repliedMessageId,
       'forwarded_message_id': instance.forwardedMessageId,
       'sender_id': instance.senderId,
@@ -495,3 +505,33 @@ Map<String, dynamic> _$SnRealtimeCallToJson(_SnRealtimeCall instance) =>
       'provider_name': instance.providerName,
       'session_id': instance.sessionId,
     };
+
+_ThreadReplyNode _$ThreadReplyNodeFromJson(Map<String, dynamic> json) =>
+    _ThreadReplyNode(
+      message: SnChatMessage.fromJson(json['message'] as Map<String, dynamic>),
+      depth: (json['depth'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$ThreadReplyNodeToJson(_ThreadReplyNode instance) =>
+    <String, dynamic>{
+      'message': instance.message.toJson(),
+      'depth': instance.depth,
+    };
+
+_ThreadReplyListResponse _$ThreadReplyListResponseFromJson(
+  Map<String, dynamic> json,
+) => _ThreadReplyListResponse(
+  root: SnChatMessage.fromJson(json['root'] as Map<String, dynamic>),
+  replies:
+      (json['replies'] as List<dynamic>?)
+          ?.map((e) => ThreadReplyNode.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+);
+
+Map<String, dynamic> _$ThreadReplyListResponseToJson(
+  _ThreadReplyListResponse instance,
+) => <String, dynamic>{
+  'root': instance.root.toJson(),
+  'replies': instance.replies.map((e) => e.toJson()).toList(),
+};

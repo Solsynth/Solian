@@ -362,7 +362,13 @@ class MessageSyncService {
   ) {
     // Preserve certain fields from existing message
     final mergedData = Map<String, dynamic>.from(incoming.data);
-    for (final key in const ['sender', 'reactions_count', 'reactions_made']) {
+    for (final key in const [
+      'sender',
+      'reactions_count',
+      'reactions_made',
+      'is_thread_root',
+      'thread_replies_count',
+    ]) {
       if (!mergedData.containsKey(key) && existing.data.containsKey(key)) {
         mergedData[key] = existing.data[key];
       }

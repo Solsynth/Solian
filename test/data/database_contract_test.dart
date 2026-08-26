@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -266,6 +267,64 @@ void main() {
       'persisted-message',
     );
     await reopened.close();
+  });
+
+  test('message thread fields survive the remote-to-local roundtrip', () {
+    final remote = SnChatMessage(
+      id: 'm1',
+      chatRoomId: 'room-1',
+      senderId: 'account-1',
+      sender: SnChatMember(
+        id: 'account-1',
+        chatRoomId: 'room-1',
+        chatRoom: null,
+        accountId: 'account-1',
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+        deletedAt: null,
+        account: account('account-1'),
+        nick: null,
+        notify: 0,
+        joinedAt: null,
+        breakUntil: null,
+        timeoutUntil: null,
+        chatGroupId: null,
+        chatGroup: null,
+        lastReadAt: null,
+        status: null,
+        realmNick: null,
+        realmBio: null,
+        realmExperience: null,
+        realmLevel: null,
+        realmLevelingProgress: null,
+        realmLabel: null,
+      ),
+      type: 'text',
+      content: 'root',
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+      isThreadRoot: true,
+      threadRepliesCount: 3,
+      threadReplies: const [],
+    );
+
+    final local = LocalChatMessage.fromRemoteMessage(
+      remote,
+      MessageStatus.sent,
+    );
+    expect(local.data['is_thread_root'], isTrue);
+    expect(local.data['thread_replies_count'], 3);
+
+    // Thread counters are carried in the persisted `data` payload (same as
+    // reactions), so they survive an encode/decode roundtrip.
+    final dataJson = jsonDecode(local.toDataJson());
+    expect(dataJson['is_thread_root'], isTrue);
+    expect(dataJson['thread_replies_count'], 3);
+
+    // Reconstructing from the persisted data yields the same thread fields.
+    final restored = local.toRemoteMessage();
+    expect(restored.isThreadRoot, isTrue);
+    expect(restored.threadRepliesCount, 3);
   });
 
   test('native adapter deletes all local room data from Drift', () async {

@@ -69,6 +69,8 @@ class LocalChatMessage {
       reactions: reactions.map((e) => SnChatReaction.fromJson(e)).toList(),
       reactionsCount: _intMap(data['reactions_count']),
       reactionsMade: _boolMap(data['reactions_made']),
+      isThreadRoot: data['is_thread_root'] == true,
+      threadRepliesCount: _intValue(data['thread_replies_count']),
       repliedMessageId: repliedMessageId,
       forwardedMessageId: forwardedMessageId,
       createdAt: createdAt,
@@ -88,6 +90,8 @@ class LocalChatMessage {
     jsonData.remove('sender');
     final reactionsCount = jsonData.remove('reactions_count');
     final reactionsMade = jsonData.remove('reactions_made');
+    final isThreadRoot = jsonData.remove('is_thread_root');
+    final threadRepliesCount = jsonData.remove('thread_replies_count');
     if (jsonData['meta'] == null) jsonData['meta'] = <String, dynamic>{};
     if (jsonData['members_mentioned'] == null) {
       jsonData['members_mentioned'] = <String>[];
@@ -98,13 +102,20 @@ class LocalChatMessage {
     if (jsonData['reactions'] == null) {
       jsonData['reactions'] = <Map<String, dynamic>>[];
     }
-    // Copy reactions_count and reactions_made from SnChatMessage to data for easy access
+    // Copy reactions_count, reactions_made and thread counters from
+    // SnChatMessage to data for easy access
     final msgData = <String, dynamic>{};
     if (reactionsCount is Map && reactionsCount.isNotEmpty) {
       msgData['reactions_count'] = reactionsCount;
     }
     if (reactionsMade is Map && reactionsMade.isNotEmpty) {
       msgData['reactions_made'] = reactionsMade;
+    }
+    if (isThreadRoot != null) {
+      msgData['is_thread_root'] = isThreadRoot == true;
+    }
+    if (threadRepliesCount is num) {
+      msgData['thread_replies_count'] = threadRepliesCount.toInt();
     }
     return LocalChatMessage(
       id: message.id,
@@ -168,6 +179,11 @@ class LocalChatMessage {
         value is int ? value : int.tryParse(value.toString()) ?? 0,
       ),
     );
+  }
+
+  static int _intValue(dynamic raw) {
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '') ?? 0;
   }
 
   static Map<String, bool> _boolMap(dynamic raw) {

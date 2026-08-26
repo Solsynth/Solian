@@ -5118,5 +5118,13 @@
   "readReceiptsPublicDescription": "Let members see when others read messages in this room.",
   "readReceiptsPublicEnabled": "Read receipts enabled",
   "readReceiptsPublicDisabled": "Read receipts disabled",
-  "readUpToHereCount": "{} personas leyeron hasta aquí"
+  "readUpToHereCount": "{} personas leyeron hasta aquí",
+  "threadRepliesCount": {
+    "zero": "Hilo",
+    "one": "{} respuesta",
+    "other": "{} respuestas"
+  },
+  "threadNoReplies": "Aún no hay respuestas. Sé el primero en responder.",
+  "threadLoadFailed": "No se pudo cargar el hilo.",
+  "replyInThread": "Responder en el hilo"
 }

@@ -5111,5 +5111,13 @@
   "readReceiptsPublicDescription": "다른 멤버가 이 방의 메시지를 언제 읽었는지 멤버들이 볼 수 있게 합니다.",
   "readReceiptsPublicEnabled": "읽음 표시 활성화",
   "readReceiptsPublicDisabled": "읽음 표시 비활성화",
-  "readUpToHereCount": "{}명이 여기까지 읽음"
+  "readUpToHereCount": "{}명이 여기까지 읽음",
+  "threadRepliesCount": {
+    "zero": "스레드",
+    "one": "답글 {}개",
+    "other": "답글 {}개"
+  },
+  "threadNoReplies": "아직 답글이 없습니다. 첫 답글을 남겨보세요.",
+  "threadLoadFailed": "스레드를 불러오지 못했습니다.",
+  "replyInThread": "스레드에서 답글"
 }

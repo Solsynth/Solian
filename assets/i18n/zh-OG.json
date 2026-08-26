@@ -5086,5 +5086,13 @@
   "readReceiptsPublicDescription": "允許成員看到其他成員何時已讀此聊天室中的消息。",
   "readReceiptsPublicEnabled": "已讀回執已啟用",
   "readReceiptsPublicDisabled": "已讀回執已停用",
-  "readUpToHereCount": "{} 人讀到了這裡"
+  "readUpToHereCount": "{} 人讀到了這裡",
+  "threadRepliesCount": {
+    "zero": "論串",
+    "one": "{} 条回复",
+    "other": "{} 条回复"
+  },
+  "threadNoReplies": "未有回覆，嚟做第一個回覆嘅人。",
+  "threadLoadFailed": "載入論串失敗。",
+  "replyInThread": "喺論串入面回覆"
 }

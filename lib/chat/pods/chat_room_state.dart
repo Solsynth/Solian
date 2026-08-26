@@ -45,6 +45,10 @@ class ChatRoomState {
   // Unified embeds list (surveys, funds, locations, meets, calendar events)
   final List<Map<String, dynamic>> embeds;
 
+  // One-shot signal: the message to open a thread sheet on (with a composer
+  // targeting it). Consumed by the room screen; cleared after opening.
+  final SnChatMessage? threadReplyTarget;
+
   // Scroll state (not persisted - fresh on each navigation)
   final bool isScrollingToMessage;
   final MessageLoadGap? messageLoadGap;
@@ -63,6 +67,7 @@ class ChatRoomState {
     this.messageReplyingTo,
     this.messageForwardingTo,
     this.embeds = const [],
+    this.threadReplyTarget,
     this.isScrollingToMessage = false,
     this.messageLoadGap,
     required this.roomOpenTime,
@@ -79,6 +84,7 @@ class ChatRoomState {
     SnChatMessage? messageReplyingTo,
     SnChatMessage? messageForwardingTo,
     List<Map<String, dynamic>>? embeds,
+    SnChatMessage? threadReplyTarget,
     bool? isScrollingToMessage,
     MessageLoadGap? messageLoadGap,
     DateTime? roomOpenTime,
@@ -88,6 +94,7 @@ class ChatRoomState {
     bool clearReplyingTo = false,
     bool clearForwardingTo = false,
     bool clearEmbeds = false,
+    bool clearThreadReplyTarget = false,
     bool clearLastReadAnchor = false,
     bool clearDismissedLastReadAnchor = false,
     bool clearMessageLoadGap = false,
@@ -107,6 +114,9 @@ class ChatRoomState {
           ? null
           : (messageForwardingTo ?? this.messageForwardingTo),
       embeds: clearEmbeds ? [] : (embeds ?? this.embeds),
+      threadReplyTarget: clearThreadReplyTarget
+          ? null
+          : (threadReplyTarget ?? this.threadReplyTarget),
       isScrollingToMessage: isScrollingToMessage ?? this.isScrollingToMessage,
       messageLoadGap: clearMessageLoadGap
           ? null
@@ -355,6 +365,10 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     );
   }
 
+  void clearThreadReplyTarget() {
+    state = state.copyWith(clearThreadReplyTarget: true);
+  }
+
   void setForwardingTo(SnChatMessage? message) {
     state = state.copyWith(
       messageForwardingTo: message,
@@ -431,6 +445,8 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
         setForwardingTo(message.toRemoteMessage());
       case 'reply':
         setReplyingTo(message.toRemoteMessage());
+      case 'reply_in_thread':
+        state = state.copyWith(threadReplyTarget: message.toRemoteMessage());
       case 'resend':
         notifier.retryMessage(message.id);
       case 'redirect':

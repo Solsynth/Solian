@@ -93,6 +93,9 @@ sealed class SnChatMessage with _$SnChatMessage {
     @JsonKey(name: 'reactions_made')
     @Default({})
     Map<String, bool> reactionsMade,
+    @JsonKey(name: 'is_thread_root') @Default(false) bool isThreadRoot,
+    @JsonKey(name: 'thread_replies_count') @Default(0) int threadRepliesCount,
+    @JsonKey(name: 'thread_replies') @Default([]) List<ThreadReplyNode> threadReplies,
     String? repliedMessageId,
     String? forwardedMessageId,
     required String senderId,
@@ -279,4 +282,26 @@ sealed class SnRealtimeCall with _$SnRealtimeCall {
 
   factory SnRealtimeCall.fromJson(Map<String, dynamic> json) =>
       _$SnRealtimeCallFromJson(json);
+}
+
+@freezed
+sealed class ThreadReplyNode with _$ThreadReplyNode {
+  const factory ThreadReplyNode({
+    required SnChatMessage message,
+    required int depth,
+  }) = _ThreadReplyNode;
+
+  factory ThreadReplyNode.fromJson(Map<String, dynamic> json) =>
+      _$ThreadReplyNodeFromJson(json);
+}
+
+@freezed
+sealed class ThreadReplyListResponse with _$ThreadReplyListResponse {
+  const factory ThreadReplyListResponse({
+    required SnChatMessage root,
+    @Default([]) List<ThreadReplyNode> replies,
+  }) = _ThreadReplyListResponse;
+
+  factory ThreadReplyListResponse.fromJson(Map<String, dynamic> json) =>
+      _$ThreadReplyListResponseFromJson(json);
 }
