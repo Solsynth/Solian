@@ -38,6 +38,15 @@ part 'messages_notifier.g.dart';
 
 enum E2eeRecoveryState { idle, reconnecting, failed }
 
+final referencedChatMessageProvider = FutureProvider.family<
+  LocalChatMessage?,
+  ({String roomId, String messageId})
+>((ref, request) {
+  return ref
+      .read(messagesProvider(request.roomId).notifier)
+      .fetchMessageById(request.messageId);
+});
+
 const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
 
 @riverpod

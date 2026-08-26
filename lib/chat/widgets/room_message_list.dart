@@ -88,6 +88,9 @@ List<LocalChatMessage> _buildDisplayMessages(
   final activeKeys = <String>{};
 
   for (final message in messages) {
+    // Thread replies render inside the thread panel, not the main timeline.
+    if (message.repliedMessageId != null) continue;
+
     final key = message.clientMessageId ?? message.id;
     activeKeys.add(key);
     final cached = cache[key];

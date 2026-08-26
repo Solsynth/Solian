@@ -601,8 +601,9 @@ class MessageItem extends HookConsumerWidget {
                                 progress: progress,
                                 showAvatar: showAvatar,
                                 onJump: onJump,
-                                onOpenThread: () =>
-                                    onAction?.call(MessageItemAction.replyInThread),
+                                onOpenThread: () => onAction?.call(
+                                  MessageItemAction.replyInThread,
+                                ),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -614,8 +615,9 @@ class MessageItem extends HookConsumerWidget {
                                 showColumnAvatar: showColumnAvatar,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
-                                onOpenThread: () =>
-                                    onAction?.call(MessageItemAction.replyInThread),
+                                onOpenThread: () => onAction?.call(
+                                  MessageItemAction.replyInThread,
+                                ),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -629,8 +631,9 @@ class MessageItem extends HookConsumerWidget {
                                 isLastInGroup: isLastInGroup,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
-                                onOpenThread: () =>
-                                    onAction?.call(MessageItemAction.replyInThread),
+                                onOpenThread: () => onAction?.call(
+                                  MessageItemAction.replyInThread,
+                                ),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -2486,23 +2489,19 @@ class MessageQuoteWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messagesNotifier = ref.watch(
-      messagesProvider(message.roomId).notifier,
+    final quotedMessageId = isReply
+        ? message.toRemoteMessage().repliedMessageId!
+        : message.toRemoteMessage().forwardedMessageId!;
+    final quotedMessage = ref.watch(
+      referencedChatMessageProvider((
+        roomId: message.roomId,
+        messageId: quotedMessageId,
+      )),
     );
 
-    return FutureBuilder<LocalChatMessage?>(
-      future: messagesNotifier.fetchMessageById(
-        isReply
-            ? message.toRemoteMessage().repliedMessageId!
-            : message.toRemoteMessage().forwardedMessageId!,
-      ),
-      builder: (context, snapshot) {
-        final remoteMessage = snapshot.hasData
-            ? snapshot.data!.toRemoteMessage()
-            : null;
-
-        if (remoteMessage != null) {
-          return ClipRRect(
+    final remoteMessage = quotedMessage.value?.toRemoteMessage();
+    if (remoteMessage != null) {
+      return ClipRRect(
             borderRadius: BorderRadius.all(Radius.circular(8)),
             child: GestureDetector(
               onTap: () {
@@ -2569,8 +2568,6 @@ class MessageQuoteWidget extends HookConsumerWidget {
         } else {
           return SizedBox.shrink();
         }
-      },
-    );
   }
 }
 
