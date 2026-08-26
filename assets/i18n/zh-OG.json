@@ -5085,5 +5085,6 @@
   "readReceiptsPublic": "已讀回執",
   "readReceiptsPublicDescription": "允許成員看到其他成員何時已讀此聊天室中的消息。",
   "readReceiptsPublicEnabled": "已讀回執已啟用",
-  "readReceiptsPublicDisabled": "已讀回執已停用"
+  "readReceiptsPublicDisabled": "已讀回執已停用",
+  "readUpToHereCount": "{} 人讀到了這裡"
 }

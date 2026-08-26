@@ -5117,5 +5117,6 @@
   "readReceiptsPublic": "Read receipts",
   "readReceiptsPublicDescription": "Let members see when others read messages in this room.",
   "readReceiptsPublicEnabled": "Read receipts enabled",
-  "readReceiptsPublicDisabled": "Read receipts disabled"
+  "readReceiptsPublicDisabled": "Read receipts disabled",
+  "readUpToHereCount": "{} personas leyeron hasta aquí"
 }

@@ -5499,5 +5499,6 @@
   "aiConsoleEmpty": "这里还什么都没有。",
   "aiConsoleUnknown": "未知",
   "readReceiptsPublicEnabled": "已读回执已启用",
-  "readReceiptsPublicDisabled": "已读回执已停用"
+  "readReceiptsPublicDisabled": "已读回执已停用",
+  "readUpToHereCount": "{} 人读到了这里"
 }

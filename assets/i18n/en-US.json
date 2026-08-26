@@ -3937,7 +3937,6 @@
   "transactions": "Transactions",
   "noTransactions": "No transactions yet",
   "noTransactionsHint": "Transfers, payments and fund payouts will appear here.",
-
   "transfer": "Transfer",
   "transferAmount": "Transfer Amount",
   "transferCreatedSuccessfully": "Transfer created successfully!",
@@ -5489,5 +5488,6 @@
   "aiConsoleCredentialTokenBody": "Copy this token now. It will not be shown again.",
   "aiConsoleCredentialCopyToken": "Copy token",
   "aiConsoleEmpty": "Nothing here yet.",
-  "aiConsoleUnknown": "Unknown"
+  "aiConsoleUnknown": "Unknown",
+  "readUpToHereCount": "{} people read up to here"
 }

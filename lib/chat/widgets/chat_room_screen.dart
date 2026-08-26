@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_foreground_rooms.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -686,6 +687,32 @@ class ChatRoomScreen extends HookConsumerWidget {
       });
       return sub.cancel;
     }, [id]);
+
+    // Optimistically update own read marker so read-receipt avatars move
+    // immediately when the user is viewing the latest messages.
+    useEffect(() {
+      final list = messages.asData?.value;
+      if (list == null || list.isEmpty) return null;
+
+      final atBottom =
+          scrollControllerRef.value.hasClients &&
+          scrollControllerRef.value.positions.isNotEmpty &&
+          scrollControllerRef.value.position.pixels <= 80;
+      if (!atBottom) return null;
+
+      // The list is newest-first (reverse: true), so the chronologically
+      // latest message is at index 0.
+      final latestMsg = list.first;
+      final currentUserId = ref.read(userInfoProvider).value?.id;
+      if (currentUserId == null) return null;
+
+      Future.microtask(() async {
+        if (!context.mounted) return;
+        await markRoomRead(ref, id, currentUserId, latestMsg.createdAt);
+      });
+
+      return null;
+    }, [messages.asData?.value.length]);
 
     // Auto-hide back-to-bottom button after idle period.
     useEffect(() {

@@ -5117,5 +5117,6 @@
   "readReceiptsPublic": "既読表示",
   "readReceiptsPublicDescription": "メンバーがこの部屋のメッセージをいつ読んだかを他のメンバーが確認できるようにします。",
   "readReceiptsPublicEnabled": "既読表示を有効化",
-  "readReceiptsPublicDisabled": "既読表示を無効化"
+  "readReceiptsPublicDisabled": "既読表示を無効化",
+  "readUpToHereCount": "{} 人がここまで読みました"
 }
