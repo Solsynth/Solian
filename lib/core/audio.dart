@@ -91,33 +91,37 @@ void playMessageSfxRef(Ref ref) {
   _playSfx('assets/audio/messages.wav', 0.75);
 }
 
-Future<void> playCallInvitedSfxLoop(WidgetRef ref) async {
+/// Plays the incoming-call ringtone exactly once.
+///
+/// Fire-and-forget: the caller must NOT await this before presenting UI.
+/// On iOS the play() future can hang indefinitely while a CallKit session
+/// owns the audio session, and under LoopMode.one it never completes until
+/// the player is stopped — both would block the incoming-call sheet.
+void playCallInvitedSfx(WidgetRef ref) {
   final settings = ref.read(appSettingsProvider);
   if (!settings.soundEffects || (!kIsWeb && Platform.isIOS)) return;
 
   final player = ref.read(callInviteLoopPlayerProvider);
-  try {
-    await player.stop();
-    await player.setVolume(0.75);
-    await player.setLoopMode(LoopMode.one);
-    await player.setAudioSource(
-      AudioSource.asset('assets/audio/call_invited.wav'),
-    );
-    // Schedule the auto-stop BEFORE awaiting play(): play() only completes
-    // when the player is stopped, so scheduling it afterwards would never
-    // run and the loop would ring forever.
-    Future.delayed(const Duration(minutes: 1), () {
-      unawaited(stopCallInvitedSfxLoop(ref));
-    });
-    await player.play();
-  } on PlayerInterruptedException catch (_) {
-    await player.stop();
-  } on PlayerException catch (e) {
-    if (e.code != -11849) rethrow;
-  }
+  unawaited(() async {
+    try {
+      await player.stop();
+      await player.setVolume(0.75);
+      // Default LoopMode.off: the ringtone plays once and completes.
+      await player.setAudioSource(
+        AudioSource.asset('assets/audio/call_invited.wav'),
+      );
+      await player.play();
+    } on PlayerInterruptedException catch (_) {
+      // Another ringtone started (or the sheet closed) — stop is handled
+      // by the caller.
+      await player.stop();
+    } on PlayerException catch (e) {
+      if (e.code != -11849) rethrow;
+    }
+  }());
 }
 
-Future<void> stopCallInvitedSfxLoop(WidgetRef ref) async {
+Future<void> stopCallInvitedSfx(WidgetRef ref) async {
   final player = ref.read(callInviteLoopPlayerProvider);
   try {
     await player.stop();

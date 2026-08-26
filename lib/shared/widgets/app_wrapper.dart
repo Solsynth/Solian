@@ -284,7 +284,7 @@ class AppWrapper extends HookConsumerWidget {
         bool shouldRecordInvite = false;
         bool shouldJoin = false;
         try {
-          await playCallInvitedSfxLoop(ref);
+          playCallInvitedSfx(ref);
           if (!modalContext.mounted) return;
 
           shouldJoin =
@@ -309,7 +309,7 @@ class AppWrapper extends HookConsumerWidget {
           );
         } finally {
           activeInviteKey.value = null;
-          await stopCallInvitedSfxLoop(ref);
+          await stopCallInvitedSfx(ref);
         }
 
         final now = DateTime.now();
