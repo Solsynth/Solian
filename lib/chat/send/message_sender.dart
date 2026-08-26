@@ -223,11 +223,6 @@ class MessageSender {
         attachments: attachments,
         pendingMessageId: pending.id,
         onProgress: (messageId, progress) {
-          final overallProgress = _calculateOverallProgress(
-            attachments.length,
-            progress,
-          );
-          updatePlaceholder(messageId, progress: overallProgress);
           onProgress?.call(messageId, progress);
         },
       );
@@ -668,18 +663,6 @@ class MessageSender {
     return true;
   }
 
-  double _calculateOverallProgress(
-    int attachmentCount,
-    Map<int, double?> progressByAttachment,
-  ) {
-    if (attachmentCount <= 0) return 0;
-    var total = 0.0;
-    for (var i = 0; i < attachmentCount; i++) {
-      total += progressByAttachment[i] ?? 0.0;
-    }
-    return (total / attachmentCount).clamp(0.0, 1.0);
-  }
-
   Future<
     ({Map<String, dynamic> payload, Map<String, dynamic>? plaintextEnvelope})
   >
@@ -923,31 +906,6 @@ class MessageSender {
       _logger.warning('Failed to create placeholder: $e');
       return null;
     }
-  }
-
-  /// Sends a placeholder update via WebSocket.
-  ///
-  /// [messageId] - The placeholder message ID.
-  /// [contentChunk] - Text to append (streaming kind).
-  /// [progress] - Upload progress 0.0–1.0 (uploading kind).
-  void updatePlaceholder(
-    String messageId, {
-    String? contentChunk,
-    double? progress,
-  }) {
-    final wsState = _ref.read(websocketStateProvider.notifier);
-
-    final packet = WebSocketPacket(
-      type: 'messages.placeholder.update',
-      endpoint: 'DysonNetwork.Messager',
-      data: {
-        'message_id': messageId,
-        'content_chunk': ?contentChunk,
-        'progress': ?progress,
-      },
-    );
-
-    wsState.sendMessage(jsonEncode(packet));
   }
 
   /// Finalizes a placeholder, converting it to a real message.

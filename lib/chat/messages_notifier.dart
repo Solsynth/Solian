@@ -697,6 +697,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
     StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
     StreamSubscription<MlsRecoveryFailedEvent>? e2eeFailedSub;
+    StreamSubscription<ChatTypingEvent>? typingProgressSub;
     var disposed = false;
 
     ref.onDispose(() {
@@ -709,6 +710,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
+      typingProgressSub?.cancel();
       _messageCache.clear();
       _messageCache.clearPendingFetches();
       _pendingCache.clear();
@@ -893,6 +895,20 @@ class MessagesNotifier extends _$MessagesNotifier {
       Logger.root.info(
         'Inserted system message for history unavailable in room $chatRoomId',
       );
+    });
+
+    // Listen for upload progress via typing indicator events.
+    // When another user is uploading, their progress arrives as a typing
+    // event with type='uploading'. We update the sender's active placeholder
+    // so its LinearProgressIndicator reflects real-time progress without
+    // round-tripping through the server's DB.
+    typingProgressSub = eventBus.on<ChatTypingEvent>().listen((event) {
+      if (event.roomId != roomId) return;
+      if (event.activityType != 'uploading') return;
+      if (event.sender.id == _identity?.id) return;
+      final progress = event.progress;
+      if (progress == null) return;
+      updatePlaceholderProgressBySender(event.sender.id, progress);
     });
 
     ref.listen<String>(
@@ -1197,6 +1213,35 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     _emitMessages([replacement, ...updated]);
+  }
+
+  /// Updates the placeholder_progress meta on a pending placeholder message
+  /// in the local timeline. Used by the sender to show upload progress without
+  /// round-tripping through the server.
+  void updatePendingMessageProgress(String messageId, double progress) {
+    final pending = _pendingMessages[messageId];
+    if (pending == null) return;
+    if (pending.type != 'placeholder') return;
+
+    pending.meta['placeholder_progress'] = progress;
+    _replaceMessage(messageId, pending);
+  }
+
+  /// Finds the active placeholder for a given sender and updates its progress.
+  /// Used by receivers when upload progress arrives via the typing indicator.
+  void updatePlaceholderProgressBySender(String senderId, double progress) {
+    final placeholder = _currentMessages.cast<LocalChatMessage?>().firstWhere(
+      (m) =>
+          m != null &&
+          m.type == 'placeholder' &&
+          m.senderId == senderId &&
+          m.meta['placeholder_kind'] == 'uploading',
+      orElse: () => null,
+    );
+    if (placeholder == null) return;
+
+    placeholder.meta['placeholder_progress'] = progress;
+    _replaceMessage(placeholder.id, placeholder);
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({

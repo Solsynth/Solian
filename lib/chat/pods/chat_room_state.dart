@@ -474,6 +474,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
         );
         updateAttachmentProgress(messageId, overallProgress);
         subscribeNotifier.sendUploadingStatus(overallProgress);
+        notifier.updatePendingMessageProgress(messageId, overallProgress);
       },
     );
 

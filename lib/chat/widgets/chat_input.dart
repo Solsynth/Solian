@@ -318,10 +318,12 @@ class _ChatActivityIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final grouped = <String, List<ChatActivityStatus>>{};
     for (final activity in activities) {
+      // Upload progress is shown on the placeholder message bubble, not here
+      if (activity.activityType == 'uploading') continue;
       grouped.putIfAbsent(activity.activityType, () => []).add(activity);
     }
 
-    const order = ['typing', 'speaking', 'uploading'];
+    const order = ['typing', 'speaking'];
     final entries = grouped.entries.toList()
       ..sort((a, b) {
         final aIndex = order.indexOf(a.key);
@@ -366,11 +368,6 @@ class _ChatActivityLine extends StatelessWidget {
     final names = activities.map((x) => x.senderName).join(', ');
     final verb = activities.length > 1 ? 'are' : 'is';
     switch (activityType) {
-      case 'uploading':
-        final progress = activities
-            .map((x) => x.progress ?? 0.0)
-            .fold<double>(0.0, (max, value) => value > max ? value : max);
-        return '$names $verb uploading files (${(progress * 100).toStringAsFixed(1)}%)';
       case 'speaking':
         return '$names $verb speaking';
       case 'typing':
@@ -382,13 +379,12 @@ class _ChatActivityLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isUploading = activityType == 'uploading';
 
     return Row(
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 2, right: 8),
-          child: _TypingIndicatorDots(isUploading: isUploading),
+          child: _TypingIndicatorDots(isUploading: false),
         ),
         Expanded(
           child: Text(
@@ -397,10 +393,8 @@ class _ChatActivityLine extends StatelessWidget {
             softWrap: false,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isUploading
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: isUploading ? FontWeight.w600 : FontWeight.w500,
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
