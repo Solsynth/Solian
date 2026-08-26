@@ -5,14 +5,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gap/gap.dart';
 import 'package:island/chat/messages_notifier.dart';
+import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/widgets/chat_input.dart';
 import 'package:island/chat/widgets/chat_link_attachments.dart';
-import 'package:island/chat/widgets/chat_thread_sheet.dart';
+import 'package:island/chat/widgets/message_item_wrapper.dart';
 import 'package:island/core/network.dart';
+import 'package:island/data/message.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/attachment_uploader.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Sidebar/sheet content for viewing a message thread and replying inside it.
@@ -242,10 +244,7 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _ThreadPanelHeader(
-          root: widget.root,
-          onClose: widget.onClose,
-        ),
+        _ThreadTitleBar(onClose: widget.onClose),
         const Divider(height: 1),
         Expanded(
           child: FutureBuilder<ThreadReplyListResponse>(
@@ -270,24 +269,11 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
                 );
               }
 
-              final replies = snapshot.data!.replies;
-              if (replies.isEmpty) {
-                return Center(
-                  child: Text('threadNoReplies'.tr()).textColor(
-                    Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                itemCount: replies.length,
-                itemBuilder: (context, index) {
-                  final node = replies[index];
-                  return ThreadReplyTile(
-                    node: node,
-                    onJump: widget.onJump,
-                  );
-                },
+              return _ThreadMessageList(
+                roomId: widget.roomId,
+                root: snapshot.data!.root,
+                replies: snapshot.data!.replies,
+                onJump: widget.onJump,
               );
             },
           ),
@@ -328,16 +314,15 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
   }
 }
 
-class _ThreadPanelHeader extends StatelessWidget {
-  final SnChatMessage root;
+class _ThreadTitleBar extends StatelessWidget {
   final VoidCallback? onClose;
 
-  const _ThreadPanelHeader({required this.root, this.onClose});
+  const _ThreadTitleBar({this.onClose});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
       child: Row(
         children: [
           Icon(
@@ -347,24 +332,11 @@ class _ThreadPanelHeader extends StatelessWidget {
           ),
           const Gap(8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  root.sender.account.nick,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const Gap(2),
-                Text(
-                  root.content ?? '',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
+            child: Text(
+              'thread'.tr(),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
           if (onClose != null)
@@ -445,6 +417,67 @@ class _ThreadComposer extends StatelessWidget {
       embeds: const [],
       onEmbedsChanged: (_) {},
       isMessageListScrolling: false,
+    );
+  }
+}
+
+/// Renders the thread as a message list using the same [MessageItemWrapper]
+/// as the main timeline: the root message first, then its flattened replies.
+/// Actions (reply, edit, delete, …) route through the room state notifier so
+/// they behave exactly like the main list.
+class _ThreadMessageList extends HookConsumerWidget {
+  final String roomId;
+  final SnChatMessage root;
+  final List<ThreadReplyNode> replies;
+  final void Function(String messageId) onJump;
+
+  const _ThreadMessageList({
+    required this.roomId,
+    required this.root,
+    required this.replies,
+    required this.onJump,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatIdentity = ref.watch(chatRoomIdentityProvider(roomId));
+    final stateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
+
+    final rootLocal = LocalChatMessage.fromRemoteMessage(
+      root,
+      MessageStatus.sent,
+    );
+    final replyLocals = [
+      for (final node in replies)
+        LocalChatMessage.fromRemoteMessage(
+          node.message,
+          MessageStatus.sent,
+        ),
+    ];
+    final messages = [rootLocal, ...replyLocals];
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final message = messages[index];
+        return MessageItemWrapper(
+          message: message,
+          index: index,
+          roomId: roomId,
+          isFirstInGroup: index == 0,
+          isLastInGroup: index == messages.length - 1,
+          chatIdentity: chatIdentity,
+          toggleSelectionMode: () {},
+          toggleMessageSelection: (_) {},
+          onMessageAction: (action, msg) {
+            stateNotifier.onMessageAction(action, msg);
+          },
+          onJump: onJump,
+          disableAnimation: true,
+          roomOpenTime: DateTime.fromMillisecondsSinceEpoch(0),
+        );
+      },
     );
   }
 }
