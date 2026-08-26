@@ -81,19 +81,19 @@ Future<T> _withSerializedLocalMediaProbe<T>(
     }
   });
 }
- class _ClientMediaUpload {
-   final Map<String, dynamic> analysis;
-   final Uint8List? thumbnail;
-   final Uint8List? compression;
+class _ClientMediaUpload {
+  final Map<String, dynamic> analysis;
+  final Uint8List? thumbnail;
+  final Uint8List? compression;
   final String? compressionMimeType;
 
-   const _ClientMediaUpload({
-     required this.analysis,
-     this.thumbnail,
-     this.compression,
+  const _ClientMediaUpload({
+    required this.analysis,
+    this.thumbnail,
+    this.compression,
     this.compressionMimeType,
-   });
- }
+  });
+}
 String? _encodeBlurHashFromImage(img.Image image) {
   try {
     final maxEdge = max(image.width, image.height);
@@ -1419,6 +1419,7 @@ class FileUploader {
             'want_compression':
                 clientMedia?.compression != null &&
                 !contentType.toLowerCase().startsWith('video/'),
+            'compression_mime_type': clientMedia?.compressionMimeType,
           },
           options: Options(
             sendTimeout: const Duration(minutes: 2),
@@ -1623,6 +1624,7 @@ class FileUploader {
             'want_compression':
                 clientMedia?.compression != null &&
                 !contentType.toLowerCase().startsWith('video/'),
+            'compression_mime_type': clientMedia?.compressionMimeType,
           },
           options: Options(
             sendTimeout: const Duration(minutes: 2),

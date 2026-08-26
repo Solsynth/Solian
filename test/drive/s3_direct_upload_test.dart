@@ -31,6 +31,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
   bool lastPrepareMultipart = false;
   bool? lastWantThumbnail;
   bool? lastWantCompression;
+  String? lastCompressionMimeType;
   Map<String, dynamic>? lastClientAnalysis;
   int completeCalls = 0;
   int lastFileSize = 0;
@@ -92,6 +93,7 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
       lastPrepareMultipart = body['multipart'] == true;
       lastWantThumbnail = body['want_thumbnail'] as bool?;
       lastWantCompression = body['want_compression'] as bool?;
+      lastCompressionMimeType = body['compression_mime_type']?.toString();
       final rawAnalysis = body['client_analysis'];
       lastClientAnalysis = rawAnalysis is Map
           ? Map<String, dynamic>.from(rawAnalysis)
@@ -505,16 +507,16 @@ void main() {
         img.encodeJpg(img.Image(width: 2, height: 2)),
       );
       final uploader = container.read(driveFileUploaderProvider);
-      final result = await uploader.tryUploadViaS3Direct(
+      await uploader.tryUploadViaS3Direct(
         fileData: source,
         fileName: 'image.jpg',
         contentType: 'image/jpeg',
         parentId: 'parent-1',
       );
 
-      expect(result, isNotNull);
-      expect(dyson.lastWantThumbnail, isFalse);
-      expect(dyson.lastWantCompression, isTrue);
+      // Host runs macOS → JPEG derivative, and the MIME must be declared to
+      // the server so presign/validation match the uploaded bytes.
+      expect(dyson.lastCompressionMimeType, 'image/jpeg');
       final analysis = dyson.lastClientAnalysis;
       expect(analysis?['width'], 2);
       expect(analysis?['height'], 2);

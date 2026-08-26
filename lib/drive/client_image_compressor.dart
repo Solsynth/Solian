@@ -7,20 +7,28 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 /// platform codec can decode — PNG/JPEG/WebP/HEIF) down to a small
 /// derivative using the platform's own native codecs.
 ///
+/// The output format depends on the platform:
+/// - Android/iOS produce WebP (`image/webp`).
+/// - Desktop (macOS/Linux/Windows) produce JPEG (`image/jpeg`) because
+///   flutter_image_compress cannot emit WebP off Android/iOS (the macOS
+///   validator returns false for webp and the Swift encoder silently writes
+///   JPEG anyway).
+///
+/// The caller must pass the returned mimeType to the server (prepare's
+/// `compression_mime_type`), which presigns and validates the derivative
+/// against that exact type.
+///
 /// The old path handed raw RGBA pixels to a vendored libwebp FFI fork
 /// (`swipelab_webp`) and produced visually corrupt derivatives on some
-/// platforms. flutter_image_compress encodes through the OS codecs
-/// (Android/iOS/macOS), so the encoder no longer runs in our process.
-///
-/// WebP output is only supported on Android/iOS; desktop falls back to
-/// JPEG (the platform validator throws UnsupportedError for webp on
-/// macOS/Linux/Windows).
+/// platforms. flutter_image_compress encodes through the OS codecs, so the
+/// encoder no longer runs in our process.
 Future<({Uint8List bytes, String mimeType})?> compressClientImage({
   required Uint8List imageBytes,
   required int quality,
 }) async {
   final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   final format = isMobile ? CompressFormat.webp : CompressFormat.jpeg;
+  final mimeType = isMobile ? 'image/webp' : 'image/jpeg';
 
   final Uint8List result;
   try {
@@ -35,8 +43,5 @@ Future<({Uint8List bytes, String mimeType})?> compressClientImage({
     return null;
   }
   if (result.isEmpty) return null;
-  return (
-    bytes: result,
-    mimeType: isMobile ? 'image/webp' : 'image/jpeg',
-  );
+  return (bytes: result, mimeType: mimeType);
 }
