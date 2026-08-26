@@ -5508,10 +5508,5 @@
   },
   "threadNoReplies": "还没有回复，来做第一个回复的人吧。",
   "threadLoadFailed": "加载讨论串失败。",
-  "replyInThread": "在讨论串中回复",
-  "threadReplyCountHint": {
-    "zero": "成为这个讨论串的第一条回复",
-    "one": "本讨论串 {} 条回复",
-    "other": "本讨论串 {} 条回复"
-  }
+  "replyInThread": "在讨论串中回复"
 }

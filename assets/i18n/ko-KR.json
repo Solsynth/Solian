@@ -5119,10 +5119,5 @@
   },
   "threadNoReplies": "아직 답글이 없습니다. 첫 답글을 남겨보세요.",
   "threadLoadFailed": "스레드를 불러오지 못했습니다.",
-  "replyInThread": "스레드에서 답글",
-  "threadReplyCountHint": {
-    "zero": "이 스레드에 첫 답글을 남겨보세요",
-    "one": "이 스레드에 답글 {}개",
-    "other": "이 스레드에 답글 {}개"
-  }
+  "replyInThread": "스레드에서 답글"
 }

@@ -351,36 +351,6 @@ class _ThreadTitleBar extends StatelessWidget {
   }
 }
 
-class _ThreadReplyCountHint extends StatelessWidget {
-  final int replyCount;
-
-  const _ThreadReplyCountHint({required this.replyCount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, top: 2, bottom: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Symbols.forum,
-            size: 14,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const Gap(6),
-          Text(
-            'threadReplyCountHint'.plural(replyCount),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ThreadComposer extends StatelessWidget {
   final TextEditingController controller;
   final SnChatRoom chatRoom;
@@ -493,7 +463,7 @@ class _ThreadMessageList extends HookConsumerWidget {
         final message = messages[index];
         // Each thread message is its own group so the sender avatar/name
         // always renders (the root especially).
-        final item = MessageItemWrapper(
+        return MessageItemWrapper(
           message: message,
           index: index,
           roomId: roomId,
@@ -509,18 +479,6 @@ class _ThreadMessageList extends HookConsumerWidget {
           disableAnimation: true,
           roomOpenTime: DateTime.fromMillisecondsSinceEpoch(0),
         );
-
-        // Hint row under the root message showing the thread reply count.
-        if (index == 0) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              item,
-              _ThreadReplyCountHint(replyCount: replies.length),
-            ],
-          );
-        }
-        return item;
       },
     );
   }

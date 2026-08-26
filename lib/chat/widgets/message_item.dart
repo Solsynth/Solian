@@ -601,6 +601,8 @@ class MessageItem extends HookConsumerWidget {
                                 progress: progress,
                                 showAvatar: showAvatar,
                                 onJump: onJump,
+                                onOpenThread: () =>
+                                    onAction?.call(MessageItemAction.replyInThread),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -612,6 +614,8 @@ class MessageItem extends HookConsumerWidget {
                                 showColumnAvatar: showColumnAvatar,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
+                                onOpenThread: () =>
+                                    onAction?.call(MessageItemAction.replyInThread),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -625,6 +629,8 @@ class MessageItem extends HookConsumerWidget {
                                 isLastInGroup: isLastInGroup,
                                 avatarAnchorKey: avatarAnchorKey,
                                 onJump: onJump,
+                                onOpenThread: () =>
+                                    onAction?.call(MessageItemAction.replyInThread),
                                 translatedText: translatedText.value,
                                 translating: translating.value,
                               ),
@@ -1534,6 +1540,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
   final bool isLastInGroup;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
+  final VoidCallback? onOpenThread;
   final String? translatedText;
   final bool translating;
 
@@ -1548,6 +1555,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     required this.isLastInGroup,
     this.avatarAnchorKey,
     required this.onJump,
+    this.onOpenThread,
     required this.translatedText,
     required this.translating,
   });
@@ -1719,6 +1727,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                       rootContent: remoteMessage.content ?? '',
                       rootSenderName: remoteMessage.sender.account.nick,
                       onJump: onJump,
+                      onOpenThread: onOpenThread,
                     ),
                   ],
                 ),
@@ -1923,6 +1932,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final Function(String messageId) onJump;
+  final VoidCallback? onOpenThread;
   final String? translatedText;
   final bool translating;
 
@@ -1933,6 +1943,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     required this.onJump,
+    this.onOpenThread,
     required this.translatedText,
     required this.translating,
   });
@@ -2082,6 +2093,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                             rootContent: remoteMessage.content ?? '',
                             rootSenderName: remoteMessage.sender.account.nick,
                             onJump: onJump,
+                            onOpenThread: onOpenThread,
                           ),
                         ],
                       ),
@@ -2119,6 +2131,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
   final bool showColumnAvatar;
   final GlobalKey<State<StatefulWidget>>? avatarAnchorKey;
   final Function(String messageId) onJump;
+  final VoidCallback? onOpenThread;
   final String? translatedText;
   final bool translating;
 
@@ -2131,6 +2144,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     required this.showColumnAvatar,
     this.avatarAnchorKey,
     required this.onJump,
+    this.onOpenThread,
     required this.translatedText,
     required this.translating,
   });
@@ -2277,6 +2291,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                             rootContent: remoteMessage.content ?? '',
                             rootSenderName: remoteMessage.sender.account.nick,
                             onJump: onJump,
+                            onOpenThread: onOpenThread,
                           ),
                         ],
                       ),
@@ -2398,6 +2413,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               rootContent: remoteMessage.content ?? '',
                               rootSenderName: remoteMessage.sender.account.nick,
                               onJump: onJump,
+                              onOpenThread: onOpenThread,
                             ),
                           ],
                         ),

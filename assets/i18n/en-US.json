@@ -5453,11 +5453,6 @@
     "one": "{} reply",
     "other": "{} replies"
   },
-  "threadReplyCountHint": {
-    "zero": "Be the first to reply in this thread",
-    "one": "{} reply in this thread",
-    "other": "{} replies in this thread"
-  },
   "threadNoReplies": "No replies yet. Be the first to reply.",
   "threadLoadFailed": "Failed to load the thread.",
   "untranslatable": "Too short to translate",

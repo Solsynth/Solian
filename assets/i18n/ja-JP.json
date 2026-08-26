@@ -5126,10 +5126,5 @@
   },
   "threadNoReplies": "まだ返信がありません。最初に返信してみましょう。",
   "threadLoadFailed": "スレッドの読み込みに失敗しました。",
-  "replyInThread": "スレッドで返信",
-  "threadReplyCountHint": {
-    "zero": "このスレッドに最初の返信をしましょう",
-    "one": "このスレッドに {} 件の返信",
-    "other": "このスレッドに {} 件の返信"
-  }
+  "replyInThread": "スレッドで返信"
 }

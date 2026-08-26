@@ -5094,10 +5094,5 @@
   },
   "threadNoReplies": "未有回覆，嚟做第一個回覆嘅人。",
   "threadLoadFailed": "載入論串失敗。",
-  "replyInThread": "喺論串入面回覆",
-  "threadReplyCountHint": {
-    "zero": "成為呢個論串第一條回覆",
-    "one": "呢個論串 {} 条回复",
-    "other": "呢個論串 {} 条回复"
-  }
+  "replyInThread": "喺論串入面回覆"
 }

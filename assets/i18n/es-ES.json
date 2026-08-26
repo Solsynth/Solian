@@ -5126,10 +5126,5 @@
   },
   "threadNoReplies": "Aún no hay respuestas. Sé el primero en responder.",
   "threadLoadFailed": "No se pudo cargar el hilo.",
-  "replyInThread": "Responder en el hilo",
-  "threadReplyCountHint": {
-    "zero": "Sé el primero en responder en este hilo",
-    "one": "{} respuesta en este hilo",
-    "other": "{} respuestas en este hilo"
-  }
+  "replyInThread": "Responder en el hilo"
 }

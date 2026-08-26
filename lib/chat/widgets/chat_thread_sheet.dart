@@ -216,16 +216,19 @@ class ThreadReplyTile extends StatelessWidget {
 
 /// Tappable chip showing the thread reply count on a message bubble.
 ///
-/// Opens [ChatThreadSheet] for the message. Only shown when the server
-/// reports [SnChatMessage.threadRepliesCount] > 0 (or the message is a
-/// thread root with replies).
-class ThreadRepliesChip extends StatelessWidget {
+/// Shows the openable-thread affordance on the main message list. Only shown
+/// when the server reports [SnChatMessage.threadRepliesCount] > 0 (or the
+/// message is a thread root with replies). Tapping opens the thread panel
+/// (right sidebar on wide screens, bottom sheet on narrow) via the same
+/// "reply in thread" action as the message menu.
+class ThreadRepliesChip extends HookConsumerWidget {
   final String roomId;
   final String messageId;
   final int replyCount;
   final String rootContent;
   final String rootSenderName;
   final void Function(String messageId) onJump;
+  final VoidCallback? onOpenThread;
   final Color? color;
 
   const ThreadRepliesChip({
@@ -236,11 +239,12 @@ class ThreadRepliesChip extends StatelessWidget {
     required this.rootContent,
     required this.rootSenderName,
     required this.onJump,
+    this.onOpenThread,
     this.color,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (replyCount <= 0) return const SizedBox.shrink();
 
     final chipColor =
@@ -254,23 +258,7 @@ class ThreadRepliesChip extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                useRootNavigator: true,
-                isScrollControlled: true,
-                builder: (sheetContext) => ChatThreadSheet(
-                  roomId: roomId,
-                  messageId: messageId,
-                  rootContent: rootContent,
-                  rootSenderName: rootSenderName,
-                  onJump: (targetId) {
-                    Navigator.pop(sheetContext);
-                    onJump(targetId);
-                  },
-                ),
-              );
-            },
+            onTap: onOpenThread ?? () {},
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(

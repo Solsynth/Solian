@@ -5367,10 +5367,5 @@
   },
   "threadNoReplies": "還沒有回覆，來當第一個回覆的人吧。",
   "threadLoadFailed": "載入討論串失敗。",
-  "replyInThread": "在討論串中回覆",
-  "threadReplyCountHint": {
-    "zero": "成為這個討論串的第一條回覆",
-    "one": "本討論串 {} 則回覆",
-    "other": "本討論串 {} 則回覆"
-  }
+  "replyInThread": "在討論串中回覆"
 }
