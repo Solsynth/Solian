@@ -76,6 +76,42 @@ SnChatMessage _msg(
 }
 
 void main() {
+  group('withThreadReplyAppended', () {
+    test('appends a new reply in chronological order', () {
+      final root = _msg('root', '123', DateTime.utc(2026, 8, 7, 17, 21));
+      final response = ThreadReplyListResponse(
+        root: root,
+        replies: [
+          ThreadReplyNode(
+            message: _msg('r1', 'sure', DateTime.utc(2026, 8, 7, 22, 52)),
+            depth: 0,
+          ),
+        ],
+      );
+
+      final appended = withThreadReplyAppended(
+        response,
+        _msg('r2', 'wdyt', DateTime.utc(2026, 8, 7, 20, 17)),
+      );
+
+      expect(appended.replies.map((n) => n.message.id).toList(), ['r2', 'r1']);
+    });
+
+    test('deduplicates a reply that is already present', () {
+      final root = _msg('root', '123', DateTime.utc(2026, 8, 7, 17, 21));
+      final reply = _msg('r1', 'sure', DateTime.utc(2026, 8, 7, 22, 52));
+      final response = ThreadReplyListResponse(
+        root: root,
+        replies: [ThreadReplyNode(message: reply, depth: 0)],
+      );
+
+      final appended = withThreadReplyAppended(response, reply);
+
+      expect(identical(appended, response), isTrue);
+      expect(appended.replies.length, 1);
+    });
+  });
+
   group('buildThreadDisplayMessages', () {
     test('orders replies oldest-first and keeps the root first', () {
       final root = _msg('root', '123', DateTime.utc(2026, 8, 7, 17, 21));

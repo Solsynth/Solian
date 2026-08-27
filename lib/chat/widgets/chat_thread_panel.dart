@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:island/chat/widgets/chat_input.dart';
 import 'package:island/chat/widgets/chat_link_attachments.dart';
 import 'package:island/chat/widgets/message_item_wrapper.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/data/message.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/attachment_uploader.dart';
@@ -47,17 +49,33 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
   final _controller = TextEditingController();
   final List<UniversalFile> _attachments = [];
   final Map<String, Map<int, double?>> _attachmentProgress = {};
-  late Future<ThreadReplyListResponse> _future;
+  ThreadReplyListResponse? _data;
+  Object? _loadError;
+  bool _loading = true;
   bool _sending = false;
+  StreamSubscription<ChatMessageNewEvent>? _newMessageSub;
+  bool _disposed = false;
 
   @override
   void initState() {
     super.initState();
-    _future = _fetch();
+    _load();
+    // Live-update the thread panel: own sends and remote replies arrive as
+    // `messages.new` broadcasts. Appending here avoids the full-thread reload
+    // (and its spinner) that a plain refetch after send would trigger.
+    _newMessageSub = eventBus.on<ChatMessageNewEvent>().listen((event) {
+      if (_disposed) return;
+      final message = event.message;
+      if (message.chatRoomId != widget.roomId) return;
+      if (message.threadId != widget.root.id) return;
+      _appendReply(message);
+    });
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    _newMessageSub?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -68,14 +86,43 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
         .get<Map<String, dynamic>>(
           '/messager/chat/${widget.roomId}/messages/${widget.root.id}/thread',
         )
-        .then(
-          (response) => ThreadReplyListResponse.fromJson(response.data!),
-        );
+        .then((response) => ThreadReplyListResponse.fromJson(response.data!));
   }
 
-  void _refresh() {
+  Future<void> _load() async {
+    if (_disposed) return;
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
+    try {
+      final response = await _fetch();
+      if (_disposed || !mounted) return;
+      setState(() {
+        _data = response;
+        _loading = false;
+      });
+    } catch (e) {
+      if (_disposed || !mounted) return;
+      setState(() {
+        _loadError = e;
+        _loading = false;
+      });
+    }
+  }
+
+  /// Adds a just-arrived thread reply to the visible list without refetching
+  /// the whole thread. Deduplicates by message id and keeps chronological
+  /// order like the server response.
+  void _appendReply(SnChatMessage reply) {
+    if (_disposed || !mounted) return;
+    final current = _data;
+    if (current == null) return;
+    if (current.replies.any((node) => node.message.id == reply.id)) return;
     setState(() {
-      _future = _fetch();
+      _data = withThreadReplyAppended(current, reply);
     });
   }
 
@@ -94,7 +141,10 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
       if (!mounted) return;
       _controller.clear();
       setState(() => _attachments.clear());
-      _refresh();
+      // The realtime `messages.new` append above covers confirmed replies;
+      // a silent background refresh is a safety net for paths without a WS
+      // broadcast (e.g. E2EE/HTTP fallback) and does not flash a spinner.
+      unawaited(_refreshSilently());
     } catch (_) {
       // sendMessage surfaces errors through its own UI (alerts/pending
       // status); keep the composer text intact so the user can retry.
@@ -103,10 +153,27 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
     }
   }
 
+  /// Refetches the thread without flashing a spinner; the visible list stays
+  /// rendered and is replaced when the fetch completes.
+  Future<void> _refreshSilently() async {
+    if (_disposed) return;
+    try {
+      final response = await _fetch();
+      if (_disposed || !mounted) return;
+      setState(() {
+        _data = response;
+      });
+    } catch (_) {
+      // Keep the existing list on failure; the next send or open retries.
+    }
+  }
+
   void _updateAttachments(List<UniversalFile> attachments) {
-    setState(() => _attachments
-      ..clear()
-      ..addAll(attachments));
+    setState(
+      () => _attachments
+        ..clear()
+        ..addAll(attachments),
+    );
   }
 
   Future<void> _pickPhotos() async {
@@ -183,10 +250,7 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
     ]);
   }
 
-  Future<void> _uploadAttachment(
-    int index, {
-    String? encryptKey,
-  }) async {
+  Future<void> _uploadAttachment(int index, {String? encryptKey}) async {
     final attachment = _attachments[index];
     if (attachment.isOnCloud) return;
 
@@ -246,36 +310,28 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
       children: [
         _ThreadTitleBar(onClose: widget.onClose),
         Expanded(
-          child: FutureBuilder<ThreadReplyListResponse>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _loadError != null
+              ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('threadLoadFailed'.tr()),
                       const Gap(8),
                       OutlinedButton(
-                        onPressed: _refresh,
+                        onPressed: _load,
                         child: Text('retry'.tr()),
                       ),
                     ],
                   ),
-                );
-              }
-
-              return _ThreadMessageList(
-                roomId: widget.roomId,
-                root: snapshot.data!.root,
-                replies: snapshot.data!.replies,
-                onJump: widget.onJump,
-              );
-            },
-          ),
+                )
+              : _ThreadMessageList(
+                  roomId: widget.roomId,
+                  root: _data!.root,
+                  replies: _data!.replies,
+                  onJump: widget.onJump,
+                ),
         ),
         _ThreadComposer(
           controller: _controller,
@@ -332,9 +388,9 @@ class _ThreadTitleBar extends StatelessWidget {
           Expanded(
             child: Text(
               'thread'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           if (onClose != null)
@@ -417,6 +473,25 @@ class _ThreadComposer extends StatelessWidget {
       isMessageListScrolling: false,
     );
   }
+}
+
+/// Returns a copy of [response] with [reply] appended as a thread reply.
+///
+/// The reply is dropped when a node with the same message id already exists
+/// (a `messages.new` can arrive before/after the send acknowledgement).
+/// Replies stay in chronological (oldest-first) order like the server.
+ThreadReplyListResponse withThreadReplyAppended(
+  ThreadReplyListResponse response,
+  SnChatMessage reply,
+) {
+  if (response.replies.any((node) => node.message.id == reply.id)) {
+    return response;
+  }
+  return ThreadReplyListResponse(
+    root: response.root,
+    replies: [...response.replies, ThreadReplyNode(message: reply, depth: 0)]
+      ..sort((a, b) => a.message.createdAt.compareTo(b.message.createdAt)),
+  );
 }
 
 /// Builds the thread message list for display: root first, then replies in

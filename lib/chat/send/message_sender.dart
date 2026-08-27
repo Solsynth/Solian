@@ -81,6 +81,7 @@ class MessageSender {
       replyingTo: replyingTo,
       forwardingTo: forwardingTo,
       embeds: embeds,
+      threadingTo: threadingTo,
     )) {
       return _sendWithAttachmentPlaceholder(
         content: content,
@@ -100,6 +101,7 @@ class MessageSender {
         attachments: attachments,
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
+        threadingTo: threadingTo,
       );
 
       // Add to pending cache
@@ -310,6 +312,7 @@ class MessageSender {
         attachments: attachments,
         replyingTo: replyingTo,
         forwardingTo: forwardingTo,
+        threadingTo: threadingTo,
       );
 
       _pendingCache.add(pending);
@@ -560,6 +563,7 @@ class MessageSender {
     required List<UniversalFile> attachments,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
+    SnChatMessage? threadingTo,
   }) {
     final mock = SnChatMessage(
       id: 'pending_$clientMessageId',
@@ -573,6 +577,7 @@ class MessageSender {
       attachments: const [],
       repliedMessageId: replyingTo?.id,
       forwardedMessageId: forwardingTo?.id,
+      threadId: threadingTo?.id,
     );
 
     return LocalChatMessage.fromRemoteMessage(mock, MessageStatus.pending)
@@ -655,6 +660,7 @@ class MessageSender {
     SnChatMessage? editingTo,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
+    SnChatMessage? threadingTo,
     List<Map<String, dynamic>>? embeds,
   }) {
     if (attachments.isEmpty) return false;
@@ -663,6 +669,9 @@ class MessageSender {
     if (editingTo != null || replyingTo != null || forwardingTo != null) {
       return false;
     }
+    // Placeholder finalization only carries content/attachments; thread
+    // membership would be lost, so thread replies always use the direct path.
+    if (threadingTo != null) return false;
     if (embeds != null && embeds.isNotEmpty) return false;
     return true;
   }
