@@ -152,8 +152,10 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void>? _loadInitialOperation;
   bool _isInitializing = false;
   Timer? _weakInternetPollTimer;
+  Timer? _placeholderExpiryTimer;
 
   static const Duration _weakInternetPollInterval = Duration(seconds: 30);
+  static const Duration _placeholderExpiryCheckInterval = Duration(minutes: 1);
 
   Future<void> _runDeduped({
     required Future<void>? operation,
@@ -745,6 +747,17 @@ class MessagesNotifier extends _$MessagesNotifier {
             .read(referencedChatMessageCacheProvider(roomId).notifier)
             .put(messageWithSequence, messageId: messageWithSequence.id);
         _observeRoomSequence(roomSequence, message.createdAt);
+        if (messageWithSequence.type == 'placeholder') {
+          _pendingMessages.remove(messageWithSequence.id);
+          _pendingCache.remove(messageWithSequence.id);
+          unawaited(_repository.deleteMessage(messageWithSequence.id));
+          _emitMessages(
+            _currentMessages
+                .where((item) => item.id != messageWithSequence.id)
+                .toList(),
+          );
+          return;
+        }
         final list = [..._currentMessages];
         final index = list.indexWhere((m) => m.id == messageWithSequence.id);
         if (index >= 0) {
@@ -769,6 +782,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       disposed = true;
       _weakInternetPollTimer?.cancel();
       _weakInternetPollTimer = null;
+      _placeholderExpiryTimer?.cancel();
+      _placeholderExpiryTimer = null;
       _missingSequenceRetryTimer?.cancel();
       _missingSequenceRetryTimer = null;
       _realtime.stopListening();
@@ -876,6 +891,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     });
 
     _realtime.startListening();
+    _placeholderExpiryTimer = Timer.periodic(
+      _placeholderExpiryCheckInterval,
+      (_) => unawaited(_cleanupExpiredPlaceholders()),
+    );
 
     e2eeStartSub = eventBus.on<MlsExternalJoinStartedEvent>().listen((event) {
       if (event.mlsGroupId != _mlsGroupId) return;
@@ -970,7 +989,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     typingProgressSub = eventBus.on<ChatTypingEvent>().listen((event) {
       if (event.roomId != roomId) return;
       if (event.activityType != 'uploading') return;
-      if (event.sender.id == _identity?.id) return;
+      if (event.sender.id == _identity.id) return;
       final progress = event.progress;
       if (progress == null) return;
       updatePlaceholderProgressBySender(event.sender.id, progress);
@@ -1006,6 +1025,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _messages = initial;
     _refreshLatestObservedRoomSequence(initial);
     _scheduleOlderMessagesPrefetch();
+    unawaited(_cleanupExpiredPlaceholders());
     return _filterActiveMessages(initial);
   }
 
@@ -1313,6 +1333,45 @@ class MessagesNotifier extends _$MessagesNotifier {
         ..['placeholder_progress'] = progress,
     );
     _replaceMessage(placeholder.id, updated);
+  }
+
+  int? _placeholderExpiresAtMs(LocalChatMessage message) {
+    if (message.type != 'placeholder') return null;
+    final raw = message.meta['placeholder_expires_at'];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '');
+  }
+
+  /// Removes locally persisted placeholders after their server-issued TTL
+  /// elapses without a finalize event.
+  Future<void> _cleanupExpiredPlaceholders() async {
+    if (!ref.mounted) return;
+
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final expiredIds = _currentMessages
+        .where((message) {
+          final expiresAtMs = _placeholderExpiresAtMs(message);
+          return expiresAtMs != null && expiresAtMs <= nowMs;
+        })
+        .map((message) => message.id)
+        .toSet();
+    if (expiredIds.isEmpty) return;
+
+    for (final messageId in expiredIds) {
+      _pendingMessages.remove(messageId);
+      _pendingCache.remove(messageId);
+      await _repository.deleteMessage(messageId);
+    }
+
+    if (!ref.mounted) return;
+    Logger.root.info(
+      'Removed ${expiredIds.length} expired placeholders from room $roomId',
+    );
+    _emitMessages(
+      _currentMessages
+          .where((message) => !expiredIds.contains(message.id))
+          .toList(),
+    );
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({

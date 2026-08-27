@@ -38,6 +38,10 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
     _subscription = webSocketService.dataStream.listen((packet) {
       if (packet.type == 'messages.new' && packet.data != null) {
         final message = SnChatMessage.fromJson(packet.data!);
+        // Upload/streaming placeholders are not messages for unread purposes.
+        // The subsequent messages.sync.finalize delivery carries the single
+        // unread increment for the completed message.
+        if (message.type == 'placeholder') return;
         final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
         // Only increment if the message is not from the currently subscribed chat
         if (message.chatRoomId != currentSubscribed) {
@@ -136,7 +140,7 @@ class ChatSummary extends _$ChatSummary {
       if (!pkt.type.startsWith('messages')) return;
       if (pkt.type == 'messages.new') {
         final message = _tryParseChatMessage(pkt.data);
-        if (message == null) return;
+        if (message == null || message.type == 'placeholder') return;
         updateLastMessage(message.chatRoomId, message);
       } else if (pkt.type == 'messages.update') {
         final message = _tryParseChatMessage(pkt.data);
