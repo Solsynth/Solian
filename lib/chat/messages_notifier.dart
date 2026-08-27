@@ -49,15 +49,22 @@ class ReferencedChatMessageCache
     extends Notifier<Map<String, AsyncValue<LocalChatMessage?>>> {
   final String arg;
 
+  /// Message ids currently being fetched. Guards against duplicate network
+  /// requests without relying on a synchronous `AsyncLoading` entry — storing
+  /// one would mutate state during widget build (see MessageQuoteWidget).
+  final Set<String> _pendingFetches = {};
+
   ReferencedChatMessageCache(this.arg);
 
   @override
   Map<String, AsyncValue<LocalChatMessage?>> build() => const {};
 
   Future<void> resolve(String messageId) async {
-    if (state.containsKey(messageId)) return;
+    if (state.containsKey(messageId) || _pendingFetches.contains(messageId)) {
+      return;
+    }
 
-    _store(messageId, const AsyncLoading());
+    _pendingFetches.add(messageId);
     try {
       final message = await ref
           .read(messagesProvider(arg).notifier)
@@ -65,6 +72,8 @@ class ReferencedChatMessageCache
       _store(messageId, AsyncData(message));
     } catch (error, stackTrace) {
       _store(messageId, AsyncError(error, stackTrace));
+    } finally {
+      _pendingFetches.remove(messageId);
     }
   }
 
@@ -493,6 +502,8 @@ class MessagesNotifier extends _$MessagesNotifier {
         message.type == 'messages.sync.links') {
       return false;
     }
+    // In-thread replies live in the thread panel, never in the main timeline.
+    if (message.threadId != null) return false;
     final mode = ref.read(appSettingsProvider).chatEventMessageMode;
     if (mode == kChatEventMessageModeVerbose) return true;
     if (mode == kChatEventMessageModeNone) {

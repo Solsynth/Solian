@@ -203,9 +203,13 @@ class AppDatabase {
     int offset = 0,
     int limit = 20,
   }) async {
+    // The main timeline only shows top-level messages and regular (direct)
+    // replies; in-thread replies live in the thread panel.
     final messages =
         _webMessageStore.values
-            .where((message) => message.roomId == roomId)
+            .where(
+              (message) => message.roomId == roomId && message.threadId == null,
+            )
             .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return messages.skip(offset).take(limit).toList();
@@ -286,7 +290,7 @@ class AppDatabase {
 
   Future<int> getTotalMessagesForRoom(String roomId) async => _webMessageStore
       .values
-      .where((message) => message.roomId == roomId)
+      .where((message) => message.roomId == roomId && message.threadId == null)
       .length;
 
   Future<Map<String, int>> getChatRoomMessageStats() async {
@@ -363,6 +367,7 @@ class AppDatabase {
     'attachments': message.attachments,
     'reactions': message.reactions,
     'repliedMessageId': message.repliedMessageId,
+    'threadId': message.threadId,
     'forwardedMessageId': message.forwardedMessageId,
   };
 
@@ -404,6 +409,7 @@ class AppDatabase {
           .map((item) => Map<String, dynamic>.from(item))
           .toList(),
       repliedMessageId: json['repliedMessageId']?.toString(),
+      threadId: json['threadId']?.toString(),
       forwardedMessageId: json['forwardedMessageId']?.toString(),
     );
   }

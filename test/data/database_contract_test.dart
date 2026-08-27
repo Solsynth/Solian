@@ -40,7 +40,7 @@ SnChatGroup chatGroup(String id, int order, List<String> roomIds) {
   );
 }
 
-LocalChatMessage message(String id) => LocalChatMessage(
+LocalChatMessage message(String id, {String? threadId}) => LocalChatMessage(
   id: id,
   roomId: 'room-1',
   senderId: 'account-1',
@@ -54,6 +54,7 @@ LocalChatMessage message(String id) => LocalChatMessage(
   membersMentioned: const [],
   attachments: const [],
   reactions: const [],
+  threadId: threadId,
 );
 SnAccount account(String id) {
   final now = DateTime.utc(2026);
@@ -227,17 +228,41 @@ void main() {
     });
 
     test(
-      'snapshot stores messages without their duplicate sender object',
+      'thread replies persist their thread_id across a save/restore roundtrip',
       () async {
         final database = AppDatabase.web();
-        await database.saveMessage(message('message-1'));
+        await database.saveMessage(message('top-level'));
+        await database.saveMessage(message('thread-reply', threadId: 'root-1'));
 
-        final snapshot = database.exportState();
-        final storedMessage = (snapshot['messages'] as Map)['message-1'] as Map;
+        // Simulate app restart: rebuild from the persisted payloads.
+        final restored = AppDatabase.web();
+        restored.restoreMessagePayloads(database.exportMessagePayloads());
 
-        expect(storedMessage, isNot(contains('sender')));
+        final restoredReply = await restored.getMessageById('thread-reply');
+        expect(restoredReply?.threadId, 'root-1');
+        final restoredTop = await restored.getMessageById('top-level');
+        expect(restoredTop?.threadId, isNull);
+
+        // The persisted payload keeps the structural message fields intact
+        // alongside the thread id.
+        final payload =
+            (database.exportMessagePayloads()['thread-reply'] as Map);
+        expect(payload, contains('attachments'));
+        expect(payload, contains('reactions'));
+        expect(payload, contains('repliedMessageId'));
+        expect(payload['threadId'], 'root-1');
       },
     );
+
+    test('main message list skips in-thread replies', () async {
+      final database = AppDatabase.web();
+      await database.saveMessage(message('top-level'));
+      await database.saveMessage(message('thread-reply', threadId: 'root-1'));
+
+      final list = await database.getMessagesForRoom('room-1');
+      expect(list.map((m) => m.id), ['top-level']);
+      expect(await database.getTotalMessagesForRoom('room-1'), 1);
+    });
   });
 
   test('native adapter persists rooms through Drift', () async {
@@ -253,19 +278,16 @@ void main() {
     await reopened.close();
   });
 
-  test('native adapter persists messages through their Drift rows', () async {
+  test('native adapter persists thread_id across a Drift reopen', () async {
     final directory = await Directory.systemTemp.createTemp('island-drift-');
     addTearDown(() => directory.delete(recursive: true));
 
     final first = native.AppDatabase.native(Future.value(directory.path));
-    await first.saveMessage(message('persisted-message'));
+    await first.saveMessage(message('thread-reply', threadId: 'root-1'));
     await first.close();
 
     final reopened = native.AppDatabase.native(Future.value(directory.path));
-    expect(
-      (await reopened.getMessageById('persisted-message'))?.id,
-      'persisted-message',
-    );
+    expect((await reopened.getMessageById('thread-reply'))?.threadId, 'root-1');
     await reopened.close();
   });
 
