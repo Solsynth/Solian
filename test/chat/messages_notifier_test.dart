@@ -190,6 +190,44 @@ class _BatchedMessagesResponseAdapter implements HttpClientAdapter {
   }
 }
 
+/// Serves an empty message list but a single-page room member list carrying
+/// the canonical member, so sender repair resolves the bare sender.
+class _MembersRepairAdapter implements HttpClientAdapter {
+  final List<Map<String, dynamic>> members;
+
+  _MembersRepairAdapter({required this.members});
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? _,
+    Future<void>? _,
+  ) async {
+    if (options.path.endsWith('/members')) {
+      return ResponseBody.fromString(
+        jsonEncode(members),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+          'x-total': ['${members.length}'],
+        },
+      );
+    }
+    // Message endpoints return an empty list.
+    return ResponseBody.fromString(
+      '[]',
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+        'x-total': ['0'],
+      },
+    );
+  }
+}
+
 Map<String, dynamic> messageJson(String id, DateTime createdAt) {
   final json = message('room-1').toJson();
   json['id'] = id;
@@ -429,6 +467,71 @@ void main() {
           () => placeholder.meta['placeholder_kind'] = 'boom',
           throwsUnsupportedError,
         );
+      },
+    );
+
+    test(
+      'refetches the room member list and repairs a bare sender account',
+      () async {
+        // A message whose persisted sender member carries an empty account
+        // (the "lost chat member account" symptom): the UI would render a raw
+        // id or hide the sender entirely.
+        final bareAccount = SnAccount(
+          id: 'account-1',
+          name: '',
+          nick: '',
+          language: 'en',
+          isSuperuser: false,
+          automatedId: null,
+          profile: SnAccountProfile(
+            id: 'profile-1',
+            experience: 0,
+            level: 1,
+            levelingProgress: 0,
+            picture: null,
+            background: null,
+            verification: null,
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+            deletedAt: null,
+          ),
+          perkSubscription: null,
+          activatedAt: null,
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+          deletedAt: null,
+        );
+        final bareSender = member('room-1').copyWith(account: bareAccount);
+        final withBareSender = message('room-1').copyWith(
+          sender: bareSender,
+        );
+        await database.saveMessageWithSender(
+          LocalChatMessage.fromRemoteMessage(
+            withBareSender,
+            MessageStatus.sent,
+          ),
+        );
+
+        final adapter = _MembersRepairAdapter(
+          members: [member('room-1').toJson()],
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.loadInitial(forceRemoteRefresh: true);
+        // The repair runs after the load flag clears; let the async repair
+        // complete.
+        for (var i = 0; i < 10; i++) {
+          await pumpEventQueue();
+        }
+
+        final visible = container
+            .read(messagesProvider('room-1'))
+            .value!
+            .firstWhere((item) => item.id == 'message-1');
+        expect(visible.sender, isNotNull);
+        expect(visible.sender!.account.name, 'test-user');
+        expect(visible.sender!.account.nick, 'Test User');
       },
     );
   });
