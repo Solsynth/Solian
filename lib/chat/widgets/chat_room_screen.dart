@@ -1513,25 +1513,46 @@ class ChatRoomScreen extends HookConsumerWidget {
       ],
     );
 
-    final threadTarget = openedThreadTarget.value;
     final room = chatRoom.value;
-    final threadSidebarContent = threadTarget != null && room != null
-        ? ChatThreadPanel(
-            roomId: id,
-            chatRoom: room,
-            root: threadTarget,
-            onJump: onJump,
-            onClose: () => showThreadSidebar.value = false,
-          )
-        : null;
 
     return ResponsiveSidebar(
       showSidebar: showThreadSidebar,
       mainContent: mainContent,
-      sidebarContent: threadSidebarContent ?? const SizedBox.shrink(),
+      sidebarContent: _buildThreadSidebar(openedThreadTarget.value, room, onJump),
+      drawerBuilder: (sheetContext) {
+        return SheetScaffold(
+          showHeader: true,
+          titleText: 'thread'.tr(),
+          onClose: () => Navigator.of(sheetContext).pop(),
+          child: _buildThreadSidebar(openedThreadTarget.value, room, onJump, hideHeader: true),
+        );
+      },
       sidebarWidth: 420,
     );
   }
+}
+
+/// Builds the thread sidebar panel widget. Extracted so both the wide-screen
+/// sidebar and the narrow-screen bottom sheet can create a fresh instance from
+/// the latest [openedThreadTarget] value at render time.
+Widget _buildThreadSidebar(
+  SnChatMessage? threadTarget,
+  SnChatRoom? room,
+  void Function(String) onJump, {
+  VoidCallback? onClose,
+  bool hideHeader = false,
+}) {
+  if (threadTarget == null || room == null) {
+    return const SizedBox.shrink();
+  }
+  return ChatThreadPanel(
+    roomId: room.id,
+    chatRoom: room,
+    root: threadTarget,
+    onJump: onJump,
+    onClose: onClose,
+    hideHeader: hideHeader,
+  );
 }
 
 /// Keeps presence updates local to the app bar. In busy rooms the online-count

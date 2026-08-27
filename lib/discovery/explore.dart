@@ -18,7 +18,6 @@ import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/post_detail_content.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
-
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
@@ -32,7 +31,6 @@ import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-
 import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/discovery/widgets/discovery_profile_sheet.dart';
 import 'package:island/discovery/widgets/friend_presence_widgets.dart';
@@ -2480,9 +2478,9 @@ class _ActivityListView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.watch(activityListProvider.notifier);
 
-    return SliverList.separated(
+    return SuperSliverList.separated(
       itemCount: data.length + 1,
-      separatorBuilder: (_, _) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const Divider(height: 4, thickness: 4),
       itemBuilder: (context, index) {
         if (index == data.length) {
           return footer;

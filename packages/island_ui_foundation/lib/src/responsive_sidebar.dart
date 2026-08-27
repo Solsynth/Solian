@@ -102,13 +102,19 @@ class ResponsiveSidebar extends HookConsumerWidget {
         } else {
           if (showSidebar.value && !showDrawer.value) {
             showDrawer.value = true;
-            _openSheet(context, sheetContextRef);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (sheetContextRef.value == null) {
+                _openSheet(context, sheetContextRef);
+              }
+            });
           } else if (!showSidebar.value && showDrawer.value) {
             showDrawer.value = false;
-            final sheetContext = sheetContextRef.value;
-            if (sheetContext != null && Navigator.of(sheetContext).canPop()) {
-              Navigator.of(sheetContext).pop();
-            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final sheetContext = sheetContextRef.value;
+              if (sheetContext != null && Navigator.of(sheetContext).canPop()) {
+                Navigator.of(sheetContext).pop();
+              }
+            });
           }
         }
       }

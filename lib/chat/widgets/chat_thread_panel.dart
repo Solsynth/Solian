@@ -31,6 +31,7 @@ class ChatThreadPanel extends ConsumerStatefulWidget {
   final SnChatMessage root;
   final void Function(String messageId) onJump;
   final VoidCallback? onClose;
+  final bool hideHeader;
 
   const ChatThreadPanel({
     super.key,
@@ -39,6 +40,7 @@ class ChatThreadPanel extends ConsumerStatefulWidget {
     required this.root,
     required this.onJump,
     this.onClose,
+    this.hideHeader = false,
   });
 
   @override
@@ -308,7 +310,7 @@ class _ChatThreadPanelState extends ConsumerState<ChatThreadPanel> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _ThreadTitleBar(onClose: widget.onClose),
+        if (!widget.hideHeader) _ThreadTitleBar(onClose: widget.onClose),
         Expanded(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
