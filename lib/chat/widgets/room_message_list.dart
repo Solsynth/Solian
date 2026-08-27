@@ -594,6 +594,7 @@ class _StickyGroupAvatar extends StatefulWidget {
 class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
   ScrollPosition? _position;
   bool _framePending = false;
+  double? _resolvedBaseTop;
 
   @override
   void didChangeDependencies() {
@@ -657,25 +658,30 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
     });
   }
 
-  double _baseAvatarTop(RenderBox? groupBox) {
-    if (groupBox == null || !groupBox.hasSize) return widget.avatarTop;
+  double? _baseAvatarTop(RenderBox? groupBox) {
+    if (groupBox == null || !groupBox.hasSize) return null;
 
     final anchorBox =
         widget.avatarAnchorKey?.currentContext?.findRenderObject()
             as RenderBox?;
-    if (anchorBox == null || !anchorBox.hasSize) return widget.avatarTop;
+    if (anchorBox == null || !anchorBox.hasSize) return null;
 
     try {
       return anchorBox.localToGlobal(Offset.zero, ancestor: groupBox).dy;
     } catch (_) {
-      return widget.avatarTop;
+      return null;
     }
   }
 
-  double _avatarOffset() {
+  double? _avatarOffset() {
     final groupBox =
         widget.groupKey.currentContext?.findRenderObject() as RenderBox?;
-    final baseTop = _baseAvatarTop(groupBox);
+    final measuredBaseTop = _baseAvatarTop(groupBox);
+    if (measuredBaseTop != null) {
+      _resolvedBaseTop = measuredBaseTop;
+    }
+    final baseTop = _resolvedBaseTop;
+    if (baseTop == null) return null;
     if (groupBox == null || !groupBox.hasSize || !widget.stickyEnabled) {
       return baseTop;
     }
@@ -732,6 +738,8 @@ class _StickyGroupAvatarState extends State<_StickyGroupAvatar> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildAvatar(_avatarOffset());
+    final offset = _avatarOffset();
+    if (offset == null) return const SizedBox.shrink();
+    return _buildAvatar(offset);
   }
 }
