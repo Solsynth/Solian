@@ -231,6 +231,7 @@ class ThreadRepliesChip extends HookConsumerWidget {
   final void Function(String messageId) onJump;
   final VoidCallback? onOpenThread;
   final Color? color;
+  final double leftPadding;
 
   const ThreadRepliesChip({
     super.key,
@@ -242,6 +243,7 @@ class ThreadRepliesChip extends HookConsumerWidget {
     required this.onJump,
     this.onOpenThread,
     this.color,
+    this.leftPadding = 52,
   });
 
   @override
@@ -255,35 +257,38 @@ class ThreadRepliesChip extends HookConsumerWidget {
       padding: const EdgeInsets.only(top: 6),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: onOpenThread ?? () {},
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: chipColor.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Symbols.forum,
-                    size: 13,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                  const Gap(4),
-                  Text(
-                    'threadRepliesCount'.plural(replyCount),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                        ),
-                  ),
-                ],
+        child: Padding(
+          padding: EdgeInsets.only(left: leftPadding),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onOpenThread ?? () {},
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: chipColor.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.forum,
+                      size: 13,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    const Gap(4),
+                    Text(
+                      'threadRepliesCount'.plural(replyCount),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

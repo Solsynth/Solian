@@ -649,6 +649,9 @@ class MessageItem extends HookConsumerWidget {
                               onOpenThread: () => onAction?.call(
                                 MessageItemAction.replyInThread,
                               ),
+                              leftPadding: _messageAccessoryLeftPadding(
+                                settings.messageDisplayStyle,
+                              ),
                             ),
                           ],
                         ),
