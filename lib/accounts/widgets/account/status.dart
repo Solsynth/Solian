@@ -91,28 +91,28 @@ class AccountStatusCreationWidget extends HookConsumerWidget {
                       children: [
                         const Icon(Symbols.keyboard_arrow_up),
                         const SizedBox(width: 4),
-                        Text('Create Status').tr(),
+                        Text('statusCreate'.tr()),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Tap to set your current activity and let others know what you\'re up to',
+                      'statusCreateHint'.tr(),
                       style: const TextStyle(fontSize: 12),
-                    ).tr().opacity(0.75),
+                    ).opacity(0.75),
                   ],
                 ),
               ).opacity(0.85),
         error: (error, _) => _StatusStateCard(
           padding: renderPadding,
           icon: Symbols.error,
-          title: 'Status unavailable',
+          title: 'statusUnavailable'.tr(),
           subtitle: '$error',
         ),
         loading: () => _StatusStateCard(
           padding: renderPadding,
           icon: Symbols.more_horiz,
           title: 'loading'.tr(),
-          subtitle: 'Fetching current status',
+          subtitle: 'statusFetching'.tr(),
         ),
       ),
       onTap: () {
@@ -154,7 +154,7 @@ class AccountStatusWidget extends HookConsumerWidget {
         padding: padding,
         icon: Symbols.circle,
         title: getStatusDisplayLabel(context, statusValue),
-        subtitle: 'No custom status set',
+        subtitle: 'statusNoCustom'.tr(),
       ).opacity(0.85);
     }
 
@@ -178,12 +178,12 @@ class AccountStatusWidget extends HookConsumerWidget {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Activity Details'),
+                        title: Text('activityDetails'.tr()),
                         content: buildActivityDetails(status.value),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Close'),
+                            child: Text('close'.tr()),
                           ),
                         ],
                       ),
@@ -252,12 +252,12 @@ class AccountStatusWidget extends HookConsumerWidget {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Activity Details'),
+                  title: Text('activityDetails'.tr()),
                   content: buildActivityDetails(status.value),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Close'),
+                      child: Text('close'.tr()),
                     ),
                   ],
                 ),

@@ -155,13 +155,13 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
                   FocusManager.instance.primaryFocus?.unfocus(),
             ),
             const Gap(8),
-            Text('Appearance', style: Theme.of(context).textTheme.titleMedium),
+            Text('statusAppearance'.tr(), style: Theme.of(context).textTheme.titleMedium),
             const Gap(8),
             Row(
               children: [
                 Expanded(
                   child: _StatusAssetPickerTile(
-                    label: 'Icon',
+                    label: 'statusIcon'.tr(),
                     icon: Symbols.image,
                     file: icon.value,
                     onTap: () => pickImage('icon'),
@@ -170,7 +170,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
                 const Gap(12),
                 Expanded(
                   child: _StatusAssetPickerTile(
-                    label: 'Background',
+                    label: 'statusBackground'.tr(),
                     icon: Symbols.wallpaper,
                     file: background.value,
                     onTap: () => pickImage('background'),
@@ -376,7 +376,7 @@ class _StatusAssetPickerTile extends StatelessWidget {
                   Text(label, style: Theme.of(context).textTheme.titleSmall),
                   const Gap(4),
                   Text(
-                    'Tap to upload',
+                    'statusTapToUpload'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: hasBackground
                           ? Colors.white
@@ -408,7 +408,7 @@ class _StatusPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final previewLabel = label.isNotEmpty ? label : 'Status preview';
+    final previewLabel = label.isNotEmpty ? label : 'statusPreview'.tr();
     final hasMedia = icon != null || background != null;
     final hasBackground = background != null;
     final textShadow = hasBackground
@@ -569,7 +569,7 @@ class _StatusPreviewCard extends StatelessWidget {
                                 ),
                           ),
                         Text(
-                          'This is how your status will appear',
+                          'statusPreviewHint'.tr(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodySmall

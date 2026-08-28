@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -69,17 +71,15 @@ class AccountFeatureWidget extends HookConsumerWidget {
   final bool isAside;
   const AccountFeatureWidget({super.key, this.isAside = false});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWideScreen(context);
-    final isDeveloperMode = ref.watch(developerModeProvider);
-
-    final user = ref.watch(userInfoProvider);
-    final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
-
-    if (user.value == null || user.value == null) {
-      return _UnauthorizedAccountScreen();
-    }
+    // Periodically refresh presence while app is in foreground.
+    useEffect(() {
+      final timer = Timer.periodic(const Duration(seconds: 60), (_) {
+        if (ref.mounted) {
+          ref.invalidate(accountStatusProvider(user.value!.name));
+        }
+      });
+      return timer.cancel;
+    }, []);
 
     return AppScaffold(
       isNoBackground: isWide,
