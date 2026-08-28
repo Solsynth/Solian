@@ -1805,6 +1805,7 @@ class PostBody extends ConsumerWidget {
   final bool hideOverlay;
   final bool hideAttachments;
   final double? textScale;
+  final Widget? forwardedCard;
 
   const PostBody({
     super.key,
@@ -1818,6 +1819,7 @@ class PostBody extends ConsumerWidget {
     this.hideOverlay = false,
     this.hideAttachments = false,
     this.textScale,
+    this.forwardedCard,
   });
 
   @override
@@ -2117,6 +2119,8 @@ class PostBody extends ConsumerWidget {
               vertical: 4,
             ),
           ),
+        if (forwardedCard != null)
+          forwardedCard!.padding(horizontal: renderingPadding.horizontal),
         if (metadataChildren.isNotEmpty)
           Column(
             mainAxisSize: MainAxisSize.min,

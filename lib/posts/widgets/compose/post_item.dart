@@ -25,6 +25,7 @@ import 'package:island/posts/widgets/compose/post_collections_sheet.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
+import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -673,7 +674,7 @@ class PostItem extends HookConsumerWidget {
                 item.forwardedPost != null ||
                 item.repliedPost != null))
           Gap(renderingPadding.vertical),
-        if (isShowReference)
+        if (isShowReference && (item.repliedPost != null || item.repliedGone))
           ReferencedPostWidget(
             item: item,
             renderingPadding: renderingPadding,
@@ -698,7 +699,7 @@ class PostItem extends HookConsumerWidget {
           renderingPadding: renderingPadding,
           showUpperLine:
               isShowReference &&
-              (item.repliedPost != null || item.forwardedPost != null),
+              (item.repliedPost != null || item.repliedGone),
           trailing: trailing,
         ),
         PostBody(
@@ -709,6 +710,13 @@ class PostItem extends HookConsumerWidget {
           translationSection: translationSection,
           renderingPadding: renderingPadding,
           hideAttachments: hideAttachments,
+          forwardedCard: (isShowReference && (item.forwardedPost != null || item.forwardedGone))
+              ? _ForwardedReferenceCard(
+                  item: item,
+                  renderingPadding: renderingPadding,
+                  onPostTap: onPostTap,
+                ).padding(top: 8, bottom: 4)
+              : null,
         ),
         if (item.embedView != null)
           EmbedViewRenderer(
@@ -747,6 +755,137 @@ class PostItem extends HookConsumerWidget {
           ).padding(horizontal: renderingPadding.horizontal, top: 8),
         Gap(renderingPadding.vertical),
       ],
+    );
+  }
+}
+
+
+class _ForwardedReferenceCard extends HookConsumerWidget {
+  final SnPost item;
+  final EdgeInsets renderingPadding;
+  final void Function(String)? onPostTap;
+
+  const _ForwardedReferenceCard({
+    required this.item,
+    required this.renderingPadding,
+    this.onPostTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final referencePost = item.forwardedPost;
+    final isGone = item.forwardedGone;
+    final theme = Theme.of(context);
+
+    return Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              child: Row(
+                children: [
+                  Icon(
+                    Symbols.forward,
+                    size: 14,
+                    color: theme.colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'forwarded'.tr(),
+                    style: TextStyle(
+                      color: theme.colorScheme.secondary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isGone)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.visibility_off,
+                      size: 16,
+                      color: theme.colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'postReferenceUnavailable'.tr(),
+                      style: TextStyle(
+                        color: theme.colorScheme.secondary,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (referencePost != null)
+              InkWell(
+                onTap: () {
+                  if (onPostTap != null) {
+                    onPostTap!(referencePost.id);
+                  } else {
+                    context.router.push(PostDetailRoute(id: referencePost.id));
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    PostHeader(
+                      item: referencePost,
+                      isFullPost: false,
+                      isCompact: true,
+                      renderingPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                      ),
+                    ),
+                    if (referencePost.content != null &&
+                        referencePost.content!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                        child: MarkdownTextContent(
+                          textStyle: TextStyle(
+                            fontSize: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .fontSize! *
+                                0.9,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          content: referencePost.content!,
+                          isSelectable: false,
+                          noMentionChip: referencePost.fediverseUri != null,
+                        ),
+                      ),
+                    if (referencePost.attachments.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                        child: CloudFileList(
+                          files: referencePost.attachments,
+                          sourcePost: referencePost,
+                          isColumn: true,
+                          isFullBleed: true,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
     );
   }
 }
