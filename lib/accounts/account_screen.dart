@@ -71,10 +71,22 @@ class AccountFeatureWidget extends HookConsumerWidget {
   final bool isAside;
   const AccountFeatureWidget({super.key, this.isAside = false});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWide = isWideScreen(context);
+    final isDeveloperMode = ref.watch(developerModeProvider);
+
+    final user = ref.watch(userInfoProvider);
+    final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
+
+    if (user.value == null || user.value == null) {
+      return _UnauthorizedAccountScreen();
+    }
+
     // Periodically refresh presence while app is in foreground.
     useEffect(() {
       final timer = Timer.periodic(const Duration(seconds: 60), (_) {
-        if (ref.mounted) {
+        if (context.mounted) {
           ref.invalidate(accountStatusProvider(user.value!.name));
         }
       });
