@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
@@ -26,6 +27,7 @@ import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -777,6 +779,7 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
     final theme = Theme.of(context);
 
     return Container(
+        width: double.infinity,
         decoration: BoxDecoration(
           border: Border.all(
             color: theme.colorScheme.outlineVariant,
@@ -844,7 +847,7 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 12),
+                      padding: const EdgeInsets.only(top: 4),
                       child: PostHeader(
                         item: referencePost,
                         isFullPost: false,
@@ -873,16 +876,47 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
                         ),
                       ),
                     if (referencePost.attachments.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                        child: CloudFileList(
-                          files: referencePost.attachments,
-                          sourcePost: referencePost,
-                          isColumn: true,
-                          isFullBleed: true,
-                          padding: EdgeInsets.zero,
-                        ),
-                      ),
+                      referencePost.attachments.length == 1
+                          ? FullBleedSingleAttachment(
+                              file: referencePost.attachments.first,
+                              sourcePost: referencePost,
+                              bottomRadius: 12,
+                              onTap: () {
+                                final file = referencePost.attachments.first;
+                                final isImage =
+                                    file.mimeType.startsWith('image');
+                                final isVideo =
+                                    file.mimeType.startsWith('video');
+                                if (isImage || isVideo) {
+                                  context.pushTransparentRoute(
+                                    CloudFileLightbox(
+                                      items: [file],
+                                      initialIndex: 0,
+                                      heroTag:
+                                          'post-attachment-${file.id}',
+                                      sourcePost: referencePost,
+                                    ),
+                                    rootNavigator: true,
+                                  );
+                                } else {
+                                  context.router.push(
+                                    FileDetailRoute(
+                                      id: file.id,
+                                      sourcePost: referencePost,
+                                    ),
+                                  );
+                                }
+                              },
+                            )
+                          : CloudFileList(
+                              files: referencePost.attachments,
+                              sourcePost: referencePost,
+                              isColumn: true,
+                              isFullBleed: true,
+                              maxHeight: 240,
+                              borderRadius: 0,
+                              padding: EdgeInsets.zero,
+                            ).clipRRect(bottomLeft: 12, bottomRight: 12),
                   ],
                 ),
               ),

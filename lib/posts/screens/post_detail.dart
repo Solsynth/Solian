@@ -3051,11 +3051,6 @@ class _PostDetailBody extends HookConsumerWidget {
                   ref.read(postStateProvider(id).notifier).updatePost(newItem);
                 },
                 onReplyPosted: refreshPost,
-                threadSection:
-                    postItem.repliedPostId != null ||
-                        postItem.forwardedPostId != null
-                    ? PostThreadCard(post: postItem)
-                    : null,
                 collectionSection: postItem.publisherCollections.isNotEmpty
                     ? PostCollectionNavigation(post: postItem)
                     : null,

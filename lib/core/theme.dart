@@ -1,4 +1,4 @@
-import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:island/core/config.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

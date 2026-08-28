@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -24,6 +25,7 @@ import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/embeds/embed_list.dart';
@@ -1797,15 +1799,20 @@ class PostHeader extends HookConsumerWidget {
   }
 }
 
-class _FullBleedSingleAttachment extends ConsumerWidget {
+class FullBleedSingleAttachment extends ConsumerWidget {
   final IDisplayableCloudFile file;
   final SnPost? sourcePost;
   final EdgeInsets padding;
+  final VoidCallback? onTap;
+  final double? bottomRadius;
 
-  const _FullBleedSingleAttachment({
+  const FullBleedSingleAttachment({
+    super.key,
     required this.file,
     this.sourcePost,
     this.padding = EdgeInsets.zero,
+    this.onTap,
+    this.bottomRadius,
   });
 
   @override
@@ -1814,7 +1821,10 @@ class _FullBleedSingleAttachment extends ConsumerWidget {
 
     final isImage = file.mimeType.startsWith('image');
     final isVideo = file.mimeType.startsWith('video');
+    // Same source CloudFileWidget relies on: server-side width/height analysis
+    // stored in file meta. Falls back to 1.0 (square) when not analyzed.
     final ratio = (file.ratio ?? 1.0).clamp(0.1, 10.0);
+    final maxHeight = ratio > 1.0 ? 300.0 : 380.0;
 
     Widget backdrop;
     if (isImage && file.blurhash?.isNotEmpty == true) {
@@ -1852,33 +1862,54 @@ class _FullBleedSingleAttachment extends ConsumerWidget {
       backdrop = const ColoredBox(color: Colors.black);
     }
 
-    final foreground = CloudFileWidget(
-      item: file,
-      fit: BoxFit.contain,
-      noBlurhash: isImage,
-      useInternalGate: false,
-      sourcePost: sourcePost,
+    // Foreground fills the full width and derives its height from the
+    // aspect ratio; the backdrop fills the remaining height via
+    // Positioned.fill. No Center wrapper: the Stack sizes to the foreground.
+    final foreground = AspectRatio(
+      aspectRatio: ratio,
+      child: CloudFileWidget(
+        item: file,
+        fit: BoxFit.contain,
+        noBlurhash: isImage,
+        useInternalGate: false,
+        sourcePost: sourcePost,
+        heroTag: 'post-attachment-${file.id}',
+      ),
     );
 
-    return Padding(
+    Widget result = Padding(
       padding: padding,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 400),
+        constraints: BoxConstraints(maxHeight: maxHeight),
         child: ClipRect(
           child: SizedBox(
             width: double.infinity,
-            child: Stack(
-              children: [
-                Positioned.fill(child: backdrop),
-                Center(
-                  child: AspectRatio(aspectRatio: ratio, child: foreground),
-                ),
-              ],
+            child: InkWell(
+              onTap: onTap,
+              child: Stack(
+                // Foreground is the only non-positioned child: the Stack
+                // sizes to it (full width, height = width / ratio), and the
+                // backdrop fills that same box. No Center — keeps the height
+                // driven by the image's own aspect ratio.
+                fit: StackFit.passthrough,
+                clipBehavior: Clip.hardEdge,
+                children: [
+                  Positioned.fill(child: backdrop),
+                  foreground,
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+    if (bottomRadius != null) {
+      result = ClipRRect(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(bottomRadius!)),
+        child: result,
+      );
+    }
+    return result;
   }
 }
 
@@ -2198,10 +2229,29 @@ class PostBody extends ConsumerWidget {
             item.type != 2 &&
             !hideAttachments)
           item.attachments.length == 1
-              ? _FullBleedSingleAttachment(
+              ? FullBleedSingleAttachment(
                   file: item.attachments.first,
                   sourcePost: item,
                   padding: const EdgeInsets.symmetric(vertical: 4),
+                  onTap: () {
+                    final file = item.attachments.first;
+                    final isImage = file.mimeType.startsWith('image');
+                    final isVideo = file.mimeType.startsWith('video');
+                    final opensInLightbox = isImage || isVideo;
+                    if (opensInLightbox) {
+                      context.pushTransparentRoute(
+                        CloudFileLightbox(
+                          items: [file],
+                          initialIndex: 0,
+                          heroTag: 'post-attachment-${file.id}',
+                          sourcePost: item,
+                        ),
+                        rootNavigator: true,
+                      );
+                    } else {
+                      context.router.push(FileDetailRoute(id: file.id, sourcePost: item));
+                    }
+                  },
                 )
               : CloudFileList(
                   files: item.attachments,

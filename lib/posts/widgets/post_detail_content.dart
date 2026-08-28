@@ -332,7 +332,6 @@ class PostDetailContent extends HookConsumerWidget {
   final Future<void> Function() onRefresh;
   final ValueChanged<SnPost?> onUpdate;
   final VoidCallback onReplyPosted;
-  final Widget? threadSection;
   final Widget? collectionSection;
   final Widget? realmSection;
   final Widget interactionsSection;
@@ -352,7 +351,6 @@ class PostDetailContent extends HookConsumerWidget {
     this.trailing,
     this.onPostTap,
     this.maxWidth = postDetailMaxWidth,
-    this.threadSection,
     this.collectionSection,
     this.realmSection,
   });
@@ -446,15 +444,6 @@ class PostDetailContent extends HookConsumerWidget {
                   ),
                 ),
               ),
-              if (threadSection != null)
-                SliverToBoxAdapter(
-                  child: wrapContent(
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                      child: threadSection!,
-                    ),
-                  ),
-                ),
               if (collectionSection != null)
                 SliverToBoxAdapter(
                   child: wrapContent(

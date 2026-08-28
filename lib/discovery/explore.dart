@@ -2374,11 +2374,6 @@ class _TimelineDetailPane extends HookConsumerWidget {
                               )
                               .refresh();
                         },
-                        threadSection:
-                            post.repliedPostId != null ||
-                                post.forwardedPostId != null
-                            ? PostThreadCard(post: post)
-                            : null,
                         collectionSection: post.publisherCollections.isNotEmpty
                             ? PostCollectionNavigation(post: post)
                             : null,
