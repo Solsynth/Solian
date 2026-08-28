@@ -573,61 +573,63 @@ class _StickerInlineContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stickerAsync = ref.watch(stickerLookupProvider(placeholder));
 
-    return stickerAsync.when(
-      data: (sticker) {
-        final parts = placeholder.split('+');
-        final packPrefix =
-            sticker?.pack?.prefix ?? (parts.isNotEmpty ? parts[0] : '');
-        final stickerCode = ':$placeholder:';
-        final renderSize = sticker == null
-            ? _StickerRenderSize.medium
-            : _resolveStickerRenderSize(sticker, isStandalone);
-        final dimension = _stickerRenderDimension(renderSize);
-        final label = sticker?.name?.trim().isNotEmpty == true
-            ? sticker!.name!
-            : sticker?.slug ?? placeholder;
+    return stickerAsync
+        .when(
+          data: (sticker) {
+            final parts = placeholder.split('+');
+            final packPrefix =
+                sticker?.pack?.prefix ?? (parts.isNotEmpty ? parts[0] : '');
+            final stickerCode = ':$placeholder:';
+            final renderSize = sticker == null
+                ? _StickerRenderSize.medium
+                : _resolveStickerRenderSize(sticker, isStandalone);
+            final dimension = _stickerRenderDimension(renderSize);
+            final label = sticker?.name?.trim().isNotEmpty == true
+                ? sticker!.name!
+                : sticker?.slug ?? placeholder;
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
-          child: Tooltip(
-            message: label,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () =>
-                  showStickerPackSheet(context, packPrefix, stickerCode),
-              onSecondaryTap: () {
-                Clipboard.setData(ClipboardData(text: stickerCode));
-              },
-              child: SizedBox(
-                width: dimension,
-                height: dimension,
-                child: sticker == null
-                    ? Icon(
-                        Symbols.emoji_symbols,
-                        size: dimension * 0.45,
-                        color: foregroundColor,
-                      )
-                    : CloudImageWidget(
-                        file: sticker.image,
-                        fit: BoxFit.contain,
-                        noBlurhash: true,
-                      ),
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
+              child: Tooltip(
+                message: label,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () =>
+                      showStickerPackSheet(context, packPrefix, stickerCode),
+                  onSecondaryTap: () {
+                    Clipboard.setData(ClipboardData(text: stickerCode));
+                  },
+                  child: SizedBox(
+                    width: dimension,
+                    height: dimension,
+                    child: sticker == null
+                        ? Icon(
+                            Symbols.emoji_symbols,
+                            size: dimension * 0.45,
+                            color: foregroundColor,
+                          )
+                        : CloudImageWidget(
+                            file: sticker.image,
+                            fit: BoxFit.contain,
+                            noBlurhash: true,
+                          ),
+                  ),
+                ),
               ),
-            ),
+            );
+          },
+          loading: () => _StickerLoadingPlaceholder(
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            dimension: 48,
           ),
-        );
-      },
-      loading: () => _StickerLoadingPlaceholder(
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        dimension: 48,
-      ),
-      error: (_, _) => _StickerLoadingPlaceholder(
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        dimension: 48,
-      ),
-    );
+          error: (_, _) => _StickerLoadingPlaceholder(
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            dimension: 48,
+          ),
+        )
+        .clipRRect(all: 8);
   }
 }
 
@@ -644,20 +646,17 @@ class _StickerLoadingPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      child: Container(
-        width: dimension,
-        height: dimension,
-        decoration: BoxDecoration(
-          color: backgroundColor.withOpacity(0.1),
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-        ),
-        child: Icon(
-          Symbols.emoji_symbols,
-          size: dimension * 0.45,
-          color: foregroundColor,
-        ),
+    return Container(
+      width: dimension,
+      height: dimension,
+      decoration: BoxDecoration(
+        color: flutter.Colors.white.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+      ),
+      child: Icon(
+        Symbols.emoji_symbols,
+        size: dimension * 0.45,
+        color: foregroundColor,
       ),
     );
   }
