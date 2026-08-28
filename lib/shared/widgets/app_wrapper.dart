@@ -21,7 +21,6 @@ import 'package:island/accounts/screens/me/account_qr.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/services/deeplink_service.dart';
-import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:island/chat/pods/call.dart';
@@ -150,11 +149,6 @@ class AppWrapper extends HookConsumerWidget {
 
     useEffect(() {
       ref.read(friendStatusListenerProvider);
-      return null;
-    }, []);
-
-    useEffect(() {
-      ref.read(desktopPresenceProvider);
       return null;
     }, []);
 
@@ -505,11 +499,6 @@ class AppWrapper extends HookConsumerWidget {
         }
       });
       return sub.close;
-    }, []);
-
-    useEffect(() {
-      ref.read(desktopNowPlayingProvider);
-      return null;
     }, []);
 
     useEffect(() {

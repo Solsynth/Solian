@@ -95,17 +95,11 @@ const kAppIpOverrideEnabled = 'app_ip_override_enabled';
 const kAppIpOverrideList = 'app_ip_override_list';
 const kAppIpOverrideMode = 'app_ip_override_mode';
 const kAppIpOverrideDomains = 'app_ip_override_domains';
-const kAppMacosNowPlayingCliPath = 'app_macos_now_playing_cli_path';
-const kAppMacosNowPlayingReuseFixedManualId =
-    'app_macos_now_playing_reuse_fixed_manual_id';
-const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
-const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
 const kAppDesktopUseSeparateCallWindow = 'app_desktop_use_separate_call_window';
 const kAppOutgoingCallKitEnabled = 'app_outgoing_callkit_enabled';
 const kAppDesktopNativeWindowFrame = 'app_desktop_native_window_frame';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
-const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 const kAppUpdateChecksEnabled = 'app_update_checks_enabled';
 const kAppUpdateChannel = 'app_update_channel';
@@ -271,148 +265,8 @@ final ipOverrideDomainSuffixProvider = Provider<String?>((ref) {
       return uri.host;
     }
   } catch (_) {}
-  return null;
+    return null;
 });
-
-enum DesktopNowPlayingCliAvailability { unsupported, installed, missing }
-
-class DesktopNowPlayingCliStatus {
-  const DesktopNowPlayingCliStatus({
-    required this.availability,
-    required this.path,
-  });
-
-  final DesktopNowPlayingCliAvailability availability;
-  final String? path;
-
-  bool get isSupported =>
-      availability != DesktopNowPlayingCliAvailability.unsupported;
-
-  bool get isInstalled =>
-      availability == DesktopNowPlayingCliAvailability.installed;
-}
-
-class DesktopNowPlayingCliPathNotifier extends Notifier<String?> {
-  @override
-  String? build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    if (kIsWeb || !Platform.isMacOS) {
-      return null;
-    }
-    final stored = prefs.getString(kAppMacosNowPlayingCliPath);
-    if (stored == null || stored.trim().isEmpty) {
-      return kMacosNowPlayingCliDefaultPath;
-    }
-    return stored.trim();
-  }
-
-  void setPath(String? value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    if (kIsWeb || !Platform.isMacOS) {
-      state = null;
-      return;
-    }
-
-    final normalized = value?.trim();
-    if (normalized == null || normalized.isEmpty) {
-      prefs.remove(kAppMacosNowPlayingCliPath);
-      state = kMacosNowPlayingCliDefaultPath;
-      return;
-    }
-
-    prefs.setString(kAppMacosNowPlayingCliPath, normalized);
-    state = normalized;
-  }
-}
-
-final desktopNowPlayingCliPathProvider =
-    NotifierProvider<DesktopNowPlayingCliPathNotifier, String?>(
-      DesktopNowPlayingCliPathNotifier.new,
-    );
-
-final desktopNowPlayingCliStatusProvider =
-    FutureProvider<DesktopNowPlayingCliStatus>((ref) async {
-      final path = ref.watch(desktopNowPlayingCliPathProvider);
-      if (kIsWeb || !Platform.isMacOS || path == null) {
-        return const DesktopNowPlayingCliStatus(
-          availability: DesktopNowPlayingCliAvailability.unsupported,
-          path: null,
-        );
-      }
-
-      final file = File(path);
-      if (!await file.exists()) {
-        return DesktopNowPlayingCliStatus(
-          availability: DesktopNowPlayingCliAvailability.missing,
-          path: path,
-        );
-      }
-
-      final check = await Process.run('/bin/test', ['-x', path]);
-      return DesktopNowPlayingCliStatus(
-        availability: check.exitCode == 0
-            ? DesktopNowPlayingCliAvailability.installed
-            : DesktopNowPlayingCliAvailability.missing,
-        path: path,
-      );
-    });
-
-class DesktopNowPlayingReuseFixedManualIdNotifier extends Notifier<bool> {
-  @override
-  bool build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    return prefs.getBool(kAppMacosNowPlayingReuseFixedManualId) ?? false;
-  }
-
-  void setEnabled(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppMacosNowPlayingReuseFixedManualId, value);
-    state = value;
-  }
-}
-
-final desktopNowPlayingReuseFixedManualIdProvider =
-    NotifierProvider<DesktopNowPlayingReuseFixedManualIdNotifier, bool>(
-      DesktopNowPlayingReuseFixedManualIdNotifier.new,
-    );
-
-class DesktopIdleStatusEnabledNotifier extends Notifier<bool> {
-  @override
-  bool build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    return prefs.getBool(kAppDesktopIdleStatusEnabled) ?? true;
-  }
-
-  void setEnabled(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppDesktopIdleStatusEnabled, value);
-    state = value;
-  }
-}
-
-final desktopIdleStatusEnabledProvider =
-    NotifierProvider<DesktopIdleStatusEnabledNotifier, bool>(
-      DesktopIdleStatusEnabledNotifier.new,
-    );
-
-class DesktopNowPlayingEnabledNotifier extends Notifier<bool> {
-  @override
-  bool build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    return prefs.getBool(kAppDesktopNowPlayingEnabled) ?? true;
-  }
-
-  void setEnabled(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppDesktopNowPlayingEnabled, value);
-    state = value;
-  }
-}
-
-final desktopNowPlayingEnabledProvider =
-    NotifierProvider<DesktopNowPlayingEnabledNotifier, bool>(
-      DesktopNowPlayingEnabledNotifier.new,
-    );
 
 class DesktopUseSeparateCallWindowNotifier extends Notifier<bool> {
   @override
