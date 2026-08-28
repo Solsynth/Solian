@@ -1,8 +1,10 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -12,6 +14,7 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/handle_chip.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
@@ -1794,6 +1797,91 @@ class PostHeader extends HookConsumerWidget {
   }
 }
 
+class _FullBleedSingleAttachment extends ConsumerWidget {
+  final IDisplayableCloudFile file;
+  final SnPost? sourcePost;
+  final EdgeInsets padding;
+
+  const _FullBleedSingleAttachment({
+    required this.file,
+    this.sourcePost,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serverUrl = ref.watch(serverUrlProvider);
+
+    final isImage = file.mimeType.startsWith('image');
+    final isVideo = file.mimeType.startsWith('video');
+    final ratio = (file.ratio ?? 1.0).clamp(0.1, 10.0);
+
+    Widget backdrop;
+    if (isImage && file.blurhash?.isNotEmpty == true) {
+      backdrop = BlurHash(hash: file.blurhash!);
+    } else if (isImage) {
+      backdrop = Stack(
+        fit: StackFit.expand,
+        children: [
+          CloudFileWidget(
+            item: file,
+            fit: BoxFit.cover,
+            noBlurhash: true,
+            useInternalGate: false,
+          ),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+            child: Container(color: Colors.black38),
+          ),
+        ],
+      );
+    } else if (isVideo) {
+      final thumbnailUri =
+          file.storageUrl ?? '$serverUrl/drive/files/${file.id}?thumbnail=true';
+      backdrop = Stack(
+        fit: StackFit.expand,
+        children: [
+          UniversalImage(uri: thumbnailUri, fit: BoxFit.cover),
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+            child: Container(color: Colors.black38),
+          ),
+        ],
+      );
+    } else {
+      backdrop = const ColoredBox(color: Colors.black);
+    }
+
+    final foreground = CloudFileWidget(
+      item: file,
+      fit: BoxFit.contain,
+      noBlurhash: isImage,
+      useInternalGate: false,
+      sourcePost: sourcePost,
+    );
+
+    return Padding(
+      padding: padding,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 400),
+        child: ClipRect(
+          child: SizedBox(
+            width: double.infinity,
+            child: Stack(
+              children: [
+                Positioned.fill(child: backdrop),
+                Center(
+                  child: AspectRatio(aspectRatio: ratio, child: foreground),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class PostBody extends ConsumerWidget {
   final SnPost item;
   final bool isFullPost;
@@ -2109,16 +2197,22 @@ class PostBody extends ConsumerWidget {
             item.type != 1 &&
             item.type != 2 &&
             !hideAttachments)
-          CloudFileList(
-            files: item.attachments,
-            sourcePost: item,
-            isColumn: !isInteractive,
-            isFullBleed: true,
-            padding: EdgeInsets.symmetric(
-              horizontal: renderingPadding.horizontal,
-              vertical: 4,
-            ),
-          ),
+          item.attachments.length == 1
+              ? _FullBleedSingleAttachment(
+                  file: item.attachments.first,
+                  sourcePost: item,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                )
+              : CloudFileList(
+                  files: item.attachments,
+                  sourcePost: item,
+                  isColumn: !isInteractive,
+                  isFullBleed: true,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: renderingPadding.horizontal,
+                    vertical: 4,
+                  ),
+                ),
         if (forwardedCard != null)
           forwardedCard!.padding(horizontal: renderingPadding.horizontal),
         if (metadataChildren.isNotEmpty)

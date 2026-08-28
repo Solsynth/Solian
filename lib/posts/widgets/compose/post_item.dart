@@ -671,7 +671,6 @@ class PostItem extends HookConsumerWidget {
         if (!isShowReference ||
             !(item.forwardedGone ||
                 item.repliedGone ||
-                item.forwardedPost != null ||
                 item.repliedPost != null))
           Gap(renderingPadding.vertical),
         if (isShowReference && (item.repliedPost != null || item.repliedGone))
@@ -844,12 +843,15 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    PostHeader(
-                      item: referencePost,
-                      isFullPost: false,
-                      isCompact: true,
-                      renderingPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: PostHeader(
+                        item: referencePost,
+                        isFullPost: false,
+                        isCompact: true,
+                        renderingPadding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                        ),
                       ),
                     ),
                     if (referencePost.content != null &&

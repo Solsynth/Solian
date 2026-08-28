@@ -2480,7 +2480,10 @@ class _ActivityListView extends HookConsumerWidget {
 
     return SuperSliverList.separated(
       itemCount: data.length + 1,
-      separatorBuilder: (_, _) => const Gap(8),
+      separatorBuilder: (_, _) => Divider(
+        height: 1 / MediaQuery.devicePixelRatioOf(context),
+        thickness: 1 / MediaQuery.devicePixelRatioOf(context),
+      ),
       itemBuilder: (context, index) {
         if (index == data.length) {
           return footer;

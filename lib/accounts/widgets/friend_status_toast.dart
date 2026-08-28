@@ -262,37 +262,29 @@ class FriendStatusToast extends HookConsumerWidget {
                         ),
                       ),
                       Positioned(
-                        right: -3,
-                        bottom: -3,
+                        right: -2,
+                        bottom: -2,
                         child: Container(
-                          width: 22,
-                          height: 22,
+                          width: event.changeType == FriendStatusChangeType.online ? 14 : 22,
+                          height: event.changeType == FriendStatusChangeType.online ? 14 : 22,
                           decoration: BoxDecoration(
                             color: statusColor,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: theme.colorScheme.surfaceContainerHigh,
-                              width: 2.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: statusColor.withOpacity(0.35),
-                                blurRadius: 12,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
+                            border: event.changeType != FriendStatusChangeType.online
+                                ? Border.all(
+                                    color: theme.colorScheme.surfaceContainerHigh,
+                                    width: 2.5,
+                                  )
+                                : null,
                           ),
                           alignment: Alignment.center,
-                          child: Icon(
-                            _getStatusIcon(),
-                            size: 12,
-                            color: theme.colorScheme.onPrimary,
-                            fill:
-                                event.changeType ==
-                                    FriendStatusChangeType.online
-                                ? 1
-                                : 0,
-                          ),
+                          child: event.changeType != FriendStatusChangeType.online
+                              ? Icon(
+                                  _getStatusIcon(),
+                                  size: 12,
+                                  color: theme.colorScheme.onPrimary,
+                                )
+                              : null,
                         ),
                       ),
                     ],
