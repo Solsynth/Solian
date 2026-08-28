@@ -7,6 +7,7 @@ import "package:island/accounts/account_pod.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_summary.dart";
+import "package:island/chat/widgets/message_indicators.dart";
 import "package:island/core/lifecycle.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
@@ -101,10 +102,14 @@ class ChatReadSyncNotifier extends AsyncNotifier<void> {
 
     await database.saveMember(member.copyWith(lastReadAt: lastReadAt));
     if (!ref.mounted) return;
-    ref.invalidate(chatRoomProvider(roomId));
-    if (accountId == currentUserId) {
-      ref.invalidate(chatRoomIdentityProvider(roomId));
-    }
+    // Read receipts only move the read markers, which are computed from the
+    // DB-backed member rows. Refetching the whole room/identity here caused a
+    // feedback loop: ChatSubscribeNotifier rebuilds (it watches both) and
+    // re-sends a read receipt, the server echoes it back, and this handler
+    // invalidated again — the entire ChatRoomScreen bounced through its
+    // loading branch every network round-trip, dropping the input's focus and
+    // replaying attachment animations. Invalidate only the cheap read state.
+    ref.invalidate(roomReadStateProvider(roomId));
   }
 
   Future<void> markAllRead() async {
