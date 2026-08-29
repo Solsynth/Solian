@@ -45,13 +45,11 @@ import 'package:image_picker_platform_interface/image_picker_platform_interface.
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 // ponytail: desktop_multi_window for call window support
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:island/chat/widgets/call_window.dart';
 
 final List<LogRecord> _earlyLogs = [];
-const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
 var _firebaseIsReady = false;
 
 @pragma('vm:entry-point')
@@ -440,16 +438,6 @@ void main(List<String> args) async {
         ),
       ),
     );
-  }
-
-  if (_sentryDsn.isNotEmpty) {
-    await SentryFlutter.init((options) {
-      options.dsn = _sentryDsn;
-      options.sendDefaultPii = false;
-      options.tracesSampleRate = 0.01;
-      options.enableAutoSessionTracking = false;
-    }, appRunner: appRunner);
-    return;
   }
 
   await appRunner();

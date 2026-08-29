@@ -113,8 +113,6 @@ Configure these repository secrets:
 | --- | --- |
 | `DISTRIBUTION_UPLOAD_KEY` | Plaintext product-scoped upload key |
 
-The existing Sentry and signing secrets remain unchanged.
-
 With the GitHub CLI, non-secret variables can be configured as follows:
 
 ```sh

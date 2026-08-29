@@ -25,7 +25,7 @@ echo "🚀 Found Flutter version: $FLUTTER_VERSION"
 
 # 2. Build the Flutter web app
 echo "🔨 Building Flutter web app..."
-./buildtools/flutter-with-sentry.sh build web --base-href=/ --release
+flutter build web --base-href=/ --release
 
 # 3. Deploy to Cloudflare Pages
 echo "☁️ Deploying to Cloudflare Pages..."

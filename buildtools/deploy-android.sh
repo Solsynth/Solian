@@ -46,7 +46,7 @@ if [ "$SKIP_BUILD" = false ]; then
     echo "Skipping gradle patch (--no-patch flag detected)..."
   fi
   flutter pub get
-  ./buildtools/flutter-with-sentry.sh build apk --release --split-per-abi
+  flutter build apk --release --split-per-abi
 else
   echo "Skipping build (--no-build flag detected)..."
 fi
