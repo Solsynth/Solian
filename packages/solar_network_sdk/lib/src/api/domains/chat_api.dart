@@ -49,7 +49,7 @@ class ChatApi extends BaseApi {
   Future<SnChatRoom?> getRoomBySlug(String scope, String chatSlug) async {
     try {
       final response = await get<Map<String, dynamic>>(
-        '$_basePath/chat/by-slug/$scope/$chatSlug',
+        '$_basePath/chat/public/$scope/$chatSlug',
       );
       return SnChatRoom.fromJson(response.data!);
     } on DioException catch (e) {
