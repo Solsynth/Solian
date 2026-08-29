@@ -12,22 +12,11 @@ import AppIntents
 @available(iOS 16.0, *)
 struct AppIntentCredential {
     static func getToken() -> String? {
-        let defaults = UserDefaults(suiteName: SharedConstants.appGroupId)
-        guard let jsonString = defaults?.string(forKey: SharedConstants.tokenKey),
-              let data = jsonString.data(using: .utf8),
-              let jsonObject = try? JSONSerialization.jsonObject(with: data),
-              let jsonDict = jsonObject as? [String: Any],
-              let token = jsonDict["token"] as? String else {
-            print("[AppIntentCredential] Failed to get token")
-            return nil
-        }
-        print("[AppIntentCredential] Token retrieved successfully")
-        return token
+        UserDefaults.shared.getAuthToken()
     }
 
     static func getServerUrl() -> String {
-        let defaults = UserDefaults(suiteName: SharedConstants.appGroupId)
-        return defaults?.string(forKey: SharedConstants.serverUrlKey) ?? SharedConstants.defaultServerUrl
+        UserDefaults.shared.getServerUrl()
     }
 }
 
@@ -372,21 +361,6 @@ struct OpenPostIntent: AppIntent {
     }
 }
 
-// MARK: - Open Compose Intent
-
-@available(iOS 16.0, *)
-struct OpenComposeIntent: AppIntent {
-    static var title: LocalizedStringResource = "intent_open_compose_title"
-    static var description = IntentDescription("intent_open_compose_desc")
-    static var isDiscoverable = true
-    static var openAppWhenRun = true
-
-    func perform() async throws -> some IntentResult & OpensIntent {
-        try AppIntentNavigation.queueDeepLink(path: "compose")
-        return .result(value: AppIntentL10n.string("intent_open_compose_result"))
-    }
-}
-
 // MARK: - Compose Post Intent
 
 @available(iOS 16.0, *)
@@ -397,7 +371,7 @@ struct ComposePostIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        try AppIntentNavigation.queueDeepLink(path: "compose")
+        try AppIntentNavigation.queueDeepLink(path: "")
         return .result(value: AppIntentL10n.string("intent_open_compose_result"))
     }
 }
@@ -506,7 +480,7 @@ struct ViewNotificationsIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        try AppIntentNavigation.queueDeepLink(path: "notifications")
+        try AppIntentNavigation.queueDeepLink(path: "")
         return .result(value: AppIntentL10n.string("intent_notifications_result"))
     }
 }

@@ -36,18 +36,18 @@ final class DeepLinkHandler {
             }
 
         case "search":
-            if let query = queryItems?.first(where: { $0.name == "query" })?.value {
+            if let query = queryItems?.first(where: { $0.name == "q" })?.value {
                 let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
                 openUrl("solian://search?q=\(encodedQuery)")
                 return true
             }
 
         case "notifications":
-            openUrl("solian://notifications")
+            openUrl("solian://")
             return true
 
         case "compose":
-            openUrl("solian://compose")
+            openUrl("solian://")
             return true
 
         default:
@@ -68,15 +68,15 @@ final class DeepLinkHandler {
                 return true
             }
             if path == "/notifications" {
-                openUrl("solian://notifications")
+                openUrl("solian://")
                 return true
             }
             if path.hasPrefix("/compose") || path == "/compose" {
-                openUrl("solian://compose")
+                openUrl("solian://")
                 return true
             }
             if path.hasPrefix("/dashboard") {
-                openUrl("solian://dashboard")
+                openUrl("solian://")
                 return true
             }
         }
