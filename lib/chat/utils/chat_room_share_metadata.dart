@@ -39,6 +39,20 @@ String? getDirectChatCounterpartFirstName(
   return null;
 }
 
+String? getDirectChatCounterpartAccountId(
+  SnChatRoom room,
+  String? currentUserId,
+) {
+  if (room.type != 1) return null;
+  final members = room.members ?? const <SnChatMember>[];
+  final others = members.where((member) => member.accountId != currentUserId);
+  for (final member in others) {
+    final accountId = member.accountId;
+    if (accountId.isNotEmpty) return accountId;
+  }
+  return null;
+}
+
 String? getDirectChatCounterpartPictureUrl(
   SnChatRoom room,
   String? currentUserId,
@@ -64,14 +78,14 @@ String getChatRoomSuggestionDisplayName(
     return explicitName;
   }
 
-  final accountName = getDirectChatCounterpartAccountName(room, currentUserId);
-  if (accountName != null && accountName.isNotEmpty) {
-    return accountName;
-  }
-
   final nick = getDirectChatCounterpartNick(room, currentUserId);
   if (nick != null && nick.isNotEmpty) {
     return nick;
+  }
+
+  final accountName = getDirectChatCounterpartAccountName(room, currentUserId);
+  if (accountName != null && accountName.isNotEmpty) {
+    return accountName;
   }
 
   return room.type == 1 ? 'Direct Message' : 'Chat';

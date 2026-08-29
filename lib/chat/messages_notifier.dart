@@ -2199,14 +2199,14 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       final sentMessage = result.message!;
       final room = await ref.read(chatRoomProvider(roomId).future);
-      final currentUserId = await ref
-          .read(userInfoProvider.future)
-          .then((account) => account?.id);
+      final currentAccount = await ref.read(userInfoProvider.future);
       if (room != null) {
         unawaited(
           IosShareSuggestionsService.instance.donateChatRoom(
             room,
-            currentUserId: currentUserId,
+            currentUserId: currentAccount?.id,
+            currentAccountName: currentAccount?.name,
+            currentAccountNick: currentAccount?.nick,
             serverUrl: ref.read(serverUrlProvider),
           ),
         );

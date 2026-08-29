@@ -24,11 +24,17 @@ class IosShareSuggestionsService {
   Future<void> donateChatRoom(
     SnChatRoom room, {
     required String? currentUserId,
+    required String? currentAccountName,
+    required String? currentAccountNick,
     required String serverUrl,
   }) async {
     if (!_isSupported) return;
 
     final displayName = getChatRoomSuggestionDisplayName(room, currentUserId);
+    final recipientAccountId = getDirectChatCounterpartAccountId(
+      room,
+      currentUserId,
+    );
     final recipientAccountName = getDirectChatCounterpartAccountName(
       room,
       currentUserId,
@@ -38,21 +44,17 @@ class IosShareSuggestionsService {
       room,
       currentUserId,
     );
-    final recipientPictureUrl = getDirectChatCounterpartPictureUrl(
-      room,
-      currentUserId,
-      serverUrl,
-    );
 
     try {
       await _channel.invokeMethod<void>('donateChatConversation', {
         'roomId': room.id,
         'displayName': displayName,
         'isDirect': room.type == 1,
+        'recipientAccountId': recipientAccountId,
         'recipientAccountName': recipientAccountName,
         'recipientNick': recipientNick,
         'recipientFirstName': recipientFirstName,
-        'recipientPictureUrl': recipientPictureUrl,
+        'senderName': currentAccountNick ?? currentAccountName,
       });
     } on PlatformException {
       // Best-effort integration.

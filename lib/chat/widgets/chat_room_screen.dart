@@ -252,7 +252,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     useEffect(() {
       final room = chatRoom.value;
-      final currentUserId = ref.read(userInfoProvider).value?.id;
+      final currentUser = ref.read(userInfoProvider).value;
       if (room == null || room.id == donatedRoomId.value) {
         return null;
       }
@@ -260,7 +260,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       Future.microtask(() async {
         await IosShareSuggestionsService.instance.donateChatRoom(
           room,
-          currentUserId: currentUserId,
+          currentUserId: currentUser?.id,
+          currentAccountName: currentUser?.name,
+          currentAccountNick: currentUser?.nick,
           serverUrl: ref.read(serverUrlProvider),
         );
         donatedRoomId.value = room.id;

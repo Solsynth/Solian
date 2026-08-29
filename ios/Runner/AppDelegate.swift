@@ -617,14 +617,16 @@ import flutter_callkit_incoming
         }
         
         let isDirect = arguments["isDirect"] as? Bool ?? false
+        let recipientAccountId = arguments["recipientAccountId"] as? String
         let recipientAccountName = arguments["recipientAccountName"] as? String
         let recipientNick = arguments["recipientNick"] as? String
         let recipientFirstName = arguments["recipientFirstName"] as? String
-        let recipientPictureUrl = arguments["recipientPictureUrl"] as? String
+        let senderName = arguments["senderName"] as? String
         
         let recipients: [INPerson]?
         if isDirect, let recipientIdentifier = (recipientAccountName?.isEmpty == false ? recipientAccountName : recipientNick), !recipientIdentifier.isEmpty {
-            let handle = INPersonHandle(value: recipientIdentifier, type: .unknown)
+            let handleId = recipientAccountId ?? recipientIdentifier
+            let handle = INPersonHandle(value: handleId, type: .unknown)
             var components = PersonNameComponents()
             let recipientDisplayName = recipientFirstName?.trimmingCharacters(in: .whitespacesAndNewlines)
             if let recipientDisplayName, !recipientDisplayName.isEmpty {
@@ -632,23 +634,32 @@ import flutter_callkit_incoming
             } else {
                 components.nickname = recipientNick ?? recipientIdentifier
             }
-            let recipientImage = recipientPictureUrl == nil ?
-            INImage(named: recipientNick ?? displayName) :
-            recipientPictureUrl.flatMap { URL(string: $0) }.flatMap { INImage(url: $0) }
             recipients = [
                 INPerson(
                     personHandle: handle,
                     nameComponents: components,
-                    displayName: recipientDisplayName?.isEmpty == false
-                    ? recipientDisplayName!
-                    : (recipientNick ?? recipientIdentifier),
-                    image: recipientImage,
+                    displayName: recipientNick ?? recipientDisplayName ?? recipientIdentifier,
+                    image: nil,
                     contactIdentifier: nil,
                     customIdentifier: recipientAccountName ?? recipientIdentifier
                 )
             ]
         } else {
             recipients = nil
+        }
+        
+        let sender: INPerson?
+        if let senderName, !senderName.isEmpty {
+            sender = INPerson(
+                personHandle: nil,
+                nameComponents: nil,
+                displayName: senderName,
+                image: nil,
+                contactIdentifier: nil,
+                customIdentifier: nil
+            )
+        } else {
+            sender = nil
         }
         
         let intent = INSendMessageIntent(
@@ -658,7 +669,7 @@ import flutter_callkit_incoming
             speakableGroupName: INSpeakableString(spokenPhrase: displayName),
             conversationIdentifier: roomId,
             serviceName: Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
-            sender: nil,
+            sender: sender,
             attachments: nil
         )
         
