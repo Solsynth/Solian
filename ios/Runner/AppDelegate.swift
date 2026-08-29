@@ -651,7 +651,7 @@ import flutter_callkit_incoming
         let sender: INPerson?
         if let senderName, !senderName.isEmpty {
             sender = INPerson(
-                personHandle: nil,
+                personHandle: INPersonHandle(value: senderName, type: .unknown),
                 nameComponents: nil,
                 displayName: senderName,
                 image: nil,

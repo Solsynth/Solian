@@ -33,7 +33,7 @@ struct AppShortcuts: AppShortcutsProvider {
             systemImageName: "doc.text.fill"
         )
         AppShortcut(
-            intent: OpenComposeIntent(),
+            intent: ComposePostIntent(),
             phrases: [
                 "Open compose with \(.applicationName)",
                 "New post using \(.applicationName)",
