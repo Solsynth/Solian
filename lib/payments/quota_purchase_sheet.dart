@@ -13,14 +13,14 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// Quota purchase pricing, from `GET /drive/billing/quota/purchase`.
+/// Quota purchase pricing, from `GET /api/billing/quota/purchase` (Valve).
 final quotaPurchaseConfigProvider = FutureProvider<SnQuotaPurchaseConfig>((
   ref,
 ) {
   return ref.read(solarNetworkClientProvider).drive.getQuotaPurchaseConfig();
 });
 
-/// The user's quota purchase records from `GET /drive/billing/quota/records`.
+/// The user's quota purchase records from `GET /api/billing/quota/records` (Valve).
 final quotaPurchaseRecordsProvider = FutureProvider<List<QuotaPurchaseRecord>>((
   ref,
 ) async {
@@ -88,7 +88,7 @@ DateTime? _parseDate(dynamic value) {
 /// (`max_gb − extra_quota / 1024`), a quantity selector, and purchase
 /// records. Creates the Wallet order and hands it to [PaymentOverlay] for
 /// PIN/biometric confirmation; the granted quota lands automatically once
-/// the Wallet payment event is consumed by DysonFS.
+/// the Wallet payment event is consumed by Valve.
 class QuotaPurchaseSheet extends ConsumerStatefulWidget {
   const QuotaPurchaseSheet({super.key});
 

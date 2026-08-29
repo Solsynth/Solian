@@ -30,8 +30,9 @@ class UsageOverviewWidget extends StatelessWidget {
     if (usage == null) return const SizedBox.shrink();
 
     final usageData = usage!;
-    final baseMb = usageData['total_quota'] as int? ?? 0;
+    final totalMb = usageData['total_quota'] as int? ?? 0;
     final extraMb = (quota?['extra_quota'] as num?)?.toInt() ?? 0;
+    final baseMb = totalMb - extraMb;
     final fileCount = usageData['total_file_count'] as int? ?? 0;
     final legacyUsedMb = (usageData['used_quota'] as num? ?? 0).toDouble();
     final usedBytes =

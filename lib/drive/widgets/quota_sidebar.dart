@@ -91,9 +91,10 @@ class QuotaSidebarWidget extends StatelessWidget {
     final nonNullUsage = usage!;
     final usedBytes = nonNullUsage['total_usage_bytes'] as int? ?? 0;
     final fileCount = nonNullUsage['total_file_count'] as int? ?? 0;
-    final baseMb = nonNullUsage['total_quota'] as int? ?? 0;
+    final totalMb = nonNullUsage['total_quota'] as int? ?? 0;
     final usedMb = (nonNullUsage['used_quota'] as num? ?? 0).toDouble();
     final extraMb = (quota?['extra_quota'] as num?)?.toInt() ?? 0;
+    final baseMb = totalMb - extraMb;
     final poolUsages = nonNullUsage['pool_usages'] as List<dynamic>? ?? [];
 
     final availableMb = baseMb + extraMb;

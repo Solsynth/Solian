@@ -6,10 +6,10 @@ import 'package:solar_network_sdk/src/models/drive/file_permission.dart';
 import 'package:solar_network_sdk/src/models/drive/file_pool.dart';
 import 'package:solar_network_sdk/src/models/drive/quota.dart';
 
-/// API for cloud drive/storage endpoints (/drive).
+/// API for cloud drive/storage endpoints (/drive) and account quota (Valve).
 ///
-/// Covers files, folders, upload tasks, bundles, pools, and billing
-/// as documented in DRIVE_API.md.
+/// Covers files, folders, upload tasks, bundles, pools (DysonFS), and
+/// account quota/billing (Valve's /api/billing/quota).
 class DriveApi extends BaseApi {
   DriveApi(super.dio);
 
@@ -793,22 +793,22 @@ class DriveApi extends BaseApi {
     return response.data!;
   }
 
-  /// Returns the user's storage quota breakdown.
+  /// Returns the user's storage quota breakdown (account quota from Valve).
   Future<Map<String, dynamic>> getQuota() async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/billing/quota',
+      '/api/billing/quota',
     );
     return response.data!;
   }
 
-  /// Returns the user's quota purchase/addition records.
+  /// Returns the user's quota purchase/addition records (from Valve).
   Future<PaginatedResult<Map<String, dynamic>>> getQuotaRecords({
     bool expired = false,
     int offset = 0,
     int take = 20,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/billing/quota/records',
+      '/api/billing/quota/records',
       queryParameters: {'expired': expired, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
@@ -820,27 +820,24 @@ class DriveApi extends BaseApi {
   }
 
   /// Returns the quota purchase configuration (price per GB, min/max
-  /// quantities).
-  ///
-  /// Only available when the `quota.purchase` feature is enabled on the
-  /// server; otherwise the route does not exist.
+  /// quantities) from Valve.
   Future<SnQuotaPurchaseConfig> getQuotaPurchaseConfig() async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/billing/quota/purchase',
+      '/api/billing/quota/purchase',
     );
     return SnQuotaPurchaseConfig.fromJson(response.data!);
   }
 
-  /// Creates a quota purchase order for [quantityGb] gigabytes.
+  /// Creates a quota purchase order for [quantityGb] gigabytes via Valve.
   ///
   /// The returned order must be paid through the Wallet API
   /// (`POST /wallet/orders/{orderId}/pay`); the granted quota lands
-  /// automatically once the payment event is consumed.
+  /// automatically once the payment event is consumed by Valve.
   Future<SnQuotaOrder> createQuotaPurchaseOrder({
     required int quantityGb,
   }) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/billing/quota/purchase',
+      '/api/billing/quota/purchase',
       data: {'quantity_gb': quantityGb},
     );
     return SnQuotaOrder.fromJson(response.data!);
