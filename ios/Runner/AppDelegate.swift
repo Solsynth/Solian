@@ -53,7 +53,7 @@ import flutter_callkit_incoming
             setupStorePurchaseChannel(binaryMessenger: controller.binaryMessenger)
             LocalCommunicationNotification.install(binaryMessenger: controller.binaryMessenger)
         }
-
+        
         UNUserNotificationCenter.current().delegate = self
         
         let replyableMessageCategory = UNNotificationCategory(
@@ -86,9 +86,9 @@ import flutter_callkit_incoming
         RTCAudioSession.sharedInstance().useManualAudio = true
         RTCAudioSession.sharedInstance().isAudioEnabled = false
         // Missed call notification
-//        if #available(iOS 10.0, *) {
-//            UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
-//        }
+        //        if #available(iOS 10.0, *) {
+        //            UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+        //        }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
@@ -126,17 +126,47 @@ import flutter_callkit_incoming
         reportIncomingPush(dict: voipDict, completion: completion)
     }
     
+    private func callKitHandle(
+        callerId: String?,
+        roomId: String,
+        roomType: Int?,
+        scope: String?,
+        slug: String?
+    ) -> String {
+        if roomType != 1 {
+            let normalizedScope = scope?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalizedSlug = slug?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let normalizedScope, !normalizedScope.isEmpty,
+               let normalizedSlug, !normalizedSlug.isEmpty {
+                return "\(normalizedScope)/\(normalizedSlug)"
+            }
+        }
+        let normalizedCallerId = callerId?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let normalizedCallerId, !normalizedCallerId.isEmpty {
+            return normalizedCallerId
+        }
+        return roomId
+    }
     private func reportIncomingPush(dict: [String: Any], completion: @escaping () -> Void) {
         let id = (dict["uuid"] as? String) ?? UUID().uuidString.lowercased()
         let nameCaller = (dict["caller_name"] as? String) ?? ""
-        let handle = (dict["caller_id"] as? String) ?? ""
+        let roomId = (dict["room_id"] as? String) ?? ""
+        let handle = callKitHandle(
+            callerId: dict["caller_id"] as? String,
+            roomId: roomId,
+            roomType: dict["room_type"] as? Int,
+            scope: (dict["room_scope"] as? String) ?? (dict["scope"] as? String),
+            slug: (dict["room_slug"] as? String) ?? (dict["slug"] as? String)
+        )
         let isVideo = (dict["has_video"] as? Bool) ?? false
-        
+
         var extra: [String: Any] = [:]
-        if let roomId = dict["room_id"] as? String { extra["room_id"] = roomId }
+        if !roomId.isEmpty { extra["room_id"] = roomId }
         if let callerId = dict["caller_id"] as? String { extra["caller_id"] = callerId }
+        if let roomSlug = dict["room_slug"] as? String { extra["room_slug"] = roomSlug }
+        if let roomScope = dict["room_scope"] as? String { extra["room_scope"] = roomScope }
         if let pfp = dict["pfp"] as? String { extra["pfp"] = pfp }
-        
+
         let reportData = Data(
             id: id,
             nameCaller: nameCaller,
@@ -144,15 +174,12 @@ import flutter_callkit_incoming
             type: isVideo ? 1 : 0
         )
         reportData.ringtonePath = "SfxCall.wav"
-        // explicit asset name; prevents plugin from falling back to "CallKitLogo" and logging Unable to load icon
         reportData.iconName = "CallKitLogo"
+        reportData.normalHandle = 1
         reportData.extra = extra as NSDictionary
-        // Critical: don't let this plugin configure AVAudioSession — LiveKit owns it.
-        // Setting false prevents flutter_callkit_incoming from calling setCategory/setMode/setActive,
-        // which would otherwise fight with audio_session → RTCAudioSession.
         reportData.configureAudioSession = false
         configureCallAudioSession("incoming push before report")
-        
+
         print("[CallKit] reporting to showCallkitIncoming id=\(id) caller=\(nameCaller) handle=\(handle) isVideo=\(isVideo) fromPushKit=true")
         guard let plugin = SwiftFlutterCallkitIncomingPlugin.sharedInstance else {
             print("[CallKit] WARNING: plugin instance nil — cannot report")
@@ -167,7 +194,7 @@ import flutter_callkit_incoming
     
     
     // MARK: - Notifications
-
+    
     override func userNotificationCenter(_ center: UNUserNotificationCenter,
                                          willPresent notification: UNNotification,
                                          withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
@@ -177,7 +204,7 @@ import flutter_callkit_incoming
             withCompletionHandler: completionHandler
         )
     }
-
+    
     override func userNotificationCenter(_ center: UNUserNotificationCenter,
                                          didReceive response: UNNotificationResponse,
                                          withCompletionHandler completionHandler: @escaping () -> Void) {
@@ -188,7 +215,7 @@ import flutter_callkit_incoming
             completionHandler()
             return
         }
-
+        
         if response.actionIdentifier == "reply_action" {
             // Inline chat reply — posted natively (see NotifyDelegate).
             notifyDelegate.userNotificationCenter(
@@ -198,7 +225,7 @@ import flutter_callkit_incoming
             )
             return
         }
-
+        
         // Plain tap (and dismiss): forward to the Flutter side via the base
         // FlutterAppDelegate, which dispatches to flutter_local_notifications.
         // That delivers the notification payload to Dart so the app can open
@@ -210,7 +237,7 @@ import flutter_callkit_incoming
             withCompletionHandler: completionHandler
         )
     }
-
+    
     // MARK: - CallkitIncomingAppDelegate
     
     func onAccept(_ call: Call, _ action: CXAnswerCallAction) {
@@ -252,7 +279,7 @@ import flutter_callkit_incoming
             print("[CallKit] failed to configure AVAudioSession reason=\(reason) error=\(error.localizedDescription)")
         }
     }
-
+    
     private func prepareCallKitAudioSession(_ reason: String) {
         // CallKit activates the session after the CXStartCallAction is fulfilled.
         // The category must already support recording at that point. Reset this
@@ -264,11 +291,11 @@ import flutter_callkit_incoming
         rtcSession.useManualAudio = true
         rtcSession.isAudioEnabled = false
     }
-
+    
     private func prepareOutgoingCallAudioSession() {
         prepareCallKitAudioSession("outgoing call before report")
     }
-
+    
     private func prepareInAppLiveKitAudioSession() {
         // In-app joins do not need a CallKit transaction. Release WebRTC from
         // CallKit/manual-audio mode and let LiveKit/flutter_webrtc configure the
@@ -279,7 +306,7 @@ import flutter_callkit_incoming
         rtcSession.isAudioEnabled = true
         print("[CallKit] prepared in-app LiveKit audio session ownership")
     }
-
+    
     func didActivateAudioSession(_ audioSession: AVAudioSession) {
         print("[CallKit] didActivateAudioSession")
         configureCallAudioSession("didActivate")
@@ -303,7 +330,7 @@ import flutter_callkit_incoming
         print("[CallKit] providerDidReset")
         callKitAudioSessionActive = false
     }
-
+    
     private func setupStorePurchaseChannel(binaryMessenger: FlutterBinaryMessenger) {
         let channel = FlutterMethodChannel(
             name: storePurchaseChannelName,
@@ -314,12 +341,12 @@ import flutter_callkit_incoming
                 result(FlutterMethodNotImplemented)
                 return
             }
-
+            
             let receiptName = Bundle.main.appStoreReceiptURL?.lastPathComponent
             result(receiptName == "sandboxReceipt")
         }
     }
-
+    
     private func setupNativeCallChannel(binaryMessenger: FlutterBinaryMessenger) {
         nativeCallChannel = FlutterMethodChannel(
             name: nativeCallChannelName,
@@ -344,7 +371,7 @@ import flutter_callkit_incoming
             }
         }
     }
-
+    
     private func storeAcceptedCall(_ call: Call) {
         let extra = call.data.extra as? [String: Any] ?? [:]
         var payload: [String: Any] = [
@@ -361,7 +388,7 @@ import flutter_callkit_incoming
         UserDefaults.shared.synchronize()
         nativeCallChannel?.invokeMethod("onAcceptedCall", arguments: payload)
     }
-
+    
     private func consumePendingAcceptedCall() -> [String: Any]? {
         let defaults = UserDefaults.shared
         defer {
@@ -370,7 +397,7 @@ import flutter_callkit_incoming
         }
         return defaults.dictionary(forKey: pendingAcceptedCallKey)
     }
-
+    
     private func storeCallbackCall(_ rawPayload: [String: Any]?) {
         guard let rawPayload else { return }
         var payload = rawPayload
@@ -386,7 +413,7 @@ import flutter_callkit_incoming
         UserDefaults.shared.synchronize()
         nativeCallChannel?.invokeMethod("onCallbackCall", arguments: payload)
     }
-
+    
     private func consumePendingCallbackCall() -> [String: Any]? {
         let defaults = UserDefaults.shared
         defer {
@@ -418,14 +445,13 @@ import flutter_callkit_incoming
             guard !handle.isEmpty else {
                 return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
             }
-            let roomId = handle
             let data = flutter_callkit_incoming.Data(
                 id: UUID().uuidString.lowercased(),
                 nameCaller: nameCaller,
                 handle: handle,
                 type: isVideo ? 1 : 0
             )
-            data.extra = ["room_id": roomId]
+            data.normalHandle = 1
             data.configureAudioSession = false
             prepareCallKitAudioSession("Phone recents callback")
             // This is a local CallKit transaction opened from Phone recents,
@@ -437,21 +463,19 @@ import flutter_callkit_incoming
                 "id": data.uuid,
                 "nameCaller": nameCaller,
                 "handle": handle,
-                "room_id": roomId,
-                "extra": ["room_id": roomId],
                 "type": isVideo ? 1 : 0,
             ])
             return true
         }
-
+        
         if let webpageURL = userActivity.webpageURL,
            handleIncomingDeepLink(webpageURL) {
             return true
         }
-
+        
         return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
-
+    
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         let sharingIntent = SwiftFlutterSharingIntentPlugin.instance
         /// if the url is made from SwiftFlutterSharingIntentPlugin then handle it with plugin [SwiftFlutterSharingIntentPlugin]
@@ -486,8 +510,8 @@ import flutter_callkit_incoming
     private func handleIncomingDeepLink(_ url: URL) -> Bool {
         let isSolianLink = url.scheme == SharedConstants.urlScheme
         let isSolianWebLink =
-            (url.scheme == "http" || url.scheme == "https") &&
-            url.host == "solian.app"
+        (url.scheme == "http" || url.scheme == "https") &&
+        url.host == "solian.app"
         guard isSolianLink || isSolianWebLink else {
             return false
         }
@@ -608,16 +632,16 @@ import flutter_callkit_incoming
             } else {
                 components.nickname = recipientNick ?? recipientIdentifier
             }
-            let recipientImage = recipientPictureUrl
-                .flatMap { URL(string: $0) }
-                .flatMap { INImage(url: $0) }
+            let recipientImage = recipientPictureUrl == nil ?
+            INImage(named: recipientNick ?? displayName) :
+            recipientPictureUrl.flatMap { URL(string: $0) }.flatMap { INImage(url: $0) }
             recipients = [
                 INPerson(
                     personHandle: handle,
                     nameComponents: components,
                     displayName: recipientDisplayName?.isEmpty == false
-                        ? recipientDisplayName!
-                        : (recipientNick ?? recipientIdentifier),
+                    ? recipientDisplayName!
+                    : (recipientNick ?? recipientIdentifier),
                     image: recipientImage,
                     contactIdentifier: nil,
                     customIdentifier: recipientAccountName ?? recipientIdentifier

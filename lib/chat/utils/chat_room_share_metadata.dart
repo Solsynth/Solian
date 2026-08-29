@@ -50,9 +50,7 @@ String? getDirectChatCounterpartPictureUrl(
   for (final member in others) {
     final picture = member.account.profile.picture;
     if (picture == null) continue;
-    final storageUrl = picture.storageUrl?.trim();
-    if (storageUrl != null && storageUrl.isNotEmpty) return storageUrl;
-    return '${serverUrl.replaceFirst(RegExp(r'/+$'), '')}/drive/files/${picture.id}';
+    return '$serverUrl/drive/files/${picture.id}';
   }
   return null;
 }

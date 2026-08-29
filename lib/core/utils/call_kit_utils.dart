@@ -1,3 +1,4 @@
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:uuid/uuid.dart';
 
 enum NativeCallSource { incomingPush, incomingForeground, outgoingLocal }
@@ -34,6 +35,37 @@ class SystemCallDescriptor {
   }
 }
 
+/// Selects the stable identifier shown in the system call log.
+///
+/// Direct rooms use the other account's name. Slugged rooms use the same
+/// scope/slug form as room share links. Private or incomplete rooms fall back
+/// to their server ID.
+String callKitHandleForRoom(SnChatRoom room, String? currentUserId) {
+  if (room.type == 1) {
+    final members = room.members ?? const <SnChatMember>[];
+    for (final member in members) {
+      if (member.accountId == currentUserId) continue;
+      final accountName = member.account.name.trim();
+      if (accountName.isNotEmpty) return accountName;
+    }
+  }
+  if (room.type != 1) {
+    final slug = room.slug?.trim();
+    if (slug != null && slug.isNotEmpty) {
+      final scope = room.realm?.slug.trim();
+      if (scope != null && scope.isNotEmpty) return '$scope/$slug';
+      for (final member in room.members ?? const <SnChatMember>[]) {
+        if (member.accountId == room.accountId) {
+          final ownerName = member.account.name.trim();
+          if (ownerName.isNotEmpty) return '$ownerName/$slug';
+        }
+      }
+    }
+  }
+
+  return room.id;
+}
+
 const _uuid = Uuid();
 
 SystemCallDescriptor createSystemCallDescriptor({
@@ -47,7 +79,9 @@ SystemCallDescriptor createSystemCallDescriptor({
 }) {
   final normalizedHandle = handle.trim().isEmpty ? roomId : handle.trim();
   return SystemCallDescriptor(
-    callUuid: callUuid?.trim().isNotEmpty == true ? callUuid!.trim() : _uuid.v4(),
+    callUuid: callUuid?.trim().isNotEmpty == true
+        ? callUuid!.trim()
+        : _uuid.v4(),
     roomId: roomId,
     callerName: callerName.trim().isEmpty ? 'Voice Call' : callerName.trim(),
     handle: normalizedHandle,

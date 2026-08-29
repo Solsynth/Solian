@@ -13,6 +13,8 @@ import 'package:island/chat/widgets/pending_join_sheet.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/core/utils/call_kit_utils.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -101,6 +103,7 @@ class AudioCallButton extends HookConsumerWidget {
     final nativeBridge = ref.watch(nativeCallBridgeProvider);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
     final outgoingCallKitEnabled = ref.watch(
       appSettingsProvider.select((settings) => settings.outgoingCallKitEnabled),
     );
@@ -170,6 +173,7 @@ class AudioCallButton extends HookConsumerWidget {
                 callerName: room.name?.trim().isNotEmpty == true
                     ? room.name!.trim()
                     : 'Voice Call',
+                handle: callKitHandleForRoom(room, currentUserId),
               );
         }
 
@@ -267,6 +271,7 @@ class AudioCallButton extends HookConsumerWidget {
                     callerName: room.name?.trim().isNotEmpty == true
                         ? room.name!.trim()
                         : 'Voice Call',
+                    handle: callKitHandleForRoom(room, currentUserId),
                   );
             }
 

@@ -8,6 +8,7 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:island/core/network.dart';
 import 'package:island/core/utils/call_kit_utils.dart';
 
 part 'native_call_bridge.g.dart';
@@ -52,6 +53,8 @@ Future<void> _displayIncomingCall(SystemCallDescriptor descriptor) async {
     type: descriptor.hasVideo ? 1 : 0,
     ios: const IOSParams(
       ringtonePath: 'SfxCall.wav',
+      normalHandle: 1,
+      handleType: 'generic',
       configureAudioSession: false, // LiveKit owns AVAudioSession
     ),
     extra: <String, dynamic>{
@@ -72,6 +75,8 @@ Future<SystemCallDescriptor> _startOutgoingCall(
     type: descriptor.hasVideo ? 1 : 0,
     ios: const IOSParams(
       ringtonePath: 'SfxCall.wav',
+      normalHandle: 1,
+      handleType: 'generic',
       configureAudioSession: false,
     ),
     extra: <String, dynamic>{
@@ -219,10 +224,22 @@ class NativeCallBridge extends _$NativeCallBridge {
             (key, value) => MapEntry(key.toString(), value),
           )
         : const <String, dynamic>{};
-    final roomId =
-        data['room_id']?.toString() ??
-        extra['room_id']?.toString() ??
-        data['handle']?.toString();
+    final rawRoomId =
+        data['room_id']?.toString() ?? extra['room_id']?.toString();
+    final handle = data['handle']?.toString().trim();
+    String? roomId = rawRoomId?.trim();
+    if ((roomId == null || roomId.isEmpty) &&
+        handle != null &&
+        handle.isNotEmpty) {
+      try {
+        roomId = await _resolveCallbackRoomId(handle);
+      } catch (error) {
+        Logger.root.warning(
+          '[NativeCallBridge] Failed to resolve callback handle=$handle: $error',
+        );
+      }
+      roomId ??= handle;
+    }
     final roomName =
         data['nameCaller']?.toString() ?? data['caller_name']?.toString();
     if (roomId == null || roomId.isEmpty) {
@@ -238,6 +255,27 @@ class NativeCallBridge extends _$NativeCallBridge {
       callbackRequestedAt: DateTime.now(),
     );
     Logger.root.info('[NativeCallBridge] Callback requested: room=$roomId');
+  }
+
+  Future<String?> _resolveCallbackRoomId(String handle) async {
+    final normalized = handle.trim();
+    if (normalized.isEmpty) return null;
+
+    final parts = normalized.split('/');
+    final client = ref.read(solarNetworkClientProvider);
+    if (parts.length == 2 &&
+        parts[0].trim().isNotEmpty &&
+        parts[1].trim().isNotEmpty) {
+      final room = await client.chat.getRoomBySlug(
+        parts[0].trim(),
+        parts[1].trim(),
+      );
+      return room?.id;
+    }
+
+    final account = await client.accounts.getAccountByUsername(normalized);
+    final room = await client.chat.getDirectChat(account.id);
+    return room?.id;
   }
 
   Future<void> _setAcceptedCall({
