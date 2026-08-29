@@ -29,7 +29,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   protocol_handler_windows
   record_windows
   screen_retriever_windows
-  sentry_flutter
   share_plus
   super_native_extensions
   tray_manager
