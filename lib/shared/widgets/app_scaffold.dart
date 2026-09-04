@@ -18,6 +18,7 @@ import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:island/shared/widgets/content/media_playback.dart';
+import 'package:island/shared/widgets/window_state.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart'
     hide isWideScreen, isWiderScreen, isWidestScreen;
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -47,19 +48,15 @@ class WindowScaffold extends HookConsumerWidget {
     useEffect(() {
       if (!isDesktop) return null;
 
-      void saveWindowSize() {
-        windowManager.getBounds().then((bounds) {
-          final settingsNotifier = ref.read(appSettingsProvider.notifier);
-          settingsNotifier.setWindowSize(bounds.size);
-        });
-      }
-
-      WidgetsBinding.instance.addObserver(_WindowSizeObserver(saveWindowSize));
+      // The window-state listener keeps geometry persisted during the session
+      // on native resize/move events. Keep a lifecycle observer too: it
+      // catches pauses/hides (e.g. closing to tray) without waiting for a
+      // native event, and flushes the full bounds + maximized state.
+      final observer = _WindowGeometryObserver(ref);
+      WidgetsBinding.instance.addObserver(observer);
 
       return () {
-        WidgetsBinding.instance.removeObserver(
-          _WindowSizeObserver(saveWindowSize),
-        );
+        WidgetsBinding.instance.removeObserver(observer);
       };
     }, []);
 
@@ -155,34 +152,25 @@ class WindowScaffold extends HookConsumerWidget {
   }
 }
 
-class _WindowSizeObserver extends WidgetsBindingObserver {
-  final VoidCallback onSaveWindowSize;
+class _WindowGeometryObserver extends WidgetsBindingObserver {
+  _WindowGeometryObserver(this._ref);
 
-  _WindowSizeObserver(this.onSaveWindowSize);
+  final WidgetRef _ref;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    // Save window size when app is paused, detached, or hidden
+    // Save window geometry when app is paused, detached, or hidden
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.hidden) {
       if (!kIsWeb &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-        onSaveWindowSize();
+        saveWindowStateNow(_ref);
       }
     }
   }
-
-  @override
-  bool operator ==(Object other) {
-    return other is _WindowSizeObserver &&
-        other.onSaveWindowSize == onSaveWindowSize;
-  }
-
-  @override
-  int get hashCode => onSaveWindowSize.hashCode;
 }
 
 final rootScaffoldKey = GlobalKey<ScaffoldState>();

@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -58,6 +58,8 @@ const kAppWeakConnectionMode = 'app_weak_connection_mode';
 const kAppSoundEffects = 'app_sound_effects';
 const kAppFestivalFeatures = 'app_feastival_features';
 const kAppWindowSize = 'app_window_size';
+const kAppWindowPosition = 'app_window_position';
+const kAppWindowMaximized = 'app_window_maximized';
 const kAppWindowOpacity = 'app_window_opacity';
 const kAppCardTransparent = 'app_card_transparent';
 const kAppEnterToSend = 'app_enter_to_send';
@@ -265,7 +267,7 @@ final ipOverrideDomainSuffixProvider = Provider<String?>((ref) {
       return uri.host;
     }
   } catch (_) {}
-    return null;
+  return null;
 });
 
 class DesktopUseSeparateCallWindowNotifier extends Notifier<bool> {
@@ -420,6 +422,8 @@ sealed class AppSettings with _$AppSettings {
     required String? customFonts,
     required int? appColorScheme, // The color stored via the int type
     required ThemeColors? customColors,
+    required Rect? windowBounds, // The window bounds for desktop platforms
+    required bool windowMaximized, // Whether the desktop window is maximized
     required Size? windowSize, // The window size for desktop platforms
     required double windowOpacity, // The window opacity for desktop platforms
     required double cardTransparency, // The card background opacity
@@ -473,6 +477,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       customFonts: prefs.getString(kAppCustomFonts),
       appColorScheme: prefs.getInt(kAppColorSchemeStoreKey),
       customColors: _getThemeColorsFromPrefs(prefs),
+      windowBounds: _getWindowBoundsFromPrefs(prefs),
+      windowMaximized: prefs.getBool(kAppWindowMaximized) ?? false,
       windowSize: _getWindowSizeFromPrefs(prefs),
       windowOpacity: prefs.getDouble(kAppWindowOpacity) ?? 1.0,
       cardTransparency: prefs.getDouble(kAppCardTransparent) ?? 1.0,
@@ -504,6 +510,51 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
           prefs.getBool(kAppFriendStatusDesktopNotification) ?? true,
       outgoingCallKitEnabled: prefs.getBool(kAppOutgoingCallKitEnabled) ?? true,
     );
+  }
+
+  Rect? _getWindowBoundsFromPrefs(SharedPreferences prefs) {
+    final positionString = prefs.getString(kAppWindowPosition);
+    final sizeString = prefs.getString(kAppWindowSize);
+    if (positionString == null && sizeString == null) return null;
+
+    Rect? rect;
+    if (positionString != null) {
+      try {
+        final parts = positionString.split(',');
+        if (parts.length == 2) {
+          final left = double.parse(parts[0]);
+          final top = double.parse(parts[1]);
+          rect = Rect.fromLTWH(left, top, 0, 0);
+        }
+      } catch (e) {
+        // Invalid format, fall through to legacy migration below.
+      }
+    }
+
+    if (rect == null) {
+      // No stored position: the window was previously launched centered from
+      // its persisted size. Restore the same layout by anchoring that size at
+      // the origin; the caller centers the window when no stored bounds exist.
+      final size = _getWindowSizeFromPrefs(prefs);
+      if (size != null) {
+        rect = Rect.fromLTWH(0, 0, size.width, size.height);
+      }
+    } else if (sizeString != null) {
+      try {
+        final parts = sizeString.split(',');
+        if (parts.length == 2) {
+          rect = Rect.fromLTWH(
+            rect.left,
+            rect.top,
+            double.parse(parts[0]),
+            double.parse(parts[1]),
+          );
+        }
+      } catch (e) {
+        // Invalid size format, keep only the position.
+      }
+    }
+    return rect;
   }
 
   Size? _getWindowSizeFromPrefs(SharedPreferences prefs) {
@@ -635,18 +686,26 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(appColorScheme: value);
   }
 
-  void setWindowSize(Size? size) {
+  void setWindowBounds(Rect? bounds) {
     final prefs = ref.read(sharedPreferencesProvider);
-    if (size != null) {
-      prefs.setString(kAppWindowSize, '${size.width},${size.height}');
+    if (bounds != null) {
+      prefs.setString(kAppWindowPosition, '${bounds.left},${bounds.top}');
+      prefs.setString(kAppWindowSize, '${bounds.width},${bounds.height}');
     } else {
+      prefs.remove(kAppWindowPosition);
       prefs.remove(kAppWindowSize);
     }
-    state = state.copyWith(windowSize: size);
+    state = state.copyWith(windowBounds: bounds, windowSize: bounds?.size);
   }
 
-  Size? getWindowSize() {
-    return state.windowSize;
+  void setWindowMaximized(bool maximized) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppWindowMaximized, maximized);
+    state = state.copyWith(windowMaximized: maximized);
+  }
+
+  Rect? getWindowBounds() {
+    return state.windowBounds;
   }
 
   void setMessageDisplayStyle(String value) {

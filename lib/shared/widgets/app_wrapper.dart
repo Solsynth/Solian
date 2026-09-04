@@ -54,6 +54,7 @@ import 'package:island/core/services/sharing_intent.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/shared/widgets/window_state.dart';
 import 'package:gap/gap.dart';
 import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
@@ -165,8 +166,16 @@ class AppWrapper extends HookConsumerWidget {
             ref.read(desktopWindowFocusedProvider.notifier).set(focused),
       );
 
+      // Keep the window geometry persisted during the session and flush it
+      // once more right before a real exit (the tray "Exit App" action tears
+      // the engine down directly).
+      final windowStateListener = WindowStateListener(ref);
+      windowStateListener.start();
+      WindowStateCloseHook(ref).install();
+
       return () {
         windowManager.removeListener(listener);
+        WindowStateCloseHook.remove();
       };
     }, []);
 

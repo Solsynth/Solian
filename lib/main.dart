@@ -316,31 +316,22 @@ void main(List<String> args) async {
       await windowManager.ensureInitialized();
 
       const defaultSize = Size(360, 640);
-      final savedSizeString = prefs.getString(kAppWindowSize);
-      Size initialSize = defaultSize;
-
-      if (savedSizeString != null) {
-        try {
-          final parts = savedSizeString.split(',');
-          if (parts.length == 2) {
-            final width = double.parse(parts[0]);
-            final height = double.parse(parts[1]);
-            initialSize = Size(width, height);
-          }
-        } catch (e) {
-          Logger.root.severe(
-            "[SplashScreen] Failed to parse saved window size",
-            e,
-          );
-          initialSize = defaultSize;
-        }
-      }
+      // Restore the user-adjusted window geometry. A window that was closed
+      // while maximized is re-maximized after creation at its last normal
+      // bounds instead. When only a size was persisted (older versions), the
+      // window launches centered at that size.
+      final restoredBounds = _getWindowBoundsFromPrefs(prefs);
+      final restoredMaximized = prefs.getBool(kAppWindowMaximized) ?? false;
+      Size initialSize = restoredBounds?.size ?? defaultSize;
+      final restorePosition =
+          restoredBounds != null &&
+          (restoredBounds.left != 0 || restoredBounds.top != 0);
 
       final useNativeWindowFrame =
           prefs.getBool(kAppDesktopNativeWindowFrame) ?? false;
       WindowOptions windowOptions = WindowOptions(
         size: initialSize,
-        center: true,
+        center: !restorePosition,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
         titleBarStyle: useNativeWindowFrame
@@ -361,7 +352,15 @@ void main(List<String> args) async {
             debugPrint('[Wayland] setAsFrameless failed: $e');
           }
         }
+        // Apply the restored bounds after the window exists: the frameless fix
+        // above can reposition the window, so set the full frame last.
+        if (restorePosition) {
+          await windowManager.setBounds(restoredBounds);
+        }
         await windowManager.setMinimumSize(defaultSize);
+        if (restoredMaximized) {
+          await windowManager.maximize();
+        }
         await windowManager.show();
         await windowManager.focus();
         final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
@@ -624,4 +623,68 @@ legacy_material.InputDecorationThemeData _toLegacyInputDecoration(
       _ => null,
     },
   );
+}
+
+/// Reads the persisted window bounds (position + size) from shared
+/// preferences. Older versions only stored the size; that is restored as a
+/// zero-origin rect so the caller still launches centered at that size.
+Rect? _getWindowBoundsFromPrefs(SharedPreferences prefs) {
+  final positionString = prefs.getString(kAppWindowPosition);
+  final sizeString = prefs.getString(kAppWindowSize);
+  if (positionString == null && sizeString == null) return null;
+
+  Rect? rect;
+  if (positionString != null) {
+    try {
+      final parts = positionString.split(',');
+      if (parts.length == 2) {
+        rect = Rect.fromLTWH(
+          double.parse(parts[0]),
+          double.parse(parts[1]),
+          0,
+          0,
+        );
+      }
+    } catch (e) {
+      Logger.root.severe(
+        "[SplashScreen] Failed to parse saved window position",
+        e,
+      );
+    }
+  }
+
+  if (rect == null && sizeString != null) {
+    try {
+      final parts = sizeString.split(',');
+      if (parts.length == 2) {
+        rect = Rect.fromLTWH(
+          0,
+          0,
+          double.parse(parts[0]),
+          double.parse(parts[1]),
+        );
+      }
+    } catch (e) {
+      Logger.root.severe("[SplashScreen] Failed to parse saved window size", e);
+    }
+  }
+
+  if (rect != null && sizeString != null) {
+    try {
+      final parts = sizeString.split(',');
+      if (parts.length == 2) {
+        rect = Rect.fromLTWH(
+          rect.left,
+          rect.top,
+          double.parse(parts[0]),
+          double.parse(parts[1]),
+        );
+      }
+    } catch (e) {
+      Logger.root.severe("[SplashScreen] Failed to parse saved window size", e);
+    }
+  }
+
+  if (rect == null || rect.width < 1 || rect.height < 1) return null;
+  return rect;
 }
