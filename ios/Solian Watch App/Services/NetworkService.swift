@@ -100,6 +100,269 @@ class NetworkService {
         
         return ActivityResponse(activities: activities, hasMore: hasMore, nextCursor: nextCursor)
     }
+
+    // MARK: - Explore API
+
+    /// GET /sphere/publishers/subscriptions (paginated, ordered by latest
+    /// public root post). Each row: { subscription: { account_id,
+    /// publisher_id, publisher }, last_read_at?, latest_content_at?,
+    /// has_new_content?, is_live? }.
+    func fetchPublisherSubscriptions(token: String, serverUrl: String) async throws -> [SnPublisherSubscriptionRow] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/sphere/publishers/subscriptions"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "order", value: "latest_posted_at"),
+            URLQueryItem(name: "offset", value: "0"),
+            URLQueryItem(name: "take", value: "100"),
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await session.data(for: request)
+        return try Self.decodeJSON([SnPublisherSubscriptionRow].self, from: data)
+    }
+
+    /// POST /sphere/publishers/{name}/subscribe — follow a publisher.
+    func subscribePublisher(name: String, token: String, serverUrl: String) async throws {
+        try await postEmpty(path: "/sphere/publishers/\(name)/subscribe", token: token, serverUrl: serverUrl)
+    }
+
+    /// POST /sphere/publishers/{name}/unsubscribe — unfollow a publisher.
+    func unsubscribePublisher(name: String, token: String, serverUrl: String) async throws {
+        try await postEmpty(path: "/sphere/publishers/\(name)/unsubscribe", token: token, serverUrl: serverUrl)
+    }
+
+    /// GET /sphere/categories/subscriptions — subscribed categories & tags.
+    func fetchCategorySubscriptions(token: String, serverUrl: String) async throws -> [SnCategorySubscription] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/categories/subscriptions")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await session.data(for: request)
+        return try Self.decodeJSON([SnCategorySubscription].self, from: data)
+    }
+
+    /// GET /sphere/posts/categories?order=popularity — popular categories.
+    func fetchPopularCategories(token: String, serverUrl: String, take: Int = 5) async throws -> [SnPostCategory] {
+        try await fetchCategories(order: "popularity", take: take, token: token, serverUrl: serverUrl)
+    }
+
+    /// GET /sphere/posts/categories?order=usage — all categories.
+    func fetchCategories(token: String, serverUrl: String, take: Int = 100) async throws -> [SnPostCategory] {
+        try await fetchCategories(order: "usage", take: take, token: token, serverUrl: serverUrl)
+    }
+
+    private func fetchCategories(order: String, take: Int, token: String, serverUrl: String) async throws -> [SnPostCategory] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/sphere/posts/categories"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "order", value: order),
+            URLQueryItem(name: "offset", value: "0"),
+            URLQueryItem(name: "take", value: "\(take)"),
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await session.data(for: request)
+        return try Self.decodeJSON([SnPostCategory].self, from: data)
+    }
+
+    /// GET /sphere/posts/tags?order=popularity — popular tags.
+    func fetchPopularTags(token: String, serverUrl: String, take: Int = 5) async throws -> [SnPostTag] {
+        try await fetchTags(order: "popularity", take: take, token: token, serverUrl: serverUrl)
+    }
+
+    /// GET /sphere/posts/tags?order=usage — all tags.
+    func fetchTags(token: String, serverUrl: String, take: Int = 100) async throws -> [SnPostTag] {
+        try await fetchTags(order: "usage", take: take, token: token, serverUrl: serverUrl)
+    }
+
+    private func fetchTags(order: String, take: Int, token: String, serverUrl: String) async throws -> [SnPostTag] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/sphere/posts/tags"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "order", value: order),
+            URLQueryItem(name: "offset", value: "0"),
+            URLQueryItem(name: "take", value: "\(take)"),
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await session.data(for: request)
+        return try Self.decodeJSON([SnPostTag].self, from: data)
+    }
+
+    /// GET /sphere/posts — filtered post list (filtered feed, category feed,
+    /// tag feed, publisher feed, shuffle).
+    func fetchPosts(
+        take: Int = 20,
+        offset: Int = 0,
+        publishers: [String]? = nil,
+        pubName: String? = nil,
+        categories: [String]? = nil,
+        tags: [String]? = nil,
+        shuffle: Bool = false,
+        replies: Bool = false,
+        token: String,
+        serverUrl: String
+    ) async throws -> PostListResponse {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/sphere/posts"),
+            resolvingAgainstBaseURL: false
+        )!
+
+        var query: [URLQueryItem] = [
+            URLQueryItem(name: "offset", value: "\(offset)"),
+            URLQueryItem(name: "take", value: "\(take)"),
+            URLQueryItem(name: "replies", value: replies ? "true" : "false"),
+            URLQueryItem(name: "orderDesc", value: "true"),
+        ]
+        if shuffle {
+            query.append(URLQueryItem(name: "shuffle", value: "true"))
+        }
+        if let pubName = pubName {
+            query.append(URLQueryItem(name: "pub", value: pubName))
+        }
+        for publisher in publishers ?? [] {
+            query.append(URLQueryItem(name: "pub", value: publisher))
+        }
+        for category in categories ?? [] {
+            query.append(URLQueryItem(name: "categories", value: category))
+        }
+        for tag in tags ?? [] {
+            query.append(URLQueryItem(name: "tags", value: tag))
+        }
+        components.queryItems = query
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        let http = response as? HTTPURLResponse
+        let total = Int(http?.value(forHTTPHeaderField: "X-Total") ?? "0") ?? 0
+        let posts = try Self.decodeJSON([SnPost].self, from: data)
+        return PostListResponse(posts: posts, total: total)
+    }
+
+    /// POST /sphere/categories/{slug}/subscribe — follow a category.
+    func subscribeCategory(slug: String, token: String, serverUrl: String) async throws {
+        try await postEmpty(path: "/sphere/categories/\(slug)/subscribe", token: token, serverUrl: serverUrl)
+    }
+
+    /// POST /sphere/categories/{slug}/unsubscribe — unfollow a category.
+    func unsubscribeCategory(slug: String, token: String, serverUrl: String) async throws {
+        try await postEmpty(path: "/sphere/categories/\(slug)/unsubscribe", token: token, serverUrl: serverUrl)
+    }
+
+    /// POST /sphere/timeline/discovery/uninterested — hide a suggestion.
+    func markDiscoveryUninterested(kind: String, referenceId: String, token: String, serverUrl: String) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/timeline/discovery/uninterested")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        request.httpBody = try JSONSerialization.data(
+            withJSONObject: ["kind": kind, "reference_id": referenceId]
+        )
+        _ = try await session.data(for: request)
+    }
+
+    /// POST /sphere/timeline/discovery/feedback — good/bad signal.
+    func submitDiscoveryFeedback(
+        kind: String,
+        referenceId: String,
+        good: Bool,
+        token: String,
+        serverUrl: String
+    ) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/timeline/discovery/feedback")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        request.httpBody = try JSONSerialization.data(
+            withJSONObject: [
+                "kind": kind,
+                "reference_id": referenceId,
+                "feedback": good ? "good" : "bad",
+            ]
+        )
+        _ = try await session.data(for: request)
+    }
+
+    // MARK: - Explore helpers
+
+    private func postEmpty(path: String, token: String, serverUrl: String) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        _ = try await session.data(for: request)
+    }
+
+    private static func decodeJSON<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        // NOTE: no `.convertFromSnakeCase` here. Every model declares its own
+        // snake_case CodingKeys (SnPost/SnPublisher/SnRealm/… have custom
+        // `init(from:)`), and `.convertFromSnakeCase` rewrites those explicit
+        // raw key strings, breaking fields like `replies_count` / `views`.
+        return try decoder.decode(type, from: data)
+    }
     
     func createPost(content: String, visibility: Int = 0, token: String, serverUrl: String) async throws {
         guard let baseURL = URL(string: serverUrl) else {
@@ -206,7 +469,10 @@ class NetworkService {
             print("[NetworkService] fetchUserProfile - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/passport/accounts/me")
+        // Moved from Passport to Stargate: the edge serves /stargate/** and
+        // Blade routes it to Stargate's /api/accounts/me. The legacy
+        // /passport/accounts/me is no longer rewritten for new tokens.
+        let url = baseURL.appendingPathComponent("/stargate/accounts/me")
         print("[NetworkService] fetchUserProfile - url: \(url)")
         
         var request = URLRequest(url: url)
@@ -753,13 +1019,28 @@ class NetworkService {
     private func scheduleReconnect() {
         reconnectTimer?.invalidate()
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            guard let self = self, let token = self.lastToken, let serverUrl = self.lastServerUrl else { return }
+            guard let self = self, let serverUrl = self.lastServerUrl else { return }
             print("[WebSocket] Attempting to reconnect...")
-            
+
             // No need to call disconnectWebSocket here, connectWebSocket will handle cancelling old task
             self.isDisconnectingManually = false // Reset for the new connection attempt
-            
-            self.connectWebSocket(token: token, serverUrl: serverUrl)
+
+            // When a standalone session exists the access token may have
+            // expired; refresh it first so reconnect uses a live bearer.
+            let auth = StandaloneAuthService.shared
+            if auth.hasStoredSession {
+                Task { @MainActor in
+                    do {
+                        let fresh = try await auth.validAccessToken(serverUrl: serverUrl)
+                        self.lastToken = fresh
+                        self.connectWebSocket(token: fresh, serverUrl: serverUrl)
+                    } catch {
+                        print("[WebSocket] Token refresh failed before reconnect: \(error)")
+                    }
+                }
+            } else if let token = self.lastToken {
+                self.connectWebSocket(token: token, serverUrl: serverUrl)
+            }
         }
     }
     

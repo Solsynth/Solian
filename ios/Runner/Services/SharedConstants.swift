@@ -17,7 +17,9 @@ enum SharedConstants {
     static let pendingDeepLinkUrlKey = "dev.solsynth.solian.deeplink.pendingUrl"
 
     enum API {
-        static let currentAccount = "/passport/accounts/me"
+        // accounts/me moved from Passport to Stargate; the edge routes
+        // /stargate/** to Stargate's /api/accounts/me.
+        static let currentAccount = "/stargate/accounts/me"
         static let notificationsCount = "/metoer/notifications/count"
         static let notificationsMarkRead = "/metoer/notifications/all/read"
         static let unreadChats = "/messager/chat/unread"

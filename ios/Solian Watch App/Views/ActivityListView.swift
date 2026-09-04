@@ -13,27 +13,46 @@ struct ActivityListView: View {
     @StateObject private var viewModel: ActivityViewModel
     @EnvironmentObject var appState: AppState
 
-    init(filter: String?, mockActivities: [SnTimelineEvent]? = nil) {
+    /// An optional view rendered as the first List row/section, so it scrolls
+    /// with the content (e.g. the explore options row above the posts).
+    var header: AnyView? = nil
+
+    init(filter: String?, mockActivities: [SnTimelineEvent]? = nil, header: AnyView? = nil) {
         _viewModel = StateObject(wrappedValue: ActivityViewModel(filter: filter, mockActivities: mockActivities))
+        self.header = header
     }
 
     var body: some View {
         Group {
             if viewModel.isLoading {
-                ProgressView()
-            } else if let errorMessage = viewModel.errorMessage {
-                VStack {
-                    Text("Error fetching data")
-                        .font(.headline)
-                    Text(errorMessage)
-                        .font(.caption)
-                        .lineLimit(nil)
+                VStack(spacing: 0) {
+                    if let header { header }
+                    ProgressView()
                 }
-                .padding()
+            } else if let errorMessage = viewModel.errorMessage {
+                VStack(spacing: 0) {
+                    if let header { header }
+                    VStack {
+                        Text("Error fetching data")
+                            .font(.headline)
+                        Text(errorMessage)
+                            .font(.caption)
+                            .lineLimit(nil)
+                    }
+                    .padding()
+                }
             } else if viewModel.activities.isEmpty {
-                Text("No activities found.")
+                VStack(spacing: 0) {
+                    if let header { header }
+                    Text("No activities found.")
+                }
             } else {
                 List {
+                    if let header {
+                        header
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
                     ForEach(viewModel.activities) { activity in
                         if activity.isPost {
                             if let post = activity.decodePost() {
@@ -46,8 +65,9 @@ struct ActivityListView: View {
                                 Text("Unknown activity")
                             }
                         } else if activity.isDiscovery {
-                            if let discovery = activity.decodeDiscovery() {
-                                DiscoveryView(discoveryData: discovery)
+                            if let section = activity.decodeDiscovery() {
+                                DiscoverySectionView(section: section)
+                                    .environmentObject(appState)
                             } else {
                                 Text("Unknown activity")
                             }

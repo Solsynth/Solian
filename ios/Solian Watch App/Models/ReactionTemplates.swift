@@ -47,3 +47,29 @@ func getReactionIcon(_ symbol: String) -> String {
 func getReactionAttitude(_ symbol: String) -> Int {
     return kReactionTemplates[symbol]?.attitude ?? 1
 }
+
+// MARK: - Post category display helpers
+
+/// Localized title for a known category slug, mirroring the main app's
+/// `postCategory<CapitalizedSlug>` translation keys (en-US/base fallback).
+func localizedCategoryName(_ slug: String) -> String {
+    let known: [String: String] = [
+        "art": "Art",
+        "finance": "Finance",
+        "food": "Food",
+        "gaming": "Gaming",
+        "health": "Health",
+        "life": "Life",
+        "music": "Music",
+        "programming": "Programming",
+        "science": "Science",
+        "sports": "Sports",
+    ]
+    return known[slug] ?? slug.replacingOccurrences(of: "-", with: " ").capitalized
+}
+
+/// Display label for a tag: prefer its name, else "#slug" (matches the SDK).
+func tagDisplayName(_ slug: String, name: String?) -> String {
+    if let name = name, !name.isEmpty { return name }
+    return "#\(slug)"
+}

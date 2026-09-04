@@ -795,7 +795,70 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
                 print("[iOS] Replying with data: \(data)")
                 replyHandler(data)
             }
+            return
         }
+
+        // The watch started an OAuth device-flow sign-in and asks the phone to
+        // complete approval. When the phone holds a valid session it approves
+        // directly against the server; otherwise it falls back to opening the
+        // verification page for manual approval + code entry.
+        if let request = message["request"] as? String, request == "deviceAuth",
+           let verificationUri = message["verification_uri"] as? String,
+           let userCode = message["user_code"] as? String {
+            Task {
+                do {
+                    let serverUrl = UserDefaults.standard.getServerUrl()
+                    let approved = try await Self.approveDeviceCode(
+                        serverUrl: serverUrl,
+                        userCode: userCode,
+                        verificationUri: verificationUri
+                    )
+                    replyHandler(["approved": approved])
+                } catch {
+                    print("[iOS] deviceAuth handling failed: \(error.localizedDescription)")
+                    replyHandler(["approved": false, "error": error.localizedDescription])
+                }
+            }
+            return
+        }
+    }
+
+    /// Attempts server-side approval with the phone's own session. If the
+    /// phone is not signed in (or approval fails because the code is unknown),
+    /// opens the verification page so the user can approve + type the code
+    /// manually. Returns true when approval succeeded.
+    static func approveDeviceCode(serverUrl: String, userCode: String, verificationUri: String) async throws -> Bool {
+        // 1) Phone-signed-in path: POST the approval with the phone's bearer.
+        let token = await UserDefaults.standard.getValidFlutterToken()
+        if let token = token, !token.isEmpty {
+            let url = URL(string: serverUrl)!
+                .appendingPathComponent("/stargate/auth/open/device/code/\(userCode.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? userCode)/approve")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            do {
+                let (_, response) = try await URLSession.shared.data(for: request)
+                if let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) {
+                    print("[iOS] Device code approved via phone session")
+                    return true
+                }
+                print("[iOS] Device approve returned \(String(describing: (response as? HTTPURLResponse)?.statusCode)); falling back to manual")
+            } catch {
+                print("[iOS] Device approve failed: \(error.localizedDescription); falling back to manual")
+            }
+        }
+
+        // 2) Manual fallback: open the verification page on the phone. The
+        // user signs in and types the code shown on the watch. No app-side
+        // callback tracks completion (approval happens server-side), so we
+        // report false and let the watch keep polling.
+        await MainActor.run {
+            if let url = URL(string: verificationUri) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+        return false
     }
     
     func sendDataToWatch() {

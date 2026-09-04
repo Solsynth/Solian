@@ -232,6 +232,21 @@ struct AccountView: View {
                 Text("No account data")
                     .padding()
             }
+
+            if appState.standaloneAuth.hasStoredSession {
+                Button(role: .destructive) {
+                    appState.signOutStandalone()
+                } label: {
+                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+                .accessibilityLabel("Sign out of this watch")
+            }
         }
         .navigationTitle("Account")
         .confirmationDialog("Clear Status", isPresented: $showingClearConfirmation) {

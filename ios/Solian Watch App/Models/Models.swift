@@ -39,11 +39,13 @@ struct SnActivity: Codable, Identifiable {
         return try? JSONDecoder().decode(SnPost.self, from: jsonData)
     }
     
-    func decodeDiscovery() -> DiscoveryData? {
+    func decodeDiscovery() -> DiscoverySection? {
         guard let data = data?.value as? [String: Any] else { return nil }
-        let jsonData = try? JSONSerialization.data(withJSONObject: data)
-        guard let jsonData = jsonData else { return nil }
-        return try? JSONDecoder().decode(DiscoveryData.self, from: jsonData)
+        return DiscoverySection(
+            eventType: type,
+            resourceIdentifier: nil,
+            rawData: data
+        )
     }
 }
 
@@ -197,45 +199,175 @@ struct SnActivityPubActor: Codable, Identifiable {
     }
 }
 
-struct DiscoveryData: Codable {
+// MARK: - Discovery Models
+
+/// One discovery event on the timeline (`/sphere/timeline`).
+///
+/// The server sends `discovery` / `discovery.v2` events whose whole section
+/// lives in the event `data`: `{ kind, title?, items: [ { type, data, … } ] }`.
+/// The `kind` (realm / publisher / account / article / post) selects the
+/// entity type of every item in the section.
+struct DiscoverySection: Identifiable {
+    let kind: String
+    let title: String?
     let items: [DiscoveryItem]
-}
 
-struct DiscoveryItem: Codable, Identifiable {
-    var id = UUID()
-    let type: String
-    let data: DiscoveryItemData
+    var id: String { "\(kind)-\(items.count)" }
 
-    enum CodingKeys: String, CodingKey {
-        case type, data
+    /// The visual title for the block: the server-provided custom title when
+    /// present, otherwise the kind's canonical label.
+    var displayTitle: String {
+        if let title = title, !title.isEmpty { return title }
+        return Self.defaultTitle(for: kind)
+    }
+
+    static func defaultTitle(for kind: String) -> String {
+        switch kind {
+        case "realm": return "Suggested Realms"
+        case "publisher": return "Suggested Publishers"
+        case "account": return "Suggested People"
+        case "article": return "Articles"
+        case "post": return "Shuffled Post"
+        default: return "Discover"
+        }
+    }
+
+    /// Builds a section from the raw `data` of a timeline event. Mirrors the
+    /// main app's `_resolveDiscoveryType`: `discovery.v2` reads `data.kind`
+    /// (falling back to the last `resource_identifier` segment), then the
+    /// first item's own `type`, then `data.kind` again. The resolved kind is
+    /// the decode target for every item payload.
+    init?(eventType: String, resourceIdentifier: String?, rawData: Any?) {
+        guard let dict = rawData as? [String: Any] else { return nil }
+        let rawItems = dict["items"] as? [[String: Any]] ?? []
+
+        var kind = ""
+        if eventType == "discovery.v2" {
+            if let rawKind = dict["kind"] as? String, !rawKind.isEmpty {
+                kind = rawKind
+            } else if let identifier = resourceIdentifier {
+                let parts = identifier.split(separator: ":")
+                if let last = parts.last, !last.isEmpty { kind = String(last) }
+            }
+        }
+        if kind.isEmpty, let itemType = rawItems.first?["type"] as? String,
+           !itemType.isEmpty {
+            kind = itemType
+        }
+        if kind.isEmpty, let rawKind = dict["kind"] as? String, !rawKind.isEmpty {
+            kind = rawKind
+        }
+
+        guard !kind.isEmpty else { return nil }
+        self.kind = kind
+        title = dict["title"] as? String
+        // A whole section shares one kind; decode every item with it unless
+        // the item declares its own known kind.
+        items = rawItems.compactMap { DiscoveryItem(raw: $0, sectionKind: kind) }
     }
 }
 
-enum DiscoveryItemData: Codable {
+/// A single entry inside a discovery section.
+struct DiscoveryItem: Identifiable {
+    var id = UUID()
+
+    /// Item-level entity kind as declared by the server (`items[].type`).
+    let rawType: String?
+    let rank: String?
+    let score: Double?
+    let reasons: [String]
+    let payload: DiscoveryItemPayload
+
+    var kind: String {
+        payload.kind
+    }
+
+    init?(raw: [String: Any], sectionKind: String) {
+        rawType = raw["type"] as? String
+        rank = raw["rank"] as? String
+        if let rawScore = raw["score"] as? NSNumber {
+            score = rawScore.doubleValue
+        } else {
+            score = raw["score"] as? Double
+        }
+        reasons = (raw["reasons"] as? [Any])?.compactMap { $0 as? String } ?? []
+
+        let itemData = raw["data"] as? [String: Any] ?? raw
+        // The item's own known type wins; otherwise the section's resolved
+        // kind decodes it. Either way the payload is decoded once, with the
+        // matching model only.
+        let knownKinds = ["realm", "publisher", "account", "article", "post"]
+        let effectiveKind: String
+        if let declared = rawType, knownKinds.contains(declared) {
+            effectiveKind = declared
+        } else if let declared = rawType,
+                  let lastSegment = declared.split(separator: ":").last,
+                  knownKinds.contains(String(lastSegment)) {
+            effectiveKind = String(lastSegment)
+        } else {
+            effectiveKind = sectionKind
+        }
+        payload = DiscoveryItemPayload(raw: itemData, kind: effectiveKind)
+    }
+}
+
+/// A discovery payload decoded from its declared kind: the item's own `type`
+/// when it is a known kind, otherwise the enclosing section's `kind`. The
+/// entity is then decoded only with the matching model, so a publisher payload
+/// can never "decode successfully" as a post just because both are dicts.
+enum DiscoveryItemPayload {
     case realm(SnRealm)
     case publisher(SnPublisher)
+    case account(SnAccount)
     case article(SnWebArticle)
+    case post(SnPost)
     case unknown
 
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let realm = try? container.decode(SnRealm.self) {
-            self = .realm(realm)
-            return
+    var kind: String {
+        switch self {
+        case .realm: return "realm"
+        case .publisher: return "publisher"
+        case .account: return "account"
+        case .article: return "article"
+        case .post: return "post"
+        case .unknown: return "unknown"
         }
-        if let publisher = try? container.decode(SnPublisher.self) {
-            self = .publisher(publisher)
-            return
-        }
-        if let article = try? container.decode(SnWebArticle.self) {
-            self = .article(article)
-            return
-        }
-        self = .unknown
     }
 
-    func encode(to encoder: Encoder) throws {
-        // Not needed for decoding
+    /// Entity id used as the feedback/uninterested reference.
+    var referenceId: String {
+        switch self {
+        case .realm(let realm): return realm.id
+        case .publisher(let publisher): return publisher.id
+        case .account(let account): return account.id
+        case .article(let article): return article.id
+        case .post(let post): return post.id
+        case .unknown: return ""
+        }
+    }
+
+    init(raw: [String: Any], kind: String) {
+        switch kind {
+        case "realm":
+            self = DiscoveryItemPayload.decode(SnRealm.self, from: raw).map(Self.realm) ?? .unknown
+        case "publisher":
+            self = DiscoveryItemPayload.decode(SnPublisher.self, from: raw).map(Self.publisher) ?? .unknown
+        case "account":
+            self = DiscoveryItemPayload.decode(SnAccount.self, from: raw).map(Self.account) ?? .unknown
+        case "article":
+            self = DiscoveryItemPayload.decode(SnWebArticle.self, from: raw).map(Self.article) ?? .unknown
+        case "post":
+            self = DiscoveryItemPayload.decode(SnPost.self, from: raw).map(Self.post) ?? .unknown
+        default:
+            self = .unknown
+        }
+    }
+
+    private static func decode<T: Decodable>(_ type: T.Type, from raw: [String: Any]) -> T? {
+        guard let data = try? JSONSerialization.data(withJSONObject: raw) else { return nil }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try? decoder.decode(type, from: data)
     }
 }
 
@@ -430,6 +562,16 @@ struct SnPostTag: Codable, Identifiable {
     let id: String
     let slug: String
     let name: String?
+    let isProtected: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, name
+        case isProtected = "is_protected"
+    }
+
+    var displayName: String {
+        tagDisplayName(slug, name: name)
+    }
 }
 
 struct SnPostCategory: Codable, Identifiable {
@@ -437,6 +579,10 @@ struct SnPostCategory: Codable, Identifiable {
     let slug: String
     let name: String?
     let usage: Int?
+
+    var displayName: String {
+        name ?? localizedCategoryName(slug)
+    }
 }
 
 struct SnPostCollection: Codable, Identifiable {
@@ -609,18 +755,18 @@ struct SnTimelineEvent: Codable, Identifiable {
         }
     }
     
-    func decodeDiscovery() -> DiscoveryData? {
+    func decodeDiscovery() -> DiscoverySection? {
         guard let data = data?.value as? [String: Any] else { return nil }
-        
-        do {
-            let cleanData = convertToValidJsonTypes(data)
-            let jsonData = try JSONSerialization.data(withJSONObject: cleanData, options: [])
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            return try decoder.decode(DiscoveryData.self, from: jsonData)
-        } catch {
-            return nil
-        }
+
+        // AnyCodable trees keep nested dictionaries as [String: AnyCodable];
+        // flatten them back to JSON-safe dictionaries before decoding.
+        let cleanData = convertToValidJsonTypes(data)
+        guard let cleanDict = cleanData as? [String: Any] else { return nil }
+        return DiscoverySection(
+            eventType: type,
+            resourceIdentifier: resourceIdentifier,
+            rawData: cleanDict
+        )
     }
     
     private func convertToValidJsonTypes(_ value: Any) -> Any {
@@ -632,8 +778,16 @@ struct SnTimelineEvent: Codable, Identifiable {
                 result[k] = convertToValidJsonTypes(v)
             }
             return result
+        } else if let codableDict = value as? [String: AnyCodable] {
+            var result: [String: Any] = [:]
+            for (k, v) in codableDict {
+                result[k] = convertToValidJsonTypes(v)
+            }
+            return result
         } else if let array = value as? [Any] {
             return array.map { convertToValidJsonTypes($0) }
+        } else if let codableArray = value as? [AnyCodable] {
+            return codableArray.map { convertToValidJsonTypes($0) }
         } else if let intVal = value as? Int {
             return NSNumber(value: intVal)
         } else if let doubleVal = value as? Double {
@@ -668,6 +822,72 @@ struct ActivityResponse {
     let activities: [SnTimelineEvent]
     let hasMore: Bool
     let nextCursor: String?
+}
+
+// MARK: - Explore API Models
+
+struct PostListResponse {
+    let posts: [SnPost]
+    let total: Int
+    var hasMore: Bool { posts.count < total }
+}
+
+/// A paginated-list result shared by categories/tags feeds.
+struct EntityListResponse<T> {
+    let items: [T]
+    let total: Int
+    var hasMore: Bool { items.count < total }
+}
+
+/// One row of `GET /sphere/publishers/subscriptions`:
+/// `{ subscription: { account_id, publisher_id, publisher }, last_read_at?,
+///    latest_content_at?, has_new_content?, is_live? }`.
+/// Fields decode via explicit CodingKeys (no `.convertFromSnakeCase`).
+struct SnPublisherSubscriptionRow: Codable {
+    let subscription: SnPublisherSubscription
+    let lastReadAt: Date?
+    let latestContentAt: Date?
+    let hasNewContent: Bool
+    let isLive: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case subscription
+        case lastReadAt = "last_read_at"
+        case latestContentAt = "latest_content_at"
+        case hasNewContent = "has_new_content"
+        case isLive = "is_live"
+    }
+}
+
+/// `{ account_id, publisher_id, publisher }`.
+struct SnPublisherSubscription: Codable {
+    let accountId: String?
+    let publisherId: String
+    let publisher: SnPublisher
+
+    enum CodingKeys: String, CodingKey {
+        case accountId = "account_id"
+        case publisherId = "publisher_id"
+        case publisher
+    }
+}
+
+/// One row of `GET /sphere/categories/subscriptions`: either a category
+/// (`category_id` + `category`) or a tag (`tag_id` + `tag`).
+struct SnCategorySubscription: Codable {
+    let id: String
+    let categoryId: String?
+    let category: SnPostCategory?
+    let tagId: String?
+    let tag: SnPostTag?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case categoryId = "category_id"
+        case category
+        case tagId = "tag_id"
+        case tag
+    }
 }
 
 struct SnAccount: Codable {
