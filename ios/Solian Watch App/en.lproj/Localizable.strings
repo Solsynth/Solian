@@ -129,6 +129,7 @@
 /* MARK: - VoiceMessageView */
 "voice.play" = "Play voice message";
 "voice.pause" = "Pause voice message";
+"voice.loading" = "Loading voice message";
 
 /* MARK: - VoiceRecorderView */
 "voice.recording" = "Recording…";
@@ -206,6 +207,10 @@
 "compose.cancel" = "Cancel";
 "compose.posting" = "Posting...";
 "compose.error" = "Error";
+"compose.uploading" = "Uploading attachment…";
+"compose.attachments" = "Attachments";
+"compose.attachmentDefault" = "Attachment";
+"compose.removeAttachment" = "Remove attachment";
 
 /* MARK: - ActivityListView */
 "activity.errorFetching" = "Error fetching data";

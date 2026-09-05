@@ -417,6 +417,7 @@ class NetworkService {
     func createPost(
         content: String,
         visibility: Int = 0,
+        attachments: [String] = [],
         replyTo: String? = nil,
         forwardTo: String? = nil,
         token: String,
@@ -436,8 +437,14 @@ class NetworkService {
         
         var body: [String: Any] = [
             "content": content,
-            "visibility": visibility
+            "visibility": visibility,
+            // Regular post type (Flutter's postType 0). Attachments are the
+            // staged cloud-file ids; the wire field is `attachments`.
+            "type": 0
         ]
+        if !attachments.isEmpty {
+            body["attachments"] = attachments
+        }
         // Threading relationship goes in the wire payload only when a
         // meaningful target was given, matching the Flutter SDK's
         // conditionally-built create payload.
@@ -456,7 +463,10 @@ class NetworkService {
         
         if let httpResponse = response as? HTTPURLResponse {
             print("[watchOS] createPost response - status: \(httpResponse.statusCode)")
-            if httpResponse.statusCode != 201 {
+            // The server returns 200 for a successful create (and 201 in some
+            // paths). Treat any 2xx as success — a strict `201` check made a
+            // successfully-created post surface as a client error.
+            if !(200...299).contains(httpResponse.statusCode) {
                 let responseBody = String(data: data, encoding: .utf8) ?? ""
                 print("[watchOS] createPost failed - body: \(responseBody)")
                 throw URLError(URLError.Code(rawValue: httpResponse.statusCode))

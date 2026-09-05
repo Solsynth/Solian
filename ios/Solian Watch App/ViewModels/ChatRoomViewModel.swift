@@ -470,13 +470,31 @@ final class ChatRoomViewModel: ObservableObject {
 
     /// Replaces an optimistic pending row with the server-confirmed message
     /// and routes it through the referenced-message cache, if any.
+    ///
+    /// The ack can race the `messages.new` WebSocket echo for the same
+    /// `clientMessageId`, so when the pending row is already gone we dedup by
+    /// id *and* clientMessageId rather than blindly appending — otherwise a
+    /// single send renders twice.
     private func replacePending(_ pendingId: String, with sent: SnChatMessage) {
         if let index = messages.firstIndex(where: { $0.id == pendingId }) {
             messages[index] = sent
             messageStatus.removeValue(forKey: pendingId)
             updateReferencedCacheIfNeeded(sent)
-        } else if sent.isDisplayable, !messages.contains(where: { $0.id == sent.id }) {
+            return
+        }
+        // The pending row is already replaced (an earlier WS echo landed it).
+        if let duplicateIndex = messages.firstIndex(where: {
+            $0.id == sent.id || $0.clientMessageId == sent.clientMessageId
+        }) {
+            messages[duplicateIndex] = sent
+            messageStatus.removeValue(forKey: pendingId)
+            messageStatus.removeValue(forKey: sent.id)
+            updateReferencedCacheIfNeeded(sent)
+            return
+        }
+        if sent.isDisplayable {
             messages.append(sent)
+            updateReferencedCacheIfNeeded(sent)
         }
     }
 
@@ -630,7 +648,9 @@ final class ChatRoomViewModel: ObservableObject {
                     lastScrollTarget = .bottom
                 }
             } else if message.isDisplayable,
-                      !messages.contains(where: { $0.id == message.id }) {
+                      !messages.contains(where: {
+                          $0.id == message.id || $0.clientMessageId == message.clientMessageId
+                      }) {
                 messages.append(message)
                 lastScrollTarget = .bottom
             }

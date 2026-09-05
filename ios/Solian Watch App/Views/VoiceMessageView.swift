@@ -15,6 +15,7 @@
 
 import SwiftUI
 import AVFoundation
+import Combine
 
 struct VoiceMessageView: View {
     let message: SnChatMessage
@@ -26,6 +27,8 @@ struct VoiceMessageView: View {
     @State private var position: TimeInterval = 0
     @State private var timeObserver: Any?
     @State private var didReachEnd = false
+    /// True while the audio is buffering/loading and not yet playing.
+    @State private var isLoading = false
 
     init(message: SnChatMessage, isOwn: Bool) {
         self.message = message
@@ -54,29 +57,41 @@ struct VoiceMessageView: View {
     private var secondaryColor: Color { isOwn ? .white.opacity(0.8) : .secondary }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 12) {
             Button(action: togglePlayPause) {
-                Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(textColor)
+                if isLoading {
+                    ProgressView()
+                        .frame(width: 24, height: 24)
+                        .tint(textColor)
+                } else {
+                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(textColor)
+                }
             }
             .buttonStyle(.plain)
-            .disabled(mediaURL == nil)
-            .accessibilityLabel(isPlaying ? L10n.voicePause : L10n.voicePlay)
+            .disabled(mediaURL == nil || isLoading)
+            .accessibilityLabel(isLoading ? L10n.voiceLoading : (isPlaying ? L10n.voicePause : L10n.voicePlay))
 
-            WaveformView(
-                barCount: 24,
+            VoiceWaveformView(
+                barCount: 20,
                 seed: message.id,
                 progress: progress,
                 playedColor: textColor,
                 idleColor: textColor.opacity(0.35)
             )
             .frame(height: 20)
+            .frame(maxWidth: .infinity)
+            // The waveform absorbs extra space so the play button and time
+            // label keep their natural widths instead of being crowded.
+            .layoutPriority(0)
 
             Text(timeLabel)
                 .font(.system(size: 10, weight: .medium))
                 .monospacedDigit()
                 .foregroundColor(secondaryColor)
+                .frame(minWidth: 44, alignment: .trailing)
+                .layoutPriority(1)
         }
         .onAppear { preparePlayerIfNeeded() }
         .onDisappear { teardown() }
@@ -91,14 +106,7 @@ struct VoiceMessageView: View {
     }
 
     private var timeLabel: String {
-        "\(format(position)) / \(format(totalSeconds))"
-    }
-
-    private func format(_ seconds: TimeInterval) -> String {
-        let total = Int(max(0, seconds.rounded()))
-        let minutes = total / 60
-        let secs = total % 60
-        return String(format: "%02d:%02d", minutes, secs)
+        "\(formatPlaybackTime(position)) / \(formatPlaybackTime(totalSeconds))"
     }
 
     // MARK: - Playback
@@ -110,6 +118,30 @@ struct VoiceMessageView: View {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
         let player = AVPlayer(url: mediaURL)
         self.player = player
+        // Observe the current item's readiness + buffering so a spinner can
+        // show while audio is loading (then clear once it's playable). KVO
+        // status/timeControlStatus fire on the main queue.
+        // `VoiceMessageView` is a struct, so `[weak self]` is invalid; the
+        // `@State` storage is reference-backed, so writing through the captured
+        // value copy still updates the live state. Cancelled in `teardown`.
+        let itemStatus = player.currentItem?.publisher(for: \.status)
+            .receive(on: DispatchQueue.main)
+            .sink { status in
+                // The item fires `.unknown` at subscription (before a play
+                // request), so it must never turn the spinner on by itself.
+                // It only clears it once the asset is ready or failed — the
+                // loading state itself is driven by the play request and the
+                // `timeControlStatus` buffering observation below.
+                if status == .readyToPlay { self.isLoading = false }
+                else if status == .failed { self.isLoading = false }
+            }
+        let controlStatus = player.publisher(for: \.timeControlStatus)
+            .receive(on: DispatchQueue.main)
+            .sink { status in
+                // Playing or paused clears the spinner; waiting (buffering) keeps it.
+                self.isLoading = (status == .waitingToPlayAtSpecifiedRate)
+            }
+        statusSubscriptions = [itemStatus, controlStatus].compactMap { $0 }
         timeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
             queue: .main
@@ -121,16 +153,21 @@ struct VoiceMessageView: View {
         }
     }
 
+    /// Buffering-state observations to cancel on teardown.
+    @State private var statusSubscriptions: [AnyCancellable] = []
+
     private func togglePlayPause() {
         guard let player else { return }
         if isPlaying {
             player.pause()
             isPlaying = false
+            isLoading = false
         } else {
             if didReachEnd {
                 player.seek(to: .zero)
                 didReachEnd = false
             }
+            isLoading = true
             player.play()
             isPlaying = true
         }
@@ -141,45 +178,10 @@ struct VoiceMessageView: View {
         if let timeObserver {
             player?.removeTimeObserver(timeObserver)
         }
+        statusSubscriptions.forEach { $0.cancel() }
+        statusSubscriptions = []
         player = nil
         isPlaying = false
-    }
-}
-
-/// A decorative waveform of deterministic bars, tinted through the played
-/// portion. Bars are pseudo-random but stable for a given seed, so a message
-/// keeps the same shape across renders (Flutter uses real audio peaks; a
-/// stable pseudo-waveform is the watch-appropriate simplification).
-private struct WaveformView: View {
-    let barCount: Int
-    let seed: String
-    let progress: Double
-    let playedColor: Color
-    let idleColor: Color
-
-    var body: some View {
-        GeometryReader { geo in
-            let playedCount = Int(CGFloat(progress) * CGFloat(barCount))
-            HStack(alignment: .center, spacing: 2) {
-                ForEach(0..<barCount, id: \.self) { index in
-                    let height = barHeight(index)
-                    Capsule()
-                        .fill(index < playedCount ? playedColor : idleColor)
-                        .frame(width: max(2, geo.size.width / CGFloat(barCount) - 2), height: height)
-                }
-            }
-            .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-        }
-    }
-
-    /// Stable pseudo-random height (6...18pt) from the seed + index.
-    private func barHeight(_ index: Int) -> CGFloat {
-        var hash = UInt64(bitPattern: Int64(seed.hashValue))
-        hash = hash &+ UInt64(index) &* 0x9E3779B9
-        hash ^= hash >> 13
-        hash = hash &* 0x5bd1e995
-        hash ^= hash >> 15
-        let normalized = Double(hash % 1000) / 1000.0
-        return 6 + CGFloat(normalized) * 12
+        isLoading = false
     }
 }

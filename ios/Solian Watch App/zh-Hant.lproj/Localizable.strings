@@ -129,6 +129,7 @@
 /* MARK: - VoiceMessageView */
 "voice.play" = "播放語音訊息";
 "voice.pause" = "暫停語音訊息";
+"voice.loading" = "正在載入語音訊息";
 
 /* MARK: - VoiceRecorderView */
 "voice.recording" = "正在錄音…";
@@ -206,6 +207,10 @@
 "compose.cancel" = "取消";
 "compose.posting" = "正在發布...";
 "compose.error" = "錯誤";
+"compose.uploading" = "正在上傳附件…";
+"compose.attachments" = "附件";
+"compose.attachmentDefault" = "附件";
+"compose.removeAttachment" = "移除附件";
 
 /* MARK: - ActivityListView */
 "activity.errorFetching" = "獲取數據出錯";

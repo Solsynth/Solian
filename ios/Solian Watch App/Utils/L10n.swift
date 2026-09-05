@@ -134,6 +134,7 @@ public enum L10n {
     // MARK: - VoiceMessageView
     static let voicePlay = NSLocalizedString("voice.play", comment: "Play voice message")
     static let voicePause = NSLocalizedString("voice.pause", comment: "Pause voice message")
+    static let voiceLoading = NSLocalizedString("voice.loading", comment: "Loading voice message")
 
     // MARK: - VoiceRecorderView
     static let voiceRecording = NSLocalizedString("voice.recording", comment: "Recording state")
@@ -211,6 +212,10 @@ public enum L10n {
     static let composeCancel = NSLocalizedString("compose.cancel", comment: "Cancel")
     static let composePosting = NSLocalizedString("compose.posting", comment: "Posting")
     static let composeError = NSLocalizedString("compose.error", comment: "Error")
+    static let composeUploading = NSLocalizedString("compose.uploading", comment: "Uploading attachment")
+    static let composeAttachments = NSLocalizedString("compose.attachments", comment: "Attachments")
+    static let composeAttachmentDefault = NSLocalizedString("compose.attachmentDefault", comment: "Default attachment name")
+    static let composeRemoveAttachment = NSLocalizedString("compose.removeAttachment", comment: "Remove attachment")
 
     // MARK: - ActivityListView
     static let activityErrorFetching = NSLocalizedString("activity.errorFetching", comment: "Error fetching data")

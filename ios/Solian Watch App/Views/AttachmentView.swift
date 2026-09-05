@@ -81,17 +81,10 @@ struct AttachmentView: View {
     @ViewBuilder
     private var audioContent: some View {
         if let serverUrl = appState.serverUrl, let audioUrl = getAttachmentUrl(for: attachment.id, serverUrl: serverUrl) {
-            if isCompact {
-                HStack(spacing: 4) {
-                    Image(systemName: "waveform")
-                        .font(.caption)
-                    Text(formatFileSize(attachment.size))
-                        .font(.caption2)
-                }
-                .foregroundStyle(.secondary)
-            } else {
-                AudioPlayerView(audioUrl: audioUrl)
-            }
+            // Both compact (chat bubble / post card) and full (post detail)
+            // render a real player; compact just uses a lower-profile row. The
+            // old compact branch showed only an icon + size, with no playback.
+            AudioPlayerView(audioUrl: audioUrl, isCompact: isCompact)
         } else {
             placeholderView(icon: "waveform")
         }
