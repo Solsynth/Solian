@@ -49,19 +49,20 @@ struct ComposePostView: View {
                         Image(systemName: "xmark")
                     }
                 }
-                // Bottom-of-detail action button is the discoverable send on
-                // watchOS; keep the top-right icon too for one-handed reach.
-                ToolbarItem(placement: .primaryAction) {
+                // Send lives top-right (one-handed reach, mirrors the explore
+                // compose toggle). No bottom action bar.
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task { await post() }
                     } label: {
-                        Image(systemName: "paperplane.fill")
+                        if viewModel.isPosting {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "paperplane.fill")
+                        }
                     }
                     .disabled(viewModel.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isPosting)
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                sendBar
             }
             .onChange(of: viewModel.didPost) { _, didPost in
                 if didPost {
@@ -83,44 +84,6 @@ struct ComposePostView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
-    }
-
-    /// Bottom action bar: the primary "Post" button + a visibility shortcut.
-    private var sendBar: some View {
-        HStack(spacing: 10) {
-            Button {
-                showVisibilityPicker = true
-            } label: {
-                Image(systemName: visibilitySymbol)
-                    .font(.body)
-            }
-            .buttonStyle(.bordered)
-            .tint(.secondary)
-            .accessibilityLabel("Visibility \(visibilityOptions[viewModel.visibility])")
-
-            Button {
-                Task { await post() }
-            } label: {
-                if viewModel.isPosting {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Label("Post", systemImage: "paperplane.fill")
-                        .font(.body)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.accentColor)
-            .disabled(
-                viewModel.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    || viewModel.isPosting
-            )
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 4)
-        .frame(maxWidth: .infinity)
-        .background(.thinMaterial)
     }
 
     private var visibilitySymbol: String {

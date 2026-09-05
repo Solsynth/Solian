@@ -732,13 +732,29 @@ struct SnTimelineEvent: Codable, Identifiable {
     }
     
     var isPost: Bool {
+        if type == "posts.new" || type == "posts.new.replies" {
+            return true
+        }
         guard let data = data?.value as? [String: Any] else { return false }
         return data["title"] != nil || data["content"] != nil || data["publisher"] != nil
     }
     
     var isDiscovery: Bool {
+        if type == "discovery" || type == "discovery.v2" {
+            return true
+        }
         guard let data = data?.value as? [String: Any] else { return false }
         return data["items"] != nil
+    }
+    
+    /// Friend presence (e.g. a friend is gaming / listening to music).
+    var isFriendPresence: Bool {
+        type == "presence.friend"
+    }
+    
+    /// Friend status update.
+    var isFriendStatus: Bool {
+        type == "status.friend"
     }
     
     func decodePost() -> SnPost? {

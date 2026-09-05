@@ -97,10 +97,13 @@ struct PostRowView: View {
             }
 
             if let content = post.content, !content.isEmpty {
-                Text(content)
-                    .font(.caption)
-                    .lineLimit(3)
-                    .foregroundStyle(.primary)
+                MarkdownText(
+                    content: content,
+                    lineLimit: 4,
+                    isHTML: (post.contentType ?? 0) == 1
+                )
+                .font(.caption)
+                .foregroundStyle(.primary)
             }
 
             if let attachments = post.attachments, !attachments.isEmpty {
@@ -240,9 +243,11 @@ struct PostDetailView: View {
                 }
 
                 if let content = post.content, !content.isEmpty {
-                    Text(content)
-                        .font(.body)
-                        .lineLimit(nil)
+                    MarkdownText(
+                        content: content,
+                        isHTML: (post.contentType ?? 0) == 1
+                    )
+                    .font(.body)
                 }
 
                 if !reactionPills.isEmpty {

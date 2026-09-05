@@ -7,11 +7,9 @@
 
 import SwiftUI
 
-/// Explore hub: the three server-filtered feeds (Explore / Subscriptions /
-/// Friends) as vertical Digital-Crown pages — each page is one full feed
-/// (watchOS navigation model), with the secondary tools in a bottom bar and
-/// compose as the primary bottom action. Launching lands on the Explore feed
-/// so the screen never shows an empty source list.
+/// Explore hub: one Explore feed (# mode only) with the explore options
+/// (shuffle / publishers / categories) as a scrollable row above the posts,
+/// and compose as a top-right toolbar icon. No Subscriptions / Friends tabs.
 struct ExploreView: View {
     @EnvironmentObject private var appState: AppState
     @State private var isComposing = false
@@ -19,32 +17,17 @@ struct ExploreView: View {
     @State private var showCategoriesTags = false
     @State private var showShuffle = false
 
-    // Order matters: page 0 is where the app launches.
-    private static let filters: [(label: String, systemImage: String, filter: String?)] = [
-        ("Explore", "safari.fill", nil),
-        ("Subscriptions", "star.fill", "subscriptions"),
-        ("Friends", "person.2.fill", "friends"),
-    ]
-
     var body: some View {
         NavigationStack {
             if appState.isReady {
-                TabView {
-                    ForEach(Self.filters, id: \.filter) { item in
-                        FeedPageView(
-                            label: item.label,
-                            systemImage: item.systemImage,
-                            filter: item.filter,
-                            onCompose: { isComposing = true },
-                            onShuffle: { showShuffle = true },
-                            onPublishers: { showPublishers = true },
-                            onBrowse: { showCategoriesTags = true }
-                        )
-                        .environmentObject(appState)
-                        .tag(item.filter)
-                    }
-                }
-                .tabViewStyle(.verticalPage)
+                FeedPageView(
+                    filter: nil,
+                    onCompose: { isComposing = true },
+                    onShuffle: { showShuffle = true },
+                    onPublishers: { showPublishers = true },
+                    onBrowse: { showCategoriesTags = true }
+                )
+                .environmentObject(appState)
                 .navigationDestination(isPresented: $showPublishers) {
                     PublisherManagementView().environmentObject(appState)
                 }
@@ -71,13 +54,11 @@ struct ExploreView: View {
     }
 }
 
-/// One vertical feed page: a titled activity list. Compose is a top-right
-/// toolbar icon button (mirroring the nav-menu button top-left), and the
-/// explore options (shuffle / publishers / categories) sit in a fixed detail
-/// row above the posts, matching the main app's filter toolbar.
+/// The single explore feed page. Compose is a top-right toolbar icon button
+/// (mirroring the nav-menu button top-left), and the explore options
+/// (shuffle / publishers / categories) sit in a fixed detail row above the
+/// posts, matching the main app's filter toolbar.
 private struct FeedPageView: View {
-    let label: String
-    let systemImage: String
     let filter: String?
     let onCompose: () -> Void
     let onShuffle: () -> Void
