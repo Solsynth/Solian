@@ -60,7 +60,7 @@
 "account.doNotDisturb" = "Do Not Disturb";
 "account.clearsAt" = "Clears: %@";
 "account.level" = "Level %d";
-"account.experience" = "Experience: %@";
+"account.experience" = "Experience: %d";
 "account.noBio" = "No bio available";
 "account.joinedAt" = "Joined at %@";
 "account.noAccountData" = "No account data";

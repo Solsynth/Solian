@@ -60,7 +60,7 @@
 "account.doNotDisturb" = "勿扰";
 "account.clearsAt" = "清除时间：%@";
 "account.level" = "等级 %d";
-"account.experience" = "经验：%@";
+"account.experience" = "经验：%d";
 "account.noBio" = "暂无简介";
 "account.joinedAt" = "加入于 %@";
 "account.noAccountData" = "无账户数据";

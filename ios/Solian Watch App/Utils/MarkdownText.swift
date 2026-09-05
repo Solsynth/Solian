@@ -4,33 +4,108 @@
 //
 //  Created by LittleSheep on 2025/10/29.
 //
-//  Renders post body content as rich text. The main app renders post content
-//  as markdown (flutter_markdown_plus); on watchOS we use SwiftUI's
-//  AttributedString(markdown:), which supports bold / italic / links / code
-//  inline. HTML content (contentType == 1) is reduced to plain markdown
-//  before rendering, since the watch target has no html-to-markdown library.
+//  Renders post body content as rich text with inline sticker support. The
+//  main app renders post content as markdown (flutter_markdown_plus) with
+//  `:prefix+slug:` sticker placeholders resolved inline; on watchOS we use
+//  SwiftUI's AttributedString(markdown:) for the text (bold / italic / links
+//  / code inline) and render sticker placeholders with the shared
+//  StickerRenderView. HTML content (contentType == 1) is reduced to plain
+//  markdown before rendering, since the watch target has no html-to-markdown
+//  library.
+//
+//  - A body that is exactly one sticker renders as a single large image
+//    (mirrors the main app's standalone-sticker size).
+//  - Mixed bodies flow text (word by word, markdown attributes preserved) and
+//    inline stickers together so long lines wrap on the watch face.
+//  - Bodies without stickers render exactly as markdown, with the caller's
+//    line limit.
 //
 
 import SwiftUI
 
-/// A SwiftUI text view that renders markdown inline. Falls back to plain
-/// text when the source isn't valid markdown.
+/// A SwiftUI text view that renders markdown inline with sticker spans. Falls
+/// back to plain text when the markdown source isn't valid.
 struct MarkdownText: View {
     let content: String
     var lineLimit: Int? = nil
     var isHTML: Bool = false
 
+    /// Standalone sticker size (main app: `large` = 96).
+    private var standaloneDimension: CGFloat { 96 }
+    /// Inline sticker size (main app: `medium` = 48, drawn tighter on watch).
+    private var inlineDimension: CGFloat { 22 }
+
     private var source: String {
         isHTML ? MarkdownText.htmlToMarkdown(content) : content
     }
 
-    private var attributed: AttributedString {
-        (try? AttributedString(markdown: source)) ?? AttributedString(source)
+    var body: some View {
+        let segments = parseStickerContent(source)
+        if segments.count == 1, case .sticker(let identifier) = segments[0] {
+            StickerRenderView(identifier: identifier, dimension: standaloneDimension)
+        } else if segments.contains(where: { if case .sticker = $0 { return true }; return false }) {
+            mixedContent(segments)
+        } else {
+            Text(markdownAttributed(source))
+                .lineLimit(lineLimit)
+        }
     }
 
-    var body: some View {
-        Text(attributed)
-            .lineLimit(lineLimit)
+    /// Flows text (word by word, markdown attributes preserved) and inline
+    /// stickers together with the shared FlowLayout so long mixed lines wrap
+    /// on the watch face.
+    @ViewBuilder
+    private func mixedContent(_ segments: [StickerContentSegment]) -> some View {
+        FlowLayout(alignment: .leading, spacing: 3) {
+            ForEach(segments) { segment in
+                switch segment {
+                case .text(let text):
+                    // Whitespace between words becomes the flow spacing; each
+                    // word wraps as its own unit while keeping its markdown
+                    // attributes (bold / italic / links / code).
+                    ForEach(Array(markdownWords(markdownAttributed(text)).enumerated()), id: \.offset) { _, word in
+                        Text(word)
+                            .lineLimit(1)
+                            .fixedSize()
+                    }
+                case .sticker(let identifier):
+                    StickerRenderView(identifier: identifier, dimension: inlineDimension)
+                }
+            }
+        }
+    }
+
+    // MARK: Markdown parsing
+
+    /// Parses markdown, falling back to plain text when the source isn't
+    /// valid.
+    private func markdownAttributed(_ text: String) -> AttributedString {
+        (try? AttributedString(markdown: text)) ?? AttributedString(text)
+    }
+
+    /// Splits an `AttributedString` into whitespace-delimited runs, preserving
+    /// each run's markdown attributes so bold / italic spans that cross word
+    /// boundaries still render correctly inside a FlowLayout.
+    private func markdownWords(_ attributed: AttributedString) -> [AttributedString] {
+        var words: [AttributedString] = []
+        var currentStart = attributed.startIndex
+        var i = attributed.startIndex
+        while i < attributed.endIndex {
+            let ch = String(attributed[i..<attributed.index(afterCharacter: i)].characters)
+            if ch == " " || ch == "\n" || ch == "\t" {
+                if currentStart < i {
+                    words.append(AttributedString(attributed[currentStart..<i]))
+                }
+                i = attributed.index(afterCharacter: i)
+                currentStart = i
+                continue
+            }
+            i = attributed.index(afterCharacter: i)
+        }
+        if currentStart < attributed.endIndex {
+            words.append(AttributedString(attributed[currentStart..<attributed.endIndex]))
+        }
+        return words
     }
 
     /// Best-effort HTML → markdown/plain reduction for post bodies. Handles

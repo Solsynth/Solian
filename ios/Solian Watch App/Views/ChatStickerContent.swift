@@ -131,8 +131,9 @@ struct ChatStickerContent: View {
 }
 
 /// Resolves one sticker identifier and renders its image at `dimension`,
-/// showing a placeholder while loading.
-private struct StickerRenderView: View {
+/// showing a placeholder while loading. Shared by chat bubbles and post
+/// bodies (which carry the same `:prefix+slug:` sticker syntax).
+struct StickerRenderView: View {
     let identifier: String
     var dimension: CGFloat
 

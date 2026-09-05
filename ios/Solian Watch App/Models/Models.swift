@@ -858,12 +858,6 @@ struct TimelineResponseWrapper: Codable {
     let items: [SnTimelineEvent]
     let nextCursor: String?
     let mode: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case items
-        case nextCursor = "next_cursor"
-        case mode
-    }
 }
 
 struct ActivityResponse {

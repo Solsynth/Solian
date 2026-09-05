@@ -60,7 +60,7 @@
 "account.doNotDisturb" = "勿擾";
 "account.clearsAt" = "清除時間：%@";
 "account.level" = "等級 %d";
-"account.experience" = "經驗：%@";
+"account.experience" = "經驗：%d";
 "account.noBio" = "暫無簡介";
 "account.joinedAt" = "加入於 %@";
 "account.noAccountData" = "無帳戶數據";

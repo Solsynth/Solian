@@ -115,10 +115,12 @@ struct ReferencedPostReferenceView: View {
                     .lineLimit(2)
             }
             if let content = reference.content, !content.isEmpty {
-                Text(content)
-                    .font(.system(size: 11))
-                    .lineLimit(3)
-                    .foregroundStyle(.primary.opacity(0.9))
+                MarkdownText(
+                    content: content,
+                    lineLimit: 3
+                )
+                .font(.system(size: 11))
+                .foregroundStyle(.primary.opacity(0.9))
             }
             if let publisher = reference.publisher {
                 Text("@\(publisher.nick ?? publisher.name)")
@@ -815,10 +817,13 @@ struct ReplyRowView: View {
             PostAuthorHeader(post: post, isCompact: true)
 
             if let content = post.content, !content.isEmpty {
-                Text(content)
-                    .font(.caption)
-                    .lineLimit(6)
-                    .foregroundStyle(.primary)
+                MarkdownText(
+                    content: content,
+                    lineLimit: 6,
+                    isHTML: (post.contentType ?? 0) == 1
+                )
+                .font(.caption)
+                .foregroundStyle(.primary)
             }
 
             if !reactionPills.isEmpty || (post.upvotes ?? 0) > 0 || (post.repliesCount ?? 0) > 0 {
