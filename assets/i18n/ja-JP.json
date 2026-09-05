@@ -547,6 +547,7 @@
   "challengeDeclined": "Login declined",
   "challengeDeclinedByYou": "You declined a login request from {}",
   "challengeDeclinedError": "Login was declined from another device",
+  "challengeDeclinedEscalated": "サインインが拒否されました。追加の認証が必要です。",
   "challengeEnterPin": "Enter your PIN to confirm",
   "challengeExpired": "This challenge has expired",
   "challengeExpiresIn": "Expires in",
@@ -1203,6 +1204,7 @@
   "qrLoginApprovedByYou": "{} のログインを承認しました",
   "qrLoginDeclinedByYou": "{} のログインを拒否しました",
   "loginInProgress": "ログイン中……",
+  "inAppWaiting": "別の端末での承認を待っています…",
   "loginMultiFactor": {
     "one": "信頼ポイントがあと {} 必要です",
     "other": "信頼ポイントがあと {} 必要です"

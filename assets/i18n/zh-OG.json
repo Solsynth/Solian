@@ -478,6 +478,7 @@
   "challengeDeclined": "Login declined",
   "challengeDeclinedByYou": "You declined a login request from {}",
   "challengeDeclinedError": "Login was declined from another device",
+  "challengeDeclinedEscalated": "登入已卻，另需查驗。",
   "challengeEnterPin": "Enter your PIN to confirm",
   "challengeExpired": "This challenge has expired",
   "challengeExpiresIn": "Expires in",
@@ -1134,6 +1135,7 @@
   "qrLoginApprovedByYou": "已可 {} 之登入",
   "qrLoginDeclinedByYou": "已卻 {} 之登入",
   "loginInProgress": "引君入內……",
+  "inAppWaiting": "候汝他機之可……",
   "loginMultiFactor": {
     "one": "尚需 {} 點可信",
     "other": "尚需 {} 點可信"

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:relative_time/relative_time.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -221,6 +222,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
   final Function(SnAuthChallenge?) onChallenge;
   final VoidCallback onNext;
   final Function(bool) onBusy;
+  final Function(List<SnAuthFactor>?) onFactors;
 
   const _LoginCheckScreen({
     super.key,
@@ -229,6 +231,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
     required this.onChallenge,
     required this.onNext,
     required this.onBusy,
+    required this.onFactors,
   });
 
   @override
@@ -295,6 +298,19 @@ class _LoginCheckScreen extends HookConsumerWidget {
             child: CircularProgressIndicator(),
           ),
         ],
+      );
+    }
+
+    // In-app notification (type 2) is an approval prompt completed on another
+    // device. Device A (unauthenticated) shows a waiting view that polls the
+    // public challenge endpoint for the outcome.
+    if (factor!.type == 2) {
+      return _InAppApprovalView(
+        challenge: challenge,
+        onChallenge: onChallenge,
+        onNext: onNext,
+        onFactors: onFactors,
+        onBusy: onBusy,
       );
     }
 
@@ -569,6 +585,225 @@ class _LoginCheckScreen extends HookConsumerWidget {
   }
 }
 
+/// Device A waiting screen for the in-app approval prompt (factor type 2).
+///
+/// No code is typed. The user left the factor picker after requesting an
+/// approval prompt; this view polls the unauthenticated challenge endpoint
+/// every 2 s for the trusted device's outcome and drives the rest of the
+/// flow:
+///   - approved (approvedAt set, stepRemain == 0) → exchange the token.
+///   - declined (declinedAt set, stepRemain > 0) → escalation: tell the user,
+///     refill the factor list and drop back to the picker.
+///   - expired → stop polling, tell the user, and let them restart.
+class _InAppApprovalView extends HookConsumerWidget {
+  final SnAuthChallenge? challenge;
+  final Function(SnAuthChallenge?) onChallenge;
+  final VoidCallback onNext;
+  final Function(List<SnAuthFactor>?) onFactors;
+  final Function(bool) onBusy;
+
+  const _InAppApprovalView({
+    required this.challenge,
+    required this.onChallenge,
+    required this.onNext,
+    required this.onFactors,
+    required this.onBusy,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final challengeState = useState<SnAuthChallenge?>(challenge);
+    final remainingSeconds = useState<int?>(null);
+    final isPolling = useState(true);
+    final isBusy = useState(false);
+
+    useEffect(() {
+      onBusy.call(isBusy.value);
+      return null;
+    }, [isBusy]);
+
+    final currentChallenge = challengeState.value;
+
+    Future<void> poll() async {
+      final current = challengeState.value;
+      if (current == null || !isPolling.value) return;
+
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        final resp = await client.dio.get(
+          '/stargate/auth/challenge/${current.id}',
+        );
+        final updated = SnAuthChallenge.fromJson(resp.data);
+        challengeState.value = updated;
+        onChallenge(updated);
+
+        if (updated.approvedAt != null && updated.stepRemain == 0) {
+          isPolling.value = false;
+          if (isBusy.value) return;
+          isBusy.value = true;
+          await exchangeAuthCodeForToken(context, ref, code: updated.id);
+          return;
+        }
+
+        if (updated.declinedAt != null && updated.stepRemain > 0) {
+          isPolling.value = false;
+          if (!context.mounted) return;
+          showSnackBar('challengeDeclinedEscalated'.tr());
+          try {
+            final factorResp = await client.dio.get(
+              '/stargate/auth/challenge/${updated.id}/factors',
+            );
+            onFactors(
+              _filterLoginFactors(
+                (factorResp.data as List)
+                    .map((ele) => SnAuthFactor.fromJson(ele)),
+              ),
+            );
+          } catch (_) {
+            // Best-effort refill; the picker also re-fetches on rebuild.
+          }
+          onChallenge(updated);
+          onNext();
+          return;
+        }
+
+        if (updated.expiredAt != null &&
+            updated.expiredAt!.isBefore(DateTime.now())) {
+          isPolling.value = false;
+          showSnackBar('challengeExpired'.tr());
+        }
+      } catch (_) {
+        // Best-effort polling; the server returns the latest state on the next
+        // tick. An expired/removed challenge surfaces as a 404 which we treat
+        // as terminal → stop polling so the user can restart.
+        final currentExpired =
+            current.expiredAt != null &&
+            current.expiredAt!.isBefore(DateTime.now());
+        if (currentExpired) {
+          isPolling.value = false;
+          showSnackBar('challengeExpired'.tr());
+        }
+      }
+    }
+
+    // Keep an expiry countdown thread-alive so the UI shows time remaining.
+    useEffect(() {
+      final current = challengeState.value;
+      if (current == null || current.expiredAt == null) return null;
+
+      void syncRemaining() {
+        final diff =
+            current.expiredAt!.difference(DateTime.now()).inSeconds;
+        remainingSeconds.value = diff > 0 ? diff : 0;
+      }
+
+      syncRemaining();
+      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        syncRemaining();
+      });
+      return timer.cancel;
+    }, [challengeState.value?.id]);
+
+    // Poll the public challenge endpoint every 2 s until the outcome is known.
+    useEffect(() {
+      if (currentChallenge == null ||
+          currentChallenge.expiredAt != null &&
+              currentChallenge.expiredAt!.isBefore(DateTime.now())) {
+        return null;
+      }
+      final timer = Timer.periodic(const Duration(seconds: 2), (_) {
+        poll();
+      });
+      return timer.cancel;
+    }, [currentChallenge?.id]);
+
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final deviceName = currentChallenge?.deviceName ?? 'unknownDevice'.tr();
+    final platform = currentChallenge?.platform;
+
+    return AuthFormColumn(
+      children: [
+        AuthFormHeader(icon: Symbols.devices, title: 'inAppWaiting'.tr()),
+        AuthSectionCard(
+          children: [
+            ListTile(
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  switch (platform) {
+                    2 => Symbols.phone_iphone,
+                    3 => Symbols.phone_android,
+                    4 => Symbols.computer,
+                    5 => Symbols.computer,
+                    6 => Symbols.computer,
+                    1 => Symbols.language,
+                    _ => Symbols.devices,
+                  },
+                  color: scheme.onPrimaryContainer,
+                ),
+              ),
+              title: Text(deviceName),
+              subtitle: Text(
+                platform == null
+                    ? 'platformUnknown'.tr()
+                    : switch (platform) {
+                        1 => 'platformWeb'.tr(),
+                        2 => 'platformIos'.tr(),
+                        3 => 'platformAndroid'.tr(),
+                        4 => 'platformMacos'.tr(),
+                        5 => 'platformWindows'.tr(),
+                        6 => 'platformLinux'.tr(),
+                        _ => 'platformUnknown'.tr(),
+                      },
+              ),
+              isThreeLine: false,
+            ),
+            if (currentChallenge?.ipAddress != null)
+              ListTile(
+                leading: const Icon(Symbols.language),
+                title: Text('challengeIpAddress'.tr()),
+                subtitle: Text(currentChallenge!.ipAddress),
+              ),
+            ListTile(
+              leading: const Icon(Symbols.schedule),
+              title: Text('challengeRequested'.tr()),
+              subtitle: Text(
+                RelativeTime(context).format(currentChallenge!.createdAt),
+              ),
+            ),
+            if (remainingSeconds.value != null)
+              ListTile(
+                leading: const Icon(Symbols.timer),
+                title: Text('challengeExpiresIn'.tr()),
+                subtitle: Text(
+                  'challengeSeconds'.tr(args: ['${remainingSeconds.value}']),
+                  style: remainingSeconds.value! < 60
+                      ? TextStyle(color: scheme.error)
+                      : null,
+                ),
+              ),
+          ],
+        ),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: CircularProgressIndicator(),
+        ),
+        if (remainingSeconds.value != null && remainingSeconds.value! <= 0)
+          Text(
+            'challengeExpired'.tr(),
+            style: TextStyle(color: scheme.error),
+          ),
+      ],
+    );
+  }
+}
+
 class LoginContent extends HookConsumerWidget {
   const LoginContent({super.key});
 
@@ -631,6 +866,8 @@ class LoginContent extends HookConsumerWidget {
                       currentTicket.value = p0,
                   onNext: () => period.value = 1,
                   onBusy: (value) => isBusy.value = value,
+                  onFactors: (List<SnAuthFactor>? p0) =>
+                      factors.value = p0 ?? [],
                 ),
                 _ => _LoginLookupScreen(
                   key: const ValueKey(0),

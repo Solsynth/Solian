@@ -781,6 +781,7 @@
   "challengeDeclined": "Login declined",
   "challengeDeclinedByYou": "You declined a login request from {}",
   "challengeDeclinedError": "Login was declined from another device",
+  "challengeDeclinedEscalated": "Sign-in was declined. Additional verification is required.",
   "challengeEnterPin": "Enter your PIN to confirm",
   "challengeExpired": "This challenge has expired",
   "challengeExpiresIn": "Expires in",
@@ -2072,6 +2073,7 @@
   "qrLoginApprovedByYou": "Approved login for {}",
   "qrLoginDeclinedByYou": "Declined login for {}",
   "loginInProgress": "Logging you in...",
+  "inAppWaiting": "Waiting for approval on your other device…",
   "loginMultiFactor": {
     "one": "{} trust point still required",
     "other": "{} trust points still required"

@@ -553,6 +553,7 @@
   "challengeDeclined": "Login declined",
   "challengeDeclinedByYou": "You declined a login request from {}",
   "challengeDeclinedError": "Login was declined from another device",
+  "challengeDeclinedEscalated": "로그인이 거부되었습니다. 추가 검증이 필요합니다.",
   "challengeEnterPin": "Enter your PIN to confirm",
   "challengeExpired": "This challenge has expired",
   "challengeExpiresIn": "Expires in",
@@ -1367,6 +1368,7 @@
   "qrLoginApprovedByYou": "{} 로그인을 승인했습니다",
   "qrLoginDeclinedByYou": "{} 로그인을 거부했습니다",
   "loginInProgress": "로그인 중...",
+  "inAppWaiting": "다른 기기에서 승인을 기다리는 중…",
   "loginMultiFactor": {
     "one": "신뢰 점수 {}점 더 필요",
     "other": "신뢰 점수 {}점 더 필요"

@@ -752,6 +752,7 @@
   "challengeDeclined": "登入已拒絕",
   "challengeDeclinedByYou": "您已拒絕來自 {} 的登入請求",
   "challengeDeclinedError": "登入已被另一臺裝置拒絕",
+  "challengeDeclinedEscalated": "登入已被拒絕，需要額外的身分驗證。",
   "challengeEnterPin": "輸入 PIN 碼以確認",
   "challengeExpired": "此挑戰已過期",
   "challengeExpiresIn": "有效期",
@@ -1973,6 +1974,7 @@
   "qrLoginApprovedByYou": "已批准 {} 的登入",
   "qrLoginDeclinedByYou": "已拒絕 {} 的登入",
   "loginInProgress": "登入中……",
+  "inAppWaiting": "正在等待您的另一臺裝置批准…",
   "loginMultiFactor": {
     "one": "還需 {} 點可信度",
     "other": "還需 {} 點可信度"

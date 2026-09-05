@@ -478,6 +478,7 @@
   "challengeDeclined": "Login declined",
   "challengeDeclinedByYou": "You declined a login request from {}",
   "challengeDeclinedError": "Login was declined from another device",
+  "challengeDeclinedEscalated": "Se rechazó el inicio de sesión. Se requiere verificación adicional.",
   "challengeEnterPin": "Enter your PIN to confirm",
   "challengeExpired": "This challenge has expired",
   "challengeExpiresIn": "Expires in",
@@ -1133,6 +1134,7 @@
   "qrLoginApprovedByYou": "Has aprobado el inicio de sesión de {}",
   "qrLoginDeclinedByYou": "Has rechazado el inicio de sesión de {}",
   "loginInProgress": "Logging you in...",
+  "inAppWaiting": "Esperando la aprobación en tu otro dispositivo…",
   "loginMultiFactor": {
     "one": "Falta {} punto de confianza",
     "other": "Faltan {} puntos de confianza"
