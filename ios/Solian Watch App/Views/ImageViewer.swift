@@ -19,7 +19,7 @@ struct ImageViewer: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    Text("Loading...")
+                    Text(L10n.imageViewerLoading)
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.7))
                 }
@@ -87,14 +87,14 @@ struct ImageViewer: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.largeTitle)
                         .foregroundStyle(.orange)
-                    Text("Failed to load")
+                    Text(L10n.imageViewerFailedToLoad)
                         .font(.headline)
                         .foregroundStyle(.white)
                     Text(errorMessage)
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
-                    Button("Try Again") {
+                    Button(L10n.imageViewerTryAgain) {
                         Task {
                             if let token = appState.token {
                                 await imageLoader.loadImage(from: imageUrl, token: token)

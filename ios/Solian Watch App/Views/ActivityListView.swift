@@ -33,7 +33,7 @@ struct ActivityListView: View {
                 VStack(spacing: 0) {
                     if let header { header }
                     VStack {
-                        Text("Error fetching data")
+                        Text(L10n.activityErrorFetching)
                             .font(.headline)
                         Text(errorMessage)
                             .font(.caption)
@@ -44,7 +44,7 @@ struct ActivityListView: View {
             } else if viewModel.activities.isEmpty {
                 VStack(spacing: 0) {
                     if let header { header }
-                    Text("No activities found.")
+                    Text(L10n.activityNoActivities)
                 }
             } else {
                 List {
@@ -85,7 +85,7 @@ struct ActivityListView: View {
                                 Spacer()
                             }
                         } else {
-                            Button("Load More") {
+                            Button(L10n.activityLoadMore) {
                                 Task {
                                     if let token = appState.token, let serverUrl = appState.serverUrl {
                                         await viewModel.loadMoreActivities(token: token, serverUrl: serverUrl)
@@ -105,7 +105,7 @@ struct ActivityListView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.filter ?? "Explore")
+        .navigationTitle(viewModel.filter ?? L10n.activityExplore)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -141,20 +141,20 @@ struct ActivityEventRow: View {
         // raw string. Mirror the main app's switch.
         if let raw = activity["type"] as? Int {
             switch raw {
-            case 1: return "Gaming"
-            case 2: return "Music"
-            case 3: return "Workout"
+            case 1: return L10n.activityGaming
+            case 2: return L10n.activityMusic
+            case 3: return L10n.activityWorkout
             default: return nil
             }
         }
         if let raw = activity["type"] as? String {
             switch raw.lowercased() {
-            case "gaming": return "Gaming"
-            case "music": return "Music"
-            case "workout", "fitness": return "Workout"
-            case "1": return "Gaming"
-            case "2": return "Music"
-            case "3": return "Workout"
+            case "gaming": return L10n.activityGaming
+            case "music": return L10n.activityMusic
+            case "workout", "fitness": return L10n.activityWorkout
+            case "1": return L10n.activityGaming
+            case "2": return L10n.activityMusic
+            case "3": return L10n.activityWorkout
             default: return raw
             }
         }
@@ -176,20 +176,20 @@ struct ActivityEventRow: View {
 
     private var statusLabel: String {
         guard let status = statusPayload else {
-            return event.isFriendStatus ? "Friend updated status" : "Friend activity"
+            return event.isFriendStatus ? L10n.activityFriendUpdatedStatus : L10n.activityFriendActivity
         }
         if let label = status["label"] as? String, !label.isEmpty { return label }
         if let text = status["text"] as? String, !text.isEmpty { return text }
         // Fall back to the type int.
         if let t = status["type"] as? Int {
             switch t {
-            case 1: return "Busy"
-            case 2: return "Do Not Disturb"
-            case 3: return "Invisible"
-            default: return "Online"
+            case 1: return L10n.activityBusy
+            case 2: return L10n.activityDoNotDisturb
+            case 3: return L10n.activityInvisible
+            default: return L10n.activityOnline
             }
         }
-        return "Friend updated status"
+        return L10n.activityFriendUpdatedStatus
     }
 
     // MARK: - View
@@ -216,7 +216,7 @@ struct ActivityEventRow: View {
                 ? "\(friendName) · \(statusLabel)"
                 : "\(friendName) · \(presenceTitle ?? presenceType ?? "is active")"
         }
-        return event.isFriendStatus ? statusLabel : (presenceTitle ?? presenceType ?? "Friend activity")
+        return event.isFriendStatus ? statusLabel : (presenceTitle ?? presenceType ?? L10n.activityFriendActivity)
     }
 
     var body: some View {

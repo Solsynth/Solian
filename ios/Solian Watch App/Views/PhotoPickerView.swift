@@ -32,7 +32,7 @@ struct PhotoPickerView: View {
         VStack(spacing: 18) {
             if isLoading || isSending {
                 ProgressView()
-                Text(isSending ? "Sending photo…" : "Loading image…")
+                Text(isSending ? L10n.photoPickerSending : L10n.photoPickerLoading)
                     .font(.caption)
                     .foregroundColor(.secondary)
             } else if let errorMessage {
@@ -42,7 +42,7 @@ struct PhotoPickerView: View {
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
-                    Button("Try Again") {
+                    Button(L10n.photoPickerTryAgain) {
                         pickerItem = nil
                         isPresented = true
                     }
@@ -51,7 +51,7 @@ struct PhotoPickerView: View {
             } else {
                 // The picker auto-presents from `.onAppear`; this fallback only
                 // shows transiently before presentation.
-                Text("Choose a photo")
+                Text(L10n.photoPickerChoosePhoto)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -77,12 +77,12 @@ struct PhotoPickerView: View {
         defer { isLoading = false }
 
         guard let data = try? await item.loadTransferable(type: Data.self) else {
-            errorMessage = "Could not read the selected photo."
+            errorMessage = L10n.photoPickerCouldNotRead
             return
         }
         guard let image = UIImage(data: data),
               let jpegData = image.jpegData(compressionQuality: 0.85) else {
-            errorMessage = "Could not process the selected photo."
+            errorMessage = L10n.photoPickerCouldNotProcess
             return
         }
 
@@ -91,7 +91,7 @@ struct PhotoPickerView: View {
         do {
             try jpegData.write(to: url)
         } catch {
-            errorMessage = "Could not save the selected photo."
+            errorMessage = L10n.photoPickerCouldNotSave
             return
         }
 

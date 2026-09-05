@@ -43,7 +43,7 @@ struct SignInView: View {
                 case .starting, .signingIn:
                     HStack {
                         Spacer()
-                        ProgressView(phase == .signingIn ? "Signing in…" : "Starting…")
+                        ProgressView(phase == .signingIn ? L10n.signInSigningIn : L10n.signInStarting)
                         Spacer()
                     }
                     .padding(.vertical, 24)
@@ -53,7 +53,7 @@ struct SignInView: View {
             }
             .padding()
         }
-        .navigationTitle("Sign In")
+        .navigationTitle(L10n.signInTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             resolveServerUrl()
@@ -70,12 +70,12 @@ struct SignInView: View {
                 .padding(.top, 8)
                 .accessibilityHidden(true)
 
-            Text("Solian on your wrist")
+            Text(L10n.signInWelcomeTitle)
                 .font(.title3)
                 .bold()
                 .multilineTextAlignment(.center)
 
-            Text("One-time setup with your phone. After that, Solian works on its own — no iPhone required.")
+            Text(L10n.signInWelcomeSubtitle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -99,7 +99,7 @@ struct SignInView: View {
                 WKInterfaceDevice.current().play(.click)
                 Task { await beginFlow() }
             } label: {
-                Text("Get Started")
+                Text(L10n.signInGetStarted)
                     .font(.body)
                     .frame(maxWidth: .infinity)
             }
@@ -116,7 +116,7 @@ struct SignInView: View {
             if let device {
                 VStack(spacing: 4) {
                     Text(statusText.isEmpty
-                         ? "Enter this code on your phone"
+                         ? L10n.signInEnterCode
                          : statusText)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -136,7 +136,7 @@ struct SignInView: View {
                         // browser.
                         WKExtension.shared().openSystemURL(url)
                     } label: {
-                        Label("Open verification page", systemImage: "safari")
+                        Label(L10n.signInOpenVerification, systemImage: "safari")
                             .font(.caption)
                             .frame(maxWidth: .infinity)
                     }
@@ -151,7 +151,7 @@ struct SignInView: View {
                         .frame(maxWidth: .infinity)
                 }
 
-                Button("Cancel") {
+                Button(L10n.signInCancel) {
                     WKInterfaceDevice.current().play(.click)
                     resetToWelcome()
                 }
@@ -191,7 +191,7 @@ struct SignInView: View {
             if await askPhoneToApprove(deviceCode) {
                 statusText = ""
             } else {
-                statusText = "Enter this code on your phone"
+                statusText = L10n.signInEnterCode
             }
 
             await poll(deviceCode)
@@ -222,9 +222,9 @@ struct SignInView: View {
                 }
             }
             if reply["approved"] as? Bool == true {
-                statusText = "Approved on your phone"
+                statusText = L10n.signInApprovedOnPhone
             } else {
-                statusText = "Approve it on your phone"
+                statusText = L10n.signInApproveOnPhone
             }
             return true
         } catch {
@@ -244,7 +244,7 @@ struct SignInView: View {
             phase = .signingIn
             try await appState.finishStandaloneSignIn(auth: auth, serverUrl: serverUrl)
         } catch StandaloneAuthError.polling(.authorizationPending) {
-            statusText = "Timed out waiting for approval."
+            statusText = L10n.signInTimedOut
         } catch {
             errorText = error.localizedDescription
             phase = .welcome

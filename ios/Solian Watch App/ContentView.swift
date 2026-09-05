@@ -74,11 +74,11 @@ struct ContentView: View {
                 .listRowBackground(Color.clear)
                 .environmentObject(appState)
 
-            navTile(panel: .explore, icon: "globe.fill", label: "Explore")
-            navTile(panel: .chat, icon: "message.fill", label: "Chat", unread: totalChatUnread)
-            navTile(panel: .notifications, icon: "bell.fill", label: "Notifications")
-            navTile(panel: .account, icon: "person.circle.fill", label: "Account")
-            navTile(panel: .checkIn, icon: "checkmark.seal.fill", label: "Check In")
+            navTile(panel: .explore, icon: "globe.fill", label: L10n.panelExplore)
+            navTile(panel: .chat, icon: "message.fill", label: L10n.panelChat, unread: totalChatUnread)
+            navTile(panel: .notifications, icon: "bell.fill", label: L10n.panelNotifications)
+            navTile(panel: .account, icon: "person.circle.fill", label: L10n.panelAccount)
+            navTile(panel: .checkIn, icon: "checkmark.seal.fill", label: L10n.panelCheckIn)
         }
         .listStyle(.automatic)
     }
@@ -139,7 +139,7 @@ struct ContentView: View {
         case .checkIn:
             CheckInView().environmentObject(appState)
         case .none:
-            Text("Select a panel")
+            Text(L10n.panelSelectPanel)
         }
     }
 }

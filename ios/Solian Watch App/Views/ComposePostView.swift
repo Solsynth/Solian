@@ -21,7 +21,7 @@ struct ComposePostView: View {
     @FocusState private var isContentFocused: Bool
     @State private var showVisibilityPicker = false
 
-    private let visibilityOptions = ["Public", "Friends", "Unlisted", "Private"]
+    private let visibilityOptions = [L10n.composeVisibilityPublic, L10n.composeVisibilityFriends, L10n.composeVisibilityUnlisted, L10n.composeVisibilityPrivate]
 
     init(
         replyingTo: SnPost? = nil,
@@ -93,28 +93,28 @@ struct ComposePostView: View {
                     dismiss()
                 }
             }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            .alert(L10n.composeError, isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil
                 }
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
-            .confirmationDialog("Select Visibility", isPresented: $showVisibilityPicker) {
-                Button("Public") { viewModel.visibility = 0 }
-                Button("Friends") { viewModel.visibility = 1 }
-                Button("Unlisted") { viewModel.visibility = 2 }
-                Button("Private") { viewModel.visibility = 3 }
-                Button("Cancel", role: .cancel) {}
+            .confirmationDialog(L10n.composeSelectVisibility, isPresented: $showVisibilityPicker) {
+                Button(L10n.composeVisibilityPublic) { viewModel.visibility = 0 }
+                Button(L10n.composeVisibilityFriends) { viewModel.visibility = 1 }
+                Button(L10n.composeVisibilityUnlisted) { viewModel.visibility = 2 }
+                Button(L10n.composeVisibilityPrivate) { viewModel.visibility = 3 }
+                Button(L10n.composeCancel, role: .cancel) {}
             }
         }
     }
 
     private var navigationTitle: String {
         switch viewModel.mode {
-        case .forward: return "Forward"
-        case .reply: return "Reply"
-        case .newPost: return "New Post"
+        case .forward: return L10n.composeForward
+        case .reply: return L10n.composeReply
+        case .newPost: return L10n.composeNewPost
         }
     }
 
@@ -136,7 +136,7 @@ struct ComposePostView: View {
         HStack(spacing: 4) {
             Image(systemName: "arrow.turn.up.left")
                 .font(.caption)
-            Text("Replying to")
+            Text(L10n.composeReplyingTo)
                 .font(.caption)
             if let nick = replyingTo?.publisher?.nick ?? replyingTo?.publisher?.name {
                 Text("@\(nick)")
@@ -163,7 +163,7 @@ struct ComposePostView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "arrowshape.turn.up.right")
                         .font(.caption)
-                    Text("Forwarding")
+                    Text(L10n.composeForwarding)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer(minLength: 4)
@@ -195,11 +195,11 @@ struct ComposePostView: View {
 
     private var contentField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Content")
+            Text(L10n.composeContent)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            TextField("What's on your mind?", text: $viewModel.content, axis: .vertical)
+            TextField(L10n.composeContentPlaceholder, text: $viewModel.content, axis: .vertical)
                 .font(.body)
                 .focused($isContentFocused)
                 .lineLimit(3...6)
@@ -211,7 +211,7 @@ struct ComposePostView: View {
 
     private var visibilityField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Visibility")
+            Text(L10n.composeVisibility)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -242,7 +242,7 @@ struct ComposePostView: View {
             Spacer()
             ProgressView()
                 .scaleEffect(0.8)
-            Text("Posting...")
+            Text(L10n.composePosting)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()

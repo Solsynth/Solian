@@ -69,7 +69,7 @@ struct VoiceRecorderView: View {
                         .foregroundColor(.red)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Stop recording")
+                .accessibilityLabel(L10n.voiceStopRecording)
             } else if hasRecordedClip {
                 HStack(spacing: 28) {
                     Button {
@@ -80,7 +80,7 @@ struct VoiceRecorderView: View {
                             .foregroundColor(.accentColor)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Send voice message")
+                    .accessibilityLabel(L10n.voiceSendVoice)
 
                     Button {
                         cancel()
@@ -90,7 +90,7 @@ struct VoiceRecorderView: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Cancel voice message")
+                    .accessibilityLabel(L10n.voiceCancelVoice)
                 }
             } else {
                 Button {
@@ -101,8 +101,8 @@ struct VoiceRecorderView: View {
                         .foregroundColor(.accentColor)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Start recording")
-                .accessibilityHint("Tap to record a voice message")
+                .accessibilityLabel(L10n.voiceStartRecording)
+                .accessibilityHint(L10n.voiceStartRecordingHint)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -120,9 +120,9 @@ struct VoiceRecorderView: View {
     }
 
     private var title: String {
-        if isRecording { return "Recording…" }
-        if hasRecordedClip { return "Voice message" }
-        return "Voice message"
+        if isRecording { return L10n.voiceRecording }
+        if hasRecordedClip { return L10n.voiceVoiceMessage }
+        return L10n.voiceVoiceMessage
     }
 
     // MARK: - Recording
@@ -133,7 +133,7 @@ struct VoiceRecorderView: View {
             try session.setCategory(.playAndRecord, mode: .default, options: [])
             try session.setActive(true)
         } catch {
-            errorMessage = "Audio unavailable"
+            errorMessage = L10n.voiceAudioUnavailable
         }
     }
 
@@ -141,7 +141,7 @@ struct VoiceRecorderView: View {
         AVAudioSession.sharedInstance().requestRecordPermission { granted in
             DispatchQueue.main.async {
                 if !granted {
-                    errorMessage = "Enable microphone access in Settings to record voice messages."
+                    errorMessage = L10n.voiceEnableMicrophone
                 }
             }
         }
@@ -164,7 +164,7 @@ struct VoiceRecorderView: View {
             ]
             let recorder = try AVAudioRecorder(url: url, settings: settings)
             guard recorder.record() else {
-                errorMessage = "Could not start recording"
+                errorMessage = L10n.voiceCouldNotStartRecording
                 return
             }
             self.recorder = recorder
@@ -175,7 +175,7 @@ struct VoiceRecorderView: View {
             errorMessage = nil
             startTimer()
         } catch {
-            errorMessage = "Could not start recording"
+            errorMessage = L10n.voiceCouldNotStartRecording
         }
     }
 

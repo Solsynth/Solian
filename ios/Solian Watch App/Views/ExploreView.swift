@@ -35,13 +35,13 @@ struct ExploreView: View {
                     CategoriesTagsView().environmentObject(appState)
                 }
                 .navigationDestination(isPresented: $showShuffle) {
-                    PostQueryListView(title: "Shuffle", shuffle: true)
+                    PostQueryListView(title: L10n.exploreShuffle, shuffle: true)
                         .environmentObject(appState)
                 }
             } else {
                 VStack {
                     ProgressView()
-                    Text("Loading...")
+                    Text(L10n.exploreLoading)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -73,7 +73,7 @@ private struct FeedPageView: View {
                     Button(action: onCompose) {
                         Image(systemName: "square.and.pencil")
                     }
-                    .accessibilityLabel("Compose")
+                    .accessibilityLabel(L10n.exploreCompose)
                 }
             }
     }
@@ -90,7 +90,7 @@ private struct FeedPageView: View {
             .buttonStyle(.bordered)
             .tint(.secondary)
             .clipShape(Circle())
-            .accessibilityLabel("Shuffle posts")
+            .accessibilityLabel(L10n.exploreShuffle)
 
             Button(action: onPublishers) {
                 Image(systemName: "person.crop.square")
@@ -99,7 +99,7 @@ private struct FeedPageView: View {
             .buttonStyle(.bordered)
             .tint(.secondary)
             .clipShape(Circle())
-            .accessibilityLabel("Manage publishers")
+            .accessibilityLabel(L10n.explorePublishers)
 
             Button(action: onBrowse) {
                 Image(systemName: "square.grid.2x2")
@@ -108,7 +108,7 @@ private struct FeedPageView: View {
             .buttonStyle(.bordered)
             .tint(.secondary)
             .clipShape(Circle())
-            .accessibilityLabel("Browse categories and tags")
+            .accessibilityLabel(L10n.exploreBrowseCategories)
             Spacer()
         }
         .padding(.vertical, 6)

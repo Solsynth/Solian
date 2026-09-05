@@ -43,12 +43,12 @@ struct AppInfoHeaderView : View {
 
     private var webSocketStatusMessage: String {
         switch webSocketConnectionState {
-        case .connected: return "Connected"
-        case .connecting: return "Connecting..."
-        case .disconnected: return "Disconnected"
-        case .serverDown: return "Server Down"
-        case .duplicateDevice: return "Duplicate Device"
-        case .error(let msg): return "Error: \(msg)"
+        case .connected: return L10n.connectionConnected
+        case .connecting: return L10n.connectionConnecting
+        case .disconnected: return L10n.connectionDisconnected
+        case .serverDown: return L10n.connectionServerDown
+        case .duplicateDevice: return L10n.connectionDuplicateDevice
+        case .error(let msg): return String(format: L10n.connectionError, msg)
         }
     }
 

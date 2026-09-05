@@ -1,0 +1,301 @@
+/* Solian Watch App - English Localization */
+
+/* MARK: - ContentView (Sidebar / Navigation) */
+"panel.explore" = "Explore";
+"panel.chat" = "Chat";
+"panel.notifications" = "Notifications";
+"panel.account" = "Account";
+"panel.checkIn" = "Check In";
+"panel.selectPanel" = "Select a panel";
+
+/* MARK: - SignInView */
+"signin.title" = "Sign In";
+"signin.welcome.title" = "Solian on your wrist";
+"signin.welcome.subtitle" = "One-time setup with your phone. After that, Solian works on its own — no iPhone required.";
+"signin.getStarted" = "Get Started";
+"signin.starting" = "Starting…";
+"signin.signingIn" = "Signing in…";
+"signin.enterCode" = "Enter this code on your phone";
+"signin.openVerification" = "Open verification page";
+"signin.cancel" = "Cancel";
+"signin.approvedOnPhone" = "Approved on your phone";
+"signin.approveOnPhone" = "Approve it on your phone";
+"signin.timedOut" = "Timed out waiting for approval.";
+
+/* MARK: - AppInfoHeaderView */
+"connection.connected" = "Connected";
+"connection.connecting" = "Connecting...";
+"connection.disconnected" = "Disconnected";
+"connection.serverDown" = "Server Down";
+"connection.duplicateDevice" = "Duplicate Device";
+"connection.error" = "Error: %@";
+
+/* MARK: - ExploreView */
+"explore.loading" = "Loading...";
+"explore.compose" = "Compose";
+"explore.shuffle" = "Shuffle posts";
+"explore.publishers" = "Manage publishers";
+"explore.browseCategories" = "Browse categories and tags";
+
+/* MARK: - NotificationView */
+"notifications.title" = "Notifications";
+"notifications.error" = "Error";
+"notifications.retry" = "Retry";
+"notifications.empty" = "No notifications";
+"notifications.loadMore" = "Load More";
+"notifications.detail.title" = "Notification";
+"notifications.unread" = "Unread";
+
+/* MARK: - AccountView */
+"account.title" = "Account";
+"account.failedToLoad" = "Failed to load account";
+"account.status" = "Status";
+"account.clearStatus" = "Clear Status";
+"account.clearStatus.message" = "Are you sure you want to clear your status? This action cannot be undone.";
+"account.clearStatus.button" = "Clear Status";
+"account.cancel" = "Cancel";
+"account.noStatus" = "No status";
+"account.noStatusSet" = "No status set";
+"account.invisible" = "Invisible";
+"account.doNotDisturb" = "Do Not Disturb";
+"account.clearsAt" = "Clears: %@";
+"account.level" = "Level %d";
+"account.experience" = "Experience: %@";
+"account.noBio" = "No bio available";
+"account.joinedAt" = "Joined at %@";
+"account.noAccountData" = "No account data";
+"account.signOut" = "Sign Out";
+"account.signOut.accessibility" = "Sign out of this watch";
+
+/* MARK: - CheckInView */
+"checkin.title" = "Check In";
+"checkin.couldntLoad" = "Couldn't load check-in";
+"checkin.retry" = "Retry";
+"checkin.checkInToday" = "Check in today";
+"checkin.description" = "Return daily for a poem and today's fortunes.";
+"checkin.checkIn" = "Check In";
+"checkin.level" = "Level %d";
+"checkin.checkedIn" = "Checked in %@";
+"checkin.love" = "Love";
+"checkin.study" = "Study";
+"checkin.work" = "Work";
+"checkin.health" = "Health";
+
+/* MARK: - ChatView */
+"chat.title" = "Chat";
+"chat.tab.all" = "All";
+"chat.tab.direct" = "Direct";
+"chat.tab.group" = "Group";
+"chat.errorLoading" = "Error loading chats";
+"chat.retry" = "Retry";
+"chat.noChats" = "No chats yet";
+"chat.directMessage" = "Direct Message";
+"chat.groupChat" = "Group Chat";
+"chat.attachment" = "Attachment";
+"chat.invites" = "Invites";
+"chat.noInvites" = "No invites";
+"chat.owner" = "Owner";
+"chat.moderator" = "Moderator";
+"chat.member" = "Member";
+"chat.direct" = "Direct";
+"chat.unknownChat" = "Unknown Chat";
+
+/* MARK: - ChatRoomView */
+"chatRoom.chat" = "Chat";
+"chatRoom.error" = "Error";
+"chatRoom.retry" = "Retry";
+"chatRoom.noMessages" = "No messages yet";
+"chatRoom.loadOlder" = "Load older";
+"chatRoom.read" = "Read";
+"chatRoom.today" = "Today %@";
+"chatRoom.yesterday" = "Yesterday %@";
+"chatRoom.messages" = "Messages";
+"chatRoom.moreComposeOptions" = "More compose options";
+"chatRoom.chooseContentType" = "Choose a message content type";
+"chatRoom.send" = "Send";
+"chatRoom.sendMessage" = "Send message";
+
+/* MARK: - MessageBubbleView */
+"chatRoom.deletedMessage" = "Deleted a message";
+"chatRoom.sending" = "Sending…";
+"chatRoom.failed" = "Failed";
+"chatRoom.edited" = "edited";
+"chatRoom.repliedTo" = "Replied to %@";
+"chatRoom.forwardedFrom" = "Forwarded from %@";
+"chatRoom.repliedToMessage" = "Replied to a message";
+"chatRoom.forwardedMessage" = "Forwarded message";
+"chatRoom.moreAttachments" = "%d+ more";
+
+/* MARK: - VoiceMessageView */
+"voice.play" = "Play voice message";
+"voice.pause" = "Pause voice message";
+
+/* MARK: - VoiceRecorderView */
+"voice.recording" = "Recording…";
+"voice.voiceMessage" = "Voice message";
+"voice.stopRecording" = "Stop recording";
+"voice.sendVoice" = "Send voice message";
+"voice.cancelVoice" = "Cancel voice message";
+"voice.startRecording" = "Start recording";
+"voice.startRecording.hint" = "Tap to record a voice message";
+"voice.audioUnavailable" = "Audio unavailable";
+"voice.enableMicrophone" = "Enable microphone access in Settings to record voice messages.";
+"voice.couldNotStartRecording" = "Could not start recording";
+
+/* MARK: - ChatComposerActionsView */
+"composer.stickers" = "Stickers";
+"composer.voice" = "Voice";
+"composer.photo" = "Photo";
+"composer.linkCloud" = "Link Cloud";
+
+/* MARK: - StickerPickerView */
+"stickers.title" = "Stickers";
+"stickers.noPacks" = "No sticker packs";
+"stickers.unavailable" = "Stickers unavailable";
+"stickers.noStickersInPack" = "No stickers in this pack";
+"stickers.stickerCount" = "%d stickers";
+
+/* MARK: - CloudImageLinkerView */
+"cloudImage.title" = "Link Cloud Image";
+"cloudImage.noImages" = "No cloud images";
+"cloudImage.couldNotLoad" = "Could not load cloud images";
+
+/* MARK: - PhotoPickerView */
+"photoPicker.sending" = "Sending photo…";
+"photoPicker.loading" = "Loading image…";
+"photoPicker.couldNotRead" = "Could not read the selected photo.";
+"photoPicker.couldNotProcess" = "Could not process the selected photo.";
+"photoPicker.couldNotSave" = "Could not save the selected photo.";
+"photoPicker.choosePhoto" = "Choose a photo";
+"photoPicker.tryAgain" = "Try Again";
+
+/* MARK: - PostViews */
+"post.unknown" = "Unknown";
+"post.boostedBy" = "boosted by @%@";
+"post.attachments" = "Attachments";
+"post.link" = "Link";
+"post.title" = "Post";
+"post.inReplyTo" = "In reply to";
+"post.forwarded" = "Forwarded";
+"post.replies" = "Replies";
+"post.repliesLoadFromApp" = "Replies load from the app";
+"post.loadMoreReplies" = "Load more replies";
+"post.loading" = "Loading…";
+"post.less" = "Less";
+"post.reply" = "Reply";
+"post.forward" = "Forward";
+"post.boost" = "Boost";
+"post.bookmark" = "Bookmark";
+"post.removeBookmark" = "Remove bookmark";
+"post.unknownActivity" = "Unknown activity";
+
+/* MARK: - ComposePostView */
+"compose.newPost" = "New Post";
+"compose.reply" = "Reply";
+"compose.forward" = "Forward";
+"compose.repilingTo" = "Replying to";
+"compose.forwarding" = "Forwarding";
+"compose.content" = "Content";
+"compose.contentPlaceholder" = "What's on your mind?";
+"compose.visibility" = "Visibility";
+"compose.visibility.public" = "Public";
+"compose.visibility.friends" = "Friends";
+"compose.visibility.unlisted" = "Unlisted";
+"compose.visibility.private" = "Private";
+"compose.selectVisibility" = "Select Visibility";
+"compose.cancel" = "Cancel";
+"compose.posting" = "Posting...";
+"compose.error" = "Error";
+
+/* MARK: - ActivityListView */
+"activity.errorFetching" = "Error fetching data";
+"activity.noActivities" = "No activities found.";
+"activity.loadMore" = "Load More";
+"activity.explore" = "Explore";
+
+/* MARK: - ActivityEventRow */
+"activity.friendUpdatedStatus" = "Friend updated status";
+"activity.friendActivity" = "Friend activity";
+"activity.gaming" = "Gaming";
+"activity.music" = "Music";
+"activity.workout" = "Workout";
+"activity.busy" = "Busy";
+"activity.doNotDisturb" = "Do Not Disturb";
+"activity.invisible" = "Invisible";
+"activity.online" = "Online";
+
+/* MARK: - AttachmentView */
+"attachment.file" = "File";
+"attachment.failedToLoad" = "Failed to load";
+"attachment.tryAgain" = "Try Again";
+"attachment.loading" = "Loading...";
+
+/* MARK: - ImageViewer */
+"imageViewer.loading" = "Loading...";
+"imageViewer.failedToLoad" = "Failed to load";
+"imageViewer.tryAgain" = "Try Again";
+
+/* MARK: - AudioPlayerView */
+"audioPlayer.loading" = "Loading audio...";
+
+/* MARK: - ReactionSheetView */
+"reaction.react" = "React";
+"reaction.positive" = "Positive";
+"reaction.neutral" = "Neutral";
+"reaction.negative" = "Negative";
+
+/* MARK: - DiscoveryViews */
+"discovery.realm" = "Realm";
+"discovery.publisher" = "Publisher";
+"discovery.account" = "Account";
+"discovery.article" = "Article";
+"discovery.unknownSuggestion" = "Unknown suggestion";
+"discovery.good" = "Good";
+"discovery.thanks" = "Thanks";
+"discovery.notForMe" = "Not for me";
+"discovery.showMoreLikeThis" = "Show more like this";
+"discovery.notInterested" = "Not interested, hide this";
+
+/* MARK: - ExploreExtrasViews */
+"explore.publishers" = "Publishers";
+"explore.loadingPublishers" = "Loading publishers…";
+"explore.couldntLoadPublishers" = "Couldn't load publishers";
+"explore.notFollowingAnyPublishers" = "Not following any publishers yet";
+"explore.unfollow" = "Unfollow";
+"explore.categories" = "Categories";
+"explore.tags" = "Tags";
+"explore.categoriesAndTags" = "Categories & Tags";
+"explore.couldntLoadCategories" = "Couldn't load categories";
+"explore.nothingHereYet" = "Nothing here yet";
+"explore.follow" = "Follow";
+"explore.noPostsYet" = "No posts yet";
+"explore.couldntLoadPosts" = "Couldn't load posts";
+
+/* MARK: - StatusCreationView */
+"status.title" = "Status";
+"status.setStatus" = "Set Status";
+"status.updateStatus" = "Update Status";
+"status.label" = "Status label";
+"status.symbol" = "Status symbol";
+"status.mood" = "Mood";
+"status.attitude.positive" = "😊 Positive";
+"status.attitude.neutral" = "😐 Neutral";
+"status.attitude.negative" = "😢 Negative";
+"status.visibility" = "Visibility";
+"status.type.online" = "Online";
+"status.type.busy" = "Busy";
+"status.type.doNotDisturb" = "Do Not Disturb";
+"status.type.invisible" = "Invisible";
+"status.autoClearTime" = "Auto-clear time";
+"status.noAutoClear" = "No auto-clear";
+"status.cancel" = "Cancel";
+"status.save" = "Save";
+"status.saving" = "Saving...";
+"status.delete" = "Delete Status";
+"status.authenticationError" = "Authentication not available";
+
+/* MARK: - CheckInView (Fortune Grid) */
+"fortune.love" = "Love";
+"fortune.study" = "Study";
+"fortune.work" = "Work";
+"fortune.health" = "Health";

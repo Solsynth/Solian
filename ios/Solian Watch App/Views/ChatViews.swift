@@ -21,7 +21,7 @@ struct ChatView: View {
     /// view disappears (panel switch), which left the list empty.
     @State private var loadTask: Task<Void, Never>?
     
-    private let tabs = ["All", "Direct", "Group"]
+    private let tabs = [L10n.chatTabAll, L10n.chatTabDirect, L10n.chatTabGroup]
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,9 +31,9 @@ struct ChatView: View {
                         ProgressView()
                     } else if error != nil {
                         VStack {
-                            Text("Error loading chats")
+                            Text(L10n.chatErrorLoading)
                                 .font(.caption)
-                            Button("Retry") {
+                            Button(L10n.chatRetry) {
                                 Task {
                                     await loadChatRooms()
                                 }
@@ -55,7 +55,7 @@ struct ChatView: View {
             }
         }
         .tabViewStyle(.page)
-        .navigationTitle("Chat")
+        .navigationTitle(L10n.chatTitle)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -218,7 +218,7 @@ struct ChatRoomListView: View {
                 Image(systemName: "message")
                     .font(.largeTitle)
                     .foregroundColor(.secondary)
-                Text("No chats yet")
+                Text(L10n.chatNoChats)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -245,10 +245,10 @@ struct ChatRoomListItem: View {
             // (nick first, then account name), matching Flutter's getRoomTitle.
             if !account.nick.isEmpty { return account.nick }
             if !account.name.isEmpty { return account.name }
-            return "Direct Message"
+            return L10n.chatDirectMessage
         } else {
             // For group chats, show room name or fallback
-            return room.name ?? "Group Chat"
+            return room.name ?? L10n.chatGroupChat
         }
     }
     
@@ -283,7 +283,7 @@ struct ChatRoomListItem: View {
     /// Content text for the preview, or the room description fallback.
     private var previewContent: String {
         guard let last = lastMessage else { return subtitle }
-        return last.content?.isEmpty == false ? last.content! : "Attachment"
+        return last.content?.isEmpty == false ? last.content! : L10n.chatAttachment
     }
     
     /// `<sender>: <msg>` preview below the avatar row, with the sender name
@@ -451,7 +451,7 @@ struct ChatRoomView: View {
     
     var body: some View {
         messageList
-            .navigationTitle(room.name ?? "Chat")
+            .navigationTitle(room.name ?? L10n.chatRoomChat)
             .task {
                 // Opening the room marks it read (clears unread).
                 summaryStore.markRead(room.id)
@@ -546,7 +546,7 @@ struct ChatRoomView: View {
                     .font(.caption)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
-                Button("Retry") {
+                Button(L10n.chatRoomRetry) {
                     Task { await viewModel.loadInitial() }
                 }
                 .font(.caption2)
@@ -561,7 +561,7 @@ struct ChatRoomView: View {
                             // Older messages are prepended at the top, so the
                             // pagination trigger belongs at the head.
                             if viewModel.hasMore {
-                                Button("Load older") {
+                                Button(L10n.chatRoomLoadOlder) {
                                     Task { await viewModel.loadMore() }
                                 }
                                 .id("load-older")
@@ -619,7 +619,7 @@ struct ChatRoomView: View {
             Image(systemName: "bubble.left")
                 .font(.largeTitle)
                 .foregroundColor(.secondary)
-            Text("No messages yet")
+            Text(L10n.chatRoomNoMessages)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -636,7 +636,7 @@ struct ChatRoomView: View {
         HStack(spacing: 5) {
             Image(systemName: "bookmark.fill")
                 .font(.system(size: 9))
-            Text("Read")
+            Text(L10n.chatRoomRead)
                 .font(.system(size: 10, weight: .medium))
         }
         .foregroundColor(Color.accentColor)
@@ -674,10 +674,10 @@ struct ChatRoomView: View {
         let calendar = Calendar.current
         let time = date.formatted(date: .omitted, time: .shortened)
         if calendar.isDateInToday(date) {
-            return "Today \(time)"
+            return String(format: L10n.chatRoomToday, time)
         }
         if calendar.isDateInYesterday(date) {
-            return "Yesterday \(time)"
+            return String(format: L10n.chatRoomYesterday, time)
         }
         return date.formatted(date: .abbreviated, time: .shortened)
     }
@@ -819,14 +819,14 @@ struct ChatRoomView: View {
                 .frame(width: 40, height: 40)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("More compose options")
-        .accessibilityHint("Choose a message content type")
+        .accessibilityLabel(L10n.chatRoomMoreComposeOptions)
+        .accessibilityHint(L10n.chatRoomChooseContentType)
         .glassSurface(in: .circle)
     }
     
     @ViewBuilder
     private var messageField: some View {
-        TextField("Messages", text: $viewModel.draft)
+        TextField(L10n.chatRoomMessages, text: $viewModel.draft)
             .buttonBorderShape(.capsule)
             .submitLabel(.send)
             .labelsHidden()
@@ -853,7 +853,7 @@ struct ChatRoomView: View {
         }
         .buttonStyle(.plain)
         .disabled(!canSendFromBar || viewModel.isSending)
-        .accessibilityLabel("Send message")
+        .accessibilityLabel(L10n.chatRoomSendMessage)
     }
     
     private var canSendFromBar: Bool {
@@ -1050,7 +1050,7 @@ struct MessageBubbleView: View {
             HStack(spacing: 4) {
                 Image(systemName: "trash")
                     .font(.system(size: 11))
-                Text(message.content?.isEmpty == false ? message.content! : "Deleted a message")
+                Text(message.content?.isEmpty == false ? message.content! : L10n.chatRoomDeletedMessage)
                     .font(.system(size: 11, weight: .medium))
                     .italic()
                     .foregroundColor(.secondary)
@@ -1078,7 +1078,7 @@ struct MessageBubbleView: View {
                             .environmentObject(appState)
                     }
                     if message.attachments.count > 2 {
-                        Label("\(message.attachments.count - 2)+ more", systemImage: "paperclip")
+                        Label(String(format: L10n.chatRoomMoreAttachments, message.attachments.count - 2), systemImage: "paperclip")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
@@ -1103,7 +1103,7 @@ struct MessageBubbleView: View {
             HStack(spacing: 4) {
                 ProgressView()
                     .controlSize(.mini)
-                Text("Sending…")
+                Text(L10n.chatRoomSending)
                     .font(.system(size: 9))
                     .foregroundColor(textColor.opacity(0.8))
             }
@@ -1112,13 +1112,13 @@ struct MessageBubbleView: View {
                 Image(systemName: "exclamationmark.circle")
                     .font(.system(size: 10))
                     .foregroundColor(.red)
-                Text("Failed")
+                Text(L10n.chatRoomFailed)
                     .font(.system(size: 9))
                     .foregroundColor(.red)
             }
         case nil:
             if viewModel.isEdited(message) {
-                Text("edited")
+                Text(L10n.chatRoomEdited)
                     .font(.system(size: 10))
                     .foregroundColor(textColor.opacity(0.7))
             }
@@ -1140,7 +1140,7 @@ struct QuoteReferenceView: View {
                 HStack(spacing: 4) {
                     Image(systemName: isReply ? "arrowshape.turn.up.left" : "arrowshape.turn.up.right")
                         .font(.system(size: 10))
-                    Text(isReply ? "Replied to \(quoted.sender.displayName)" : "Forwarded from \(quoted.sender.displayName)")
+                    Text(isReply ? String(format: L10n.chatRoomRepliedTo, quoted.sender.displayName) : String(format: L10n.chatRoomForwardedFrom, quoted.sender.displayName))
                         .font(.system(size: 10, weight: .semibold))
                         .lineLimit(1)
                 }
@@ -1159,7 +1159,7 @@ struct QuoteReferenceView: View {
             HStack(spacing: 4) {
                 Image(systemName: isReply ? "arrowshape.turn.up.left" : "arrowshape.turn.up.right")
                     .font(.system(size: 10))
-                Text(isReply ? "Replied to a message" : "Forwarded message")
+                Text(isReply ? L10n.chatRoomRepliedToMessage : L10n.chatRoomForwardedMessage)
                     .font(.system(size: 10, weight: .semibold))
                     .lineLimit(1)
             }
@@ -1227,7 +1227,7 @@ struct ChatInvitesView: View {
                         Image(systemName: "envelope.open")
                             .font(.largeTitle)
                             .foregroundColor(.secondary)
-                        Text("No invites")
+                        Text(L10n.chatNoInvites)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -1238,7 +1238,7 @@ struct ChatInvitesView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Invites")
+            .navigationTitle(L10n.chatInvites)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -1264,18 +1264,18 @@ struct ChatInviteItem: View {
                     )
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(invite.chatRoom?.name ?? "Unknown Chat")
+                    Text(invite.chatRoom?.name ?? L10n.chatUnknownChat)
                         .font(.system(size: 14, weight: .medium))
                         .lineLimit(1)
                     
                     HStack(spacing: 4) {
                         let roleValue = invite.role ?? 0
-                        Text(roleValue == 100 ? "Owner" : roleValue >= 50 ? "Moderator" : "Member")
+                        Text(roleValue == 100 ? L10n.chatOwner : roleValue >= 50 ? L10n.chatModerator : L10n.chatMember)
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                         
                         if invite.chatRoom?.type == 1 {
-                            Text("Direct")
+                            Text(L10n.chatDirect)
                                 .font(.system(size: 12))
                                 .foregroundColor(.blue)
                                 .padding(.horizontal, 4)

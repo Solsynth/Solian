@@ -105,7 +105,7 @@ struct DiscoveryItemRow: View {
                         )
                     }
                 case .unknown:
-                    Text("Unknown suggestion")
+                    Text(L10n.discoveryUnknownSuggestion)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -135,25 +135,25 @@ struct DiscoveryActionsView: View {
             Button {
                 Task { await sendGood() }
             } label: {
-                Label(thanked ? "Thanks" : "Good",
+                Label(thanked ? L10n.discoveryThanks : L10n.discoveryGood,
                       systemImage: thanked ? "hand.thumbsup.fill" : "hand.thumbsup")
                     .font(.caption)
             }
             .buttonStyle(.bordered)
             .tint(thanked ? .green : .secondary)
             .disabled(busy)
-            .accessibilityLabel("Show more like this")
+            .accessibilityLabel(L10n.discoveryShowMoreLikeThis)
 
             Button {
                 Task { await hide() }
             } label: {
-                Label("Not for me", systemImage: "eye.slash")
+                Label(L10n.discoveryNotForMe, systemImage: "eye.slash")
                     .font(.caption)
             }
             .buttonStyle(.bordered)
             .tint(.secondary)
             .disabled(busy)
-            .accessibilityLabel("Not interested, hide this")
+            .accessibilityLabel(L10n.discoveryNotInterested)
 
             Spacer(minLength: 0)
         }
@@ -327,7 +327,7 @@ struct RealmDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("Realm")
+        .navigationTitle(L10n.discoveryRealm)
     }
 }
 
@@ -344,7 +344,7 @@ struct PublisherDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("Publisher")
+        .navigationTitle(L10n.discoveryPublisher)
     }
 }
 
@@ -367,7 +367,7 @@ struct AccountDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("Account")
+        .navigationTitle(L10n.discoveryAccount)
     }
 }
 
@@ -384,6 +384,6 @@ struct ArticleDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("Article")
+        .navigationTitle(L10n.discoveryArticle)
     }
 }

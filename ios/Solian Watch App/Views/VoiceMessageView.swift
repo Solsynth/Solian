@@ -62,7 +62,7 @@ struct VoiceMessageView: View {
             }
             .buttonStyle(.plain)
             .disabled(mediaURL == nil)
-            .accessibilityLabel(isPlaying ? "Pause voice message" : "Play voice message")
+            .accessibilityLabel(isPlaying ? L10n.voicePause : L10n.voicePlay)
 
             WaveformView(
                 barCount: 24,

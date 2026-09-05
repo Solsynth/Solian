@@ -23,7 +23,7 @@ struct AudioPlayerView: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                Text("Loading audio...")
+                Text(L10n.audioPlayerLoading)
             }
         }
         .onAppear {

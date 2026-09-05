@@ -21,9 +21,9 @@ struct PostAuthorHeader: View {
 
     private var displayName: String {
         if let actor = post.actor {
-            return actor.displayName ?? actor.preferredUsername ?? actor.name ?? "Unknown"
+            return actor.displayName ?? actor.preferredUsername ?? actor.name ?? L10n.postUnknown
         }
-        return post.publisher?.nick ?? post.publisher?.name ?? "Unknown"
+        return post.publisher?.nick ?? post.publisher?.name ?? L10n.postUnknown
     }
 
     private var pictureId: String? {
@@ -80,7 +80,7 @@ struct PostAuthorHeader: View {
         guard let boostedBy = post.boostedBy else { return nil }
         let name = boostedBy.displayName ?? boostedBy.preferredUsername ?? boostedBy.name
         guard let name, !name.isEmpty else { return nil }
-        return "boosted by @\(name)"
+        return String(format: L10n.postBoostedBy, name)
     }
 }
 
@@ -365,7 +365,7 @@ struct PostDetailView: View {
             }
             .padding()
         }
-        .navigationTitle("Post")
+        .navigationTitle(L10n.postTitle)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showReactionSheet) {
             ReactionSheetView(post: currentPost)
@@ -449,7 +449,7 @@ struct PostDetailView: View {
                         Button {
                             expandedReactions.toggle()
                         } label: {
-                            Text(expandedReactions ? "Less" : "+\((currentPost.reactionsCount?.count ?? 0) - 5)")
+                            Text(expandedReactions ? L10n.postLess : "+\((currentPost.reactionsCount?.count ?? 0) - 5)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -464,7 +464,7 @@ struct PostDetailView: View {
     @ViewBuilder
     private var attachmentsSection: some View {
         if let attachments = currentPost.attachments, !attachments.isEmpty {
-            Text("Attachments")
+            Text(L10n.postAttachments)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             ForEach(attachments) { attachment in
@@ -494,7 +494,7 @@ struct PostDetailView: View {
     private var embedSection: some View {
         if let embed = currentPost.embedView {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Link")
+                Text(L10n.postLink)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Link(embed.uri, destination: URL(string: embed.uri)!)
@@ -563,7 +563,7 @@ struct PostDetailView: View {
                     .foregroundStyle(Color.green)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Reply")
+            .accessibilityLabel(L10n.postReply)
 
             Button {
                 composeMode = .forward
@@ -574,7 +574,7 @@ struct PostDetailView: View {
                     .foregroundStyle(Color.blue)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Forward")
+            .accessibilityLabel(L10n.postForward)
 
             Spacer(minLength: 0)
 
@@ -586,7 +586,7 @@ struct PostDetailView: View {
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Boost")
+            .accessibilityLabel(L10n.postBoost)
             .disabled(isEngaging)
 
             Button {
@@ -597,7 +597,7 @@ struct PostDetailView: View {
                     .foregroundStyle(isBookmarked ? Color.orange : Color.secondary)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(isBookmarked ? "Remove bookmark" : "Bookmark")
+            .accessibilityLabel(isBookmarked ? L10n.postRemoveBookmark : L10n.postBookmark)
             .disabled(isEngaging)
         }
         .padding(.top, 6)
@@ -645,14 +645,14 @@ struct PostDetailView: View {
     private var referencedPosts: some View {
         if let reference = currentPost.repliedPost {
             VStack(alignment: .leading, spacing: 4) {
-                Text("In reply to")
+                Text(L10n.postInReplyTo)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 ReferencedPostReferenceView(reference: reference, isReply: true)
             }
         } else if let reference = currentPost.forwardedPost {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Forwarded")
+                Text(L10n.postForwarded)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 ReferencedPostReferenceView(reference: reference, isReply: false)
@@ -672,7 +672,7 @@ struct PostDetailView: View {
                 Image(systemName: "bubble.left.and.bubble.right")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
-                Text("Replies")
+                Text(L10n.postReplies)
                     .font(.subheadline)
                     .bold()
                 Spacer()
@@ -691,7 +691,7 @@ struct PostDetailView: View {
                 if let repliesCount = currentPost.repliesCount, repliesCount > 0 {
                     // Server reported replies but the window is empty
                     // (usually a truncated row); keep the section honest.
-                    Text("Replies load from the app")
+                    Text(L10n.postRepliesLoadFromApp)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -701,7 +701,7 @@ struct PostDetailView: View {
                         .environmentObject(appState)
                 }
                 if repliesTotal > replies.count || repliesPreviewCount > 0 {
-                    Button(isLoadingMoreReplies ? "Loading…" : "Load more replies") {
+                    Button(isLoadingMoreReplies ? L10n.postLoading : L10n.postLoadMoreReplies) {
                         Task { await loadMoreReplies() }
                     }
                     .disabled(isLoadingMoreReplies)

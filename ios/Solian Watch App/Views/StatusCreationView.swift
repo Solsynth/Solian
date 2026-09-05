@@ -38,30 +38,30 @@ struct StatusCreationView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Title
-                Text(initialStatus == nil ? "Set Status" : "Update Status")
+                Text(initialStatus == nil ? L10n.statusSetStatus : L10n.statusUpdateStatus)
                     .font(.headline)
                     .padding(.top)
                 
                 // Label TextField
-                TextField("Status label", text: $label)
+                TextField(L10n.statusLabel, text: $label)
                     .textFieldStyle(.automatic)
                     .padding(.horizontal)
                 
                 // Symbol TextField
-                TextField("Status symbol", text: $symbol)
+                TextField(L10n.statusSymbol, text: $symbol)
                     .textFieldStyle(.automatic)
                     .padding(.horizontal)
                 
                 // Attitude Picker
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Mood")
+                    Text(L10n.statusMood)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     Picker("Attitude", selection: $attitude) {
-                        Text("😊 Positive").tag(0)
-                        Text("😐 Neutral").tag(1)
-                        Text("😢 Negative").tag(2)
+                        Text(L10n.statusAttitudePositive).tag(0)
+                        Text(L10n.statusAttitudeNeutral).tag(1)
+                        Text(L10n.statusAttitudeNegative).tag(2)
                     }
                     .pickerStyle(.wheel)
                     .frame(height: 80)
@@ -70,15 +70,15 @@ struct StatusCreationView: View {
                 
                 // Status Type Picker
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Visibility")
+                    Text(L10n.statusVisibility)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     Picker("Status Type", selection: $statusType) {
-                        Text("Online").tag(0)
-                        Text("Busy").tag(1)
-                        Text("Do Not Disturb").tag(2)
-                        Text("Invisible").tag(3)
+                        Text(L10n.statusTypeOnline).tag(0)
+                        Text(L10n.statusTypeBusy).tag(1)
+                        Text(L10n.statusTypeDoNotDisturb).tag(2)
+                        Text(L10n.statusTypeInvisible).tag(3)
                     }
                     .pickerStyle(.wheel)
                     .frame(height: 80)
@@ -87,7 +87,7 @@ struct StatusCreationView: View {
                 
                 // Clear Time
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Auto-clear time")
+                    Text(L10n.statusAutoClearTime)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -102,7 +102,7 @@ struct StatusCreationView: View {
                         }
                         .padding(.horizontal)
                     } else {
-                        Button("No auto-clear") {
+                        Button(L10n.statusNoAutoClear) {
                             showDatePickerSheet()
                         }
                         .padding(.horizontal)
@@ -120,12 +120,12 @@ struct StatusCreationView: View {
                 
                 // Buttons
                 HStack(spacing: 12) {
-                    Button("Cancel") {
+                    Button(L10n.statusCancel) {
                         dismiss()
                     }
                     .buttonStyle(.automatic)
                     
-                    Button(isSubmitting ? "Saving..." : "Save") {
+                    Button(isSubmitting ? L10n.statusSaving : L10n.statusSave) {
                         Task {
                             await submitStatus()
                         }
@@ -143,14 +143,14 @@ struct StatusCreationView: View {
                             await clearStatus()
                         }
                     } label: {
-                        Text("Delete Status")
+                        Text(L10n.statusDelete)
                     }
                     .disabled(isSubmitting)
                     .padding(.bottom)
                 }
             }
         }
-        .navigationTitle("Status")
+        .navigationTitle(L10n.statusTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
     
@@ -165,7 +165,7 @@ struct StatusCreationView: View {
     
     private func submitStatus() async {
         guard let token = appState.token, let serverUrl = appState.serverUrl else {
-            error = NSError(domain: "StatusCreationView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication not available"])
+            error = NSError(domain: "StatusCreationView", code: 1, userInfo: [NSLocalizedDescriptionKey: L10n.statusAuthenticationError])
             return
         }
         
@@ -192,7 +192,7 @@ struct StatusCreationView: View {
     
     private func clearStatus() async {
         guard let token = appState.token, let serverUrl = appState.serverUrl else {
-            error = NSError(domain: "StatusCreationView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication not available"])
+            error = NSError(domain: "StatusCreationView", code: 1, userInfo: [NSLocalizedDescriptionKey: L10n.statusAuthenticationError])
             return
         }
         

@@ -103,7 +103,7 @@ struct AttachmentView: View {
             HStack(spacing: 4) {
                 Image(systemName: "doc")
                     .font(.caption)
-                Text(attachment.name ?? "File")
+                Text(attachment.name ?? L10n.attachmentFile)
                     .font(.caption2)
                     .lineLimit(1)
             }
@@ -113,7 +113,7 @@ struct AttachmentView: View {
                 Image(systemName: "doc.fill")
                     .font(.title2)
                 VStack(alignment: .leading) {
-                    Text(attachment.name ?? "File")
+                    Text(attachment.name ?? L10n.attachmentFile)
                         .font(.subheadline)
                     Text(formatFileSize(attachment.size))
                         .font(.caption)

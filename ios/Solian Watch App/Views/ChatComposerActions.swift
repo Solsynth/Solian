@@ -46,7 +46,7 @@ struct ChatComposerActionsView: View {
                             endPoint: .bottomTrailing
                         )
                     ),
-                    label: "Stickers"
+                    label: L10n.composerStickers
                 ) {
                     WKInterfaceDevice.current().play(.click)
                     onPickStickers()
@@ -65,7 +65,7 @@ struct ChatComposerActionsView: View {
                             endPoint: .bottomTrailing
                         )
                     ),
-                    label: "Voice"
+                    label: L10n.composerVoice
                 ) {
                     WKInterfaceDevice.current().play(.click)
                     onPickVoice()
@@ -84,7 +84,7 @@ struct ChatComposerActionsView: View {
                             endPoint: .bottomTrailing
                         )
                     ),
-                    label: "Photo"
+                    label: L10n.composerPhoto
                 ) {
                     WKInterfaceDevice.current().play(.click)
                     onPickPhoto()
@@ -103,7 +103,7 @@ struct ChatComposerActionsView: View {
                             endPoint: .bottomTrailing
                         )
                     ),
-                    label: "Link Cloud"
+                    label: L10n.composerLinkCloud
                 ) {
                     WKInterfaceDevice.current().play(.click)
                     onPickLinkedCloud()

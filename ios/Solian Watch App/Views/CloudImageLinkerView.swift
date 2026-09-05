@@ -25,7 +25,7 @@ struct CloudImageLinkerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Link Cloud Image")
+            Text(L10n.cloudImageTitle)
                 .font(.headline)
                 .foregroundColor(.primary)
                 .padding(.horizontal, 20)
@@ -41,7 +41,7 @@ struct CloudImageLinkerView: View {
                     Image(systemName: "cloud")
                         .font(.title2)
                         .foregroundColor(.secondary)
-                    Text(errorMessage ?? "No cloud images")
+                    Text(errorMessage ?? L10n.cloudImageNoImages)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -90,10 +90,10 @@ struct CloudImageLinkerView: View {
             )
             files = all.filter { ($0.mimeType ?? "").hasPrefix("image") }
             if files.isEmpty {
-                errorMessage = "No cloud images"
+                errorMessage = L10n.cloudImageNoImages
             }
         } catch {
-            errorMessage = "Could not load cloud images"
+            errorMessage = L10n.cloudImageCouldNotLoad
         }
     }
 }

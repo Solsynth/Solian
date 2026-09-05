@@ -1,0 +1,301 @@
+/* Solian Watch App - Chinese (Simplified) Localization */
+
+/* MARK: - ContentView (Sidebar / Navigation) */
+"panel.explore" = "探索";
+"panel.chat" = "聊天";
+"panel.notifications" = "通知";
+"panel.account" = "账户";
+"panel.checkIn" = "签到";
+"panel.selectPanel" = "选择一个面板";
+
+/* MARK: - SignInView */
+"signin.title" = "登录";
+"signin.welcome.title" = "Solian 在您的手腕上";
+"signin.welcome.subtitle" = "用手机完成一次设置，之后 Solian 可独立运行，无需 iPhone。";
+"signin.getStarted" = "开始使用";
+"signin.starting" = "正在开始…";
+"signin.signingIn" = "正在登录…";
+"signin.enterCode" = "在手机上输入此代码";
+"signin.openVerification" = "打开验证页面";
+"signin.cancel" = "取消";
+"signin.approvedOnPhone" = "已在手机上批准";
+"signin.approveOnPhone" = "请在手机上批准";
+"signin.timedOut" = "等待批准超时。";
+
+/* MARK: - AppInfoHeaderView */
+"connection.connected" = "已连接";
+"connection.connecting" = "正在连接...";
+"connection.disconnected" = "已断开连接";
+"connection.serverDown" = "服务器不可用";
+"connection.duplicateDevice" = "重复设备";
+"connection.error" = "错误：%@";
+
+/* MARK: - ExploreView */
+"explore.loading" = "加载中...";
+"explore.compose" = "撰写";
+"explore.shuffle" = "随机浏览";
+"explore.publishers" = "管理发布者";
+"explore.browseCategories" = "浏览分类和标签";
+
+/* MARK: - NotificationView */
+"notifications.title" = "通知";
+"notifications.error" = "错误";
+"notifications.retry" = "重试";
+"notifications.empty" = "暂无通知";
+"notifications.loadMore" = "加载更多";
+"notifications.detail.title" = "通知";
+"notifications.unread" = "未读";
+
+/* MARK: - AccountView */
+"account.title" = "账户";
+"account.failedToLoad" = "加载账户失败";
+"account.status" = "状态";
+"account.clearStatus" = "清除状态";
+"account.clearStatus.message" = "确定要清除状态吗？此操作无法撤销。";
+"account.clearStatus.button" = "清除状态";
+"account.cancel" = "取消";
+"account.noStatus" = "无状态";
+"account.noStatusSet" = "未设置状态";
+"account.invisible" = "隐身";
+"account.doNotDisturb" = "勿扰";
+"account.clearsAt" = "清除时间：%@";
+"account.level" = "等级 %d";
+"account.experience" = "经验：%@";
+"account.noBio" = "暂无简介";
+"account.joinedAt" = "加入于 %@";
+"account.noAccountData" = "无账户数据";
+"account.signOut" = "退出登录";
+"account.signOut.accessibility" = "退出此手表";
+
+/* MARK: - CheckInView */
+"checkin.title" = "签到";
+"checkin.couldntLoad" = "无法加载签到";
+"checkin.retry" = "重试";
+"checkin.checkInToday" = "今日签到";
+"checkin.description" = "每日签到获取诗句和今日运势。";
+"checkin.checkIn" = "签到";
+"checkin.level" = "等级 %d";
+"checkin.checkedIn" = "签到于 %@";
+"checkin.love" = "爱情";
+"checkin.study" = "学业";
+"checkin.work" = "事业";
+"checkin.health" = "健康";
+
+/* MARK: - ChatView */
+"chat.title" = "聊天";
+"chat.tab.all" = "全部";
+"chat.tab.direct" = "私聊";
+"chat.tab.group" = "群聊";
+"chat.errorLoading" = "加载聊天出错";
+"chat.retry" = "重试";
+"chat.noChats" = "暂无聊天";
+"chat.directMessage" = "私聊";
+"chat.groupChat" = "群聊";
+"chat.attachment" = "附件";
+"chat.invites" = "邀请";
+"chat.noInvites" = "暂无邀请";
+"chat.owner" = "群主";
+"chat.moderator" = "管理员";
+"chat.member" = "成员";
+"chat.direct" = "私聊";
+"chat.unknownChat" = "未知聊天";
+
+/* MARK: - ChatRoomView */
+"chatRoom.chat" = "聊天";
+"chatRoom.error" = "错误";
+"chatRoom.retry" = "重试";
+"chatRoom.noMessages" = "暂无消息";
+"chatRoom.loadOlder" = "加载更早";
+"chatRoom.read" = "已读";
+"chatRoom.today" = "今天 %@";
+"chatRoom.yesterday" = "昨天 %@";
+"chatRoom.messages" = "消息";
+"chatRoom.moreComposeOptions" = "更多撰写选项";
+"chatRoom.chooseContentType" = "选择消息内容类型";
+"chatRoom.send" = "发送";
+"chatRoom.sendMessage" = "发送消息";
+
+/* MARK: - MessageBubbleView */
+"chatRoom.deletedMessage" = "已删除一条消息";
+"chatRoom.sending" = "正在发送…";
+"chatRoom.failed" = "失败";
+"chatRoom.edited" = "已编辑";
+"chatRoom.repliedTo" = "回复给 %@";
+"chatRoom.forwardedFrom" = "转发自 %@";
+"chatRoom.repliedToMessage" = "回复了一条消息";
+"chatRoom.forwardedMessage" = "转发的消息";
+"chatRoom.moreAttachments" = "%d+ 更多";
+
+/* MARK: - VoiceMessageView */
+"voice.play" = "播放语音消息";
+"voice.pause" = "暂停语音消息";
+
+/* MARK: - VoiceRecorderView */
+"voice.recording" = "正在录音…";
+"voice.voiceMessage" = "语音消息";
+"voice.stopRecording" = "停止录音";
+"voice.sendVoice" = "发送语音消息";
+"voice.cancelVoice" = "取消语音消息";
+"voice.startRecording" = "开始录音";
+"voice.startRecording.hint" = "点击录制语音消息";
+"voice.audioUnavailable" = "音频不可用";
+"voice.enableMicrophone" = "请在设置中启用麦克风权限以录制语音消息。";
+"voice.couldNotStartRecording" = "无法开始录音";
+
+/* MARK: - ChatComposerActionsView */
+"composer.stickers" = "表情";
+"composer.voice" = "语音";
+"composer.photo" = "图片";
+"composer.linkCloud" = "链接云端";
+
+/* MARK: - StickerPickerView */
+"stickers.title" = "表情";
+"stickers.noPacks" = "暂无表情包";
+"stickers.unavailable" = "表情不可用";
+"stickers.noStickersInPack" = "此表情包暂无表情";
+"stickers.stickerCount" = "%d 个表情";
+
+/* MARK: - CloudImageLinkerView */
+"cloudImage.title" = "链接云端图片";
+"cloudImage.noImages" = "暂无云端图片";
+"cloudImage.couldNotLoad" = "无法加载云端图片";
+
+/* MARK: - PhotoPickerView */
+"photoPicker.sending" = "正在发送照片…";
+"photoPicker.loading" = "正在加载图片…";
+"photoPicker.couldNotRead" = "无法读取所选照片。";
+"photoPicker.couldNotProcess" = "无法处理所选照片。";
+"photoPicker.couldNotSave" = "无法保存所选照片。";
+"photoPicker.choosePhoto" = "选择照片";
+"photoPicker.tryAgain" = "重试";
+
+/* MARK: - PostViews */
+"post.unknown" = "未知";
+"post.boostedBy" = "由 @%@ 推荐";
+"post.attachments" = "附件";
+"post.link" = "链接";
+"post.title" = "帖子";
+"post.inReplyTo" = "回复给";
+"post.forwarded" = "已转发";
+"post.replies" = "回复";
+"post.repliesLoadFromApp" = "回复从应用加载";
+"post.loadMoreReplies" = "加载更多回复";
+"post.loading" = "加载中…";
+"post.less" = "收起";
+"post.reply" = "回复";
+"post.forward" = "转发";
+"post.boost" = "推荐";
+"post.bookmark" = "收藏";
+"post.removeBookmark" = "取消收藏";
+"post.unknownActivity" = "未知活动";
+
+/* MARK: - ComposePostView */
+"compose.newPost" = "新帖子";
+"compose.reply" = "回复";
+"compose.forward" = "转发";
+"compose.repilingTo" = "正在回复";
+"compose.forwarding" = "正在转发";
+"compose.content" = "内容";
+"compose.contentPlaceholder" = "你在想什么？";
+"compose.visibility" = "可见性";
+"compose.visibility.public" = "公开";
+"compose.visibility.friends" = "好友";
+"compose.visibility.unlisted" = "不公开";
+"compose.visibility.private" = "私密";
+"compose.selectVisibility" = "选择可见性";
+"compose.cancel" = "取消";
+"compose.posting" = "正在发布...";
+"compose.error" = "错误";
+
+/* MARK: - ActivityListView */
+"activity.errorFetching" = "获取数据出错";
+"activity.noActivities" = "暂无活动。";
+"activity.loadMore" = "加载更多";
+"activity.explore" = "探索";
+
+/* MARK: - ActivityEventRow */
+"activity.friendUpdatedStatus" = "好友更新了状态";
+"activity.friendActivity" = "好友活动";
+"activity.gaming" = "游戏中";
+"activity.music" = "听音乐";
+"activity.workout" = "锻炼中";
+"activity.busy" = "忙碌中";
+"activity.doNotDisturb" = "勿扰";
+"activity.invisible" = "隐身";
+"activity.online" = "在线";
+
+/* MARK: - AttachmentView */
+"attachment.file" = "文件";
+"attachment.failedToLoad" = "加载失败";
+"attachment.tryAgain" = "重试";
+"attachment.loading" = "加载中...";
+
+/* MARK: - ImageViewer */
+"imageViewer.loading" = "加载中...";
+"imageViewer.failedToLoad" = "加载失败";
+"imageViewer.tryAgain" = "重试";
+
+/* MARK: - AudioPlayerView */
+"audioPlayer.loading" = "正在加载音频...";
+
+/* MARK: - ReactionSheetView */
+"reaction.react" = "回应";
+"reaction.positive" = "正面";
+"reaction.neutral" = "中立";
+"reaction.negative" = "负面";
+
+/* MARK: - DiscoveryViews */
+"discovery.realm" = "领域";
+"discovery.publisher" = "发布者";
+"discovery.account" = "账户";
+"discovery.article" = "文章";
+"discovery.unknownSuggestion" = "未知推荐";
+"discovery.good" = "不错";
+"discovery.thanks" = "感谢";
+"discovery.notForMe" = "不适合我";
+"discovery.showMoreLikeThis" = "显示更多类似内容";
+"discovery.notInterested" = "不感兴趣，隐藏此内容";
+
+/* MARK: - ExploreExtrasViews */
+"explore.publishers" = "发布者";
+"explore.loadingPublishers" = "正在加载发布者…";
+"explore.couldntLoadPublishers" = "无法加载发布者";
+"explore.notFollowingAnyPublishers" = "尚未关注任何发布者";
+"explore.unfollow" = "取消关注";
+"explore.categories" = "分类";
+"explore.tags" = "标签";
+"explore.categoriesAndTags" = "分类和标签";
+"explore.couldntLoadCategories" = "无法加载分类";
+"explore.nothingHereYet" = "暂无内容";
+"explore.follow" = "关注";
+"explore.noPostsYet" = "暂无帖子";
+"explore.couldntLoadPosts" = "无法加载帖子";
+
+/* MARK: - StatusCreationView */
+"status.title" = "状态";
+"status.setStatus" = "设置状态";
+"status.updateStatus" = "更新状态";
+"status.label" = "状态标签";
+"status.symbol" = "状态符号";
+"status.mood" = "心情";
+"status.attitude.positive" = "😊 正面";
+"status.attitude.neutral" = "😐 中立";
+"status.attitude.negative" = "😢 负面";
+"status.visibility" = "可见性";
+"status.type.online" = "在线";
+"status.type.busy" = "忙碌";
+"status.type.doNotDisturb" = "勿扰";
+"status.type.invisible" = "隐身";
+"status.autoClearTime" = "自动清除时间";
+"status.noAutoClear" = "不自动清除";
+"status.cancel" = "取消";
+"status.save" = "保存";
+"status.saving" = "正在保存...";
+"status.delete" = "删除状态";
+"status.authenticationError" = "身份验证不可用";
+
+/* MARK: - CheckInView (Fortune Grid) */
+"fortune.love" = "爱情";
+"fortune.study" = "学业";
+"fortune.work" = "事业";
+"fortune.health" = "健康";

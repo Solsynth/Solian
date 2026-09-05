@@ -29,13 +29,13 @@ struct ReactionSheetView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                reactionSection(title: "Positive", symbols: kPositiveReactions)
-                reactionSection(title: "Neutral", symbols: kNeutralReactions)
-                reactionSection(title: "Negative", symbols: kNegativeReactions)
+                reactionSection(title: L10n.reactionPositive, symbols: kPositiveReactions)
+                reactionSection(title: L10n.reactionNeutral, symbols: kNeutralReactions)
+                reactionSection(title: L10n.reactionNegative, symbols: kNegativeReactions)
             }
             .padding(8)
         }
-        .navigationTitle("React")
+        .navigationTitle(L10n.reactionReact)
         .overlay {
             if isReacting {
                 ProgressView()

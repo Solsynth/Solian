@@ -46,7 +46,7 @@ struct StickerPickerView: View {
                 emptyState
             }
         }
-        .navigationTitle("Stickers")
+        .navigationTitle(L10n.stickersTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -55,7 +55,7 @@ struct StickerPickerView: View {
             Image(systemName: "face.smiling")
                 .font(.largeTitle)
                 .foregroundColor(.secondary)
-            Text("No sticker packs")
+            Text(L10n.stickersNoPacks)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -67,7 +67,7 @@ struct StickerPickerView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.largeTitle)
                 .foregroundColor(.secondary)
-            Text("Stickers unavailable")
+            Text(L10n.stickersUnavailable)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -82,7 +82,7 @@ struct StickerPickerView: View {
                 packHeader(pack)
 
                 if pack.stickers.isEmpty {
-                    Text("No stickers in this pack")
+                    Text(L10n.stickersNoStickersInPack)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
@@ -127,7 +127,7 @@ struct StickerPickerView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 } else {
-                    Text("\(pack.stickers.count) stickers")
+                    Text(String(format: L10n.stickersStickerCount, pack.stickers.count))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }

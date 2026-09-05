@@ -76,13 +76,13 @@ struct CheckInView: View {
                     .padding(.top, 40)
             } else if let error = viewModel.errorMessage, viewModel.result == nil {
                 VStack(spacing: 8) {
-                    Text("Couldn't load check-in")
+                    Text(L10n.checkInCouldntLoad)
                         .font(.headline)
                     Text(error)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    Button("Retry") {
+                    Button(L10n.checkInRetry) {
                         guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
                         Task { await viewModel.reload(token: token, serverUrl: serverUrl) }
                     }
@@ -100,7 +100,7 @@ struct CheckInView: View {
                     .padding(.horizontal)
             }
         }
-        .navigationTitle("Check In")
+        .navigationTitle(L10n.checkInTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
@@ -120,7 +120,7 @@ private struct CheckInPromptCard: View {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 34))
                 .foregroundColor(Color.accentColor)
-            Text("Check in today")
+            Text(L10n.checkInCheckInToday)
                 .font(sizeCategory < .extraExtraLarge ? .headline : .title3)
                 .multilineTextAlignment(.center)
             Text(descriptionText)
@@ -134,7 +134,7 @@ private struct CheckInPromptCard: View {
                 if viewModel.isCheckingIn {
                     ProgressView()
                 } else {
-                    Text("Check In")
+                    Text(L10n.checkInCheckIn)
                         .fontWeight(.semibold)
                 }
             }
@@ -152,7 +152,7 @@ private struct CheckInPromptCard: View {
     }
 
     private var descriptionText: String {
-        "Return daily for a poem and today's fortunes."
+        L10n.checkInDescription
     }
 }
 
@@ -166,7 +166,7 @@ private struct CheckInResultCard: View {
             // Level + date
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("Level \(result.level)")
+                    Text(String(format: L10n.checkInLevel, result.level))
                         .font(.headline)
                         .foregroundColor(levelColor)
                     // The rank name — checks the same quality/fortune scale the
@@ -176,7 +176,7 @@ private struct CheckInResultCard: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.secondary)
                 }
-                Text("Checked in \(result.createdAt, format: .dateTime.month(.abbreviated).day())")
+                Text(String(format: L10n.checkInCheckedIn, result.createdAt.formatted(.dateTime.month(.abbreviated).day())))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -249,10 +249,10 @@ private struct FortuneGrid: View {
 
     private var items: [Item] {
         [
-            Item(icon: "heart.fill", label: "Love", value: report.love),
-            Item(icon: "book.fill", label: "Study", value: report.study),
-            Item(icon: "briefcase.fill", label: "Work", value: report.career),
-            Item(icon: "heart.circle.fill", label: "Health", value: report.health),
+            Item(icon: "heart.fill", label: L10n.fortuneLove, value: report.love),
+            Item(icon: "book.fill", label: L10n.fortuneStudy, value: report.study),
+            Item(icon: "briefcase.fill", label: L10n.fortuneWork, value: report.career),
+            Item(icon: "heart.circle.fill", label: L10n.fortuneHealth, value: report.health),
         ].filter { !$0.value.isEmpty }
     }
 

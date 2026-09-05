@@ -27,7 +27,7 @@ struct AccountView: View {
                     .padding()
             } else if let error = error {
                 VStack {
-                    Text("Failed to load account")
+                    Text(L10n.accountFailedToLoad)
                         .foregroundColor(.red)
                     Text(error.localizedDescription)
                         .font(.caption)
@@ -102,7 +102,7 @@ struct AccountView: View {
                     // Status
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("Status")
+                            Text(L10n.accountStatus)
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -143,28 +143,28 @@ struct AccountView: View {
                                     Circle()
                                         .fill((status.isOnline ?? false) ? Color.green : Color.gray)
                                         .frame(width: 8, height: 8)
-                                    Text(status.label.isEmpty ? "No status" : status.label)
+                                    Text(status.label.isEmpty ? L10n.accountNoStatus : status.label)
                                         .font(.body)
                                 }
                                 
                                 if status.isInvisible {
-                                    Text("Invisible")
+                                    Text(L10n.accountInvisible)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                                 if status.isNotDisturb {
-                                    Text("Do Not Disturb")
+                                    Text(L10n.accountDoNotDisturb)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                                 if let clearedAt = status.clearedAt {
-                                    Text("Clears: \(clearedAt.formatted(date: .abbreviated, time: .shortened))")
+                                    Text(String(format: L10n.accountClearsAt, clearedAt.formatted(date: .abbreviated, time: .shortened)))
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                             }
                         } else {
-                            Text("No status set")
+                            Text(L10n.accountNoStatusSet)
                                 .font(.body)
                                 .foregroundColor(.secondary)
                         }
@@ -173,13 +173,13 @@ struct AccountView: View {
                     // Level and Progress
                     VStack(alignment: .leading, spacing: 8) {
                         if let profile = user.profile {
-                            Text("Level \(profile.level)")
+                            Text(String(format: L10n.accountLevel, profile.level))
                                 .font(.title3)
                                 .bold()
                             ProgressView(value: profile.levelingProgress)
                                 .progressViewStyle(LinearProgressViewStyle())
                                 .frame(height: 8)
-                            Text("Experience: \(profile.experience)")
+                            Text(String(format: L10n.accountExperience, profile.experience))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -192,14 +192,14 @@ struct AccountView: View {
                             .multilineTextAlignment(.leading)
                             .foregroundColor(.secondary)
                     } else {
-                        Text("No bio available")
+                        Text(L10n.accountNoBio)
                             .font(.body)
                             .foregroundColor(.secondary)
                     }
                     
                     // Member since
                     if let createdAt = user.createdAt {
-                        Text("Joined at \(createdAt.formatted(.dateTime.month(.abbreviated).year()))")
+                        Text(String(format: L10n.accountJoinedAt, createdAt.formatted(.dateTime.month(.abbreviated).year())))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -221,7 +221,7 @@ struct AccountView: View {
                     await bannerImageLoader.loadImage(from: imageUrl, token: token)
                 }
             } else {
-                Text("No account data")
+                Text(L10n.accountNoAccountData)
                     .padding()
             }
 
@@ -229,7 +229,7 @@ struct AccountView: View {
                 Button(role: .destructive) {
                     appState.signOutStandalone()
                 } label: {
-                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                    Label(L10n.accountSignOut, systemImage: "rectangle.portrait.and.arrow.right")
                         .font(.caption)
                         .frame(maxWidth: .infinity)
                 }
@@ -237,19 +237,19 @@ struct AccountView: View {
                 .tint(.red)
                 .padding(.horizontal)
                 .padding(.bottom, 8)
-                .accessibilityLabel("Sign out of this watch")
+                .accessibilityLabel(L10n.accountSignOutAccessibility)
             }
         }
-        .navigationTitle("Account")
-        .confirmationDialog("Clear Status", isPresented: $showingClearConfirmation) {
-            Button("Clear Status", role: .destructive) {
+        .navigationTitle(L10n.accountTitle)
+        .confirmationDialog(L10n.accountClearStatus, isPresented: $showingClearConfirmation) {
+            Button(L10n.accountClearStatusButton, role: .destructive) {
                 Task {
                     await clearStatus()
                 }
             }
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.accountCancel, role: .cancel) {}
         } message: {
-            Text("Are you sure you want to clear your status? This action cannot be undone.")
+            Text(L10n.accountClearStatusMessage)
         }
         .onAppear {
             Task {

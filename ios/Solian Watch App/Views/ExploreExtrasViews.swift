@@ -25,10 +25,10 @@ struct PublisherManagementView: View {
     var body: some View {
         Group {
             if isLoading && subscriptions.isEmpty {
-                ProgressView("Loading publishers…")
+                ProgressView(L10n.exploreLoadingPublishers)
             } else if let errorMessage = errorMessage, subscriptions.isEmpty {
                 VStack(spacing: 6) {
-                    Text("Couldn't load publishers").font(.headline)
+                    Text(L10n.exploreCouldntLoadPublishers).font(.headline)
                     Text(errorMessage)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -40,7 +40,7 @@ struct PublisherManagementView: View {
                     Image(systemName: "star")
                         .font(.title2)
                         .foregroundStyle(.secondary)
-                    Text("Not following any publishers yet")
+                    Text(L10n.exploreNotFollowingAnyPublishers)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -82,7 +82,7 @@ struct PublisherManagementView: View {
                             Button(role: .destructive) {
                                 unfollow(row)
                             } label: {
-                                Label("Unfollow", systemImage: "person.crop.square.badge.minus")
+                                Label(L10n.exploreUnfollow, systemImage: "person.crop.square.badge.minus")
                             }
                         }
                     }
@@ -90,7 +90,7 @@ struct PublisherManagementView: View {
                 .listStyle(.carousel)
             }
         }
-        .navigationTitle("Publishers")
+        .navigationTitle(L10n.explorePublishersTitle)
         .task { await load() }
         .refreshable { await load() }
     }
@@ -191,8 +191,8 @@ struct CategoriesTagsView: View {
     private let networkService = NetworkService()
 
     private enum PickerKind: String, CaseIterable, Identifiable {
-        case categories = "Categories"
-        case tags = "Tags"
+        case categories = "categories"
+        case tags = "tags"
         var id: String { rawValue }
     }
 
@@ -205,7 +205,7 @@ struct CategoriesTagsView: View {
                     Button {
                         picker = kind
                     } label: {
-                        Text(kind.rawValue)
+                        Text(kind == .categories ? L10n.exploreCategories : L10n.exploreTags)
                             .font(.caption2)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
@@ -232,7 +232,7 @@ struct CategoriesTagsView: View {
                     }
                 } else if let errorMessage = errorMessage, rows.isEmpty {
                     VStack(spacing: 6) {
-                        Text("Couldn't load categories").font(.headline)
+                        Text(L10n.exploreCouldntLoadCategories).font(.headline)
                         Text(errorMessage)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -240,7 +240,7 @@ struct CategoriesTagsView: View {
                     }
                     .padding()
                 } else if rows.isEmpty {
-                    Text("Nothing here yet")
+                    Text(L10n.exploreNothingHereYet)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
@@ -256,7 +256,7 @@ struct CategoriesTagsView: View {
                 }
             }
         }
-        .navigationTitle("Categories & Tags")
+        .navigationTitle(L10n.exploreCategoriesAndTags)
         .task { await loadAll() }
         .refreshable { await loadAll() }
     }
@@ -389,7 +389,7 @@ struct FollowableRowView: View {
             Button {
                 onToggle()
             } label: {
-                Label(row.isSubscribed ? "Unfollow" : "Follow",
+                Label(row.isSubscribed ? L10n.exploreUnfollow : L10n.exploreFollow,
                       systemImage: row.isSubscribed ? "xmark.circle" : "plus.circle")
             }
             .tint(row.isSubscribed ? .red : .accentColor)
@@ -429,7 +429,7 @@ struct PostQueryListView: View {
                 ProgressView("Loading…")
             } else if let errorMessage = errorMessage, posts.isEmpty {
                 VStack(spacing: 6) {
-                    Text("Couldn't load posts").font(.headline)
+                    Text(L10n.exploreCouldntLoadPosts).font(.headline)
                     Text(errorMessage)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -437,7 +437,7 @@ struct PostQueryListView: View {
                 }
                 .padding()
             } else if posts.isEmpty {
-                Text("No posts yet")
+                Text(L10n.exploreNoPostsYet)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)

@@ -72,11 +72,11 @@ struct NotificationView: View {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage {
                 VStack {
-                    Text("Error")
+                    Text(L10n.notificationsError)
                         .font(.headline)
                     Text(errorMessage)
                         .font(.caption)
-                    Button("Retry") {
+                    Button(L10n.notificationsRetry) {
                         Task {
                             if let token = appState.token, let serverUrl = appState.serverUrl {
                                 await viewModel.fetchNotifications(token: token, serverUrl: serverUrl)
@@ -86,7 +86,7 @@ struct NotificationView: View {
                 }
                 .padding()
             } else if viewModel.notifications.isEmpty {
-                Text("No notifications")
+                Text(L10n.notificationsEmpty)
             } else {
                 List {
                     ForEach(viewModel.notifications) { notification in
@@ -133,7 +133,7 @@ struct NotificationView: View {
                                 Spacer()
                             }
                         } else {
-                            Button("Load More") {
+                            Button(L10n.notificationsLoadMore) {
                                 Task {
                                     if let token = appState.token, let serverUrl = appState.serverUrl {
                                         await viewModel.loadMoreNotifications(token: token, serverUrl: serverUrl)
@@ -153,7 +153,7 @@ struct NotificationView: View {
                 }
             }
         }
-        .navigationTitle("Notifications")
+        .navigationTitle(L10n.notificationsTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -185,14 +185,14 @@ struct NotificationDetailView: View {
                 .foregroundColor(.gray)
                 
                 if notification.viewedAt == nil {
-                    Text("Unread")
+                    Text(L10n.notificationsUnread)
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
             }
             .padding()
         }
-        .navigationTitle("Notification")
+        .navigationTitle(L10n.notificationsDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
