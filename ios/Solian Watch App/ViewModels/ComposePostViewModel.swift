@@ -16,7 +16,16 @@ class ComposePostViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var didPost = false
     
+    /// The post being directly replied to (wire `replied_post_id`).
     var replyToPostId: String? = nil
+    /// The post being quoted/forwarded (wire `forwarded_post_id`).
+    var forwardPostId: String? = nil
+
+    var mode: ComposeMode {
+        if forwardPostId != nil { return .forward }
+        if replyToPostId != nil { return .reply }
+        return .newPost
+    }
     
     private let networkService = NetworkService()
     
@@ -27,22 +36,14 @@ class ComposePostViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            if let replyToId = replyToPostId {
-                try await networkService.replyToPost(
-                    postId: replyToId,
-                    content: content,
-                    visibility: visibility,
-                    token: token,
-                    serverUrl: serverUrl
-                )
-            } else {
-                try await networkService.createPost(
-                    content: content,
-                    visibility: visibility,
-                    token: token,
-                    serverUrl: serverUrl
-                )
-            }
+            try await networkService.createPost(
+                content: content,
+                visibility: visibility,
+                replyTo: replyToPostId,
+                forwardTo: forwardPostId,
+                token: token,
+                serverUrl: serverUrl
+            )
             didPost = true
         } catch {
             errorMessage = error.localizedDescription
@@ -50,4 +51,12 @@ class ComposePostViewModel: ObservableObject {
         
         isPosting = false
     }
+}
+
+/// What the compose flow is anchored to: a fresh post, a reply to an existing
+/// post, or a quote/forward of an existing post.
+enum ComposeMode {
+    case newPost
+    case reply
+    case forward
 }

@@ -385,6 +385,19 @@ class NetworkService {
         _ = try await session.data(for: request)
     }
 
+    private func deleteEmpty(path: String, token: String, serverUrl: String) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        _ = try await session.data(for: request)
+    }
+
     private static func decodeJSON<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -395,7 +408,20 @@ class NetworkService {
         return try decoder.decode(type, from: data)
     }
     
-    func createPost(content: String, visibility: Int = 0, token: String, serverUrl: String) async throws {
+    /// POST /sphere/posts — create a post, a reply, or a forward (quote).
+    ///
+    /// `replyTo` (the post being replied to) and `forwardTo` (the post being
+    /// quoted) mirror the main app's `compose_shared.dart`, which sends
+    /// `replied_post_id` and `forwarded_post_id` on the same create endpoint.
+    /// At most one of `replyTo` / `forwardTo` applies.
+    func createPost(
+        content: String,
+        visibility: Int = 0,
+        replyTo: String? = nil,
+        forwardTo: String? = nil,
+        token: String,
+        serverUrl: String
+    ) async throws {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
@@ -408,10 +434,19 @@ class NetworkService {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
         
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "content": content,
             "visibility": visibility
         ]
+        // Threading relationship goes in the wire payload only when a
+        // meaningful target was given, matching the Flutter SDK's
+        // conditionally-built create payload.
+        if let replyTo {
+            body["replied_post_id"] = replyTo
+        }
+        if let forwardTo {
+            body["forwarded_post_id"] = forwardTo
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
         print("[watchOS] POST createPost - URL: \(url.absoluteString), body: \(body)")
@@ -430,38 +465,13 @@ class NetworkService {
     }
     
     func replyToPost(postId: String, content: String, visibility: Int = 0, token: String, serverUrl: String) async throws {
-        guard let baseURL = URL(string: serverUrl) else {
-            throw URLError(.badURL)
-        }
-        let url = baseURL.appendingPathComponent("/sphere/posts")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        
-        let body: [String: Any] = [
-            "content": content,
-            "visibility": visibility,
-            "reply_to": postId
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        
-        print("[watchOS] POST replyToPost - URL: \(url.absoluteString), body: \(body)")
-        print("[watchOS] replyToPost - token prefix: \(String(token.prefix(20)))...")
-        
-        let (data, response) = try await session.data(for: request)
-        
-        if let httpResponse = response as? HTTPURLResponse {
-            print("[watchOS] replyToPost response - status: \(httpResponse.statusCode)")
-            if httpResponse.statusCode != 201 {
-                let responseBody = String(data: data, encoding: .utf8) ?? ""
-                print("[watchOS] replyToPost failed - body: \(responseBody)")
-                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
-            }
-        }
+        try await createPost(
+            content: content,
+            visibility: visibility,
+            replyTo: postId,
+            token: token,
+            serverUrl: serverUrl
+        )
     }
     
     func fetchNotifications(offset: Int = 0, take: Int = 20, token: String, serverUrl: String) async throws -> NotificationResponse {
@@ -641,6 +651,84 @@ class NetworkService {
             print("[watchOS] clearStatus failed with status code: \(httpResponse.statusCode), body: \(responseBody)")
             throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
+    }
+    
+    // MARK: - Post engagement APIs (boost / bookmark)
+
+    /// POST /sphere/posts/{postId}/boost — boost/repost a post.
+    func boostPost(postId: String, token: String, serverUrl: String) async throws {
+        try await postEmpty(path: "/sphere/posts/\(postId)/boost", token: token, serverUrl: serverUrl)
+    }
+
+    /// DELETE /sphere/posts/{postId}/boost — undo a boost.
+    func unboostPost(postId: String, token: String, serverUrl: String) async throws {
+        try await deleteEmpty(path: "/sphere/posts/\(postId)/boost", token: token, serverUrl: serverUrl)
+    }
+
+    /// POST /sphere/posts/{postId}/bookmark — bookmark a post.
+    func bookmarkPost(postId: String, token: String, serverUrl: String) async throws {
+        try await postEmpty(path: "/sphere/posts/\(postId)/bookmark", token: token, serverUrl: serverUrl)
+    }
+
+    /// DELETE /sphere/posts/{postId}/bookmark — remove a bookmark.
+    func unbookmarkPost(postId: String, token: String, serverUrl: String) async throws {
+        try await deleteEmpty(path: "/sphere/posts/\(postId)/bookmark", token: token, serverUrl: serverUrl)
+    }
+
+    /// GET /sphere/posts/{postId} — fresh post (context / refreshed state).
+    func fetchPost(postId: String, token: String, serverUrl: String) async throws -> SnPost {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/posts/\(postId)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] fetchPost failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        return try Self.decodeJSON(SnPost.self, from: data)
+    }
+
+    /// GET /sphere/posts/{postId}/replies — paginated direct replies, newest
+    /// first. Mirrors the SDK's `getPostReplies` query (`offset`, `take`).
+    func fetchPostReplies(postId: String, offset: Int = 0, take: Int = 10, token: String, serverUrl: String) async throws -> PostListResponse {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/sphere/posts/\(postId)/replies"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "offset", value: "\(offset)"),
+            URLQueryItem(name: "take", value: "\(take)"),
+            URLQueryItem(name: "orderDesc", value: "true"),
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        let http = response as? HTTPURLResponse
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] fetchPostReplies failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        let total = Int(http?.value(forHTTPHeaderField: "X-Total") ?? "0") ?? 0
+        let posts = try Self.decodeJSON([SnPost].self, from: data)
+        return PostListResponse(posts: posts, total: total)
     }
     
     // MARK: - Reactions API
@@ -874,6 +962,91 @@ class NetworkService {
         }
     }
     
+    // MARK: - Sticker API Methods
+
+    /// Fetches sticker packs owned by the current user (`GET
+    /// /sphere/stickers/me`). Each element is an ownership row `{ pack_id,
+    /// account_id, pack: { …stickers } }`; the packs are extracted from the
+    /// nested `pack`. Mirrors Flutter's `myStickerOwnerships` / `myStickerPacks`.
+    func fetchMyStickerPacks(token: String, serverUrl: String) async throws -> [SnStickerPack] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/stickers/me")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse {
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let body = String(data: data, encoding: .utf8) ?? ""
+                print("[NetworkService] fetchMyStickerPacks failed with status \(httpResponse.statusCode), body: \(body)")
+                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+            }
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let rawList = try Self.decodeRawList(from: data)
+        let packs: [SnStickerPack] = rawList.compactMap { element in
+            guard let itemData = try? JSONSerialization.data(withJSONObject: element),
+                  let ownership = try? decoder.decode(SnStickerOwnershipRow.self, from: itemData) else {
+                return nil
+            }
+            return ownership.pack
+        }
+        return packs
+    }
+
+    /// Resolves a `:prefix+slug:` placeholder to its sticker (`GET
+    /// /sphere/stickers/lookup/{identifier}`), used to render sticker image
+    /// URLs for received messages. Mirrors Flutter's `stickerLookupProvider`.
+    func fetchStickerLookup(identifier: String, token: String, serverUrl: String) async throws -> SnSticker? {
+        guard let baseURL = URL(string: serverUrl),
+              let encoded = identifier.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/stickers/lookup/\(encoded)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse {
+            guard (200...299).contains(httpResponse.statusCode) else {
+                print("[NetworkService] fetchStickerLookup failed with status \(httpResponse.statusCode)")
+                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+            }
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try? decoder.decode(SnSticker.self, from: data)
+    }
+
+    /// Decodes response bytes into a raw JSON array, tolerating the gateway's
+    /// `{ "items": [...] }` wrapper used on some list endpoints.
+    private static func decodeRawList(from data: Data) throws -> [Any] {
+        if let array = (try? JSONSerialization.jsonObject(with: data)) as? [Any] {
+            return array
+        }
+        if let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+           let items = dict["items"] as? [Any] {
+            return items
+        }
+        throw DecodingError.dataCorrupted(.init(
+            codingPath: [],
+            debugDescription: "Expected a JSON array or {items:[...]} wrapper"
+        ))
+    }
+
     // MARK: - Message API Methods
     
     func fetchChatMessages(

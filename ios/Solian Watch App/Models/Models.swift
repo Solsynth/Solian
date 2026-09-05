@@ -197,6 +197,13 @@ struct SnActivityPubActor: Codable, Identifiable {
         case id, type, name, summary, url, icon, image, inbox, outbox, followers, following
         case preferredUsername = "preferred_username"
     }
+
+    /// Best display name: the explicit display name field if present, else
+    /// the handle, else the raw account name.
+    var displayName: String? {
+        if let name = name, !name.isEmpty { return name }
+        return preferredUsername
+    }
 }
 
 // MARK: - Discovery Models
@@ -1798,5 +1805,155 @@ struct MessageSyncResponse: Codable {
         messages = try container.decodeIfPresent([SnChatMessage].self, forKey: .messages) ?? []
         totalCount = try container.decodeIfPresent(Int.self, forKey: .totalCount) ?? 0
         currentTimestamp = try container.decode(Date.self, forKey: .currentTimestamp)
+    }
+}
+
+// MARK: - Sticker Models
+
+/// A lightweight file reference as used by sticker image / pack icon payloads.
+/// `SnCloudFile` decodes the full drive entity; the sticker endpoints embed a
+/// slim `{id, url?, width?, height?, ...}` reference instead.
+struct SnCloudFileReference: Codable, Identifiable {
+    let id: String
+    let name: String?
+    let url: String?
+    let width: Double?
+    let height: Double?
+    let fileMeta: [String: AnyCodable]?
+    let mimeType: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, url
+        case width, height
+        case fileMeta = "file_meta"
+        case mimeType = "mime_type"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        url = try container.decodeIfPresent(String.self, forKey: .url)
+        width = try container.decodeIfPresent(Double.self, forKey: .width)
+        height = try container.decodeIfPresent(Double.self, forKey: .height)
+        fileMeta = try container.decodeIfPresent([String: AnyCodable].self, forKey: .fileMeta)
+        mimeType = try container.decodeIfPresent(String.self, forKey: .mimeType)
+    }
+}
+
+/// A sticker inside a pack. `size`/`mode` mirror the main app's enums:
+/// `size` 0=auto 1=small 2=medium 3=large; `mode` 0=sticker (tap-to-send,
+/// standalone) 1=emote (inline). The server may encode these as ints or the
+/// strings "small"/"large"/"emote", hence the lenient decode.
+struct SnSticker: Codable, Identifiable {
+    let id: String
+    let slug: String
+    let name: String?
+    let image: SnCloudFileReference?
+    let order: Int
+    let size: Int
+    let mode: Int
+    let packId: String?
+    let pack: SnStickerPack?
+    let createdAt: Date?
+    let updatedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, name, image, order, size, mode, pack
+        case packId = "pack_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
+        slug = try container.decodeIfPresent(String.self, forKey: .slug) ?? id
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        image = try container.decodeIfPresent(SnCloudFileReference.self, forKey: .image)
+        order = try container.decodeIfPresent(Int.self, forKey: .order) ?? 0
+        size = Self.decodeEnumInt(container, key: .size, fallback: 0,
+            stringMap: ["auto": 0, "small": 1, "medium": 2, "large": 3, "emote": 3])
+        let rawMode = Self.decodeEnumInt(container, key: .mode, fallback: 0,
+            stringMap: ["auto": 0, "sticker": 0, "emote": 1, "small": 1, "medium": 2, "large": 3])
+        mode = rawMode > 1 ? 0 : rawMode
+        packId = try container.decodeIfPresent(String.self, forKey: .packId)
+        pack = try container.decodeIfPresent(SnStickerPack.self, forKey: .pack)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+    }
+
+    /// Server may send `size`/`mode` as int or string; normalize both to int.
+    private static func decodeEnumInt(
+        _ container: KeyedDecodingContainer<CodingKeys>,
+        key: CodingKeys,
+        fallback: Int,
+        stringMap: [String: Int]
+    ) -> Int {
+        if let int = try? container.decodeIfPresent(Int.self, forKey: key) { return int }
+        if let str = try? container.decodeIfPresent(String.self, forKey: key) {
+            return stringMap[str] ?? fallback
+        }
+        return fallback
+    }
+
+    /// The text placeholder used to reference this sticker in message bodies.
+    var placeholder: String {
+        "\(pack?.prefix ?? "")+\(slug)"
+    }
+}
+
+/// A sticker pack owned by the user (from `GET /sphere/stickers/me`).
+struct SnStickerPack: Codable, Identifiable {
+    let id: String
+    let name: String
+    let description: String?
+    let prefix: String
+    let publisherId: String?
+    let icon: SnCloudFileReference?
+    let order: Int
+    let stickers: [SnSticker]
+    let createdAt: Date?
+    let updatedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, description, prefix, icon, order, stickers
+        case publisherId = "publisher_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? "Stickers"
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        prefix = try container.decodeIfPresent(String.self, forKey: .prefix) ?? ""
+        publisherId = try container.decodeIfPresent(String.self, forKey: .publisherId)
+        icon = try container.decodeIfPresent(SnCloudFileReference.self, forKey: .icon)
+        order = try container.decodeIfPresent(Int.self, forKey: .order) ?? 0
+        stickers = try container.decodeIfPresent([SnSticker].self, forKey: .stickers) ?? []
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+    }
+}
+
+/// Resolved sticker lookup (`GET /sphere/stickers/lookup/{prefix+slug}`),
+/// whose `pack` is nested with the pack's own stickers.
+struct SnStickerLookupResponse: Codable {
+    let sticker: SnSticker
+}
+
+/// One row of `GET /sphere/stickers/me`: an ownership wrapper whose nested
+/// `pack` holds the full pack (with its stickers).
+struct SnStickerOwnershipRow: Codable {
+    let packId: String?
+    let accountId: String?
+    let pack: SnStickerPack?
+
+    enum CodingKeys: String, CodingKey {
+        case packId = "pack_id"
+        case accountId = "account_id"
+        case pack
     }
 }

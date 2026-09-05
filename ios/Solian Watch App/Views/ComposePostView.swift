@@ -9,7 +9,11 @@ import SwiftUI
 import WatchKit
 
 struct ComposePostView: View {
+    /// The post being replied to (shown in the composer header).
     let replyingTo: SnPost?
+    /// The post being quoted/forwarded (shown in the composer header).
+    let forwardingTo: SnPost?
+
     @StateObject private var viewModel = ComposePostViewModel()
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) private var dismiss
@@ -19,17 +23,37 @@ struct ComposePostView: View {
 
     private let visibilityOptions = ["Public", "Friends", "Unlisted", "Private"]
 
+    init(
+        replyingTo: SnPost? = nil,
+        forwardingTo: SnPost? = nil
+    ) {
+        self.replyingTo = replyingTo
+        self.forwardingTo = forwardingTo
+        // Seed the anchors before the first render so the composer knows its
+        // mode (reply vs forward) from the start.
+        let vm = ComposePostViewModel()
+        vm.replyToPostId = replyingTo?.id
+        vm.forwardPostId = forwardingTo?.id
+        _viewModel = StateObject(wrappedValue: vm)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    if replyingTo != nil {
+                    if viewModel.mode == .forward, let forwardingTo {
+                        forwardIndicator(for: forwardingTo)
+                    } else if replyingTo != nil {
                         replyIndicator
                     }
 
                     contentField
 
-                    visibilityField
+                    // Quote-forwards are anchored posts; visibility stays the
+                    // default for them (main app keeps quotes public).
+                    if viewModel.mode == .reply || viewModel.mode == .newPost {
+                        visibilityField
+                    }
 
                     if viewModel.isPosting {
                         postingIndicator
@@ -38,7 +62,7 @@ struct ComposePostView: View {
                 .padding(.horizontal)
                 .padding(.top, 4)
             }
-            .navigationTitle(replyingTo != nil ? "Reply" : "New Post")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -61,7 +85,7 @@ struct ComposePostView: View {
                             Image(systemName: "paperplane.fill")
                         }
                     }
-                    .disabled(viewModel.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isPosting)
+                    .disabled(!canSend)
                 }
             }
             .onChange(of: viewModel.didPost) { _, didPost in
@@ -84,6 +108,19 @@ struct ComposePostView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
+    }
+
+    private var navigationTitle: String {
+        switch viewModel.mode {
+        case .forward: return "Forward"
+        case .reply: return "Reply"
+        case .newPost: return "New Post"
+        }
+    }
+
+    private var canSend: Bool {
+        !viewModel.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !viewModel.isPosting
     }
 
     private var visibilitySymbol: String {
@@ -113,6 +150,47 @@ struct ComposePostView: View {
         .padding(.vertical, 6)
         .background(Color.accentColor.opacity(0.1))
         .cornerRadius(8)
+    }
+
+    /// Quote header for the forwarded post — the quoted post's author plus a
+    /// short preview. Tapping loads the full detail of the quoted post.
+    private func forwardIndicator(for context: SnPost) -> some View {
+        NavigationLink(
+            destination: PostDetailView(post: context)
+                .environmentObject(appState)
+        ) {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrowshape.turn.up.right")
+                        .font(.caption)
+                    Text("Forwarding")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 4)
+                    Text("@\(context.publisher?.nick ?? context.publisher?.name ?? "post")")
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                        .lineLimit(1)
+                }
+                if let title = context.title, !title.isEmpty {
+                    Text(title)
+                        .font(.caption)
+                        .bold()
+                        .lineLimit(2)
+                } else if let content = context.content, !content.isEmpty {
+                    Text(content)
+                        .font(.caption)
+                        .lineLimit(2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.accentColor.opacity(0.08))
+            .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
     }
 
     private var contentField: some View {

@@ -83,6 +83,63 @@ final class ChatRoomViewModel: ObservableObject {
         return message.senderId == appState.currentAccountId
     }
 
+    // MARK: - Read watermark
+
+    /// True while the timeline is scrolled to its newest end (the compose
+    /// footer is on screen). The read watermark is hidden at that position,
+    /// mirroring Flutter's `isAtLatestMessages` suppression of the "new
+    /// message below" marker.
+    @Published private(set) var isAtLatest = true
+
+    /// The client-side read high-water mark: the newest point in the timeline
+    /// that has demonstrably been read this session. Seeded from the room
+    /// identity's `last_read_at` (fetched on open) and advanced whenever a
+    /// read receipt is sent (to the newest message on screen at that moment)
+    /// or an echoed receipt for this account carries a newer server time.
+    /// Mirror of Flutter's `savedLastReadAt`, kept fresh without refetching
+    /// `members/me` on every receipt.
+    @Published private(set) var readThroughAt: Date?
+
+    /// The message the read-watermark divider sits directly ABOVE: the first
+    /// loaded message newer than [readThroughAt]. Flutter's "new message
+    /// below" anchor. Nil when there's no recorded read position, when nothing
+    /// in the loaded window predates it (the read point is older than the
+    /// whole window — no boundary to draw yet), or when the read point already
+    /// covers the newest message.
+    var readWatermarkMessageId: String? {
+        guard let readThroughAt else { return nil }
+        // Newest loaded message at-or-before the read point: the last one the
+        // user has actually read in this window.
+        guard let readBoundary = messages.lastIndex(where: { $0.createdAt <= readThroughAt }) else {
+            return nil
+        }
+        let firstUnreadIndex = readBoundary + 1
+        guard firstUnreadIndex < messages.count else { return nil }
+        return messages[firstUnreadIndex].id
+    }
+
+    /// Call from the view's scroll geometry when the user pins/unpins the
+    /// newest end of the timeline. Returning to the latest claims the room
+    /// read server-side (receipts only report what the user demonstrably saw).
+    func setAtLatest(_ isAtLatest: Bool) {
+        guard isAtLatest != self.isAtLatest else { return }
+        self.isAtLatest = isAtLatest
+        if isAtLatest {
+            markReadThroughLatest()
+        }
+    }
+
+    /// Sends a `messages.read` receipt and advances the local read high-water
+    /// to the newest message on screen. Every receipt path funnels through
+    /// here so the watermark boundary stays honest mid-session.
+    private func markReadThroughLatest() {
+        appState.networkService.sendReadReceipt(chatRoomId: room.id)
+        guard let newest = messages.last?.createdAt else { return }
+        if readThroughAt == nil || newest > readThroughAt! {
+            readThroughAt = newest
+        }
+    }
+
     // MARK: - Loading
 
     /// Tear down WebSocket subscriptions when the view goes away.
@@ -124,6 +181,13 @@ final class ChatRoomViewModel: ObservableObject {
                     take: pageSize
                 )
                 self.identity = try? await identity
+                // Seed the read watermark from the server's last recorded read
+                // time for this room (Flutter's `savedLastReadAt`).
+                if let identity = self.identity, let lastReadAt = identity.lastReadAt {
+                    if readThroughAt == nil || lastReadAt > readThroughAt! {
+                        readThroughAt = lastReadAt
+                    }
+                }
                 let displayable = result.messages.filter(\.isDisplayable)
                 // If the server reported messages but none decodable, surface a
                 // decode error rather than a misleading empty timeline.
@@ -134,8 +198,13 @@ final class ChatRoomViewModel: ObservableObject {
                 self.fetchedRowCount = result.messages.count
                 self.totalCount = result.totalCount
                 self.hasMore = result.hasMore
-                // Opening the room clears its unread count.
+                // Opening the room clears its unread count. The timeline opens
+                // at the newest end, so claim the room read server-side too
+                // (Flutter's initial `sendReadReceipt` on room open).
                 self.unreadCount = 0
+                if isAtLatest {
+                    markReadThroughLatest()
+                }
                 hasLoaded = true
                 persist()
                 return
@@ -253,7 +322,25 @@ final class ChatRoomViewModel: ObservableObject {
 
     func send() async {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, !isSending,
+        guard !text.isEmpty else { return }
+        await sendContent(text)
+    }
+
+    /// Sends a standalone sticker message (`:prefix+slug:` body) — the
+    /// watch's quick-sticker action from the composer pack rail. The pack is
+    /// the authoritative prefix source: nested sticker JSON from
+    /// `/sphere/stickers/me` carries no `pack` object, so reading the prefix
+    /// off the sticker itself produced a malformed `:+slug:` placeholder.
+    func sendSticker(_ pack: SnStickerPack, _ sticker: SnSticker) async {
+        let placeholder = ":\(pack.prefix)+\(sticker.slug):"
+        guard !pack.prefix.isEmpty, !sticker.slug.isEmpty else { return }
+        await sendContent(placeholder)
+    }
+
+    /// Core send: inserts an optimistic pending row, sends `content` over the
+    /// socket (HTTP fallback), and replaces the row with the ack.
+    private func sendContent(_ content: String) async {
+        guard !isSending,
               let token = appState.token, let serverUrl = appState.serverUrl else { return }
         isSending = true
 
@@ -264,7 +351,7 @@ final class ChatRoomViewModel: ObservableObject {
         let pending = SnChatMessage(
             id: pendingId,
             type: "text",
-            content: text,
+            content: content,
             clientMessageId: clientMessageId,
             nonce: nil,
             meta: [:],
@@ -289,7 +376,7 @@ final class ChatRoomViewModel: ObservableObject {
         do {
             let sent = try await appState.networkService.sendChatMessage(
                 chatRoomId: room.id,
-                content: text,
+                content: content,
                 clientMessageId: clientMessageId,
                 token: token,
                 serverUrl: serverUrl
@@ -332,11 +419,41 @@ final class ChatRoomViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.wsState = state
+                // The socket drops frequently on watchOS; after a reconnect
+                // while the room is open at the latest, re-claim the room read
+                // (Flutter re-sends its read receipt on ws-reconnect too).
+                if state == .connected, let self, self.hasLoaded, self.isAtLatest {
+                    self.markReadThroughLatest()
+                }
             }
             .store(in: &cancellables)
     }
 
     private func handle(_ packet: WebSocketPacket) {
+        // Inbound read receipts from other members: the room's members are
+        // not retained on the watch, so the only durable effect worth keeping
+        // is clearing our own unread when the server echoes our own read
+        // receipt back (mirrors Flutter's ChatReadSyncNotifier self-echo
+        // handling). Nothing else to surface yet.
+        if packet.type == "messages.read", let data = packet.data {
+            guard let roomId = data["chat_room_id"] as? String, roomId == room.id else { return }
+            let accountId = data["account_id"] as? String
+            let isSelfEcho = accountId == appState.currentAccountId
+            if isSelfEcho {
+                unreadCount = 0
+                chatCache.updateRoomSummary(roomId: room.id, summary: currentSummary)
+                // The server's authoritative read timestamp for this account
+                // (can arrive from the phone app too) may be newer than the
+                // local high-water — adopt it.
+                if let echoAt = parseReadTimestamp(data["last_read_at"]) {
+                    if readThroughAt == nil || echoAt > readThroughAt! {
+                        readThroughAt = echoAt
+                    }
+                }
+            }
+            return
+        }
+
         guard ["messages.new", "messages.update", "messages.delete"].contains(packet.type),
               let data = packet.data else { return }
 
@@ -374,7 +491,12 @@ final class ChatRoomViewModel: ObservableObject {
                 messages.append(message)
                 lastScrollTarget = .bottom
             }
-            appState.networkService.sendReadReceipt(chatRoomId: room.id)
+            // Only claim the new message as read when it's actually on screen
+            // (Flutter sends on every `messages.new`, but only while its
+            // scroll is pinned to the latest — `isAtLatestMessages`).
+            if isAtLatest {
+                markReadThroughLatest()
+            }
         case "messages.update":
             if let index = messages.firstIndex(where: { $0.id == message.id }) {
                 messages[index] = message
@@ -396,5 +518,18 @@ final class ChatRoomViewModel: ObservableObject {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
+    }
+
+    /// Parses a receipt `last_read_at` value (ISO-8601 string or epoch
+    /// milliseconds — the server's two wire forms). Mirrors Flutter's
+    /// `parseChatReadReceiptTimestamp`.
+    private func parseReadTimestamp(_ value: Any?) -> Date? {
+        if let string = value as? String {
+            return ISO8601DateFormatter().date(from: string)
+        }
+        if let number = value as? NSNumber {
+            return Date(timeIntervalSince1970: number.doubleValue / 1000)
+        }
+        return nil
     }
 }
