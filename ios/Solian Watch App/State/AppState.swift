@@ -17,6 +17,9 @@ class AppState: ObservableObject {
     @Published var isReady = false
     @Published var errorMessage: String? = nil
     @Published var requiresSignIn = false
+    /// The current user's account id, resolved from the profile once signed in.
+    /// Used to distinguish own vs other chat messages.
+    @Published var currentAccountId: String?
 
     let networkService = NetworkService()
     let standaloneAuth = StandaloneAuthService.shared
@@ -82,6 +85,7 @@ class AppState: ObservableObject {
             self.token = access
             let profile = try await networkService.fetchUserProfile(token: access, serverUrl: serverUrl)
             auth.setProfile(name: profile.name, nick: profile.nick)
+            self.currentAccountId = profile.id
             self.isReady = true
             self.connectOnce(token: access, serverUrl: serverUrl, fromPhone: false)
         } catch {
@@ -100,6 +104,7 @@ class AppState: ObservableObject {
             // Warm the account profile for display (best effort).
             if let profile = try? await networkService.fetchUserProfile(token: access, serverUrl: serverUrl) {
                 standaloneAuth.setProfile(name: profile.name, nick: profile.nick)
+                self.currentAccountId = profile.id
             }
         } catch {
             // Refresh failed (e.g. revoked). Fall back to the phone if paired;

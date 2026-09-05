@@ -170,8 +170,11 @@ struct ChatRoomListItem: View {
 
     private var displayName: String {
         if room.type == 1, let members = room.members, !members.isEmpty, let account = members[0].account {
-            // For direct messages, show the other member's name
-            return account.nick
+            // For direct messages, show the other member's display name
+            // (nick first, then account name), matching Flutter's getRoomTitle.
+            if !account.nick.isEmpty { return account.nick }
+            if !account.name.isEmpty { return account.name }
+            return "Direct Message"
         } else {
             // For group chats, show room name or fallback
             return room.name ?? "Group Chat"
@@ -203,7 +206,7 @@ struct ChatRoomListItem: View {
 
     var body: some View {
         NavigationLink(
-            destination: ChatRoomView(room: room)
+            destination: ChatRoomView(room: room, appState: appState)
                 .environmentObject(appState)
         ) {
             HStack {
@@ -273,406 +276,487 @@ struct ChatRoomListItem: View {
 
 import Combine
 import SwiftUI
+import WatchKit
 
 struct ChatRoomView: View {
     let room: SnChatRoom
     @EnvironmentObject var appState: AppState
-    @State private var messages: [SnChatMessage] = []
-    @State private var isLoading = false
-    @State private var error: Error?
-    @State private var wsState: WebSocketState = .disconnected // New state for WebSocket status
-    @State private var hasLoadedMessages = false // Track if messages have been loaded
-    @State private var messageText = "" // Text input for sending messages
-    @State private var isSending = false // Track sending state
-    @State private var isInputHidden = false // Track if input should be hidden during scrolling
-    @State private var scrollTimer: Timer? // Timer to show input after scrolling stops
+    @StateObject private var viewModel: ChatRoomViewModel
 
-    @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
+    init(room: SnChatRoom, appState: AppState) {
+        self.room = room
+        // `appState` is only used to construct the ViewModel; the view reads
+        // it via @EnvironmentObject as usual.
+        self._viewModel = .init(wrappedValue: ChatRoomViewModel(room: room, appState: appState))
+    }
+
+    @State private var showComposer = false
 
     var body: some View {
-        VStack {
-            // Display WebSocket connection status
-            if (wsState != .connected)
-            {
-                Text(webSocketStatusMessage)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .padding(.vertical, 2)
-                    .animation(.easeInOut, value: wsState) // Animate status changes
-                    .transition(.opacity)
+        messageList
+            .navigationTitle(room.name ?? "Chat")
+            .task {
+                await viewModel.loadInitial()
             }
-
-            if isLoading {
-                ProgressView()
-            } else if error != nil {
-                VStack {
-                    Text("Error loading messages")
-                        .font(.caption)
-                    Button("Retry") {
-                        Task {
-                            await loadMessages()
-                        }
-                    }
-                    .font(.caption2)
-                }
-            } else if messages.isEmpty {
-                VStack {
-                    Image(systemName: "bubble.left")
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
-                    Text("No messages yet")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                ScrollViewReader { scrollView in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 8) {
-                            ForEach(messages) { message in
-                                ChatMessageItem(message: message)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .padding(.bottom, 8)
-                    }
-                    .onAppear {
-                        // Scroll to bottom when messages load
-                        if let lastMessage = messages.last {
-                            scrollView.scrollTo(lastMessage.id, anchor: .bottom)
-                        }
-                    }
-                    .onChange(of: messages.count) { _, _ in
-                        // Scroll to bottom when new messages arrive
-                        if let lastMessage = messages.last {
-                            withAnimation {
-                                scrollView.scrollTo(lastMessage.id, anchor: .bottom)
-                            }
-                        }
-                    }
-                    .onScrollPhaseChange { _, phase  in
-                        switch phase {
-                        case .interacting:
-                            if !isInputHidden {
-                                withAnimation(.easeOut(duration: 0.2)) {
-                                    isInputHidden = true
-                                }
-                            }
-                        case .idle:
-                            withAnimation(.easeIn(duration: 0.3)) {
-                                isInputHidden = false
-                            }
-                        default: break
-                        }
-                    }
-                }
+            .onDisappear {
+                viewModel.stop()
             }
+            .sheet(isPresented: $showComposer) {
+                ComposeMessageView(viewModel: viewModel)
+            }
+    }
 
-            // Message input area
-            if !isInputHidden {
-                HStack(spacing: 8) {
-                    TextField("Send message...", text: $messageText)
-                        .font(.system(size: 14))
-                        .disabled(isSending)
-                        .frame(height: 40)
+    // MARK: - Message list
 
-                    Button {
-                        Task {
-                            await sendMessage()
-                        }
-                    } label: {
-                        if isSending {
-                            ProgressView()
-                                .frame(width: 20, height: 20)
+    /// The whole chat surface is one scrollable section: message groups plus a
+    /// trailing compose footer, so the composer scrolls with the timeline
+    /// rather than being pinned as a separate bar.
+    @ViewBuilder
+    private var messageList: some View {
+        if viewModel.isLoading {
+            ProgressView()
+        } else if let error = viewModel.errorMessage {
+            VStack {
+                Text(error)
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                Button("Retry") {
+                    Task { await viewModel.loadInitial() }
+                }
+                .font(.caption2)
+            }
+        } else {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        if viewModel.messages.isEmpty {
+                            emptyState
                         } else {
-                            Image(systemName: "arrow.up.circle.fill")
-                                .resizable()
-                                .frame(width: 20, height: 20)
-                        }
-                    }
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.automatic)
-                    .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
-                    .frame(width: 40, height: 40)
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .navigationTitle(room.name ?? "Chat")
-        .task {
-            await loadMessages()
-        }
-        .onAppear {
-            setupWebSocketListeners()
-        }
-        .onDisappear {
-            cancellables.forEach { $0.cancel() }
-            cancellables.removeAll()
-            scrollTimer?.invalidate()
-            scrollTimer = nil
-        }
-    }
-
-    private var webSocketStatusMessage: String {
-        switch wsState {
-        case .connected: return "Connected"
-        case .connecting: return "Connecting..."
-        case .disconnected: return "Disconnected"
-        case .serverDown: return "Server Down"
-        case .duplicateDevice: return "Duplicate Device"
-        case .error(let msg): return "Error: \(msg)"
-        }
-    }
-
-    private func loadMessages() async {
-        // Prevent reloading if already loaded
-        guard !hasLoadedMessages else { return }
-
-        guard let token = appState.token, let serverUrl = appState.serverUrl else {
-            print("[ChatRoomView] loadMessages - no token or serverUrl")
-            isLoading = false
-            return
-        }
-
-        print("[ChatRoomView] loadMessages - room: \(room.id), token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
-        isLoading = true
-        error = nil
-
-        do {
-            let messages = try await appState.networkService.fetchChatMessages(
-                chatRoomId: room.id,
-                token: token,
-                serverUrl: serverUrl
-            )
-            // Sort with newest messages first (for flipped list, newest will appear at bottom)
-            self.messages = messages.sorted { $0.createdAt < $1.createdAt }
-            hasLoadedMessages = true
-            print("[ChatRoomView] loadMessages - success, messages: \(messages.count)")
-        } catch {
-            print("[ChatRoomView] loadMessages - error: \(error.localizedDescription)")
-            self.error = error
-        }
-
-        isLoading = false
-    }
-
-    private func sendMessage() async {
-        let content = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !content.isEmpty,
-              let token = appState.token,
-              let serverUrl = appState.serverUrl else {
-            print("[ChatRoomView] sendMessage - missing content, token, or serverUrl")
-            return
-        }
-
-        print("[ChatRoomView] sendMessage - content: \(content.prefix(50)), room: \(room.id)")
-        isSending = true
-
-        do {
-            // Generate a nonce for the message
-            let nonce = UUID().uuidString
-
-            // Prepare the request data
-            let messageData: [String: Any] = [
-                "content": content,
-                "attachments_id": [], // Empty for now, can be extended for attachments
-                "meta": [:],
-                "nonce": nonce
-            ]
-
-            // Create the URL
-            guard let url = URL(string: "\(serverUrl)/messager/chat/\(room.id)/messages") else {
-                print("[ChatRoomView] sendMessage - bad URL")
-                throw URLError(.badURL)
-            }
-
-            // Create the request
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONSerialization.data(withJSONObject: messageData, options: [])
-
-            // Send the request
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("[ChatRoomView] sendMessage - no HTTP response")
-                throw URLError(.badServerResponse)
-            }
-            
-            print("[ChatRoomView] sendMessage - response status: \(httpResponse.statusCode)")
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                let responseBody = String(data: data, encoding: .utf8) ?? ""
-                print("[ChatRoomView] sendMessage - failed with status \(httpResponse.statusCode), body: \(responseBody)")
-                throw URLError(.badServerResponse)
-            }
-
-            // Parse the response to get the sent message
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            let sentMessage = try decoder.decode(SnChatMessage.self, from: data)
-
-            // Add the message to the local list
-            messages.append(sentMessage)
-            print("[ChatRoomView] sendMessage - success, message added")
-
-            // Clear the input
-            messageText = ""
-
-        } catch {
-            print("[ChatRoomView] sendMessage - error: \(error.localizedDescription)")
-            // Could show an error alert here
-        }
-
-        isSending = false
-    }
-
-    private func sendReadReceipt() {
-        let data: [String: Any] = ["chat_room_id": room.id]
-        let packet: [String: Any] = ["type": "messages.read", "data": data, "endpoint": "sphere"]
-        if let jsonData = try? JSONSerialization.data(withJSONObject: packet, options: []),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            appState.networkService.sendWebSocketMessage(message: jsonString)
-        }
-    }
-
-    private func setupWebSocketListeners() {
-        // Listen for WebSocket packets (new messages)
-        appState.networkService.packetStream
-            .receive(on: DispatchQueue.main) // Ensure UI updates on main thread
-            .sink(receiveCompletion: { completion in
-                if case .failure(let err) = completion {
-                    print("[ChatRoomView] WebSocket packet stream error: \(err.localizedDescription)")
-                }
-            }, receiveValue: { packet in
-                if ["messages.new", "messages.update", "messages.delete"].contains(packet.type),
-                   let messageData = packet.data {
-                    do {
-                        let jsonData = try JSONSerialization.data(withJSONObject: messageData, options: [])
-                        let decoder = JSONDecoder()
-                        decoder.dateDecodingStrategy = .iso8601
-                        decoder.keyDecodingStrategy = .convertFromSnakeCase
-                        let message = try decoder.decode(SnChatMessage.self, from: jsonData)
-
-                        if message.chatRoomId == room.id {
-                            switch packet.type {
-                            case "messages.new":
-                                if message.type.hasPrefix("call") {
-                                    // TODO: Handle ongoing call
+                            // Older messages are prepended at the top, so the
+                            // pagination trigger belongs at the head.
+                            if viewModel.hasMore {
+                                Button("Load older") {
+                                    Task { await viewModel.loadMore() }
                                 }
-                                if !messages.contains(where: { $0.id == message.id }) {
-                                    messages.append(message)
-                                }
-                                sendReadReceipt()
-                            case "messages.update":
-                                if let index = messages.firstIndex(where: { $0.id == message.id }) {
-                                    messages[index] = message
-                                }
-                            case "messages.delete":
-                                messages.removeAll(where: { $0.id == message.id })
-                            default:
-                                break
+                                .id("load-older")
+                                .font(.caption2)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                            }
+                            ForEach(Array(groupedMessages.enumerated()), id: \.offset) { _, group in
+                                MessageGroupView(group: group, isOwn: isOwnGroup(group), viewModel: viewModel)
+                                    .environmentObject(appState)
                             }
                         }
-                    } catch {
-                        print("[ChatRoomView] Error decoding message from websocket: \(error.localizedDescription)")
+                        composeFooter
+                            .id("compose-footer")
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 6)
+                }
+                .onAppear { scrollToLatest(proxy) }
+                .onChange(of: viewModel.messages.count) { _, _ in
+                    if viewModel.lastScrollTarget == .top {
+                        scrollToTop(proxy)
+                    } else {
+                        scrollToLatest(proxy)
                     }
                 }
-            })
-            .store(in: &cancellables)
-
-        // Listen for WebSocket connection state changes
-        appState.networkService.stateStream
-            .receive(on: DispatchQueue.main) // Ensure UI updates on main thread
-            .sink { state in
-                wsState = state
             }
-            .store(in: &cancellables)
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "bubble.left")
+                .font(.largeTitle)
+                .foregroundColor(.secondary)
+            Text("No messages yet")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
+    /// Trailing compose affordance at the bottom of the scroll — opens the
+    /// message sheet. Scrolls into view with the timeline.
+    private var composeFooter: some View {
+        Button {
+            WKInterfaceDevice.current().play(.click)
+            showComposer = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 15, weight: .medium))
+                Text("Message")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(Color.gray.opacity(0.18))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Compose a message")
+        .padding(.vertical, 8)
+    }
+
+    private func scrollToLatest(_ proxy: ScrollViewProxy) {
+        withAnimation { proxy.scrollTo("compose-footer", anchor: .bottom) }
+    }
+
+    private func scrollToTop(_ proxy: ScrollViewProxy) {
+        withAnimation { proxy.scrollTo("load-older", anchor: .top) }
+    }
+
+    /// Groups consecutive same-sender messages within a 3-minute window, at
+    /// which point a fresh bubble is started (matches Flutter's grouping).
+    private var groupedMessages: [[SnChatMessage]] {
+        var groups: [[SnChatMessage]] = []
+        for message in viewModel.messages {
+            if let last = groups.last?.last,
+               last.senderId == message.senderId,
+               message.createdAt.timeIntervalSince(last.createdAt) <= 180 {
+                groups[groups.count - 1].append(message)
+            } else {
+                groups.append([message])
+            }
+        }
+        return groups
+    }
+
+    /// Whether the whole group (same sender) is the current user's.
+    private func isOwnGroup(_ group: [SnChatMessage]) -> Bool {
+        guard let first = group.first else { return false }
+        return viewModel.isOwnMessage(first)
     }
 }
 
-struct ChatMessageItem: View {
-    let message: SnChatMessage
-    @EnvironmentObject var appState: AppState
-    @StateObject private var avatarLoader = ImageLoader()
+// MARK: - Compose
 
-    private var avatarPictureId: String? {
-        message.sender.account?.profile?.picture?.id
-    }
+/// Full composer presented as a sheet. The inline bar in the timeline is
+/// compact; typing happens here where there's room for a real input.
+struct ComposeMessageView: View {
+    @ObservedObject var viewModel: ChatRoomViewModel
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            // Avatar
-            Group {
-                if avatarLoader.isLoading {
-                    ProgressView()
-                        .frame(width: 24, height: 24)
-                } else if let image = avatarLoader.image {
-                    image
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .clipShape(Circle())
-                } else {
-                    Circle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 24, height: 24)
-                        .overlay(
-                            Text((message.sender.account?.nick ?? "?").prefix(1).uppercased())
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.primary)
-                        )
+        VStack(spacing: 10) {
+            // No manual background/capsule — let watchOS render its native
+            // field chrome cleanly. Auto-focus opens the system text input
+            // (dictation/scribble) the moment the sheet appears.
+            TextField("Message", text: $viewModel.draft, axis: .vertical)
+                .font(.system(size: 15))
+                .lineLimit(1...4)
+                .foregroundStyle(.primary)
+                .disableAutocorrection(true)
+                .focused($isFocused)
+                .submitLabel(.send)
+                .onSubmit { send() }
+                .onChange(of: viewModel.draft) { _, newValue in
+                    viewModel.typingChanged(to: newValue)
                 }
-            }
-            .task(id: avatarPictureId) {
-                if let serverUrl = appState.serverUrl,
-                   let pictureId = avatarPictureId,
-                   let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl),
-                   let token = appState.token {
-                    await avatarLoader.loadImage(from: imageUrl, token: token)
-                }
-            }
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(message.sender.account?.nick ?? "Unknown")
-                        .font(.system(size: 12, weight: .medium))
-                    Spacer()
-                    Text(message.createdAt, style: .time)
+            Button {
+                send()
+            } label: {
+                HStack(spacing: 6) {
+                    if viewModel.isSending {
+                        ProgressView()
+                            .frame(width: 14, height: 14)
+                    } else {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 18))
+                    }
+                    Text(viewModel.isSending ? "Sending…" : "Send")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+                .background(Color.accentColor.opacity(0.9))
+                .clipShape(Capsule())
+                .foregroundColor(.white)
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                      || viewModel.isSending)
+            .accessibilityLabel("Send message")
+        }
+        .padding()
+        .onAppear {
+            // Open the watchOS keyboard text-input immediately.
+            isFocused = true
+        }
+    }
+
+    private func send() {
+        WKInterfaceDevice.current().play(.click)
+        Task {
+            await viewModel.send()
+            if viewModel.draft.isEmpty {
+                dismiss()
+            }
+        }
+    }
+}
+
+// MARK: - Window Controls
+
+
+/// Renders a sender-grouped run of messages as chat bubbles, aligning own
+/// messages to the right and others to the left — the watch-appropriate
+/// interpretation of Flutter's bubble layout.
+///
+/// Card layout per group: a header row (avatar left, username+datetime beside
+/// it) for the first message, then full-width body boxes below. Continuation
+/// messages in the group render as body boxes only (no repeated header) to
+/// save space. Own groups are right-aligned with an accent body and no avatar.
+struct MessageGroupView: View {
+    let group: [SnChatMessage]
+    let isOwn: Bool
+    @ObservedObject var viewModel: ChatRoomViewModel
+    @EnvironmentObject var appState: AppState
+
+    private var first: SnChatMessage { group[0] }
+    private var avatarPictureId: String? {
+        first.sender.account?.profile?.picture?.id
+    }
+    /// The in-chat / realm nick (member `nick`) takes precedence, matching the
+    /// quoted-message rendering and Flutter's sender-name derivation.
+    private var senderName: String {
+        first.sender.displayName
+    }
+
+    private var header: some View {
+        HStack(alignment: .center, spacing: 6) {
+            if isOwn {
+                Spacer(minLength: 28)
+                Text(first.createdAt, style: .time)
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            } else {
+                AvatarView(name: senderName, pictureId: avatarPictureId, size: 22)
+                    .environmentObject(appState)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(senderName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                    Text(first.createdAt, style: .time)
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
+                Spacer(minLength: 28)
+            }
+        }
+    }
 
+    var body: some View {
+        VStack(alignment: isOwn ? .trailing : .leading, spacing: 3) {
+            header
+            ForEach(group) { message in
+                MessageBubbleView(message: message, isOwn: isOwn, viewModel: viewModel)
+                    .environmentObject(appState)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
+        .padding(.vertical, 2)
+    }
+}
+
+/// A single message body box — full-width under the header. Own messages use a
+/// tinted (accent) background and right alignment; others a neutral surface.
+/// Renders quote/forward references and the "Edited" meta when present.
+struct MessageBubbleView: View {
+    let message: SnChatMessage
+    let isOwn: Bool
+    @ObservedObject var viewModel: ChatRoomViewModel
+    @EnvironmentObject var appState: AppState
+
+    private var bubbleColor: Color {
+        // Pending messages render semi-transparent (Flutter's optimistic state).
+        if status == .pending {
+            return (isOwn ? Color.accentColor : Color.gray)
+                .opacity(isOwn ? 0.4 : 0.2)
+        }
+        return isOwn ? Color.accentColor.opacity(0.85) : Color.gray.opacity(0.16)
+    }
+    private var textColor: Color {
+        isOwn ? .white : .primary
+    }
+    private var status: ChatRoomViewModel.MessageSendStatus? {
+        viewModel.messageStatus[message.id]
+    }
+
+    var body: some View {
+        if message.isDeletedRow {
+            // Deleted messages collapse to an inline system row, not a bubble.
+            HStack(spacing: 4) {
+                Image(systemName: "trash")
+                    .font(.system(size: 11))
+                Text(message.content?.isEmpty == false ? message.content! : "Deleted a message")
+                    .font(.system(size: 11, weight: .medium))
+                    .italic()
+                    .foregroundColor(.secondary)
+            }
+            .foregroundColor(.secondary)
+            .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
+            .padding(.vertical, 2)
+        } else {
+            VStack(alignment: isOwn ? .trailing : .leading, spacing: 2) {
+                if let quotedId = message.repliedMessageId {
+                    QuoteReferenceView(messageId: quotedId, isReply: true, viewModel: viewModel)
+                } else if let forwardedId = message.forwardedMessageId {
+                    QuoteReferenceView(messageId: forwardedId, isReply: false, viewModel: viewModel)
+                }
                 if let content = message.content, !content.isEmpty {
                     Text(content)
                         .font(.system(size: 14))
+                        .foregroundColor(textColor)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-
                 if !message.attachments.isEmpty {
                     ForEach(message.attachments.prefix(2)) { attachment in
                         AttachmentView(attachment: attachment, isCompact: true)
                             .environmentObject(appState)
                     }
                     if message.attachments.count > 2 {
-                        HStack(spacing: 8) {
-                            Image(systemName: "paperclip.circle.fill")
-                                .frame(width: 12, height: 12)
-                                .foregroundStyle(.gray)
-                            Text("\(message.attachments.count - 2)+ more")
-                                .font(.footnote)
-                                .foregroundStyle(.gray)
-                        }
+                        Label("\(message.attachments.count - 2)+ more", systemImage: "paperclip")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
                     }
                 }
+                statusFooter
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(bubbleColor, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .foregroundColor(textColor)
+            .opacity(status == .pending ? 0.9 : 1.0)
+            .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
+        }
+    }
+
+    /// Status footer: a spinner while pending, an error mark on failure,
+    /// "edited" for edited messages (Flutter's MessageIndicators).
+    @ViewBuilder
+    private var statusFooter: some View {
+        switch status {
+        case .pending:
+            HStack(spacing: 4) {
+                ProgressView()
+                    .controlSize(.mini)
+                Text("Sending…")
+                    .font(.system(size: 9))
+                    .foregroundColor(textColor.opacity(0.8))
+            }
+        case .failed:
+            HStack(spacing: 4) {
+                Image(systemName: "exclamationmark.circle")
+                    .font(.system(size: 10))
+                    .foregroundColor(.red)
+                Text("Failed")
+                    .font(.system(size: 9))
+                    .foregroundColor(.red)
+            }
+        case nil:
+            if viewModel.isEdited(message) {
+                Text("edited")
+                    .font(.system(size: 10))
+                    .foregroundColor(textColor.opacity(0.7))
             }
         }
-        .padding(.vertical, 4)
+    }
+}
+
+/// Compact inline quote/forward reference. Fetches the referenced content via
+/// the ViewModel cache on first appearance (Flutter's `MessageQuoteWidget`).
+struct QuoteReferenceView: View {
+    let messageId: String
+    let isReply: Bool
+    @ObservedObject var viewModel: ChatRoomViewModel
+    @EnvironmentObject var appState: AppState
+
+    var body: some View {
+        if let quoted = viewModel.referencedMessages[messageId] {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Image(systemName: isReply ? "arrowshape.turn.up.left" : "arrowshape.turn.up.right")
+                        .font(.system(size: 10))
+                    Text(isReply ? "Replied to \(quoted.sender.displayName)" : "Forwarded from \(quoted.sender.displayName)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .lineLimit(1)
+                }
+                if let content = quoted.content, !content.isEmpty {
+                    Text(content)
+                        .font(.system(size: 11))
+                        .lineLimit(2)
+                        .foregroundColor(.primary.opacity(0.85))
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        } else {
+            // Placeholder while resolving — shows a compact affordance.
+            HStack(spacing: 4) {
+                Image(systemName: isReply ? "arrowshape.turn.up.left" : "arrowshape.turn.up.right")
+                    .font(.system(size: 10))
+                Text(isReply ? "Replied to a message" : "Forwarded message")
+                    .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .task(id: messageId) {
+                await viewModel.resolveReferencedMessage(messageId)
+            }
+        }
+    }
+}
+
+/// Reusable circular avatar with the sender's initial fallback.
+struct AvatarView: View {
+    let name: String
+    let pictureId: String?
+    let size: CGFloat
+    @EnvironmentObject var appState: AppState
+    @StateObject private var loader = ImageLoader()
+
+    var body: some View {
+        Group {
+            if loader.isLoading {
+                ProgressView()
+                    .frame(width: size, height: size)
+            } else if let image = loader.image {
+                image
+                    .resizable()
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: size, height: size)
+                    .overlay(
+                        Text(name.prefix(1))
+                            .font(.system(size: size * 0.45, weight: .medium))
+                            .foregroundColor(.primary)
+                    )
+            }
+        }
+        .task(id: pictureId) {
+            if let serverUrl = appState.serverUrl,
+               let pictureId = pictureId,
+               let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl),
+               let token = appState.token {
+                await loader.loadImage(from: imageUrl, token: token)
+            }
+        }
     }
 }
 

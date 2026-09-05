@@ -556,6 +556,31 @@ struct SnCloudFile: Codable, Identifiable {
         case height
         case blurhash
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // `name` and `description` are not always present on referenced
+        // files (e.g. profile/room avatars), so default them rather than fail
+        // the whole decode.
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        fileMeta = try container.decodeIfPresent([String: AnyCodable].self, forKey: .fileMeta)
+        userMeta = try container.decodeIfPresent([String: AnyCodable].self, forKey: .userMeta)
+        sensitiveMarks = try container.decodeIfPresent([Int].self, forKey: .sensitiveMarks)
+        mimeType = try container.decodeIfPresent(String.self, forKey: .mimeType)
+        hash = try container.decodeIfPresent(String.self, forKey: .hash)
+        size = try container.decodeIfPresent(Int.self, forKey: .size) ?? 0
+        uploadedAt = try container.decodeIfPresent(Date.self, forKey: .uploadedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+        url = try container.decodeIfPresent(String.self, forKey: .url)
+        hasCompression = try container.decodeIfPresent(Bool.self, forKey: .hasCompression)
+        width = try container.decodeIfPresent(Int.self, forKey: .width)
+        height = try container.decodeIfPresent(Int.self, forKey: .height)
+        blurhash = try container.decodeIfPresent(String.self, forKey: .blurhash)
+    }
 }
 
 struct SnPostTag: Codable, Identifiable {
@@ -1350,7 +1375,17 @@ struct SnChatMessage: Codable, Identifiable {
     let deletedAt: Date?
 
     enum CodingKeys: String, CodingKey {
-        case id, type, content, clientMessageId = "client_message_id", nonce, meta, membersMentioned, editedAt, attachments, reactions, repliedMessageId, forwardedMessageId, senderId, sender, chatRoomId, createdAt, updatedAt, deletedAt
+        case id, type, content, nonce, meta, attachments, reactions, sender
+        case clientMessageId = "client_message_id"
+        case membersMentioned = "members_mentioned"
+        case editedAt = "edited_at"
+        case repliedMessageId = "replied_message_id"
+        case forwardedMessageId = "forwarded_message_id"
+        case senderId = "sender_id"
+        case chatRoomId = "chat_room_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 
     init(from decoder: Decoder) throws {
@@ -1367,12 +1402,91 @@ struct SnChatMessage: Codable, Identifiable {
         reactions = try container.decodeIfPresent([SnChatReaction].self, forKey: .reactions) ?? []
         repliedMessageId = try container.decodeIfPresent(String.self, forKey: .repliedMessageId)
         forwardedMessageId = try container.decodeIfPresent(String.self, forKey: .forwardedMessageId)
-        senderId = try container.decode(String.self, forKey: .senderId)
-        sender = try container.decode(SnChatMember.self, forKey: .sender)
-        chatRoomId = try container.decode(String.self, forKey: .chatRoomId)
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        // Live `messages.new` packets may omit a field for one frame; default
+        // so a real message still renders instead of dropping the whole row.
+        senderId = try container.decodeIfPresent(String.self, forKey: .senderId) ?? ""
+        sender = try container.decodeIfPresent(SnChatMember.self, forKey: .sender) ?? .fallback
+        chatRoomId = try container.decodeIfPresent(String.self, forKey: .chatRoomId) ?? ""
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+    }
+
+    /// Explicit memberwise init (a custom `init(from:)` suppresses the
+    /// synthesized one) — used for optimistic pending messages and tests.
+    init(
+        id: String,
+        type: String,
+        content: String?,
+        clientMessageId: String?,
+        nonce: String?,
+        meta: [String: AnyCodable],
+        membersMentioned: [String],
+        editedAt: Date?,
+        attachments: [SnCloudFile],
+        reactions: [SnChatReaction],
+        repliedMessageId: String?,
+        forwardedMessageId: String?,
+        senderId: String,
+        sender: SnChatMember,
+        chatRoomId: String,
+        createdAt: Date,
+        updatedAt: Date,
+        deletedAt: Date?
+    ) {
+        self.id = id
+        self.type = type
+        self.content = content
+        self.clientMessageId = clientMessageId
+        self.nonce = nonce
+        self.meta = meta
+        self.membersMentioned = membersMentioned
+        self.editedAt = editedAt
+        self.attachments = attachments
+        self.reactions = reactions
+        self.repliedMessageId = repliedMessageId
+        self.forwardedMessageId = forwardedMessageId
+        self.senderId = senderId
+        self.sender = sender
+        self.chatRoomId = chatRoomId
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+}
+
+/// Timeline rendering helpers for a chat message.
+extension SnChatMessage {
+    /// Whether the message belongs in the chat timeline. Sync/mutation
+    /// envelopes and system rows are consumed to update other messages rather
+    /// than rendered as their own bubbles (Flutter's `isChatMessageMutationEnvelope`
+    /// + system `state.*` rows). Deleted messages stay as inline system rows.
+    var isDisplayable: Bool {
+        if type == "messages.delete" || deletedAt != nil { return true }
+        switch type {
+        case "messages.update",
+             "messages.sync.file",
+             "messages.sync.finalize",
+             "messages.sync.links",
+             "messages.reaction.added",
+             "messages.reaction.removed",
+             "placeholder",
+             "system.e2ee.enabled",
+             "system.e2ee.history_unavailable",
+             "content.new",
+             "content.edit",
+             "content.delete":
+            return false
+        default:
+            // `messages.new`, `messages.pinned`, `messages.unpinned` and plain
+            // `text`/`voice` are real timeline rows.
+            return true
+        }
+    }
+
+    /// Whether this row is a user-visible deletion placeholder.
+    var isDeletedRow: Bool {
+        type == "messages.delete" || deletedAt != nil
     }
 }
 
@@ -1386,6 +1500,29 @@ struct SnChatReaction: Codable, Identifiable {
     let createdAt: Date
     let updatedAt: Date
     let deletedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, symbol, sender
+        case messageId = "message_id"
+        case senderId = "sender_id"
+        case attitude
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        messageId = try container.decodeIfPresent(String.self, forKey: .messageId) ?? ""
+        senderId = try container.decodeIfPresent(String.self, forKey: .senderId) ?? ""
+        sender = try container.decodeIfPresent(SnChatMember.self, forKey: .sender) ?? SnChatMember.fallback
+        symbol = try container.decodeIfPresent(String.self, forKey: .symbol) ?? ""
+        attitude = try container.decodeIfPresent(Int.self, forKey: .attitude) ?? 0
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+        deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+    }
 }
 
 struct SnChatMember: Codable, Identifiable {
@@ -1474,6 +1611,103 @@ struct SnChatMember: Codable, Identifiable {
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
     }
+
+    init(
+        id: String,
+        chatRoomId: String?,
+        chatRoom: SnChatRoom?,
+        accountId: String?,
+        account: SnAccount?,
+        nick: String?,
+        role: Int?,
+        notify: Int?,
+        joinedAt: Date?,
+        leaveAt: Date?,
+        invitedById: String?,
+        breakUntil: Date?,
+        timeoutUntil: Date?,
+        timeoutCause: String?,
+        lastReadAt: Date?,
+        status: SnAccountStatus?,
+        realmNick: String?,
+        realmBio: String?,
+        realmExperience: Int?,
+        realmLevel: Int?,
+        realmLevelingProgress: Double?,
+        realmLabel: SnRealmLabel?,
+        lastTyped: Date?,
+        createdAt: Date?,
+        updatedAt: Date?,
+        deletedAt: Date?
+    ) {
+        self.id = id
+        self.chatRoomId = chatRoomId
+        self.chatRoom = chatRoom
+        self.accountId = accountId
+        self.account = account
+        self.nick = nick
+        self.role = role
+        self.notify = notify
+        self.joinedAt = joinedAt
+        self.leaveAt = leaveAt
+        self.invitedById = invitedById
+        self.breakUntil = breakUntil
+        self.timeoutUntil = timeoutUntil
+        self.timeoutCause = timeoutCause
+        self.lastReadAt = lastReadAt
+        self.status = status
+        self.realmNick = realmNick
+        self.realmBio = realmBio
+        self.realmExperience = realmExperience
+        self.realmLevel = realmLevel
+        self.realmLevelingProgress = realmLevelingProgress
+        self.realmLabel = realmLabel
+        self.lastTyped = lastTyped
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+
+    /// Display name for this member: the house nick if set, else the account
+    /// nick, else the account name, else a placeholder.
+    var displayName: String {
+        if let nick = nick, !nick.isEmpty { return nick }
+        if let account = account {
+            if !account.nick.isEmpty { return account.nick }
+            if !account.name.isEmpty { return account.name }
+        }
+        return "User \(id.prefix(6))"
+    }
+
+    /// A minimal member used when a nested decode is missing or optional.
+    static let fallback = SnChatMember(
+        id: "",
+        chatRoomId: nil,
+        chatRoom: nil,
+        accountId: nil,
+        account: nil,
+        nick: nil,
+        role: nil,
+        notify: nil,
+        joinedAt: nil,
+        leaveAt: nil,
+        invitedById: nil,
+        breakUntil: nil,
+        timeoutUntil: nil,
+        timeoutCause: nil,
+        lastReadAt: nil,
+        status: nil,
+        realmNick: nil,
+        realmBio: nil,
+        realmExperience: nil,
+        realmLevel: nil,
+        realmLevelingProgress: nil,
+        realmLabel: nil,
+        lastTyped: nil,
+        createdAt: Date(timeIntervalSince1970: 0),
+        updatedAt: Date(timeIntervalSince1970: 0),
+        deletedAt: nil
+    )
 }
 
 struct SnRealmLabel: Codable, Identifiable {
@@ -1509,10 +1743,27 @@ struct SnChatSummary: Codable {
 
 struct ChatRoomsResponse {
     let rooms: [SnChatRoom]
+    let totalCount: Int
+
+    /// Mirrors Flutter's `PaginatedResult.hasMore`; when `totalCount` is
+    /// unknown (no `X-Total` header) we conservatively assume more may exist.
+    var hasMore: Bool {
+        guard totalCount > 0 else { return false }
+        return rooms.count < totalCount
+    }
 }
 
 struct ChatInvitesResponse {
     let invites: [SnChatMember]
+}
+
+/// Paginated message result mirroring Flutter's `FetchMessagesResult`:
+/// the server reports the full count in the `x-total` response header.
+struct ChatMessagesResult {
+    let messages: [SnChatMessage]
+    let totalCount: Int
+
+    var hasMore: Bool { messages.count < totalCount }
 }
 
 struct MessageSyncResponse: Codable {

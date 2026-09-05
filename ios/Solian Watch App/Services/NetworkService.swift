@@ -487,9 +487,12 @@ class NetworkService {
             print("[NetworkService] fetchUserProfile - statusCode: \(httpResponse.statusCode)")
         }
         
+        // No `.convertFromSnakeCase`: models declare explicit snake_case
+        // CodingKeys, and the strategy rewrites those raw key strings (the
+        // decoder then looks up camelCased keys, never matching "account_id"),
+        // which breaks nested models like SnAccountBadge.
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         do {
             let account = try decoder.decode(SnAccount.self, from: data)
@@ -530,7 +533,6 @@ class NetworkService {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         let status = try decoder.decode(SnAccountStatus.self, from: data)
         print("[NetworkService] fetchAccountStatus - success")
@@ -585,7 +587,6 @@ class NetworkService {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         return try decoder.decode(SnAccountStatus.self, from: data)
     }
@@ -645,35 +646,56 @@ class NetworkService {
     
     // MARK: - Chat API Methods
     
-    func fetchChatRooms(token: String, serverUrl: String) async throws -> ChatRoomsResponse {
+    func fetchChatRooms(token: String, serverUrl: String, offset: Int = 0, take: Int = 100) async throws -> ChatRoomsResponse {
         print("[NetworkService] fetchChatRooms - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
-        
+
         guard let baseURL = URL(string: serverUrl) else {
             print("[NetworkService] fetchChatRooms - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/messager/chat")
-        
-        var request = URLRequest(url: url)
+
+        // Bare `/messager/chat` returns `{ "rooms": [...] }` — this is the
+        // shape the iOS Runner decodes (ChatRoomsResponse.rooms). The
+        // `/messager/chat/rooms` route is a 404 (SDK-only, unimplemented here).
+        guard var components = URLComponents(
+            url: baseURL.appendingPathComponent("/messager/chat"),
+            resolvingAgainstBaseURL: false
+        ) else {
+            throw URLError(.badURL)
+        }
+        // Offset/take are optional hints; the bare endpoint returns the full
+        // list, and we bound by `take` client-side.
+        components.queryItems = [
+            URLQueryItem(name: "offset", value: String(offset)),
+            URLQueryItem(name: "take", value: String(take)),
+        ]
+
+        var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        
+
         let (data, response) = try await session.data(for: request)
-        
-        if let httpResponse = response as? HTTPURLResponse {
-            print("[NetworkService] fetchChatRooms - statusCode: \(httpResponse.statusCode)")
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[NetworkService] fetchChatRooms failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
-        
+
+        let totalCount = Int((response as? HTTPURLResponse)?
+            .value(forHTTPHeaderField: "X-Total") ?? "0") ?? 0
+
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
+
         do {
-            let rooms = try decoder.decode([SnChatRoom].self, from: data)
-            print("[NetworkService] fetchChatRooms - decode success, rooms count: \(rooms.count)")
-            return ChatRoomsResponse(rooms: rooms)
+            // Server wraps the list in `{ "rooms": [...] }`. Tolerate a bare
+            // array too, in case a deployment returns the list unwrapped.
+            let rooms = try decodeRoomList(from: data, decoder: decoder)
+            print("[NetworkService] fetchChatRooms - decode success, rooms count: \(rooms.count), total: \(totalCount)")
+            return ChatRoomsResponse(rooms: rooms, totalCount: totalCount)
         } catch let decodingError as DecodingError {
             print("[NetworkService] fetchChatRooms - decode error: \(decodingError)")
             switch decodingError {
@@ -693,6 +715,19 @@ class NetworkService {
             print("[NetworkService] fetchChatRooms - other error: \(error)")
             throw error
         }
+    }
+
+    /// Decodes a room list from a `{ "rooms": [...] }` wrapper (or a bare
+    /// array), mirroring the iOS Runner's `ChatRoomsResponse`.
+    private func decodeRoomList(from data: Data, decoder: JSONDecoder) throws -> [SnChatRoom] {
+        if let rooms = try? decoder.decode([SnChatRoom].self, from: data) {
+            return rooms
+        }
+        struct WrappedRooms: Decodable {
+            let rooms: [SnChatRoom]
+        }
+        let wrapped = try decoder.decode(WrappedRooms.self, from: data)
+        return wrapped.rooms
     }
     
     func fetchChatRoom(identifier: String, token: String, serverUrl: String) async throws -> SnChatRoom {
@@ -715,7 +750,6 @@ class NetworkService {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         return try decoder.decode(SnChatRoom.self, from: data)
     }
@@ -736,7 +770,6 @@ class NetworkService {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         
         let invites = try decoder.decode([SnChatMember].self, from: data)
         return ChatInvitesResponse(invites: invites)
@@ -786,66 +819,261 @@ class NetworkService {
     
     // MARK: - Message API Methods
     
-    func fetchChatMessages(chatRoomId: String, token: String, serverUrl: String, before: Date? = nil, take: Int = 50) async throws -> [SnChatMessage] {
-        print("[NetworkService] fetchChatMessages - chatRoomId: \(chatRoomId), token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
-        
+    func fetchChatMessages(
+        chatRoomId: String,
+        token: String,
+        serverUrl: String,
+        offset: Int = 0,
+        take: Int = 50
+    ) async throws -> ChatMessagesResult {
+        print("[NetworkService] fetchChatMessages - chatRoomId: \(chatRoomId), offset: \(offset), take: \(take)")
+
         guard let baseURL = URL(string: serverUrl) else {
             print("[NetworkService] fetchChatMessages - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
-        
-        // Try a different pattern: /messager/chat/messages with roomId as query param
-        var components = URLComponents(
+
+        // Matches the Flutter MessageRepository shape:
+        // GET /messager/chat/{roomId}/messages?offset=&take= with x-total header.
+        guard var components = URLComponents(
             url: baseURL.appendingPathComponent("/messager/chat/\(chatRoomId)/messages"),
             resolvingAgainstBaseURL: false
-        )!
-        var queryItems = [
+        ) else {
+            throw URLError(.badURL)
+        }
+        components.queryItems = [
+            URLQueryItem(name: "offset", value: String(offset)),
             URLQueryItem(name: "take", value: String(take)),
         ]
-        if let before = before {
-            queryItems.append(URLQueryItem(name: "before", value: ISO8601DateFormatter().string(from: before)))
-        }
-        components.queryItems = queryItems
-        
+
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        
+
         let (data, response) = try await session.data(for: request)
-        
+
         if let httpResponse = response as? HTTPURLResponse {
             print("[NetworkService] fetchChatMessages - statusCode: \(httpResponse.statusCode)")
-            
+
             if httpResponse.statusCode != 200 {
                 let responseBody = String(data: data, encoding: .utf8) ?? "Unable to decode response body"
                 print("[NetworkService] fetchChatMessages failed with status \(httpResponse.statusCode), body: \(responseBody)")
                 throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
             }
         }
-        
-        // Check if data is empty
+
+        let totalCount = Int((response as? HTTPURLResponse)?
+            .value(forHTTPHeaderField: "X-Total") ?? "0") ?? 0
+
+        if offset >= totalCount && totalCount > 0 {
+            print("[NetworkService] fetchChatMessages - offset beyond total, returning empty")
+            return ChatMessagesResult(messages: [], totalCount: totalCount)
+        }
+
         if data.isEmpty {
             print("[NetworkService] fetchChatMessages received empty response data")
-            return []
+            return ChatMessagesResult(messages: [], totalCount: totalCount)
         }
-        
+
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
+
         do {
-            let messages = try decoder.decode([SnChatMessage].self, from: data)
-            print("[NetworkService] fetchChatMessages - decode success, messages: \(messages.count)")
-            return messages
+            // Tolerate either a bare JSON array or a `{items:[...]}` wrapper —
+            // the gateway wraps list responses in a dictionary for the rooms
+            // endpoint, so apply the same resilience here.
+            let messages = try decodeMessageList(from: data, decoder: decoder)
+            print("[NetworkService] fetchChatMessages - decode success, messages: \(messages.count), total: \(totalCount)")
+            return ChatMessagesResult(messages: messages, totalCount: totalCount)
         } catch {
             print("[NetworkService] fetchChatMessages - decode error: \(error)")
             print("[NetworkService] fetchChatMessages - raw JSON: \(String(data: data, encoding: .utf8) ?? "nil")")
             throw error
         }
     }
-    
+
+    /// Decodes a message list from either a JSON array or a `{ "items": [...] }`
+    /// wrapper.
+    private func decodeMessageList(from data: Data, decoder: JSONDecoder) throws -> [SnChatMessage] {
+        if let messages = try? decoder.decode([SnChatMessage].self, from: data) {
+            return messages
+        }
+        struct WrappedMessages: Decodable {
+            let items: [SnChatMessage]
+        }
+        let wrapped = try decoder.decode(WrappedMessages.self, from: data)
+        return wrapped.items
+    }
+
+    /// Fetches a single message by id — used to resolve quoted/forwarded
+    /// message content, mirroring Flutter's `fetchRemoteMessage`
+    /// (`GET /messager/chat/{room}/messages/{messageId}`).
+    func fetchChatMessage(byId messageId: String, chatRoomId: String, token: String, serverUrl: String) async throws -> SnChatMessage? {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/messager/chat/\(chatRoomId)/messages/\(messageId)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse {
+            if httpResponse.statusCode == 404 { return nil }
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+            }
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnChatMessage.self, from: data)
+    }
+
+    /// Fetches the current user's identity (member) in a room, matching
+    /// Flutter's `GET /messager/chat/{id}/members/me`.
+    func fetchChatIdentity(chatRoomId: String, token: String, serverUrl: String) async throws -> SnChatMember {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/messager/chat/\(chatRoomId)/members/me")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
+            throw URLError(.resourceUnavailable)
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnChatMember.self, from: data)
+    }
+
+    /// Sends a message. Non-E2EE rooms send via WebSocket
+    /// (`messages.send` → awaited `messages.delivered`) with an HTTP POST
+    /// fallback, mirroring Flutter's MessageSender. Returns the server message.
+    func sendChatMessage(
+        chatRoomId: String,
+        content: String,
+        clientMessageId: String,
+        token: String,
+        serverUrl: String,
+        replyToId: String? = nil,
+        threadId: String? = nil
+    ) async throws -> SnChatMessage {
+        var payload: [String: Any] = [
+            "content": content,
+            "attachments_id": [],
+            "meta": [:],
+            "client_message_id": clientMessageId,
+        ]
+        if let replyToId = replyToId { payload["replied_message_id"] = replyToId }
+        if let threadId = threadId { payload["thread_id"] = threadId }
+
+        // WebSocket-first when connected.
+        if currentConnectionState == .connected, webSocketTask != nil {
+            if let sent = try? await sendViaWebSocket(chatRoomId: chatRoomId, payload: payload) {
+                return sent
+            }
+            print("[NetworkService] sendChatMessage - WS send failed, falling back to HTTP")
+        }
+
+        // HTTP fallback: POST /messager/chat/{roomId}/messages.
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/messager/chat/\(chatRoomId)/messages")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[NetworkService] sendChatMessage failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnChatMessage.self, from: data)
+    }
+
+    /// Sends a `messages.send` packet over WebSocket and awaits the matching
+    /// `messages.delivered` ack (≤3s). Throws on timeout/absence so callers
+    /// fall back to HTTP.
+    private func sendViaWebSocket(chatRoomId: String, payload: [String: Any]) async throws -> SnChatMessage {
+        guard let task = webSocketTask else { throw URLError(.notConnectedToInternet) }
+
+        let packet: [String: Any] = [
+            "type": "messages.send",
+            "endpoint": "messager",
+            "data": ["chat_room_id": chatRoomId].merging(payload) { (_, new) in new },
+        ]
+        let jsonData = try JSONSerialization.data(withJSONObject: packet)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        let clientId = payload["client_message_id"] as? String
+
+        let sent = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SnChatMessage, Error>) in
+            var cancellable: AnyCancellable?
+
+            // Send first, then listen for the ack. Match the echo back on the
+            // same room + client_message_id (nonce is a fallback).
+            task.send(.string(jsonString)) { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                }
+            }
+
+            cancellable = self.packetSubject
+                .filter { $0.type == "messages.delivered" }
+                .compactMap { $0.data }
+                .filter { data in
+                    let roomId = data["chat_room_id"] as? String
+                    let ackClientId = (data["client_message_id"] as? String) ?? (data["nonce"] as? String)
+                    return roomId == chatRoomId && ackClientId == clientId
+                }
+                .prefix(1)
+                .sink(receiveCompletion: { _ in }, receiveValue: { data in
+                    do {
+                        let jsonData = try JSONSerialization.data(withJSONObject: data, options: [])
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .iso8601
+                        let message = try decoder.decode(SnChatMessage.self, from: jsonData)
+                        continuation.resume(returning: message)
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                })
+            _ = cancellable
+
+            // 3s delivery timeout → HTTP fallback.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                cancellable?.cancel()
+                continuation.resume(throwing: URLError(.timedOut))
+            }
+        }
+        return sent
+    }
+
     // MARK: - WebSocket
 
     private var webSocketTask: URLSessionWebSocketTask?
@@ -1063,6 +1291,34 @@ class NetworkService {
                 print("[WebSocket] Error sending message: \(error.localizedDescription)")
             }
         }
+    }
+
+    /// Sends a `messages.send` packet with the given `type` + `data`, matching
+    /// the Flutter WebSocketPacket shape used by chat_subscribe.dart.
+    func sendChatPacket(type: String, data: [String: Any], endpoint: String = "messager") {
+        let packet: [String: Any] = [
+            "type": type,
+            "data": data,
+            "endpoint": endpoint,
+        ]
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: packet),
+              let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+        sendWebSocketMessage(message: jsonString)
+    }
+
+    /// Marks a room as read via WebSocket (`messages.read`).
+    func sendReadReceipt(chatRoomId: String) {
+        sendChatPacket(type: "messages.read", data: ["chat_room_id": chatRoomId])
+    }
+
+    /// Broadcasts a typing indicator (`messages.typing`), throttled by the caller.
+    func sendTypingStatus(chatRoomId: String) {
+        let now = Int(Date().timeIntervalSince1970 * 1000)
+        sendChatPacket(type: "messages.typing", data: [
+            "chat_room_id": chatRoomId,
+            "ts": now,
+            "type": "typing",
+        ])
     }
     
     func disconnectWebSocket() {
