@@ -4,7 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/widgets/call_button.dart';
-import 'package:island/drive/widgets/cloud_files.dart' show ProfilePictureWidget;
+import 'package:island/drive/widgets/cloud_files.dart'
+    show ProfilePictureWidget, avatarFallbackText;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -201,9 +202,7 @@ class _ParticipantAvatar extends HookConsumerWidget {
                 radius: 42,
                 backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: Text(
-                  participant.name.isNotEmpty
-                      ? participant.name[0].toUpperCase()
-                      : '?',
+                  avatarFallbackText(participant.name) ?? '?',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),

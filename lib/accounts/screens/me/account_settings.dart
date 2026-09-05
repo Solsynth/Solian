@@ -1095,7 +1095,7 @@ class _FediversePublisherPickerSheet extends StatelessWidget {
                         ? NetworkImage(publisher.avatarUrl!)
                         : null,
                     child: publisher.avatarUrl == null
-                        ? Text(publisher.publisherName[0].toUpperCase())
+                        ? Text(avatarFallbackText(publisher.publisherName) ?? '?')
                         : null,
                   ),
                   title: Text(publisher.publisherName),

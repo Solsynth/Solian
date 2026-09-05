@@ -428,7 +428,7 @@ class _RoomAvatar extends StatelessWidget {
             )
           : CircleAvatar(
               child: Text(
-                room.name![0].toUpperCase(),
+                avatarFallbackText(room.name) ?? '?',
                 style: const TextStyle(fontSize: 12),
               ),
             ),

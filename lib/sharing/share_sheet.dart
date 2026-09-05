@@ -890,7 +890,7 @@ class _ChatRoomOption extends HookConsumerWidget {
                       : room.picture == null
                       ? CircleAvatar(
                           radius: 16,
-                          child: Text(room.name![0].toUpperCase()),
+                          child: Text(avatarFallbackText(room.name) ?? '?'),
                         )
                       : ProfilePictureWidget(file: room.picture, radius: 16),
                 ),

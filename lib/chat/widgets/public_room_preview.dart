@@ -126,7 +126,7 @@ class PublicRoomPreview extends HookConsumerWidget {
                 )
               : CircleAvatar(
                   child: Text(
-                    room.name![0].toUpperCase(),
+                    avatarFallbackText(room.name) ?? '?',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),
@@ -160,7 +160,7 @@ class PublicRoomPreview extends HookConsumerWidget {
                 )
               : CircleAvatar(
                   child: Text(
-                    room.name![0].toUpperCase(),
+                    avatarFallbackText(room.name) ?? '?',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),

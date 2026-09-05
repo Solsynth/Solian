@@ -733,12 +733,52 @@ class CloudImageWidget extends ConsumerWidget {
   }
 }
 
+/// Matches a single-letter CJK (Han/Hiragana/Katakana/Hangul) or emoji/
+/// pictograph grapheme. Used to decide how many characters a fallback avatar
+/// should show.
+// The analyzer's `valid_regexps` cannot parse `\p{}` property escapes, but
+// the VM regex engine supports them (verified at runtime). Suppress the
+// false positive.
+final RegExp _cjkOrEmoji = RegExp(
+  // ignore: valid_regexps
+  r'[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Emoji}\p{Extended_Pictographic}]',
+  unicode: true,
+);
+
+/// Builds the text shown inside a fallback avatar.
+///
+/// - One CJK grapheme for CJK names (e.g. "太阳" -> "太").
+/// - One whole emoji grapheme (never clipped mid-cluster, e.g. the family
+///   emoji stays intact).
+/// - First letter of up to two words for multi-word Latin names
+///   (e.g. "Alice Zhang" -> "AZ").
+/// - Up to two letters for a single Latin word (e.g. "Alice" -> "AL").
 String? avatarFallbackText(String? name) {
   final normalizedName = name?.trim();
   if (normalizedName == null || normalizedName.isEmpty) return null;
 
-  final characters = normalizedName.runes.take(2).toList();
-  return String.fromCharCodes(characters).toUpperCase();
+  final graphemes = normalizedName.characters;
+  if (graphemes.isEmpty) return null;
+
+  // One whole CJK/emoji grapheme.
+  if (_cjkOrEmoji.hasMatch(graphemes.first)) {
+    return graphemes.take(1).toString().toUpperCase();
+  }
+
+  // Latin: first letter of each of up to two words -> "John Doe" -> "JD".
+  final words = normalizedName
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .toList();
+  if (words.length >= 2) {
+    return words
+        .take(2)
+        .map((word) => word.characters.first.toUpperCase())
+        .join();
+  }
+
+  // Single Latin word: up to two letters -> "Alice" -> "AL".
+  return graphemes.take(2).toString().toUpperCase();
 }
 
 class ProfilePictureWidget extends ConsumerWidget {

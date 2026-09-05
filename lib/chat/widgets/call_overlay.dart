@@ -1165,9 +1165,7 @@ class _CallPreviewParticipantAvatar extends HookConsumerWidget {
         radius: 14,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         child: Text(
-          participant.name.isNotEmpty
-              ? participant.name.substring(0, 1).toUpperCase()
-              : '?',
+          avatarFallbackText(participant.name) ?? '?',
           style: Theme.of(context).textTheme.labelSmall,
         ),
       ),
