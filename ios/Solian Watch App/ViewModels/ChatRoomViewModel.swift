@@ -1,6 +1,18 @@
 import Combine
 import Foundation
 
+/// Raised when the server returns messages but none could be decoded.
+enum ChatDecodeError: LocalizedError {
+    case allMessagesUndecodable(total: Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .allMessagesUndecodable(let total):
+            return "Messages couldn't be read (the server returned \(total), but none matched the expected format)."
+        }
+    }
+}
+
 /// State for one chat room's timeline + composer, mirroring Flutter's
 /// `ChatRoomState` / `MessagesNotifier` behaviors that matter on a watch:
 /// paginated load, real-time append, and send-with-optimistic-insert.
@@ -27,6 +39,10 @@ final class ChatRoomViewModel: ObservableObject {
     /// bubble + spinner; `.failed` shows an error mark. Confirmed rows are absent.
     @Published private(set) var messageStatus: [String: MessageSendStatus] = [:]
 
+    /// Messages received while this room was closed (not from self), i.e. the
+    /// live unread count. Reset to 0 when the room is opened.
+    @Published private(set) var unreadCount = 0
+
     enum MessageSendStatus: Equatable {
         case pending
         case failed
@@ -39,6 +55,7 @@ final class ChatRoomViewModel: ObservableObject {
 
     let room: SnChatRoom
     private let appState: AppState
+    private let chatCache: ChatCache
     private let pageSize = 20
     private var hasLoaded = false
     /// Raw rows fetched so far (before displayable filtering). The server pages
@@ -48,10 +65,13 @@ final class ChatRoomViewModel: ObservableObject {
     private var pendingFetches = Set<String>()
     private var cancellables = Set<AnyCancellable>()
 
-    init(room: SnChatRoom, appState: AppState) {
+    init(room: SnChatRoom, appState: AppState, chatCache: ChatCache) {
         self.room = room
         self.appState = appState
+        self.chatCache = chatCache
         observeWebSocket()
+        // Seed the timeline from cache for instant/offline rendering.
+        self.messages = chatCache.loadMessages(roomId: room.id)
     }
 
     /// True when a message was sent by the current user (used to render own
@@ -73,31 +93,75 @@ final class ChatRoomViewModel: ObservableObject {
 
     func loadInitial() async {
         guard !hasLoaded, !isLoading else { return }
+
+        // Wait for credentials to be ready. The first `.task` often runs before
+        // the token/serverUrl are set (phone sync / token refresh in flight),
+        // which is why an immediate fetch fails and a manual Retry succeeds.
+        // Cap the wait so we never spin forever if auth is unavailable.
+        var waitCount = 0
+        while appState.token == nil || appState.serverUrl == nil {
+            guard waitCount < 24 else { return } // max ~6s
+            try? await Task.sleep(for: .milliseconds(250))
+            if Task.isCancelled { return }
+            waitCount += 1
+        }
         guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        do {
-            async let identity = loadIdentity(token: token, serverUrl: serverUrl)
-            let result = try await appState.networkService.fetchChatMessages(
-                chatRoomId: room.id,
-                token: token,
-                serverUrl: serverUrl,
-                offset: 0,
-                take: pageSize
-            )
-            self.identity = try? await identity
-            self.messages = result.messages
-                .filter(\.isDisplayable)
-                .sorted { $0.createdAt < $1.createdAt }
-            self.fetchedRowCount = result.messages.count
-            self.totalCount = result.totalCount
-            self.hasMore = result.hasMore
-            hasLoaded = true
-        } catch {
-            errorMessage = error.localizedDescription
+        // Retry transient failures with short backoff (up to a few attempts).
+        let attempts = 3
+        for attempt in 0..<attempts {
+            do {
+                async let identity = loadIdentity(token: token, serverUrl: serverUrl)
+                let result = try await appState.networkService.fetchChatMessages(
+                    chatRoomId: room.id,
+                    token: token,
+                    serverUrl: serverUrl,
+                    offset: 0,
+                    take: pageSize
+                )
+                self.identity = try? await identity
+                let displayable = result.messages.filter(\.isDisplayable)
+                // If the server reported messages but none decodable, surface a
+                // decode error rather than a misleading empty timeline.
+                if displayable.isEmpty && result.totalCount > 0 {
+                    throw ChatDecodeError.allMessagesUndecodable(total: result.totalCount)
+                }
+                self.messages = displayable.sorted { $0.createdAt < $1.createdAt }
+                self.fetchedRowCount = result.messages.count
+                self.totalCount = result.totalCount
+                self.hasMore = result.hasMore
+                // Opening the room clears its unread count.
+                self.unreadCount = 0
+                hasLoaded = true
+                persist()
+                return
+            } catch {
+                if attempt == attempts - 1 {
+                    // Last attempt failed. Keep any cached content visible;
+                    // only show a retry when there's genuinely nothing to show.
+                    if messages.isEmpty {
+                        errorMessage = error.localizedDescription
+                    }
+                } else {
+                    try? await Task.sleep(for: .milliseconds(500 * (attempt + 1)))
+                }
+            }
         }
+    }
+
+    /// Persists the current timeline + room summary to the SwiftData cache.
+    private func persist() {
+        chatCache.saveMessages(roomId: room.id, messages)
+        chatCache.updateRoomSummary(roomId: room.id, summary: currentSummary)
+    }
+
+    /// Last displayable message + live unread count for this room.
+    private var currentSummary: ChatSummary {
+        ChatSummary(lastMessage: messages.last, unreadCount: unreadCount)
     }
 
     func loadMore() async {
@@ -238,6 +302,7 @@ final class ChatRoomViewModel: ObservableObject {
             } else if sent.isDisplayable, !messages.contains(where: { $0.id == sent.id }) {
                 messages.append(sent)
             }
+            persist()
         } catch {
             print("[ChatRoomViewModel] send - failed: \(error.localizedDescription)")
             messageStatus[pendingId] = .failed
@@ -314,10 +379,16 @@ final class ChatRoomViewModel: ObservableObject {
             if let index = messages.firstIndex(where: { $0.id == message.id }) {
                 messages[index] = message
             }
+            persist()
         case "messages.delete":
             messages.removeAll { $0.id == message.id }
+            persist()
         default:
             break
+        }
+        // Persist after any live mutation that changed the list.
+        if packet.type == "messages.new", chatCache.isAvailable {
+            persist()
         }
     }
 

@@ -9,7 +9,8 @@ import SwiftUI
 
 // The root view of the app.
 struct ContentView: View {
-    @StateObject private var appState = AppState()
+    @StateObject private var appState = AppState.shared
+    @StateObject private var summaryStore = ChatSummaryStore.shared
     @State private var selection: Panel? = .explore
 
     enum Panel: Hashable {
@@ -56,7 +57,9 @@ struct ContentView: View {
         case .explore:
             ExploreView().environmentObject(appState)
         case .chat:
-            ChatView().environmentObject(appState)
+            ChatView()
+                .environmentObject(appState)
+                .environmentObject(summaryStore)
         case .notifications:
             NotificationView().environmentObject(appState)
         case .account:

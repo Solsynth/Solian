@@ -12,6 +12,9 @@ import Combine
 
 @MainActor
 class AppState: ObservableObject {
+    /// App-wide singleton. Owned by the root; created once via `shared`.
+    static let shared = AppState()
+
     @Published var token: String? = nil
     @Published var serverUrl: String? = nil
     @Published var isReady = false

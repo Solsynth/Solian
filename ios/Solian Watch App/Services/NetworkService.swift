@@ -41,6 +41,37 @@ struct WebSocketPacket {
     let errorMessage: String?
 }
 
+/// A `CheckedContinuation` wrapper that resumes exactly once, whatever thread
+/// the resume comes from. A reference type so all closures share the same
+/// guard; the lock makes it safe to resume from the ack thread, a URLSession
+/// callback, and the main-queue timeout concurrently. Guards against the
+/// timeout racing an early ack (or a send error), which would otherwise trip
+/// Swift's "continuation resumed more than once" trap. `@unchecked Sendable`
+/// because the lock serializes all access to `resumed`.
+final class ResumeOnce<Value>: @unchecked Sendable {
+    private let continuation: CheckedContinuation<Value, Error>
+    private let lock = NSLock()
+    private var resumed = false
+
+    init(_ continuation: CheckedContinuation<Value, Error>) {
+        self.continuation = continuation
+    }
+
+    func resume(returning value: Value) {
+        lock.lock(); defer { lock.unlock() }
+        guard !resumed else { return }
+        resumed = true
+        continuation.resume(returning: value)
+    }
+
+    func resume(throwing error: Error) {
+        lock.lock(); defer { lock.unlock() }
+        guard !resumed else { return }
+        resumed = true
+        continuation.resume(throwing: error)
+    }
+}
+
 // MARK: - Network Service
 
 class NetworkService {
@@ -645,7 +676,33 @@ class NetworkService {
     }
     
     // MARK: - Chat API Methods
-    
+
+    /// Fetches per-room chat summaries (unread count + last message), keyed by
+    /// room id. Mirrors Flutter's `GET /messager/chat/summary`.
+    func fetchChatSummary(token: String, serverUrl: String) async throws -> [String: SnChatSummary] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/messager/chat/summary")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[NetworkService] fetchChatSummary failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode([String: SnChatSummary].self, from: data)
+    }
+
     func fetchChatRooms(token: String, serverUrl: String, offset: Int = 0, take: Int = 100) async throws -> ChatRoomsResponse {
         print("[NetworkService] fetchChatRooms - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
 
@@ -895,16 +952,26 @@ class NetworkService {
     }
 
     /// Decodes a message list from either a JSON array or a `{ "items": [...] }`
-    /// wrapper.
+    /// wrapper. Each element is decoded independently and malformed rows are
+    /// skipped (Flutter's `_tryParseMessage`), so one bad message never breaks
+    /// the whole timeline.
     private func decodeMessageList(from data: Data, decoder: JSONDecoder) throws -> [SnChatMessage] {
-        if let messages = try? decoder.decode([SnChatMessage].self, from: data) {
-            return messages
+        let rawList: [Any]
+        if let array = (try? JSONSerialization.jsonObject(with: data)) as? [Any] {
+            rawList = array
+        } else if let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                  let items = dict["items"] as? [Any] {
+            rawList = items
+        } else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: [],
+                debugDescription: "Expected a message array or {items:[...]} wrapper"
+            ))
         }
-        struct WrappedMessages: Decodable {
-            let items: [SnChatMessage]
+        return rawList.compactMap { element in
+            guard let itemData = try? JSONSerialization.data(withJSONObject: element) else { return nil }
+            return try? decoder.decode(SnChatMessage.self, from: itemData)
         }
-        let wrapped = try decoder.decode(WrappedMessages.self, from: data)
-        return wrapped.items
     }
 
     /// Fetches a single message by id — used to resolve quoted/forwarded
@@ -1033,16 +1100,19 @@ class NetworkService {
         let clientId = payload["client_message_id"] as? String
 
         let sent = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SnChatMessage, Error>) in
-            var cancellable: AnyCancellable?
+            // Resume exactly once. All three paths (send error, ack, timeout)
+            // funnel through `resume`; the flag guards against the timeout
+            // racing an already-resumed ack, which would trip Swfit's
+            // "continuation resumed more than once" trap.
+            let resumeOnce = ResumeOnce<SnChatMessage>(continuation)
 
-            // Send first, then listen for the ack. Match the echo back on the
-            // same room + client_message_id (nonce is a fallback).
             task.send(.string(jsonString)) { error in
                 if let error = error {
-                    continuation.resume(throwing: error)
+                    resumeOnce.resume(throwing: error)
                 }
             }
 
+            var cancellable: AnyCancellable?
             cancellable = self.packetSubject
                 .filter { $0.type == "messages.delivered" }
                 .compactMap { $0.data }
@@ -1058,17 +1128,17 @@ class NetworkService {
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .iso8601
                         let message = try decoder.decode(SnChatMessage.self, from: jsonData)
-                        continuation.resume(returning: message)
+                        resumeOnce.resume(returning: message)
                     } catch {
-                        continuation.resume(throwing: error)
+                        resumeOnce.resume(throwing: error)
                     }
                 })
-            _ = cancellable
 
-            // 3s delivery timeout → HTTP fallback.
+            // 3s delivery timeout → HTTP fallback. Cancels the ack subscription
+            // and only resumes if nothing else already did.
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 cancellable?.cancel()
-                continuation.resume(throwing: URLError(.timedOut))
+                resumeOnce.resume(throwing: URLError(.timedOut))
             }
         }
         return sent

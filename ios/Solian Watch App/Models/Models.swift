@@ -1739,6 +1739,22 @@ struct SnRealmLabel: Codable, Identifiable {
 struct SnChatSummary: Codable {
     let unreadCount: Int
     let lastMessage: SnChatMessage?
+
+    enum CodingKeys: String, CodingKey {
+        case unreadCount = "unread_count"
+        case lastMessage = "last_message"
+    }
+
+    init(unreadCount: Int, lastMessage: SnChatMessage?) {
+        self.unreadCount = unreadCount
+        self.lastMessage = lastMessage
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        unreadCount = try container.decodeIfPresent(Int.self, forKey: .unreadCount) ?? 0
+        lastMessage = try container.decodeIfPresent(SnChatMessage.self, forKey: .lastMessage)
+    }
 }
 
 struct ChatRoomsResponse {

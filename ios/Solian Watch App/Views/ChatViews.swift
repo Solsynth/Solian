@@ -9,12 +9,18 @@ import SwiftUI
 
 struct ChatView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject private var summaryStore: ChatSummaryStore
+    @Environment(\.chatCache) private var chatCache
     @State private var selectedTab = 0
     @State private var chatRooms: [SnChatRoom] = []
     @State private var chatInvites: [SnChatMember] = []
     @State private var isLoading = false
     @State private var error: Error?
     @State private var showingInvites = false
+    @State private var liveCancellable: AnyCancellable?
+    /// The room-list load. Stored (not `.task`) so it isn't cancelled when the
+    /// view disappears (panel switch), which left the list empty.
+    @State private var loadTask: Task<Void, Never>?
 
     private let tabs = ["All", "Direct", "Group"]
 
@@ -38,7 +44,8 @@ struct ChatView: View {
                     } else {
                         ChatRoomListView(
                             chatRooms: filteredChatRooms(for: index),
-                            selectedTab: index
+                            selectedTab: index,
+                            summaries: summaryStore.roomSummaries
                         )
                     }
                 }
@@ -71,11 +78,38 @@ struct ChatView: View {
             ChatInvitesView(invites: $chatInvites, appState: appState)
         }
         .onAppear {
-            Task.detached {
-                await loadChatRooms()
-                await loadChatInvites()
+            // Seed the room list from cache immediately (offline/instant).
+            loadCachedRooms()
+            summaryStore.loadCached()
+            if liveCancellable == nil {
+                liveCancellable = summaryStore.observeLiveMessages()
+            }
+            // Launch the network loads in a stored task so switching panels
+            // can't cancel them mid-flight (which left the list empty).
+            if loadTask == nil || loadTask?.isCancelled == true {
+                loadTask = Task { @MainActor in
+                    await loadChatRooms()
+                    await loadChatSummaries()
+                    await loadChatInvites()
+                }
             }
         }
+        .onDisappear {
+            loadTask?.cancel()
+            loadTask = nil
+            liveCancellable?.cancel()
+            liveCancellable = nil
+        }
+    }
+
+    /// Seeds the room list from the SwiftData cache immediately (offline /
+    /// instant launch). Overwritten by a successful network fetch.
+    private func loadCachedRooms() {
+        guard !isLoading else { return }
+        let cached = chatCache.loadRooms()
+        guard !cached.isEmpty else { return }
+        chatRooms = cached.map(\.room)
+        summaryStore.loadCached()
     }
 
     private func filteredChatRooms(for tabIndex: Int) -> [SnChatRoom] {
@@ -92,19 +126,34 @@ struct ChatView: View {
     }
 
     private func loadChatRooms() async {
-        guard let token = appState.token, let serverUrl = appState.serverUrl else {
-            print("[ChatView] loadChatRooms - no token or serverUrl")
-            return
+        // Await credentials (the first `.task` can run before auth resolves).
+        while appState.token == nil || appState.serverUrl == nil {
+            try? await Task.sleep(for: .milliseconds(250))
+            if Task.isCancelled { return }
         }
+        guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
         
         print("[ChatView] loadChatRooms - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
         isLoading = true
         error = nil
+        // Always clear `isLoading` — including on cancellation — otherwise the
+        // spinner spins forever after a panel-switch cancels the task.
+        defer { isLoading = false }
 
         do {
             let response = try await appState.networkService.fetchChatRooms(token: token, serverUrl: serverUrl)
             chatRooms = response.rooms
+            // Persist rooms + seed summaries (unread=0 until a summary arrives).
+            chatCache.saveRooms(response.rooms)
+            for room in response.rooms where summaryStore.summary(for: room.id) == nil {
+                summaryStore.apply([room.id: SnChatSummary(unreadCount: 0, lastMessage: nil)])
+            }
             print("[ChatView] loadChatRooms - success, rooms: \(chatRooms.count)")
+        } catch is CancellationError {
+            // View teardown cancelled the task — never surface as an error.
+            return
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            return
         } catch let decodingError as DecodingError {
             print("[ChatView] loadChatRooms - decoding error: \(decodingError)")
             switch decodingError {
@@ -119,13 +168,13 @@ struct ChatView: View {
             @unknown default:
                 print("  Unknown decoding error")
             }
-            self.error = decodingError
+            // If we already have cached rooms, don't surface the error — show
+            // the offline list instead.
+            self.error = chatRooms.isEmpty ? decodingError : nil
         } catch {
             print("[ChatView] loadChatRooms - error: \(error.localizedDescription)")
-            self.error = error
+            self.error = chatRooms.isEmpty ? error : nil
         }
-
-        isLoading = false
     }
 
     private func loadChatInvites() async {
@@ -138,11 +187,34 @@ struct ChatView: View {
             // Handle error silently for invites
         }
     }
+
+    /// Loads per-room summaries (unread + last message) and refreshes the room
+    /// list previews. Falls back to cached summaries on failure.
+    private func loadChatSummaries() async {
+        while appState.token == nil || appState.serverUrl == nil {
+            try? await Task.sleep(for: .milliseconds(250))
+            if Task.isCancelled { return }
+        }
+        guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+
+        do {
+            let summaries = try await appState.networkService.fetchChatSummary(token: token, serverUrl: serverUrl)
+            summaryStore.apply(summaries)
+        } catch is CancellationError {
+            return
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            return
+        } catch {
+            // Fall back to summaries already loaded from cache by loadCachedRooms.
+            print("[ChatView] loadChatSummaries - failed: \(error.localizedDescription)")
+        }
+    }
 }
 
 struct ChatRoomListView: View {
     let chatRooms: [SnChatRoom]
     let selectedTab: Int
+    var summaries: [String: ChatSummary] = [:]
 
     var body: some View {
         if chatRooms.isEmpty {
@@ -156,7 +228,7 @@ struct ChatRoomListView: View {
             }
         } else {
             List(chatRooms) { room in
-                ChatRoomListItem(room: room)
+                ChatRoomListItem(room: room, summary: summaries[room.id])
             }
             .listStyle(.plain)
         }
@@ -165,7 +237,10 @@ struct ChatRoomListView: View {
 
 struct ChatRoomListItem: View {
     let room: SnChatRoom
+    var summary: ChatSummary?
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject private var summaryStore: ChatSummaryStore
+    @Environment(\.chatCache) private var chatCache
     @StateObject private var avatarLoader = ImageLoader()
 
     private var displayName: String {
@@ -204,10 +279,35 @@ struct ChatRoomListItem: View {
         }
     }
 
+    /// `<sender>: <msg>` preview from the summary's last message, falling back
+    /// to the room description when no summary has arrived yet.
+    private var lastMessagePreview: String {
+        guard let last = summary?.lastMessage else { return subtitle }
+        let sender = last.sender.displayName
+        let content = last.content?.isEmpty == false ? last.content! : "Attachment"
+        return "\(sender): \(content)"
+    }
+
+    /// Short relative timestamp like `1d`, `2h`, `10m`, `now` for the last
+    /// message, shown at the row's trailing edge.
+    private var relativeTimeText: String {
+        guard let date = summary?.lastMessage?.createdAt else { return "" }
+        let seconds = Int(Date().timeIntervalSince(date))
+        if seconds < 60 { return "now" }
+        let minutes = seconds / 60
+        if minutes < 60 { return "\(minutes)m" }
+        let hours = minutes / 60
+        if hours < 24 { return "\(hours)h" }
+        let days = hours / 24
+        if days < 7 { return "\(days)d" }
+        return ""
+    }
+
     var body: some View {
         NavigationLink(
-            destination: ChatRoomView(room: room, appState: appState)
+            destination: ChatRoomView(room: room, appState: appState, chatCache: chatCache)
                 .environmentObject(appState)
+                .environmentObject(summaryStore)
         ) {
             HStack {
                 // Avatar using ImageLoader pattern
@@ -256,18 +356,34 @@ struct ChatRoomListItem: View {
                         .font(.system(size: 14, weight: .medium))
                         .lineLimit(1)
 
-                    if !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
+                    // `<sender>: <msg>` preview. One line, truncated.
+                    Text(lastMessagePreview)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
 
                 Spacer()
 
-                // Unread count badge placeholder
-                // In a full implementation, this would show unread count
+                VStack(alignment: .trailing, spacing: 4) {
+                    // Short relative time (e.g. `1d`, `2h`, `10m`).
+                    if !relativeTimeText.isEmpty {
+                        Text(relativeTimeText)
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                    if let summary = summary, summary.unreadCount > 0 {
+                        // Cap at "99+" so a 3+ digit count never bloats the capsule.
+                        let label = summary.unreadCount > 99 ? "99+" : "\(summary.unreadCount)"
+                        Text(label)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.red, in: Capsule())
+                    }
+                }
             }
             .padding(.vertical, 4)
         }
@@ -281,13 +397,15 @@ import WatchKit
 struct ChatRoomView: View {
     let room: SnChatRoom
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject private var summaryStore: ChatSummaryStore
+    @Environment(\.chatCache) private var chatCache
     @StateObject private var viewModel: ChatRoomViewModel
 
-    init(room: SnChatRoom, appState: AppState) {
+    init(room: SnChatRoom, appState: AppState, chatCache: ChatCache) {
         self.room = room
-        // `appState` is only used to construct the ViewModel; the view reads
-        // it via @EnvironmentObject as usual.
-        self._viewModel = .init(wrappedValue: ChatRoomViewModel(room: room, appState: appState))
+        // `appState`/`chatCache` construct the ViewModel; the view reads them
+        // via @EnvironmentObject / @Environment as usual.
+        self._viewModel = .init(wrappedValue: ChatRoomViewModel(room: room, appState: appState, chatCache: chatCache))
     }
 
     @State private var showComposer = false
@@ -296,6 +414,8 @@ struct ChatRoomView: View {
         messageList
             .navigationTitle(room.name ?? "Chat")
             .task {
+                // Opening the room marks it read (clears unread).
+                summaryStore.markRead(room.id)
                 await viewModel.loadInitial()
             }
             .onDisappear {
@@ -387,14 +507,14 @@ struct ChatRoomView: View {
             WKInterfaceDevice.current().play(.click)
             showComposer = true
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 7) {
                 Image(systemName: "square.and.pencil")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 17, weight: .medium))
                 Text("Message")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .padding(.vertical, 10)
             .background(Color.gray.opacity(0.18))
             .clipShape(Capsule())
         }
