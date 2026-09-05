@@ -234,6 +234,45 @@ void toggleCallOverlay(SnChatRoom room) {
   }
 }
 
+/// Shared rounded, shadowed panel decoration used by the floating call
+/// overlay and the join prompt. Both previously duplicated this exact
+/// container (surface fill, 16 radius, outlineVariant border, same shadows)
+/// under `_buildPanelContainer` and `_buildPanelContainerStatic`.
+Widget _buildCallPanelShell(
+  BuildContext context,
+  ThemeData theme, {
+  required Widget child,
+  double? width,
+}) {
+  return Container(
+    width: width,
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.2),
+          blurRadius: 32,
+          offset: const Offset(0, 12),
+        ),
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+        BoxShadow(
+          color: theme.colorScheme.shadow.withOpacity(0.08),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: ClipRRect(borderRadius: BorderRadius.circular(16), child: child),
+  );
+}
+
 class _CallOverlayPanel extends ConsumerStatefulWidget {
   final Offset initialPosition;
   final Size initialSize;
@@ -555,32 +594,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     ThemeData theme, {
     required Widget child,
   }) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(borderRadius: BorderRadius.circular(16), child: child),
-    );
+    return _buildCallPanelShell(context, theme, child: child);
   }
 }
 
@@ -1046,45 +1060,7 @@ class _JoinPromptWidget extends HookConsumerWidget {
     required double width,
     required Widget child,
   }) {
-    return Container(
-      width: width,
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                ),
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: theme.colorScheme.shadow.withOpacity(0.08),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: child,
-            ),
-          ),
-        ],
-      ),
-    );
+    return _buildCallPanelShell(context, theme, child: child, width: width);
   }
 }
 
