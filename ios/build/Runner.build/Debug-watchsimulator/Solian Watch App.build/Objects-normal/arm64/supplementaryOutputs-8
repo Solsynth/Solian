@@ -1,0 +1,23 @@
+{
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Views/ChatStickerPicker.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatStickerPicker.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatStickerPicker.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatStickerPicker.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatStickerPicker.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatStickerPicker.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Views/ChatViews.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatViews.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatViews.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatViews.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatViews.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatViews.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Views/CloudImageLinkerView.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/CloudImageLinkerView.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/CloudImageLinkerView.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/CloudImageLinkerView.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/CloudImageLinkerView.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/CloudImageLinkerView.swiftdeps"
+  }
+}

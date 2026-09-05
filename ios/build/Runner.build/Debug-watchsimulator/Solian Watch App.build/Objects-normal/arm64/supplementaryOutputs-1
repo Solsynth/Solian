@@ -1,0 +1,30 @@
+{
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Data/ChatCache.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCache.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCache.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCache.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCache.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCache.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Data/ChatCacheModels.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCacheModels.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCacheModels.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCacheModels.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCacheModels.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatCacheModels.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Data/ChatSummaryStore.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatSummaryStore.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatSummaryStore.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatSummaryStore.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatSummaryStore.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ChatSummaryStore.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Layouts/FlowLayout.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/FlowLayout.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/FlowLayout.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/FlowLayout.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/FlowLayout.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/FlowLayout.swiftdeps"
+  }
+}

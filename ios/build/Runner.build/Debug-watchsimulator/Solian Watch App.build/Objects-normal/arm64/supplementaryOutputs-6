@@ -1,0 +1,23 @@
+{
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Views/ActivityListView.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ActivityListView.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ActivityListView.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ActivityListView.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ActivityListView.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/ActivityListView.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Views/AppInfoHeaderView.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AppInfoHeaderView.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AppInfoHeaderView.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AppInfoHeaderView.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AppInfoHeaderView.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AppInfoHeaderView.swiftdeps"
+  },
+  "/Users/littlesheep/Projects/Solian/ios/Solian Watch App/Views/AttachmentView.swift" : {
+    "const-values" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AttachmentView.swiftconstvalues",
+    "dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AttachmentView.d",
+    "diagnostics" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AttachmentView.dia",
+    "object" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AttachmentView.o",
+    "swift-dependencies" : "/Users/littlesheep/Projects/Solian/ios/build/Runner.build/Debug-watchsimulator/Solian Watch App.build/Objects-normal/arm64/AttachmentView.swiftdeps"
+  }
+}

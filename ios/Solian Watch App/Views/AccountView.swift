@@ -35,30 +35,25 @@ struct AccountView: View {
                 }
                 .padding()
             } else if let user = user {
-                VStack(spacing: 16) {
-                    // Banner
+                VStack(alignment: .leading, spacing: 16) {
+                    // Banner (single branch; duplicate loading/error/empty
+                    // rects collapsed into one placeholder).
                     if user.profile?.background != nil {
-                        if bannerImageLoader.isLoading {
-                            ProgressView()
-                                .frame(height: 80)
-                        } else if let bannerImage = bannerImageLoader.image {
-                            bannerImage
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 80)
-                                .clipped()
-                                .cornerRadius(8)
-                        } else if bannerImageLoader.errorMessage != nil {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 80)
-                                .cornerRadius(8)
-                        } else {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 80)
-                                .cornerRadius(8)
+                        Group {
+                            if bannerImageLoader.isLoading {
+                                ProgressView()
+                            } else if let bannerImage = bannerImageLoader.image {
+                                bannerImage
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } else {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                            }
                         }
+                        .frame(height: 80)
+                        .clipped()
+                        .cornerRadius(8)
                     }
                     
                     // Profile Picture
@@ -194,14 +189,12 @@ struct AccountView: View {
                     if let profile = user.profile, !profile.bio.isEmpty {
                         Text(profile.bio)
                             .font(.body)
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.leading)
                             .foregroundColor(.secondary)
-                            .frame(alignment: .leading)
                     } else {
                         Text("No bio available")
                             .font(.body)
                             .foregroundColor(.secondary)
-                            .frame(alignment: .leading)
                     }
                     
                     // Member since
@@ -209,7 +202,6 @@ struct AccountView: View {
                         Text("Joined at \(createdAt.formatted(.dateTime.month(.abbreviated).year()))")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                            .frame(alignment: .leading)
                     }
                 }
                 .padding()
@@ -260,7 +252,7 @@ struct AccountView: View {
             Text("Are you sure you want to clear your status? This action cannot be undone.")
         }
         .onAppear {
-            Task.detached {
+            Task {
                 await loadUserProfile()
             }
         }

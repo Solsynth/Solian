@@ -14,23 +14,24 @@ struct AppInfoHeaderView : View {
     @State private var cancellables = Set<AnyCancellable>() // For managing subscriptions
 
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack(spacing: 12) {
-                Image("Logo")
-                    .resizable()
-                    .frame(width: 40, height: 40)
-                
-                VStack(alignment: .leading) {
-                    Text("Solian").font(.headline)
-                    Text("for Apple Watch").font(.system(size: 11))
-                    
-                    // Display WebSocket connection status
-                    Text(webSocketStatusMessage)
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                }
-            }
+        HStack(spacing: 10) {
+            Image("Logo")
+                .resizable()
+                .frame(width: 30, height: 30)
+
+            Text("Solian")
+                .font(.headline)
+
+            Spacer(minLength: 0)
+
+            // Glanceable connection state: a dot with an accessibility label,
+            // not a status sentence. Color is utility, not decoration.
+            Circle()
+                .fill(statusColor)
+                .frame(width: 10, height: 10)
+                .accessibilityLabel("Connection: \(webSocketStatusMessage)")
         }
+        .padding(.vertical, 4)
         .onAppear {
             setupWebSocketListeners()
         }
@@ -48,6 +49,15 @@ struct AppInfoHeaderView : View {
         case .serverDown: return "Server Down"
         case .duplicateDevice: return "Duplicate Device"
         case .error(let msg): return "Error: \(msg)"
+        }
+    }
+
+    private var statusColor: Color {
+        switch webSocketConnectionState {
+        case .connected: return .green
+        case .connecting: return .orange
+        case .disconnected, .serverDown, .duplicateDevice, .error:
+            return .red
         }
     }
 

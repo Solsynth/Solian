@@ -337,6 +337,149 @@ final class ChatRoomViewModel: ObservableObject {
         await sendContent(placeholder)
     }
 
+    /// Records-and-sends a voice message: optimistic pending row, multipart
+    /// voice upload + send, then replace the row with the ack. Mirrors
+    /// Flutter's `sendVoiceMessage`.
+    func sendVoice(fileURL: URL, durationMs: Int) async {
+        guard !isSending,
+              let token = appState.token, let serverUrl = appState.serverUrl else { return }
+        isSending = true
+
+        let pendingId = "pending_\(UUID().uuidString)"
+        let clientMessageId = UUID().uuidString
+        let pending = SnChatMessage(
+            id: pendingId,
+            type: "voice",
+            content: nil,
+            clientMessageId: clientMessageId,
+            nonce: nil,
+            meta: ["duration_ms": AnyCodable(durationMs)],
+            membersMentioned: [],
+            editedAt: nil,
+            attachments: [],
+            reactions: [],
+            repliedMessageId: nil,
+            forwardedMessageId: nil,
+            senderId: identity?.id ?? appState.currentAccountId ?? "",
+            sender: identity ?? .fallback,
+            chatRoomId: room.id,
+            createdAt: Date(),
+            updatedAt: Date(),
+            deletedAt: nil
+        )
+        messages.append(pending)
+        messageStatus[pendingId] = .pending
+        lastScrollTarget = .bottom
+
+        do {
+            let sent = try await appState.networkService.sendVoiceMessage(
+                chatRoomId: room.id,
+                fileURL: fileURL,
+                durationMs: durationMs,
+                clientMessageId: clientMessageId,
+                token: token,
+                serverUrl: serverUrl
+            )
+            replacePending(pendingId, with: sent)
+            persist()
+        } catch {
+            print("[ChatRoomViewModel] sendVoice - failed: \(error.localizedDescription)")
+            messageStatus[pendingId] = .failed
+        }
+        isSending = false
+    }
+
+    /// Uploads an image to Drive, then sends a text message carrying the
+    /// uploaded file id as an attachment. Mirrors Flutter's upload-then-send.
+    func sendImage(fileURL: URL, contentType: String) async {
+        guard !isSending,
+              let token = appState.token, let serverUrl = appState.serverUrl else { return }
+        isSending = true
+
+        do {
+            let cloudFile = try await appState.networkService.uploadCloudFile(
+                fileURL: fileURL,
+                contentType: contentType,
+                usage: "chat_message",
+                token: token,
+                serverUrl: serverUrl
+            )
+            await sendContentWithAttachments(attachmentIds: [cloudFile.id])
+        } catch {
+            print("[ChatRoomViewModel] sendImage - upload failed: \(error.localizedDescription)")
+        }
+        isSending = false
+    }
+
+    /// Sends a linked (already-uploaded) cloud image as a message attachment
+    /// — the "link a cloud image" path. No local upload is performed.
+    func sendLinkedImage(cloudFile: SnCloudFile) async {
+        guard !isSending else { return }
+        isSending = true
+        await sendContentWithAttachments(attachmentIds: [cloudFile.id])
+        isSending = false
+    }
+
+    /// Sends a message carrying pre-uploaded attachment ids with an optimistic
+    /// pending row, replacing it with the ack.
+    private func sendContentWithAttachments(attachmentIds: [String]) async {
+        guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+
+        let pendingId = "pending_\(UUID().uuidString)"
+        let clientMessageId = UUID().uuidString
+        let pending = SnChatMessage(
+            id: pendingId,
+            type: "text",
+            content: "",
+            clientMessageId: clientMessageId,
+            nonce: nil,
+            meta: [:],
+            membersMentioned: [],
+            editedAt: nil,
+            attachments: [],
+            reactions: [],
+            repliedMessageId: nil,
+            forwardedMessageId: nil,
+            senderId: identity?.id ?? appState.currentAccountId ?? "",
+            sender: identity ?? .fallback,
+            chatRoomId: room.id,
+            createdAt: Date(),
+            updatedAt: Date(),
+            deletedAt: nil
+        )
+        messages.append(pending)
+        messageStatus[pendingId] = .pending
+        lastScrollTarget = .bottom
+
+        do {
+            let sent = try await appState.networkService.sendChatMessage(
+                chatRoomId: room.id,
+                content: "",
+                clientMessageId: clientMessageId,
+                token: token,
+                serverUrl: serverUrl,
+                attachmentIds: attachmentIds
+            )
+            replacePending(pendingId, with: sent)
+            persist()
+        } catch {
+            print("[ChatRoomViewModel] sendImage/sendContent - failed: \(error.localizedDescription)")
+            messageStatus[pendingId] = .failed
+        }
+    }
+
+    /// Replaces an optimistic pending row with the server-confirmed message
+    /// and routes it through the referenced-message cache, if any.
+    private func replacePending(_ pendingId: String, with sent: SnChatMessage) {
+        if let index = messages.firstIndex(where: { $0.id == pendingId }) {
+            messages[index] = sent
+            messageStatus.removeValue(forKey: pendingId)
+            updateReferencedCacheIfNeeded(sent)
+        } else if sent.isDisplayable, !messages.contains(where: { $0.id == sent.id }) {
+            messages.append(sent)
+        }
+    }
+
     /// Core send: inserts an optimistic pending row, sends `content` over the
     /// socket (HTTP fallback), and replaces the row with the ack.
     private func sendContent(_ content: String) async {

@@ -1957,3 +1957,138 @@ struct SnStickerOwnershipRow: Codable {
         case pack
     }
 }
+
+// MARK: - Check-in & Fortune
+
+/// One row of the check-in result's tips list. Mirrors `SnFortuneTip`.
+struct SnFortuneTip: Codable, Identifiable {
+    let isPositive: Bool
+    let title: String
+    let content: String
+
+    var id: String { title }
+
+    enum CodingKeys: String, CodingKey {
+        case isPositive = "is_positive"
+        case title
+        case content
+    }
+}
+
+/// The detailed fortune report attached to a check-in. Mirrors
+/// `SnCheckInFortuneReport`. Only `poem`/`summary` are guaranteed to be non-
+/// empty on all levels; the per-area fields may be empty strings.
+struct SnCheckInFortuneReport: Codable {
+    let version: Int
+    let poem: String
+    let summary: String
+    let summaryDetail: String?
+    let wish: String
+    let love: String
+    let study: String
+    let career: String
+    let health: String
+    let lostItem: String
+    let luckyColor: String
+    let luckyDirection: String
+    let luckyTime: String
+    let luckyItem: String
+    let luckyAction: String
+    let avoidAction: String
+    let ritual: String
+
+    enum CodingKeys: String, CodingKey {
+        case version
+        case poem
+        case summary
+        case summaryDetail = "summary_detail"
+        case wish
+        case love
+        case study
+        case career
+        case health
+        case lostItem = "lost_item"
+        case luckyColor = "lucky_color"
+        case luckyDirection = "lucky_direction"
+        case luckyTime = "lucky_time"
+        case luckyItem = "lucky_item"
+        case luckyAction = "lucky_action"
+        case avoidAction = "avoid_action"
+        case ritual
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 0
+        poem = try container.decodeIfPresent(String.self, forKey: .poem) ?? ""
+        summary = try container.decodeIfPresent(String.self, forKey: .summary) ?? ""
+        summaryDetail = try container.decodeIfPresent(String.self, forKey: .summaryDetail)
+        wish = try container.decodeIfPresent(String.self, forKey: .wish) ?? ""
+        love = try container.decodeIfPresent(String.self, forKey: .love) ?? ""
+        study = try container.decodeIfPresent(String.self, forKey: .study) ?? ""
+        career = try container.decodeIfPresent(String.self, forKey: .career) ?? ""
+        health = try container.decodeIfPresent(String.self, forKey: .health) ?? ""
+        lostItem = try container.decodeIfPresent(String.self, forKey: .lostItem) ?? ""
+        luckyColor = try container.decodeIfPresent(String.self, forKey: .luckyColor) ?? ""
+        luckyDirection = try container.decodeIfPresent(String.self, forKey: .luckyDirection) ?? ""
+        luckyTime = try container.decodeIfPresent(String.self, forKey: .luckyTime) ?? ""
+        luckyItem = try container.decodeIfPresent(String.self, forKey: .luckyItem) ?? ""
+        luckyAction = try container.decodeIfPresent(String.self, forKey: .luckyAction) ?? ""
+        avoidAction = try container.decodeIfPresent(String.self, forKey: .avoidAction) ?? ""
+        ritual = try container.decodeIfPresent(String.self, forKey: .ritual) ?? ""
+    }
+}
+
+/// Today's check-in result. Null (404) means not yet checked in.
+/// Mirrors `SnCheckInResult`.
+struct SnCheckInResult: Codable {
+    let id: String
+    let level: Int
+    let tips: [SnFortuneTip]
+    let fortuneReport: SnCheckInFortuneReport?
+    let accountId: String
+    let createdAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case level
+        case tips
+        case fortuneReport = "fortune_report"
+        case accountId = "account_id"
+        case createdAt = "created_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
+        level = try container.decodeIfPresent(Int.self, forKey: .level) ?? 0
+        tips = try container.decodeIfPresent([SnFortuneTip].self, forKey: .tips) ?? []
+        fortuneReport = try container.decodeIfPresent(SnCheckInFortuneReport.self, forKey: .fortuneReport)
+        accountId = try container.decodeIfPresent(String.self, forKey: .accountId) ?? ""
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+    }
+
+    /// The rank name for this check-in level, matching the main app's
+    /// `checkInResultLevel$level` string (level 4 = "Best Luck" 大吉, level 0
+    /// = "Worst Luck" 大凶). English, consistent with the watch UI.
+    var levelName: String {
+        switch level {
+        case 5: return "Birthday Joy"
+        case 4: return "Best Luck"
+        case 3: return "Good Luck"
+        case 2: return "A Normal Day"
+        case 1: return "Bad Luck"
+        case 0: return "Worst Luck"
+        default: return "Checked In"
+        }
+    }
+}
+
+/// Daily fortune saying (`GET /accounts/fortune/daily`). Mirrors `SnFortuneSaying`.
+struct SnFortuneSaying: Codable, Identifiable {
+    let content: String
+    let source: String
+    let language: String
+
+    var id: String { content }
+}

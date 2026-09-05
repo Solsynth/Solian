@@ -652,7 +652,98 @@ class NetworkService {
             throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
     }
-    
+
+    // MARK: - Check-in & Fortune (mirrors Flutter AccountsApi)
+
+    /// GET /passport/accounts/me/check-in?version=2 — today's check-in, or nil
+    /// if not checked in yet (404). Mirrors `getCheckInResultToday`.
+    func fetchCheckInResult(token: String, serverUrl: String) async throws -> SnCheckInResult? {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/passport/accounts/me/check-in"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [URLQueryItem(name: "version", value: "2")]
+        guard let url = components.url else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
+            return nil
+        }
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] fetchCheckInResult failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnCheckInResult.self, from: data)
+    }
+
+    /// POST /passport/accounts/me/check-in?version=2 — perform today's
+    /// check-in. Mirrors `checkIn`.
+    func checkIn(token: String, serverUrl: String) async throws -> SnCheckInResult {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/passport/accounts/me/check-in"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [URLQueryItem(name: "version", value: "2")]
+        guard let url = components.url else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] checkIn failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnCheckInResult.self, from: data)
+    }
+
+    /// GET /passport/fortune/daily — today's fortune saying. Mirrors
+    /// `getDailyFortune`.
+    func fetchDailyFortune(token: String, serverUrl: String) async throws -> SnFortuneSaying {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/passport/fortune/daily")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] fetchDailyFortune failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnFortuneSaying.self, from: data)
+    }
+
     // MARK: - Post engagement APIs (boost / bookmark)
 
     /// POST /sphere/posts/{postId}/boost — boost/repost a post.
@@ -1211,11 +1302,12 @@ class NetworkService {
         token: String,
         serverUrl: String,
         replyToId: String? = nil,
-        threadId: String? = nil
+        threadId: String? = nil,
+        attachmentIds: [String] = []
     ) async throws -> SnChatMessage {
         var payload: [String: Any] = [
             "content": content,
-            "attachments_id": [],
+            "attachments_id": attachmentIds,
             "meta": [:],
             "client_message_id": clientMessageId,
         ]
@@ -1255,6 +1347,197 @@ class NetworkService {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(SnChatMessage.self, from: data)
+    }
+
+    /// Uploads a voice recording and sends a `voice` message in one multipart
+    /// POST, mirroring Flutter's `MessageSender.sendVoiceMessage`
+    /// (`POST /messager/chat/{roomId}/messages/voice`). Returns the server
+    /// message, which carries `meta.voice_url` + `meta.duration_ms`.
+    func sendVoiceMessage(
+        chatRoomId: String,
+        fileURL: URL,
+        durationMs: Int,
+        clientMessageId: String,
+        token: String,
+        serverUrl: String
+    ) async throws -> SnChatMessage {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/messager/chat/\(chatRoomId)/messages/voice")
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let fileData = try Data(contentsOf: fileURL)
+        var body = Data()
+        func append(_ string: String) {
+            body.append(string.data(using: .utf8)!)
+        }
+
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n")
+        append("Content-Type: audio/mp4\r\n\r\n")
+        body.append(fileData)
+        append("\r\n")
+
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"client_message_id\"\r\n\r\n")
+        append("\(clientMessageId)\r\n")
+
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"durationMs\"\r\n\r\n")
+        append("\(durationMs)\r\n")
+
+        append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let responseBody = String(data: data, encoding: .utf8) ?? ""
+            print("[NetworkService] sendVoiceMessage failed with status \(httpResponse.statusCode), body: \(responseBody)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(SnChatMessage.self, from: data)
+    }
+
+    /// Uploads a file to Drive (`POST /drive/files/upload/direct`) and returns
+    /// the resulting cloud file. `usage` mirrors Flutter's `chat_message`
+    /// upload usage. Mirrors `DriveFileUploader.createCloudFile`.
+    func uploadCloudFile(
+        fileURL: URL,
+        contentType: String,
+        usage: String,
+        token: String,
+        serverUrl: String
+    ) async throws -> SnCloudFile {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/drive/files/upload/direct")
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let fileData = try Data(contentsOf: fileURL)
+        var body = Data()
+        func append(_ string: String) {
+            body.append(string.data(using: .utf8)!)
+        }
+
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n")
+        append("Content-Type: \(contentType)\r\n\r\n")
+        body.append(fileData)
+        append("\r\n")
+
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"usage\"\r\n\r\n")
+        append("\(usage)\r\n")
+
+        append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let (data, response) = try await session.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let responseBody = String(data: data, encoding: .utf8) ?? ""
+            print("[NetworkService] uploadCloudFile failed with status \(httpResponse.statusCode), body: \(responseBody)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+
+        let any = try JSONSerialization.jsonObject(with: data, options: [])
+        guard let object = any as? [String: Any] else {
+            throw URLError(.cannotDecodeContentData)
+        }
+        // The direct-upload response nests the file under one of several keys
+        // (Flutter's `_parseUploadedFileResponse`): `file`, `file_info`,
+        // `data.file`, or a bare file object.
+        if let file = object["file"] as? [String: Any] {
+            let jsonData = try JSONSerialization.data(withJSONObject: file)
+            return try decoderWithoutSnake(SnCloudFile.self, from: jsonData)
+        }
+        if let fileInfo = object["file_info"] as? [String: Any] {
+            let jsonData = try JSONSerialization.data(withJSONObject: fileInfo)
+            return try decoderWithoutSnake(SnCloudFile.self, from: jsonData)
+        }
+        if let dataObj = object["data"] as? [String: Any] {
+            if let file = dataObj["file"] as? [String: Any] {
+                let jsonData = try JSONSerialization.data(withJSONObject: file)
+                return try decoderWithoutSnake(SnCloudFile.self, from: jsonData)
+            }
+            if dataObj["id"] != nil {
+                let jsonData = try JSONSerialization.data(withJSONObject: dataObj)
+                return try decoderWithoutSnake(SnCloudFile.self, from: jsonData)
+            }
+        }
+        if object["id"] != nil {
+            let jsonData = try JSONSerialization.data(withJSONObject: object)
+            return try decoderWithoutSnake(SnCloudFile.self, from: jsonData)
+        }
+        throw URLError(.cannotDecodeContentData)
+    }
+
+    /// Fetches the current user's cloud files (`GET /drive/files/me`), used by
+    /// the "link a cloud image" picker. Mirrors `DriveApi.listMyFiles`.
+    func fetchMyCloudFiles(
+        token: String,
+        serverUrl: String,
+        offset: Int = 0,
+        take: Int = 20
+    ) async throws -> [SnCloudFile] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/drive/files/me"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "recycled", value: "false"),
+            URLQueryItem(name: "offset", value: String(offset)),
+            URLQueryItem(name: "take", value: String(take)),
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        // Returns a bare JSON array of cloud files (DriveApi.listMyFiles).
+        let any = try JSONSerialization.jsonObject(with: data, options: [])
+        guard let items = any as? [[String: Any]] else { return [] }
+        return items.compactMap { item in
+            guard let jsonData = try? JSONSerialization.data(withJSONObject: item) else { return nil }
+            return try? decoderWithoutSnake(SnCloudFile.self, from: jsonData)
+        }
+    }
+
+    /// Decodes without `.convertFromSnakeCase` — every model declares its own
+    /// snake_case CodingKeys, so the key strategy would corrupt raw keys.
+    private func decoderWithoutSnake<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(type, from: data)
     }
 
     /// Sends a `messages.send` packet over WebSocket and awaits the matching

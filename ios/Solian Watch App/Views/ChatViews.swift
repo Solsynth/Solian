@@ -17,7 +17,6 @@ struct ChatView: View {
     @State private var isLoading = false
     @State private var error: Error?
     @State private var showingInvites = false
-    @State private var liveCancellable: AnyCancellable?
     /// The room-list load. Stored (not `.task`) so it isn't cancelled when the
     /// view disappears (panel switch), which left the list empty.
     @State private var loadTask: Task<Void, Never>?
@@ -79,11 +78,10 @@ struct ChatView: View {
         }
         .onAppear {
             // Seed the room list from cache immediately (offline/instant).
+            // The live unread subscription lives at the root (ContentView),
+            // so the Chat badge stays truthful and unread is not double-counted.
             loadCachedRooms()
             summaryStore.loadCached()
-            if liveCancellable == nil {
-                liveCancellable = summaryStore.observeLiveMessages()
-            }
             // Launch the network loads in a stored task so switching panels
             // can't cancel them mid-flight (which left the list empty).
             if loadTask == nil || loadTask?.isCancelled == true {
@@ -97,8 +95,6 @@ struct ChatView: View {
         .onDisappear {
             loadTask?.cancel()
             loadTask = nil
-            liveCancellable?.cancel()
-            liveCancellable = nil
         }
     }
     
@@ -293,17 +289,19 @@ struct ChatRoomListItem: View {
     /// `<sender>: <msg>` preview below the avatar row, with the sender name
     /// tinted distinctly from the content (Apple Messages shows the sender in
     /// the conversation's accent color and the message body in secondary).
+    /// The segments are concatenated into a single `Text` so the preview wraps
+    /// as one paragraph — an `HStack` of two texts splits them into columns,
+    /// which indents the wrapped second line and leaves a ragged gap under the
+    /// sender name.
     @ViewBuilder
     private var previewLine: some View {
         if let last = lastMessage {
-            HStack(alignment: .firstTextBaseline, spacing: 0) {
-                Text(last.sender.displayName)
-                    .foregroundColor(Color.accentColor)
-                Text(":  \(previewContent)")
-                    .foregroundColor(.secondary)
-            }
-            .font(.system(size: 13))
-            .lineLimit(2)
+            (Text(last.sender.displayName)
+                .foregroundColor(Color.accentColor)
+             + Text(":  \(previewContent)")
+                .foregroundColor(.secondary))
+                .font(.system(size: 13))
+                .lineLimit(2)
         } else {
             Text(subtitle)
                 .font(.system(size: 13))
@@ -445,6 +443,9 @@ struct ChatRoomView: View {
     
     @State private var showStickerPicker = false
     @State private var showComposerActions = false
+    @State private var showVoiceRecorder = false
+    @State private var showPhotoPicker = false
+    @State private var showCloudLinker = false
     @FocusState private var composerFocused: Bool
     @ObservedObject private var stickerStore = StickerStore.shared
     
@@ -465,14 +466,52 @@ struct ChatRoomView: View {
                 }
                 .environmentObject(appState)
             }
-            .sheet(isPresented: $showComposerActions) {
-                ChatComposerActionsView {
-                    // Present the sticker picker from the "+" menu. Load packs
-                    // first so the sheet has content when it appears.
-                    openStickerPicker()
+            .sheet(isPresented: $showVoiceRecorder) {
+                VoiceRecorderView { url, durationMs in
+                    Task { await viewModel.sendVoice(fileURL: url, durationMs: durationMs) }
+                }
+            }
+            .sheet(isPresented: $showPhotoPicker) {
+                PhotoPickerView { url in
+                    Task { await viewModel.sendImage(fileURL: url, contentType: "image/jpeg") }
+                }
+            }
+            .sheet(isPresented: $showCloudLinker) {
+                CloudImageLinkerView { cloudFile in
+                    Task { await viewModel.sendLinkedImage(cloudFile: cloudFile) }
                 }
                 .environmentObject(appState)
             }
+            .sheet(isPresented: $showComposerActions) {
+                ChatComposerActionsView(
+                    onPickStickers: {
+                        // Present the sticker picker from the "+" menu. Load
+                        // packs first so the sheet has content when it appears.
+                        openStickerPicker()
+                    },
+                    onPickVoice: {
+                        // Present after the composer sheet dismisses, so the
+                        // next sheet isn't pushed onto a view dismissing.
+                        presentAfterDismiss { showVoiceRecorder = true }
+                    },
+                    onPickPhoto: {
+                        presentAfterDismiss { showPhotoPicker = true }
+                    },
+                    onPickLinkedCloud: {
+                        presentAfterDismiss { showCloudLinker = true }
+                    }
+                )
+                .environmentObject(appState)
+            }
+    }
+
+    /// Defers a callback until the presenting sheet has fully dismissed,
+    /// avoiding "presented on a view that is being dismissed" conflicts.
+    private func presentAfterDismiss(_ action: @escaping @MainActor () -> Void) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            action()
+        }
     }
     
     /// Opens the sticker picker, loading owned packs first so the sheet has
@@ -1026,7 +1065,10 @@ struct MessageBubbleView: View {
                 } else if let forwardedId = message.forwardedMessageId {
                     QuoteReferenceView(messageId: forwardedId, isReply: false, viewModel: viewModel)
                 }
-                if let content = message.content, !content.isEmpty {
+                if message.type == "voice" {
+                    VoiceMessageView(message: message, isOwn: isOwn)
+                        .environmentObject(appState)
+                } else if let content = message.content, !content.isEmpty {
                     ChatStickerContent(content: content, isOwn: isOwn)
                         .environmentObject(appState)
                 }
