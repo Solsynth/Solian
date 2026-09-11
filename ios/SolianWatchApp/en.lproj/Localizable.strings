@@ -13,12 +13,16 @@
 /* MARK: - SignInView */
 "signin.title" = "Sign In";
 "signin.welcome.title" = "Solian on your wrist";
-"signin.welcome.subtitle" = "One-time setup with your phone. After that, Solian works on its own — no iPhone required.";
+"signin.welcome.subtitle" = "Sign in right here on your watch, or approve with your phone. After that, Solian works on its own — no iPhone required.";
 "signin.getStarted" = "Get Started";
 "signin.starting" = "Starting…";
 "signin.signingIn" = "Signing in…";
-"signin.enterCode" = "Enter this code on your phone";
-"signin.openVerification" = "Open verification page";
+"signin.approvePrompt" = "Approve this sign-in";
+"signin.approveHere" = "Approve on Watch";
+"signin.approveOnPhoneButton" = "Approve on iPhone";
+"signin.phoneButton" = "iPhone";
+"signin.approveInBrowser" = "Finish signing in in the browser";
+"signin.userCode" = "User code %@";
 "signin.cancel" = "Cancel";
 "signin.approvedOnPhone" = "Approved on your phone";
 "signin.approveOnPhone" = "Approve it on your phone";

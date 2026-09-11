@@ -26,12 +26,20 @@ public enum L10n {
     static let signInGetStarted = NSLocalizedString("signin.getStarted", comment: "Get started button")
     static let signInStarting = NSLocalizedString("signin.starting", comment: "Starting phase")
     static let signInSigningIn = NSLocalizedString("signin.signingIn", comment: "Signing in phase")
-    static let signInEnterCode = NSLocalizedString("signin.enterCode", comment: "Enter code on phone prompt")
-    static let signInOpenVerification = NSLocalizedString("signin.openVerification", comment: "Open verification page button")
+    static let signInApprovePrompt = NSLocalizedString("signin.approvePrompt", comment: "Approve sign-in prompt")
+    static let signInApproveHere = NSLocalizedString("signin.approveHere", comment: "Approve on watch button")
+    static let signInApproveOnPhoneButton = NSLocalizedString("signin.approveOnPhoneButton", comment: "Approve on iPhone accessibility label")
+    static let signInPhoneButton = NSLocalizedString("signin.phoneButton", comment: "Open approval on iPhone button title")
+    static let signInApproveInBrowser = NSLocalizedString("signin.approveInBrowser", comment: "Approve in browser status")
     static let signInCancel = NSLocalizedString("signin.cancel", comment: "Cancel button")
     static let signInApprovedOnPhone = NSLocalizedString("signin.approvedOnPhone", comment: "Approved on phone")
     static let signInApproveOnPhone = NSLocalizedString("signin.approveOnPhone", comment: "Approve on phone")
     static let signInTimedOut = NSLocalizedString("signin.timedOut", comment: "Timed out")
+
+    /// Accessibility label for the device-flow user code, e.g. "User code SZMD-ZQRF".
+    static func signInUserCode(_ code: String) -> String {
+        String(format: NSLocalizedString("signin.userCode", comment: "User code accessibility label"), code)
+    }
 
     // MARK: - AppInfoHeaderView
     static let connectionConnected = NSLocalizedString("connection.connected", comment: "Connected state")

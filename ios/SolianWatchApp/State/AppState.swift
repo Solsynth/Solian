@@ -84,14 +84,24 @@ class AppState: ObservableObject {
         } catch let urlError as URLError where urlError.code == .cancelled {
             return
         } catch let error as StandaloneAuthError {
-            // The stored refresh token is no longer usable (revoked/expired/missing).
-            // Drop the session and require a fresh device-flow sign-in rather
-            // than leaving a half-authenticated app with no usable token.
-            standaloneAuth.signOut()
-            token = nil
-            self.serverUrl = nil
-            requiresSignIn = true
-            errorMessage = error.localizedDescription
+            switch error {
+            case .missingRefreshToken, .polling(.invalidGrant):
+                // The stored refresh token is gone or the server rejected it
+                // (revoked/expired): drop the session and require a fresh
+                // device-flow sign-in rather than leaving a half-authenticated
+                // app with no usable token.
+                standaloneAuth.signOut()
+                token = nil
+                self.serverUrl = nil
+                requiresSignIn = true
+                errorMessage = error.localizedDescription
+            default:
+                // Keychain briefly unavailable (device still locked) or a
+                // server-side hiccup: keep the stored session so the next
+                // launch or reconnect can use it.
+                isReady = false
+                errorMessage = error.localizedDescription
+            }
         } catch {
             // Transient failure (e.g. network): keep the session for retry on
             // the next launch, but don't pretend to be signed in.

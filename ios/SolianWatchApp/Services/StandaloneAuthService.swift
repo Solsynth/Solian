@@ -60,14 +60,6 @@ enum StandaloneAuthError: LocalizedError {
     }
 }
 
-/// A stored standalone session.
-struct StandaloneSession: Codable {
-    let serverUrl: String
-    let refreshToken: String
-    let accountName: String?
-    let accountNick: String?
-}
-
 @MainActor
 final class StandaloneAuthService: ObservableObject {
     /// Shared instance so app state, sign-in view and reconnect logic all
@@ -90,8 +82,6 @@ final class StandaloneAuthService: ObservableObject {
 
     private static let serverKey = "solian.watch.serverUrl"
     private static let sessionKey = "solian.watch.standaloneSession"
-    private static let accessTokenKey = "solian.watch.accessToken"
-    private static let accessExpiryKey = "solian.watch.accessExpiry"
     private static let accountNameKey = "solian.watch.accountName"
     private static let accountNickKey = "solian.watch.accountNick"
     private static let defaults = UserDefaults.standard
@@ -107,12 +97,25 @@ final class StandaloneAuthService: ObservableObject {
 
     // MARK: - Session state
 
+    /// True when a standalone session is on record. The server URL is the
+    /// marker: it is written with the refresh token on sign-in and removed on
+    /// sign-out, and unlike the token (Keychain) it is readable before the
+    /// device is first unlocked.
     var hasStoredSession: Bool {
-        Self.defaults.string(forKey: Self.sessionKey) != nil
+        Self.defaults.string(forKey: Self.serverKey) != nil
     }
 
     var serverUrl: String? {
         Self.defaults.string(forKey: Self.serverKey)
+    }
+
+    /// The stored refresh token — the session credential, kept in the Keychain
+    /// and never in UserDefaults. `nil` when no session exists; a Keychain read
+    /// that fails for another reason (e.g. the device is still locked) throws
+    /// `StandaloneAuthError.keychainError` so callers can retry rather than
+    /// treat the session as gone.
+    private func storedRefreshToken() throws -> String? {
+        try readKeychain(account: Self.sessionKey)
     }
 
     /// A usable bearer token, refreshing (and persisting) if near expiry.
@@ -121,7 +124,7 @@ final class StandaloneAuthService: ObservableObject {
            expiry.timeIntervalSinceNow > 60 {
             return accessToken
         }
-        guard let refresh = Self.defaults.string(forKey: Self.sessionKey) else {
+        guard let refresh = try storedRefreshToken() else {
             throw StandaloneAuthError.missingRefreshToken
         }
         let pair = try await refreshTokens(refresh: refresh, serverUrl: serverUrl)
@@ -135,6 +138,10 @@ final class StandaloneAuthService: ObservableObject {
         let deviceCode: String
         let userCode: String
         let verificationUri: String
+        /// The verification page with the user code prefilled. Optional: the
+        /// spec only mandates `verification_uri`, but Stargate also returns it
+        /// and it lets the watch approve without typing the code.
+        let verificationUriComplete: String?
         let expiresIn: Int
         let interval: Int
     }
@@ -170,6 +177,7 @@ final class StandaloneAuthService: ObservableObject {
             deviceCode: deviceCode,
             userCode: userCode,
             verificationUri: verificationUri,
+            verificationUriComplete: json["verification_uri_complete"] as? String,
             expiresIn: (json["expires_in"] as? Int) ?? 600,
             interval: (json["interval"] as? Int) ?? 5
         )
@@ -180,7 +188,7 @@ final class StandaloneAuthService: ObservableObject {
         let deadline = Date().addingTimeInterval(TimeInterval(10 * 60))
         var currentInterval = max(interval, 1)
         while Date() < deadline {
-            try? await Task.sleep(nanoseconds: UInt64(currentInterval) * 1_000_000_000)
+            try await Task.sleep(nanoseconds: UInt64(currentInterval) * 1_000_000_000)
             do {
                 let pair = try await exchangeDeviceCode(deviceCode: deviceCode, serverUrl: serverUrl)
                 try store(pair: pair, serverUrl: serverUrl)
@@ -277,23 +285,20 @@ final class StandaloneAuthService: ObservableObject {
     private func store(pair: TokenPair, serverUrl: String) throws {
         accessToken = pair.accessToken
         accessExpiry = Date().addingTimeInterval(TimeInterval(pair.expiresIn))
-        Self.defaults.set(serverUrl, forKey: Self.serverKey)
+        // Write the credential before the marker: `serverKey` is what makes
+        // `hasStoredSession` true, so it must never be set without a token.
         if let refresh = pair.refreshToken {
             try writeKeychain(refresh, account: Self.sessionKey)
         }
+        Self.defaults.set(serverUrl, forKey: Self.serverKey)
     }
 
     private func loadStoredSession() {
-        guard let server = Self.defaults.string(forKey: Self.serverKey),
-              let refresh = try? readKeychain(account: Self.sessionKey) else {
-            return
-        }
+        guard serverUrl != nil else { return }
         isSignedIn = true
         accountName = Self.defaults.string(forKey: Self.accountNameKey)
         accountNick = Self.defaults.string(forKey: Self.accountNickKey)
-        // Access token is refreshed lazily on first use.
-        _ = server
-        _ = refresh
+        // The access token is memory-only and refreshed lazily on first use.
     }
 
     func setProfile(name: String?, nick: String?) {
@@ -312,8 +317,6 @@ final class StandaloneAuthService: ObservableObject {
         Self.defaults.removeObject(forKey: Self.serverKey)
         Self.defaults.removeObject(forKey: Self.accountNameKey)
         Self.defaults.removeObject(forKey: Self.accountNickKey)
-        Self.defaults.removeObject(forKey: Self.accessTokenKey)
-        Self.defaults.removeObject(forKey: Self.accessExpiryKey)
         try? deleteKeychain(account: Self.sessionKey)
     }
 

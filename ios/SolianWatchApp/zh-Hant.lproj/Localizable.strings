@@ -13,12 +13,16 @@
 /* MARK: - SignInView */
 "signin.title" = "登入";
 "signin.welcome.title" = "Solian 在您的手腕上";
-"signin.welcome.subtitle" = "用手機完成一次設置，之後 Solian 可獨立運行，無需 iPhone。";
+"signin.welcome.subtitle" = "直接在手錶上登入，或用手機批准。之後 Solian 可獨立運行，無需 iPhone。";
 "signin.getStarted" = "開始使用";
 "signin.starting" = "正在開始…";
 "signin.signingIn" = "正在登入…";
-"signin.enterCode" = "在手機上輸入此代碼";
-"signin.openVerification" = "打開驗證頁面";
+"signin.approvePrompt" = "請批准本次登入";
+"signin.approveHere" = "在手錶上批准";
+"signin.approveOnPhoneButton" = "在 iPhone 上批准";
+"signin.phoneButton" = "iPhone";
+"signin.approveInBrowser" = "請在瀏覽器中完成登入";
+"signin.userCode" = "使用者代碼 %@";
 "signin.cancel" = "取消";
 "signin.approvedOnPhone" = "已在手機上批准";
 "signin.approveOnPhone" = "請在手機上批准";
