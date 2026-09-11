@@ -2660,6 +2660,7 @@
   "physicalPassports": "实体通行证",
   "physicalPassportsEmpty": "暂无实体通行证",
   "physicalPassportsEmptyDescription": "添加您的第一个实体通行证来将物理身份链接到您的账号。",
+  "physicalPassportsEmptyIssuedByAdmin": "实体通行证由管理员发放，请联系管理员将物理身份链接到您的账号。",
   "pick": "选择",
   "pickFile": "选择文件",
   "pickFromGallery": "从相册选择",

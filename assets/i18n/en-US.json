@@ -2677,6 +2677,7 @@
   "physicalPassports": "Physical Passports",
   "physicalPassportsEmpty": "No physical passports yet",
   "physicalPassportsEmptyDescription": "Add your first physical passport to link physical identity to your account.",
+  "physicalPassportsEmptyIssuedByAdmin": "Physical passports are issued by an administrator. Ask one to link your physical identity to this account.",
   "pick": "Pick",
   "pickFile": "Pick a file",
   "pickFromGallery": "Pick from Gallery",

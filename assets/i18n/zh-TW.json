@@ -2548,6 +2548,7 @@
   "physicalPassports": "實體通行證",
   "physicalPassportsEmpty": "暫無實體通行證",
   "physicalPassportsEmptyDescription": "新增您的第一個實體通行證來將物理身份連結到您的帳號。",
+  "physicalPassportsEmptyIssuedByAdmin": "實體通行證由管理員發放，請聯繫管理員將物理身份連結到您的帳號。",
   "pick": "選擇",
   "pickFile": "選擇檔案",
   "pickFromGallery": "從相簿選擇",

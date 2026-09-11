@@ -1912,7 +1912,7 @@ class PhysicalPassportScreen extends HookConsumerWidget {
           data: (passports) {
             if (passports.isEmpty) {
               return _PhysicalPassportsEmptyState(
-                onAddPassport: _supportsPhysicalPassportScan
+                onAddPassport: _supportsPhysicalPassportScan && isAdmin
                     ? () => _showAddSheet(context, ref)
                     : null,
               );
@@ -1939,6 +1939,7 @@ class PhysicalPassportScreen extends HookConsumerWidget {
       floatingActionButton: passportsAsync.maybeWhen(
         data: (passports) =>
             _supportsPhysicalPassportScan &&
+                isAdmin &&
                 passports.isNotEmpty &&
                 user.value != null
             ? FloatingActionButton.extended(
@@ -2026,7 +2027,10 @@ class _PhysicalPassportsEmptyState extends StatelessWidget {
             ),
             const Gap(8),
             Text(
-              'physicalPassportsEmptyDescription'.tr(),
+              (onAddPassport != null
+                      ? 'physicalPassportsEmptyDescription'
+                      : 'physicalPassportsEmptyIssuedByAdmin')
+                  .tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
