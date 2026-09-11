@@ -310,6 +310,8 @@ void main() {
 
         final notifier = container.read(messagesProvider('room-1').notifier);
         await notifier.receiveMessage(remote);
+        // State emission is coalesced to a microtask; let it land.
+        await pumpEventQueue();
 
         expect(
           container
@@ -445,6 +447,8 @@ void main() {
           placeholderMessage,
           applySideEffects: false,
         );
+        // State emission is coalesced to a microtask; let it land.
+        await pumpEventQueue();
         expect(
           container
               .read(messagesProvider('room-1'))
@@ -532,6 +536,218 @@ void main() {
         expect(visible.sender, isNotNull);
         expect(visible.sender!.account.name, 'test-user');
         expect(visible.sender!.account.nick, 'Test User');
+      },
+    );
+
+    test('burst of concurrent ws arrivals keeps every message', () async {
+      final notifier = container.read(messagesProvider('room-1').notifier);
+      final now = DateTime.utc(2026, 1, 1, 12);
+
+      // 30 messages, all fired concurrently without awaiting, exactly like
+      // _handleWebSocketPacket does for a ws burst.
+      final futures = <Future<void>>[];
+      for (var i = 0; i < 30; i++) {
+        final sender = member('room-1').copyWith(
+          id: 'member-$i',
+          accountId: 'account-$i',
+          account: member('room-1').account.copyWith(id: 'account-$i'),
+        );
+        final msg = message('room-1').copyWith(
+          id: 'm-$i',
+          content: 'content-$i',
+          senderId: sender.id,
+          sender: sender,
+          createdAt: now.subtract(Duration(seconds: i)),
+          updatedAt: now.subtract(Duration(seconds: i)),
+        );
+        futures.add(notifier.receiveMessage(msg));
+      }
+      await Future.wait(futures);
+      await pumpEventQueue();
+
+      final ids = container
+          .read(messagesProvider('room-1'))
+          .value!
+          .map((m) => m.id)
+          .toSet();
+      final expected = {for (var i = 0; i < 30; i++) 'm-$i'};
+      expect(
+        ids,
+        expected,
+        reason: 'missing: ${expected.difference(ids)}',
+      );
+    });
+
+    test(
+      'burst state emission is coalesced instead of one emit per message',
+      () async {
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        final now = DateTime.utc(2026, 1, 1, 12);
+
+        var emissionCount = 0;
+        final countSub = container.listen(
+          messagesProvider('room-1'),
+          (_, _) => emissionCount++,
+          fireImmediately: false,
+        );
+
+        final futures = <Future<void>>[];
+        for (var i = 0; i < 50; i++) {
+          final sender = member('room-1').copyWith(
+            id: 'member-$i',
+            accountId: 'account-$i',
+            account: member('room-1').account.copyWith(id: 'account-$i'),
+          );
+          final msg = message('room-1').copyWith(
+            id: 'm-$i',
+            content: 'content-$i',
+            senderId: sender.id,
+            sender: sender,
+            createdAt: now.subtract(Duration(seconds: i)),
+            updatedAt: now.subtract(Duration(seconds: i)),
+          );
+          futures.add(notifier.receiveMessage(msg));
+        }
+        await Future.wait(futures);
+        // Flush the coalesced emissions; each drain collapses the batch.
+        for (var i = 0; i < 20; i++) {
+          await pumpEventQueue();
+        }
+
+        expect(
+          container.read(messagesProvider('room-1')).value,
+          hasLength(50),
+        );
+        // 50 messages must not cause 50 full-list emissions; the coalescer
+        // collapses each microtask batch into a single state write.
+        expect(
+          emissionCount,
+          lessThan(20),
+          reason: 'expected coalesced emissions, got $emissionCount',
+        );
+        countSub.close();
+      },
+    );
+
+    test(
+      'burst where the global handler pre-persisted every message still '
+      'emits them all',
+      () async {
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        final now = DateTime.utc(2026, 1, 1, 12);
+
+        // Simulate ChatGlobalSyncNotifier having persisted every packet
+        // before the room handler reads it (the "existing row" branch).
+        for (var i = 0; i < 30; i++) {
+          final sender = member('room-1').copyWith(
+            id: 'member-$i',
+            accountId: 'account-$i',
+            account: member('room-1').account.copyWith(id: 'account-$i'),
+          );
+          final msg = message('room-1').copyWith(
+            id: 'm-$i',
+            content: 'content-$i',
+            senderId: sender.id,
+            sender: sender,
+            createdAt: now.subtract(Duration(seconds: i)),
+            updatedAt: now.subtract(Duration(seconds: i)),
+          );
+          await database.saveMessageWithSender(
+            LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+          );
+        }
+
+        final futures = <Future<void>>[];
+        for (var i = 0; i < 30; i++) {
+          final sender = member('room-1').copyWith(
+            id: 'member-$i',
+            accountId: 'account-$i',
+            account: member('room-1').account.copyWith(id: 'account-$i'),
+          );
+          final msg = message('room-1').copyWith(
+            id: 'm-$i',
+            content: 'content-$i',
+            senderId: sender.id,
+            sender: sender,
+            createdAt: now.subtract(Duration(seconds: i)),
+            updatedAt: now.subtract(Duration(seconds: i)),
+          );
+          futures.add(notifier.receiveMessage(msg));
+        }
+        await Future.wait(futures);
+        await pumpEventQueue();
+
+        final ids = container
+            .read(messagesProvider('room-1'))
+            .value!
+            .map((m) => m.id)
+            .toSet();
+        final expected = {for (var i = 0; i < 30; i++) 'm-$i'};
+        expect(
+          ids,
+          expected,
+          reason: 'missing: ${expected.difference(ids)}',
+        );
+      },
+    );
+
+    test(
+      'realtime message arriving during loadInitial is not clobbered by the '
+      'stale reload snapshot',
+      () async {
+        final now = DateTime.utc(2026, 1, 1, 12);
+
+        // Initial load resolves empty; then a slow reload is started while a
+        // ws message arrives in between.
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.loadInitial(forceRemoteRefresh: false);
+
+        final blocking = _BlockingResponseAdapter();
+        container.read(apiClientProvider).httpClientAdapter = blocking;
+        final load = notifier.loadInitial(forceRemoteRefresh: true);
+        await pumpEventQueue();
+
+        final sender = member('room-1');
+        final live = message('room-1').copyWith(
+          id: 'live-1',
+          content: 'live',
+          senderId: sender.id,
+          sender: sender,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await notifier.receiveMessage(live);
+        // State emission is coalesced to a microtask; let it land.
+        await pumpEventQueue();
+        expect(
+          container
+              .read(messagesProvider('room-1'))
+              .value!
+              .map((item) => item.id),
+          contains('live-1'),
+        );
+
+        // The in-flight reload completes with an empty page (stale snapshot).
+        blocking.completer.complete(
+          ResponseBody.fromString(
+            '[]',
+            200,
+            headers: {
+              Headers.contentTypeHeader: ['application/json'],
+            },
+          ),
+        );
+        await load;
+        await pumpEventQueue();
+
+        expect(
+          container
+              .read(messagesProvider('room-1'))
+              .value!
+              .map((item) => item.id),
+          contains('live-1'),
+          reason: 'realtime message must survive the reload snapshot',
+        );
       },
     );
   });

@@ -175,7 +175,12 @@ class RealtimeMessageHandler {
 
     // Refresh the member cache even when the message itself is already stored.
     // A repeated delivery can carry newer account/profile data for its sender.
-    await onIncomingMessageSender?.call(remoteMessage.sender);
+    // Not awaited: sender persistence is a side effect, and awaiting two DB
+    // writes per message serializes every message in a burst behind them,
+    // delaying rendering. The in-memory member directory is updated
+    // synchronously inside the call, so normalization still resolves the
+    // sender; the notifier re-emits once the writes land.
+    onIncomingMessageSender?.call(remoteMessage.sender);
 
     final existing = await _repository.getLocalMessage(remoteMessage.id);
 

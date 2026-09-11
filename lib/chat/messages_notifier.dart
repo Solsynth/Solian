@@ -125,6 +125,13 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool _hasPendingRealtimeRefresh = false;
   bool _isUpdatingState = false;
   List<LocalChatMessage> _messages = [];
+
+  /// True while a coalesced state emission is scheduled for the end of this
+  /// microtask. Realtime mutations mutate [_messages] in place and mark the
+  /// list dirty; exactly one normalize/sort/filter pass runs per frame instead
+  /// of one per incoming message. Without this, a burst of N ws messages does
+  /// O(N²) full-list copies and drops frames, so messages render late.
+  bool _emitScheduled = false;
   bool _isLoadingInitial = false;
   bool _isLoadingMore = false;
   bool _allRemoteMessagesFetched = false;
@@ -505,7 +512,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         type == 'system.call.member.left';
   }
 
-  bool _shouldIncludeInActiveList(LocalChatMessage message) {
+  bool _shouldIncludeInActiveList(LocalChatMessage message, String mode) {
     if (message.type == 'messages.sync.file' ||
         message.type == 'messages.sync.finalize' ||
         message.type == 'messages.sync.links') {
@@ -513,7 +520,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
     // In-thread replies live in the thread panel, never in the main timeline.
     if (message.threadId != null) return false;
-    final mode = ref.read(appSettingsProvider).chatEventMessageMode;
     if (mode == kChatEventMessageModeVerbose) return true;
     if (mode == kChatEventMessageModeNone) {
       return !_isSystemEventType(message.type);
@@ -529,7 +535,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   ) {
     final mode = ref.read(appSettingsProvider).chatEventMessageMode;
     if (mode == kChatEventMessageModeVerbose) return messages;
-    return messages.where(_shouldIncludeInActiveList).toList();
+    return messages
+        .where((message) => _shouldIncludeInActiveList(message, mode))
+        .toList();
   }
 
   String? _resolveVoiceMediaUrlFromMeta(Map<String, dynamic> meta) {
@@ -735,14 +743,14 @@ class MessagesNotifier extends _$MessagesNotifier {
               .read(chatRoomStateProvider(roomId).notifier)
               .updateAttachmentProgress(messageWithSequence.id, null);
         }
-        final list = [..._currentMessages];
+        final list = _messages;
         final index = list.indexWhere((m) => m.id == messageWithSequence.id);
         if (index >= 0) {
           list[index] = messageWithSequence;
         } else {
           list.add(messageWithSequence);
         }
-        _emitMessages(list);
+        _scheduleEmit();
       },
       onMessageDelete: (message, roomSequence) {
         final messageWithSequence = _applyRoomSequence(message, roomSequence);
@@ -754,21 +762,19 @@ class MessagesNotifier extends _$MessagesNotifier {
           _pendingMessages.remove(messageWithSequence.id);
           _pendingCache.remove(messageWithSequence.id);
           unawaited(_repository.deleteMessage(messageWithSequence.id));
-          _emitMessages(
-            _currentMessages
-                .where((item) => item.id != messageWithSequence.id)
-                .toList(),
-          );
+          final list = _messages;
+          list.removeWhere((item) => item.id == messageWithSequence.id);
+          _scheduleEmit();
           return;
         }
-        final list = [..._currentMessages];
+        final list = _messages;
         final index = list.indexWhere((m) => m.id == messageWithSequence.id);
         if (index >= 0) {
           list[index] = messageWithSequence;
         } else {
           list.add(messageWithSequence);
         }
-        _emitMessages(list);
+        _scheduleEmit();
       },
       onIncomingMessageSender: _upsertIncomingMessageSender,
       onReconnectionNeeded: () {
@@ -1091,9 +1097,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     // Existing messages refer to the canonical member directory. Emit them
-    // again so a repaired account/profile is reflected immediately.
+    // again so a repaired account/profile is reflected immediately. Goes
+    // through the coalescer so a burst of new senders does not each trigger a
+    // full-list rebuild.
     if (ref.mounted) {
-      _emitMessages(_currentMessages);
+      _scheduleEmit();
     }
   }
 
@@ -1527,6 +1535,20 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     return result;
+  }
+
+  /// Coalesces realtime mutations into one state write at the end of the
+  /// current microtask. Callers must have already mutated [_messages] in
+  /// place; [_emitMessages] then normalizes, sorts, dedupes and filters the
+  /// whole list exactly once.
+  void _scheduleEmit() {
+    if (_emitScheduled || !ref.mounted) return;
+    _emitScheduled = true;
+    Future.microtask(() {
+      _emitScheduled = false;
+      if (!ref.mounted) return;
+      _emitMessages(_currentMessages);
+    });
   }
 
   void _emitMessages(List<LocalChatMessage> messages) {
@@ -2049,12 +2071,18 @@ class MessagesNotifier extends _$MessagesNotifier {
         localMessage.type == 'messages.sync.finalize' ||
         localMessage.type == 'messages.sync.links';
     final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
-    final shouldShowMessage = _shouldIncludeInActiveList(localMessage);
+    final shouldShowMessage = _shouldIncludeInActiveList(localMessage, chatMode);
     final shouldShowEditTrail =
         chatMode != kChatEventMessageModeNone && isMessageUpdate;
 
-    final currentMessages = _currentMessages;
-    final existingIndex = currentMessages.indexWhere(
+    if (!ref.mounted) return;
+
+    // Mutate the timeline in place and coalesce the state write. Building a
+    // fresh list and emitting per message made a burst of N realtime arrivals
+    // O(N²) full-list copies, dropping frames so the newest message only
+    // appeared when the next one forced a catch-up frame.
+    final list = _messages;
+    final existingIndex = list.indexWhere(
       (m) =>
           m.id == localMessage.id ||
           // A client_message_id match only identifies the local placeholder
@@ -2067,33 +2095,29 @@ class MessagesNotifier extends _$MessagesNotifier {
               m.status != MessageStatus.sent),
     );
 
-    if (!ref.mounted) return;
-
     // System events (like messages.update) should never replace or remove
     // existing messages in the list. They reference target messages via
     // meta['message_id'], not by sharing the same ID. The actual content
     // update is handled by receiveMessageUpdate(). Here we only add the
     // event to the timeline if it should be shown.
     if (_isSystemEventType(localMessage.type)) {
-      if (shouldShowMessage || shouldShowEditTrail) {
-        // Only add if not already in the list (avoid duplicates)
-        if (existingIndex < 0) {
-          _emitMessages([localMessage, ...currentMessages]);
-        }
+      if ((shouldShowMessage || shouldShowEditTrail) && existingIndex < 0) {
+        list.add(localMessage);
+        _scheduleEmit();
       }
       return;
     }
 
     if (existingIndex >= 0) {
-      final newList = [...currentMessages];
       if (shouldShowMessage || shouldShowEditTrail) {
-        newList[existingIndex] = localMessage;
+        list[existingIndex] = localMessage;
       } else {
-        newList.removeAt(existingIndex);
+        list.removeAt(existingIndex);
       }
-      _emitMessages(newList);
+      _scheduleEmit();
     } else if (shouldShowMessage || shouldShowEditTrail) {
-      _emitMessages([localMessage, ...currentMessages]);
+      list.add(localMessage);
+      _scheduleEmit();
     }
   }
 
@@ -2225,7 +2249,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
         final eventMessage = result.eventMessage;
         if (eventMessage != null &&
-            _shouldIncludeInActiveList(eventMessage) &&
+            _shouldIncludeInActiveList(
+              eventMessage,
+              ref.read(appSettingsProvider).chatEventMessageMode,
+            ) &&
             !updated.any((message) => message.id == eventMessage.id)) {
           updated.add(eventMessage);
         }
