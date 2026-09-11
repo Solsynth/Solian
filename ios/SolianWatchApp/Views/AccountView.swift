@@ -222,6 +222,25 @@ struct AccountView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(L10n.accountQr)
+
+                    // Security: where this account is signed in.
+                    NavigationLink(
+                        destination: AccountSessionsView()
+                            .environmentObject(appState)
+                    ) {
+                        HStack {
+                            Label(L10n.accountSessions, systemImage: "key.fill")
+                                .font(.subheadline)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.gray.opacity(0.12)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(L10n.accountSessions)
                 }
                 .padding()
                 // Load images when user data is available

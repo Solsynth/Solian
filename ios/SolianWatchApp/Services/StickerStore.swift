@@ -61,4 +61,14 @@ final class StickerStore: ObservableObject {
         lookupCache[identifier] = sticker
         return sticker
     }
+
+    /// Forgets the owned packs and resolved stickers. Called on sign-out;
+    /// clearing `hasLoadedPacks` makes the next account fetch its own.
+    func clear() {
+        packs = []
+        lookupCache.removeAll()
+        hasLoadedPacks = false
+        isLoadingPacks = false
+        loadError = nil
+    }
 }

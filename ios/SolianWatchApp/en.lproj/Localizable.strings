@@ -19,8 +19,10 @@
 "signin.signingIn" = "Signing in…";
 "signin.approvePrompt" = "Approve this sign-in";
 "signin.approveHere" = "Approve on Watch";
-"signin.approveOnPhoneButton" = "Approve on iPhone";
-"signin.phoneButton" = "iPhone";
+"signin.qrRow" = "Scan QR";
+"signin.qr.accessibility" = "Scan with iPhone";
+"signin.qr.hint" = "Point your iPhone's camera at this code, then approve the sign-in.";
+"signin.qr.close" = "Close";
 "signin.approveInBrowser" = "Finish signing in in the browser";
 "signin.userCode" = "User code %@";
 "signin.cancel" = "Cancel";
@@ -72,6 +74,24 @@
 "account.noAccountData" = "No account data";
 "account.signOut" = "Sign Out";
 "account.signOut.accessibility" = "Sign out of this watch";
+
+/* MARK: - AccountSessionsView */
+"account.sessions" = "Active Sessions";
+"account.sessions.title" = "Active Sessions";
+"account.sessions.description" = "Devices you're currently signed in on.";
+"account.sessions.current" = "Current";
+"account.sessions.trusted" = "Trusted session";
+"account.sessions.signOut" = "Sign Out";
+"account.sessions.revoke.title" = "Sign out this session?";
+"account.sessions.signOutOthers" = "Sign Out Other Sessions";
+"account.sessions.signOutOthers.message" = "Every other device will need to sign in again.";
+"account.sessions.revoked" = "Session signed out";
+"account.sessions.othersRevoked" = "Other sessions signed out";
+"account.sessions.empty" = "No active sessions";
+"account.sessions.unknownDevice" = "Unknown device";
+"account.sessions.lastActive" = "Last active %@";
+"account.sessions.loadFailed" = "Couldn't load sessions";
+"account.sessions.retry" = "Retry";
 
 /* MARK: - AccountQrView */
 "account.qr" = "Account QR";
@@ -407,3 +427,10 @@
 "settings.language" = "Language";
 "settings.language.system" = "System Default";
 "settings.accentColor" = "Accent Color";
+
+/* MARK: - Local Data */
+"settings.localData" = "Local Data";
+"settings.clearLocalData" = "Clear Local Data";
+"settings.clearLocalData.button" = "Clear";
+"settings.clearLocalData.message" = "Deletes cached chats, stickers and images from this watch. You stay signed in.";
+"settings.clearLocalData.done" = "Local data cleared";

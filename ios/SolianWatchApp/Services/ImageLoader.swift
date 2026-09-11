@@ -87,4 +87,12 @@ class ImageLoader: ObservableObject {
     func cancel() {
         currentTask?.cancel()
     }
+
+    /// Drops every cached image — memory and disk. Static so the local-data
+    /// purge can call it without holding a loader instance.
+    static func clearCache() {
+        let cache = KingfisherManager.shared.cache
+        cache.clearMemoryCache()
+        cache.clearDiskCache()
+    }
 }

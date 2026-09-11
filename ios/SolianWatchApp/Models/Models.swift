@@ -1382,6 +1382,86 @@ struct SnAccountStatus: Codable {
     }
 }
 
+// MARK: - Auth Session Models
+
+/// Where a session was last seen, as resolved by the server's GeoIP lookup.
+struct GeoIpLocation: Codable, Hashable {
+    let countryCode: String?
+    let country: String?
+    let city: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case countryCode = "country_code"
+        case country
+        case city
+    }
+}
+
+/// One authorized login on the account (`GET /stargate/sessions`).
+///
+/// Mirrors the app's `SnAuthSession`. Only the fields the watch renders are
+/// decoded — the endpoint also returns audiences/scopes, which the watch has
+/// no use for.
+struct SnAuthSession: Codable, Identifiable, Hashable {
+    let id: String
+    let label: String?
+    let lastGrantedAt: Date?
+    let ipAddress: String?
+    let userAgent: String?
+    let location: GeoIpLocation?
+    /// 0 = login, 1 = OAuth, 2 = OIDC, 3 = API key.
+    let type: Int
+    let createdAt: Date?
+    /// The session this bearer token belongs to; revoking it is a sign-out.
+    let isCurrent: Bool
+    let category: String
+    let trusted: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case label
+        case lastGrantedAt = "last_granted_at"
+        case ipAddress = "ip_address"
+        case userAgent = "user_agent"
+        case location
+        case type
+        case createdAt = "created_at"
+        case isCurrent = "is_current"
+        case category
+        case trusted
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        label = try container.decodeIfPresent(String.self, forKey: .label)
+        lastGrantedAt = try container.decodeIfPresent(Date.self, forKey: .lastGrantedAt)
+        ipAddress = try container.decodeIfPresent(String.self, forKey: .ipAddress)
+        userAgent = try container.decodeIfPresent(String.self, forKey: .userAgent)
+        location = try container.decodeIfPresent(GeoIpLocation.self, forKey: .location)
+        type = try container.decodeIfPresent(Int.self, forKey: .type) ?? 0
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        isCurrent = try container.decodeIfPresent(Bool.self, forKey: .isCurrent) ?? false
+        category = try container.decodeIfPresent(String.self, forKey: .category) ?? "device"
+        trusted = try container.decodeIfPresent(Bool.self, forKey: .trusted) ?? false
+    }
+    
+    /// Best available human label for the session: the user-set label, else the
+    /// raw user agent, else nothing (caller falls back to a localized "Unknown").
+    var displayName: String? {
+        if let label, !label.isEmpty { return label }
+        if let userAgent, !userAgent.isEmpty { return userAgent }
+        return nil
+    }
+    
+    /// "City, Country" when the GeoIP lookup resolved anything.
+    var displayLocation: String? {
+        guard let location else { return nil }
+        let parts = [location.city, location.country].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
+    }
+}
+
 // MARK: - Chat Models
 
 struct SnChatRoom: Codable, Identifiable {

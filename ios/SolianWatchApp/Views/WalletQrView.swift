@@ -110,49 +110,6 @@ struct WalletQrView: View {
     }
 
     private func generateQr() {
-        guard !qrPayload.isEmpty,
-              let qr = try? QRCode.encode(text: qrPayload, ecl: .high) else { return }
-        qrImage = renderQRImage(from: qr, dimension: qrSize)
+        qrImage = makeQRImage(text: qrPayload, dimension: qrSize)
     }
-}
-
-// MARK: - QR Renderer (same as AccountQrView)
-
-/// Renders a vendored `QRCode` matrix to a `UIImage` at the given point size.
-private func renderQRImage(from qr: QRCode, dimension: CGFloat) -> UIImage? {
-    let modules = qr.size
-    guard modules > 0 else { return nil }
-    let modulePx = dimension / CGFloat(modules)
-    let size = CGSize(width: dimension, height: dimension)
-    let colorSpace = CGColorSpaceCreateDeviceRGB()
-    let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-    guard let ctx = CGContext(
-        data: nil,
-        width: Int(dimension),
-        height: Int(dimension),
-        bitsPerComponent: 8,
-        bytesPerRow: 0,
-        space: colorSpace,
-        bitmapInfo: bitmapInfo.rawValue
-    ) else { return nil }
-
-    ctx.setFillColor(UIColor.white.cgColor)
-    ctx.fill(CGRect(origin: .zero, size: size))
-
-    for y in 0..<modules {
-        for x in 0..<modules {
-            if qr.getModule(x: x, y: y) {
-                ctx.setFillColor(UIColor.black.cgColor)
-                ctx.fill(CGRect(
-                    x: CGFloat(x) * modulePx,
-                    y: CGFloat(y) * modulePx,
-                    width: modulePx,
-                    height: modulePx
-                ))
-            }
-        }
-    }
-
-    guard let cgImage = ctx.makeImage() else { return nil }
-    return UIImage(cgImage: cgImage)
 }

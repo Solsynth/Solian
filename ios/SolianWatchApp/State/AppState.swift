@@ -110,7 +110,12 @@ class AppState: ObservableObject {
         }
     }
 
+    /// Signs the watch out. Mirrors the phone app's logout: end the session
+    /// server-side (best effort), then drop every trace of the account locally
+    /// so the next sign-in starts from a clean slate.
     func signOutStandalone() {
+        revokeSessionOnServer()
+        purgeLocalData()
         standaloneAuth.signOut()
         token = nil
         serverUrl = nil
@@ -118,6 +123,30 @@ class AppState: ObservableObject {
         hasAttemptedConnection = false
         networkService.disconnectWebSocket()
         requiresSignIn = true
+    }
+
+    /// Ends this device's session server-side. Fire-and-forget: signing out must
+    /// not block on the network, and a failure only means the session has to be
+    /// revoked from another device.
+    private func revokeSessionOnServer() {
+        guard let token, let serverUrl else { return }
+        Task {
+            try? await networkService.revokeCurrentSession(token: token, serverUrl: serverUrl)
+        }
+    }
+
+    /// Every piece of locally stored account state: the SwiftData chat cache,
+    /// the in-memory summary/sticker stores, and the image cache.
+    ///
+    /// Keeps the session, so it doubles as the user-facing "clear local data"
+    /// reset for a wedged client — stale cached chats or a broken image cache
+    /// shouldn't cost a re-login. `signOutStandalone()` calls it too, then
+    /// clears the credentials on top.
+    func purgeLocalData() {
+        ChatCache.shared.clear()
+        ChatSummaryStore.shared.clear()
+        StickerStore.shared.clear()
+        ImageLoader.clearCache()
     }
 
     // MARK: - Connection

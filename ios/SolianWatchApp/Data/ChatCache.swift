@@ -145,6 +145,20 @@ final class ChatCache {
         try? context.save()
     }
 
+    // MARK: - Invalidation
+
+    /// Deletes every cached room and message.
+    ///
+    /// The cache is per-account, so this runs on sign-out: the next account
+    /// must never see the previous one's chats. Bulk delete rather than
+    /// fetch-then-delete so no rows are materialised.
+    func clear() {
+        guard let context = modelContext else { return }
+        try? context.delete(model: CachedChatRoom.self)
+        try? context.delete(model: CachedChatMessage.self)
+        try? context.save()
+    }
+
     // MARK: - Decoding helpers
 
     private func decodeRoom(_ data: Data) -> SnChatRoom? {

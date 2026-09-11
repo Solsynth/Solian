@@ -58,6 +58,14 @@ final class ChatSummaryStore: ObservableObject {
         roomSummaries[roomId]
     }
 
+    /// Drops every in-memory summary. Called on sign-out so the previous
+    /// account's unread badges and last-message previews don't bleed into the
+    /// next sign-in (the cache is cleared alongside).
+    func clear() {
+        roomSummaries.removeAll()
+        openRoomId = nil
+    }
+
     /// Subscribes to live `messages.new` to bump unread for rooms that aren't
     /// currently open. Returns a cancellable so the owner can tear it down.
     func observeLiveMessages() -> AnyCancellable {

@@ -8,8 +8,9 @@
 //  The server URL is never typed: it defaults to the public instance and is
 //  overridden by the companion app's shared group when one is configured.
 //
-//  Flow:  welcome → (start) → approve here in the watch's web sheet, on the
-//  paired iPhone, or by entering the code on another device → done.
+//  Flow:  welcome → (start) → approve here in the watch's web sheet, by
+//  scanning the QR with the phone, or by entering the code on another device
+//  → done.
 //
 
 import SwiftUI
@@ -27,6 +28,8 @@ struct SignInView: View {
 
     /// Presents the device-approval page in the watch's own web sheet.
     @StateObject private var webPresenter = InAppWebPresenter()
+    /// Presents the same approval page as a QR code for the phone's camera.
+    @State private var showingApprovalQr = false
     /// The device-flow polling loop; cancelled when the user backs out.
     @State private var pollTask: Task<Void, Never>?
 
@@ -77,6 +80,20 @@ struct SignInView: View {
         }
         .navigationTitle(phase == .awaitingApproval ? L10n.signInApprovePrompt : L10n.signInTitle)
         .navigationBarTitleDisplayMode(.inline)
+        // A sheet — not a push — so presenting it does not fire `onDisappear`
+        // below and tear down the polling loop the QR is meant to satisfy.
+        .sheet(isPresented: $showingApprovalQr) {
+            if let device {
+                DeviceApprovalQrView(device: device)
+            }
+        }
+        .onChange(of: phase) { _, newPhase in
+            // The flow moved on (approved, expired, cancelled): the code is
+            // useless now, so don't leave it on screen.
+            if newPhase != .awaitingApproval {
+                showingApprovalQr = false
+            }
+        }
         .onAppear {
             resolveServerUrl()
         }
@@ -197,23 +214,18 @@ struct SignInView: View {
                 // Secondary actions share one row: on a 40mm screen the full
                 // stack of code + three buttons would not fit above the fold.
                 HStack(spacing: 8) {
-                    if let url = URL(string: device.verificationUri) {
-                        Button {
-                            WKInterfaceDevice.current().play(.click)
-                            // Hands the verification page to the paired iPhone,
-                            // where the user can approve with an existing
-                            // session.
-                            WKExtension.shared().openSystemURL(url)
-                        } label: {
-                            Label(L10n.signInPhoneButton, systemImage: "iphone")
-                                .font(.caption)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .accessibilityLabel(L10n.signInApproveOnPhoneButton)
+                    Button {
+                        WKInterfaceDevice.current().play(.click)
+                        showingApprovalQr = true
+                    } label: {
+                        Label(L10n.signInQrRow, systemImage: "qrcode")
+                            .font(.caption)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(L10n.signInQrAccessibility)
 
                     Button(L10n.signInCancel) {
                         WKInterfaceDevice.current().play(.click)

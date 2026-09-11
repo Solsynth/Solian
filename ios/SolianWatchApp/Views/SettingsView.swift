@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import WatchKit
 import PhotosUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var settings: SettingsStore
     @State private var selectedItem: PhotosPickerItem?
+    @State private var showingPurgeConfirmation = false
+    @State private var purgeMessage: String?
 
     var body: some View {
         ScrollView {
@@ -95,6 +98,30 @@ struct SettingsView: View {
                         .fill(settings.tintColor(opacity: 0.12))
                 )
 
+                // MARK: - Local Data
+
+                SectionHeader(title: L10n.settingsLocalData)
+
+                Button(role: .destructive) {
+                    WKInterfaceDevice.current().play(.click)
+                    showingPurgeConfirmation = true
+                } label: {
+                    Label(L10n.settingsClearLocalData, systemImage: "trash")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .accessibilityLabel(L10n.settingsClearLocalData)
+
+                if let purgeMessage {
+                    Text(purgeMessage)
+                        .font(.caption2)
+                        .foregroundColor(.green)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                }
+
                 // MARK: - Sign Out
 
                 if appState.standaloneAuth.hasStoredSession {
@@ -113,6 +140,20 @@ struct SettingsView: View {
             .padding(.horizontal, 4)
         }
         .navigationTitle(L10n.settingsTitle)
+        .confirmationDialog(
+            L10n.settingsClearLocalData,
+            isPresented: $showingPurgeConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(L10n.settingsClearLocalDataButton, role: .destructive) {
+                appState.purgeLocalData()
+                purgeMessage = L10n.settingsClearLocalDataDone
+                WKInterfaceDevice.current().play(.success)
+            }
+            Button(L10n.accountCancel, role: .cancel) {}
+        } message: {
+            Text(L10n.settingsClearLocalDataMessage)
+        }
     }
 }
 

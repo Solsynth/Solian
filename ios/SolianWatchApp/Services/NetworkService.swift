@@ -402,6 +402,32 @@ class NetworkService {
         _ = try await session.data(for: request)
     }
 
+    /// Like `deleteEmpty`, but surfaces a server refusal. Use where the
+    /// destroyed resource is the point of the call — a revoke that silently
+    /// no-ops would leave the user believing a device was kicked out when it
+    /// is still signed in.
+    private func deleteChecked(path: String, token: String, serverUrl: String) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] DELETE \(path) failed - status: \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+    }
+
     private static func decodeJSON<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -676,6 +702,64 @@ class NetworkService {
             print("[watchOS] clearStatus failed with status code: \(httpResponse.statusCode), body: \(responseBody)")
             throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
+    }
+
+    // MARK: - Auth Sessions (Stargate)
+
+    /// GET /stargate/sessions — the account's authorized logins, newest first.
+    ///
+    /// Root sessions only (`includeChildren: false`): the watch lists them flat
+    /// instead of rendering the app's expandable session tree. The server
+    /// reports the full count in the `X-Total` header.
+    func fetchSessions(token: String, serverUrl: String, offset: Int = 0, take: Int = 50) async throws -> [SnAuthSession] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/stargate/sessions"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "offset", value: String(offset)),
+            URLQueryItem(name: "take", value: String(take)),
+            URLQueryItem(name: "includeChildren", value: "false"),
+        ]
+        guard let url = components.url else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] fetchSessions failed - status: \(status), body: \(body)")
+            throw URLError(URLError.Code(rawValue: status))
+        }
+        return try Self.decodeJSON([SnAuthSession].self, from: data)
+    }
+
+    /// DELETE /stargate/sessions/current — end this device's own session.
+    ///
+    /// Used on sign-out so the logged-out watch doesn't linger in the account's
+    /// session list. Only this device's session is affected: the watch
+    /// authenticates as its own `solian-on-watch` client.
+    func revokeCurrentSession(token: String, serverUrl: String) async throws {
+        try await deleteChecked(path: "/stargate/sessions/current", token: token, serverUrl: serverUrl)
+    }
+
+    /// DELETE /stargate/sessions/{id} — sign out one other session.
+    func revokeSession(id: String, token: String, serverUrl: String) async throws {
+        try await deleteChecked(path: "/stargate/sessions/\(id)", token: token, serverUrl: serverUrl)
+    }
+
+    /// DELETE /stargate/sessions/other — sign out every session but this one.
+    func revokeOtherSessions(token: String, serverUrl: String) async throws {
+        try await deleteChecked(path: "/stargate/sessions/other", token: token, serverUrl: serverUrl)
     }
 
     // MARK: - Check-in & Fortune (mirrors Flutter AccountsApi)

@@ -13,51 +13,7 @@ import CoreGraphics
 import UIKit
 // Vendored pure-Swift QR encoder (fwcd/swift-qrcode-generator, MIT)
 // Types live in the same module (Utils/QRGen/); no separate import needed.
-
-// MARK: - QR-to-UIImage renderer
-
-/// Renders a vendored `QRCode` matrix to a `UIImage` at the given point size,
-/// filling each module as a solid square. `UIImage` is required for SwiftUI's
-/// `Image(uiImage:)` initializer.
-private func renderQRImage(from qr: QRCode, dimension: CGFloat) -> UIImage? {
-    let modules = qr.size
-    guard modules > 0 else { return nil }
-    let modulePx = dimension / CGFloat(modules)
-    let size = CGSize(width: dimension, height: dimension)
-    let colorSpace = CGColorSpaceCreateDeviceRGB()
-    let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-    guard let ctx = CGContext(
-        data: nil,
-        width: Int(dimension),
-        height: Int(dimension),
-        bitsPerComponent: 8,
-        bytesPerRow: 0,
-        space: colorSpace,
-        bitmapInfo: bitmapInfo.rawValue
-    ) else { return nil }
-
-    // White background
-    ctx.setFillColor(UIColor.white.cgColor)
-    ctx.fill(CGRect(origin: .zero, size: size))
-
-    // Draw modules
-    for y in 0..<modules {
-        for x in 0..<modules {
-            if qr.getModule(x: x, y: y) {
-                ctx.setFillColor(UIColor.black.cgColor)
-                ctx.fill(CGRect(
-                    x: CGFloat(x) * modulePx,
-                    y: CGFloat(y) * modulePx,
-                    width: modulePx,
-                    height: modulePx
-                ))
-            }
-        }
-    }
-
-    guard let cgImage = ctx.makeImage() else { return nil }
-    return UIImage(cgImage: cgImage)
-}
+// Rendering lives in Utils/QRCodeImage.swift.
 
 struct AccountQrView: View {
     @EnvironmentObject var appState: AppState
@@ -87,10 +43,7 @@ struct AccountQrView: View {
             loadProfileImage()
         }
         .task {
-            qrImage = {
-                guard let qr = try? QRCode.encode(text: profileUrl, ecl: .high) else { return nil }
-                return renderQRImage(from: qr, dimension: qrSize)
-            }()
+            qrImage = makeQRImage(text: profileUrl, dimension: qrSize)
         }
     }
 

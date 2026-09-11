@@ -19,8 +19,10 @@
 "signin.signingIn" = "正在登录…";
 "signin.approvePrompt" = "请批准本次登录";
 "signin.approveHere" = "在手表上批准";
-"signin.approveOnPhoneButton" = "在 iPhone 上批准";
-"signin.phoneButton" = "iPhone";
+"signin.qrRow" = "扫码";
+"signin.qr.accessibility" = "用 iPhone 扫描";
+"signin.qr.hint" = "用 iPhone 相机扫描此二维码，然后批准登录。";
+"signin.qr.close" = "关闭";
 "signin.approveInBrowser" = "请在浏览器中完成登录";
 "signin.userCode" = "用户代码 %@";
 "signin.cancel" = "取消";
@@ -72,6 +74,24 @@
 "account.noAccountData" = "无账户数据";
 "account.signOut" = "退出登录";
 "account.signOut.accessibility" = "退出此手表";
+
+/* MARK: - AccountSessionsView */
+"account.sessions" = "活跃会话";
+"account.sessions.title" = "活跃会话";
+"account.sessions.description" = "查看您当前登录的设备。";
+"account.sessions.current" = "当前会话";
+"account.sessions.trusted" = "受信任的会话";
+"account.sessions.signOut" = "登出";
+"account.sessions.revoke.title" = "登出此会话？";
+"account.sessions.signOutOthers" = "登出其他所有会话";
+"account.sessions.signOutOthers.message" = "其他所有设备都需要重新登录。";
+"account.sessions.revoked" = "会话已登出";
+"account.sessions.othersRevoked" = "其他会话已登出";
+"account.sessions.empty" = "没有活跃会话";
+"account.sessions.unknownDevice" = "未知设备";
+"account.sessions.lastActive" = "最后活动于 %@";
+"account.sessions.loadFailed" = "无法加载会话";
+"account.sessions.retry" = "重试";
 
 /* MARK: - AccountQrView */
 "account.qr" = "账户二维码";
@@ -407,3 +427,10 @@
 "settings.language" = "语言";
 "settings.language.system" = "跟随系统";
 "settings.accentColor" = "主题色";
+
+/* MARK: - Local Data */
+"settings.localData" = "本地数据";
+"settings.clearLocalData" = "清除本地数据";
+"settings.clearLocalData.button" = "清除";
+"settings.clearLocalData.message" = "删除此手表上缓存的聊天、表情与图片。你仍保持登录。";
+"settings.clearLocalData.done" = "本地数据已清除";
