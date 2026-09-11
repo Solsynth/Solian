@@ -261,6 +261,13 @@
 "post.boost" = "推荐";
 "post.bookmark" = "收藏";
 "post.removeBookmark" = "取消收藏";
+"post.actions" = "操作";
+"post.react" = "表态";
+"post.edit" = "编辑";
+"post.delete" = "删除";
+"post.deleteConfirm" = "删除这条帖子？";
+"post.actionFailed" = "操作失败";
+"post.actionOk" = "好";
 "post.unknownActivity" = "未知活动";
 "link.openHere" = "在此处打开";
 "link.openOnPhone" = "在你的 iPhone 上打开";
@@ -272,6 +279,7 @@
 "compose.newPost" = "新帖子";
 "compose.reply" = "回复";
 "compose.forward" = "转发";
+"compose.edit" = "编辑帖子";
 "compose.repilingTo" = "正在回复";
 "compose.forwarding" = "正在转发";
 "compose.content" = "内容";
@@ -282,6 +290,9 @@
 "compose.visibility.unlisted" = "不公开";
 "compose.visibility.private" = "私密";
 "compose.selectVisibility" = "选择可见性";
+"compose.publisher" = "发布者";
+"compose.selectPublisher" = "选择发布者";
+"compose.publisherDefault" = "账号默认";
 "compose.cancel" = "取消";
 "compose.posting" = "正在发布...";
 "compose.error" = "错误";

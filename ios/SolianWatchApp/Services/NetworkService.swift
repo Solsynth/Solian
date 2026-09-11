@@ -454,28 +454,19 @@ class NetworkService {
     /// `replyTo` (the post being replied to) and `forwardTo` (the post being
     /// quoted) mirror the main app's `compose_shared.dart`, which sends
     /// `replied_post_id` and `forwarded_post_id` on the same create endpoint.
-    /// At most one of `replyTo` / `forwardTo` applies.
+    /// At most one of `replyTo` / `forwardTo` applies. `pubName` scopes the
+    /// post to a publisher the account manages (the wire `?pub=<name>`); omit
+    /// it to let the server fall back to the account's default publisher.
     func createPost(
         content: String,
         visibility: Int = 0,
         attachments: [String] = [],
         replyTo: String? = nil,
         forwardTo: String? = nil,
+        pubName: String? = nil,
         token: String,
         serverUrl: String
     ) async throws {
-        guard let baseURL = URL(string: serverUrl) else {
-            throw URLError(.badURL)
-        }
-        let url = baseURL.appendingPathComponent("/sphere/posts")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        
         var body: [String: Any] = [
             "content": content,
             "visibility": visibility,
@@ -495,23 +486,110 @@ class NetworkService {
         if let forwardTo {
             body["forwarded_post_id"] = forwardTo
         }
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        
-        print("[watchOS] POST createPost - URL: \(url.absoluteString), body: \(body)")
-        print("[watchOS] createPost - token prefix: \(String(token.prefix(20)))...")
-        
+        try await sendPostMutation(
+            path: "/sphere/posts",
+            method: "POST",
+            body: body,
+            pubName: pubName,
+            token: token,
+            serverUrl: serverUrl
+        )
+    }
+
+    /// PATCH /sphere/posts/{postId} — update an existing post's editable
+    /// fields (content, visibility, attachments). `pubName` names the
+    /// publisher the post belongs to, matching the main app's edit flow.
+    func updatePost(
+        postId: String,
+        content: String,
+        visibility: Int,
+        attachments: [String],
+        pubName: String?,
+        token: String,
+        serverUrl: String
+    ) async throws {
+        try await sendPostMutation(
+            path: "/sphere/posts/\(postId)",
+            method: "PATCH",
+            body: [
+                "content": content,
+                "visibility": visibility,
+                "attachments": attachments,
+                "type": 0,
+            ],
+            pubName: pubName,
+            token: token,
+            serverUrl: serverUrl
+        )
+    }
+
+    /// DELETE /sphere/posts/{postId} — delete a post. Uses the checked delete
+    /// so a server refusal surfaces instead of leaving the user believing the
+    /// post is gone.
+    func deletePost(postId: String, token: String, serverUrl: String) async throws {
+        try await deleteChecked(path: "/sphere/posts/\(postId)", token: token, serverUrl: serverUrl)
+    }
+
+    /// GET /sphere/publishers — the publishers the signed-in account manages
+    /// (the ones it may publish as). Mirrors the main app's
+    /// `publishersManagedProvider`.
+    func fetchManagedPublishers(token: String, serverUrl: String) async throws -> [SnPublisher] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/publishers")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
         let (data, response) = try await session.data(for: request)
-        
-        if let httpResponse = response as? HTTPURLResponse {
-            print("[watchOS] createPost response - status: \(httpResponse.statusCode)")
-            // The server returns 200 for a successful create (and 201 in some
-            // paths). Treat any 2xx as success — a strict `201` check made a
-            // successfully-created post surface as a client error.
-            if !(200...299).contains(httpResponse.statusCode) {
-                let responseBody = String(data: data, encoding: .utf8) ?? ""
-                print("[watchOS] createPost failed - body: \(responseBody)")
-                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
-            }
+        try validateJSONResponse(response, data: data, endpoint: "GET /sphere/publishers")
+        return try Self.decodeJSON([SnPublisher].self, from: data)
+    }
+
+    /// Shared create/update write: JSON body plus the optional `?pub=<name>`
+    /// publisher scope. Treats any 2xx as success (the server returns 200 for
+    /// a successful create and 201 on some paths; a strict `201` check once
+    /// made a created post surface as a client error).
+    private func sendPostMutation(
+        path: String,
+        method: String,
+        body: [String: Any],
+        pubName: String?,
+        token: String,
+        serverUrl: String
+    ) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent(path),
+            resolvingAgainstBaseURL: false
+        )!
+        if let pubName, !pubName.isEmpty {
+            components.queryItems = [URLQueryItem(name: "pub", value: pubName)]
+        }
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        print("[watchOS] \(method) \(path) - pub: \(pubName ?? "nil"), body: \(body)")
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let responseBody = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] \(method) \(path) failed - status: \(httpResponse.statusCode), body: \(responseBody)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
     }
     

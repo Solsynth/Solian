@@ -13,6 +13,10 @@ struct ComposePostView: View {
     let replyingTo: SnPost?
     /// The post being quoted/forwarded (shown in the composer header).
     let forwardingTo: SnPost?
+    /// The post being edited; its content/visibility/attachments seed the form.
+    let editing: SnPost?
+    /// Called after the create/update succeeded, before the sheet dismisses.
+    let onSaved: (() -> Void)?
 
     @StateObject private var viewModel = ComposePostViewModel()
     @EnvironmentObject var appState: AppState
@@ -20,6 +24,7 @@ struct ComposePostView: View {
 
     @FocusState private var isContentFocused: Bool
     @State private var showVisibilityPicker = false
+    @State private var showPublisherPicker = false
     @State private var showVoiceRecorder = false
     @State private var showPhotoPicker = false
     @State private var showCloudLinker = false
@@ -28,15 +33,26 @@ struct ComposePostView: View {
 
     init(
         replyingTo: SnPost? = nil,
-        forwardingTo: SnPost? = nil
+        forwardingTo: SnPost? = nil,
+        editing: SnPost? = nil,
+        onSaved: (() -> Void)? = nil
     ) {
         self.replyingTo = replyingTo
         self.forwardingTo = forwardingTo
+        self.editing = editing
+        self.onSaved = onSaved
         // Seed the anchors before the first render so the composer knows its
-        // mode (reply vs forward) from the start.
+        // mode (new post / reply / forward / edit) from the start.
         let vm = ComposePostViewModel()
         vm.replyToPostId = replyingTo?.id
         vm.forwardPostId = forwardingTo?.id
+        if let editing {
+            vm.editingPostId = editing.id
+            vm.content = editing.content ?? ""
+            vm.visibility = editing.visibility ?? 0
+            vm.currentPublisher = editing.publisher
+            vm.seedAttachments(editing.attachments ?? [])
+        }
         _viewModel = StateObject(wrappedValue: vm)
     }
 
@@ -46,7 +62,7 @@ struct ComposePostView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     if viewModel.mode == .forward, let forwardingTo {
                         forwardIndicator(for: forwardingTo)
-                    } else if replyingTo != nil {
+                    } else if viewModel.mode == .reply, replyingTo != nil {
                         replyIndicator
                     }
 
@@ -64,9 +80,11 @@ struct ComposePostView: View {
 
                     // Quote-forwards are anchored posts; visibility stays the
                     // default for them (main app keeps quotes public).
-                    if viewModel.mode == .reply || viewModel.mode == .newPost {
+                    if viewModel.mode == .reply || viewModel.mode == .newPost || viewModel.mode == .edit {
                         visibilityField
                     }
+
+                    publisherField
 
                     if viewModel.isPosting {
                         postingIndicator
@@ -120,6 +138,16 @@ struct ComposePostView: View {
                 Button(L10n.composeVisibilityPrivate) { viewModel.visibility = 3 }
                 Button(L10n.composeCancel, role: .cancel) {}
             }
+            .confirmationDialog(L10n.composeSelectPublisher, isPresented: $showPublisherPicker) {
+                // Keyed by id so two publishers with the same nick stay
+                // distinguishable (the main app's modal lists nick + @name).
+                ForEach(viewModel.publishers) { publisher in
+                    Button(publisherLabel(publisher)) {
+                        viewModel.currentPublisher = publisher
+                    }
+                }
+                Button(L10n.composeCancel, role: .cancel) {}
+            }
             .sheet(isPresented: $showVoiceRecorder) {
                 VoiceRecorderView { url, durationMs in
                     Task { await viewModel.uploadAndAdd(url, contentType: "audio/mp4", token: token, serverUrl: serverUrl) }
@@ -136,6 +164,12 @@ struct ComposePostView: View {
                 }
                 .environmentObject(appState)
             }
+            .task(id: appState.serverUrl) {
+                // Managed publishers back the publisher picker; the selection
+                // scopes the write on the server.
+                guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+                await viewModel.loadPublishers(token: token, serverUrl: serverUrl)
+            }
         }
     }
 
@@ -144,6 +178,7 @@ struct ComposePostView: View {
         case .forward: return L10n.composeForward
         case .reply: return L10n.composeReply
         case .newPost: return L10n.composeNewPost
+        case .edit: return L10n.composeEdit
         }
     }
 
@@ -336,6 +371,50 @@ struct ComposePostView: View {
         }
     }
 
+    /// Publisher picker: the account's managed publishers. The server scopes
+    /// the create/update to the selected one, so the row mirrors the main
+    /// app's compose publisher field. Hidden when the list could not be
+    /// loaded — the write then falls back to the account's default publisher.
+    @ViewBuilder
+    private var publisherField: some View {
+        if !viewModel.publishers.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(L10n.composePublisher)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Button {
+                    showPublisherPicker = true
+                } label: {
+                    HStack {
+                        Image(systemName: viewModel.currentPublisher?.type == 0 ? "person.crop.circle" : "person.3")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                        Text(publisherLabel(viewModel.currentPublisher))
+                            .font(.body)
+                            .lineLimit(1)
+                        Spacer()
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(8)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    /// Display name for a publisher: nick first (the in-context name), then
+    /// the account name, then the neutral "account default" placeholder.
+    private func publisherLabel(_ publisher: SnPublisher?) -> String {
+        guard let publisher else { return L10n.composePublisherDefault }
+        if let nick = publisher.nick, !nick.isEmpty { return nick }
+        return publisher.name
+    }
+
     private var postingIndicator: some View {
         HStack {
             Spacer()
@@ -352,12 +431,13 @@ struct ComposePostView: View {
     @MainActor
     private func post() async {
         WKInterfaceDevice.current().play(.click)
-        await viewModel.createPost(
+        await viewModel.save(
             token: token,
             serverUrl: serverUrl
         )
         if viewModel.didPost {
             WKInterfaceDevice.current().play(.success)
+            onSaved?()
         } else if viewModel.errorMessage != nil {
             WKInterfaceDevice.current().play(.failure)
         }

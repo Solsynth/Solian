@@ -63,6 +63,14 @@ class ActivityViewModel: ObservableObject {
         isLoading = false
     }
 
+    /// Re-fetches the first page. Used after a post in the feed was edited (or
+    /// deleted), so the surviving rows reflect the change; `fetchActivities`
+    /// otherwise short-circuits on `hasFetched`.
+    func refreshActivities(token: String, serverUrl: String) async {
+        hasFetched = false
+        await fetchActivities(token: token, serverUrl: serverUrl)
+    }
+
     func loadMoreActivities(token: String, serverUrl: String) async {
         guard !isLoadingMore && hasMore && nextCursor != nil else { return }
         isLoadingMore = true

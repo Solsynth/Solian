@@ -446,8 +446,15 @@ struct PostQueryListView: View {
             } else {
                 List {
                     ForEach(posts) { post in
-                        PostRowView(post: post)
-                            .environmentObject(appState)
+                        PostRowView(
+                            post: post,
+                            onDeleted: { id in
+                                posts.removeAll { $0.id == id }
+                                total = max(0, total - 1)
+                            },
+                            onUpdated: { Task { await load() } }
+                        )
+                        .environmentObject(appState)
                     }
                     if hasMore {
                         Button(isLoadingMore ? "Loading…" : "Load More") {

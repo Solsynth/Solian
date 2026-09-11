@@ -28,8 +28,18 @@ class ComposePostViewModel: ObservableObject {
     var replyToPostId: String? = nil
     /// The post being quoted/forwarded (wire `forwarded_post_id`).
     var forwardPostId: String? = nil
+    /// The post being edited (wire PATCH target). nil for a new post.
+    var editingPostId: String? = nil
+
+    /// Publishers the signed-in account manages, for the publisher picker.
+    @Published private(set) var publishers: [SnPublisher] = []
+    /// The publisher the post is written as. The server scopes the write to it
+    /// (`?pub=<name>`, mirroring the main app); nil falls back to the
+    /// account's default publisher.
+    @Published var currentPublisher: SnPublisher?
 
     var mode: ComposeMode {
+        if editingPostId != nil { return .edit }
         if forwardPostId != nil { return .forward }
         if replyToPostId != nil { return .reply }
         return .newPost
@@ -77,22 +87,59 @@ class ComposePostViewModel: ObservableObject {
         attachments.removeAll { $0.id == id }
     }
 
-    func createPost(token: String, serverUrl: String) async {
+    /// Seeds the staged attachments from an existing post (edit mode).
+    func seedAttachments(_ files: [SnCloudFile]) {
+        attachments = files
+    }
+
+    /// Loads the account's managed publishers once, seeding the selection with
+    /// the personal publisher on a new post. In edit mode the post's own
+    /// publisher was already seeded, so it is left alone. A failed load is
+    /// non-fatal: the write then falls back to the server's default scope.
+    func loadPublishers(token: String, serverUrl: String) async {
+        guard publishers.isEmpty else { return }
+        do {
+            let list = try await networkService.fetchManagedPublishers(token: token, serverUrl: serverUrl)
+            publishers = list
+            if currentPublisher == nil {
+                currentPublisher = list.first { $0.type == 0 } ?? list.first
+            }
+        } catch {
+            print("[watchOS] load publishers failed: \(error)")
+        }
+    }
+
+    /// Creates a new post (or reply/forward), or updates the post being
+    /// edited, scoped to the selected publisher.
+    func save(token: String, serverUrl: String) async {
         guard !isPosting else { return }
         guard !content.isEmpty || !attachments.isEmpty else { return }
         isPosting = true
         errorMessage = nil
 
         do {
-            try await networkService.createPost(
-                content: content,
-                visibility: visibility,
-                attachments: attachments.map(\.id),
-                replyTo: replyToPostId,
-                forwardTo: forwardPostId,
-                token: token,
-                serverUrl: serverUrl
-            )
+            if let editingPostId {
+                try await networkService.updatePost(
+                    postId: editingPostId,
+                    content: content,
+                    visibility: visibility,
+                    attachments: attachments.map(\.id),
+                    pubName: currentPublisher?.name,
+                    token: token,
+                    serverUrl: serverUrl
+                )
+            } else {
+                try await networkService.createPost(
+                    content: content,
+                    visibility: visibility,
+                    attachments: attachments.map(\.id),
+                    replyTo: replyToPostId,
+                    forwardTo: forwardPostId,
+                    pubName: currentPublisher?.name,
+                    token: token,
+                    serverUrl: serverUrl
+                )
+            }
             didPost = true
         } catch {
             errorMessage = error.localizedDescription
@@ -104,9 +151,10 @@ class ComposePostViewModel: ObservableObject {
 }
 
 /// What the compose flow is anchored to: a fresh post, a reply to an existing
-/// post, or a quote/forward of an existing post.
+/// post, a quote/forward of an existing post, or an edit of an existing post.
 enum ComposeMode {
     case newPost
     case reply
     case forward
+    case edit
 }

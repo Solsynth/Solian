@@ -56,8 +56,19 @@ struct ActivityListView: View {
                     ForEach(viewModel.activities) { activity in
                         if activity.isPost {
                             if let post = activity.decodePost() {
-                                PostRowView(post: post)
-                                    .environmentObject(appState)
+                                PostRowView(
+                                    post: post,
+                                    onDeleted: { id in
+                                        viewModel.activities.removeAll { $0.decodePost()?.id == id }
+                                    },
+                                    onUpdated: {
+                                        Task {
+                                            guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+                                            await viewModel.refreshActivities(token: token, serverUrl: serverUrl)
+                                        }
+                                    }
+                                )
+                                .environmentObject(appState)
                             } else {
                                 Text("Unknown activity")
                             }

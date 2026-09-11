@@ -261,6 +261,13 @@
 "post.boost" = "推薦";
 "post.bookmark" = "收藏";
 "post.removeBookmark" = "取消收藏";
+"post.actions" = "操作";
+"post.react" = "表態";
+"post.edit" = "編輯";
+"post.delete" = "刪除";
+"post.deleteConfirm" = "刪除這則貼文？";
+"post.actionFailed" = "操作失敗";
+"post.actionOk" = "好";
 "post.unknownActivity" = "未知活動";
 "link.openHere" = "在此處開啟";
 "link.openOnPhone" = "在你的 iPhone 上開啟";
@@ -272,6 +279,7 @@
 "compose.newPost" = "新貼文";
 "compose.reply" = "回覆";
 "compose.forward" = "轉發";
+"compose.edit" = "編輯貼文";
 "compose.repilingTo" = "正在回覆";
 "compose.forwarding" = "正在轉發";
 "compose.content" = "內容";
@@ -282,6 +290,9 @@
 "compose.visibility.unlisted" = "不公開";
 "compose.visibility.private" = "私密";
 "compose.selectVisibility" = "選擇可見性";
+"compose.publisher" = "發佈者";
+"compose.selectPublisher" = "選擇發佈者";
+"compose.publisherDefault" = "帳號預設";
 "compose.cancel" = "取消";
 "compose.posting" = "正在發布...";
 "compose.error" = "錯誤";

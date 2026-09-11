@@ -261,6 +261,13 @@
 "post.boost" = "Boost";
 "post.bookmark" = "Bookmark";
 "post.removeBookmark" = "Remove bookmark";
+"post.actions" = "Actions";
+"post.react" = "React";
+"post.edit" = "Edit";
+"post.delete" = "Delete";
+"post.deleteConfirm" = "Delete this post?";
+"post.actionFailed" = "Action failed";
+"post.actionOk" = "OK";
 "post.unknownActivity" = "Unknown activity";
 "link.openHere" = "Open here";
 "link.openOnPhone" = "Open on your iPhone";
@@ -272,6 +279,7 @@
 "compose.newPost" = "New Post";
 "compose.reply" = "Reply";
 "compose.forward" = "Forward";
+"compose.edit" = "Edit Post";
 "compose.repilingTo" = "Replying to";
 "compose.forwarding" = "Forwarding";
 "compose.content" = "Content";
@@ -282,6 +290,9 @@
 "compose.visibility.unlisted" = "Unlisted";
 "compose.visibility.private" = "Private";
 "compose.selectVisibility" = "Select Visibility";
+"compose.publisher" = "Publisher";
+"compose.selectPublisher" = "Select Publisher";
+"compose.publisherDefault" = "Account default";
 "compose.cancel" = "Cancel";
 "compose.posting" = "Posting...";
 "compose.error" = "Error";

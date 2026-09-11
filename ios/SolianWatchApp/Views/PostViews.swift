@@ -158,10 +158,17 @@ struct ReferencedPostReferenceView: View {
 
 struct PostRowView: View {
     let post: SnPost
+    /// Called after this post is deleted here, so the owning list drops the row.
+    var onDeleted: ((String) -> Void)? = nil
+    /// Called after this post is edited here, so the owning list refetches it.
+    var onUpdated: (() -> Void)? = nil
+
     @EnvironmentObject var appState: AppState
-    @State private var showReactionSheet = false
-    @State private var showComposeSheet = false
-    @State private var composeMode: ComposePostViewMode = .reply
+    @State private var isNavigating = false
+    @State private var showActionMenu = false
+    /// Set once the long press fires, so the release that follows doesn't also
+    /// open the post — the row's tap and long press share one control.
+    @State private var didLongPress = false
 
     private var reactionPills: [(String, Int)] {
         guard let reactions = post.reactionsCount else { return [] }
@@ -199,11 +206,25 @@ struct PostRowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            NavigationLink(destination: PostDetailView(post: post)
-                .environmentObject(appState)) {
+            Button {
+                // A long press already claimed this interaction; don't also
+                // open the post when the finger lifts.
+                if didLongPress {
+                    didLongPress = false
+                    return
+                }
+                isNavigating = true
+            } label: {
                 rowContent
             }
             .buttonStyle(.plain)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                    didLongPress = true
+                    WKInterfaceDevice.current().play(.click)
+                    showActionMenu = true
+                }
+            )
 
             // The referenced (reply/forward) chip is a sibling link OUTSIDE the
             // row's own link, so tapping it opens the referenced post rather
@@ -213,44 +234,26 @@ struct PostRowView: View {
             }
         }
         .padding(.vertical)
-        .sheet(isPresented: $showReactionSheet) {
-            ReactionSheetView(post: post)
-                .environmentObject(appState)
+        .onChange(of: showActionMenu) { _, isPresented in
+            // The menu can close without the row's tap ever firing (a long
+            // press that SwiftUI didn't follow with a release); clear the
+            // guard so the next tap navigates.
+            if !isPresented { didLongPress = false }
         }
-        .sheet(isPresented: $showComposeSheet) {
-            switch composeMode {
-            case .reply:
-                ComposePostView(replyingTo: post)
-                    .environmentObject(appState)
-            case .forward:
-                ComposePostView(forwardingTo: post)
-                    .environmentObject(appState)
-            }
+        .navigationDestination(isPresented: $isNavigating) {
+            PostDetailView(
+                post: post,
+                onDeleted: { onDeleted?(post.id) },
+                onUpdated: { onUpdated?() }
+            )
+            .environmentObject(appState)
         }
-        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            Button {
-                showReactionSheet = true
-            } label: {
-                Image(systemName: "face.smiling")
-            }
-            .tint(.blue)
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button {
-                composeMode = .forward
-                showComposeSheet = true
-            } label: {
-                Image(systemName: "arrowshape.turn.up.right")
-            }
-            .tint(.blue)
-            Button {
-                composeMode = .reply
-                showComposeSheet = true
-            } label: {
-                Image(systemName: "bubble.right")
-            }
-            .tint(.green)
-        }
+        .postActionMenu(
+            isPresented: $showActionMenu,
+            post: post,
+            onDeleted: { onDeleted?(post.id) },
+            onUpdated: { onUpdated?() }
+        )
     }
 
     /// The row's own content (header, title, body, attachments, engagement
@@ -342,6 +345,213 @@ struct PostRowView: View {
 
 }
 
+/// A choice from a post's long-press action menu.
+enum PostMenuAction {
+    case react
+    case reply
+    case forward
+    case edit
+    case delete
+}
+
+/// A watchOS-style action menu sheet shown on long-press of a post row or a
+/// reply row (and from the post detail's toolbar). Offers what the old
+/// left/right swipes carried (react, reply, forward) plus edit/delete for a
+/// post the account may author — mirroring the main app's post menu and the
+/// chat surfaces' `MessageActionMenuView`.
+struct PostActionMenuView: View {
+    let post: SnPost
+    /// Reports the chosen action after the sheet dismisses itself; the host
+    /// owns the follow-up so nothing is presented while this menu is still up.
+    let onSelect: (PostMenuAction) -> Void
+
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
+    @State private var isOwn = false
+
+    private let networkService = NetworkService()
+
+    var body: some View {
+        NavigationView {
+            List {
+                Button { select(.react) } label: {
+                    Label(L10n.postReact, systemImage: "face.smiling")
+                }
+                Button { select(.reply) } label: {
+                    Label(L10n.postReply, systemImage: "arrowshape.turn.up.left")
+                }
+                Button { select(.forward) } label: {
+                    Label(L10n.postForward, systemImage: "arrowshape.turn.up.right")
+                }
+
+                if isOwn {
+                    Button { select(.edit) } label: {
+                        Label(L10n.postEdit, systemImage: "pencil")
+                    }
+                    Button(role: .destructive) { select(.delete) } label: {
+                        Label(L10n.postDelete, systemImage: "trash")
+                    }
+                }
+            }
+            .navigationTitle(L10n.postActions)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .task { await resolveOwnership() }
+    }
+
+    private func select(_ action: PostMenuAction) {
+        WKInterfaceDevice.current().play(.click)
+        dismiss()
+        onSelect(action)
+    }
+
+    /// Edit/delete are offered only to the post's author: the account itself
+    /// (`publisher.account_id`) or an account that manages the post's
+    /// publisher (`GET /sphere/publishers`). Mirrors the main app's `isAuthor`.
+    private func resolveOwnership() async {
+        guard let publisher = post.publisher else { return }
+        if let accountId = publisher.accountId, accountId == appState.currentAccountId {
+            isOwn = true
+            return
+        }
+        guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+        let managed = (try? await networkService.fetchManagedPublishers(token: token, serverUrl: serverUrl)) ?? []
+        isOwn = managed.contains { $0.id == publisher.id }
+    }
+}
+
+/// Attaches the post action menu and the follow-ups it triggers (reaction
+/// picker, reply/forward composer, edit composer, delete confirmation).
+/// Shared by the timeline row, the reply row, and the post detail so all three
+/// behave identically; the host raises `isPresented` (long press or toolbar).
+private struct PostActionMenuModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    let post: SnPost
+    /// Runs after the post was deleted here (drop the row / pop the detail).
+    let onDeleted: () -> Void
+    /// Runs after the post was edited here (refetch the list / detail).
+    let onUpdated: () -> Void
+
+    @EnvironmentObject private var appState: AppState
+    @State private var pendingAction: PostMenuAction?
+    @State private var followUp: PostMenuFollowUp?
+    @State private var showDeleteConfirmation = false
+    @State private var didEdit = false
+    @State private var errorMessage: String?
+
+    private let networkService = NetworkService()
+
+    /// The sheet a menu choice opens once the menu has closed.
+    private enum PostMenuFollowUp: Identifiable {
+        case reactions
+        case reply
+        case forward
+        case edit
+
+        var id: String {
+            switch self {
+            case .reactions: return "reactions"
+            case .reply: return "reply"
+            case .forward: return "forward"
+            case .edit: return "edit"
+            }
+        }
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $isPresented, onDismiss: presentPendingAction) {
+                PostActionMenuView(post: post) { pendingAction = $0 }
+                    .environmentObject(appState)
+            }
+            .sheet(item: $followUp, onDismiss: {
+                if didEdit {
+                    didEdit = false
+                    onUpdated()
+                }
+            }) { followUp in
+                followUpView(for: followUp)
+            }
+            .alert(L10n.postDeleteConfirm, isPresented: $showDeleteConfirmation) {
+                Button(L10n.postDelete, role: .destructive) {
+                    Task { await deletePost() }
+                }
+                Button(L10n.composeCancel, role: .cancel) {}
+            }
+            .alert(L10n.postActionFailed, isPresented: .constant(errorMessage != nil)) {
+                Button(L10n.postActionOk) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+    }
+
+    /// Opens the choice's follow-up once the menu sheet has fully dismissed —
+    /// presenting a sheet while another is still on screen gets dropped.
+    private func presentPendingAction() {
+        guard let action = pendingAction else { return }
+        pendingAction = nil
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            switch action {
+            case .react: followUp = .reactions
+            case .reply: followUp = .reply
+            case .forward: followUp = .forward
+            case .edit: followUp = .edit
+            case .delete: showDeleteConfirmation = true
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func followUpView(for followUp: PostMenuFollowUp) -> some View {
+        switch followUp {
+        case .reactions:
+            ReactionSheetView(post: post)
+                .environmentObject(appState)
+        case .reply:
+            ComposePostView(replyingTo: post)
+                .environmentObject(appState)
+        case .forward:
+            ComposePostView(forwardingTo: post)
+                .environmentObject(appState)
+        case .edit:
+            ComposePostView(editing: post, onSaved: { didEdit = true })
+                .environmentObject(appState)
+        }
+    }
+
+    private func deletePost() async {
+        guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
+        do {
+            try await networkService.deletePost(postId: post.id, token: token, serverUrl: serverUrl)
+            WKInterfaceDevice.current().play(.success)
+            onDeleted()
+        } catch {
+            print("[watchOS] delete post failed: \(error)")
+            WKInterfaceDevice.current().play(.failure)
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
+extension View {
+    /// Attaches the long-press post action menu and its follow-up sheets and
+    /// alerts to a post surface (row, reply row, or detail).
+    func postActionMenu(
+        isPresented: Binding<Bool>,
+        post: SnPost,
+        onDeleted: @escaping () -> Void,
+        onUpdated: @escaping () -> Void
+    ) -> some View {
+        modifier(PostActionMenuModifier(
+            isPresented: isPresented,
+            post: post,
+            onDeleted: onDeleted,
+            onUpdated: onUpdated
+        ))
+    }
+}
+
 /// Which anchored compose a post row presents.
 enum ComposePostViewMode {
     case reply
@@ -350,9 +560,18 @@ enum ComposePostViewMode {
 
 struct PostDetailView: View {
     let post: SnPost
+    /// Called when this post is deleted from here, so the presenting list can
+    /// drop its row (nil when there is no owning list).
+    var onDeleted: (() -> Void)? = nil
+    /// Called when this post is edited from here, so the presenting list can
+    /// refetch it (nil when there is no owning list).
+    var onUpdated: (() -> Void)? = nil
+
     @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
     @State private var showReactionSheet = false
     @State private var showComposeSheet = false
+    @State private var showActionMenu = false
     @State private var composeMode: ComposePostViewMode = .reply
     @State private var expandedReactions = false
     @State private var isEngaging = false
@@ -399,6 +618,32 @@ struct PostDetailView: View {
         }
         .navigationTitle(L10n.postTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // The detail keeps its action rail for the common interactions;
+            // the ellipsis opens the same menu as a long press on a row, which
+            // is where edit/delete live.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    WKInterfaceDevice.current().play(.click)
+                    showActionMenu = true
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel(L10n.postActions)
+            }
+        }
+        .postActionMenu(
+            isPresented: $showActionMenu,
+            post: currentPost,
+            onDeleted: {
+                onDeleted?()
+                dismiss()
+            },
+            onUpdated: {
+                onUpdated?()
+                Task { await loadFresh() }
+            }
+        )
         .sheet(isPresented: $showReactionSheet) {
             ReactionSheetView(post: currentPost)
                 .environmentObject(appState)
@@ -765,8 +1010,15 @@ struct PostDetailView: View {
                 }
             } else {
                 ForEach(replies) { reply in
-                    ReplyRowView(post: reply)
-                        .environmentObject(appState)
+                    ReplyRowView(
+                        post: reply,
+                        onDeleted: { id in
+                            replies.removeAll { $0.id == id }
+                            repliesTotal = max(0, repliesTotal - 1)
+                        },
+                        onUpdated: { Task { await loadFresh() } }
+                    )
+                    .environmentObject(appState)
                 }
                 if repliesTotal > replies.count || repliesPreviewCount > 0 {
                     Button(isLoadingMoreReplies ? L10n.postLoading : L10n.postLoadMoreReplies) {
@@ -866,12 +1118,21 @@ struct PostDetailView: View {
 
 /// A single reply row in the post-detail replies preview: author, content,
 /// reaction pills, and engagement counts — mirrors the main app's reply card
-/// and keeps reply interaction (react, reply-to-reply) available on the watch.
+/// and keeps reply interaction (react, reply-to-reply, edit, delete) available
+/// on the watch through the same long-press action menu as timeline rows.
 struct ReplyRowView: View {
     let post: SnPost
+    /// Called after this reply is deleted here, so the detail can drop it.
+    var onDeleted: ((String) -> Void)? = nil
+    /// Called after this reply is edited here, so the detail can refetch.
+    var onUpdated: (() -> Void)? = nil
+
     @EnvironmentObject var appState: AppState
-    @State private var showReactionSheet = false
-    @State private var showReplySheet = false
+    @State private var isNavigating = false
+    @State private var showActionMenu = false
+    /// Set once the long press fires, so the release that follows doesn't also
+    /// open the reply — the row's tap and long press share one control.
+    @State private var didLongPress = false
 
     private var reactionPills: [(String, Int)] {
         guard let reactions = post.reactionsCount else { return [] }
@@ -879,86 +1140,95 @@ struct ReplyRowView: View {
     }
 
     var body: some View {
-        NavigationLink(destination: PostDetailView(post: post)
-            .environmentObject(appState)) {
-            VStack(alignment: .leading, spacing: 4) {
-                PostAuthorHeader(post: post, isCompact: true)
-
-                if let content = post.content, !content.isEmpty {
-                    MarkdownText(
-                        content: content,
-                        lineLimit: 6,
-                        isHTML: (post.contentType ?? 0) == 1
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.primary)
-                }
-
-                if !reactionPills.isEmpty || (post.upvotes ?? 0) > 0 || (post.repliesCount ?? 0) > 0 {
-                    HStack(spacing: 8) {
-                        if !reactionPills.isEmpty {
-                            HStack(spacing: 3) {
-                                ForEach(reactionPills, id: \.0) { symbol, count in
-                                    HStack(spacing: 3) {
-                                        ReactionGlyphView(symbol: symbol, size: 16)
-                                        Text("\(count)")
-                                            .font(.system(size: 9))
-                                    }
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 1)
-                                    .background(
-                                        (post.reactionsMade?[symbol] ?? false)
-                                            ? Color.accentColor.opacity(0.4)
-                                            : Color.gray.opacity(0.15)
-                                    )
-                                    .clipShape(Capsule())
-                                }
-                            }
-                        }
-                        if let upvotes = post.upvotes, upvotes > 0 {
-                            Image(systemName: "arrow.up")
-                                .font(.system(size: 9))
-                            Text("\(upvotes)")
-                                .font(.system(size: 9))
-                        }
-                        if let replies = post.repliesCount, replies > 0 {
-                            Image(systemName: "bubble.right")
-                                .font(.system(size: 9))
-                            Text("\(replies)")
-                                .font(.system(size: 9))
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.secondary)
-                }
+        Button {
+            // A long press already claimed this interaction; don't also open
+            // the reply when the finger lifts.
+            if didLongPress {
+                didLongPress = false
+                return
             }
-            .padding(.vertical, 6)
-            .contentShape(Rectangle())
+            isNavigating = true
+        } label: {
+            replyContent
         }
         .buttonStyle(.plain)
-        .sheet(isPresented: $showReactionSheet) {
-            ReactionSheetView(post: post)
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                didLongPress = true
+                WKInterfaceDevice.current().play(.click)
+                showActionMenu = true
+            }
+        )
+        .onChange(of: showActionMenu) { _, isPresented in
+            // The menu can close without the row's tap ever firing; clear the
+            // guard so the next tap navigates.
+            if !isPresented { didLongPress = false }
+        }
+        .navigationDestination(isPresented: $isNavigating) {
+            PostDetailView(post: post)
                 .environmentObject(appState)
         }
-        .sheet(isPresented: $showReplySheet) {
-            ComposePostView(replyingTo: post)
-                .environmentObject(appState)
-        }
-        .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            Button {
-                showReactionSheet = true
-            } label: {
-                Image(systemName: "face.smiling")
+        .postActionMenu(
+            isPresented: $showActionMenu,
+            post: post,
+            onDeleted: { onDeleted?(post.id) },
+            onUpdated: { onUpdated?() }
+        )
+    }
+
+    private var replyContent: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            PostAuthorHeader(post: post, isCompact: true)
+
+            if let content = post.content, !content.isEmpty {
+                MarkdownText(
+                    content: content,
+                    lineLimit: 6,
+                    isHTML: (post.contentType ?? 0) == 1
+                )
+                .font(.caption)
+                .foregroundStyle(.primary)
             }
-            .tint(.blue)
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button {
-                showReplySheet = true
-            } label: {
-                Image(systemName: "bubble.right")
+
+            if !reactionPills.isEmpty || (post.upvotes ?? 0) > 0 || (post.repliesCount ?? 0) > 0 {
+                HStack(spacing: 8) {
+                    if !reactionPills.isEmpty {
+                        HStack(spacing: 3) {
+                            ForEach(reactionPills, id: \.0) { symbol, count in
+                                HStack(spacing: 3) {
+                                    ReactionGlyphView(symbol: symbol, size: 16)
+                                    Text("\(count)")
+                                        .font(.system(size: 9))
+                                }
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
+                                .background(
+                                    (post.reactionsMade?[symbol] ?? false)
+                                        ? Color.accentColor.opacity(0.4)
+                                        : Color.gray.opacity(0.15)
+                                )
+                                .clipShape(Capsule())
+                            }
+                        }
+                    }
+                    if let upvotes = post.upvotes, upvotes > 0 {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 9))
+                        Text("\(upvotes)")
+                            .font(.system(size: 9))
+                    }
+                    if let replies = post.repliesCount, replies > 0 {
+                        Image(systemName: "bubble.right")
+                            .font(.system(size: 9))
+                        Text("\(replies)")
+                            .font(.system(size: 9))
+                    }
+                    Spacer()
+                }
+                .foregroundStyle(.secondary)
             }
-            .tint(.green)
         }
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
     }
 }
