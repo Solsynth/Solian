@@ -8,6 +8,7 @@
 "panel.wallet" = "Wallet";
 "panel.account" = "Account";
 "panel.checkIn" = "Check In";
+"panel.countdown" = "Countdown";
 "panel.selectPanel" = "Select a panel";
 
 /* MARK: - SignInView */
@@ -141,6 +142,18 @@
 "checkin.study" = "Study";
 "checkin.work" = "Work";
 "checkin.health" = "Health";
+
+/* MARK: - CountdownView */
+"countdown.title" = "Countdown";
+"countdown.couldntLoad" = "Couldn't load countdowns";
+"countdown.retry" = "Retry";
+"countdown.empty" = "No upcoming events";
+"countdown.emptyHint" = "Create events in your calendar to see them here";
+"countdown.now" = "now";
+"countdown.daysHours" = "%1$dd %2$dh";
+"countdown.hoursMinutes" = "%1$dh %2$dm";
+"countdown.minutesSeconds" = "%1$dm %2$ds";
+"countdown.seconds" = "%1$ds";
 
 /* MARK: - ChatView */
 "chat.title" = "Chat";

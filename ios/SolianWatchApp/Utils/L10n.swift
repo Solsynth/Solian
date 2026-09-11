@@ -17,6 +17,7 @@ public enum L10n {
     static let panelWallet = NSLocalizedString("panel.wallet", comment: "Wallet panel title")
     static let panelAccount = NSLocalizedString("panel.account", comment: "Account panel title")
     static let panelCheckIn = NSLocalizedString("panel.checkIn", comment: "Check In panel title")
+    static let panelCountdown = NSLocalizedString("panel.countdown", comment: "Countdown panel title")
     static let panelSelectPanel = NSLocalizedString("panel.selectPanel", comment: "Placeholder when no panel selected")
 
     // MARK: - SignInView
@@ -157,6 +158,32 @@ public enum L10n {
     /// language override is applied.
     static func checkInLevelName(_ level: Int) -> String {
         NSLocalizedString("checkin.levelName.\(level)", comment: "Check-in level name")
+    }
+
+    // MARK: - CountdownView
+    static let countdownTitle = NSLocalizedString("countdown.title", comment: "Countdown navigation title")
+    static let countdownCouldntLoad = NSLocalizedString("countdown.couldntLoad", comment: "Couldn't load countdowns")
+    static let countdownRetry = NSLocalizedString("countdown.retry", comment: "Retry button")
+    static let countdownEmpty = NSLocalizedString("countdown.empty", comment: "No upcoming events")
+    static let countdownEmptyHint = NSLocalizedString("countdown.emptyHint", comment: "Empty state hint")
+    static let countdownNow = NSLocalizedString("countdown.now", comment: "Event is happening now")
+
+    /// Compact remaining-time formats, mirroring the main app's short countdown
+    /// keys (`countdownDaysShort` "{}d", `countdownHoursShort` "{}h", …).
+    static func countdownDaysHours(days: Int, hours: Int) -> String {
+        String(format: NSLocalizedString("countdown.daysHours", comment: "Days and hours remaining"), days, hours)
+    }
+
+    static func countdownHoursMinutes(hours: Int, minutes: Int) -> String {
+        String(format: NSLocalizedString("countdown.hoursMinutes", comment: "Hours and minutes remaining"), hours, minutes)
+    }
+
+    static func countdownMinutesSeconds(minutes: Int, seconds: Int) -> String {
+        String(format: NSLocalizedString("countdown.minutesSeconds", comment: "Minutes and seconds remaining"), minutes, seconds)
+    }
+
+    static func countdownSeconds(_ seconds: Int) -> String {
+        String(format: NSLocalizedString("countdown.seconds", comment: "Seconds remaining"), seconds)
     }
 
     // MARK: - ChatView

@@ -2254,6 +2254,72 @@ struct SnFortuneSaying: Codable, Identifiable {
     var id: String { content }
 }
 
+// MARK: - Event Countdown Models
+
+/// Event countdown item types (int values matching the backend enum).
+/// Mirrors `SnEventCountdownType`: UserEvent = 0, CheckIn = 1, Status = 2,
+/// NotableDay = 3.
+enum SnEventCountdownType {
+    static let userEvent = 0
+    static let checkIn = 1
+    static let status = 2
+    static let notableDay = 3
+}
+
+/// One upcoming event countdown (`GET /passport/accounts/me/calendar/countdown`).
+/// Mirrors `SnEventCountdownItem`; `meta`/`background`/`icon` are omitted —
+/// the watch doesn't need them. Remaining time is recomputed locally from
+/// `startTime`, so the readout stays live between refreshes.
+struct SnEventCountdownItem: Codable, Identifiable {
+    let eventId: String?
+    let eventType: Int
+    let title: String
+    let description: String?
+    let location: String?
+    let startTime: Date
+    let endTime: Date
+    let isAllDay: Bool
+    let daysRemaining: Int
+    let hoursRemaining: Int
+    let isOngoing: Bool
+    let accountId: String?
+
+    var id: String {
+        eventId ?? "\(eventType)-\(startTime.timeIntervalSince1970)-\(title)"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case eventId = "event_id"
+        case eventType = "event_type"
+        case title
+        case description
+        case location
+        case startTime = "start_time"
+        case endTime = "end_time"
+        case isAllDay = "is_all_day"
+        case daysRemaining = "days_remaining"
+        case hoursRemaining = "hours_remaining"
+        case isOngoing = "is_ongoing"
+        case accountId = "account_id"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        eventId = try container.decodeIfPresent(String.self, forKey: .eventId)
+        eventType = try container.decodeIfPresent(Int.self, forKey: .eventType) ?? 0
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        location = try container.decodeIfPresent(String.self, forKey: .location)
+        startTime = try container.decodeIfPresent(Date.self, forKey: .startTime) ?? Date()
+        endTime = try container.decodeIfPresent(Date.self, forKey: .endTime) ?? Date()
+        isAllDay = try container.decodeIfPresent(Bool.self, forKey: .isAllDay) ?? false
+        daysRemaining = try container.decodeIfPresent(Int.self, forKey: .daysRemaining) ?? 0
+        hoursRemaining = try container.decodeIfPresent(Int.self, forKey: .hoursRemaining) ?? 0
+        isOngoing = try container.decodeIfPresent(Bool.self, forKey: .isOngoing) ?? false
+        accountId = try container.decodeIfPresent(String.self, forKey: .accountId)
+    }
+}
+
 // MARK: - Personality Core (Agent Chat) Models
 
 /// An agent available for conversation on Personality Core.

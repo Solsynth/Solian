@@ -24,6 +24,7 @@ struct ContentView: View {
         case wallet
         case account
         case checkIn
+        case countdown
         case settings
     }
 
@@ -96,6 +97,7 @@ struct ContentView: View {
             navTile(panel: .wallet, icon: "banknote.fill", label: L10n.panelWallet)
             navTile(panel: .account, icon: "person.circle.fill", label: L10n.panelAccount)
             navTile(panel: .checkIn, icon: "checkmark.seal.fill", label: L10n.panelCheckIn)
+            navTile(panel: .countdown, icon: "hourglass", label: L10n.panelCountdown)
             navTile(panel: .settings, icon: "gearshape.fill", label: L10n.panelSettings)
         }
         .listStyle(.automatic)
@@ -161,6 +163,8 @@ struct ContentView: View {
             AccountView().environmentObject(appState)
         case .checkIn:
             CheckInView().environmentObject(appState)
+        case .countdown:
+            CountdownView().environmentObject(appState)
         case .settings:
             SettingsView()
                 .environmentObject(appState)

@@ -931,6 +931,51 @@ class NetworkService {
         return try decoder.decode(SnFortuneSaying.self, from: data)
     }
 
+    // MARK: - Event Countdowns (mirrors Flutter AccountsApi)
+
+    /// GET /passport/accounts/me/calendar/countdown — the current user's
+    /// upcoming event countdowns (user events + notable days). Mirrors
+    /// `getEventCountdowns` (the `username: nil` path the dashboard's
+    /// `EventCountdownQuery(username: 'me')` takes). Returns the bare JSON
+    /// array; the `X-Total` pagination header is unused on the watch.
+    func fetchEventCountdowns(
+        token: String,
+        serverUrl: String,
+        take: Int = 20,
+        offset: Int = 0,
+        includeNotableDays: Bool = true
+    ) async throws -> [SnEventCountdownItem] {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("/passport/accounts/me/calendar/countdown"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "take", value: String(take)),
+            URLQueryItem(name: "offset", value: String(offset)),
+            URLQueryItem(name: "includeNotableDays", value: String(includeNotableDays)),
+        ]
+        guard let url = components.url else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[watchOS] fetchEventCountdowns failed with status \(httpResponse.statusCode), body: \(body)")
+            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode([SnEventCountdownItem].self, from: data)
+    }
+
     // MARK: - Post engagement APIs (boost / bookmark)
 
     /// POST /sphere/posts/{postId}/boost — boost/repost a post.
