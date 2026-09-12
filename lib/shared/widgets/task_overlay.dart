@@ -11,10 +11,27 @@ import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'task_overlay_state.dart';
 
 double taskOverlayHeight(bool isDesktop) => isDesktop ? 32 : 56;
+
+/// Toggles the process-wide wakelock while an app task is running.
+///
+/// Best effort: platforms that cannot satisfy the request (or browsers without
+/// a user gesture) must never break task bookkeeping.
+Future<void> _setWakelock(bool enable) async {
+  try {
+    if (enable) {
+      await WakelockPlus.enable();
+    } else {
+      await WakelockPlus.disable();
+    }
+  } catch (_) {
+    // Ignored on purpose.
+  }
+}
 
 // --- Shared helpers ---
 
@@ -156,11 +173,31 @@ class TaskOverlayHost extends ConsumerStatefulWidget {
 
 class _TaskOverlayHostState extends ConsumerState<TaskOverlayHost> {
   Timer? _clearTimer;
+  bool _wakelockHeld = false;
 
   @override
   void dispose() {
     _clearTimer?.cancel();
+    _releaseWakelock();
     super.dispose();
+  }
+
+  /// Keeps the screen awake for exactly as long as a task is running.
+  void _syncWakelock(List<AppTask> allTasks) {
+    final shouldHold = allTasks.any(
+      (task) =>
+          task.status == AppTaskStatus.pending ||
+          task.status == AppTaskStatus.inProgress,
+    );
+    if (shouldHold == _wakelockHeld) return;
+    _wakelockHeld = shouldHold;
+    _setWakelock(shouldHold);
+  }
+
+  void _releaseWakelock() {
+    if (!_wakelockHeld) return;
+    _wakelockHeld = false;
+    _setWakelock(false);
   }
 
   void _syncAutoClear(List<AppTask> allTasks) {
@@ -212,6 +249,7 @@ class _TaskOverlayHostState extends ConsumerState<TaskOverlayHost> {
     final snapshot = buildTaskOverlaySnapshot(allTasks, now: DateTime.now());
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
 
+    _syncWakelock(allTasks);
     _syncAutoClear(allTasks);
 
     return AnimatedContainer(
@@ -265,30 +303,26 @@ class _TaskOverlayBar extends ConsumerWidget {
         ? ''
         : ', ${(progress * 100).round()}% ${'taskProgress'.tr()}';
     final label = '$title, $subtitle$progressLabel';
-    final Widget backgroundProgress = progress == null
-        ? SizedBox(
-            height: 3,
-            width: double.infinity,
-            child: LinearProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-            ),
+    final Widget progressIndicator = progress == null
+        ? LinearProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(statusColor),
           )
         : TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: progress),
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
             builder: (context, value, child) {
-              return SizedBox(
-                height: 3,
-                width: double.infinity,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(widthFactor: value, child: child),
-                ),
+              return LinearProgressIndicator(
+                value: value,
+                valueColor: AlwaysStoppedAnimation<Color>(statusColor),
               );
             },
-            child: ColoredBox(color: statusColor),
           );
+    final Widget backgroundProgress = SizedBox(
+      height: 3,
+      width: double.infinity,
+      child: progressIndicator,
+    );
 
     return Semantics(
       button: true,
