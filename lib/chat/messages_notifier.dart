@@ -1110,7 +1110,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-
   /// True when the member carries a server-fabricated profile shell (random
   /// id, only account_id set) or an empty account name. Such members are what
   /// a "lost chat member account" looks like: the room/member row survived
@@ -1208,7 +1207,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (unresolved.isNotEmpty) {
       final sdk = ref.read(solarNetworkClientProvider);
       final accountIds = <String, String>{}; // memberId -> accountId
-      final memberForMessage = <String, LocalChatMessage>{}; // memberId -> sample
+      final memberForMessage =
+          <String, LocalChatMessage>{}; // memberId -> sample
       for (final memberId in unresolved) {
         final existing = _membersById[memberId];
         if (existing != null) {
@@ -1351,11 +1351,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     } catch (err, stackTrace) {
       _logSenderFailure(
         'Skipping invalid chat member during sender repair; '
-        'diagnostic: ${jsonEncode({
-          'member_id': data['id'],
-          'account_id': data['account_id'],
-          'account_keys': _mapKeys(data['account']),
-        })}',
+        'diagnostic: ${jsonEncode({'member_id': data['id'], 'account_id': data['account_id'], 'account_keys': _mapKeys(data['account'])})}',
         error: err,
         stackTrace: stackTrace,
       );
@@ -2111,7 +2107,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         localMessage.type == 'messages.sync.finalize' ||
         localMessage.type == 'messages.sync.links';
     final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
-    final shouldShowMessage = _shouldIncludeInActiveList(localMessage, chatMode);
+    final shouldShowMessage = _shouldIncludeInActiveList(
+      localMessage,
+      chatMode,
+    );
     final shouldShowEditTrail =
         chatMode != kChatEventMessageModeNone && isMessageUpdate;
 
@@ -2267,6 +2266,7 @@ class MessagesNotifier extends _$MessagesNotifier {
             currentUserId: currentAccount?.id,
             currentAccountName: currentAccount?.name,
             currentAccountNick: currentAccount?.nick,
+            currentUser: currentAccount,
             serverUrl: ref.read(serverUrlProvider),
           ),
         );

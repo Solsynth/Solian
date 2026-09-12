@@ -263,6 +263,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           currentUserId: currentUser?.id,
           currentAccountName: currentUser?.name,
           currentAccountNick: currentUser?.nick,
+          currentUser: currentUser,
           serverUrl: ref.read(serverUrlProvider),
         );
         donatedRoomId.value = room.id;
@@ -1520,13 +1521,22 @@ class ChatRoomScreen extends HookConsumerWidget {
     return ResponsiveSidebar(
       showSidebar: showThreadSidebar,
       mainContent: mainContent,
-      sidebarContent: _buildThreadSidebar(openedThreadTarget.value, room, onJump),
+      sidebarContent: _buildThreadSidebar(
+        openedThreadTarget.value,
+        room,
+        onJump,
+      ),
       drawerBuilder: (sheetContext) {
         return SheetScaffold(
           showHeader: true,
           titleText: 'thread'.tr(),
           onClose: () => Navigator.of(sheetContext).pop(),
-          child: _buildThreadSidebar(openedThreadTarget.value, room, onJump, hideHeader: true),
+          child: _buildThreadSidebar(
+            openedThreadTarget.value,
+            room,
+            onJump,
+            hideHeader: true,
+          ),
         );
       },
       sidebarWidth: 420,

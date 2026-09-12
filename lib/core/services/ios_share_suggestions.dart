@@ -26,6 +26,7 @@ class IosShareSuggestionsService {
     required String? currentUserId,
     required String? currentAccountName,
     required String? currentAccountNick,
+    required SnAccount? currentUser,
     required String serverUrl,
   }) async {
     if (!_isSupported) return;
@@ -44,6 +45,12 @@ class IosShareSuggestionsService {
       room,
       currentUserId,
     );
+    final recipientPictureUrl = getDirectChatCounterpartPictureUrl(
+      room,
+      currentUserId,
+      serverUrl,
+    );
+    final senderPictureUrl = getAccountPictureUrl(currentUser, serverUrl);
 
     try {
       await _channel.invokeMethod<void>('donateChatConversation', {
@@ -54,7 +61,9 @@ class IosShareSuggestionsService {
         'recipientAccountName': recipientAccountName,
         'recipientNick': recipientNick,
         'recipientFirstName': recipientFirstName,
+        'recipientPictureUrl': recipientPictureUrl,
         'senderName': currentAccountNick ?? currentAccountName,
+        'senderPictureUrl': senderPictureUrl,
       });
     } on PlatformException {
       // Best-effort integration.

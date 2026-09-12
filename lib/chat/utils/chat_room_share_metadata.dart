@@ -69,6 +69,12 @@ String? getDirectChatCounterpartPictureUrl(
   return null;
 }
 
+String? getAccountPictureUrl(SnAccount? account, String serverUrl) {
+  final pictureId = account?.profile.picture?.id;
+  if (pictureId == null || pictureId.isEmpty) return null;
+  return '$serverUrl/drive/files/$pictureId';
+}
+
 String getChatRoomSuggestionDisplayName(
   SnChatRoom room,
   String? currentUserId,

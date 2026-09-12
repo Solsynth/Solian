@@ -616,8 +616,9 @@ import flutter_callkit_incoming
                     result(FlutterError(code: "INVALID_ARGUMENTS", message: "Expected donation payload", details: nil))
                     return
                 }
-                self.donateChatConversation(arguments: arguments)
-                result(nil)
+                self.donateChatConversation(arguments: arguments) {
+                    result(nil)
+                }
             case "consumePendingShareTarget":
                 result(self.consumePendingShareTarget())
             default:
@@ -627,75 +628,107 @@ import flutter_callkit_incoming
     }
     
     // MARK: Share extension related code
-    
-    private func donateChatConversation(arguments: [String: Any]) {
+    private func donateChatConversation(arguments: [String: Any], completion: @escaping () -> Void) {
         guard let roomId = arguments["roomId"] as? String,
               !roomId.isEmpty,
               let displayName = arguments["displayName"] as? String,
               !displayName.isEmpty else {
+            completion()
             return
         }
-        
+
         let isDirect = arguments["isDirect"] as? Bool ?? false
         let recipientAccountId = arguments["recipientAccountId"] as? String
         let recipientAccountName = arguments["recipientAccountName"] as? String
         let recipientNick = arguments["recipientNick"] as? String
         let recipientFirstName = arguments["recipientFirstName"] as? String
+        let recipientPictureUrl = arguments["recipientPictureUrl"] as? String
         let senderName = arguments["senderName"] as? String
-        
-        let recipients: [INPerson]?
-        if isDirect, let recipientIdentifier = (recipientAccountName?.isEmpty == false ? recipientAccountName : recipientNick), !recipientIdentifier.isEmpty {
-            let handleId = recipientAccountId ?? recipientIdentifier
-            let handle = INPersonHandle(value: handleId, type: .unknown)
-            var components = PersonNameComponents()
-            let recipientDisplayName = recipientFirstName?.trimmingCharacters(in: .whitespacesAndNewlines)
-            if let recipientDisplayName, !recipientDisplayName.isEmpty {
-                components.givenName = recipientDisplayName
-            } else {
-                components.nickname = recipientNick ?? recipientIdentifier
-            }
-            recipients = [
-                INPerson(
-                    personHandle: handle,
-                    nameComponents: components,
-                    displayName: recipientNick ?? recipientDisplayName ?? recipientIdentifier,
-                    image: nil,
-                    contactIdentifier: nil,
-                    customIdentifier: recipientAccountName ?? recipientIdentifier
+        let senderPictureUrl = arguments["senderPictureUrl"] as? String
+
+        loadSuggestedImage(from: recipientPictureUrl) { recipientImage in
+            self.loadSuggestedImage(from: senderPictureUrl) { senderImage in
+                let recipients: [INPerson]?
+                if isDirect,
+                   let recipientIdentifier = (recipientAccountName?.isEmpty == false ? recipientAccountName : recipientNick),
+                   !recipientIdentifier.isEmpty {
+                    let handleId = recipientAccountId ?? recipientIdentifier
+                    let handle = INPersonHandle(value: handleId, type: .unknown)
+                    var components = PersonNameComponents()
+                    let recipientDisplayName = recipientFirstName?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if let recipientDisplayName, !recipientDisplayName.isEmpty {
+                        components.givenName = recipientDisplayName
+                    } else {
+                        components.nickname = recipientNick ?? recipientIdentifier
+                    }
+                    recipients = [
+                        INPerson(
+                            personHandle: handle,
+                            nameComponents: components,
+                            displayName: recipientNick ?? recipientDisplayName ?? recipientIdentifier,
+                            image: recipientImage,
+                            contactIdentifier: nil,
+                            customIdentifier: recipientAccountName ?? recipientIdentifier
+                        )
+                    ]
+                } else {
+                    recipients = nil
+                }
+
+                let sender: INPerson?
+                if let senderName, !senderName.isEmpty {
+                    sender = INPerson(
+                        personHandle: INPersonHandle(value: senderName, type: .unknown),
+                        nameComponents: nil,
+                        displayName: senderName,
+                        image: senderImage,
+                        contactIdentifier: nil,
+                        customIdentifier: nil
+                    )
+                } else {
+                    sender = nil
+                }
+
+                let intent = INSendMessageIntent(
+                    recipients: recipients,
+                    outgoingMessageType: .outgoingMessageText,
+                    content: nil,
+                    speakableGroupName: INSpeakableString(spokenPhrase: displayName),
+                    conversationIdentifier: roomId,
+                    serviceName: Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
+                    sender: sender,
+                    attachments: nil
                 )
-            ]
-        } else {
-            recipients = nil
+
+                let interaction = INInteraction(intent: intent, response: nil)
+                interaction.direction = .outgoing
+                interaction.donate(completion: nil)
+                completion()
+            }
         }
-        
-        let sender: INPerson?
-        if let senderName, !senderName.isEmpty {
-            sender = INPerson(
-                personHandle: INPersonHandle(value: senderName, type: .unknown),
-                nameComponents: nil,
-                displayName: senderName,
-                image: nil,
-                contactIdentifier: nil,
-                customIdentifier: nil
-            )
-        } else {
-            sender = nil
+    }
+
+    private func loadSuggestedImage(from urlString: String?, completion: @escaping (INImage?) -> Void) {
+        guard let urlString,
+              !urlString.isEmpty,
+              let url = URL(string: urlString) else {
+            completion(nil)
+            return
         }
-        
-        let intent = INSendMessageIntent(
-            recipients: recipients,
-            outgoingMessageType: .outgoingMessageText,
-            content: nil,
-            speakableGroupName: INSpeakableString(spokenPhrase: displayName),
-            conversationIdentifier: roomId,
-            serviceName: Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
-            sender: sender,
-            attachments: nil
+
+        let processor = ResizingImageProcessor(
+            referenceSize: CGSize(width: 512, height: 512),
+            mode: .aspectFit
         )
-        
-        let interaction = INInteraction(intent: intent, response: nil)
-        interaction.direction = .outgoing
-        interaction.donate(completion: nil)
+        KingfisherManager.shared.retrieveImage(with: url, options: [.processor(processor)]) { result in
+            switch result {
+            case .success(let value):
+                completion(value.image.pngData().map { INImage(imageData: $0) })
+            case .failure(let error):
+                print("[ShareSuggestions] Unable to load image: \(error.localizedDescription)")
+                completion(nil)
+            }
+        }
     }
     
     private func consumePendingShareTarget() -> [String: String]? {
