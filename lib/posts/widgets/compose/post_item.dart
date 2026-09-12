@@ -853,6 +853,7 @@ class PostItem extends HookConsumerWidget {
       isTextSelectable: isTextSelectable,
       translationSection: translationSection,
       renderingPadding: renderingPadding,
+      hideAttachments: hideAttachments,
       useContainedAttachments: hideAvatar || item.chainedPosts.isNotEmpty,
       forwardedCard:
           (isShowReference &&
