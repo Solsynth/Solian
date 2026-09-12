@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/post_list.dart';
@@ -52,12 +53,15 @@ class RealtimePostsHandler {
     try {
       final post = SnPost.fromJson(packet.data!);
 
-      // Chained children attach under their chain head; never surface
-      // standalone in lists. They appear via the parent's card on refresh.
+      // A chained child never surfaces standalone: it attaches under its
+      // chain head (flat chains point straight at the head). The head's card
+      // already in lists carries stale data without children, so refetch the
+      // head and push an update — the child then appears under it in place.
       if (post.chainedPostId != null) {
         Logger.root.info(
-          '[RealtimePosts] Skipping chained post.created: ${post.id}',
+          '[RealtimePosts] Chained post created: ${post.id} under ${post.chainedPostId}',
         );
+        unawaited(_refreshChainHead(post.chainedPostId!));
         return;
       }
 
@@ -80,6 +84,24 @@ class RealtimePostsHandler {
       _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
       Logger.root.severe('[RealtimePosts] Failed to parse post.created: $e');
+    }
+  }
+
+  /// Refetches a chain head after one of its children is created, so cards
+  /// already in lists gain the new child (children are hydrated server-side
+  /// on GET by id). The update is a no-op where the head is not listed.
+  Future<void> _refreshChainHead(String headId) async {
+    try {
+      final client = _ref.read(solarNetworkClientProvider);
+      final head = await client.sphere.getPost(headId);
+      Logger.root.info(
+        '[RealtimePosts] Chain head refreshed: $headId (${head.chainedCount} children)',
+      );
+      eventBus.fire(PostUpdateEvent(head));
+    } catch (e) {
+      Logger.root.warning(
+        '[RealtimePosts] Failed to refresh chain head $headId: $e',
+      );
     }
   }
 
