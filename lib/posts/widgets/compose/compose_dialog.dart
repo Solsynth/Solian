@@ -127,7 +127,11 @@ class PostComposeDialog extends HookConsumerWidget {
     );
     useListenable(stateNotifier);
 
-    ComposeStateUtils.usePublisherInitialization(ref, state);
+    ComposeStateUtils.usePublisherInitialization(
+      ref,
+      state,
+      preferredPublisher: chainedPost?.publisher,
+    );
     ComposeStateUtils.useInitialStateLoader(state, initialState);
 
     useEffect(

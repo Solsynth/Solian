@@ -49,6 +49,7 @@ class PostActionableItem extends HookConsumerWidget {
   final bool isEmbedReply;
   final bool isEmbedOpenable;
   final bool isCompact;
+  final bool hideAvatar;
   final bool hideAttachments;
   final double? borderRadius;
   final VoidCallback? onRefresh;
@@ -65,6 +66,7 @@ class PostActionableItem extends HookConsumerWidget {
     this.isEmbedReply = true,
     this.isEmbedOpenable = false,
     this.isCompact = false,
+    this.hideAvatar = false,
     this.hideAttachments = false,
     this.borderRadius,
     this.onRefresh,
@@ -493,6 +495,7 @@ class PostActionableItem extends HookConsumerWidget {
           isEmbedOpenable: isEmbedOpenable,
           isTextSelectable: false,
           isCompact: isCompact,
+          hideAvatar: hideAvatar,
           hideAttachments: hideAttachments,
           onRefresh: onRefresh,
           onUpdate: onUpdate,
@@ -503,6 +506,10 @@ class PostActionableItem extends HookConsumerWidget {
         onTap: () {
           if (onTap != null) {
             onTap!();
+            return;
+          }
+          if (onPostTap != null) {
+            onPostTap!(item.id);
             return;
           }
           onOpen?.call();
@@ -518,14 +525,15 @@ class PostActionableItem extends HookConsumerWidget {
 class PostItem extends HookConsumerWidget {
   final SnPost item;
   final EdgeInsets? padding;
-  final bool isFullPost;
   final bool isShowReference;
+  final bool isFullPost;
   final bool isEmbedReply;
   final bool isEmbedOpenable;
   final bool isTextSelectable;
   final bool isTranslatable;
-  final bool isCompact;
+  final bool hideAvatar;
   final bool hideAttachments;
+  final bool isCompact;
   final double? textScale;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -543,6 +551,7 @@ class PostItem extends HookConsumerWidget {
     this.isTextSelectable = true,
     this.isTranslatable = true,
     this.isCompact = false,
+    this.hideAvatar = false,
     this.hideAttachments = false,
     this.textScale,
     this.onRefresh,
@@ -683,7 +692,22 @@ class PostItem extends HookConsumerWidget {
       children: [?translatedWidget, ?translatableWidget],
     );
 
-    return Column(
+    final hasChain = item.chainedPosts.isNotEmpty;
+    final hasChainColumn = hasChain && !hideAvatar;
+    final canConnectChainToHead =
+        !hideAvatar &&
+        !(isShowReference && (item.repliedPost != null || item.repliedGone));
+    // The header and the chain rail are inset by renderingPadding.horizontal;
+    // the chain column then reserves a further 44px (32 avatar + 12 gap) for
+    // the chained children's avatars. PostBody already insets its content by
+    // renderingPadding.horizontal, so shift the head's body the remaining 44px
+    // onto that column.
+    final bodyInset = hasChainColumn ? 44.0 : 0.0;
+    final chainColumnLeft = hasChainColumn
+        ? renderingPadding.horizontal + 44.0
+        : renderingPadding.left;
+
+    final postContent = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -714,38 +738,41 @@ class PostItem extends HookConsumerWidget {
           item: item,
           isFullPost: isFullPost,
           isCompact: isCompact,
+          hideAvatar: hideAvatar,
           renderingPadding: renderingPadding,
-          showUpperLine:
-              isShowReference &&
-              (item.repliedPost != null || item.repliedGone),
           trailing: trailing,
+          showUpperLine:
+              isShowReference && (item.repliedPost != null || item.repliedGone),
         ),
-        PostBody(
-          item: item,
-          textScale: textScale,
-          isFullPost: isFullPost,
-          isTextSelectable: isTextSelectable,
-          translationSection: translationSection,
-          renderingPadding: renderingPadding,
-          hideAttachments: hideAttachments,
-          forwardedCard: (isShowReference && (item.forwardedPost != null || item.forwardedGone))
-              ? _ForwardedReferenceCard(
-                  item: item,
-                  renderingPadding: renderingPadding,
-                  onPostTap: onPostTap,
-                ).padding(top: 8, bottom: 4)
-              : null,
-        ),
+        if (bodyInset > 0)
+          Padding(
+            padding: EdgeInsets.only(left: bodyInset),
+            child: _buildBody(
+              item,
+              renderingPadding: renderingPadding,
+              translationSection: translationSection,
+            ),
+          )
+        else
+          _buildBody(
+            item,
+            renderingPadding: renderingPadding,
+            translationSection: translationSection,
+          ),
         if (item.embedView != null)
           EmbedViewRenderer(
             embedView: item.embedView!,
             maxHeight: 400,
             borderRadius: BorderRadius.circular(12),
-          ).padding(horizontal: renderingPadding.horizontal, vertical: 8),
+          ).padding(
+            left: chainColumnLeft,
+            right: renderingPadding.right,
+            vertical: 8,
+          ),
         PostReactionList(
           padding: EdgeInsets.only(
-            left: renderingPadding.horizontal,
-            right: renderingPadding.horizontal,
+            left: chainColumnLeft,
+            right: renderingPadding.right,
             top: 8,
           ),
           item: item,
@@ -770,16 +797,75 @@ class PostItem extends HookConsumerWidget {
             isOpenable: isEmbedOpenable,
             onOpen: onOpen,
             onPostTap: onPostTap,
-          ).padding(horizontal: renderingPadding.horizontal, top: 8),
-        if (item.chainedPosts.isNotEmpty)
-          PostChainedSection(head: item)
-              .padding(horizontal: renderingPadding.horizontal, top: 8),
+          ).padding(
+            left: chainColumnLeft,
+            right: renderingPadding.right,
+            top: 8,
+          ),
+        Gap(hasChain ? 8 : renderingPadding.vertical),
+      ],
+    );
+
+    if (!hasChain) return postContent;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
+          children: [
+            postContent,
+            if (canConnectChainToHead)
+              Positioned(
+                left:
+                    renderingPadding.horizontal +
+                    16 -
+                    (kPostThreadingLineWidth / 2),
+                top: renderingPadding.vertical + 32,
+                bottom: 0,
+                child: SizedBox(
+                  width: kPostThreadingLineWidth,
+                  child: ColoredBox(color: Theme.of(context).dividerColor),
+                ),
+              ),
+          ],
+        ),
+        // The rail is drawn at the header's avatar column, so chained avatars
+        // share it once the section carries the same horizontal padding.
+        PostChainedSection(
+          head: item,
+          onPostTap: onPostTap,
+        ).padding(horizontal: renderingPadding.horizontal),
         Gap(renderingPadding.vertical),
       ],
     );
   }
-}
 
+  Widget _buildBody(
+    SnPost item, {
+    required EdgeInsets renderingPadding,
+    required Widget translationSection,
+  }) {
+    return PostBody(
+      item: item,
+      textScale: textScale,
+      isFullPost: isFullPost,
+      isTextSelectable: isTextSelectable,
+      translationSection: translationSection,
+      renderingPadding: renderingPadding,
+      useContainedAttachments: hideAvatar || item.chainedPosts.isNotEmpty,
+      forwardedCard:
+          (isShowReference &&
+              (item.forwardedPost != null || item.forwardedGone))
+          ? _ForwardedReferenceCard(
+              item: item,
+              renderingPadding: renderingPadding,
+              onPostTap: onPostTap,
+            ).padding(top: 8, bottom: 4)
+          : null,
+    );
+  }
+}
 
 class _ForwardedReferenceCard extends HookConsumerWidget {
   final SnPost item;
@@ -799,149 +885,144 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
     final theme = Theme.of(context);
 
     return Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: Row(
+              children: [
+                Icon(
+                  Symbols.forward,
+                  size: 14,
+                  color: theme.colorScheme.secondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'forwarded'.tr(),
+                  style: TextStyle(
+                    color: theme.colorScheme.secondary,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
+          if (isGone)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               child: Row(
                 children: [
                   Icon(
-                    Symbols.forward,
-                    size: 14,
+                    Symbols.visibility_off,
+                    size: 16,
                     color: theme.colorScheme.secondary,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
-                    'forwarded'.tr(),
+                    'postReferenceUnavailable'.tr(),
                     style: TextStyle(
                       color: theme.colorScheme.secondary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
-            ),
-            if (isGone)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.visibility_off,
-                      size: 16,
-                      color: theme.colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'postReferenceUnavailable'.tr(),
-                      style: TextStyle(
-                        color: theme.colorScheme.secondary,
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
+            )
+          else if (referencePost != null)
+            InkWell(
+              onTap: () {
+                if (onPostTap != null) {
+                  onPostTap!(referencePost.id);
+                } else {
+                  context.router.push(PostDetailRoute(id: referencePost.id));
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: PostHeader(
+                      item: referencePost,
+                      isFullPost: false,
+                      isCompact: true,
+                      renderingPadding: const EdgeInsets.symmetric(
+                        horizontal: 6,
                       ),
                     ),
-                  ],
-                ),
-              )
-            else if (referencePost != null)
-              InkWell(
-                onTap: () {
-                  if (onPostTap != null) {
-                    onPostTap!(referencePost.id);
-                  } else {
-                    context.router.push(PostDetailRoute(id: referencePost.id));
-                  }
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  ),
+                  if (referencePost.content != null &&
+                      referencePost.content!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: PostHeader(
-                        item: referencePost,
-                        isFullPost: false,
-                        isCompact: true,
-                        renderingPadding: const EdgeInsets.symmetric(
-                          horizontal: 6,
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                      child: MarkdownTextContent(
+                        textStyle: TextStyle(
+                          fontSize:
+                              Theme.of(
+                                context,
+                              ).textTheme.bodyMedium!.fontSize! *
+                              0.9,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
+                        content: referencePost.content!,
+                        isSelectable: false,
+                        noMentionChip: referencePost.fediverseUri != null,
                       ),
                     ),
-                    if (referencePost.content != null &&
-                        referencePost.content!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                        child: MarkdownTextContent(
-                          textStyle: TextStyle(
-                            fontSize: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .fontSize! *
-                                0.9,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          content: referencePost.content!,
-                          isSelectable: false,
-                          noMentionChip: referencePost.fediverseUri != null,
-                        ),
-                      ),
-                    if (referencePost.attachments.isNotEmpty)
-                      referencePost.attachments.length == 1
-                          ? FullBleedSingleAttachment(
-                              file: referencePost.attachments.first,
-                              sourcePost: referencePost,
-                              bottomRadius: 12,
-                              onTap: () {
-                                final file = referencePost.attachments.first;
-                                final isImage =
-                                    file.mimeType.startsWith('image');
-                                final isVideo =
-                                    file.mimeType.startsWith('video');
-                                if (isImage || isVideo) {
-                                  context.pushTransparentRoute(
-                                    CloudFileLightbox(
-                                      items: [file],
-                                      initialIndex: 0,
-                                      heroTag:
-                                          'post-attachment-${file.id}',
-                                      sourcePost: referencePost,
-                                    ),
-                                    rootNavigator: true,
-                                  );
-                                } else {
-                                  context.router.push(
-                                    FileDetailRoute(
-                                      id: file.id,
-                                      sourcePost: referencePost,
-                                    ),
-                                  );
-                                }
-                              },
-                            )
-                          : CloudFileList(
-                              files: referencePost.attachments,
-                              sourcePost: referencePost,
-                              isColumn: true,
-                              isFullBleed: true,
-                              maxHeight: 240,
-                              borderRadius: 0,
-                              padding: EdgeInsets.zero,
-                            ).clipRRect(bottomLeft: 12, bottomRight: 12),
-                  ],
-                ),
+                  if (referencePost.attachments.isNotEmpty)
+                    referencePost.attachments.length == 1
+                        ? FullBleedSingleAttachment(
+                            file: referencePost.attachments.first,
+                            sourcePost: referencePost,
+                            bottomRadius: 12,
+                            onTap: () {
+                              final file = referencePost.attachments.first;
+                              final isImage = file.mimeType.startsWith('image');
+                              final isVideo = file.mimeType.startsWith('video');
+                              if (isImage || isVideo) {
+                                context.pushTransparentRoute(
+                                  CloudFileLightbox(
+                                    items: [file],
+                                    initialIndex: 0,
+                                    heroTag: 'post-attachment-${file.id}',
+                                    sourcePost: referencePost,
+                                  ),
+                                  rootNavigator: true,
+                                );
+                              } else {
+                                context.router.push(
+                                  FileDetailRoute(
+                                    id: file.id,
+                                    sourcePost: referencePost,
+                                  ),
+                                );
+                              }
+                            },
+                          )
+                        : CloudFileList(
+                            files: referencePost.attachments,
+                            sourcePost: referencePost,
+                            isColumn: true,
+                            isFullBleed: true,
+                            maxHeight: 240,
+                            borderRadius: 0,
+                            padding: EdgeInsets.zero,
+                          ).clipRRect(bottomLeft: 12, bottomRight: 12),
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
+      ),
     );
   }
 }

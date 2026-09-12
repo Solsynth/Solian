@@ -2803,6 +2803,7 @@
   "postCategoryStudy": "学习",
   "postCategoryTechnology": "科技",
   "postCategoryTravel": "旅行",
+  "postChainingTo": "正在串联到",
   "postCollections": "合集",
   "postCollectionsOfHint": "收录于合集",
   "postCompose": "撰写帖子",
@@ -3609,6 +3610,10 @@
   "showActiveFiles": "显示活动文件",
   "showBalance": "显示余额",
   "showLessLikeThis": "减少此类推荐",
+  "showMoreChainedPosts": {
+    "one": "显示另外 {} 条",
+    "other": "显示另外 {} 条"
+  },
   "showMoreLikeThis": "更多此类推荐",
   "showRecycleBin": "显示回收站",
   "shuffle": "随机",

@@ -1694,6 +1694,7 @@
   "postCategoryStudy": "학습",
   "postCategoryTechnology": "기술",
   "postCategoryTravel": "여행",
+  "postChainingTo": "다음으로 연결 중",
   "postCompose": "게시물 작성",
   "postComposeDescription": "새 게시물 작성",
   "postContent": "내용",
@@ -3806,6 +3807,10 @@
   "showActiveFiles": "Show Active Files",
   "showBalance": "Show Balance",
   "showLessLikeThis": "Show less like this",
+  "showMoreChainedPosts": {
+    "one": "{}개 더 보기",
+    "other": "{}개 더 보기"
+  },
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sleep": "sleep",

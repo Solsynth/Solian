@@ -39,6 +39,7 @@ part 'post_shared.g.dart';
 
 const kMessageEnableEmbedTypes = ['text', 'messages.new'];
 const kPostThreadingLineWidth = 1.0;
+const kChainedRowGap = 8.0;
 
 class SponsoredBadge extends StatelessWidget {
   final bool compact;
@@ -308,7 +309,9 @@ Widget _buildBlogPreviewCard(
                     Icon(
                       Symbols.open_in_new,
                       size: 14,
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                        0.6,
+                      ),
                     ),
                   ],
                 ),
@@ -622,6 +625,225 @@ class PostReplyPreview extends HookConsumerWidget {
     this.onPostTap,
   });
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repliesState = ref.watch(repliesProvider(parent.id));
+
+    useEffect(() {
+      if (isAutoload) {
+        Future(() async {
+          try {
+            if (context.mounted) {
+              await ref.read(repliesProvider(parent.id).notifier).fetchMore(3);
+            }
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        });
+      }
+      return null;
+    }, [parent]);
+
+    final previewReplies = isOpenable
+        ? null
+        : ref.watch(postRepliesPreviewProvider(parent.id));
+
+    Widget buildReplyNode(
+      ThreadedReplyNode node,
+      double maxWidth, {
+      double indent = 24,
+    }) {
+      final post = node.post;
+      final children = repliesState.getChildrenOf(post.id);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: CompactPostRow(
+              post: post,
+              onOpen: onOpen,
+              onPostTap: onPostTap,
+              showRepliesCount: post.repliesCount > children.length,
+            ),
+          ),
+          for (final child in children)
+            buildReplyNode(
+              child,
+              math.max(maxWidth - indent, 200),
+              indent: indent,
+            ).padding(left: indent),
+        ],
+      );
+    }
+
+    Widget itemBuilder(double maxWidth) {
+      final topLevelNodes = repliesState.flatNodes
+          .where((n) => n.depth == 0)
+          .toList();
+      return isOpenable
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final node in topLevelNodes)
+                  buildReplyNode(node, maxWidth),
+                if (repliesState.loading)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(),
+                      ),
+                      Text('loading').tr(),
+                    ],
+                  )
+                else if (repliesState.hasMore)
+                  GestureDetector(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: [
+                        const Icon(Symbols.keyboard_arrow_down, size: 20),
+                        Text('repliesLoadMore').tr(),
+                      ],
+                    ),
+                    onTap: () async {
+                      try {
+                        await ref
+                            .read(repliesProvider(parent.id).notifier)
+                            .fetchMore(3);
+                      } catch (err) {
+                        showErrorAlert(err);
+                      }
+                    },
+                  ),
+              ],
+            )
+          : (previewReplies!).map(
+              data: (data) => ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    for (final post in data.value)
+                      CompactPostRow(
+                        post: post,
+                        onOpen: onOpen,
+                        onPostTap: onPostTap,
+                      ),
+                    if (parent.repliesCount > data.value.length)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'repliesCount'.plural(parent.repliesCount),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ).opacity(0.8),
+                      ),
+                  ],
+                ),
+              ),
+              error: (e) => Row(
+                spacing: 8,
+                children: [
+                  const Icon(Symbols.close, size: 18),
+                  Text(e.error.toString()),
+                ],
+              ),
+              loading: (_) => Row(
+                spacing: 8,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(),
+                  ),
+                  Text('loading').tr(),
+                ],
+              ),
+            );
+    }
+
+    final contentWidget = isCompact
+        ? itemBuilder(itemMaxWidth ?? MediaQuery.of(context).size.width)
+        : Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            width: double.infinity,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text('repliesCount')
+                        .plural(parent.repliesCount)
+                        .fontSize(15)
+                        .bold()
+                        .padding(horizontal: 5),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: itemBuilder(constraints.maxWidth),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+
+    return GestureDetector(
+      onTap: () {
+        final host = SidebarPanelHost.maybeOf(context);
+        if (host != null) {
+          host.show(
+            PostRepliesSheet(
+              key: ValueKey('replies-${parent.id}'),
+              post: parent,
+              onClose: host.clear,
+            ),
+          );
+        } else {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => PostRepliesSheet(post: parent),
+          );
+        }
+      },
+      child: contentWidget,
+    );
+  }
+}
+
+/// A single compact inline post row in the reply-preview style: avatar,
+/// content (or attachment thumbnails), reaction chips and a reply count.
+/// Shared by [PostReplyPreview] and [PostChainedSection] so both surfaces
+/// render identical rows.
+class CompactPostRow extends ConsumerWidget {
+  final SnPost post;
+  final VoidCallback? onOpen;
+  final void Function(String)? onPostTap;
+  final bool showRepliesCount;
+
+  const CompactPostRow({
+    super.key,
+    required this.post,
+    this.onOpen,
+    this.onPostTap,
+    this.showRepliesCount = true,
+  });
+
   Widget _buildProfilePicture(
     BuildContext context,
     SnPost post, {
@@ -895,305 +1117,62 @@ class PostReplyPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final repliesState = ref.watch(repliesProvider(parent.id));
-
-    useEffect(() {
-      if (isAutoload) {
-        Future(() async {
-          try {
-            if (context.mounted) {
-              await ref.read(repliesProvider(parent.id).notifier).fetchMore(3);
-            }
-          } catch (err) {
-            showErrorAlert(err);
-          }
-        });
-      }
-      return null;
-    }, [parent]);
-
-    final previewReplies = isOpenable
-        ? null
-        : ref.watch(postRepliesPreviewProvider(parent.id));
-
-    Widget buildReplyNode(
-      ThreadedReplyNode node,
-      double maxWidth, {
-      double indent = 24,
-    }) {
-      final post = node.post;
-      final children = repliesState.getChildrenOf(post.id);
-      final showReactions = post.reactionsCount.isNotEmpty;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 4,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      _buildProfilePicture(
-                        context,
-                        post,
-                        radius: 12,
-                      ).padding(top: 4),
-                      if (post.content?.isNotEmpty ?? false)
-                        Expanded(
-                          child: MarkdownTextContent(
-                            content: _convertContentToMarkdown(post),
-                            attachments: post.attachments,
-                            noMentionChip: post.fediverseUri != null,
-                          ).padding(top: 2),
-                        )
-                      else if (post.attachments.isNotEmpty)
-                        Expanded(
-                          child: _buildAttachmentPreview(
-                            context,
-                            post.attachments,
-                          ).padding(top: 2),
-                        )
-                      else
-                        Expanded(
-                          child: Text(
-                            'postHasAttachments',
-                            style: TextStyle(height: 2),
-                          ).plural(post.attachments.length).padding(top: 2),
-                        ),
-                    ],
-                  ),
-                  if (showReactions)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32),
-                      child: _buildCompactReactions(
-                        context,
-                        ref,
-                        post.reactionsCount,
-                      ),
-                    ),
-                  if (post.repliesCount > children.length)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32),
-                      child: Text(
-                        'repliesCount',
-                      ).plural(post.repliesCount).fontSize(12).opacity(0.7),
-                    ),
-                ],
-              ),
-            ),
-            onTap: () {
-              onOpen?.call();
-              if (onPostTap != null) {
-                onPostTap!(post.id);
-              } else {
-                context.router.push(PostDetailRoute(id: post.id));
-              }
-            },
-          ),
-          for (final child in children)
-            buildReplyNode(
-              child,
-              math.max(maxWidth - indent, 200),
-              indent: indent,
-            ).padding(left: indent),
-        ],
-      );
-    }
-
-    Widget itemBuilder(double maxWidth) {
-      final topLevelNodes = repliesState.flatNodes
-          .where((n) => n.depth == 0)
-          .toList();
-      return isOpenable
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final node in topLevelNodes)
-                  buildReplyNode(node, maxWidth),
-                if (repliesState.loading)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(),
-                      ),
-                      Text('loading').tr(),
-                    ],
-                  )
-                else if (repliesState.hasMore)
-                  GestureDetector(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 8,
-                      children: [
-                        const Icon(Symbols.keyboard_arrow_down, size: 20),
-                        Text('repliesLoadMore').tr(),
-                      ],
-                    ),
-                    onTap: () async {
-                      try {
-                        await ref
-                            .read(repliesProvider(parent.id).notifier)
-                            .fetchMore(3);
-                      } catch (err) {
-                        showErrorAlert(err);
-                      }
-                    },
-                  ),
-              ],
-            )
-          : (previewReplies!).map(
-              data: (data) => ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    for (final post in data.value) ...[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 8,
-                        children: [
-                          _buildProfilePicture(
-                            context,
-                            post,
-                            radius: 12,
-                          ).padding(top: 4),
-                          if (post.content?.isNotEmpty ?? false)
-                            Expanded(
-                              child: MarkdownTextContent(
-                                content: _convertContentToMarkdown(post),
-                                attachments: post.attachments,
-                                noMentionChip: post.fediverseUri != null,
-                              ).padding(top: 5),
-                            )
-                          else if (post.attachments.isNotEmpty)
-                            Expanded(
-                              child: _buildAttachmentPreview(
-                                context,
-                                post.attachments,
-                              ).padding(bottom: 4),
-                            )
-                          else
-                            Expanded(
-                              child: Text(
-                                'postHasAttachments',
-                              ).plural(post.attachments.length),
-                            ),
-                        ],
-                      ),
-                      if (post.reactionsCount.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 32),
-                          child: _buildCompactReactions(
-                            context,
-                            ref,
-                            post.reactionsCount,
-                          ),
-                        ),
-                      if (post.repliesCount > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 32),
-                          child: Text(
-                            'repliesCount',
-                          ).plural(post.repliesCount).fontSize(12).opacity(0.7),
-                        ),
-                    ],
-                    if (parent.repliesCount > data.value.length)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'repliesCount'.plural(parent.repliesCount),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ).opacity(0.8),
-                      ),
-                  ],
-                ),
-              ),
-              error: (e) => Row(
-                spacing: 8,
-                children: [
-                  const Icon(Symbols.close, size: 18),
-                  Text(e.error.toString()),
-                ],
-              ),
-              loading: (_) => Row(
-                spacing: 8,
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(),
-                  ),
-                  Text('loading').tr(),
-                ],
-              ),
-            );
-    }
-
-    final contentWidget = isCompact
-        ? itemBuilder(itemMaxWidth ?? MediaQuery.of(context).size.width)
-        : Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
-              border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.5),
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-            ),
-            width: double.infinity,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    Text('repliesCount')
-                        .plural(parent.repliesCount)
-                        .fontSize(15)
-                        .bold()
-                        .padding(horizontal: 5),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: itemBuilder(constraints.maxWidth),
-                    ),
-                  ],
-                );
-              },
-            ),
-          );
-
-    return GestureDetector(
+    return InkWell(
       onTap: () {
-        final host = SidebarPanelHost.maybeOf(context);
-        if (host != null) {
-          host.show(
-            PostRepliesSheet(
-              key: ValueKey('replies-${parent.id}'),
-              post: parent,
-              onClose: host.clear,
-            ),
-          );
+        onOpen?.call();
+        if (onPostTap != null) {
+          onPostTap!(post.id);
         } else {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (context) => PostRepliesSheet(post: parent),
-          );
+          context.router.push(PostDetailRoute(id: post.id));
         }
       },
-      child: contentWidget,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 4,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              _buildProfilePicture(context, post, radius: 12).padding(top: 4),
+              if (post.content?.isNotEmpty ?? false)
+                Expanded(
+                  child: MarkdownTextContent(
+                    content: _convertContentToMarkdown(post),
+                    attachments: post.attachments,
+                    noMentionChip: post.fediverseUri != null,
+                  ).padding(top: 2),
+                )
+              else if (post.attachments.isNotEmpty)
+                Expanded(
+                  child: _buildAttachmentPreview(
+                    context,
+                    post.attachments,
+                  ).padding(top: 2),
+                )
+              else
+                Expanded(
+                  child: Text(
+                    'postHasAttachments',
+                    style: const TextStyle(height: 2),
+                  ).plural(post.attachments.length).padding(top: 2),
+                ),
+            ],
+          ),
+          if (post.reactionsCount.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: _buildCompactReactions(context, ref, post.reactionsCount),
+            ),
+          if (showRepliesCount && post.repliesCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(left: 32),
+              child: Text(
+                'repliesCount',
+              ).plural(post.repliesCount).fontSize(12).opacity(0.7),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -1510,20 +1489,68 @@ class ReferencedPostWidget extends HookConsumerWidget {
   }
 }
 
+/// The post's avatar with the standard tap-to-profile behaviour, shared by
+/// [PostHeader] and the chain rail in [PostChainedSection].
+class PostAvatar extends StatelessWidget {
+  final SnPost item;
+  final bool isInteractive;
+
+  const PostAvatar({super.key, required this.item, this.isInteractive = true});
+
+  @override
+  Widget build(BuildContext context) {
+    final post = item;
+    Widget picture;
+    if (post.publisher != null) {
+      picture = ProfilePictureWidget(
+        file:
+            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
+        fallbackName: post.publisher!.nick,
+        radius: 16,
+      );
+    } else if (post.actor != null) {
+      picture = ActorPictureWidget(actor: post.actor!, radius: 16);
+    } else {
+      picture = ProfilePictureWidget(file: null, radius: 16);
+    }
+    final canOpen =
+        isInteractive && (post.publisher != null || post.actor != null);
+    return GestureDetector(
+      onTap: canOpen
+          ? () {
+              if (post.publisher != null) {
+                showPublisherProfileAttentionModal(post.publisher!.name);
+              } else if (post.actor != null) {
+                context.router.push(
+                  FediverseActorProfileRoute(
+                    id: post.actor!.id,
+                    fullHandle: post.actor!.fullHandle,
+                  ),
+                );
+              }
+            }
+          : null,
+      child: picture,
+    );
+  }
+}
+
 class PostHeader extends HookConsumerWidget {
   final SnPost item;
+  final bool hideAvatar;
   final bool isFullPost;
   final Widget? trailing;
   final bool isInteractive;
   final EdgeInsets renderingPadding;
   final bool isRelativeTime;
-  final bool isCompact;
   final bool hideOverlay;
   final bool showUpperLine;
   final bool showLowerLine;
+  final bool isCompact;
 
   const PostHeader({
     super.key,
+    this.hideAvatar = false,
     required this.item,
     this.isFullPost = false,
     this.trailing,
@@ -1535,29 +1562,6 @@ class PostHeader extends HookConsumerWidget {
     this.showUpperLine = false,
     this.showLowerLine = false,
   });
-
-  Widget _buildProfilePicture(
-    BuildContext context,
-    SnPost post, {
-    double radius = 16,
-  }) {
-    // Handle publisher case
-    if (post.publisher != null) {
-      return ProfilePictureWidget(
-        file:
-            post.publisher!.picture ?? post.publisher!.account?.profile.picture,
-        fallbackName: post.publisher!.nick,
-        radius: radius,
-        borderRadius: post.publisher!.type == 0 ? null : 6,
-      );
-    }
-    // Handle actor case
-    if (post.actor != null) {
-      return ActorPictureWidget(actor: post.actor!, radius: radius);
-    }
-    // Fallback
-    return ProfilePictureWidget(file: null, radius: radius);
-  }
 
   String _getDisplayName(SnPost post) {
     // Handle publisher case
@@ -1572,18 +1576,6 @@ class PostHeader extends HookConsumerWidget {
       return post.actor!.displayName ?? post.actor!.username;
     }
     return 'unknown'.tr();
-  }
-
-  String? _getPublisherName(SnPost post) {
-    // Handle publisher case
-    if (post.publisher != null) {
-      return post.publisher!.name;
-    }
-    // Handle actor case
-    if (post.actor != null) {
-      return '${post.actor!.username}@${post.actor!.instance.domain}';
-    }
-    return null;
   }
 
   int _getPublisherType(SnPost post) {
@@ -1648,7 +1640,7 @@ class PostHeader extends HookConsumerWidget {
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
+          spacing: hideAvatar ? 0 : 12,
           children: [
             // Avatar column with optional line extension
             Column(
@@ -1659,28 +1651,8 @@ class PostHeader extends HookConsumerWidget {
                     height: 12,
                     color: Theme.of(context).dividerColor,
                   ).center().width(28),
-                GestureDetector(
-                  onTap:
-                      isInteractive &&
-                          (_getPublisherName(item) != null ||
-                              item.actor != null)
-                      ? () {
-                          if (item.publisher != null) {
-                            showPublisherProfileAttentionModal(
-                              item.publisher!.name,
-                            );
-                          } else if (item.actor != null) {
-                            context.router.push(
-                              FediverseActorProfileRoute(
-                                id: item.actor!.id,
-                                fullHandle: item.actor!.fullHandle,
-                              ),
-                            );
-                          }
-                        }
-                      : null,
-                  child: _buildProfilePicture(context, item, radius: 16),
-                ),
+                if (!hideAvatar)
+                  PostAvatar(item: item, isInteractive: isInteractive),
                 if (showLowerLine)
                   Container(
                     width: kPostThreadingLineWidth,
@@ -1833,6 +1805,7 @@ class FullBleedSingleAttachment extends ConsumerWidget {
   final EdgeInsets padding;
   final VoidCallback? onTap;
   final double? bottomRadius;
+  final double? borderRadius;
 
   const FullBleedSingleAttachment({
     super.key,
@@ -1841,6 +1814,7 @@ class FullBleedSingleAttachment extends ConsumerWidget {
     this.padding = EdgeInsets.zero,
     this.onTap,
     this.bottomRadius,
+    this.borderRadius,
   });
 
   @override
@@ -1890,9 +1864,6 @@ class FullBleedSingleAttachment extends ConsumerWidget {
       backdrop = const ColoredBox(color: Colors.black);
     }
 
-    // Foreground fills the full width and derives its height from the
-    // aspect ratio; the backdrop fills the remaining height via
-    // Positioned.fill. No Center wrapper: the Stack sizes to the foreground.
     final foreground = AspectRatio(
       aspectRatio: ratio,
       child: CloudFileWidget(
@@ -1905,39 +1876,39 @@ class FullBleedSingleAttachment extends ConsumerWidget {
       ),
     );
 
-    Widget result = Padding(
-      padding: padding,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: ClipRect(
-          child: SizedBox(
-            width: double.infinity,
-            child: InkWell(
-              onTap: onTap,
-              child: Stack(
-                // Foreground is the only non-positioned child: the Stack
-                // sizes to it (full width, height = width / ratio), and the
-                // backdrop fills that same box. No Center — keeps the height
-                // driven by the image's own aspect ratio.
-                fit: StackFit.passthrough,
-                clipBehavior: Clip.hardEdge,
-                children: [
-                  Positioned.fill(child: backdrop),
-                  foreground,
-                ],
-              ),
+    Widget result = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: ClipRect(
+        child: SizedBox(
+          width: double.infinity,
+          child: InkWell(
+            onTap: onTap,
+            child: Stack(
+              fit: StackFit.passthrough,
+              clipBehavior: Clip.hardEdge,
+              children: [
+                Positioned.fill(child: backdrop),
+                foreground,
+              ],
             ),
           ),
         ),
       ),
     );
-    if (bottomRadius != null) {
+    if (borderRadius != null) {
       result = ClipRRect(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(bottomRadius!)),
+        borderRadius: BorderRadius.circular(borderRadius!),
+        child: result,
+      );
+    } else if (bottomRadius != null) {
+      result = ClipRRect(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(bottomRadius!),
+        ),
         child: result,
       );
     }
-    return result;
+    return Padding(padding: padding, child: result);
   }
 }
 
@@ -1953,7 +1924,7 @@ class PostBody extends ConsumerWidget {
   final bool hideAttachments;
   final double? textScale;
   final Widget? forwardedCard;
-
+  final bool useContainedAttachments;
   const PostBody({
     super.key,
     required this.item,
@@ -1967,6 +1938,7 @@ class PostBody extends ConsumerWidget {
     this.hideAttachments = false,
     this.textScale,
     this.forwardedCard,
+    this.useContainedAttachments = false,
   });
 
   @override
@@ -2216,26 +2188,28 @@ class PostBody extends ConsumerWidget {
                       if (item.title?.isNotEmpty ?? false)
                         Text(
                           item.title!,
-                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                            fontWeight: item.type == 2 && isFullPost
-                                ? FontWeight.w600
-                                : FontWeight.bold,
-                            height: 1.3,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium!
+                              .copyWith(
+                                fontWeight: item.type == 2 && isFullPost
+                                    ? FontWeight.w600
+                                    : FontWeight.bold,
+                                height: 1.3,
+                              ),
                         ),
                       if (item.description?.isNotEmpty ?? false)
                         Text(
                           item.description!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: item.type == 2 && isFullPost
-                                ? Theme.of(context).colorScheme.onSurfaceVariant
-                                : null,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: item.type == 2 && isFullPost
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant
+                                    : null,
+                              ),
                         ),
                     ],
-                  ).padding(
-                    bottom: item.type == 2 && isFullPost ? 12 : 4,
-                  ),
+                  ).padding(bottom: item.type == 2 && isFullPost ? 12 : 4),
                 MarkdownTextContent(
                   linesMargin: item.type == 1 && !useCompactArticlePreview
                       ? const EdgeInsets.symmetric(vertical: 8)
@@ -2272,7 +2246,15 @@ class PostBody extends ConsumerWidget {
               ? FullBleedSingleAttachment(
                   file: item.attachments.first,
                   sourcePost: item,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: useContainedAttachments
+                      ? EdgeInsets.fromLTRB(
+                          renderingPadding.horizontal,
+                          4,
+                          renderingPadding.horizontal,
+                          4,
+                        )
+                      : const EdgeInsets.symmetric(vertical: 4),
+                  borderRadius: useContainedAttachments ? 12 : null,
                   onTap: () {
                     final file = item.attachments.first;
                     final isImage = file.mimeType.startsWith('image');
@@ -2289,7 +2271,9 @@ class PostBody extends ConsumerWidget {
                         rootNavigator: true,
                       );
                     } else {
-                      context.router.push(FileDetailRoute(id: file.id, sourcePost: item));
+                      context.router.push(
+                        FileDetailRoute(id: file.id, sourcePost: item),
+                      );
                     }
                   },
                 )
@@ -2297,11 +2281,14 @@ class PostBody extends ConsumerWidget {
                   files: item.attachments,
                   sourcePost: item,
                   isColumn: !isInteractive,
-                  isFullBleed: true,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: renderingPadding.horizontal,
-                    vertical: 4,
+                  isFullBleed: !useContainedAttachments,
+                  padding: EdgeInsets.fromLTRB(
+                    useContainedAttachments ? renderingPadding.horizontal : 0,
+                    4,
+                    useContainedAttachments ? renderingPadding.horizontal : 0,
+                    4,
                   ),
+                  borderRadius: useContainedAttachments ? 12 : 8,
                 ),
         if (forwardedCard != null)
           forwardedCard!.padding(horizontal: renderingPadding.horizontal),

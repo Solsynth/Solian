@@ -1438,6 +1438,7 @@
   "postCategoryStudy": "學究",
   "postCategoryTechnology": "技藝",
   "postCategoryTravel": "行旅",
+  "postChainingTo": "串至",
   "postCompose": "撰帖",
   "postComposeDescription": "撰新帖",
   "postContent": "內文",
@@ -3759,6 +3760,10 @@
   "showActiveFiles": "Show Active Files",
   "showBalance": "Show Balance",
   "showLessLikeThis": "Show less like this",
+  "showMoreChainedPosts": {
+    "one": "示餘 {} 則",
+    "other": "示餘 {} 則"
+  },
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sidebar": "Sidebar",

@@ -2822,6 +2822,7 @@
   "postCategoryStudy": "Study",
   "postCategoryTechnology": "Technology",
   "postCategoryTravel": "Travel",
+  "postChainingTo": "Chaining to",
   "postCollections": "Collections",
   "postCollectionsOfHint": "A collection of collections",
   "postCompose": "Compose Post",
@@ -3634,6 +3635,10 @@
   "showActiveFiles": "Show Active Files",
   "showBalance": "Show Balance",
   "showLessLikeThis": "Show less like this",
+  "showMoreChainedPosts": {
+    "one": "Show {} more",
+    "other": "Show {} more"
+  },
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "shuffle": "Shuffle",

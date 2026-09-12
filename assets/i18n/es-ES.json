@@ -1437,6 +1437,7 @@
   "postCategoryStudy": "Study",
   "postCategoryTechnology": "Technology",
   "postCategoryTravel": "Travel",
+  "postChainingTo": "Encadenando a",
   "postCompose": "Compose Post",
   "postComposeDescription": "Compose a new post",
   "postContent": "Content",
@@ -3753,6 +3754,10 @@
   "showActiveFiles": "Show Active Files",
   "showBalance": "Show Balance",
   "showLessLikeThis": "Show less like this",
+  "showMoreChainedPosts": {
+    "one": "Mostrar {} más",
+    "other": "Mostrar {} más"
+  },
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sidebar": "Sidebar",

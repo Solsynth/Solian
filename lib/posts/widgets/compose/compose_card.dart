@@ -149,7 +149,11 @@ class PostComposeCard extends HookConsumerWidget {
     }, [composeState]);
 
     // Use shared state management utilities
-    ComposeStateUtils.usePublisherInitialization(ref, composeState);
+    ComposeStateUtils.usePublisherInitialization(
+      ref,
+      composeState,
+      preferredPublisher: chainedPost?.publisher,
+    );
     if (providedState == null) {
       ComposeStateUtils.useInitialStateLoader(composeState, initialState);
     }
@@ -337,11 +341,12 @@ class PostComposeCard extends HookConsumerWidget {
                 ),
               ),
 
-            // Info banner (reply/forward)
+            // Info banner (reply/forward/chain)
             ComposeInfoBanner(
               originalPost: originalPost,
               replyingTo: repliedPost,
               forwardingTo: forwardedPost,
+              chainingTo: chainedPost,
               onReferencePostTap: (context, post) {
                 showModalBottomSheet(
                   context: context,

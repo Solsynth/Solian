@@ -1508,6 +1508,7 @@
   "postCategoryStudy": "学習",
   "postCategoryTechnology": "テクノロジー",
   "postCategoryTravel": "旅行",
+  "postChainingTo": "連結先",
   "postCompose": "投稿を作成",
   "postComposeDescription": "新しい投稿を作成します",
   "postContent": "内容",
@@ -3760,6 +3761,10 @@
   "showActiveFiles": "Show Active Files",
   "showBalance": "Show Balance",
   "showLessLikeThis": "Show less like this",
+  "showMoreChainedPosts": {
+    "one": "あと {} 件を表示",
+    "other": "あと {} 件を表示"
+  },
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sidebar": "Sidebar",

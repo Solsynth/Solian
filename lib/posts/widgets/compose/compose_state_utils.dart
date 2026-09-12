@@ -13,16 +13,31 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 /// Utility class for common compose state management logic.
 class ComposeStateUtils {
   /// Initializes publisher when data becomes available.
-  static void usePublisherInitialization(WidgetRef ref, ComposeState state) {
+  ///
+  /// [preferredPublisher] wins over the configured default when it is one of
+  /// the account's managed publishers. Compose passes the chained post's
+  /// publisher so a chain inherits the thread it is appended to.
+  static void usePublisherInitialization(
+    WidgetRef ref,
+    ComposeState state, {
+    SnPublisher? preferredPublisher,
+  }) {
     final publishers = ref.watch(publishers_form.publishersManagedProvider);
     final publishingSettings = ref.watch(publishingSettingsProvider);
 
     useEffect(() {
       if (publishers.value?.isNotEmpty ?? false) {
         if (state.currentPublisher.value == null) {
+          SnPublisher? preferred;
+          if (preferredPublisher != null) {
+            preferred = publishers.value!
+                .where((p) => p.id == preferredPublisher.id)
+                .firstOrNull;
+          }
+
           // Try to find default publisher from settings
           SnPublisher? defaultPublisher;
-          if (publishingSettings.hasValue) {
+          if (preferred == null && publishingSettings.hasValue) {
             final defaultId =
                 publishingSettings.value!.defaultPostingPublisherId;
             if (defaultId != null) {
@@ -33,11 +48,11 @@ class ComposeStateUtils {
           }
           // Fall back to first publisher if no default found
           state.currentPublisher.value =
-              defaultPublisher ?? publishers.value!.first;
+              preferred ?? defaultPublisher ?? publishers.value!.first;
         }
       }
       return null;
-    }, [publishers, publishingSettings]);
+    }, [publishers, publishingSettings, preferredPublisher]);
   }
 
   /// Loads initial state from provided parameters.

@@ -2685,6 +2685,7 @@
   "postCategoryStudy": "學習",
   "postCategoryTechnology": "科技",
   "postCategoryTravel": "旅行",
+  "postChainingTo": "正在串聯到",
   "postCollections": "合集",
   "postCollectionsOfHint": "收錄於合集",
   "postCompose": "撰寫貼文",
@@ -3418,6 +3419,10 @@
   "showActiveFiles": "顯示活動檔案",
   "showBalance": "顯示餘額",
   "showLessLikeThis": "減少此類推薦",
+  "showMoreChainedPosts": {
+    "one": "顯示另外 {} 則",
+    "other": "顯示另外 {} 則"
+  },
   "showMoreLikeThis": "更多此類推薦",
   "showRecycleBin": "顯示回收站",
   "shuffle": "隨機",

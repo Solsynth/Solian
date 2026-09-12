@@ -7,11 +7,12 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A reusable widget for displaying info banners in compose screens.
-/// Shows editing, reply, and forward information.
+/// Shows editing, reply, forward, and chain information.
 class ComposeInfoBanner extends StatelessWidget {
   final SnPost? originalPost;
   final SnPost? replyingTo;
   final SnPost? forwardingTo;
+  final SnPost? chainingTo;
   final Function(BuildContext, SnPost)? onReferencePostTap;
 
   const ComposeInfoBanner({
@@ -19,6 +20,7 @@ class ComposeInfoBanner extends StatelessWidget {
     this.originalPost,
     this.replyingTo,
     this.forwardingTo,
+    this.chainingTo,
     this.onReferencePostTap,
   });
 
@@ -26,6 +28,7 @@ class ComposeInfoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveRepliedPost = replyingTo ?? originalPost?.repliedPost;
     final effectiveForwardedPost = forwardingTo ?? originalPost?.forwardedPost;
+    final effectiveChainedPost = chainingTo ?? originalPost?.chainedPost;
 
     // Show editing banner when editing a post
     if (originalPost != null) {
@@ -51,7 +54,7 @@ class ComposeInfoBanner extends StatelessWidget {
               ],
             ).padding(horizontal: 16, vertical: 8),
           ),
-          // Show reply/forward banners below editing banner if they exist
+          // Show reply/forward/chain banners below editing banner if they exist
           if (effectiveRepliedPost != null)
             _buildReferenceBanner(
               context,
@@ -65,6 +68,13 @@ class ComposeInfoBanner extends StatelessWidget {
               effectiveForwardedPost,
               Symbols.forward,
               'postForwardingTo'.tr(),
+            ),
+          if (effectiveChainedPost != null)
+            _buildReferenceBanner(
+              context,
+              effectiveChainedPost,
+              Symbols.link,
+              'postChainingTo'.tr(),
             ),
         ],
       );
@@ -87,6 +97,16 @@ class ComposeInfoBanner extends StatelessWidget {
         effectiveForwardedPost,
         Symbols.forward,
         'postForwardingTo'.tr(),
+      );
+    }
+
+    // Show banner for chained posts
+    if (effectiveChainedPost != null) {
+      return _buildReferenceBanner(
+        context,
+        effectiveChainedPost,
+        Symbols.link,
+        'postChainingTo'.tr(),
       );
     }
 
