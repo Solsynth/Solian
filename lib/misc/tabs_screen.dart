@@ -217,10 +217,14 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final wideScreen = isWideScreen(context);
 
     final allDestinations = _allDestinations;
+    // Drive (files) is not surfaced in the sidebar/drawer navigation; its
+    // route stays reachable via deep links and direct entry points.
+    final navDestinations =
+        allDestinations.where((d) => d.id != 'files').toList();
     final navCustomization = ref.watch(_navCustomizationProvider);
-    final destinationById = {for (final d in allDestinations) d.id: d};
+    final destinationById = {for (final d in navDestinations) d.id: d};
     final defaultBottomNavIds = ['dashboard', 'explore', 'chat', 'account'];
-    final defaultRailNavIds = allDestinations.map((e) => e.id).toList();
+    final defaultRailNavIds = navDestinations.map((e) => e.id).toList();
 
     List<_TabDestination> resolveDestinations({
       required List<String> preferredIds,
@@ -259,7 +263,10 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final bottomNavRoutes = bottomNavDestinations
         .map((d) => d.routePath)
         .toList();
-    final drawerDestinations = allDestinations;
+    final drawerDestinations = navDestinations;
+    final accountRouteIndex = navDestinations
+        .firstWhere((d) => d.id == 'account')
+        .routeIndex;
 
     final selectedRailIndex = railDestinations.indexWhere(
       (d) => d.routeIndex == tabsRouter.activeIndex,
@@ -298,7 +305,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         isScrollControlled: true,
         useRootNavigator: true,
         builder: (context) => _NavigationCustomizationSheet(
-          allDestinations: allDestinations,
+          allDestinations: navDestinations,
           initialBottomIds: navCustomization.bottomIds,
           initialRailIds: navCustomization.railIds,
           hasBottomOverride: navCustomization.hasBottomOverride,
@@ -328,7 +335,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             InkWell(
               onTap: () {
                 Navigator.of(context).pop();
-                onDestinationSelected(4);
+                onDestinationSelected(accountRouteIndex);
               },
               child: Container(
                 margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
