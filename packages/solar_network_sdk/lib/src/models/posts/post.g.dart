@@ -49,6 +49,16 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   forwardedPost: json['forwarded_post'] == null
       ? null
       : SnPost.fromJson(json['forwarded_post'] as Map<String, dynamic>),
+  chainedPostId: json['chained_post_id'] as String?,
+  chainedPost: json['chained_post'] == null
+      ? null
+      : SnPost.fromJson(json['chained_post'] as Map<String, dynamic>),
+  chainedPosts:
+      (json['chained_posts'] as List<dynamic>?)
+          ?.map((e) => SnPost.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  chainedCount: (json['chained_count'] as num?)?.toInt() ?? 0,
   realmId: json['realm_id'] as String?,
   realm: json['realm'] == null
       ? null
@@ -153,6 +163,10 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'replied_post': instance.repliedPost?.toJson(),
   'forwarded_post_id': instance.forwardedPostId,
   'forwarded_post': instance.forwardedPost?.toJson(),
+  'chained_post_id': instance.chainedPostId,
+  'chained_post': instance.chainedPost?.toJson(),
+  'chained_posts': instance.chainedPosts.map((e) => e.toJson()).toList(),
+  'chained_count': instance.chainedCount,
   'realm_id': instance.realmId,
   'realm': instance.realm?.toJson(),
   'publisher_id': instance.publisherId,
