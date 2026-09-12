@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PostComposeInitialState {
 
- String? get cloudDraftId; String? get title; String? get description; String? get content; List<UniversalFile> get attachments; int? get visibility; SnPost? get replyingTo; SnPost? get forwardingTo; String? get calendarEventId; String? get notableDayId;
+ String? get cloudDraftId; String? get title; String? get description; String? get content; List<UniversalFile> get attachments; int? get visibility; SnPost? get replyingTo; SnPost? get forwardingTo; SnPost? get chainingTo; String? get calendarEventId; String? get notableDayId;
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PostComposeInitialStateCopyWith<PostComposeInitialState> get copyWith => _$Post
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.cloudDraftId, cloudDraftId) || other.cloudDraftId == cloudDraftId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo)&&(identical(other.calendarEventId, calendarEventId) || other.calendarEventId == calendarEventId)&&(identical(other.notableDayId, notableDayId) || other.notableDayId == notableDayId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PostComposeInitialState&&(identical(other.cloudDraftId, cloudDraftId) || other.cloudDraftId == cloudDraftId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo)&&(identical(other.chainingTo, chainingTo) || other.chainingTo == chainingTo)&&(identical(other.calendarEventId, calendarEventId) || other.calendarEventId == calendarEventId)&&(identical(other.notableDayId, notableDayId) || other.notableDayId == notableDayId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,cloudDraftId,title,description,content,const DeepCollectionEquality().hash(attachments),visibility,replyingTo,forwardingTo,calendarEventId,notableDayId);
+int get hashCode => Object.hash(runtimeType,cloudDraftId,title,description,content,const DeepCollectionEquality().hash(attachments),visibility,replyingTo,forwardingTo,chainingTo,calendarEventId,notableDayId);
 
 @override
 String toString() {
-  return 'PostComposeInitialState(cloudDraftId: $cloudDraftId, title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo, calendarEventId: $calendarEventId, notableDayId: $notableDayId)';
+  return 'PostComposeInitialState(cloudDraftId: $cloudDraftId, title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo, chainingTo: $chainingTo, calendarEventId: $calendarEventId, notableDayId: $notableDayId)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $PostComposeInitialStateCopyWith<$Res>  {
   factory $PostComposeInitialStateCopyWith(PostComposeInitialState value, $Res Function(PostComposeInitialState) _then) = _$PostComposeInitialStateCopyWithImpl;
 @useResult
 $Res call({
- String? cloudDraftId, String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo, String? calendarEventId, String? notableDayId
+ String? cloudDraftId, String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo, SnPost? chainingTo, String? calendarEventId, String? notableDayId
 });
 
 
-$SnPostCopyWith<$Res>? get replyingTo;$SnPostCopyWith<$Res>? get forwardingTo;
+$SnPostCopyWith<$Res>? get replyingTo;$SnPostCopyWith<$Res>? get forwardingTo;$SnPostCopyWith<$Res>? get chainingTo;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$PostComposeInitialStateCopyWithImpl<$Res>
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? cloudDraftId = freezed,Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,Object? calendarEventId = freezed,Object? notableDayId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? cloudDraftId = freezed,Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,Object? chainingTo = freezed,Object? calendarEventId = freezed,Object? notableDayId = freezed,}) {
   return _then(_self.copyWith(
 cloudDraftId: freezed == cloudDraftId ? _self.cloudDraftId : cloudDraftId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -75,6 +75,7 @@ as String?,attachments: null == attachments ? _self.attachments : attachments //
 as List<UniversalFile>,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as int?,replyingTo: freezed == replyingTo ? _self.replyingTo : replyingTo // ignore: cast_nullable_to_non_nullable
 as SnPost?,forwardingTo: freezed == forwardingTo ? _self.forwardingTo : forwardingTo // ignore: cast_nullable_to_non_nullable
+as SnPost?,chainingTo: freezed == chainingTo ? _self.chainingTo : chainingTo // ignore: cast_nullable_to_non_nullable
 as SnPost?,calendarEventId: freezed == calendarEventId ? _self.calendarEventId : calendarEventId // ignore: cast_nullable_to_non_nullable
 as String?,notableDayId: freezed == notableDayId ? _self.notableDayId : notableDayId // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -103,6 +104,18 @@ $SnPostCopyWith<$Res>? get forwardingTo {
 
   return $SnPostCopyWith<$Res>(_self.forwardingTo!, (value) {
     return _then(_self.copyWith(forwardingTo: value));
+  });
+}/// Create a copy of PostComposeInitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPostCopyWith<$Res>? get chainingTo {
+    if (_self.chainingTo == null) {
+    return null;
+  }
+
+  return $SnPostCopyWith<$Res>(_self.chainingTo!, (value) {
+    return _then(_self.copyWith(chainingTo: value));
   });
 }
 }
@@ -183,10 +196,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo,  String? calendarEventId,  String? notableDayId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo,  SnPost? chainingTo,  String? calendarEventId,  String? notableDayId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PostComposeInitialState() when $default != null:
-return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo,_that.calendarEventId,_that.notableDayId);case _:
+return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo,_that.chainingTo,_that.calendarEventId,_that.notableDayId);case _:
   return orElse();
 
 }
@@ -204,10 +217,10 @@ return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo,  String? calendarEventId,  String? notableDayId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo,  SnPost? chainingTo,  String? calendarEventId,  String? notableDayId)  $default,) {final _that = this;
 switch (_that) {
 case _PostComposeInitialState():
-return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo,_that.calendarEventId,_that.notableDayId);}
+return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo,_that.chainingTo,_that.calendarEventId,_that.notableDayId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -221,10 +234,10 @@ return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo,  String? calendarEventId,  String? notableDayId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? cloudDraftId,  String? title,  String? description,  String? content,  List<UniversalFile> attachments,  int? visibility,  SnPost? replyingTo,  SnPost? forwardingTo,  SnPost? chainingTo,  String? calendarEventId,  String? notableDayId)?  $default,) {final _that = this;
 switch (_that) {
 case _PostComposeInitialState() when $default != null:
-return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo,_that.calendarEventId,_that.notableDayId);case _:
+return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_that.attachments,_that.visibility,_that.replyingTo,_that.forwardingTo,_that.chainingTo,_that.calendarEventId,_that.notableDayId);case _:
   return null;
 
 }
@@ -236,7 +249,7 @@ return $default(_that.cloudDraftId,_that.title,_that.description,_that.content,_
 @JsonSerializable()
 
 class _PostComposeInitialState implements PostComposeInitialState {
-  const _PostComposeInitialState({this.cloudDraftId, this.title, this.description, this.content, final  List<UniversalFile> attachments = const [], this.visibility, this.replyingTo, this.forwardingTo, this.calendarEventId, this.notableDayId}): _attachments = attachments;
+  const _PostComposeInitialState({this.cloudDraftId, this.title, this.description, this.content, final  List<UniversalFile> attachments = const [], this.visibility, this.replyingTo, this.forwardingTo, this.chainingTo, this.calendarEventId, this.notableDayId}): _attachments = attachments;
   factory _PostComposeInitialState.fromJson(Map<String, dynamic> json) => _$PostComposeInitialStateFromJson(json);
 
 @override final  String? cloudDraftId;
@@ -253,6 +266,7 @@ class _PostComposeInitialState implements PostComposeInitialState {
 @override final  int? visibility;
 @override final  SnPost? replyingTo;
 @override final  SnPost? forwardingTo;
+@override final  SnPost? chainingTo;
 @override final  String? calendarEventId;
 @override final  String? notableDayId;
 
@@ -269,16 +283,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostComposeInitialState&&(identical(other.cloudDraftId, cloudDraftId) || other.cloudDraftId == cloudDraftId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo)&&(identical(other.calendarEventId, calendarEventId) || other.calendarEventId == calendarEventId)&&(identical(other.notableDayId, notableDayId) || other.notableDayId == notableDayId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PostComposeInitialState&&(identical(other.cloudDraftId, cloudDraftId) || other.cloudDraftId == cloudDraftId)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.replyingTo, replyingTo) || other.replyingTo == replyingTo)&&(identical(other.forwardingTo, forwardingTo) || other.forwardingTo == forwardingTo)&&(identical(other.chainingTo, chainingTo) || other.chainingTo == chainingTo)&&(identical(other.calendarEventId, calendarEventId) || other.calendarEventId == calendarEventId)&&(identical(other.notableDayId, notableDayId) || other.notableDayId == notableDayId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,cloudDraftId,title,description,content,const DeepCollectionEquality().hash(_attachments),visibility,replyingTo,forwardingTo,calendarEventId,notableDayId);
+int get hashCode => Object.hash(runtimeType,cloudDraftId,title,description,content,const DeepCollectionEquality().hash(_attachments),visibility,replyingTo,forwardingTo,chainingTo,calendarEventId,notableDayId);
 
 @override
 String toString() {
-  return 'PostComposeInitialState(cloudDraftId: $cloudDraftId, title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo, calendarEventId: $calendarEventId, notableDayId: $notableDayId)';
+  return 'PostComposeInitialState(cloudDraftId: $cloudDraftId, title: $title, description: $description, content: $content, attachments: $attachments, visibility: $visibility, replyingTo: $replyingTo, forwardingTo: $forwardingTo, chainingTo: $chainingTo, calendarEventId: $calendarEventId, notableDayId: $notableDayId)';
 }
 
 
@@ -289,11 +303,11 @@ abstract mixin class _$PostComposeInitialStateCopyWith<$Res> implements $PostCom
   factory _$PostComposeInitialStateCopyWith(_PostComposeInitialState value, $Res Function(_PostComposeInitialState) _then) = __$PostComposeInitialStateCopyWithImpl;
 @override @useResult
 $Res call({
- String? cloudDraftId, String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo, String? calendarEventId, String? notableDayId
+ String? cloudDraftId, String? title, String? description, String? content, List<UniversalFile> attachments, int? visibility, SnPost? replyingTo, SnPost? forwardingTo, SnPost? chainingTo, String? calendarEventId, String? notableDayId
 });
 
 
-@override $SnPostCopyWith<$Res>? get replyingTo;@override $SnPostCopyWith<$Res>? get forwardingTo;
+@override $SnPostCopyWith<$Res>? get replyingTo;@override $SnPostCopyWith<$Res>? get forwardingTo;@override $SnPostCopyWith<$Res>? get chainingTo;
 
 }
 /// @nodoc
@@ -306,7 +320,7 @@ class __$PostComposeInitialStateCopyWithImpl<$Res>
 
 /// Create a copy of PostComposeInitialState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? cloudDraftId = freezed,Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,Object? calendarEventId = freezed,Object? notableDayId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? cloudDraftId = freezed,Object? title = freezed,Object? description = freezed,Object? content = freezed,Object? attachments = null,Object? visibility = freezed,Object? replyingTo = freezed,Object? forwardingTo = freezed,Object? chainingTo = freezed,Object? calendarEventId = freezed,Object? notableDayId = freezed,}) {
   return _then(_PostComposeInitialState(
 cloudDraftId: freezed == cloudDraftId ? _self.cloudDraftId : cloudDraftId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -316,6 +330,7 @@ as String?,attachments: null == attachments ? _self._attachments : attachments /
 as List<UniversalFile>,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as int?,replyingTo: freezed == replyingTo ? _self.replyingTo : replyingTo // ignore: cast_nullable_to_non_nullable
 as SnPost?,forwardingTo: freezed == forwardingTo ? _self.forwardingTo : forwardingTo // ignore: cast_nullable_to_non_nullable
+as SnPost?,chainingTo: freezed == chainingTo ? _self.chainingTo : chainingTo // ignore: cast_nullable_to_non_nullable
 as SnPost?,calendarEventId: freezed == calendarEventId ? _self.calendarEventId : calendarEventId // ignore: cast_nullable_to_non_nullable
 as String?,notableDayId: freezed == notableDayId ? _self.notableDayId : notableDayId // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -345,6 +360,18 @@ $SnPostCopyWith<$Res>? get forwardingTo {
 
   return $SnPostCopyWith<$Res>(_self.forwardingTo!, (value) {
     return _then(_self.copyWith(forwardingTo: value));
+  });
+}/// Create a copy of PostComposeInitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPostCopyWith<$Res>? get chainingTo {
+    if (_self.chainingTo == null) {
+    return null;
+  }
+
+  return $SnPostCopyWith<$Res>(_self.chainingTo!, (value) {
+    return _then(_self.copyWith(chainingTo: value));
   });
 }
 }

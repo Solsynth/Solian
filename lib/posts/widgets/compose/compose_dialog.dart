@@ -93,6 +93,8 @@ class PostComposeDialog extends HookConsumerWidget {
         initialState?.replyingTo ?? effectiveOriginalPost?.repliedPost;
     final forwardedPost =
         initialState?.forwardingTo ?? effectiveOriginalPost?.forwardedPost;
+    final chainedPost =
+        initialState?.chainingTo ?? effectiveOriginalPost?.chainedPost;
 
     final ComposeState state = useMemoized(
       () => ComposeLogic.createState(
@@ -197,6 +199,8 @@ class PostComposeDialog extends HookConsumerWidget {
         originalPost: effectiveOriginalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
+        chainedPost: chainedPost,
+        autoChain: state.chainWithPrevious.value,
         onSubmitted: onSubmitted,
       );
     }

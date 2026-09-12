@@ -75,6 +75,9 @@ class ActivityListNotifier
     final currentState = state.value;
     if (currentState == null) return;
 
+    // Chained children attach under their chain head; never list standalone.
+    if (post.chainedPostId != null) return;
+
     // Check for duplicate
     if (currentState.items.any((item) => item.id == post.id)) return;
 

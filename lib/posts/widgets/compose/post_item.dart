@@ -22,6 +22,7 @@ import 'package:island/posts/compose.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:island/posts/widgets/compose/post_award_sheet.dart';
+import 'package:island/posts/widgets/compose/post_chained_section.dart';
 import 'package:island/posts/widgets/compose/post_collections_sheet.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
@@ -140,6 +141,16 @@ class PostActionableItem extends HookConsumerWidget {
             final result = await PostComposeDialog.show(
               context,
               initialState: PostComposeInitialState(replyingTo: item),
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'chain':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(chainingTo: item),
             );
             if (result != null) {
               onRefresh?.call();
@@ -387,6 +398,12 @@ class PostActionableItem extends HookConsumerWidget {
               image: MenuImage.icon(Symbols.forward),
               callback: () => getMenuAction('forward')(),
             ),
+            if (isAuthor)
+              MenuAction(
+                title: 'chainPost'.tr(),
+                image: MenuImage.icon(Symbols.link),
+                callback: () => getMenuAction('chain')(),
+              ),
             if (isAuthor && item.pinMode == null)
               MenuAction(
                 title: 'pinPost'.tr(),
@@ -754,6 +771,9 @@ class PostItem extends HookConsumerWidget {
             onOpen: onOpen,
             onPostTap: onPostTap,
           ).padding(horizontal: renderingPadding.horizontal, top: 8),
+        if (item.chainedPosts.isNotEmpty)
+          PostChainedSection(head: item)
+              .padding(horizontal: renderingPadding.horizontal, top: 8),
         Gap(renderingPadding.vertical),
       ],
     );
@@ -1091,6 +1111,12 @@ class PostActionSheet extends StatelessWidget {
           leading: Icon(Symbols.edit),
           title: Text('edit'.tr()),
           onTap: () => onAction('edit'),
+        ),
+      if (isAuthor)
+        _PostActionListTile(
+          leading: Icon(Symbols.link),
+          title: Text('chainPost'.tr()),
+          onTap: () => onAction('chain'),
         ),
       if (isAuthor && item.pinMode == null)
         _PostActionListTile(

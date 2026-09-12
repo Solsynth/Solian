@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/database.dart';
+import 'package:island/core/network.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
@@ -59,6 +60,11 @@ class PostComposeCard extends HookConsumerWidget {
     final repliedPost = initialState?.replyingTo ?? originalPost?.repliedPost;
     final forwardedPost =
         initialState?.forwardingTo ?? originalPost?.forwardedPost;
+    final chainedPost =
+        initialState?.chainingTo ?? originalPost?.chainedPost;
+
+    // Matches server Posts:AutoChainWindowMinutes default (5 minutes).
+    const autoChainWindow = Duration(minutes: 5);
 
     final theme = Theme.of(context);
 
@@ -129,6 +135,8 @@ class PostComposeCard extends HookConsumerWidget {
         composeState.attachmentProgress,
         composeState.currentPublisher,
         composeState.submitting,
+        composeState.lastOwnPostPublishedAt,
+        composeState.chainWithPrevious,
       ]),
       [composeState],
     );
@@ -145,6 +153,38 @@ class PostComposeCard extends HookConsumerWidget {
     if (providedState == null) {
       ComposeStateUtils.useInitialStateLoader(composeState, initialState);
     }
+
+    // Track the publisher's most recent post so the auto-chain banner can
+    // reflect server-side auto-chaining (Posts:AutoChainWindowMinutes).
+    final currentPublisherName = composeState.currentPublisher.value?.name;
+    useEffect(() {
+      if (currentPublisherName == null || currentPublisherName.isEmpty) {
+        composeState.lastOwnPostPublishedAt.value = null;
+        return null;
+      }
+      var cancelled = false;
+      final client = ref.read(solarNetworkClientProvider);
+      client.dio
+          .get(
+            '/sphere/posts',
+            queryParameters: {'pub': currentPublisherName, 'take': 1},
+          )
+          .then((response) {
+            if (cancelled) return;
+            final data = response.data;
+            if (data is List && data.isNotEmpty) {
+              composeState.lastOwnPostPublishedAt.value =
+                  SnPost.fromJson(data.first as Map<String, dynamic>)
+                      .publishedAt;
+            } else {
+              composeState.lastOwnPostPublishedAt.value = null;
+            }
+          })
+          .catchError((_) {
+            if (!cancelled) composeState.lastOwnPostPublishedAt.value = null;
+          });
+      return () => cancelled = true;
+    }, [currentPublisherName]);
 
     // Dispose state when widget is disposed
     useEffect(() {
@@ -182,6 +222,8 @@ class PostComposeCard extends HookConsumerWidget {
         originalPost: originalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
+        chainedPost: chainedPost,
+        autoChain: composeState.chainWithPrevious.value,
         onSuccess: () {
           // Mark as submitted
           submitted.value = true;
@@ -312,6 +354,21 @@ class PostComposeCard extends HookConsumerWidget {
                 );
               },
             ),
+
+            // Auto-chain banner (new root post within the server window)
+            if (originalPost == null &&
+                repliedPost == null &&
+                forwardedPost == null &&
+                chainedPost == null &&
+                composeState.chainWithPrevious.value &&
+                composeState.lastOwnPostPublishedAt.value != null &&
+                DateTime.now().difference(
+                      composeState.lastOwnPostPublishedAt.value!,
+                    ) <=
+                    autoChainWindow)
+              _AutoChainBanner(
+                onCancel: () => composeState.chainWithPrevious.value = false,
+              ),
 
             // Main content area
             Expanded(
@@ -460,6 +517,48 @@ class PostComposeCard extends HookConsumerWidget {
                 originalPost: originalPost,
                 useSafeArea: isContained,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Material-style banner shown above the compose content when the current
+/// post will be auto-chained to the publisher's previous post. Tapping the
+/// cancel action opts this submission out of auto-chaining.
+class _AutoChainBanner extends StatelessWidget {
+  final VoidCallback onCancel;
+
+  const _AutoChainBanner({required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.secondaryContainer.withOpacity(0.55),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              Symbols.link,
+              size: 18,
+              color: theme.colorScheme.onSecondaryContainer,
+            ),
+            const Gap(8),
+            Expanded(
+              child: Text(
+                'postWillBeChained'.tr(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: onCancel,
+              child: Text('cancel'.tr()),
             ),
           ],
         ),

@@ -26,6 +26,7 @@ import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:island/posts/widgets/compose/post_award_history_sheet.dart';
 import 'package:island/posts/widgets/compose/post_award_sheet.dart';
+import 'package:island/posts/widgets/compose/post_chained_section.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
@@ -2155,6 +2156,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                             ),
                                             child: PostThreadCard(post: post),
                                           ),
+                                        if (post.chainedPosts.isNotEmpty)
+                                          PostChainedSection(head: post)
+                                              .padding(top: 8, bottom: 8),
                                         if (post.realm != null)
                                           PostRealmBadge(
                                             realm: post.realm!,
@@ -2404,6 +2408,9 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
                                       ),
                                       child: PostThreadCard(post: post),
                                     ),
+                                  if (post.chainedPosts.isNotEmpty)
+                                    PostChainedSection(head: post)
+                                        .padding(top: 8, bottom: 8),
                                   if (post.publisherCollections.isNotEmpty)
                                     Padding(
                                       padding: const EdgeInsets.only(

@@ -15,6 +15,7 @@ sealed class PostComposeInitialState with _$PostComposeInitialState {
     int? visibility,
     SnPost? replyingTo,
     SnPost? forwardingTo,
+    SnPost? chainingTo,
     String? calendarEventId,
     String? notableDayId,
   }) = _PostComposeInitialState;

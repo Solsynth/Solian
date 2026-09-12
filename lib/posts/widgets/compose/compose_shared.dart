@@ -50,6 +50,8 @@ class ComposeState {
   final ValueNotifier<List<String>> tags;
   final ValueNotifier<SnRealm?> realm;
   final ValueNotifier<SnPostEmbedView?> embedView;
+  final ValueNotifier<DateTime?> lastOwnPostPublishedAt;
+  final ValueNotifier<bool> chainWithPrevious;
   String draftId;
   final ValueNotifier<String?> cloudDraftId;
   int postType;
@@ -87,6 +89,8 @@ class ComposeState {
   }) : embeds = ValueNotifier<List<Map<String, dynamic>>>(embeds ?? []),
        thumbnailId = ValueNotifier<String?>(thumbnailId),
        collectionIds = ValueNotifier<List<String>>(collectionIds ?? []),
+       lastOwnPostPublishedAt = ValueNotifier<DateTime?>(null),
+       chainWithPrevious = ValueNotifier<bool>(true),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
   void startAutoSave(Future<void> Function(ComposeState state) saveDraft) {
@@ -127,6 +131,8 @@ class ComposeSubmissionSnapshot {
   final String? originalPostId;
   final String? repliedPostId;
   final String? forwardedPostId;
+  final String? chainedPostId;
+  final bool autoChain;
 
   const ComposeSubmissionSnapshot({
     required this.draftId,
@@ -150,6 +156,8 @@ class ComposeSubmissionSnapshot {
     required this.originalPostId,
     required this.repliedPostId,
     required this.forwardedPostId,
+    this.chainedPostId,
+    this.autoChain = true,
   });
 
   String get activeDraftId => cloudDraftId ?? draftId;
@@ -321,6 +329,8 @@ class ComposeLogic {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
+    SnPost? chainedPost,
+    bool autoChain = true,
   }) {
     return ComposeSubmissionSnapshot(
       draftId: state.draftId,
@@ -346,6 +356,8 @@ class ComposeLogic {
       originalPostId: originalPost?.id,
       repliedPostId: repliedPost?.id,
       forwardedPostId: forwardedPost?.id,
+      chainedPostId: chainedPost?.id,
+      autoChain: autoChain,
     );
   }
 
@@ -461,6 +473,8 @@ class ComposeLogic {
       repliedPost: null,
       forwardedPostId: null,
       forwardedPost: null,
+      chainedPostId: null,
+      chainedPost: null,
       realmId: state.realm.value?.id,
       realm: state.realm.value,
       attachments: state.attachments.value
@@ -551,6 +565,8 @@ class ComposeLogic {
       repliedPost: null,
       forwardedPostId: snapshot.forwardedPostId,
       forwardedPost: null,
+      chainedPostId: snapshot.chainedPostId,
+      chainedPost: null,
       realmId: snapshot.realm?.id,
       realm: snapshot.realm,
       attachments: attachments
@@ -1109,6 +1125,8 @@ class ComposeLogic {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
+    SnPost? chainedPost,
+    bool autoChain = true,
     required Function() onSuccess,
   }) async {
     if (state.submitting.value) {
@@ -1189,6 +1207,8 @@ class ComposeLogic {
         'type': state.postType,
         if (repliedPost != null) 'replied_post_id': repliedPost.id,
         if (forwardedPost != null) 'forwarded_post_id': forwardedPost.id,
+        if (chainedPost != null) 'chained_post_id': chainedPost.id,
+        if (!autoChain) 'auto_chain': false,
         'tags': state.tags.value,
         'categories': state.categories.value.map((e) => e.slug).toList(),
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
@@ -1304,6 +1324,8 @@ class ComposeLogic {
     SnPost? originalPost,
     SnPost? repliedPost,
     SnPost? forwardedPost,
+    SnPost? chainedPost,
+    bool autoChain = true,
     required VoidCallback onSubmitted,
     VoidCallback? onSuccess,
   }) async {
@@ -1338,6 +1360,8 @@ class ComposeLogic {
         originalPost: originalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
+        chainedPost: chainedPost,
+        autoChain: autoChain,
       );
       final tasks = ref.read(tasksProvider.notifier);
       final database = ref.read(databaseProvider);
@@ -1500,6 +1524,9 @@ class ComposeLogic {
           'replied_post_id': snapshot.repliedPostId,
         if (snapshot.forwardedPostId != null)
           'forwarded_post_id': snapshot.forwardedPostId,
+        if (snapshot.chainedPostId != null)
+          'chained_post_id': snapshot.chainedPostId,
+        if (!snapshot.autoChain) 'auto_chain': false,
         'tags': snapshot.tags,
         'categories': snapshot.categories.map((e) => e.slug).toList(),
         if (snapshot.realm != null) 'realm_id': snapshot.realm?.id,

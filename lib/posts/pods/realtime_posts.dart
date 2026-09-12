@@ -52,6 +52,15 @@ class RealtimePostsHandler {
     try {
       final post = SnPost.fromJson(packet.data!);
 
+      // Chained children attach under their chain head; never surface
+      // standalone in lists. They appear via the parent's card on refresh.
+      if (post.chainedPostId != null) {
+        Logger.root.info(
+          '[RealtimePosts] Skipping chained post.created: ${post.id}',
+        );
+        return;
+      }
+
       if (_processedPostIds.contains(post.id)) {
         Logger.root.info(
           '[RealtimePosts] Skipping duplicate post.created: ${post.id}',
