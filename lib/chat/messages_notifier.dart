@@ -119,6 +119,11 @@ class MessagesNotifier extends _$MessagesNotifier {
   static const int _pageSize = 20;
   static const int _backgroundPrefetchTarget = 60;
   static const int _backgroundPrefetchMaxBatches = 3;
+
+  /// Rooms whose synced history reaches this many messages are treated as
+  /// oversized: the backlog is dropped and the room reloads as new so sync
+  /// and pagination never churn through the entire history.
+  static const int _maxSyncedMessageCount = 5000;
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
@@ -1925,9 +1930,33 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
     try {
       final previous = _currentMessages;
-      final messages = await _loadInitialMessages(
+      var messages = await _loadInitialMessages(
         forceRemoteRefresh: forceRemoteRefresh,
       );
+
+      // A room whose synced history has grown past the sync limit is dropped
+      // and reloaded as new. Keeping thousands of rows makes initial load,
+      // pagination and normalization degenerate.
+      //
+      // The trigger is the locally synced backlog, not the remote total: the
+      // app never bulk-syncs a room's remote history (it pages on demand via
+      // loadMore), so a small local set is already the "as new" view. Wiping
+      // it because the remote room is merely large would throw away and
+      // re-download the page just fetched — the post-clear case, where the
+      // user explicitly asked for the local data to be gone.
+      final localCount = await _repository.getTotalCount();
+      if (localCount >= _maxSyncedMessageCount) {
+        Logger.root.info(
+          'Room $roomId has $localCount synced messages (remote: '
+          '${_syncService.totalRemoteCount ?? 'unknown'}); exceeding limit '
+          '$_maxSyncedMessageCount, dropping old messages and loading as new',
+        );
+        await _dropOversizedHistory();
+        if (!ref.mounted) return;
+        messages = await _loadInitialMessages(forceRemoteRefresh: true);
+        if (!ref.mounted) return;
+      }
+
       if (ref.mounted) {
         if (messages.isEmpty && previous.isNotEmpty && !forceRemoteRefresh) {
           Logger.root.info(
@@ -1951,6 +1980,17 @@ class MessagesNotifier extends _$MessagesNotifier {
     // The repair guard skips while _isLoadingInitial is set, so it must run
     // after the flag clears.
     _scheduleSenderRepair();
+  }
+
+  /// Clears the room's synced history (DB rows, in-memory cache and loaded
+  /// timeline) so the room reloads as new. In-flight pending sends are kept;
+  /// their placeholders are re-merged into the timeline at offset 0.
+  Future<void> _dropOversizedHistory() async {
+    _messages = [];
+    await _repository.deleteAllMessages();
+    // A dropped gap range is intentional, not a sequence hole to recover.
+    _latestObservedRoomSequence = null;
+    _queuedMissingRoomSequences.clear();
   }
 
   void resetPaginationState() {

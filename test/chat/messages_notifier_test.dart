@@ -228,12 +228,81 @@ class _MembersRepairAdapter implements HttpClientAdapter {
   }
 }
 
+/// Serves a fixed newest page and empty older pages with a configurable
+/// x-total, counting message-list requests at offset 0 so a drop-and-reload
+/// (which fetches the newest page twice) is observable.
+class _CountingMessagesAdapter implements HttpClientAdapter {
+  final List<Map<String, dynamic>> newestMessages;
+  final int totalCount;
+  int pageZeroFetches = 0;
+
+  _CountingMessagesAdapter({
+    required this.newestMessages,
+    required this.totalCount,
+  });
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? _,
+    Future<void>? _,
+  ) async {
+    if (options.path.endsWith('/members')) {
+      return ResponseBody.fromString(
+        '[]',
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+          'x-total': ['0'],
+        },
+      );
+    }
+    final offset = int.tryParse(options.queryParameters['offset'].toString());
+    final messages =
+        offset == 0 ? newestMessages : const <Map<String, dynamic>>[];
+    if (offset == 0) pageZeroFetches += 1;
+    return ResponseBody.fromString(
+      jsonEncode(messages),
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+        'x-total': ['$totalCount'],
+      },
+    );
+  }
+}
+
 Map<String, dynamic> messageJson(String id, DateTime createdAt) {
   final json = message('room-1').toJson();
   json['id'] = id;
   json['created_at'] = createdAt.toIso8601String();
   json['updated_at'] = createdAt.toIso8601String();
   return json;
+}
+
+/// Seeds [total] locally synced rows for room-1. The first twenty carry the
+/// ids the newest page serves, so a forced reload finds them already cached
+/// and adds no rows — otherwise the fetch itself would push a just-below-limit
+/// backlog across the limit.
+Future<void> _seedLocalHistory(
+  AppDatabase database,
+  int total, {
+  required DateTime newest,
+}) async {
+  for (var i = 0; i < total; i++) {
+    final json = i < 20
+        ? messageJson('new-$i', newest.subtract(Duration(minutes: i)))
+        : messageJson('local-$i', newest.subtract(Duration(minutes: 20 + i)));
+    await database.saveMessageWithSender(
+      LocalChatMessage.fromRemoteMessage(
+        SnChatMessage.fromJson(json),
+        MessageStatus.sent,
+      ),
+    );
+  }
 }
 
 void main() {
@@ -747,6 +816,113 @@ void main() {
               .map((item) => item.id),
           contains('live-1'),
           reason: 'realtime message must survive the reload snapshot',
+        );
+      },
+    );
+
+    test(
+      'room with a huge remote total but no local backlog is not wiped and '
+      'reloaded',
+      () async {
+        final now = DateTime.utc(2026, 1, 1, 12);
+        final newest = List.generate(
+          20,
+          (index) =>
+              messageJson('new-$index', now.subtract(Duration(minutes: index))),
+        );
+        final adapter = _CountingMessagesAdapter(
+          newestMessages: newest,
+          totalCount: 5000,
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.loadInitial(forceRemoteRefresh: true);
+
+        // Drain the unawaited background prefetch before teardown.
+        for (var i = 0; i < 10; i++) {
+          await pumpEventQueue();
+        }
+
+        // Nothing local to drop: one page-0 fetch, no wipe, no second fetch.
+        // This is the state right after the user cleared local data, so the
+        // guard must not turn the clear into an immediate re-download loop.
+        expect(adapter.pageZeroFetches, 1);
+        expect(
+          container.read(messagesProvider('room-1')).value,
+          hasLength(20),
+        );
+        expect(await database.getTotalMessagesForRoom('room-1'), 20);
+      },
+    );
+
+    test(
+      'room whose locally synced backlog stays below the limit keeps it',
+      () async {
+        final now = DateTime.utc(2026, 1, 1, 12);
+        await _seedLocalHistory(database, 4999, newest: now);
+
+        final adapter = _CountingMessagesAdapter(
+          newestMessages: List.generate(
+            20,
+            (index) =>
+                messageJson('new-$index', now.subtract(Duration(minutes: index))),
+          ),
+          totalCount: 5000,
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.loadInitial(forceRemoteRefresh: true);
+
+        // Drain the unawaited background prefetch before teardown.
+        for (var i = 0; i < 10; i++) {
+          await pumpEventQueue();
+        }
+
+        // 4999 rows is under the limit: no drop, no second page-0 fetch, and
+        // the backlog is untouched.
+        expect(adapter.pageZeroFetches, 1);
+        expect(await database.getTotalMessagesForRoom('room-1'), 4999);
+        expect(
+          container.read(messagesProvider('room-1')).value!.first.id,
+          'new-0',
+        );
+      },
+    );
+
+    test(
+      'room whose locally synced backlog reaches the limit drops old messages '
+      'and loads as new',
+      () async {
+        final now = DateTime.utc(2026, 1, 1, 12);
+        await _seedLocalHistory(database, 5000, newest: now);
+
+        final adapter = _CountingMessagesAdapter(
+          newestMessages: List.generate(
+            20,
+            (index) =>
+                messageJson('new-$index', now.subtract(Duration(minutes: index))),
+          ),
+          totalCount: 5000,
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.loadInitial(forceRemoteRefresh: true);
+
+        // Drain the unawaited background prefetch before teardown.
+        for (var i = 0; i < 10; i++) {
+          await pumpEventQueue();
+        }
+
+        // The 5000-row backlog is dropped and the room reloads as new: the
+        // newest page is fetched twice and only it remains locally.
+        expect(adapter.pageZeroFetches, 2);
+        expect(await database.getTotalMessagesForRoom('room-1'), 20);
+        expect(
+          container.read(messagesProvider('room-1')).value,
+          hasLength(20),
         );
       },
     );

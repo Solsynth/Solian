@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/chat/messages_notifier.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
@@ -94,6 +95,12 @@ class _RoomStorageListState extends ConsumerState<_RoomStorageList> {
     if (confirmed != true) return;
 
     await widget.db.deleteMessagesForRoom(roomId);
+    // A subscribed/foreground room keeps its messages in the room notifier
+    // (chatSubscribeProvider watches messagesProvider), so deleting the rows
+    // alone leaves the open timeline showing messages that no longer exist
+    // locally. Reset the room the same way the chat list's clear-local-data
+    // action does: the rebuild reloads it as new.
+    ref.invalidate(messagesProvider(roomId));
     await _loadStats();
     if (mounted) {
       showSnackBar('settingsApplied'.tr());
