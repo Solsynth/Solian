@@ -30,6 +30,18 @@ class AppState: ObservableObject {
     private var hasAttemptedConnection = false
 
     init() {
+        // Keep the published copy in step with the session. Views hand
+        // `appState.token` to every API call, and `ImageLoader` / `StickerImage`
+        // read it directly, so a token minted at launch would go stale on screen
+        // the moment the transport refreshed past it.
+        standaloneAuth.onAccessTokenChanged = { [weak self] token in
+            self?.token = token
+        }
+        // A revoked session must land on the sign-in flow rather than 401
+        // every call forever.
+        networkService.onSessionExpired = { [weak self] in
+            Task { @MainActor in self?.handleExpiredSession() }
+        }
         // The watch authenticates entirely on its own through the OAuth device
         // flow (see SignInView / StandaloneAuthService). It never borrows
         // credentials from the paired iPhone, so a stored standalone session is
@@ -83,31 +95,46 @@ class AppState: ObservableObject {
             return
         } catch let urlError as URLError where urlError.code == .cancelled {
             return
+        } catch let error as StandaloneAuthError where error.isTerminalSession {
+            // The stored refresh token is gone or the server rejected it
+            // (revoked/expired): drop the session and require a fresh
+            // device-flow sign-in rather than leaving a half-authenticated
+            // app with no usable token.
+            standaloneAuth.signOut()
+            token = nil
+            self.serverUrl = nil
+            requiresSignIn = true
+            errorMessage = error.localizedDescription
         } catch let error as StandaloneAuthError {
-            switch error {
-            case .missingRefreshToken, .polling(.invalidGrant):
-                // The stored refresh token is gone or the server rejected it
-                // (revoked/expired): drop the session and require a fresh
-                // device-flow sign-in rather than leaving a half-authenticated
-                // app with no usable token.
-                standaloneAuth.signOut()
-                token = nil
-                self.serverUrl = nil
-                requiresSignIn = true
-                errorMessage = error.localizedDescription
-            default:
-                // Keychain briefly unavailable (device still locked) or a
-                // server-side hiccup: keep the stored session so the next
-                // launch or reconnect can use it.
-                isReady = false
-                errorMessage = error.localizedDescription
-            }
+            // Keychain briefly unavailable (device still locked) or a
+            // server-side hiccup: keep the stored session so the next
+            // launch or reconnect can use it.
+            isReady = false
+            errorMessage = error.localizedDescription
         } catch {
             // Transient failure (e.g. network): keep the session for retry on
             // the next launch, but don't pretend to be signed in.
             isReady = false
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// The stored session can no longer be refreshed — the refresh token is
+    /// gone or the server rejected it, e.g. the session was revoked from
+    /// another device's session list. Matches what `activateStandaloneSession`
+    /// does on the same failure at launch: drop the credentials and require a
+    /// fresh sign-in, keeping the local cache so the same account finds its
+    /// chats again on the way back in.
+    private func handleExpiredSession() {
+        guard !requiresSignIn else { return }
+        print("[AppState] Stored session is no longer refreshable; requiring sign-in.")
+        standaloneAuth.signOut()
+        token = nil
+        serverUrl = nil
+        isReady = false
+        hasAttemptedConnection = false
+        networkService.disconnectWebSocket()
+        requiresSignIn = true
     }
 
     /// Signs the watch out. Mirrors the phone app's logout: end the session

@@ -41,6 +41,17 @@ enum StandaloneAuthError: LocalizedError {
         case other
     }
 
+    /// True when the stored session can never work again: the refresh token is
+    /// gone, or the server rejected it (revoked or expired). Distinct from a
+    /// transient failure — offline, keychain unavailable — which must leave the
+    /// session intact for the next attempt.
+    var isTerminalSession: Bool {
+        switch self {
+        case .missingRefreshToken, .polling(.invalidGrant): return true
+        default: return false
+        }
+    }
+
     var errorDescription: String? {
         switch self {
         case .invalidServerUrl: return "The server URL is invalid."
@@ -60,8 +71,31 @@ enum StandaloneAuthError: LocalizedError {
     }
 }
 
+/// Runs at most one token refresh at a time, handing every concurrent caller
+/// the same result.
+///
+/// The server may rotate the refresh token, so two refreshes racing would leave
+/// one caller holding a credential the other just invalidated — and the
+/// `invalid_grant` that follows is indistinguishable from a revoked session,
+/// which would wrongly sign the user out.
 @MainActor
-final class StandaloneAuthService: ObservableObject {
+final class RefreshCoalescer {
+    private var inFlight: Task<String, Error>?
+
+    /// Runs `refresh`, or joins the one already in flight.
+    func run(_ refresh: @escaping () async throws -> String) async throws -> String {
+        if let inFlight = inFlight {
+            return try await inFlight.value
+        }
+        let task = Task { try await refresh() }
+        inFlight = task
+        defer { inFlight = nil }
+        return try await task.value
+    }
+}
+
+@MainActor
+final class StandaloneAuthService: ObservableObject, SessionCredentials {
     /// Shared instance so app state, sign-in view and reconnect logic all
     /// operate on the same session cache.
     static let shared = StandaloneAuthService()
@@ -80,14 +114,26 @@ final class StandaloneAuthService: ObservableObject {
             ?? "solian-on-watch"
     }()
 
-    private static let serverKey = "solian.watch.serverUrl"
+    private nonisolated static let serverKey = "solian.watch.serverUrl"
     private static let sessionKey = "solian.watch.standaloneSession"
     private static let accountNameKey = "solian.watch.accountName"
     private static let accountNickKey = "solian.watch.accountNick"
-    private static let defaults = UserDefaults.standard
+    /// `nonisolated` so the session markers above can be read off the main
+    /// actor. Computed rather than stored: `UserDefaults` isn't `Sendable`, and
+    /// a stored `nonisolated let` of a non-`Sendable` type is a Swift 6 error.
+    private nonisolated static var defaults: UserDefaults { .standard }
 
     private var accessToken: String?
     private var accessExpiry: Date?
+    /// Serialises refreshes; see `RefreshCoalescer`.
+    private let refreshCoalescer = RefreshCoalescer()
+
+    /// Fired whenever the access token changes (sign-in, lazy refresh, forced
+    /// refresh, sign-out) so the owner can keep its own copy in sync. Image
+    /// loads (`ImageLoader`, `StickerImage`) take their bearer from
+    /// `AppState`, and would otherwise keep replaying a token that expired
+    /// mid-session.
+    var onAccessTokenChanged: ((String?) -> Void)?
     private let session = URLSession(configuration: .ephemeral)
     private let decoder = JSONDecoder()
 
@@ -101,11 +147,15 @@ final class StandaloneAuthService: ObservableObject {
     /// marker: it is written with the refresh token on sign-in and removed on
     /// sign-out, and unlike the token (Keychain) it is readable before the
     /// device is first unlocked.
-    var hasStoredSession: Bool {
+    ///
+    /// `nonisolated` — it is a plain `UserDefaults` read with no actor state,
+    /// and the transport layer needs it while deciding whether a request can
+    /// be re-authorized.
+    nonisolated var hasStoredSession: Bool {
         Self.defaults.string(forKey: Self.serverKey) != nil
     }
 
-    var serverUrl: String? {
+    nonisolated var serverUrl: String? {
         Self.defaults.string(forKey: Self.serverKey)
     }
 
@@ -119,17 +169,23 @@ final class StandaloneAuthService: ObservableObject {
     }
 
     /// A usable bearer token, refreshing (and persisting) if near expiry.
-    func validAccessToken(serverUrl: String) async throws -> String {
-        if let accessToken = accessToken, let expiry = accessExpiry,
+    ///
+    /// - Parameter forceRefresh: refresh even when the cached token still looks
+    ///   live. Used to recover from a 401 the server issued anyway — the
+    ///   session was revoked between our expiry check and the request.
+    func validAccessToken(serverUrl: String, forceRefresh: Bool = false) async throws -> String {
+        if !forceRefresh, let accessToken = accessToken, let expiry = accessExpiry,
            expiry.timeIntervalSinceNow > 60 {
             return accessToken
         }
-        guard let refresh = try storedRefreshToken() else {
-            throw StandaloneAuthError.missingRefreshToken
+        return try await refreshCoalescer.run {
+            guard let refresh = try self.storedRefreshToken() else {
+                throw StandaloneAuthError.missingRefreshToken
+            }
+            let pair = try await self.refreshTokens(refresh: refresh, serverUrl: serverUrl)
+            try self.store(pair: pair, serverUrl: serverUrl)
+            return pair.accessToken
         }
-        let pair = try await refreshTokens(refresh: refresh, serverUrl: serverUrl)
-        try store(pair: pair, serverUrl: serverUrl)
-        return pair.accessToken
     }
 
     // MARK: - Sign-in (device flow)
@@ -291,6 +347,7 @@ final class StandaloneAuthService: ObservableObject {
             try writeKeychain(refresh, account: Self.sessionKey)
         }
         Self.defaults.set(serverUrl, forKey: Self.serverKey)
+        onAccessTokenChanged?(pair.accessToken)
     }
 
     private func loadStoredSession() {
@@ -318,6 +375,7 @@ final class StandaloneAuthService: ObservableObject {
         Self.defaults.removeObject(forKey: Self.accountNameKey)
         Self.defaults.removeObject(forKey: Self.accountNickKey)
         try? deleteKeychain(account: Self.sessionKey)
+        onAccessTokenChanged?(nil)
     }
 
     private func writeKeychain(_ value: String, account: String) throws {

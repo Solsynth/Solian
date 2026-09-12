@@ -72,17 +72,126 @@ final class ResumeOnce<Value>: @unchecked Sendable {
     }
 }
 
+// MARK: - Authorized Session
+
+/// The slice of the session store `AuthorizedSession` needs in order to
+/// re-authorize a request. A protocol rather than the concrete service so the
+/// 401/refresh/retry path can be exercised without the device Keychain.
+protocol SessionCredentials: AnyObject {
+    /// The server the stored session belongs to; nil when there is none.
+    var serverUrl: String? { get }
+    /// A currently-valid bearer, refreshing if needed (or unconditionally when
+    /// `forceRefresh`).
+    func validAccessToken(serverUrl: String, forceRefresh: Bool) async throws -> String
+}
+
+/// A `URLSession` façade that keeps the bearer token live.
+///
+/// Every API method below bakes whatever token the caller passed (always
+/// `AppState.token`) into its own `URLRequest` and fires it unexamined. That
+/// token is memory-only and expires after the server's `expires_in`, and
+/// nothing re-resolved it — so an app left running past that window 401'd on
+/// every call until it was relaunched.
+///
+/// Intercepting at the transport fixes every call site at once, present and
+/// future, instead of threading a token provider through ~50 signatures.
+final class AuthorizedSession {
+    private let session: URLSession
+    private let auth: SessionCredentials
+
+    /// Invoked when the stored session is definitively dead — the refresh
+    /// token is gone or the server rejected it. Deliberately not called for a
+    /// transient failure (offline, keychain locked), which must never sign the
+    /// user out.
+    var onSessionExpired: (() -> Void)?
+
+    init(session: URLSession, auth: SessionCredentials) {
+        self.session = session
+        self.auth = auth
+    }
+
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        let live = await authorized(request, forceRefresh: false)
+        let first = try await session.data(for: live ?? request)
+        guard Self.isUnauthorized(first.1),
+              let retry = await authorized(request, forceRefresh: true) else {
+            return first
+        }
+        // The bearer looked live but the server disagreed: the session was
+        // revoked between our expiry check and the request. The forced refresh
+        // either mints a token the server accepts or reports the session dead.
+        return try await session.data(for: retry)
+    }
+
+    func bytes(for request: URLRequest) async throws -> (URLSession.AsyncBytes, URLResponse) {
+        let live = await authorized(request, forceRefresh: false)
+        let first = try await session.bytes(for: live ?? request)
+        guard Self.isUnauthorized(first.1),
+              let retry = await authorized(request, forceRefresh: true) else {
+            return first
+        }
+        return try await session.bytes(for: retry)
+    }
+
+    /// A copy of `request` carrying a currently-valid bearer, or nil when there
+    /// is nothing to do: no `Authorization` header, no stored session, a
+    /// different host, or a refresh that failed transiently.
+    private func authorized(_ request: URLRequest, forceRefresh: Bool) async -> URLRequest? {
+        guard let url = request.url,
+              request.value(forHTTPHeaderField: "Authorization") != nil,
+              let serverUrl = auth.serverUrl,
+              Self.matchesHost(url, serverUrl) else {
+            return nil
+        }
+        do {
+            let token = try await auth.validAccessToken(serverUrl: serverUrl, forceRefresh: forceRefresh)
+            var authorized = request
+            authorized.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            return authorized
+        } catch let error as StandaloneAuthError where error.isTerminalSession {
+            onSessionExpired?()
+            return nil
+        } catch {
+            // Keychain briefly unavailable (device still locked), offline, or a
+            // server-side hiccup: send what we have and let the caller report it.
+            return nil
+        }
+    }
+
+    /// Never rewrite the bearer for a host other than the session's own server.
+    private static func matchesHost(_ url: URL, _ serverUrl: String) -> Bool {
+        guard let base = URL(string: serverUrl) else { return false }
+        return url.host() == base.host() && url.port == base.port
+    }
+
+    private static func isUnauthorized(_ response: URLResponse) -> Bool {
+        (response as? HTTPURLResponse)?.statusCode == 401
+    }
+}
+
 // MARK: - Network Service
 
 class NetworkService {
-    private let session: URLSession
-    
+    /// Wrapped, so the bearer it carries is refreshed rather than replayed.
+    private let session: AuthorizedSession
+    /// The bare session, for the WebSocket: the upgrade request carries its own
+    /// bearer and refreshes it on reconnect (see `scheduleReconnect`).
+    private let baseSession: URLSession
+
+    /// Forwarded from `session`; set by `AppState` to fall back to sign-in
+    /// instead of 401-ing forever on a revoked session.
+    var onSessionExpired: (() -> Void)? {
+        didSet { session.onSessionExpired = onSessionExpired }
+    }
+
     init() {
         let config = URLSessionConfiguration.ephemeral
         config.waitsForConnectivity = true
-        session = URLSession(configuration: config)
+        let base = URLSession(configuration: config)
+        baseSession = base
+        session = AuthorizedSession(session: base, auth: StandaloneAuthService.shared)
     }
-    
+
     // Add a serial queue for WebSocket operations
     private let webSocketQueue = DispatchQueue(label: "com.solian.websocketQueue")
     
@@ -1880,7 +1989,7 @@ class NetworkService {
             
             print("[WebSocket] Trying connecting to \(url)")
             
-            self.webSocketTask = self.session.webSocketTask(with: request)
+            self.webSocketTask = self.baseSession.webSocketTask(with: request)
             self.webSocketTask?.resume()
 
             self.listenForWebSocketMessages()
@@ -1982,19 +2091,26 @@ class NetworkService {
 
             // When a standalone session exists the access token may have
             // expired; refresh it first so reconnect uses a live bearer.
-            let auth = StandaloneAuthService.shared
-            if auth.hasStoredSession {
-                Task { @MainActor in
-                    do {
-                        let fresh = try await auth.validAccessToken(serverUrl: serverUrl)
-                        self.lastToken = fresh
-                        self.connectWebSocket(token: fresh, serverUrl: serverUrl)
-                    } catch {
-                        print("[WebSocket] Token refresh failed before reconnect: \(error)")
+            Task { @MainActor in
+                let auth = StandaloneAuthService.shared
+                guard auth.hasStoredSession else {
+                    if let token = self.lastToken {
+                        self.connectWebSocket(token: token, serverUrl: serverUrl)
+                    }
+                    return
+                }
+                do {
+                    let fresh = try await auth.validAccessToken(serverUrl: serverUrl)
+                    self.lastToken = fresh
+                    self.connectWebSocket(token: fresh, serverUrl: serverUrl)
+                } catch {
+                    print("[WebSocket] Token refresh failed before reconnect: \(error)")
+                    // A session that can never be refreshed has to land on
+                    // sign-in, not leave the socket down and every call 401-ing.
+                    if let authError = error as? StandaloneAuthError, authError.isTerminalSession {
+                        self.onSessionExpired?()
                     }
                 }
-            } else if let token = self.lastToken {
-                self.connectWebSocket(token: token, serverUrl: serverUrl)
             }
         }
     }
