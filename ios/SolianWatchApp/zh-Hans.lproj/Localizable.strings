@@ -314,22 +314,8 @@
 "compose.attachmentDefault" = "附件";
 "compose.removeAttachment" = "移除附件";
 
-/* MARK: - ActivityListView */
-"activity.errorFetching" = "获取数据出错";
-"activity.noActivities" = "暂无活动。";
-"activity.loadMore" = "加载更多";
+/* MARK: - Explore feed */
 "activity.explore" = "探索";
-
-/* MARK: - ActivityEventRow */
-"activity.friendUpdatedStatus" = "好友更新了状态";
-"activity.friendActivity" = "好友活动";
-"activity.gaming" = "游戏中";
-"activity.music" = "听音乐";
-"activity.workout" = "锻炼中";
-"activity.busy" = "忙碌中";
-"activity.doNotDisturb" = "勿扰";
-"activity.invisible" = "隐身";
-"activity.online" = "在线";
 
 /* MARK: - AttachmentView */
 "attachment.file" = "文件";
@@ -356,18 +342,6 @@
 "reaction.pickSticker" = "选择贴纸";
 "reaction.clear" = "清除";
 "reaction.customHint" = "从贴纸新建一个回应";
-
-/* MARK: - DiscoveryViews */
-"discovery.realm" = "领域";
-"discovery.publisher" = "发布者";
-"discovery.account" = "账户";
-"discovery.article" = "文章";
-"discovery.unknownSuggestion" = "未知推荐";
-"discovery.good" = "不错";
-"discovery.thanks" = "感谢";
-"discovery.notForMe" = "不适合我";
-"discovery.showMoreLikeThis" = "显示更多类似内容";
-"discovery.notInterested" = "不感兴趣，隐藏此内容";
 
 /* MARK: - ExploreExtrasViews */
 "explore.publishers" = "发布者";

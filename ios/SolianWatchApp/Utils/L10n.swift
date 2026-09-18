@@ -345,22 +345,8 @@ public enum L10n {
     static let composeAttachmentDefault = NSLocalizedString("compose.attachmentDefault", comment: "Default attachment name")
     static let composeRemoveAttachment = NSLocalizedString("compose.removeAttachment", comment: "Remove attachment")
 
-    // MARK: - ActivityListView
-    static let activityErrorFetching = NSLocalizedString("activity.errorFetching", comment: "Error fetching data")
-    static let activityNoActivities = NSLocalizedString("activity.noActivities", comment: "No activities")
-    static let activityLoadMore = NSLocalizedString("activity.loadMore", comment: "Load more")
+    // MARK: - Explore feed
     static let activityExplore = NSLocalizedString("activity.explore", comment: "Explore")
-
-    // MARK: - ActivityEventRow
-    static let activityFriendUpdatedStatus = NSLocalizedString("activity.friendUpdatedStatus", comment: "Friend updated status")
-    static let activityFriendActivity = NSLocalizedString("activity.friendActivity", comment: "Friend activity")
-    static let activityGaming = NSLocalizedString("activity.gaming", comment: "Gaming")
-    static let activityMusic = NSLocalizedString("activity.music", comment: "Music")
-    static let activityWorkout = NSLocalizedString("activity.workout", comment: "Workout")
-    static let activityBusy = NSLocalizedString("activity.busy", comment: "Busy")
-    static let activityDoNotDisturb = NSLocalizedString("activity.doNotDisturb", comment: "Do not disturb")
-    static let activityInvisible = NSLocalizedString("activity.invisible", comment: "Invisible")
-    static let activityOnline = NSLocalizedString("activity.online", comment: "Online")
 
     // MARK: - AttachmentView
     static let attachmentFile = NSLocalizedString("attachment.file", comment: "File")
@@ -387,18 +373,6 @@ public enum L10n {
     static let reactionPickSticker = NSLocalizedString("reaction.pickSticker", comment: "Pick a sticker")
     static let reactionClear = NSLocalizedString("reaction.clear", comment: "Clear reaction")
     static let reactionCustomHint = NSLocalizedString("reaction.customHint", comment: "Custom reaction accessibility hint")
-
-    // MARK: - DiscoveryViews
-    static let discoveryRealm = NSLocalizedString("discovery.realm", comment: "Realm")
-    static let discoveryPublisher = NSLocalizedString("discovery.publisher", comment: "Publisher")
-    static let discoveryAccount = NSLocalizedString("discovery.account", comment: "Account")
-    static let discoveryArticle = NSLocalizedString("discovery.article", comment: "Article")
-    static let discoveryUnknownSuggestion = NSLocalizedString("discovery.unknownSuggestion", comment: "Unknown suggestion")
-    static let discoveryGood = NSLocalizedString("discovery.good", comment: "Good")
-    static let discoveryThanks = NSLocalizedString("discovery.thanks", comment: "Thanks")
-    static let discoveryNotForMe = NSLocalizedString("discovery.notForMe", comment: "Not for me")
-    static let discoveryShowMoreLikeThis = NSLocalizedString("discovery.showMoreLikeThis", comment: "Show more like this")
-    static let discoveryNotInterested = NSLocalizedString("discovery.notInterested", comment: "Not interested")
 
     // MARK: - ExploreExtrasViews
     static let explorePublishersTitle = NSLocalizedString("explore.publishers", comment: "Publishers")

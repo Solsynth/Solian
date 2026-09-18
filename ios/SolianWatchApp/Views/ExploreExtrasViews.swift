@@ -404,7 +404,8 @@ struct FollowableRowView: View {
 /// Fetch-only list of posts for a server-filtered query: publisher feed,
 /// category feed, tag feed, combined subscription feed, or shuffle. Reuses
 /// PostRowView rows, re-fetches when the query changes, and paginates with
-/// a "Load More" row.
+/// a "Load More" row. Also backs the Explore feed (no filters), where the
+/// explore options row is passed in as the scrollable `header`.
 struct PostQueryListView: View {
     let title: String
     var publisherNames: [String] = []
@@ -412,6 +413,9 @@ struct PostQueryListView: View {
     var tagSlugs: [String] = []
     var shuffle = false
     var query: String? = nil
+    /// An optional view rendered as the first List row/section, so it scrolls
+    /// with the content (e.g. the explore options row above the posts).
+    var header: AnyView? = nil
 
     @EnvironmentObject var appState: AppState
     @State private var posts: [SnPost] = []
@@ -427,24 +431,38 @@ struct PostQueryListView: View {
     var body: some View {
         Group {
             if isLoading && posts.isEmpty {
-                ProgressView("Loading…")
-            } else if let errorMessage = errorMessage, posts.isEmpty {
-                VStack(spacing: 6) {
-                    Text(L10n.exploreCouldntLoadPosts).font(.headline)
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                VStack(spacing: 0) {
+                    if let header { header }
+                    ProgressView("Loading…")
                 }
-                .padding()
-            } else if posts.isEmpty {
-                Text(L10n.exploreNoPostsYet)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
+            } else if let errorMessage = errorMessage, posts.isEmpty {
+                VStack(spacing: 0) {
+                    if let header { header }
+                    VStack(spacing: 6) {
+                        Text(L10n.exploreCouldntLoadPosts).font(.headline)
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                     .padding()
+                }
+            } else if posts.isEmpty {
+                VStack(spacing: 0) {
+                    if let header { header }
+                    Text(L10n.exploreNoPostsYet)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
             } else {
                 List {
+                    if let header {
+                        header
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
                     ForEach(posts) { post in
                         PostRowView(
                             post: post,

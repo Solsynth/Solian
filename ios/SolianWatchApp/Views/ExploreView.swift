@@ -22,7 +22,6 @@ struct ExploreView: View {
         NavigationStack {
             if appState.isReady {
                 FeedPageView(
-                    filter: nil,
                     onCompose: { isComposing = true },
                     onShuffle: { showShuffle = true },
                     onPublishers: { showPublishers = true },
@@ -59,12 +58,14 @@ struct ExploreView: View {
     }
 }
 
-/// The single explore feed page. Compose is a top-right toolbar icon button
-/// (mirroring the nav-menu button top-left), and the explore options
-/// (shuffle / publishers / categories) sit in a fixed detail row above the
-/// posts, matching the main app's filter toolbar.
+/// The single explore feed page, backed by the posts listing API
+/// (`GET /sphere/posts`, the same feed Sokai's KaiOS Explore uses) rather
+/// than the personalized timeline — a bare, offset-paginated post list with
+/// none of the timeline's discovery/presence noise. Compose is a top-right
+/// toolbar icon button (mirroring the nav-menu button top-left), and the
+/// explore options (shuffle / publishers / categories) sit in a scrollable
+/// row above the posts.
 private struct FeedPageView: View {
-    let filter: String?
     let onCompose: () -> Void
     let onShuffle: () -> Void
     let onPublishers: () -> Void
@@ -72,8 +73,7 @@ private struct FeedPageView: View {
     let onSearch: () -> Void
 
     var body: some View {
-        ActivityListView(filter: filter, header: AnyView(exploreOptions))
-            .navigationBarTitleDisplayMode(.inline)
+        PostQueryListView(title: L10n.activityExplore, header: AnyView(exploreOptions))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: onCompose) {

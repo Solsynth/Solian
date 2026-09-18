@@ -314,22 +314,8 @@
 "compose.attachmentDefault" = "Attachment";
 "compose.removeAttachment" = "Remove attachment";
 
-/* MARK: - ActivityListView */
-"activity.errorFetching" = "Error fetching data";
-"activity.noActivities" = "No activities found.";
-"activity.loadMore" = "Load More";
+/* MARK: - Explore feed */
 "activity.explore" = "Explore";
-
-/* MARK: - ActivityEventRow */
-"activity.friendUpdatedStatus" = "Friend updated status";
-"activity.friendActivity" = "Friend activity";
-"activity.gaming" = "Gaming";
-"activity.music" = "Music";
-"activity.workout" = "Workout";
-"activity.busy" = "Busy";
-"activity.doNotDisturb" = "Do Not Disturb";
-"activity.invisible" = "Invisible";
-"activity.online" = "Online";
 
 /* MARK: - AttachmentView */
 "attachment.file" = "File";
@@ -356,18 +342,6 @@
 "reaction.pickSticker" = "Pick a Sticker";
 "reaction.clear" = "Clear";
 "reaction.customHint" = "Create a new reaction from a sticker";
-
-/* MARK: - DiscoveryViews */
-"discovery.realm" = "Realm";
-"discovery.publisher" = "Publisher";
-"discovery.account" = "Account";
-"discovery.article" = "Article";
-"discovery.unknownSuggestion" = "Unknown suggestion";
-"discovery.good" = "Good";
-"discovery.thanks" = "Thanks";
-"discovery.notForMe" = "Not for me";
-"discovery.showMoreLikeThis" = "Show more like this";
-"discovery.notInterested" = "Not interested, hide this";
 
 /* MARK: - ExploreExtrasViews */
 "explore.publishers" = "Publishers";

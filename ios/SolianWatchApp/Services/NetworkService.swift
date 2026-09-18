@@ -194,52 +194,6 @@ class NetworkService {
 
     // Add a serial queue for WebSocket operations
     private let webSocketQueue = DispatchQueue(label: "com.solian.websocketQueue")
-    
-    func fetchTimeline(filter: String?, cursor: String? = nil, mode: String = "personalized", aggressive: Bool = true, token: String, serverUrl: String) async throws -> ActivityResponse {
-        guard let baseURL = URL(string: serverUrl) else {
-            throw URLError(.badURL)
-        }
-        var components = URLComponents(url: baseURL.appendingPathComponent("/sphere/timeline"), resolvingAgainstBaseURL: false)!
-        var queryItems = [
-            URLQueryItem(name: "take", value: "20"),
-            URLQueryItem(name: "mode", value: mode),
-            URLQueryItem(name: "aggressive", value: aggressive ? "true" : "false")
-        ]
-        
-        if let cursor = cursor {
-            queryItems.append(URLQueryItem(name: "cursor", value: cursor))
-        }
-        
-        // filter is optional - only add if not nil and not "explore"
-        if let filter = filter, filter.lowercased() != "explore" {
-            queryItems.append(URLQueryItem(name: "filter", value: filter.lowercased()))
-        }
-        
-        components.queryItems = queryItems
-        
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        
-        let (data, _) = try await session.data(for: request)
-        
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
-        // The response has an "items" wrapper
-        let responseWrapper = try decoder.decode(TimelineResponseWrapper.self, from: data)
-        
-        let activities = responseWrapper.items
-        
-        let hasMore = responseWrapper.nextCursor != nil && !responseWrapper.nextCursor!.isEmpty
-        let nextCursor = responseWrapper.nextCursor
-        
-        return ActivityResponse(activities: activities, hasMore: hasMore, nextCursor: nextCursor)
-    }
 
     // MARK: - Explore API
 
@@ -435,52 +389,6 @@ class NetworkService {
     /// POST /sphere/categories/{slug}/unsubscribe — unfollow a category.
     func unsubscribeCategory(slug: String, token: String, serverUrl: String) async throws {
         try await postEmpty(path: "/sphere/categories/\(slug)/unsubscribe", token: token, serverUrl: serverUrl)
-    }
-
-    /// POST /sphere/timeline/discovery/uninterested — hide a suggestion.
-    func markDiscoveryUninterested(kind: String, referenceId: String, token: String, serverUrl: String) async throws {
-        guard let baseURL = URL(string: serverUrl) else {
-            throw URLError(.badURL)
-        }
-        let url = baseURL.appendingPathComponent("/sphere/timeline/discovery/uninterested")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        request.httpBody = try JSONSerialization.data(
-            withJSONObject: ["kind": kind, "reference_id": referenceId]
-        )
-        _ = try await session.data(for: request)
-    }
-
-    /// POST /sphere/timeline/discovery/feedback — good/bad signal.
-    func submitDiscoveryFeedback(
-        kind: String,
-        referenceId: String,
-        good: Bool,
-        token: String,
-        serverUrl: String
-    ) async throws {
-        guard let baseURL = URL(string: serverUrl) else {
-            throw URLError(.badURL)
-        }
-        let url = baseURL.appendingPathComponent("/sphere/timeline/discovery/feedback")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        request.httpBody = try JSONSerialization.data(
-            withJSONObject: [
-                "kind": kind,
-                "reference_id": referenceId,
-                "feedback": good ? "good" : "bad",
-            ]
-        )
-        _ = try await session.data(for: request)
     }
 
     // MARK: - Explore helpers
