@@ -1,0 +1,31 @@
+name: flutter_math_fork
+description: Fast and high-quality TeX math equation rendering with pure Dart & Flutter.
+# Vendored from pub.dev (flutter_math_fork 0.7.4). The KaTeX fonts are declared
+# as plain assets instead of `fonts:` so Flutter web does not eagerly download
+# every KaTeX font at startup; the host app registers them lazily via
+# FontLoader when a math expression is first rendered (see
+# island/lib/shared/widgets/content/katex_fonts.dart).
+version: 0.7.4
+homepage: https://github.com/simpleclub/flutter_math
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_svg: ">=2.0.0+1 <3.0.0"
+  provider: ^6.0.5
+  meta: ^1.8.0
+  collection: ^1.17.0
+  tuple: ^2.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  assets:
+    - lib/katex_fonts/fonts/

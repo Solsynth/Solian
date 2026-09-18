@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:island/shared/widgets/content/katex_fonts.dart';
 import 'package:markdown/markdown.dart' as markdown;
 
 const latexTag = 'latex';
@@ -50,20 +51,27 @@ class LatexBuilder extends MarkdownElementBuilder {
         parentStyle ?? preferredStyle ?? DefaultTextStyle.of(context).style;
     if (content.isEmpty) return Text(element.textContent, style: style);
 
-    final latex = Math.tex(
-      content,
-      mathStyle: MathStyle.text,
-      textStyle: style.copyWith(color: isDark ? Colors.white : Colors.black),
-      textScaleFactor: 1,
-      onErrorFallback: (error) =>
-          Text(element.textContent, style: style.copyWith(color: Colors.red)),
-    );
-    if (isInline) return latex;
+    final textStyle =
+        style.copyWith(color: isDark ? Colors.white : Colors.black);
+    return KaTeXFontGate(
+      placeholder: (context) => Text(element.textContent, style: textStyle),
+      builder: (context) {
+        final latex = Math.tex(
+          content,
+          mathStyle: MathStyle.text,
+          textStyle: textStyle,
+          textScaleFactor: 1,
+          onErrorFallback: (error) => Text(element.textContent,
+              style: textStyle.copyWith(color: Colors.red)),
+        );
+        if (isInline) return latex;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(child: latex),
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(child: latex),
+        );
+      },
     );
   }
 }

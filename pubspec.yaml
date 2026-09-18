@@ -125,7 +125,10 @@ dependencies:
   local_auth: ^3.0.2
   flutter_secure_storage: ^10.3.1
   openmls: ^2.0.1
-  flutter_math_fork: ^0.7.4
+  # Vendored to declare KaTeX fonts as assets (not pubspec `fonts:`) so they
+  # load lazily on web instead of being fetched at startup.
+  flutter_math_fork:
+    path: packages/flutter_math_fork
   flutter_nfc_kit: ^3.6.2
   ndef: ^0.4.0
   share_plus: ^12.0.2
