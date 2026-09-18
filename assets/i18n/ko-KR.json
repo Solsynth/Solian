@@ -1694,6 +1694,7 @@
   "postCategoryStudy": "학습",
   "postCategoryTechnology": "기술",
   "postCategoryTravel": "여행",
+  "postChainPlaceholder": "연결에 추가",
   "postChainingTo": "다음으로 연결 중",
   "postCompose": "게시물 작성",
   "postComposeDescription": "새 게시물 작성",
@@ -3811,6 +3812,7 @@
     "one": "{}개 더 보기",
     "other": "{}개 더 보기"
   },
+  "suggestChainInstead": "내 게시물에 답장 중이에요. 연결할까요?",
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sleep": "sleep",

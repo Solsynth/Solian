@@ -1437,6 +1437,7 @@
   "postCategoryStudy": "Study",
   "postCategoryTechnology": "Technology",
   "postCategoryTravel": "Travel",
+  "postChainPlaceholder": "Añadir a tu hilo",
   "postChainingTo": "Encadenando a",
   "postCompose": "Compose Post",
   "postComposeDescription": "Compose a new post",
@@ -3758,6 +3759,7 @@
     "one": "Mostrar {} más",
     "other": "Mostrar {} más"
   },
+  "suggestChainInstead": "¿Respondiendo a tu propia publicación? Mejor encadénala.",
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sidebar": "Sidebar",

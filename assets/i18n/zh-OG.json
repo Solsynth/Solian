@@ -1438,6 +1438,7 @@
   "postCategoryStudy": "學究",
   "postCategoryTechnology": "技藝",
   "postCategoryTravel": "行旅",
+  "postChainPlaceholder": "添入串聯",
   "postChainingTo": "串至",
   "postCompose": "撰帖",
   "postComposeDescription": "撰新帖",
@@ -3764,6 +3765,7 @@
     "one": "示餘 {} 則",
     "other": "示餘 {} 則"
   },
+  "suggestChainInstead": "此乃汝帖，串聯如何？",
   "showMoreLikeThis": "Show more like this",
   "showRecycleBin": "Show Recycle Bin",
   "sidebar": "Sidebar",
