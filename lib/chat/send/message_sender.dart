@@ -212,10 +212,18 @@ class MessageSender {
       );
     }
 
-    final pending = LocalChatMessage.fromRemoteMessage(
+    var pending = LocalChatMessage.fromRemoteMessage(
       placeholder,
       MessageStatus.pending,
     )..localAttachments = attachments;
+    // Keep the typed text visible on the placeholder bubble while files
+    // upload; the server only learns the content at finalize time.
+    if (content.trim().isNotEmpty) {
+      pending = pending.copyWith(
+        meta: Map<String, dynamic>.from(pending.meta)
+          ..['placeholder_content'] = content,
+      );
+    }
 
     _pendingCache.add(pending);
     await _repository.saveMessage(pending);

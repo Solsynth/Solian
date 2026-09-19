@@ -850,10 +850,20 @@ class _PlaceholderMessageContent extends StatelessWidget {
       final progress = _parsePlaceholderProgress(
         item.meta['placeholder_progress'],
       );
+      final content = item.meta['placeholder_content']?.toString() ?? '';
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (content.isNotEmpty) ...[
+            Text(
+              content,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+              ),
+            ),
+            const Gap(6),
+          ],
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
