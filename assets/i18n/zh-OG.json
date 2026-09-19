@@ -1799,6 +1799,8 @@
   "settingsBackgroundImageClear": "清底圖",
   "settingsBackgroundImageEnable": "顯底圖",
   "settingsBehavior": "行止",
+  "settingsBottomNavMenuButton": "底航菜單鍵",
+  "settingsBottomNavMenuButtonHelper": "顯底航之菜單鍵。抽屜仍可自屏緣滑開。",
   "settingsCardBackgroundOpacity": "卡底透度",
   "settingsCategoryBackground": "背景",
   "settingsCategoryChat": "對話",

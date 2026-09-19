@@ -187,6 +187,12 @@ class SettingsScreen extends HookConsumerWidget {
           'settingsBackgroundImageClear',
           'settingsBackgroundGenerateColor',
           'seedColor',
+          'bottom navigation',
+          'navigation bar',
+          'menu button',
+          'burger menu',
+          'drawer button',
+          'settingsBottomNavMenuButton',
         ],
         children: [
           ListTile(
@@ -714,6 +720,25 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
+          if (!isWide)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsBottomNavMenuButton').tr(),
+              subtitle: Text(
+                'settingsBottomNavMenuButtonHelper',
+              ).tr().fontSize(12),
+              contentPadding: _kSettingsTilePadding,
+              leading: const Icon(Symbols.menu_rounded),
+              trailing: Switch(
+                value: ref.watch(bottomNavMenuButtonVisibleProvider),
+                onChanged: (value) {
+                  ref
+                      .read(bottomNavMenuButtonVisibleProvider.notifier)
+                      .setVisible(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
           if (!kIsWeb && docBasepath.value != null) ...[
             const _SettingsSubheader('settingsCategoryBackground'),
             ListTile(

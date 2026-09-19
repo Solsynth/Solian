@@ -102,6 +102,7 @@ const kAppDesktopUseSeparateCallWindow = 'app_desktop_use_separate_call_window';
 const kAppOutgoingCallKitEnabled = 'app_outgoing_callkit_enabled';
 const kAppDesktopNativeWindowFrame = 'app_desktop_native_window_frame';
 const kAppShakeDetectionEnabled = 'app_shake_detection_enabled';
+const kAppBottomNavMenuButtonVisible = 'app_bottom_nav_menu_button_visible';
 
 const kAppUpdateChecksEnabled = 'app_update_checks_enabled';
 const kAppUpdateChannel = 'app_update_channel';
@@ -354,6 +355,27 @@ class ShakeDetectionEnabledNotifier extends Notifier<bool> {
 final shakeDetectionEnabledProvider =
     NotifierProvider<ShakeDetectionEnabledNotifier, bool>(
       ShakeDetectionEnabledNotifier.new,
+    );
+
+class BottomNavMenuButtonVisibleNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppBottomNavMenuButtonVisible) ?? true;
+  }
+
+  void setVisible(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppBottomNavMenuButtonVisible, value);
+    state = value;
+  }
+}
+
+/// Whether the drawer ("burger") button is rendered inside the bottom
+/// navigation bar. The drawer itself stays reachable by edge swipe.
+final bottomNavMenuButtonVisibleProvider =
+    NotifierProvider<BottomNavMenuButtonVisibleNotifier, bool>(
+      BottomNavMenuButtonVisibleNotifier.new,
     );
 
 @freezed

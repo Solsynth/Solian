@@ -285,6 +285,12 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         defaultTargetPlatform == TargetPlatform.windows ||
         defaultTargetPlatform == TargetPlatform.linux ||
         shouldShowBottomNavForCurrentPath(context, routes: rootTabRoutes);
+    final showBottomNavMenuButton =
+        isDrawerEnabled &&
+        (ref.watch(bottomNavMenuButtonVisibleProvider) ||
+            // `NavigationBar` asserts at least two destinations, so keep the
+            // drawer button when hiding it would drop below that minimum.
+            bottomNavDestinations.length < 2);
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
@@ -584,21 +590,24 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         child: NavigationBar(
           height: 56,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          selectedIndex: bottomNavCurrentIndex + 1,
+          selectedIndex: bottomNavCurrentIndex +
+              (showBottomNavMenuButton ? 1 : 0),
           onDestinationSelected: (index) {
-            if (index == 0) {
-              if (isDrawerEnabled) {
-                rootScaffoldKey.currentState?.openDrawer();
-              }
+            final destinationIndex = showBottomNavMenuButton
+                ? index - 1
+                : index;
+            if (destinationIndex < 0) {
+              rootScaffoldKey.currentState?.openDrawer();
             } else {
-              onBottomNavDestinationSelected(index - 1);
+              onBottomNavDestinationSelected(destinationIndex);
             }
           },
           destinations: [
-            NavigationDestination(
-              icon: const Icon(Symbols.menu_rounded),
-              label: MaterialLocalizations.of(context).openAppDrawerTooltip,
-            ),
+            if (showBottomNavMenuButton)
+              NavigationDestination(
+                icon: const Icon(Symbols.menu_rounded),
+                label: MaterialLocalizations.of(context).openAppDrawerTooltip,
+              ),
             ...bottomNavDestinations.mapIndexed((idx, destination) {
               return NavigationDestination(
                 icon: destination.iconBuilder(bottomNavCurrentIndex == idx),

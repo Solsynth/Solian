@@ -1890,6 +1890,8 @@
   "settingsBackgroundImageClear": "背景画像をクリア",
   "settingsBackgroundImageEnable": "背景画像を表示",
   "settingsBehavior": "動作",
+  "settingsBottomNavMenuButton": "下部ナビゲーションのメニューボタン",
+  "settingsBottomNavMenuButtonHelper": "下部ナビゲーションバーにメニューボタンを表示します。ドロワーは画面端からのスワイプで開けます。",
   "settingsCardBackgroundOpacity": "カード背景の不透明度",
   "settingsCategoryBackground": "背景",
   "settingsCategoryChat": "チャット",

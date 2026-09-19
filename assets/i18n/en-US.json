@@ -3383,6 +3383,8 @@
   "settingsBackgroundImageClear": "Clear Background Image",
   "settingsBackgroundImageEnable": "Show Background Image",
   "settingsBehavior": "Behavior",
+  "settingsBottomNavMenuButton": "Bottom Navigation Menu Button",
+  "settingsBottomNavMenuButtonHelper": "Show the menu button in the bottom navigation bar. The navigation drawer can still be opened by swiping from the screen edge.",
   "settingsCacheCleared": "Cache cleared successfully",
   "settingsCacheClearedFailed": "Failed to clear cache",
   "settingsCardBackgroundOpacity": "Card Background Opacity",

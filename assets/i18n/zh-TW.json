@@ -3225,6 +3225,8 @@
   "settingsBackgroundImageClear": "清除背景圖片",
   "settingsBackgroundImageEnable": "顯示背景圖片",
   "settingsBehavior": "行為",
+  "settingsBottomNavMenuButton": "底部導覽列選單按鈕",
+  "settingsBottomNavMenuButtonHelper": "在底部導覽列中顯示選單按鈕。仍可從螢幕邊緣滑動開啟導覽抽屜。",
   "settingsCacheCleared": "快取已清除",
   "settingsCacheClearedFailed": "清除快取失敗",
   "settingsCardBackgroundOpacity": "卡片背景透明度",

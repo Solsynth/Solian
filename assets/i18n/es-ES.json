@@ -1802,6 +1802,8 @@
   "settingsBackgroundImageClear": "Clear Background Image",
   "settingsBackgroundImageEnable": "Show Background Image",
   "settingsBehavior": "Comportamiento",
+  "settingsBottomNavMenuButton": "Botón de menú de la barra de navegación inferior",
+  "settingsBottomNavMenuButtonHelper": "Muestra el botón de menú en la barra de navegación inferior. El panel de navegación aún se puede abrir deslizando desde el borde de la pantalla.",
   "settingsCardBackgroundOpacity": "Card Background Opacity",
   "settingsCategoryBackground": "Fondo",
   "settingsCategoryChat": "Chat",

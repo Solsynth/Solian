@@ -2120,6 +2120,8 @@
   "settingsBackgroundImageClear": "배경 이미지 지우기",
   "settingsBackgroundImageEnable": "배경 이미지 표시",
   "settingsBehavior": "동작",
+  "settingsBottomNavMenuButton": "하단 탐색 모음 메뉴 버튼",
+  "settingsBottomNavMenuButtonHelper": "하단 탐색 모음에 메뉴 버튼을 표시합니다. 탐색 서랍은 화면 가장자리를 스와이프하여 열 수 있습니다.",
   "settingsCardBackgroundOpacity": "카드 배경 투명도",
   "settingsCategoryBackground": "배경",
   "settingsCategoryChat": "채팅",
