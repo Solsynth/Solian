@@ -404,6 +404,8 @@
   "apply": "適用",
   "articleAttachmentHint": "添付ファイルはアップロードして記事本文に挿入しないと表示されません。",
   "articleCompose": "記事を作成",
+  "articleContents": "目次",
+  "articleNoContents": "この記事には見出しがありません。",
   "blogComposeAboutBody": "自分のサイトにある記事へリンクする投稿を公開します。Solar Network は、より多くの人に見つけてもらい、反応してもらい、既存の読者の外まで会話を広げる助けになります。",
   "blogComposeAboutTitle": "あなたのサイトのブログ記事をリンクする",
   "blogComposeBenefitEngagement": "元記事は自分のサイトに残したまま、Solar Network で返信、リアクション、共有を集められます。",

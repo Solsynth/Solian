@@ -335,6 +335,8 @@
   "apply": "施",
   "articleAttachmentHint": "附件須上呈並置入文體方得見",
   "articleCompose": "撰文",
+  "articleContents": "目錄",
+  "articleNoContents": "此文無小節之題。",
   "blogComposeAboutBody": "發一帖，指向汝自家網站所著之文。Solar Network 可助更多人見之、應之，並使議論越出原有讀者之外。",
   "blogComposeAboutTitle": "鏈汝網站之博客文",
   "blogComposeBenefitEngagement": "原文仍存於汝自家網站，而於 Solar Network 收回覆、反應與轉傳。",

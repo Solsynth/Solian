@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart'
+    show RenderAbstractViewport, RenderBox;
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
@@ -35,6 +37,8 @@ import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/post_detail_content.dart';
 import 'package:island/posts/widgets/publisher_collection_info.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
+import 'package:island/shared/widgets/content/markdown.dart'
+    show MarkdownHeadingAnchor, MarkdownHeadingRegistry;
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
@@ -1578,124 +1582,24 @@ Future<void> _showPostShareSheet(
   );
 }
 
-/// Save action for the detail app bars: live bookmark state, toggle on tap.
-class _PostBarBookmarkButton extends ConsumerWidget {
+/// The post overflow menu: author console, sharing, and reporting. One
+/// implementation for every detail layout, including the article app bar.
+class _PostActionsMenu extends HookConsumerWidget {
   final SnPost post;
-
-  const _PostBarBookmarkButton({required this.post});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isBookmarked = ref
-        .watch(bookmarkStatusProvider(post.id))
-        .when(
-          data: (bookmark) => bookmark != null,
-          loading: () => post.isBookmarked,
-          error: (_, _) => post.isBookmarked,
-        );
-    return IconButton(
-      tooltip: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
-      onPressed: () async {
-        try {
-          await toggleBookmark(
-            ref,
-            postId: post.id,
-            currentlyBookmarked: isBookmarked,
-          );
-        } catch (err) {
-          showErrorAlert(err);
-        }
-      },
-      icon: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 150),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: Icon(
-          isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
-          key: ValueKey(isBookmarked),
-          fill: isBookmarked ? 1 : 0,
-        ),
-      ),
-    );
-  }
-}
-
-/// Share action for the detail app bars: same chooser as the action rail.
-class _PostBarShareButton extends ConsumerWidget {
-  final SnPost post;
-
-  const _PostBarShareButton({required this.post});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return IconButton(
-      tooltip: 'share'.tr(),
-      onPressed: () => _showPostShareSheet(context, ref, post),
-      icon: const Icon(Symbols.share),
-    );
-  }
-}
-
-/// Pinned sliver app bar for the full-screen post detail. It names the post
-/// (its title, when it has one) and keeps the save/share/more actions
-/// reachable while the conversation scrolls underneath.
-SliverAppBar buildPostDetailSliverAppBar({
-  required BuildContext context,
-  required SnPost post,
-  required Widget trailing,
-  Widget leading = const AutoLeadingButton(),
-}) {
-  final theme = Theme.of(context);
-  final title = post.title?.trim();
-  final hasTitle = title != null && title.isNotEmpty;
-  return SliverAppBar(
-    pinned: true,
-    // Opaque on purpose: this bar stays pinned over scrolling content, so it
-    // must not inherit the "transparent app bar" user setting.
-    centerTitle: true,
-    leading: leading,
-    title: hasTitle
-        ? Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          )
-        : null,
-    actions: [
-      _PostBarBookmarkButton(post: post),
-      _PostBarShareButton(post: post),
-      trailing,
-      const Gap(8),
-    ],
-  );
-}
-
-class _PostDetailLargeScreenLayout extends HookConsumerWidget {
-  final SnPost post;
-  final String postId;
-  final Function(SnPost) onUpdate;
   final VoidCallback onRefresh;
-  final ValueChanged<String>? onTranslate;
-  final String? translatedText;
-  final bool isTranslating;
+  final ValueChanged<SnPost> onUpdate;
 
-  const _PostDetailLargeScreenLayout({
+  const _PostActionsMenu({
     required this.post,
-    required this.postId,
-    required this.onUpdate,
     required this.onRefresh,
-    this.onTranslate,
-    this.translatedText,
-    this.isTranslating = false,
+    required this.onUpdate,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
-    final focusedIndex = useState(0);
+    final isAuthor =
+        user.value != null && user.value?.id == post.publisher?.accountId;
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
@@ -1707,16 +1611,29 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       );
     }
 
+    void refresh() => onRefresh();
+
     void Function() getMenuAction(String action) {
       switch (action) {
         case 'edit':
           return () async {
-            final result = await PostComposeDialog.show(
-              context,
-              originalPost: post,
-            );
-            if (result != null) {
-              onRefresh.call();
+            if (post.type == 1) {
+              final result = await context.router.push(
+                ArticleEditRoute(id: post.id),
+              );
+              if (result != null) refresh();
+            } else if (post.type == 2) {
+              final result = await BlogComposeDialog.show(
+                context,
+                originalPost: post,
+              );
+              if (result != null) refresh();
+            } else {
+              final result = await PostComposeDialog.show(
+                context,
+                originalPost: post,
+              );
+              if (result != null) refresh();
             }
           };
         case 'delete':
@@ -1727,7 +1644,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               isDanger: true,
             ).then((confirm) {
               if (confirm) {
-                final client = ref.watch(solarNetworkClientProvider);
+                final client = ref.read(solarNetworkClientProvider);
                 client.sphere
                     .deletePost(post.id)
                     .catchError((err) {
@@ -1735,7 +1652,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                       return err;
                     })
                     .then((_) {
-                      onRefresh.call();
+                      refresh();
                     });
               }
             });
@@ -1752,9 +1669,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               context,
               initialState: PostComposeInitialState(replyingTo: post),
             );
-            if (result != null) {
-              onRefresh.call();
-            }
+            if (result != null) refresh();
           };
         case 'forward':
           return () async {
@@ -1762,9 +1677,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               context,
               initialState: PostComposeInitialState(forwardingTo: post),
             );
-            if (result != null) {
-              onRefresh.call();
-            }
+            if (result != null) refresh();
           };
         case 'pin':
           return () {
@@ -1774,7 +1687,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               builder: (context) => PostPinSheet(post: post),
             ).then((value) {
               if (value is int) {
-                onUpdate.call(post.copyWith(pinMode: value));
+                onUpdate(post.copyWith(pinMode: value));
               }
             });
           };
@@ -1784,11 +1697,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               confirm,
             ) async {
               if (confirm) {
-                final client = ref.watch(solarNetworkClientProvider);
+                final client = ref.read(solarNetworkClientProvider);
                 try {
                   if (context.mounted) showLoadingModal(context);
                   await client.sphere.unpinPost(post.id);
-                  onUpdate.call(post.copyWith(pinMode: null));
+                  onUpdate(post.copyWith(pinMode: null));
                 } catch (err) {
                   showErrorAlert(err);
                 } finally {
@@ -1812,7 +1725,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
             try {
               if (context.mounted) showLoadingModal(context);
               await client.sphere.boostPost(post.id);
-              onRefresh.call();
+              refresh();
             } catch (err) {
               showErrorAlert(err);
             } finally {
@@ -1846,18 +1759,19 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
         case 'bookmark':
           return () async {
             try {
-              final bookmarkStatus = ref.read(bookmarkStatusProvider(post.id));
-              final isBookmarked = bookmarkStatus.when(
-                data: (bookmark) => bookmark != null,
-                loading: () => post.isBookmarked,
-                error: (_, _) => post.isBookmarked,
-              );
+              final isBookmarked = ref
+                  .read(bookmarkStatusProvider(post.id))
+                  .when(
+                    data: (bookmark) => bookmark != null,
+                    loading: () => post.isBookmarked,
+                    error: (_, _) => post.isBookmarked,
+                  );
               await toggleBookmark(
                 ref,
                 postId: post.id,
                 currentlyBookmarked: isBookmarked,
               );
-              onRefresh.call();
+              refresh();
             } catch (err) {
               showErrorAlert(err);
             }
@@ -1866,9 +1780,6 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           return () {};
       }
     }
-
-    final isAuthor =
-        user.value != null && user.value?.id == post.publisher?.accountId;
 
     final postMenuItems = <PopupMenuEntry<String>>[
       if (isAuthor)
@@ -1948,8 +1859,8 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       ),
     ];
 
-    final trailing = PopupMenuButton<String>(
-      icon: const Icon(Symbols.more_horiz, size: 18),
+    return PopupMenuButton<String>(
+      icon: const Icon(Symbols.more_horiz),
       style: ButtonStyle(
         visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
         padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
@@ -1957,6 +1868,139 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       ),
       itemBuilder: (context) => postMenuItems,
       onSelected: (action) => getMenuAction(action)(),
+    );
+  }
+}
+
+/// Save action for the detail app bars: live bookmark state, toggle on tap.
+class _PostBarBookmarkButton extends ConsumerWidget {
+  final SnPost post;
+
+  const _PostBarBookmarkButton({required this.post});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBookmarked = ref
+        .watch(bookmarkStatusProvider(post.id))
+        .when(
+          data: (bookmark) => bookmark != null,
+          loading: () => post.isBookmarked,
+          error: (_, _) => post.isBookmarked,
+        );
+    return IconButton(
+      tooltip: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+      onPressed: () async {
+        try {
+          await toggleBookmark(
+            ref,
+            postId: post.id,
+            currentlyBookmarked: isBookmarked,
+          );
+        } catch (err) {
+          showErrorAlert(err);
+        }
+      },
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        child: Icon(
+          isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+          key: ValueKey(isBookmarked),
+          fill: isBookmarked ? 1 : 0,
+        ),
+      ),
+    );
+  }
+}
+
+/// Share action for the detail app bars: same chooser as the action rail.
+class _PostBarShareButton extends ConsumerWidget {
+  final SnPost post;
+
+  const _PostBarShareButton({required this.post});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IconButton(
+      tooltip: 'share'.tr(),
+      onPressed: () => _showPostShareSheet(context, ref, post),
+      icon: const Icon(Symbols.share),
+    );
+  }
+}
+
+/// Whether a post gets the two-pane article reading layout. The page scaffold
+/// owns the app bar for these, so both the screen and the body must agree.
+bool _useArticleReadingLayout(BuildContext context, SnPost post) {
+  return post.type == 1 && isWideScreen(context);
+}
+
+/// Pinned sliver app bar for the full-screen post detail. It names the post
+/// (its title, when it has one) and keeps the save/share/more actions
+/// reachable while the conversation scrolls underneath.
+SliverAppBar buildPostDetailSliverAppBar({
+  required BuildContext context,
+  required SnPost post,
+  required Widget trailing,
+  Widget leading = const AutoLeadingButton(),
+}) {
+  final theme = Theme.of(context);
+  final title = post.title?.trim();
+  final hasTitle = title != null && title.isNotEmpty;
+  return SliverAppBar(
+    pinned: true,
+    // Opaque on purpose: this bar stays pinned over scrolling content, so it
+    // must not inherit the "transparent app bar" user setting.
+    centerTitle: true,
+    leading: leading,
+    title: hasTitle
+        ? Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          )
+        : null,
+    actions: [
+      _PostBarBookmarkButton(post: post),
+      _PostBarShareButton(post: post),
+      trailing,
+      const Gap(8),
+    ],
+  );
+}
+
+class _PostDetailLargeScreenLayout extends HookConsumerWidget {
+  final SnPost post;
+  final String postId;
+  final Function(SnPost) onUpdate;
+  final VoidCallback onRefresh;
+  final ValueChanged<String>? onTranslate;
+  final String? translatedText;
+  final bool isTranslating;
+
+  const _PostDetailLargeScreenLayout({
+    required this.post,
+    required this.postId,
+    required this.onUpdate,
+    required this.onRefresh,
+    this.onTranslate,
+    this.translatedText,
+    this.isTranslating = false,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
+    final focusedIndex = useState(0);
+
+    final trailing = _PostActionsMenu(
+      post: post,
+      onRefresh: onRefresh,
+      onUpdate: onUpdate,
     );
 
     return Row(
@@ -2211,6 +2255,552 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
     );
   }
 }
+
+bool _sameHeadingAnchors(
+  List<MarkdownHeadingAnchor> a,
+  List<MarkdownHeadingAnchor> b,
+) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i].text != b[i].text || a[i].level != b[i].level) return false;
+  }
+  return true;
+}
+
+/// Shared inset for the article panes, so the cover image in the reading pane
+/// starts on the same line as the sidebar card beside it.
+const double _articlePaneInset = 12;
+
+/// Pairs each scanned section with the rendered heading it points at, matching
+/// by level/text and occurrence so repeated headings stay distinct. Entries the
+/// renderer did not produce (or has not produced yet) stay null and simply are
+/// not scrollable.
+List<MarkdownHeadingAnchor?> _matchSectionAnchors(
+  List<SnPostSection> sections,
+  List<MarkdownHeadingAnchor> anchors,
+) {
+  final usedOccurrences = <String, int>{};
+  return [
+    for (final section in sections)
+      () {
+        final signature = '${section.level}\u0000${section.title}';
+        final occurrence = usedOccurrences.update(
+          signature,
+          (count) => count + 1,
+          ifAbsent: () => 0,
+        );
+        var seen = 0;
+        for (final anchor in anchors) {
+          if (anchor.level != section.level || anchor.text != section.title) {
+            continue;
+          }
+          if (seen == occurrence) return anchor;
+          seen++;
+        }
+        return null;
+      }(),
+  ];
+}
+
+/// Article reading layout for wide screens: the article scrolls in the left
+/// 2/3 under a reading-progress line, while the right 1/3 stacks sidebar cards
+/// for the table of contents and the replies. Replies stay collapsed until the
+/// reader reaches the end of the article (or taps the card header). The app bar
+/// itself belongs to the page scaffold, so it spans both panes.
+class _ArticleDetailLayout extends HookConsumerWidget {
+  final SnPost post;
+  final String postId;
+  final String? translatedText;
+  final bool isTranslating;
+  final Future<void> Function(String) onTranslate;
+  final VoidCallback onRefresh;
+  final ValueChanged<SnPost> onUpdate;
+
+  const _ArticleDetailLayout({
+    required this.post,
+    required this.postId,
+    required this.translatedText,
+    required this.isTranslating,
+    required this.onTranslate,
+    required this.onRefresh,
+    required this.onUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final user = ref.watch(userInfoProvider);
+    final scrollController = useScrollController();
+    final headingRegistry = useRef(MarkdownHeadingRegistry());
+    final tocAnchors = useState<List<MarkdownHeadingAnchor>>(const []);
+    final activeSection = useState(0);
+    final sidebarTabs = useRef<TabController?>(null);
+    final autoSwitched = useRef(false);
+
+    // The contents list comes straight from the article source, so the sidebar
+    // can show it on the first frame.
+    final markdown = useMemoized(
+      () => resolvePostMarkdown(post),
+      [post.content, post.contentType],
+    );
+    final sections = useMemoized(() => scanPostSections(markdown), [markdown]);
+    // Scroll targets only exist once the body has rendered; match them to the
+    // scanned sections (same source, same order).
+    final sectionAnchors = useMemoized(
+      () => _matchSectionAnchors(sections, tocAnchors.value),
+      [sections, tocAnchors.value],
+    );
+    final sectionAnchorsRef = useRef<List<MarkdownHeadingAnchor?>>(const []);
+    sectionAnchorsRef.value = sectionAnchors;
+
+    // The registry is filled while the article body renders (during layout),
+    // so reconcile the scroll targets after each frame rather than in-build.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        final next = List<MarkdownHeadingAnchor>.of(
+          headingRegistry.value.items,
+        );
+        if (!_sameHeadingAnchors(tocAnchors.value, next)) {
+          tocAnchors.value = next;
+        }
+      });
+      return null;
+    });
+
+    useEffect(() {
+      void onScroll() {
+        final position = scrollController.position;
+        final maxExtent = position.maxScrollExtent;
+        // Finish-reading: hand the sidebar over to the replies. One-shot, so
+        // switching back to the contents stays respected.
+        if (maxExtent > 0 && position.pixels >= maxExtent - 200) {
+          if (!autoSwitched.value) {
+            autoSwitched.value = true;
+            sidebarTabs.value?.animateTo(1);
+          }
+        }
+        // Highlight the contents entry for the heading currently at the top.
+        final anchors = sectionAnchorsRef.value;
+        if (anchors.isEmpty) return;
+        final offsets = <double?>[
+          for (final anchor in anchors)
+            if (anchor?.key.currentContext?.findRenderObject()
+                case final renderObject?)
+              RenderAbstractViewport.of(
+                renderObject,
+              ).getOffsetToReveal(renderObject, 0.0).offset
+            else
+              null,
+        ];
+        final active = activeSectionIndex(offsets, position.pixels);
+        if (active != activeSection.value) {
+          activeSection.value = active;
+        }
+      }
+
+      scrollController.addListener(onScroll);
+      return () => scrollController.removeListener(onScroll);
+    }, [scrollController]);
+
+    void scrollToSection(int index) {
+      final anchors = sectionAnchorsRef.value;
+      if (index < 0 || index >= anchors.length) return;
+      final target = anchors[index]?.key.currentContext;
+      if (target == null) return;
+      activeSection.value = index;
+      Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeOutCubic,
+        alignment: 0.08,
+      );
+    }
+
+    final thumbnail = resolvePostThumbnail(post);
+
+    Widget buildArticleColumn() {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Gap(_articlePaneInset),
+              if (thumbnail != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CloudFileList(
+                    files: [thumbnail],
+                    sourcePost: post,
+                    maxHeight: 420,
+                    padding: EdgeInsets.zero,
+                    disableConstraint: true,
+                  ),
+                ),
+              if (thumbnail != null) const Gap(20),
+              if (post.title?.isNotEmpty ?? false)
+                Text(
+                  post.title!,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                  ),
+                ),
+              if (post.description?.isNotEmpty ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    post.description!,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              const Gap(16),
+              PostHeader(
+                item: post,
+                isFullPost: true,
+                isCompact: false,
+                renderingPadding: EdgeInsets.zero,
+                trailing: null,
+              ),
+              const Gap(8),
+              PostBody(
+                item: post,
+                isFullPost: true,
+                isTextSelectable: true,
+                renderingPadding: EdgeInsets.zero,
+                hideAttachments: true,
+                hideTitle: true,
+                hideDescription: true,
+                headingAnchors: headingRegistry.value,
+                textScale: 1.2,
+              ),
+              if (isTranslating || translatedText != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: buildPostTranslationSection(
+                    context: context,
+                    item: post,
+                    isTextSelectable: true,
+                    textScale: 1.2,
+                    translatedText: translatedText,
+                    isTranslating: isTranslating,
+                    onTranslate: () => onTranslate(post.content ?? ''),
+                    showTranslateButton: false,
+                  ),
+                ),
+              if (post.repliedPostId != null || post.forwardedPostId != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PostThreadCard(post: post),
+                ),
+              if (post.chainedPosts.isNotEmpty)
+                PostChainedSection(head: post).padding(top: 12),
+              if (post.publisherCollections.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PostCollectionNavigation(post: post),
+                ),
+              if (post.realm != null)
+                PostRealmBadge(realm: post.realm!).padding(top: 12),
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: PostReactionList(
+                  // Padding here lands inside a fixed-height horizontal list,
+                  // so the spacing lives on the wrapper instead.
+                  padding: EdgeInsets.zero,
+                  item: post,
+                  reactions: post.reactionsCount,
+                  reactionsMade: post.reactionsMade,
+                  onReact: (symbol, attitude, delta) {
+                    final reactionsCount = Map<String, int>.from(
+                      post.reactionsCount,
+                    );
+                    reactionsCount[symbol] =
+                        (reactionsCount[symbol] ?? 0) + delta;
+                    final reactionsMade = Map<String, bool>.from(
+                      post.reactionsMade,
+                    );
+                    reactionsMade[symbol] = delta == 1;
+                    onUpdate(
+                      post.copyWith(
+                        reactionsCount: reactionsCount,
+                        reactionsMade: reactionsMade,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              PostActionButtons(
+                post: post,
+                renderingPadding: const EdgeInsets.only(top: 8),
+                noBottomPadding: true,
+                onRefresh: onRefresh,
+                onUpdate: onUpdate,
+                onTranslate: onTranslate,
+              ).alignment(Alignment.centerLeft),
+              const Gap(24),
+            ],
+          ).padding(horizontal: 24),
+        ),
+      );
+    }
+
+    Widget buildSidebar() {
+      return DefaultTabController(
+        length: 2,
+        child: Builder(
+          builder: (context) {
+            final tabs = DefaultTabController.of(context);
+            sidebarTabs.value = tabs;
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(
+                _articlePaneInset,
+                _articlePaneInset,
+                _articlePaneInset,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      clipBehavior: Clip.antiAlias,
+                      color: theme.colorScheme.surfaceContainerLow,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                            child: TabBar(
+                              dividerColor: Colors.transparent,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              splashBorderRadius: BorderRadius.circular(20),
+                              indicator: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              labelColor: theme.colorScheme.onPrimary,
+                              unselectedLabelColor:
+                                  theme.colorScheme.onSurfaceVariant,
+                              tabs: [
+                                Tab(text: 'articleContents'.tr()),
+                                Tab(text: 'replies'.tr()),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                _ArticleTocList(
+                                  sections: sections,
+                                  activeIndex: activeSection.value,
+                                  onSelect: scrollToSection,
+                                ),
+                                PostRepliesListNonSliver(postId: postId),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  AnimatedBuilder(
+                    animation: tabs,
+                    builder: (context, _) {
+                      if (user.value == null || tabs.index != 1) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          0,
+                          12,
+                          0,
+                          12 + MediaQuery.of(context).padding.bottom,
+                        ),
+                        child: PostQuickReply(
+                          parent: post,
+                          onPosted: () {
+                            ref
+                                .read(
+                                  postRepliesProvider(
+                                    postRepliesQuery(postId),
+                                  ).notifier,
+                                )
+                                .refresh();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: ExtendedRefreshIndicator(
+                onRefresh: () async => onRefresh(),
+                child: CustomScrollView(
+                  controller: scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(child: buildArticleColumn()),
+                    SliverGap(MediaQuery.of(context).padding.bottom + 48),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(flex: 1, child: buildSidebar()),
+          ],
+        ),
+        // Reading progress: a thin line across the whole body, directly under
+        // the scaffold app bar.
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          child: IgnorePointer(
+            child: AnimatedBuilder(
+              animation: scrollController,
+              builder: (context, _) {
+                final position = scrollController.hasClients
+                    ? scrollController.position
+                    : null;
+                final maxExtent = position?.maxScrollExtent ?? 0;
+                final progress = (maxExtent <= 0 || position == null)
+                    ? 0.0
+                    : (position.pixels / maxExtent).clamp(0.0, 1.0);
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: progress,
+                    child: Container(color: theme.colorScheme.primary),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The contents tab: every heading in the article, indented by level, with the
+/// section being read highlighted and finished sections dimmed. The list keeps
+/// the active entry in view while the reader scrolls the article.
+class _ArticleTocList extends HookWidget {
+  final List<SnPostSection> sections;
+  final int activeIndex;
+  final ValueChanged<int> onSelect;
+
+  const _ArticleTocList({
+    required this.sections,
+    required this.activeIndex,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final entryKeys = useRef(<int, GlobalKey>{});
+
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final entry = entryKeys.value[activeIndex]?.currentContext;
+        if (entry == null) return;
+        final entryBox = entry.findRenderObject();
+        final scrollable = entry.findAncestorStateOfType<ScrollableState>();
+        if (entryBox is! RenderBox || scrollable == null) return;
+        final viewportBox = scrollable.context.findRenderObject();
+        if (viewportBox is! RenderBox) return;
+
+        final top = entryBox
+            .localToGlobal(Offset.zero, ancestor: viewportBox)
+            .dy;
+        final inView =
+            top >= 0 && top + entryBox.size.height <= viewportBox.size.height;
+        if (inView) return;
+
+        // Only the contents list scrolls; the horizontal tab view is untouched.
+        scrollable.position.ensureVisible(
+          entryBox,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        );
+      });
+      return null;
+    }, [activeIndex]);
+
+    if (sections.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Text(
+          'articleNoContents'.tr(),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.5,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+      itemCount: sections.length,
+      itemBuilder: (context, index) {
+        final section = sections[index];
+        final isActive = index == activeIndex;
+        final isRead = index < activeIndex;
+        return InkWell(
+          key: entryKeys.value.putIfAbsent(index, GlobalKey.new),
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => onSelect(index),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10 + (section.level - 1) * 14,
+              right: 10,
+              top: 7,
+              bottom: 7,
+            ),
+            child: Text(
+              section.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isActive
+                    ? theme.colorScheme.primary
+                    : isRead
+                    ? theme.colorScheme.onSurface.withOpacity(0.4)
+                    : theme.colorScheme.onSurface,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 
 class _DesktopMediaBackground extends ConsumerWidget {
   final IDisplayableCloudFile file;
@@ -2763,16 +3353,6 @@ class _PostDetailBody extends HookConsumerWidget {
         final isMediaPostLayout =
             isWideScreen(context) && _isMediaPost(postItem) && !isEmbedded;
 
-        Widget buildMenuItem({required String label, required IconData icon}) {
-          return Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
-              const SizedBox(width: 12),
-              Text(label),
-            ],
-          );
-        }
-
         void refreshPost() {
           ref.invalidate(postProvider(id));
           ref
@@ -2780,260 +3360,16 @@ class _PostDetailBody extends HookConsumerWidget {
               .refresh();
         }
 
-        void Function() getMenuAction(String action) {
-          switch (action) {
-            case 'edit':
-              return () async {
-                final result = await PostComposeDialog.show(
-                  context,
-                  originalPost: postItem,
-                );
-                if (result != null) refreshPost();
-              };
-            case 'delete':
-              return () {
-                showConfirmAlert(
-                  'deletePostHint'.tr(),
-                  'deletePost'.tr(),
-                  isDanger: true,
-                ).then((confirm) {
-                  if (confirm) {
-                    final client = ref.watch(solarNetworkClientProvider);
-                    client.sphere
-                        .deletePost(postItem.id)
-                        .catchError((err) {
-                          showErrorAlert(err);
-                          return err;
-                        })
-                        .then((_) {
-                          refreshPost();
-                        });
-                  }
-                });
-              };
-            case 'copyLink':
-              return () {
-                Clipboard.setData(
-                  ClipboardData(
-                    text: 'https://solian.app/posts/${postItem.id}',
-                  ),
-                );
-              };
-            case 'reply':
-              return () async {
-                final result = await PostComposeDialog.show(
-                  context,
-                  initialState: PostComposeInitialState(replyingTo: postItem),
-                );
-                if (result != null) refreshPost();
-              };
-            case 'forward':
-              return () async {
-                final result = await PostComposeDialog.show(
-                  context,
-                  initialState: PostComposeInitialState(forwardingTo: postItem),
-                );
-                if (result != null) refreshPost();
-              };
-            case 'pin':
-              return () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => PostPinSheet(post: postItem),
-                ).then((value) {
-                  if (value is int) {
-                    ref
-                        .read(postStateProvider(id).notifier)
-                        .updatePost(postItem.copyWith(pinMode: value));
-                  }
-                });
-              };
-            case 'unpin':
-              return () {
-                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
-                  confirm,
-                ) async {
-                  if (confirm) {
-                    final client = ref.watch(solarNetworkClientProvider);
-                    try {
-                      if (context.mounted) showLoadingModal(context);
-                      await client.sphere.unpinPost(postItem.id);
-                      ref
-                          .read(postStateProvider(id).notifier)
-                          .updatePost(postItem.copyWith(pinMode: null));
-                    } catch (err) {
-                      showErrorAlert(err);
-                    } finally {
-                      if (context.mounted) hideLoadingModal(context);
-                    }
-                  }
-                });
-              };
-            case 'award':
-              return () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder: (context) => PostAwardSheet(post: postItem),
-                );
-              };
-            case 'boost':
-              return () async {
-                final client = ref.read(solarNetworkClientProvider);
-                try {
-                  if (context.mounted) showLoadingModal(context);
-                  await client.sphere.boostPost(postItem.id);
-                  refreshPost();
-                } catch (err) {
-                  showErrorAlert(err);
-                } finally {
-                  if (context.mounted) hideLoadingModal(context);
-                }
-              };
-            case 'share':
-              return () {
-                showShareSheetLink(
-                  context: context,
-                  link: 'https://solian.app/posts/${postItem.id}',
-                  title: 'sharePost'.tr(),
-                  toSystem: true,
-                );
-              };
-            case 'sharePhoto':
-              return () {
-                sharePostAsScreenshot(context, ref, postItem);
-              };
-            case 'openBrowser':
-              return () {
-                launchUrlString(postItem.fediverseUri!);
-              };
-            case 'report':
-              return () {
-                showAbuseReportSheet(
-                  context,
-                  resourceIdentifier: 'post:${postItem.id}',
-                );
-              };
-            case 'bookmark':
-              return () async {
-                try {
-                  await toggleBookmark(
-                    ref,
-                    postId: postItem.id,
-                    currentlyBookmarked: postItem.isBookmarked,
-                  );
-                  refreshPost();
-                } catch (err) {
-                  showErrorAlert(err);
-                }
-              };
-            default:
-              return () {};
-          }
-        }
-
-        final user = ref.watch(userInfoProvider);
-        final isAuthor =
-            user.value != null &&
-            user.value?.id == postItem.publisher?.accountId;
-
-        final postMenuItems = <PopupMenuEntry<String>>[
-          if (isAuthor)
-            PopupMenuItem<String>(
-              value: 'edit',
-              child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
-            ),
-          if (isAuthor)
-            PopupMenuItem<String>(
-              value: 'delete',
-              child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
-            ),
-          if (isAuthor) const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            value: 'copyLink',
-            child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
-          ),
-          PopupMenuItem<String>(
-            value: 'reply',
-            child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
-          ),
-          PopupMenuItem<String>(
-            value: 'forward',
-            child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
-          ),
-          if (isAuthor && postItem.pinMode == null)
-            PopupMenuItem<String>(
-              value: 'pin',
-              child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
-            )
-          else if (isAuthor && postItem.pinMode != null)
-            PopupMenuItem<String>(
-              value: 'unpin',
-              child: buildMenuItem(
-                label: 'unpinPost'.tr(),
-                icon: Symbols.keep_off,
-              ),
-            ),
-          PopupMenuItem<String>(
-            value: 'award',
-            child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
-          ),
-          const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            value: 'boost',
-            child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
-          ),
-          PopupMenuItem<String>(
-            value: 'bookmark',
-            child: buildMenuItem(
-              label: postItem.isBookmarked
-                  ? 'unbookmark'.tr()
-                  : 'bookmark'.tr(),
-              icon: postItem.isBookmarked
-                  ? Symbols.bookmark_added
-                  : Symbols.bookmark,
-            ),
-          ),
-          const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            value: 'share',
-            child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
-          ),
-          if (!kIsWeb)
-            PopupMenuItem<String>(
-              value: 'sharePhoto',
-              child: buildMenuItem(
-                label: 'sharePostPhoto'.tr(),
-                icon: Symbols.share_reviews,
-              ),
-            ),
-          if (postItem.fediverseUri != null)
-            PopupMenuItem<String>(
-              value: 'openBrowser',
-              child: buildMenuItem(
-                label: 'openInBrowser'.tr(),
-                icon: Symbols.open_in_new,
-              ),
-            ),
-          const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            value: 'report',
-            child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
-          ),
-        ];
-
-        final trailing = PopupMenuButton<String>(
-          icon: const Icon(Symbols.more_horiz),
-          style: ButtonStyle(
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-            padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
-            minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
-          ),
-          itemBuilder: (context) => postMenuItems,
-          onSelected: (action) => getMenuAction(action)(),
+        final trailing = _PostActionsMenu(
+          post: postItem,
+          onRefresh: refreshPost,
+          onUpdate: (newItem) {
+            ref.read(postStateProvider(id).notifier).updatePost(newItem);
+          },
         );
+
+        final useArticleReadingLayout =
+            !isEmbedded && _useArticleReadingLayout(context, postItem);
 
         return Stack(
           fit: StackFit.expand,
@@ -3071,6 +3407,18 @@ class _PostDetailBody extends HookConsumerWidget {
                         translatedText: translatedText.value,
                         isTranslating: translating.value,
                       ),
+              )
+            else if (useArticleReadingLayout)
+              _ArticleDetailLayout(
+                post: postItem,
+                postId: id,
+                translatedText: translatedText.value,
+                isTranslating: translating.value,
+                onTranslate: translatePost,
+                onRefresh: refreshPost,
+                onUpdate: (newItem) {
+                  ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                },
               )
             else
               PostDetailContent(
@@ -3140,11 +3488,23 @@ class PostDetailScreen extends HookConsumerWidget {
     final title = post?.title?.trim();
     final hasTitle = title != null && title.isNotEmpty;
     final isBlog = post?.type == 2;
+    // Articles use a two-pane body, so the bar spans both panes from the
+    // scaffold instead of belonging to one of them.
+    final isArticleReading =
+        post != null && _useArticleReadingLayout(context, post);
+
+    void refreshPost() {
+      ref.invalidate(postProvider(id));
+      ref
+          .read(postRepliesProvider(postRepliesQuery(id)).notifier)
+          .refresh();
+    }
+
     return AppScaffold(
       isNoBackground: false,
       // Blog posts keep a static bar: their webview sheet needs persistent
       // chrome. Every other layout owns its app bar inside the scroll view.
-      appBar: isBlog && post != null
+      appBar: (isBlog || isArticleReading) && post != null
           ? AppBar(
               leading: const AutoLeadingButton(),
               title: Text(
@@ -3155,6 +3515,14 @@ class PostDetailScreen extends HookConsumerWidget {
               actions: [
                 _PostBarBookmarkButton(post: post),
                 _PostBarShareButton(post: post),
+                if (isArticleReading)
+                  _PostActionsMenu(
+                    post: post,
+                    onRefresh: refreshPost,
+                    onUpdate: (newItem) => ref
+                        .read(postStateProvider(id).notifier)
+                        .updatePost(newItem),
+                  ),
                 const Gap(8),
               ],
             )

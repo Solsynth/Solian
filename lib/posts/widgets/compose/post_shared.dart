@@ -82,22 +82,154 @@ class SponsoredBadge extends StatelessWidget {
   }
 }
 
-/// Converts HTML content to markdown if contentType indicates HTML (contentType == 1)
-String _convertContentToMarkdown(SnPost post) {
+/// Converts HTML content to markdown if contentType indicates HTML (contentType == 1).
+/// Also the single source of truth for "what text does the body render", so the
+/// article table of contents scans exactly what the reader sees.
+String resolvePostMarkdown(SnPost post) {
   if (post.contentType == 1 && post.content != null) {
     return html2md.convert(post.content!);
   }
   return post.content ?? '';
 }
 
-IDisplayableCloudFile? _getThumbnailAttachment(SnPost post) {
-  final thumbnailId = post.meta?['thumbnail'] as String?;
-  if (thumbnailId == null) return null;
-  try {
-    return post.attachments.firstWhere((a) => a.id == thumbnailId);
-  } catch (_) {
-    return null;
+/// A heading found in a post's markdown.
+class SnPostSection {
+  final int level;
+  final String title;
+
+  const SnPostSection({required this.level, required this.title});
+}
+
+/// Scans post markdown for headings, in document order.
+///
+/// Handles both ATX (`## Title`) and setext (`Title` underlined by `===` or
+/// `---`) headings — the HTML-to-markdown pass emits setext for `<h1>`/`<h2>`,
+/// so HTML-backed articles depend on it. Fenced code blocks are skipped, and
+/// inline markdown is stripped so entries read as plain text.
+List<SnPostSection> scanPostSections(String markdown) {
+  final lines = markdown.split('\n');
+  final sections = <SnPostSection>[];
+  String? fence;
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i].trimRight();
+    final fenceMatch = RegExp(r'^\s{0,3}(`{3,}|~{3,})').firstMatch(line);
+    if (fenceMatch != null) {
+      final marker = fenceMatch.group(1)![0];
+      if (fence == null) {
+        fence = marker;
+      } else if (fence == marker) {
+        fence = null;
+      }
+      continue;
+    }
+    if (fence != null) continue;
+
+    final heading = RegExp(
+      r'^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$',
+    ).firstMatch(line);
+    if (heading != null) {
+      final title = _plainHeadingText(heading.group(2)!);
+      if (title.isNotEmpty) {
+        sections.add(
+          SnPostSection(level: heading.group(1)!.length, title: title),
+        );
+      }
+      continue;
+    }
+
+    if (i + 1 >= lines.length || !_canUnderlineHeading(line)) continue;
+    final underline = RegExp(
+      r'^\s{0,3}(=+|-+)\s*$',
+    ).firstMatch(lines[i + 1].trimRight());
+    if (underline == null) continue;
+
+    final title = _plainHeadingText(line.trim());
+    if (title.isNotEmpty) {
+      sections.add(
+        SnPostSection(
+          level: underline.group(1)!.startsWith('=') ? 1 : 2,
+          title: title,
+        ),
+      );
+    }
+    i++; // the underline itself is consumed with its heading
   }
+  return sections;
+}
+
+/// Whether [line] may act as the text of a setext heading, i.e. it reads as a
+/// paragraph rather than as some other block that could own the next line.
+bool _canUnderlineHeading(String line) {
+  if (line.trim().isEmpty) return false;
+  const otherBlocks = [
+    r'^\s{0,3}(#{1,6})\s', // ATX heading
+    r'^\s{0,3}([-*+]|\d+[.)])\s', // list item
+    r'^\s{0,3}>', // blockquote
+    r'^\s{0,3}\|', // table row
+    r'^(\s{4,}|\t)', // indented code
+    r'^\s{0,3}(`{3,}|~{3,})', // fence
+  ];
+  return !otherBlocks.any((pattern) => RegExp(pattern).hasMatch(line));
+}
+
+/// Index of the section currently being read: the last one whose heading has
+/// passed the leading edge of the viewport.
+///
+/// [sectionOffsets] holds each section's scroll offset in document order; a
+/// null entry means that section has no rendered heading yet and is skipped
+/// rather than resetting the selection.
+int activeSectionIndex(
+  List<double?> sectionOffsets,
+  double scrollOffset, {
+  double slack = 12,
+}) {
+  var active = 0;
+  for (var i = 0; i < sectionOffsets.length; i++) {
+    final offset = sectionOffsets[i];
+    if (offset == null) continue;
+    if (offset <= scrollOffset + slack) active = i;
+  }
+  return active;
+}
+
+String _plainHeadingText(String text) {
+  var plain = text.replaceAllMapped(
+    RegExp(r'!?\[([^\]]*)\]\([^)]*\)'),
+    (match) => match.group(1) ?? '',
+  );
+  plain = plain.replaceAll(RegExp(r'[*_`~]'), '');
+  plain = plain.replaceAll(RegExp(r'\\(.)'), r'$1');
+  return plain.trim();
+}
+
+/// Resolves a post's cover image from `meta['thumbnail']`.
+///
+/// The API returns this field either as an attachment id or as an embedded
+/// file reference, so both shapes are accepted; the reference is only used
+/// when the id is not among the post's attachments.
+IDisplayableCloudFile? resolvePostThumbnail(SnPost post) {
+  final thumbnail = post.meta?['thumbnail'];
+  final String? thumbnailId = switch (thumbnail) {
+    final String id when id.isNotEmpty => id,
+    final Map map when map['id'] is String => map['id'] as String,
+    _ => null,
+  };
+  if (thumbnailId == null || thumbnailId.isEmpty) return null;
+
+  for (final attachment in post.attachments) {
+    if (attachment.id == thumbnailId) return attachment;
+  }
+
+  if (thumbnail is Map) {
+    try {
+      return SnCloudFileReference.fromJson(
+        Map<String, dynamic>.from(thumbnail),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
 }
 
 List<dynamic> _getPostEmbeds(SnPost post) {
@@ -193,7 +325,7 @@ Widget _buildArticlePreviewCard(
   SnPost post, {
   EdgeInsetsGeometry padding = const EdgeInsets.only(top: 4),
 }) {
-  final thumbnail = _getThumbnailAttachment(post);
+  final thumbnail = resolvePostThumbnail(post);
 
   return Container(
     padding: padding,
@@ -1138,7 +1270,7 @@ class CompactPostRow extends ConsumerWidget {
               if (post.content?.isNotEmpty ?? false)
                 Expanded(
                   child: MarkdownTextContent(
-                    content: _convertContentToMarkdown(post),
+                    content: resolvePostMarkdown(post),
                     attachments: post.attachments,
                     noMentionChip: post.fediverseUri != null,
                   ).padding(top: 2),
@@ -1377,7 +1509,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
                           : Builder(
                               builder: (context) {
                                 final referenceContent =
-                                    _convertContentToMarkdown(referencePost);
+                                    resolvePostMarkdown(referencePost);
                                 final shouldTruncateReferenceBody =
                                     (referencePost.content?.isNotEmpty ??
                                         false) &&
@@ -1925,6 +2057,9 @@ class PostBody extends ConsumerWidget {
   final double? textScale;
   final Widget? forwardedCard;
   final bool useContainedAttachments;
+  final bool hideTitle;
+  final bool hideDescription;
+  final MarkdownHeadingRegistry? headingAnchors;
   const PostBody({
     super.key,
     required this.item,
@@ -1939,6 +2074,9 @@ class PostBody extends ConsumerWidget {
     this.textScale,
     this.forwardedCard,
     this.useContainedAttachments = false,
+    this.hideTitle = false,
+    this.hideDescription = false,
+    this.headingAnchors,
   });
 
   @override
@@ -1949,7 +2087,7 @@ class PostBody extends ConsumerWidget {
         item.type == 1 && (!isFullPost || item.forwardedPostId != null);
     final useCompactBlogPreview =
         item.type == 2 && (!isFullPost || item.forwardedPostId != null);
-    final resolvedContent = _convertContentToMarkdown(item);
+    final resolvedContent = resolvePostMarkdown(item);
     final shouldClampRegularBody =
         !isFullPost &&
         item.type == 0 &&
@@ -2180,12 +2318,13 @@ class PostBody extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if ((item.title?.isNotEmpty ?? false) ||
-                    (item.description?.isNotEmpty ?? false))
+                if ((!hideTitle || !hideDescription) &&
+                    ((item.title?.isNotEmpty ?? false) ||
+                        (item.description?.isNotEmpty ?? false)))
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (item.title?.isNotEmpty ?? false)
+                      if (!hideTitle && (item.title?.isNotEmpty ?? false))
                         Text(
                           item.title!,
                           style: Theme.of(context).textTheme.titleMedium!
@@ -2196,7 +2335,8 @@ class PostBody extends ConsumerWidget {
                                 height: 1.3,
                               ),
                         ),
-                      if (item.description?.isNotEmpty ?? false)
+                      if (!hideDescription &&
+                          (item.description?.isNotEmpty ?? false))
                         Text(
                           item.description!,
                           style: Theme.of(context).textTheme.bodyMedium
@@ -2221,6 +2361,7 @@ class PostBody extends ConsumerWidget {
                   isSelectable: isTextSelectable,
                   attachments: item.attachments,
                   noMentionChip: item.fediverseUri != null,
+                  headingAnchors: headingAnchors,
                 ),
                 ?translationSection,
               ],

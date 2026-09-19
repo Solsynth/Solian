@@ -576,6 +576,8 @@
   "applyFastest": "Apply Fastest",
   "articleAttachmentHint": "Attachments must be uploaded and inserted into the article body to be visible.",
   "articleCompose": "Compose Article",
+  "articleContents": "Contents",
+  "articleNoContents": "This article has no section headings.",
   "blogComposeAboutBody": "Publish a post that points back to writing on your own site. Solar Network can help more people discover it, react to it, and carry the conversation beyond your existing audience.",
   "blogComposeAboutTitle": "Link a blog post from your website",
   "blogComposeBenefitEngagement": "Collect replies, reactions, and shares on Solar Network while keeping your original post on your own site.",

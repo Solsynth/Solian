@@ -102,6 +102,106 @@ bool _isStandaloneStickerInContent(String content, String placeholder) {
   return false;
 }
 
+/// One heading captured from rendered markdown. [key] lets a caller scroll the
+/// heading into view; [text] and [level] describe it for a table of contents.
+class MarkdownHeadingAnchor {
+  final GlobalKey key;
+  final String text;
+  final int level;
+
+  const MarkdownHeadingAnchor({
+    required this.key,
+    required this.text,
+    required this.level,
+  });
+}
+
+/// Mutable capture buffer for [MarkdownTextContent.headingAnchors].
+///
+/// Cleared on every markdown build, then repopulated by the heading builders.
+/// Keys are reused by heading text/level/occurrence so scroll targets survive
+/// rebuilds, while repeated identical headings still get distinct keys.
+class MarkdownHeadingRegistry {
+  final List<MarkdownHeadingAnchor> items = [];
+  final Map<String, GlobalKey> _keysByHeading = {};
+  final Map<String, int> _occurrences = {};
+
+  void clear() {
+    items.clear();
+    _occurrences.clear();
+  }
+
+  MarkdownHeadingAnchor add(String text, int level) {
+    final base = '$level\u0000$text';
+    final occurrence = _occurrences.update(
+      base,
+      (count) => count + 1,
+      ifAbsent: () => 0,
+    );
+    final key = _keysByHeading.putIfAbsent(
+      '$base\u0000$occurrence',
+      GlobalKey.new,
+    );
+    final anchor = MarkdownHeadingAnchor(key: key, text: text, level: level);
+    items.add(anchor);
+    return anchor;
+  }
+}
+
+/// Builds a heading block wrapped in a registered [GlobalKey], replacing the
+/// default heading widget while preserving its text style and inline emphasis.
+class _HeadingAnchorBuilder extends MarkdownElementBuilder {
+  final MarkdownHeadingRegistry registry;
+  final int level;
+
+  _HeadingAnchorBuilder(this.registry, this.level);
+
+  @override
+  bool isBlockElement() => true;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    markdown.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final text = element.textContent.trim();
+    if (text.isEmpty) return null;
+    final anchor = registry.add(text, level);
+    final style = parentStyle?.merge(preferredStyle) ?? preferredStyle;
+    return KeyedSubtree(
+      key: anchor.key,
+      child: Text.rich(
+        TextSpan(style: style, children: _inlineSpans(element)),
+        textAlign: TextAlign.start,
+      ),
+    );
+  }
+
+  List<InlineSpan> _inlineSpans(markdown.Element element) {
+    return [
+      for (final node in element.children ?? const <markdown.Node>[])
+        if (node is markdown.Text)
+          TextSpan(text: node.text)
+        else if (node is markdown.Element)
+          TextSpan(
+            style: _inlineStyle(node.tag),
+            children: _inlineSpans(node),
+          )
+        else
+          const TextSpan(),
+    ];
+  }
+
+  TextStyle? _inlineStyle(String tag) => switch (tag) {
+    'em' => const TextStyle(fontStyle: FontStyle.italic),
+    'strong' => const TextStyle(fontWeight: FontWeight.bold),
+    'code' => const TextStyle(fontFamily: 'monospace'),
+    _ => null,
+  };
+}
+
 class MarkdownTextContent extends HookConsumerWidget {
   static const String stickerRegex = r':([-\w]*\+[-\w]*):';
 
@@ -116,6 +216,7 @@ class MarkdownTextContent extends HookConsumerWidget {
   final List<markdown.BlockSyntax> extraBlockSyntaxList;
   final Map<String, MarkdownElementBuilder> extraBuilders;
   final bool noMentionChip;
+  final MarkdownHeadingRegistry? headingAnchors;
 
   const MarkdownTextContent({
     super.key,
@@ -130,6 +231,7 @@ class MarkdownTextContent extends HookConsumerWidget {
     this.extraBlockSyntaxList = const [],
     this.extraBuilders = const {},
     this.noMentionChip = false,
+    this.headingAnchors,
   });
 
   @override
@@ -181,6 +283,14 @@ class MarkdownTextContent extends HookConsumerWidget {
       latexTag: LatexBuilder(isDark: isDark),
       ...extraBuilders,
     };
+
+    final anchors = headingAnchors;
+    if (anchors != null) {
+      anchors.clear();
+      for (var level = 1; level <= 6; level++) {
+        builders['h$level'] = _HeadingAnchorBuilder(anchors, level);
+      }
+    }
 
     return MarkdownBody(
       data: content,

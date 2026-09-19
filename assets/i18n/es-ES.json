@@ -335,6 +335,8 @@
   "apply": "Apply",
   "articleAttachmentHint": "Attachments must be uploaded and inserted into the article body to be visible.",
   "articleCompose": "Compose Article",
+  "articleContents": "Índice",
+  "articleNoContents": "Este artículo no tiene secciones.",
   "blogComposeAboutBody": "Publica una entrada que apunte al texto alojado en tu propio sitio. Solar Network puede ayudar a que más personas lo descubran, reaccionen y extiendan la conversación más allá de tu audiencia actual.",
   "blogComposeAboutTitle": "Enlaza una entrada de blog desde tu sitio web",
   "blogComposeBenefitEngagement": "Recoge respuestas, reacciones y compartidos en Solar Network mientras mantienes la publicación original en tu propio sitio.",

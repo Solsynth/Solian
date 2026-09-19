@@ -536,6 +536,8 @@
   "apply": "申請",
   "articleAttachmentHint": "附件必須上傳並插入到文章主體中才能顯示出來。",
   "articleCompose": "撰寫文章",
+  "articleContents": "目錄",
+  "articleNoContents": "這篇文章沒有小節標題。",
   "blogComposeAboutBody": "發佈一條指向你個人網站文章的貼文。Solar Network 可以幫助更多人發現它、回應它，並把討論擴充套件到你現有受眾之外。",
   "blogComposeAboutTitle": "連結你網站上的部落格文章",
   "blogComposeBenefitEngagement": "在保留原文於你自己網站的同時，在 Solar Network 收集回覆、反應與分享。",

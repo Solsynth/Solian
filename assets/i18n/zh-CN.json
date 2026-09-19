@@ -576,6 +576,8 @@
   "applyFastest": "应用最快节点",
   "articleAttachmentHint": "附件必须上传并插入到文章主体中才能显示出来。",
   "articleCompose": "撰写文章",
+  "articleContents": "目录",
+  "articleNoContents": "这篇文章没有小节标题。",
   "blogComposeAboutBody": "发布一条指向你个人网站文章的帖子。Solar Network 可以帮助更多人发现它、回应它，并把讨论扩展到你现有受众之外。",
   "blogComposeAboutTitle": "链接你网站上的博客文章",
   "blogComposeBenefitEngagement": "在保留原文于你自己网站的同时，在 Solar Network 收集回复、反应与分享。",

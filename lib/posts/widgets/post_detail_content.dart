@@ -15,6 +15,7 @@ import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
+import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -31,16 +32,6 @@ typedef PostDetailActionBuilder =
       BuildContext context,
       Future<void> Function(String text) onTranslate,
     );
-
-IDisplayableCloudFile? _getPostThumbnail(SnPost post) {
-  final thumbnailId = post.meta?['thumbnail'] as String?;
-  if (thumbnailId == null) return null;
-  try {
-    return post.attachments.firstWhere((a) => a.id == thumbnailId);
-  } catch (_) {
-    return null;
-  }
-}
 
 bool _isMediaPost(SnPost post) {
   return post.type == 0 && post.attachments.isNotEmpty;
@@ -362,7 +353,7 @@ class PostDetailContent extends HookConsumerWidget {
     final translatedText = useState<String?>(null);
     final currentLanguage = context.locale.toString();
     final isMediaPost = _isMediaPost(post);
-    final thumbnail = post.type == 1 ? _getPostThumbnail(post) : null;
+    final thumbnail = post.type == 1 ? resolvePostThumbnail(post) : null;
 
     Future<void> translatePost(String text) async {
       if (translatedText.value != null) {
