@@ -20,7 +20,10 @@ import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/shared/widgets/app_startup_progress.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-const kDebugStartup = false;
+/// Flip to `true` to keep the splash stuck on its final bootstrap stage
+/// (cannot be skipped), for previewing the startup UI.
+/// Debug builds only; release builds never hang regardless of this flag.
+const kStuckStartupForPreview = false;
 
 const kDefaultBootstrapRetryTimeouts = <Duration>[
   Duration(milliseconds: 1000),
@@ -168,10 +171,10 @@ class StartupSplashScreen extends HookConsumerWidget {
             await manager.loadAllAtStartup();
           },
         ),
-        if (kDebugStartup)
+        if (kStuckStartupForPreview && kDebugMode)
           _BootstrapStage(
             label: 'startupStageDebugHang'.tr(),
-            isCritical: false,
+            isCritical: true,
             action: () async {
               await Completer<void>().future;
             },
@@ -184,7 +187,6 @@ class StartupSplashScreen extends HookConsumerWidget {
     final isErrored = useState(false);
     final isDismissable = useState(true);
     final sessionExpiredWarning = useState(false);
-    final isWaitingForConnectivity = useState(false);
     final isUpdateRequired = useState(false);
     final periodCursor = useState(0);
     final showSkip = useState(false);
@@ -201,7 +203,6 @@ class StartupSplashScreen extends HookConsumerWidget {
       isBusy.value = true;
       isErrored.value = false;
       isDismissable.value = true;
-      isWaitingForConnectivity.value = false;
       isUpdateRequired.value = false;
       subtitle.value = null;
       showSkip.value = false;
@@ -217,7 +218,6 @@ class StartupSplashScreen extends HookConsumerWidget {
           isBusy.value = false;
           isErrored.value = true;
           isDismissable.value = false;
-          isWaitingForConnectivity.value = true;
           subtitle.value = 'startupNoInternet'.tr();
           return;
         }
@@ -284,9 +284,7 @@ class StartupSplashScreen extends HookConsumerWidget {
         isDismissable.value = true;
         subtitle.value = sessionExpiredWarning.value
             ? 'failedToLoadUserInfoUnauthorized'.tr()
-            : 'startupStagesSkipped'.tr(
-                args: ['${warnings.value.length}'],
-              );
+            : 'startupStagesSkipped'.tr(args: ['${warnings.value.length}']);
       }
     }
 
@@ -308,7 +306,6 @@ class StartupSplashScreen extends HookConsumerWidget {
         isBusy.value = false;
         isErrored.value = true;
         isDismissable.value = false;
-        isWaitingForConnectivity.value = true;
         subtitle.value = 'startupNoInternet'.tr();
         return null;
       }
@@ -337,36 +334,94 @@ class StartupSplashScreen extends HookConsumerWidget {
         behavior: HitTestBehavior.opaque,
         child: SafeArea(
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
+              // Portrait artwork capped at 9:16, top-centered with a wide margin.
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: AspectRatio(
+                      aspectRatio: 9 / 16,
+                      child: Container(
+                        key: const Key('startup-portrait-glow'),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 56,
+                              offset: const Offset(0, 16),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            'assets/images/michan/landing.webp',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Gradient easing the artwork into the progress cluster below.
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                top: 0,
-                child: Align(
-                  alignment: Alignment.center,
+                height: 280,
+                child: DecoratedBox(
+                  key: const Key('startup-bottom-scrim'),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.55, 1.0],
+                      colors: [
+                        colorScheme.surface.withValues(alpha: 0),
+                        colorScheme.surface.withValues(alpha: 0.7),
+                        colorScheme.surface,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Progress cluster snapped to the bottom edge.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: isBusy.value
-                            ? Text(
-                                '$percentage%',
-                                key: ValueKey(percentage),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: colorScheme.primary,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
+                      Center(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: isBusy.value
+                              ? Text(
+                                  '$percentage%',
+                                  key: ValueKey(percentage),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.primary,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox(
+                                  key: ValueKey('idle-progress-label'),
+                                  height: 18,
                                 ),
-                              )
-                            : const SizedBox(
-                                key: ValueKey('idle-progress-label'),
-                                height: 18,
-                              ),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       StartupProgressBar(
@@ -374,59 +429,51 @@ class StartupSplashScreen extends HookConsumerWidget {
                         isErrored: isErrored.value,
                         colorScheme: colorScheme,
                       ),
+                      const SizedBox(height: 16),
+                      _StageInfo(
+                        stages: stages,
+                        currentIndex: periodCursor.value,
+                        subtitle: subtitle.value,
+                        isBusy: isBusy.value,
+                        isErrored: isErrored.value,
+                        isDismissable: isDismissable.value,
+                        showSkip: showSkip.value,
+                        isCurrentStageSkippable: isCurrentStageSkippable.value,
+                        showUpdateAction: isUpdateRequired.value,
+                        onSkip: () {
+                          if (skipCompleterRef.value?.isCompleted == false) {
+                            skipCompleterRef.value?.complete();
+                          }
+                        },
+                        onUpdate: () => UpdateService(
+                          channel: ref.read(updateChannelProvider),
+                          productId: kDistributionProductId,
+                          enabled: ref.read(updateChecksEnabledProvider),
+                        ).checkForUpdates(context),
+                        textTheme: textTheme,
+                        colorScheme: colorScheme,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Solar Network',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                          color: colorScheme.onSurface.withValues(alpha: 0.9),
+                        ),
+                      ).center(),
+                      const SizedBox(height: 6),
+                      Text(
+                        'startupCopyright'.tr(args: ['${DateTime.now().year}']),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurface.withValues(alpha: 0.4),
+                        ),
+                      ).center(),
                     ],
                   ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Spacer(flex: 3),
-                  StartupProgressIcon(
-                    isBusy: isBusy.value,
-                    isErrored: isErrored.value,
-                    isDismissable: isDismissable.value,
-                    isWaitingForConnectivity: isWaitingForConnectivity.value,
-                    colorScheme: colorScheme,
-                  ),
-                  const Spacer(flex: 2),
-                  _StageInfo(
-                    stages: stages,
-                    currentIndex: periodCursor.value,
-                    subtitle: subtitle.value,
-                    isBusy: isBusy.value,
-                    isErrored: isErrored.value,
-                    isDismissable: isDismissable.value,
-                    showSkip: showSkip.value,
-                    isCurrentStageSkippable: isCurrentStageSkippable.value,
-                    showUpdateAction: isUpdateRequired.value,
-                    onSkip: () {
-                      if (skipCompleterRef.value?.isCompleted == false) {
-                        skipCompleterRef.value?.complete();
-                      }
-                    },
-                    onUpdate: () => UpdateService(
-                      channel: ref.read(updateChannelProvider),
-                      productId: kDistributionProductId,
-                      enabled: ref.read(updateChecksEnabledProvider),
-                    ).checkForUpdates(context),
-                    textTheme: textTheme,
-                    colorScheme: colorScheme,
-                  ),
-                  const Spacer(flex: 1),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 24 + MediaQuery.paddingOf(context).bottom,
-                    ),
-                    child: Text(
-                      'startupCopyright'.tr(args: ['${DateTime.now().year}']),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: colorScheme.onSurface.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ).center(),
-                ],
               ),
             ],
           ),
