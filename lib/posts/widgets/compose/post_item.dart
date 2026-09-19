@@ -701,11 +701,14 @@ class PostItem extends HookConsumerWidget {
     // the chain column then reserves a further 44px (32 avatar + 12 gap) for
     // the chained children's avatars. PostBody already insets its content by
     // renderingPadding.horizontal, so shift the head's body the remaining 44px
-    // onto that column.
+    // onto that column. Every row of the card — embeddings, reactions and the
+    // reply footer included — uses renderingPadding.horizontal on both sides,
+    // so a row that starts at the chain column keeps the same right inset as
+    // the body above it.
     final bodyInset = hasChainColumn ? 44.0 : 0.0;
     final chainColumnLeft = hasChainColumn
         ? renderingPadding.horizontal + 44.0
-        : renderingPadding.left;
+        : renderingPadding.horizontal;
 
     final postContent = Column(
       mainAxisSize: MainAxisSize.min,
@@ -766,13 +769,13 @@ class PostItem extends HookConsumerWidget {
             borderRadius: BorderRadius.circular(12),
           ).padding(
             left: chainColumnLeft,
-            right: renderingPadding.right,
+            right: renderingPadding.horizontal,
             vertical: 8,
           ),
         PostReactionList(
           padding: EdgeInsets.only(
             left: chainColumnLeft,
-            right: renderingPadding.right,
+            right: renderingPadding.horizontal,
             top: 8,
           ),
           item: item,
@@ -799,7 +802,7 @@ class PostItem extends HookConsumerWidget {
             onPostTap: onPostTap,
           ).padding(
             left: chainColumnLeft,
-            right: renderingPadding.right,
+            right: renderingPadding.horizontal,
             top: 8,
           ),
         Gap(hasChain ? 8 : renderingPadding.vertical),
