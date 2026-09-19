@@ -1660,7 +1660,13 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
             topRight: const Radius.circular(16),
           )
         : bubbleShape.borderRadius;
-    final attachmentItemBorderRadius = hasBodyContent || hasProgress
+    // Files are clipped a second time inside [CloudFileList]. That inner
+    // rounding must never round a corner the block keeps square: the notch
+    // would expose the bubble fill exactly where the block meets the body or
+    // the next bubble of the group. Only a block with four free corners keeps
+    // the rounded file corners.
+    final attachmentItemBorderRadius =
+        hasBodyContent || hasProgress || connectsAbove || connectsBelow
         ? 0.0
         : 16.0;
 
