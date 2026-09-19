@@ -26,11 +26,23 @@ class PostChainedSection extends StatefulWidget {
   final SnPost head;
   final void Function(String)? onPostTap;
 
+  /// Members rendered under [head]. Defaults to [head.chainedPosts]; the detail
+  /// screen passes the members that follow a chained post it opened on its own,
+  /// so the same rail continues below it.
+  final List<SnPost>? children;
+
   /// Chained children rendered before the rest collapse behind the
   /// "show more" row.
   static const int collapseThreshold = 3;
 
-  const PostChainedSection({super.key, required this.head, this.onPostTap});
+  const PostChainedSection({
+    super.key,
+    required this.head,
+    this.children,
+    this.onPostTap,
+  });
+
+  List<SnPost> get members => children ?? head.chainedPosts;
 
   @override
   State<PostChainedSection> createState() => _PostChainedSectionState();
@@ -43,14 +55,15 @@ class _PostChainedSectionState extends State<PostChainedSection> {
   void didUpdateWidget(PostChainedSection oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Recycled list elements must not leak another post's expanded state.
-    if (oldWidget.head.id != widget.head.id) {
+    if (oldWidget.head.id != widget.head.id ||
+        oldWidget.members.length != widget.members.length) {
       _expanded = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final children = widget.head.chainedPosts;
+    final children = widget.members;
     if (children.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
 
@@ -154,17 +167,23 @@ class _ChainedPostRow extends StatelessWidget {
   }
 }
 
-/// Terminal row shown when a chain is collapsed: carries the rail's end stub
-/// and a tappable "show N more" control that expands the remaining children.
+/// Row shown when a chain is collapsed: carries the rail and a tappable
+/// "show N more" control that expands the remaining members.
+///
+/// Below a chain head this is the terminal row — the rail ends in a stub. As the
+/// head of a preceding section it expands upward instead, and the rail crosses
+/// the whole row so the members above stay connected to the post below.
 class _ChainedExpandRow extends StatelessWidget {
   final int hiddenCount;
   final Color dividerColor;
   final VoidCallback onTap;
+  final bool expandsUpward;
 
   const _ChainedExpandRow({
     required this.hiddenCount,
     required this.dividerColor,
     required this.onTap,
+    this.expandsUpward = false,
   });
 
   @override
@@ -180,7 +199,8 @@ class _ChainedExpandRow extends StatelessWidget {
               children: [
                 Positioned(
                   top: 0,
-                  height: 16,
+                  bottom: expandsUpward ? 0 : null,
+                  height: expandsUpward ? null : 16,
                   child: SizedBox(
                     width: kPostThreadingLineWidth,
                     child: ColoredBox(color: dividerColor),
@@ -195,13 +215,90 @@ class _ChainedExpandRow extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 onPressed: onTap,
-                icon: const Icon(Symbols.expand_more, size: 18),
+                icon: Icon(
+                  expandsUpward ? Symbols.expand_less : Symbols.expand_more,
+                  size: 18,
+                ),
                 label: Text('showMoreChainedPosts'.plural(hiddenCount)),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The chain members that precede a post, rendered in the same rail language as
+/// [PostChainedSection] so a chained post opened on its own still shows what it
+/// continues from. The head comes first and the rail of the last row runs to its
+/// bottom edge, leaving the host post to connect it to its own avatar.
+///
+/// Long preambles collapse the way chains collapse members, keeping the rows
+/// closest to the post.
+class PostChainPrecedingSection extends StatefulWidget {
+  final List<SnPost> posts;
+  final void Function(String)? onPostTap;
+
+  static const int collapseThreshold = 3;
+
+  const PostChainPrecedingSection({
+    super.key,
+    required this.posts,
+    this.onPostTap,
+  });
+
+  @override
+  State<PostChainPrecedingSection> createState() =>
+      _PostChainPrecedingSectionState();
+}
+
+class _PostChainPrecedingSectionState extends State<PostChainPrecedingSection> {
+  bool _expanded = false;
+
+  @override
+  void didUpdateWidget(PostChainPrecedingSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Recycled elements must not leak another chain's expanded state.
+    if (oldWidget.posts.length != widget.posts.length ||
+        (widget.posts.isNotEmpty &&
+            oldWidget.posts.isNotEmpty &&
+            oldWidget.posts.last.id != widget.posts.last.id)) {
+      _expanded = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.posts.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+
+    final hiddenCount =
+        widget.posts.length > PostChainPrecedingSection.collapseThreshold
+        ? widget.posts.length - PostChainPrecedingSection.collapseThreshold
+        : 0;
+    final collapsed = hiddenCount > 0 && !_expanded;
+    final firstVisible = collapsed ? hiddenCount : 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (collapsed)
+          _ChainedExpandRow(
+            hiddenCount: hiddenCount,
+            dividerColor: theme.dividerColor,
+            expandsUpward: true,
+            onTap: () => setState(() => _expanded = true),
+          ),
+        for (var index = firstVisible; index < widget.posts.length; index++)
+          _ChainedPostRow(
+            // The rail never ends here: the post below continues it.
+            post: widget.posts[index],
+            isLast: false,
+            dividerColor: theme.dividerColor,
+            onPostTap: widget.onPostTap,
+          ),
+      ],
     );
   }
 }

@@ -535,6 +535,16 @@ class PostItem extends HookConsumerWidget {
   final bool hideAttachments;
   final bool isCompact;
   final double? textScale;
+
+  /// Whether the chain continues above this post, so its avatar joins the rail
+  /// the hosting screen renders over it instead of leaving a gap at the top.
+  final bool connectChainAbove;
+
+  /// Whether the chain continues below this post. The rail then stays open for
+  /// the following chain section the host renders, which the post itself has no
+  /// members to draw.
+  final bool connectChainBelow;
+
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
@@ -553,6 +563,8 @@ class PostItem extends HookConsumerWidget {
     this.isCompact = false,
     this.hideAvatar = false,
     this.hideAttachments = false,
+    this.connectChainAbove = false,
+    this.connectChainBelow = false,
     this.textScale,
     this.onRefresh,
     this.onUpdate,
@@ -693,7 +705,11 @@ class PostItem extends HookConsumerWidget {
     );
 
     final hasChain = item.chainedPosts.isNotEmpty;
-    final hasChainColumn = hasChain && !hideAvatar;
+    // The detail screen renders the rest of a chain around the post it shows, so
+    // the post itself must reserve the same column and connect its rail to the
+    // rows above and below.
+    final hasChainColumn =
+        !hideAvatar && (hasChain || connectChainAbove || connectChainBelow);
     final canConnectChainToHead =
         !hideAvatar &&
         !(isShowReference && (item.repliedPost != null || item.repliedGone));
@@ -714,10 +730,11 @@ class PostItem extends HookConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isShowReference ||
-            !(item.forwardedGone ||
-                item.repliedGone ||
-                item.repliedPost != null))
+        if (!connectChainAbove &&
+            (!isShowReference ||
+                !(item.forwardedGone ||
+                    item.repliedGone ||
+                    item.repliedPost != null)))
           Gap(renderingPadding.vertical),
         if (isShowReference && (item.repliedPost != null || item.repliedGone))
           ReferencedPostWidget(
@@ -745,7 +762,9 @@ class PostItem extends HookConsumerWidget {
           renderingPadding: renderingPadding,
           trailing: trailing,
           showUpperLine:
-              isShowReference && (item.repliedPost != null || item.repliedGone),
+              connectChainAbove ||
+              (isShowReference &&
+                  (item.repliedPost != null || item.repliedGone)),
         ),
         if (bodyInset > 0)
           Padding(
@@ -809,7 +828,10 @@ class PostItem extends HookConsumerWidget {
       ],
     );
 
-    if (!hasChain) return postContent;
+    if (!hasChain && !connectChainBelow) return postContent;
+
+    final showChainRail =
+        canConnectChainToHead && (hasChain || connectChainBelow);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -818,7 +840,7 @@ class PostItem extends HookConsumerWidget {
         Stack(
           children: [
             postContent,
-            if (canConnectChainToHead)
+            if (showChainRail)
               Positioned(
                 left:
                     renderingPadding.horizontal +
@@ -834,12 +856,16 @@ class PostItem extends HookConsumerWidget {
           ],
         ),
         // The rail is drawn at the header's avatar column, so chained avatars
-        // share it once the section carries the same horizontal padding.
-        PostChainedSection(
-          head: item,
-          onPostTap: onPostTap,
-        ).padding(horizontal: renderingPadding.horizontal),
-        Gap(renderingPadding.vertical),
+        // share it once the section carries the same horizontal padding. Without
+        // members of its own the rail stays open, leaving the following chain
+        // section the host renders to continue it.
+        if (hasChain) ...[
+          PostChainedSection(
+            head: item,
+            onPostTap: onPostTap,
+          ).padding(horizontal: renderingPadding.horizontal),
+          Gap(renderingPadding.vertical),
+        ],
       ],
     );
   }

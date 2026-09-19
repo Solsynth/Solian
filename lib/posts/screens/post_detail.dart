@@ -20,6 +20,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/posts/pods/bookmarks.dart';
+import 'package:island/posts/pods/post_chain.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
@@ -1996,6 +1997,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
     final focusedIndex = useState(0);
+    final chainContext = watchChainContext(ref, post);
+    final preceding = chainContext?.preceding ?? const <SnPost>[];
+    final following = chainContext?.following ?? const <SnPost>[];
 
     final trailing = _PostActionsMenu(
       post: post,
@@ -2072,12 +2076,19 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
+                                        if (preceding.isNotEmpty)
+                                          PostChainPrecedingSection(
+                                            posts: preceding,
+                                            onPostTap: (id) => context.router
+                                                .push(PostDetailRoute(id: id)),
+                                          ),
                                         PostHeader(
                                           item: post,
                                           isFullPost: true,
                                           isCompact: false,
                                           renderingPadding: EdgeInsets.zero,
                                           trailing: null,
+                                          showUpperLine: preceding.isNotEmpty,
                                         ),
                                         const Gap(8),
                                         PostBody(
@@ -2200,9 +2211,14 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                             ),
                                             child: PostThreadCard(post: post),
                                           ),
-                                        if (post.chainedPosts.isNotEmpty)
-                                          PostChainedSection(head: post)
-                                              .padding(top: 8, bottom: 8),
+                                        if (post.chainedPosts.isNotEmpty ||
+                                            following.isNotEmpty)
+                                          PostChainedSection(
+                                            head: post,
+                                            children: following,
+                                            onPostTap: (id) => context.router
+                                                .push(PostDetailRoute(id: id)),
+                                          ).padding(top: 8, bottom: 8),
                                         if (post.realm != null)
                                           PostRealmBadge(
                                             realm: post.realm!,
@@ -2336,6 +2352,9 @@ class _ArticleDetailLayout extends HookConsumerWidget {
     final activeSection = useState(0);
     final sidebarTabs = useRef<TabController?>(null);
     final autoSwitched = useRef(false);
+    final chainContext = watchChainContext(ref, post);
+    final precedingChain = chainContext?.preceding ?? const <SnPost>[];
+    final followingChain = chainContext?.following ?? const <SnPost>[];
 
     // The contents list comes straight from the article source, so the sidebar
     // can show it on the first frame.
@@ -2459,12 +2478,19 @@ class _ArticleDetailLayout extends HookConsumerWidget {
                   ),
                 ),
               const Gap(16),
+              if (precedingChain.isNotEmpty)
+                PostChainPrecedingSection(
+                  posts: precedingChain,
+                  onPostTap: (id) =>
+                      context.router.push(PostDetailRoute(id: id)),
+                ),
               PostHeader(
                 item: post,
                 isFullPost: true,
                 isCompact: false,
                 renderingPadding: EdgeInsets.zero,
                 trailing: null,
+                showUpperLine: precedingChain.isNotEmpty,
               ),
               const Gap(8),
               PostBody(
@@ -2497,8 +2523,13 @@ class _ArticleDetailLayout extends HookConsumerWidget {
                   padding: const EdgeInsets.only(top: 12),
                   child: PostThreadCard(post: post),
                 ),
-              if (post.chainedPosts.isNotEmpty)
-                PostChainedSection(head: post).padding(top: 12),
+              if (post.chainedPosts.isNotEmpty || followingChain.isNotEmpty)
+                PostChainedSection(
+                  head: post,
+                  children: followingChain,
+                  onPostTap: (id) =>
+                      context.router.push(PostDetailRoute(id: id)),
+                ).padding(top: 12),
               if (post.publisherCollections.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -2940,6 +2971,9 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
     final maxPanelHeight = (availableHeight * 0.86).clamp(420.0, 760.0);
     final panelHeight = useState(initialPanelHeight);
     final theme = Theme.of(context);
+    final chainContext = watchChainContext(ref, post);
+    final precedingChain = chainContext?.preceding ?? const <SnPost>[];
+    final followingChain = chainContext?.following ?? const <SnPost>[];
     const quickReplyRevealHeight = 320.0;
     final showQuickReply =
         user != null && panelHeight.value >= quickReplyRevealHeight;
@@ -2980,12 +3014,20 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (precedingChain.isNotEmpty)
+                                    PostChainPrecedingSection(
+                                      posts: precedingChain,
+                                      onPostTap: (id) => context.router.push(
+                                        PostDetailRoute(id: id),
+                                      ),
+                                    ),
                                   PostHeader(
                                     item: post,
                                     isFullPost: true,
                                     isCompact: false,
                                     renderingPadding: EdgeInsets.zero,
                                     trailing: trailing,
+                                    showUpperLine: precedingChain.isNotEmpty,
                                   ),
                                   const Gap(8),
                                   _BlogPostSummaryCard(post: post),
@@ -2998,9 +3040,15 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
                                       ),
                                       child: PostThreadCard(post: post),
                                     ),
-                                  if (post.chainedPosts.isNotEmpty)
-                                    PostChainedSection(head: post)
-                                        .padding(top: 8, bottom: 8),
+                                  if (post.chainedPosts.isNotEmpty ||
+                                      followingChain.isNotEmpty)
+                                    PostChainedSection(
+                                      head: post,
+                                      children: followingChain,
+                                      onPostTap: (id) => context.router.push(
+                                        PostDetailRoute(id: id),
+                                      ),
+                                    ).padding(top: 8, bottom: 8),
                                   if (post.publisherCollections.isNotEmpty)
                                     Padding(
                                       padding: const EdgeInsets.only(

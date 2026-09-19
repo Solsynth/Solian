@@ -40,6 +40,16 @@ class SphereApi extends BaseApi {
     return SnPost.fromJson(response.data!);
   }
 
+  /// Gets the chain a post belongs to, head first, in publication order.
+  ///
+  /// [postId] - Any member of the chain, the head included.
+  Future<List<SnPost>> getPostChain(String postId) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/posts/$postId/chain',
+    );
+    return parseList(response, SnPost.fromJson);
+  }
+
   // ==========================================
   // Post collection endpoints
   // ==========================================

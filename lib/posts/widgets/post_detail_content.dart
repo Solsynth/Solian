@@ -14,7 +14,9 @@ import 'package:island/core/translate.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/posts/pods/post_chain.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
+import 'package:island/posts/widgets/compose/post_chained_section.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/route.gr.dart';
@@ -26,6 +28,12 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const postDetailMaxWidth = 640.0;
 const _postDetailAttachmentMaxHeight = 760.0;
+
+/// The inset the post's own header is rendered with, which the chain columns
+/// around it have to match so every avatar lands on the same rail. [PostItem]
+/// insets its header and its chain section by the rendering padding's
+/// horizontal value, and the detail post is rendered with an 8px padding.
+const _chainColumnInset = 16.0;
 
 typedef PostDetailActionBuilder =
     Widget Function(
@@ -354,6 +362,13 @@ class PostDetailContent extends HookConsumerWidget {
     final currentLanguage = context.locale.toString();
     final isMediaPost = _isMediaPost(post);
     final thumbnail = post.type == 1 ? resolvePostThumbnail(post) : null;
+    final chainContext = watchChainContext(ref, post);
+    final precedingChain = chainContext?.preceding ?? const <SnPost>[];
+    final followingChain = chainContext?.following ?? const <SnPost>[];
+    // A chain head renders its members from the post itself, inside [PostItem];
+    // a chained post opened on its own has none and renders them from here.
+    final showsFollowingChain =
+        post.chainedPostId != null && followingChain.isNotEmpty;
 
     Future<void> translatePost(String text) async {
       if (translatedText.value != null) {
@@ -419,6 +434,23 @@ class PostDetailContent extends HookConsumerWidget {
                     ),
                   ),
                 ),
+              if (precedingChain.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: wrapContent(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        _chainColumnInset,
+                        12,
+                        _chainColumnInset,
+                        0,
+                      ),
+                      child: PostChainPrecedingSection(
+                        posts: precedingChain,
+                        onPostTap: onPostTap,
+                      ),
+                    ),
+                  ),
+                ),
               SliverToBoxAdapter(
                 child: wrapContent(
                   PostItem(
@@ -432,9 +464,26 @@ class PostDetailContent extends HookConsumerWidget {
                     onUpdate: onUpdate,
                     trailing: headerSliver != null ? null : trailing,
                     onPostTap: onPostTap,
+                    connectChainAbove: precedingChain.isNotEmpty,
+                    connectChainBelow: showsFollowingChain,
                   ),
                 ),
               ),
+              if (showsFollowingChain)
+                SliverToBoxAdapter(
+                  child: wrapContent(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: _chainColumnInset,
+                      ),
+                      child: PostChainedSection(
+                        head: post,
+                        children: followingChain,
+                        onPostTap: onPostTap,
+                      ),
+                    ),
+                  ),
+                ),
               if (collectionSection != null)
                 SliverToBoxAdapter(
                   child: wrapContent(
