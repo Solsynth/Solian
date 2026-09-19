@@ -1,6 +1,8 @@
 PODS:
-  - Alamofire (5.12.0)
+  - Alamofire (5.12.2)
   - audio_session (0.0.1):
+    - Flutter
+  - cnativeapi (0.1.3):
     - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
@@ -45,54 +47,54 @@ PODS:
     - Flutter
   - file_saver (0.3.1):
     - Flutter
-  - Firebase/CoreOnly (12.18.0):
-    - FirebaseCore (~> 12.18.0)
-  - Firebase/Messaging (12.18.0):
+  - Firebase/CoreOnly (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+  - Firebase/Messaging (12.19.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 12.18.0)
-  - firebase_analytics (12.5.0):
+    - FirebaseMessaging (~> 12.19.0)
+  - firebase_analytics (12.6.0):
     - firebase_core
-    - FirebaseAnalytics (= 12.18.0)
+    - FirebaseAnalytics (= 12.19.0)
     - Flutter
-  - firebase_core (4.14.0):
-    - Firebase/CoreOnly (= 12.18.0)
+  - firebase_core (4.15.0):
+    - Firebase/CoreOnly (= 12.19.0)
     - Flutter
-  - firebase_messaging (16.6.0):
-    - Firebase/Messaging (= 12.18.0)
+  - firebase_messaging (16.7.0):
+    - Firebase/Messaging (= 12.19.0)
     - firebase_core
     - Flutter
-  - FirebaseAnalytics (12.18.0):
-    - FirebaseAnalytics/Default (= 12.18.0)
-    - FirebaseCore (~> 12.18.0)
-    - FirebaseInstallations (~> 12.18.0)
+  - FirebaseAnalytics (12.19.0):
+    - FirebaseAnalytics/Default (= 12.19.0)
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - FirebaseAnalytics/Default (12.18.0):
-    - FirebaseCore (~> 12.18.0)
-    - FirebaseInstallations (~> 12.18.0)
-    - GoogleAppMeasurement/Default (= 12.18.0)
+  - FirebaseAnalytics/Default (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
+    - GoogleAppMeasurement/Default (= 12.19.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - FirebaseCore (12.18.0):
-    - FirebaseCoreInternal (~> 12.18.0)
+  - FirebaseCore (12.19.0):
+    - FirebaseCoreInternal (~> 12.19.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreInternal (12.18.0):
+  - FirebaseCoreInternal (12.19.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
-  - FirebaseInstallations (12.18.0):
-    - FirebaseCore (~> 12.18.0)
+  - FirebaseInstallations (12.19.0):
+    - FirebaseCore (~> 12.19.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (12.18.0):
-    - FirebaseCore (~> 12.18.0)
-    - FirebaseInstallations (~> 12.18.0)
+  - FirebaseMessaging (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
     - GoogleDataTransport (~> 10.1)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/Environment (~> 8.1)
@@ -129,9 +131,9 @@ PODS:
     - Flutter
   - flutter_timezone (0.0.1):
     - Flutter
-  - flutter_webrtc (1.6.0):
+  - flutter_webrtc (1.6.2):
     - Flutter
-    - WebRTC-SDK (= 144.7559.09)
+    - WebRTC-SDK (= 150.7871.01)
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
@@ -141,28 +143,28 @@ PODS:
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
-  - GoogleAdsOnDeviceConversion (3.6.1):
+  - GoogleAdsOnDeviceConversion (3.7.0):
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/Core (12.18.0):
+  - GoogleAppMeasurement/Core (12.19.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/Default (12.18.0):
-    - GoogleAdsOnDeviceConversion (~> 3.6.0)
-    - GoogleAppMeasurement/Core (= 12.18.0)
-    - GoogleAppMeasurement/IdentitySupport (= 12.18.0)
+  - GoogleAppMeasurement/Default (12.19.0):
+    - GoogleAdsOnDeviceConversion (~> 3.7.0)
+    - GoogleAppMeasurement/Core (= 12.19.0)
+    - GoogleAppMeasurement/IdentitySupport (= 12.19.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/IdentitySupport (12.18.0):
-    - GoogleAppMeasurement/Core (= 12.18.0)
+  - GoogleAppMeasurement/IdentitySupport (12.19.0):
+    - GoogleAppMeasurement/Core (= 12.19.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
@@ -226,10 +228,10 @@ PODS:
   - libwebp/sharpyuv (1.6.0)
   - libwebp/webp (1.6.0):
     - libwebp/sharpyuv
-  - livekit_client (2.11.0):
+  - livekit_client (2.13.0):
     - Flutter
     - flutter_webrtc
-    - WebRTC-SDK (= 144.7559.09)
+    - WebRTC-SDK (= 150.7871.01)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -300,11 +302,12 @@ PODS:
     - libwebp
   - wakelock_plus (0.0.1):
     - Flutter
-  - WebRTC-SDK (144.7559.09)
+  - WebRTC-SDK (150.7871.01)
 
 DEPENDENCIES:
   - Alamofire
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
+  - cnativeapi (from `.symlinks/plugins/cnativeapi/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - disk_space_2 (from `.symlinks/plugins/disk_space_2/ios`)
@@ -391,6 +394,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
+  cnativeapi:
+    :path: ".symlinks/plugins/cnativeapi/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   device_info_plus:
@@ -499,8 +504,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
 SPEC CHECKSUMS:
-  Alamofire: ddb8d5201667b256dbc225f3fc6e835a0753186f
+  Alamofire: c5f37d8f438dc1d7fd3ff767f2f80fd01ca381d7
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
+  cnativeapi: 40937d70e1bf21cbfb9623ad10fda8c5b364452b
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   CryptoSwift: e2e7776512f250e66205955da748e7a4e4abffe0
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
@@ -509,15 +515,15 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   file_saver: 33b08000e02d10789a0acf35b9decf5bce5ca9de
-  Firebase: 5523dd53ebe603451b4e1befcd99fa20a5c015cd
-  firebase_analytics: eabab995ffa6e93bf1888e573eda3a8264c0f30f
-  firebase_core: 22b31970001508f6e63945bedcb7b9de68819aa5
-  firebase_messaging: e0eae0e66bd04d3c1856ad08ad84ac75e0673a55
-  FirebaseAnalytics: 651ecdc96c7dd8df0c15d55b6c6b70f78c2987b9
-  FirebaseCore: 96787d19ee32dc2242cc487b301bc616afeb398b
-  FirebaseCoreInternal: 93b2d5f9e184c6818a04433891c358b0720a6a38
-  FirebaseInstallations: 933b2747e8594084c9117b65e8358fce29d7ced7
-  FirebaseMessaging: 422bb80cbf8ff83e69e50bea4d4984fc4704f665
+  Firebase: 7ca191e43724142f79fae653547b3382c45413cc
+  firebase_analytics: 99133ddb6f6cf89c0b49cafae131070607abbfa5
+  firebase_core: 55de508663ceda7d1dc369a32b327a5655019ae2
+  firebase_messaging: df68cb5feefa02766144a50fa5348362a0127008
+  FirebaseAnalytics: e9f8c369447e453da23f0455a06e4910bad10de0
+  FirebaseCore: c990214798d7c568ad436a15ba7da25c7a278c9a
+  FirebaseCoreInternal: 656b1c2fd5a1c5976183dc54b73deda78fb26ee3
+  FirebaseInstallations: f70a49eed611f5602f373e40974b3b01556ac217
+  FirebaseMessaging: c15f48126adbe8b4d3238a5e1fa24bab3ad3e472
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
   flutter_callkit_incoming: a143995975818a3717524decd3566d5ca7a8c608
@@ -529,12 +535,12 @@ SPEC CHECKSUMS:
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   flutter_sharing_intent: 0c1e53949f09fa8df8ac2268505687bde8ff264c
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
-  flutter_webrtc: f952258e6fa67477d481cfbad2885a4f117922a7
+  flutter_webrtc: 99283145164f482a16bf7122ef407b5d59d43158
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
-  GoogleAdsOnDeviceConversion: e3b71da24ff4cf01cf520756ac1c2b93c07b86ff
-  GoogleAppMeasurement: d70df385587c4175fc0836c11e413d5cbcaa3c7b
+  GoogleAdsOnDeviceConversion: 41f168313b305040f4af27093d3c0af5ba46a9a3
+  GoogleAppMeasurement: f2f676480e4c97936df934aa181bc29caea46975
   GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleUtilities: 4e0c2ad9fa0d0d18b5c4df8bf57b461cba35b0bb
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
@@ -545,7 +551,7 @@ SPEC CHECKSUMS:
   Kingfisher: 64e06c7d1a9851ecff9d1b14f92ad01141263dae
   KingfisherWebP: 064869d5f1201396ec121dcc4c9cfbdba6ecb900
   libwebp: af5937a13536ef73f3784d69cc342b98961acf33
-  livekit_client: 35ee4fef4e184950cc40a5c2a580a84a616d588f
+  livekit_client: 55f2f6afa597719985fa4913f6e889eb2b7eacd8
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   map_launcher: 8051ad5783913cafce93f2414c6858f2904fd8df
   media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
@@ -576,7 +582,7 @@ SPEC CHECKSUMS:
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_thumbnail: b637e0ad5f588ca9945f6e2c927f73a69a661140
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
-  WebRTC-SDK: e6006119cd730d6315d875e4a421b6cc8bb88833
+  WebRTC-SDK: 7dc931c64c00c735a614382f1a59cf65019c3c17
 
 PODFILE CHECKSUM: f6a89ce1e73c590264de9c5238ad5665158ca4e3
 
