@@ -162,6 +162,7 @@
 "chat.tab.group" = "Group";
 "chat.errorLoading" = "Error loading chats";
 "chat.retry" = "Retry";
+"chat.loading" = "Loading chats…";
 "chat.noChats" = "No chats yet";
 "chat.directMessage" = "Direct Message";
 "chat.groupChat" = "Group Chat";

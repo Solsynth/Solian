@@ -14,48 +14,36 @@ struct ChatView: View {
     @State private var selectedTab = 0
     @State private var chatRooms: [SnChatRoom] = []
     @State private var chatInvites: [SnChatMember] = []
-    @State private var isLoading = false
-    @State private var error: Error?
+    @State private var roomListState: RoomListState = .loading
     @State private var showingInvites = false
-    /// The room-list load. Stored (not `.task`) so it isn't cancelled when the
-    /// view disappears (panel switch), which left the list empty.
+    /// The room-list load. Stored (not `.task`) and never cancelled by this
+    /// view's lifetime, so a panel switch can't cancel it mid-flight.
     @State private var loadTask: Task<Void, Never>?
-    /// True while the network fetch is blocked waiting for auth to resolve.
-    /// Kept separate from `isLoading` so a cached room list stays visible
-    /// rather than flashing the empty state during cold-start token refresh.
-    @State private var isAwaitingAuth = false
+
+    /// Where the room-list load stands. One value instead of loose booleans so
+    /// the view can never render the "no chats" empty state while a load is
+    /// still running — the sync of 69 rooms regularly takes seconds, and a
+    /// spinner that never appeared left the screen looking like an empty
+    /// account.
+    private enum RoomListState {
+        /// A load is in flight: auth still resolving, or the request is out.
+        case loading
+        /// A load finished; `chatRooms` is authoritative (possibly empty).
+        case loaded
+        /// A load failed and nothing is cached to fall back to.
+        case failed
+    }
     
     private let tabs = [L10n.chatTabAll, L10n.chatTabDirect, L10n.chatTabGroup]
     
     var body: some View {
         TabView(selection: $selectedTab) {
             ForEach(0..<tabs.count, id: \.self) { index in
-                VStack {
-                    if isLoading || (isAwaitingAuth && chatRooms.isEmpty) {
-                        ProgressView()
-                    } else if error != nil {
-                        VStack {
-                            Text(L10n.chatErrorLoading)
-                                .font(.caption)
-                            Button(L10n.chatRetry) {
-                                Task {
-                                    await loadChatRooms()
-                                }
-                            }
-                            .font(.caption2)
-                        }
-                    } else {
-                        ChatRoomListView(
-                            chatRooms: filteredChatRooms(for: index),
-                            selectedTab: index,
-                            summaries: summaryStore.roomSummaries
-                        )
+                roomList(for: index)
+                    .tabItem {
+                        Text(tabs[index])
                     }
-                }
-                .tabItem {
-                    Text(tabs[index])
-                }
-                .tag(index)
+                    .tag(index)
             }
         }
         .tabViewStyle(.page)
@@ -86,26 +74,98 @@ struct ChatView: View {
             // so the Chat badge stays truthful and unread is not double-counted.
             loadCachedRooms()
             summaryStore.loadCached()
-            // Launch the network loads in a stored task so switching panels
-            // can't cancel them mid-flight (which left the list empty).
-            if loadTask == nil || loadTask?.isCancelled == true {
-                loadTask = Task { @MainActor in
-                    await loadChatRooms()
-                    await loadChatSummaries()
-                    await loadChatInvites()
-                }
+            startLoad()
+        }
+    }
+
+    /// Starts the room/summary/invite load unless one is already in flight.
+    ///
+    /// Deliberately *not* cancelled from `.onDisappear`. watchOS re-creates the
+    /// detail column on every sidebar switch, and SwiftUI may run the incoming
+    /// instance's `.onAppear` before the outgoing `.onDisappear`; cancelling
+    /// there therefore killed the load the live instance had just started. A
+    /// cancelled request is swallowed silently (no `error`, no spinner), so the
+    /// list stayed on "No chats yet" forever. The task clears `loadTask` itself
+    /// when it finishes, so the next appearance starts a fresh load.
+    private func startLoad() {
+        guard loadTask == nil else { return }
+        loadTask = Task { @MainActor in
+            defer { loadTask = nil }
+            await loadChatRooms()
+            await loadChatSummaries()
+            await loadChatInvites()
+        }
+    }
+
+    /// Whether a response still belongs to the live session. Because the load
+    /// outlives its view (see `startLoad`), it must not write into the chat
+    /// cache or the summary store after a sign-out emptied them.
+    private var isSessionLive: Bool { !appState.requiresSignIn }
+
+    /// One page of the pager: the rooms for that tab, or the loading / error
+    /// state when there is nothing to show yet. Rooms already on screen (cache
+    /// or a previous load) stay put — only an empty page waits.
+    @ViewBuilder
+    private func roomList(for index: Int) -> some View {
+        let rooms = filteredChatRooms(for: index)
+        if !rooms.isEmpty {
+            ChatRoomListView(
+                chatRooms: rooms,
+                selectedTab: index,
+                summaries: summaryStore.roomSummaries
+            )
+        } else {
+            switch roomListState {
+            case .loading:
+                loadingState
+            case .failed:
+                errorState
+            case .loaded:
+                // Finished load, no rooms in this tab: the account really has
+                // no chats here.
+                ChatRoomListView(
+                    chatRooms: [],
+                    selectedTab: index,
+                    summaries: summaryStore.roomSummaries
+                )
             }
         }
-        .onDisappear {
-            loadTask?.cancel()
-            loadTask = nil
+    }
+
+    /// First-load state: spinner plus a label, so a slow room sync reads as
+    /// work in progress rather than an empty account.
+    private var loadingState: some View {
+        VStack(spacing: 8) {
+            ProgressView()
+            Text(L10n.chatLoading)
+                .font(.caption2)
+                .foregroundColor(.secondary)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// A failed load with nothing cached: offer the retry the room list would
+    /// otherwise swallow by rendering "no chats".
+    private var errorState: some View {
+        VStack(spacing: 6) {
+            Text(L10n.chatErrorLoading)
+                .font(.caption)
+                .multilineTextAlignment(.center)
+            Button(L10n.chatRetry) {
+                startLoad()
+            }
+            .font(.caption2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 8)
     }
     
     /// Seeds the room list from the SwiftData cache immediately (offline /
     /// instant launch). Overwritten by a successful network fetch.
     private func loadCachedRooms() {
-        guard !isLoading else { return }
+        // A load already in flight owns `chatRooms`: don't clobber live data
+        // with the snapshot it is replacing.
+        guard loadTask == nil else { return }
         let cached = chatCache.loadRooms()
         guard !cached.isEmpty else { return }
         chatRooms = cached.map(\.room)
@@ -113,42 +173,51 @@ struct ChatView: View {
     }
     
     private func filteredChatRooms(for tabIndex: Int) -> [SnChatRoom] {
+        let rooms: [SnChatRoom]
         switch tabIndex {
-        case 0: // All
-            return chatRooms
         case 1: // Direct
-            return chatRooms.filter { $0.type == 1 }
+            rooms = chatRooms.filter { $0.type == 1 }
         case 2: // Group
-            return chatRooms.filter { $0.type != 1 }
-        default:
-            return chatRooms
+            rooms = chatRooms.filter { $0.type != 1 }
+        default: // All
+            rooms = chatRooms
+        }
+        return sortByActivity(rooms)
+    }
+
+    /// Most recent activity first, matching Flutter's `sortChatRoomsByActivity`
+    /// (`lib/chat/utils/chat_room_ordering.dart`): a room's activity is its
+    /// latest message, falling back to the room's own `updatedAt`; ties break
+    /// on creation time and then id.
+    ///
+    /// The cache used to sort by `updatedAt` while the network path rendered
+    /// the server's sync order unsorted, so the list reshuffled under the user
+    /// on every refresh. Sorting in the view puts both paths through the same
+    /// rule, and re-runs as live messages update the summaries.
+    private func sortByActivity(_ rooms: [SnChatRoom]) -> [SnChatRoom] {
+        rooms.sorted { lhs, rhs in
+            let lhsActivity = summaryStore.summary(for: lhs.id)?.lastMessage?.createdAt ?? lhs.updatedAt
+            let rhsActivity = summaryStore.summary(for: rhs.id)?.lastMessage?.createdAt ?? rhs.updatedAt
+            if lhsActivity != rhsActivity { return lhsActivity > rhsActivity }
+            if lhs.createdAt != rhs.createdAt { return lhs.createdAt > rhs.createdAt }
+            return lhs.id < rhs.id
         }
     }
     
-    /// A stable error shown when auth never resolves, so the room list offers
-    /// a retry instead of silently rendering the "no chats" empty state.
-    private func loadAuthError() -> NSError {
-        NSError(
-            domain: "ChatView",
-            code: 1,
-            userInfo: [NSLocalizedDescriptionKey: L10n.chatErrorLoading]
-        )
-    }
-
     private func loadChatRooms() async {
-        // Await credentials (the first `.task` can run before auth resolves).
-        // Show the spinner (not the empty state) while we wait. If sign-in is
-        // required (terminal refresh failure) bail so the sign-in flow takes
-        // over; if auth still hasn't resolved after a generous window, surface
-        // a retryable error instead of an empty list.
-        isAwaitingAuth = true
-        defer { isAwaitingAuth = false }
+        // Put the pane back into the loading state: a first load or a retry
+        // has to show the spinner, not the "no chats" empty state.
+        roomListState = .loading
 
+        // Await credentials (the first load can run before auth resolves). If
+        // sign-in is required (terminal refresh failure) bail so the sign-in
+        // flow takes over; if auth still hasn't resolved after a generous
+        // window, surface a retryable error instead of an empty list.
         var waited = 0
         while appState.token == nil || appState.serverUrl == nil {
             if appState.requiresSignIn { return }
             if waited >= 60 {
-                self.error = chatRooms.isEmpty ? loadAuthError() : nil
+                roomListState = chatRooms.isEmpty ? .failed : .loaded
                 return
             }
             try? await Task.sleep(for: .milliseconds(250))
@@ -156,28 +225,29 @@ struct ChatView: View {
             waited += 1
         }
         guard let token = appState.token, let serverUrl = appState.serverUrl else {
-            self.error = chatRooms.isEmpty ? loadAuthError() : nil
+            roomListState = chatRooms.isEmpty ? .failed : .loaded
             return
         }
         
         print("[ChatView] loadChatRooms - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
-        isLoading = true
-        error = nil
-        // Always clear `isLoading` — including on cancellation — otherwise the
-        // spinner spins forever after a panel-switch cancels the task.
-        defer { isLoading = false }
         
         do {
             let response = try await appState.networkService.fetchChatRooms(token: token, serverUrl: serverUrl)
+            // Signed out while the request was in flight: the cache and
+            // summary store were cleared for the next account — don't refill
+            // them with this one's rooms.
+            guard isSessionLive else { return }
             chatRooms = response.rooms
             // Persist rooms + seed summaries (unread=0 until a summary arrives).
             chatCache.saveRooms(response.rooms)
             for room in response.rooms where summaryStore.summary(for: room.id) == nil {
                 summaryStore.apply([room.id: SnChatSummary(unreadCount: 0, lastMessage: nil)])
             }
+            roomListState = .loaded
             print("[ChatView] loadChatRooms - success, rooms: \(chatRooms.count)")
         } catch is CancellationError {
-            // View teardown cancelled the task — never surface as an error.
+            // Leave the state at `.loading`: the next appearance starts a new
+            // load rather than parking on the empty state.
             return
         } catch let urlError as URLError where urlError.code == .cancelled {
             return
@@ -197,10 +267,10 @@ struct ChatView: View {
             }
             // If we already have cached rooms, don't surface the error — show
             // the offline list instead.
-            self.error = chatRooms.isEmpty ? decodingError : nil
+            roomListState = chatRooms.isEmpty ? .failed : .loaded
         } catch {
             print("[ChatView] loadChatRooms - error: \(error.localizedDescription)")
-            self.error = chatRooms.isEmpty ? error : nil
+            roomListState = chatRooms.isEmpty ? .failed : .loaded
         }
     }
     
@@ -209,6 +279,7 @@ struct ChatView: View {
         
         do {
             let response = try await appState.networkService.fetchChatInvites(token: token, serverUrl: serverUrl)
+            guard isSessionLive else { return }
             chatInvites = response.invites
         } catch {
             // Handle error silently for invites
@@ -226,6 +297,7 @@ struct ChatView: View {
         
         do {
             let summaries = try await appState.networkService.fetchChatSummary(token: token, serverUrl: serverUrl)
+            guard isSessionLive else { return }
             summaryStore.apply(summaries)
         } catch is CancellationError {
             return

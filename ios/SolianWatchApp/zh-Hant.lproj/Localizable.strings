@@ -162,6 +162,7 @@
 "chat.tab.group" = "群組";
 "chat.errorLoading" = "載入聊天出錯";
 "chat.retry" = "重試";
+"chat.loading" = "正在載入聊天…";
 "chat.noChats" = "暫無聊天";
 "chat.directMessage" = "私訊";
 "chat.groupChat" = "群組";

@@ -67,6 +67,11 @@ final class ChatRoomViewModel: ObservableObject {
     let room: SnChatRoom
     private let appState: AppState
     private let chatCache: ChatCache
+    /// Messages requested when a room opens. One request fills the timeline to
+    /// the cache's per-room cap (`ChatCache.maxMessagesPerRoom`) instead of
+    /// paging in 20-row slices.
+    private let initialPageSize = 100
+    /// Messages per "load older" request, matching Flutter's `_pageSize`.
     private let pageSize = 20
     private var hasLoaded = false
     /// Raw rows fetched so far (before displayable filtering). The server pages
@@ -189,7 +194,7 @@ final class ChatRoomViewModel: ObservableObject {
                     token: token,
                     serverUrl: serverUrl,
                     offset: 0,
-                    take: pageSize
+                    take: initialPageSize
                 )
                 self.identity = try? await identity
                 // Seed the read watermark from the server's last recorded read

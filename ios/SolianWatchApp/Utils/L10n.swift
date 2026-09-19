@@ -193,6 +193,7 @@ public enum L10n {
     static let chatTabGroup = NSLocalizedString("chat.tab.group", comment: "Group tab")
     static let chatErrorLoading = NSLocalizedString("chat.errorLoading", comment: "Error loading chats")
     static let chatRetry = NSLocalizedString("chat.retry", comment: "Retry button")
+    static let chatLoading = NSLocalizedString("chat.loading", comment: "Loading chats")
     static let chatNoChats = NSLocalizedString("chat.noChats", comment: "No chats yet")
     static let chatDirectMessage = NSLocalizedString("chat.directMessage", comment: "Direct message")
     static let chatGroupChat = NSLocalizedString("chat.groupChat", comment: "Group chat")
