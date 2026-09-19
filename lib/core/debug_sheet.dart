@@ -27,7 +27,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
 import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
@@ -723,29 +722,11 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _DebugItem(
           icon: Symbols.slideshow,
-          title: 'Show onboarding (new user)',
+          title: 'Show onboarding',
           onTap: () async {
-            final info = await PackageInfo.fromPlatform();
-            if (!context.mounted) return;
-            await showAppOnboardingSheet(
-              context,
-              version: info.version,
-              isFirstLaunch: true,
-              suggestAuth: true,
-            );
-          },
-        ),
-        _DebugItem(
-          icon: Symbols.slideshow,
-          title: 'Show onboarding (old user)',
-          onTap: () async {
-            final info = await PackageInfo.fromPlatform();
-            if (!context.mounted) return;
             await showAppOnboardingSheet(
               ref.read(routerProvider).navigatorKey.currentContext!,
-              version: info.version,
-              isFirstLaunch: false,
-              suggestAuth: false,
+              suggestAuth: true,
             );
           },
         ),
@@ -1464,33 +1445,12 @@ class DebugSheet extends HookConsumerWidget {
               minTileHeight: 48,
               leading: const Icon(Symbols.slideshow),
               trailing: const Icon(Symbols.chevron_right),
-              title: const Text('Show onboarding (new user)'),
+              title: const Text('Show onboarding'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () async {
-                final info = await PackageInfo.fromPlatform();
-                if (!context.mounted) return;
                 await showAppOnboardingSheet(
                   ref.read(routerProvider).navigatorKey.currentContext!,
-                  version: info.version,
-                  isFirstLaunch: true,
                   suggestAuth: true,
-                );
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.slideshow),
-              trailing: const Icon(Symbols.chevron_right),
-              title: const Text('Show onboarding (old user)'),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              onTap: () async {
-                final info = await PackageInfo.fromPlatform();
-                if (!context.mounted) return;
-                await showAppOnboardingSheet(
-                  ref.read(routerProvider).navigatorKey.currentContext!,
-                  version: info.version,
-                  isFirstLaunch: false,
-                  suggestAuth: false,
                 );
               },
             ),

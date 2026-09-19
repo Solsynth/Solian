@@ -40,7 +40,6 @@ import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/wallets/wallet.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/activity/activity_rpc.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
@@ -67,7 +66,11 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
 const kForceShowStartupSplashForTesting = false;
-const kOnboardingLastShownVersion = 'app_onboarding_last_shown_version';
+const kOnboardingCompletedKey = 'app_onboarding_completed';
+
+/// Version string written by the removed version-update onboarding. Only its
+/// presence is read now, so installs that already saw the old flow stay quiet.
+const kLegacyOnboardingVersionKey = 'app_onboarding_last_shown_version';
 
 final appWrapperKey = GlobalKey();
 
@@ -107,8 +110,7 @@ class AppWrapper extends HookConsumerWidget {
     final isSnowGone = useState(false);
     final bootstrapCompleted = useState(false);
     final startupGateResolved = useState(false);
-    final onboardingChecked = useState(false);
-    final autoUpdateChecked = useState(false);
+    final startupTasksChecked = useState(false);
     final activeInviteKey = useRef<String?>(null);
     final recentlyHandledInvites = useRef(<String, DateTime>{});
     final lastHandledAcceptedRoomId = useRef<String?>(null);
@@ -781,22 +783,19 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
-      if (shouldShowStartupSplash ||
-          onboardingChecked.value ||
-          autoUpdateChecked.value) {
+      if (shouldShowStartupSplash || startupTasksChecked.value) {
         return null;
       }
 
       Future(() async {
         final prefs = ref.read(sharedPreferencesProvider);
-        final packageInfo = await PackageInfo.fromPlatform();
-        final currentVersion =
-            '${packageInfo.version}+${packageInfo.buildNumber}';
-        final lastShownVersion = prefs.getString(kOnboardingLastShownVersion);
-        final shouldShowOnboarding =
-            lastShownVersion == null || lastShownVersion != currentVersion;
+        // The legacy key holds the app version from the removed version-update
+        // onboarding; anyone who has it set has already seen the flow.
+        final hasSeenOnboarding =
+            prefs.getBool(kOnboardingCompletedKey) ??
+            prefs.getString(kLegacyOnboardingVersionKey) != null;
 
-        if (shouldShowOnboarding) {
+        if (!hasSeenOnboarding) {
           final router = ref.read(routerProvider);
           Future<BuildContext?> waitForNavigatorContext([int retry = 0]) async {
             final ctx = router.navigatorKey.currentContext;
@@ -810,15 +809,8 @@ class AppWrapper extends HookConsumerWidget {
 
           final ctx = await waitForNavigatorContext();
           if (ctx != null && ctx.mounted) {
-            await showAppOnboardingSheet(
-              ctx,
-              version: packageInfo.version,
-              isFirstLaunch: lastShownVersion == null,
-              suggestAuth: token == null,
-              updateChecksEnabled: ref.read(updateChecksEnabledProvider),
-              updateChannel: ref.read(updateChannelProvider),
-            );
-            await prefs.setString(kOnboardingLastShownVersion, currentVersion);
+            await showAppOnboardingSheet(ctx, suggestAuth: token == null);
+            await prefs.setBool(kOnboardingCompletedKey, true);
           } else {
             Logger.root.warning(
               '[AppWrapper] Onboarding skipped: navigator context unavailable',
@@ -826,8 +818,7 @@ class AppWrapper extends HookConsumerWidget {
           }
         }
 
-        onboardingChecked.value = true;
-        autoUpdateChecked.value = true;
+        startupTasksChecked.value = true;
 
         Future<void> checkForUpdatesWhenReady([int retry = 0]) async {
           final ctx = ref.read(routerProvider).navigatorKey.currentContext;
