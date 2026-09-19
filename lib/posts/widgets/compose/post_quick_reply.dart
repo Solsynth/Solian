@@ -38,67 +38,49 @@ class PostQuickReply extends HookConsumerWidget {
     final currentPublisher = useState<SnPublisher?>(null);
 
     final user = ref.watch(userInfoProvider);
-    // Chaining only makes sense on the user's own posts: the server rejects
-    // chaining to another publisher's post (POST_CHAIN_DIFFERENT_PUBLISHER).
-    final isOwnPost =
+    // The single action button *is* chain or reply, decided by ownership:
+    // chaining to a post the user does not control is rejected by the server
+    // (POST_CHAIN_DIFFERENT_PUBLISHER), so there is nothing to toggle.
+    final isChain =
         user.value != null &&
         (parent.publisher?.accountId == user.value?.id ||
             publishers.value?.any((p) => p.id == parent.publisher?.id) == true);
 
-    final chainMode = useState(false);
-    // Recycle safety: a reused widget must not leak the previous parent's
-    // chain mode.
     useEffect(() {
-      chainMode.value = false;
-      return null;
-    }, [parent.id]);
-
-    void enableChainMode() {
-      chainMode.value = true;
+      final managed = publishers.value;
+      if (managed == null || managed.isEmpty) return null;
       // A chain child must share the head's publisher; prefer it when the
       // user still manages it.
-      final parentPublisher = parent.publisher;
-      if (parentPublisher != null &&
-          (publishers.value?.any((p) => p.id == parentPublisher.id) ?? false)) {
-        currentPublisher.value = parentPublisher;
+      final headPublisher = parent.publisher;
+      if (isChain &&
+          headPublisher != null &&
+          managed.any((p) => p.id == headPublisher.id)) {
+        currentPublisher.value = headPublisher;
+        return null;
       }
-    }
-
-    useEffect(() {
-      if (publishers.value?.isNotEmpty ?? false) {
-        if (currentPublisher.value == null) {
-          // Try to find default reply publisher from settings
-          SnPublisher? defaultPublisher;
-          if (publishingSettings.hasValue) {
-            final defaultId = publishingSettings.value!.defaultReplyPublisherId;
-            if (defaultId != null) {
-              defaultPublisher = publishers.value!
-                  .where((p) => p.id == defaultId)
-                  .firstOrNull;
-            }
+      if (currentPublisher.value == null) {
+        // Try to find default reply publisher from settings
+        SnPublisher? defaultPublisher;
+        if (publishingSettings.hasValue) {
+          final defaultId = publishingSettings.value!.defaultReplyPublisherId;
+          if (defaultId != null) {
+            defaultPublisher = managed
+                .where((p) => p.id == defaultId)
+                .firstOrNull;
           }
-          // Fall back to first publisher if no default found
-          currentPublisher.value = defaultPublisher ?? publishers.value!.first;
         }
+        // Fall back to first publisher if no default found
+        currentPublisher.value = defaultPublisher ?? managed.first;
       }
       return null;
-    }, [publishers, publishingSettings]);
+    }, [publishers, publishingSettings, isChain]);
 
     final submitting = useState(false);
 
     final contentController = useTextEditingController();
 
-    final hasContent = useState(false);
-    useEffect(() {
-      void updateHasContent() =>
-          hasContent.value = contentController.text.isNotEmpty;
-      updateHasContent();
-      contentController.addListener(updateHasContent);
-      return () => contentController.removeListener(updateHasContent);
-    }, [contentController]);
-
     Future<void> performAction() async {
-      if (!contentController.text.isNotEmpty) {
+      if (contentController.text.isEmpty) {
         return;
       }
 
@@ -110,7 +92,7 @@ class PostQuickReply extends HookConsumerWidget {
           '/sphere/posts',
           data: {
             'content': contentController.text,
-            if (chainMode.value)
+            if (isChain)
               'chained_post_id': parent.id
             else
               'replied_post_id': parent.id,
@@ -136,113 +118,89 @@ class PostQuickReply extends HookConsumerWidget {
         child: Container(
           constraints: BoxConstraints(minHeight: kInputChipHeight),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isOwnPost && !chainMode.value && hasContent.value)
-                _ChainSuggestionRow(onChain: enableChainMode),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    child: ProfilePictureWidget(
-                      file: currentPublisher.value?.picture,
-                      fallbackName: currentPublisher.value?.nick,
-                      radius: (kInputChipHeight * 0.5) - 6,
+              GestureDetector(
+                child: ProfilePictureWidget(
+                  file: currentPublisher.value?.picture,
+                  fallbackName: currentPublisher.value?.nick,
+                  radius: (kInputChipHeight * 0.5) - 6,
+                ),
+                onTap: () {
+                  showModalBottomSheet(
+                    isScrollControlled: true,
+                    context: context,
+                    builder: (context) => PublisherModal(),
+                  ).then((value) {
+                    if (value is SnPublisher) {
+                      currentPublisher.value = value;
+                    }
+                  });
+                },
+              ).padding(right: 12),
+              Expanded(
+                child: TextField(
+                  controller: contentController,
+                  decoration: InputDecoration(
+                    hintText: isChain
+                        ? 'postChainPlaceholder'.tr()
+                        : 'postReplyPlaceholder'.tr(),
+                    border: InputBorder.none,
+                    isDense: true,
+                    isCollapsed: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
                     ),
-                    onTap: () {
-                      showModalBottomSheet(
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (context) => PublisherModal(),
-                      ).then((value) {
-                        if (value is SnPublisher) {
-                          currentPublisher.value = value;
-                        }
-                      });
-                    },
-                  ).padding(right: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: contentController,
-                      decoration: InputDecoration(
-                        hintText: chainMode.value
-                            ? 'postChainPlaceholder'.tr()
-                            : 'postReplyPlaceholder'.tr(),
-                        border: InputBorder.none,
-                        isDense: true,
-                        isCollapsed: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      style: TextStyle(fontSize: 14),
-                      minLines: 1,
-                      maxLines: 5,
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
-                    ),
-                  ),
-                  const Gap(8),
-                  if (isOwnPost)
-                    IconButton(
-                      onPressed: () {
-                        if (chainMode.value) {
-                          chainMode.value = false;
-                        } else {
-                          enableChainMode();
-                        }
-                      },
-                      icon: const Icon(Symbols.link, size: 20),
-                      color: chainMode.value
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                      tooltip: 'chainPost'.tr(),
-                      visualDensity: VisualDensity.compact,
-                      constraints: BoxConstraints(
-                        maxHeight: kInputChipHeight - 6,
-                        minHeight: kInputChipHeight - 6,
-                      ),
-                    ),
-                  IconButton(
-                    onPressed: () async {
-                      onLaunch?.call();
-                      final value = await PostComposeDialog.show(
-                        context,
-                        initialState: PostComposeInitialState(
-                          content: contentController.text,
-                          replyingTo: chainMode.value ? null : parent,
-                          chainingTo: chainMode.value ? parent : null,
-                        ),
-                      );
-                      if (value != null) onPosted?.call();
-                    },
-                    icon: const Icon(Symbols.launch, size: 20),
                     visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(
-                      maxHeight: kInputChipHeight - 6,
-                      minHeight: kInputChipHeight - 6,
-                    ),
                   ),
-                  IconButton(
-                    icon: submitting.value
-                        ? SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: CircularProgressIndicator(strokeWidth: 3),
-                          )
-                        : Icon(Symbols.send, size: 20),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: submitting.value ? null : performAction,
-                    visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(
-                      maxHeight: kInputChipHeight - 6,
-                      minHeight: kInputChipHeight - 6,
+                  style: TextStyle(fontSize: 14),
+                  minLines: 1,
+                  maxLines: 5,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+              ),
+              const Gap(8),
+              // One action button, typed by ownership: chain on the user's own
+              // posts, reply everywhere else.
+              IconButton(
+                onPressed: () async {
+                  onLaunch?.call();
+                  final value = await PostComposeDialog.show(
+                    context,
+                    initialState: PostComposeInitialState(
+                      content: contentController.text,
+                      replyingTo: isChain ? null : parent,
+                      chainingTo: isChain ? parent : null,
                     ),
-                  ),
-                ],
+                  );
+                  if (value != null) onPosted?.call();
+                },
+                icon: Icon(isChain ? Symbols.link : Symbols.reply, size: 20),
+                tooltip: isChain ? 'chainPost'.tr() : 'reply'.tr(),
+                visualDensity: VisualDensity.compact,
+                constraints: BoxConstraints(
+                  maxHeight: kInputChipHeight - 6,
+                  minHeight: kInputChipHeight - 6,
+                ),
+              ),
+              IconButton(
+                icon: submitting.value
+                    ? SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                    : Icon(Symbols.send, size: 20),
+                color: Theme.of(context).colorScheme.primary,
+                onPressed: submitting.value ? null : performAction,
+                visualDensity: VisualDensity.compact,
+                constraints: BoxConstraints(
+                  maxHeight: kInputChipHeight - 6,
+                  minHeight: kInputChipHeight - 6,
+                ),
               ),
             ],
           ),
@@ -250,44 +208,6 @@ class PostQuickReply extends HookConsumerWidget {
       ),
       loading: () => const SizedBox.shrink(),
       error: (e, _) => const SizedBox.shrink(),
-    );
-  }
-}
-
-/// Nudges users replying to their own post toward a chain: a reply on your
-/// own thread is usually a chain continuation instead.
-class _ChainSuggestionRow extends StatelessWidget {
-  final VoidCallback onChain;
-  const _ChainSuggestionRow({required this.onChain});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(left: 8, right: 4),
-      child: Row(
-        children: [
-          Icon(Symbols.link, size: 14, color: theme.colorScheme.primary),
-          const Gap(6),
-          Expanded(
-            child: Text(
-              'suggestChainInstead'.tr(),
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          TextButton(
-            onPressed: onChain,
-            style: TextButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              minimumSize: const Size(0, 28),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text('chainPost'.tr()),
-          ),
-        ],
-      ),
     );
   }
 }

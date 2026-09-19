@@ -179,7 +179,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('quick chains an own post and switches publisher to the head', (
+  testWidgets('chains on an own post and uses the head publisher', (
     tester,
   ) async {
     final adapter = _RecordingAdapter();
@@ -190,30 +190,23 @@ void main() {
       user: _UserInfoAuthor(),
     );
 
-    // Chain toggle present for own posts; no suggestion before typing.
+    // The action button is a chain on an own post, and there is no reply one.
     expect(find.byIcon(Symbols.link), findsOneWidget);
+    expect(find.byIcon(Symbols.reply), findsNothing);
     expect(
-      find.text('Replying to your own post? Chain it instead.'),
-      findsNothing,
+      tester
+          .widget<mui.IconButton>(
+            find.widgetWithIcon(mui.IconButton, Symbols.link),
+          )
+          .tooltip,
+      'Chain Post',
     );
+
+    final field = tester.widget<mui.TextField>(find.byType(mui.TextField));
+    expect(field.decoration?.hintText, 'Add to your chain');
 
     await tester.enterText(find.byType(mui.TextField), 'continuation');
     await tester.pump();
-
-    // Suggestion nudges toward a chain (leading icon + toggle button).
-    expect(
-      find.text('Replying to your own post? Chain it instead.'),
-      findsOneWidget,
-    );
-    expect(find.byIcon(Symbols.link), findsNWidgets(2));
-
-    await tester.tap(find.text('Chain Post'));
-    await tester.pump();
-
-    // Placeholder flips to the chain prompt and the suggestion clears.
-    final field = tester.widget<mui.TextField>(find.byType(mui.TextField));
-    expect(field.decoration?.hintText, 'Add to your chain');
-    expect(find.byIcon(Symbols.link), findsOneWidget);
 
     await send(tester);
 
@@ -223,7 +216,7 @@ void main() {
     expect(adapter.lastQuery?['pub'], 'chained');
   });
 
-  testWidgets('replies normally for posts it does not own', (tester) async {
+  testWidgets('replies on posts it does not own', (tester) async {
     final adapter = _RecordingAdapter();
     await pump(
       tester,
@@ -232,19 +225,29 @@ void main() {
       user: _UserInfoGuest(),
     );
 
+    // Not owned, so the action button replies and never chains.
+    expect(find.byIcon(Symbols.reply), findsOneWidget);
     expect(find.byIcon(Symbols.link), findsNothing);
+    expect(
+      tester
+          .widget<mui.IconButton>(
+            find.widgetWithIcon(mui.IconButton, Symbols.reply),
+          )
+          .tooltip,
+      'Reply',
+    );
+
+    final field = tester.widget<mui.TextField>(find.byType(mui.TextField));
+    expect(field.decoration?.hintText, 'Post your reply');
 
     await tester.enterText(find.byType(mui.TextField), 'a reply');
     await tester.pump();
-    expect(
-      find.text('Replying to your own post? Chain it instead.'),
-      findsNothing,
-    );
 
     await send(tester);
 
     expect(adapter.lastBody?['replied_post_id'], 'head');
     expect(adapter.lastBody?.containsKey('chained_post_id'), isFalse);
+    expect(adapter.lastQuery?['pub'], 'default');
   });
 
   testWidgets('recognizes own posts via the linked account id', (tester) async {
@@ -262,10 +265,9 @@ void main() {
     );
 
     expect(find.byIcon(Symbols.link), findsOneWidget);
+    expect(find.byIcon(Symbols.reply), findsNothing);
 
     await tester.enterText(find.byType(mui.TextField), 'continue');
-    await tester.pump();
-    await tester.tap(find.text('Chain Post'));
     await tester.pump();
     await send(tester);
 
