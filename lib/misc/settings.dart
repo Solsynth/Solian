@@ -3003,22 +3003,27 @@ class _AppIconSheet extends HookConsumerWidget {
     return SheetScaffold(
       titleText: 'settingsAppIcon'.tr(),
       child: GridView.count(
-        crossAxisCount: 3,
+        crossAxisCount: 2,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 16,
         crossAxisSpacing: 12,
+        childAspectRatio: 1.0,
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
         children: [
-          iconTile(
-            name: null,
-            asset: AppIconService.defaultIconAsset,
-            label: 'settingsAppIconDefault'.tr(),
+          Center(
+            child: iconTile(
+              name: null,
+              asset: AppIconService.defaultIconAsset,
+              label: 'settingsAppIconDefault'.tr(),
+            ),
           ),
-          iconTile(
-            name: AppIconService.cuiteIconName,
-            asset: AppIconService.cuiteIconAsset,
-            label: 'settingsAppIconCuite'.tr(),
+          Center(
+            child: iconTile(
+              name: AppIconService.cuiteIconName,
+              asset: AppIconService.cuiteIconAsset,
+              label: 'settingsAppIconCuite'.tr(),
+            ),
           ),
         ],
       ),

@@ -37,6 +37,9 @@ class AppIconService {
   bool get _isSupported =>
       !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
+  /// Whether the current platform supports alternate app icon switching.
+  bool get isSupported => _isSupported;
+
   Future<AppIconState?> getState() async {
     if (!_isSupported) return null;
     try {

@@ -20,6 +20,7 @@ import 'package:island/accounts/pods/friend_status_listener.dart';
 import 'package:island/accounts/screens/me/account_qr.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/core/lifecycle.dart';
+import 'package:island/core/services/app_icon_service.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/chat/pods/native_call_bridge.dart';
@@ -155,6 +156,47 @@ class AppWrapper extends HookConsumerWidget {
       ref.read(friendStatusListenerProvider);
       return null;
     }, []);
+
+    // If the signed-in user no longer has an active Stellar program
+    // membership, drop any alternate app icon back to the default. Only acts
+    // on a confirmed lapsed/absent subscription (HTTP 404 or inactive), so a
+    // transient network failure never yanks the user's icon.
+    useEffect(() {
+      if (!AppIconService.instance.isSupported || token == null) {
+        return null;
+      }
+      var cancelled = false;
+      Future<void> enforceDefaultIcon() async {
+        var lapsed = false;
+        try {
+          final client = ref.read(apiClientProvider);
+          final resp = await client.get(
+            '/wallet/subscriptions/groups/solian.stellar/active',
+          );
+          lapsed = !SnWalletSubscription.fromJson(resp.data).isActive;
+        } on DioException catch (err) {
+          // 404 = no active subscription (confirmed). Anything else (network
+          // failure, server error) leaves the current icon untouched.
+          lapsed = err.response?.statusCode == 404;
+        } catch (_) {
+          lapsed = false;
+        }
+        if (cancelled || !lapsed) return;
+        final state = await AppIconService.instance.getState();
+        if (cancelled) return;
+        if (state?.iconName != null) {
+          try {
+            await AppIconService.instance.setIcon(null);
+          } catch (_) {
+            // Best-effort; re-checked on the next launch.
+          }
+        }
+      }
+      unawaited(enforceDefaultIcon());
+      return () {
+        cancelled = true;
+      };
+    }, [token]);
 
     useEffect(() {
       if (kIsWeb ||
