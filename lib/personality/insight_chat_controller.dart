@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:dio/dio.dart' show CancelToken, DioException, DioExceptionType;
+import 'package:dio/dio.dart'
+    show CancelToken, Dio, DioException, DioExceptionType;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/personality/insight_local_store.dart';
+import 'package:island/personality/local_web_tools.dart';
 import 'package:island/personality/personality_api.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -96,6 +100,10 @@ class InsightChatState {
   final bool busy;
   final String? error;
 
+  /// Web tools run on this device (stateless client loop) instead of the
+  /// server; turns of this conversation are kept device-locally.
+  final bool localTools;
+
   const InsightChatState({
     this.bubbles = const [],
     this.pendingAttachments = const [],
@@ -103,6 +111,7 @@ class InsightChatState {
     this.agentId,
     this.busy = false,
     this.error,
+    this.localTools = false,
   });
 
   InsightChatState copyWith({
@@ -114,6 +123,7 @@ class InsightChatState {
     bool? busy,
     String? error,
     bool clearError = false,
+    bool? localTools,
   }) => InsightChatState(
     bubbles: bubbles ?? this.bubbles,
     pendingAttachments: pendingAttachments ?? this.pendingAttachments,
@@ -123,6 +133,7 @@ class InsightChatState {
     agentId: agentId ?? this.agentId,
     busy: busy ?? this.busy,
     error: clearError ? null : error ?? this.error,
+    localTools: localTools ?? this.localTools,
   );
 }
 
@@ -137,6 +148,15 @@ class InsightChatController extends _$InsightChatController {
   int _turnSerial = 0;
   bool _disposed = false;
 
+  /// Server-side history of the open conversation, as OpenAI messages for the
+  /// local loop. Text only: tool/reasoning metadata lives server-side and is
+  /// not replayed into the stateless completions endpoint.
+  List<Map<String, dynamic>> _serverHistory = const [];
+
+  /// Device-local turns of the open conversation (OpenAI messages), appended
+  /// to [_serverHistory] on the wire and persisted per conversation.
+  List<Map<String, dynamic>> _transcript = const [];
+
   @override
   InsightChatState build() {
     ref.onDispose(() {
@@ -144,7 +164,9 @@ class InsightChatController extends _$InsightChatController {
       _cancelToken?.cancel();
       _cancelToken = null;
     });
-    return const InsightChatState();
+    return InsightChatState(
+      localTools: ref.read(insightLocalStoreProvider).localToolsEnabled,
+    );
   }
 
   PersonalityApi get _api => ref.read(personalityApiProvider);
@@ -167,6 +189,8 @@ class InsightChatController extends _$InsightChatController {
         bubbles: const [],
       ),
     );
+    _serverHistory = const [];
+    _transcript = const [];
   }
 
   void newConversation() {
@@ -178,9 +202,20 @@ class InsightChatController extends _$InsightChatController {
         clearError: true,
       ),
     );
+    _serverHistory = const [];
+    _transcript = const [];
   }
 
   void dismissError() => _set(state.copyWith(clearError: true));
+
+  /// Switches the transport for the next turn: the server-side run loop, or
+  /// the device-local stateless loop with the on-device web tools.
+  Future<void> toggleLocalTools() async {
+    if (state.busy) return;
+    final enabled = !state.localTools;
+    await ref.read(insightLocalStoreProvider).setLocalToolsEnabled(enabled);
+    _set(state.copyWith(localTools: enabled));
+  }
 
   // ── Conversations ────────────────────────────────────────────────────────
 
@@ -197,6 +232,14 @@ class InsightChatController extends _$InsightChatController {
               ?.firstWhereOrNull((c) => c.id == conversationId)
               ?.agentId ??
           state.agentId;
+      _serverHistory = [
+        for (final message in messages)
+          if (message.role == 'user' || message.role == 'assistant')
+            _openAiMessage(message),
+      ];
+      _transcript = ref
+          .read(insightLocalStoreProvider)
+          .transcript(conversationId);
       _set(
         state.copyWith(
           conversationId: conversationId,
@@ -232,11 +275,18 @@ class InsightChatController extends _$InsightChatController {
   // ── Sending ──────────────────────────────────────────────────────────────
 
   /// Sends one user turn: creates the thread on first use, then relays the
-  /// streamed assistant reply into the log.
+  /// assistant reply into the log. In local-tools mode the reply comes from
+  /// the device-local stateless loop instead of the server's run stream.
   Future<void> send(String text) async {
     final content = text.trim();
     final attachments = state.pendingAttachments;
+    final localTools = state.localTools;
     if (state.busy || (content.isEmpty && attachments.isEmpty)) return;
+    // The stateless completions endpoint accepts text parts only.
+    if (localTools && attachments.isNotEmpty) {
+      _set(state.copyWith(error: 'insightLocalNoAttachments'.tr()));
+      return;
+    }
 
     final turnId = ++_turnSerial;
     _set(
@@ -276,14 +326,46 @@ class InsightChatController extends _$InsightChatController {
       _cancelToken = cancelToken;
       _set(state.copyWith(busy: true));
 
-      await for (final event in _api.runConversation(
-        conversationId: conversationId,
-        message: content,
-        attachmentIds: attachments,
-        cancelToken: cancelToken,
-      )) {
-        if (_disposed) return;
-        _handleEvent(event, turnId);
+      if (localTools) {
+        final agentId =
+            state.agentId ??
+            ref.read(personalityAgentsProvider).value?.firstOrNull?.id;
+        if (agentId == null) {
+          throw PersonalityException('insightNoAgent'.tr());
+        }
+        // Everything before the server history is device-owned: the local
+        // turns plus the new user message. The loop appends the assistant
+        // tool calls, tool results and final reply to this list.
+        final request = <Map<String, dynamic>>[
+          ..._serverHistory,
+          ..._transcript,
+          {'role': 'user', 'content': content},
+        ];
+        await for (final event in _api.runConversationWithLocalTools(
+          agentId: agentId,
+          transcript: request,
+          tools: ref.read(localWebToolsProvider),
+          cancelToken: cancelToken,
+        )) {
+          if (_disposed) return;
+          _handleEvent(event, turnId);
+        }
+        if (!_disposed) {
+          _transcript = request.sublist(_serverHistory.length);
+          await ref
+              .read(insightLocalStoreProvider)
+              .saveTranscript(conversationId, _transcript);
+        }
+      } else {
+        await for (final event in _api.runConversation(
+          conversationId: conversationId,
+          message: content,
+          attachmentIds: attachments,
+          cancelToken: cancelToken,
+        )) {
+          if (_disposed) return;
+          _handleEvent(event, turnId);
+        }
       }
     } catch (e) {
       // An aborted turn keeps its partial text and ends silently.
@@ -590,3 +672,16 @@ List<InsightBubble> _bubblesFromMessage(SnPersonalityMessage message) {
 
 bool _isAbort(Object error) =>
     error is DioException && error.type == DioExceptionType.cancel;
+
+/// The on-device web tools with a bare HTTP client: never carries the app's
+/// Authorization header, so search-engine traffic leaves from the user's own
+/// connection without leaking the account token.
+final localWebToolsProvider = Provider<List<SnLocalTool>>((ref) {
+  return buildLocalWebTools(Dio());
+});
+
+/// One persisted server message as OpenAI history for the local loop. Tool and
+/// reasoning metadata is not replayed; their substance lives server-side.
+Map<String, dynamic> _openAiMessage(SnPersonalityMessage message) {
+  return {'role': message.role, 'content': message.content};
+}

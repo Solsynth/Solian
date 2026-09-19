@@ -168,6 +168,27 @@ class InsightScreen extends HookConsumerWidget {
         ),
         actions: [
           IconButton(
+            tooltip: 'insightLocalTools'.tr(),
+            onPressed: chat.busy
+                ? null
+                : () async {
+                    final wasEnabled = chat.localTools;
+                    await controller.toggleLocalTools();
+                    final enabled = ref
+                        .read(insightChatControllerProvider)
+                        .localTools;
+                    if (!wasEnabled && enabled && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('insightLocalToolsHint'.tr())),
+                      );
+                    }
+                  },
+            icon: Icon(
+              Symbols.public_rounded,
+              color: chat.localTools ? scheme.primary : null,
+            ),
+          ),
+          IconButton(
             tooltip: 'conversations'.tr(),
             onPressed: () {
               showConversations.value = !showConversations.value;

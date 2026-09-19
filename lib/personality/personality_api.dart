@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/personality/local_web_tools.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'personality_api.g.dart';
@@ -469,4 +470,224 @@ class PersonalityApi {
     }
     yield* parsePersonalityRunEvents(body.stream.cast<List<int>>());
   }
+
+  /// Drives one assistant turn through the stateless OpenAI-compatible
+  /// endpoint (`POST /personality/v1/chat/completions`), running the tools in
+  /// [tools] on this device: the server hands every call of a client-owned
+  /// tool straight back instead of executing it, which is what lets a web
+  /// search leave from the user's own connection rather than the backend's
+  /// egress IP.
+  ///
+  /// [transcript] is the caller-owned history: every message exchanged is
+  /// appended to it (the assistant's text, its tool calls, and each tool
+  /// result), so the caller can persist the thread. [maxRounds] caps the tool
+  /// rounds, so an assistant that only ever asks for tools cannot loop
+  /// forever.
+  Stream<PersonalityRunEvent> runConversationWithLocalTools({
+    required String agentId,
+    required List<Map<String, dynamic>> transcript,
+    required List<SnLocalTool> tools,
+    CancelToken? cancelToken,
+    int maxRounds = 6,
+  }) async* {
+    final client = _streamClient();
+    final toolsByName = {for (final tool in tools) tool.name: tool};
+
+    for (var round = 0; round < maxRounds; round++) {
+      final ResponseBody body;
+      try {
+        final response = await client.post<ResponseBody>(
+          '/personality/v1/chat/completions',
+          data: {
+            'agent_id': agentId,
+            'messages': transcript,
+            'tools': [for (final tool in tools) tool.toOpenAiTool()],
+            'server_tools': false,
+            'stream': true,
+          },
+          cancelToken: cancelToken,
+          options: Options(
+            responseType: ResponseType.stream,
+            receiveTimeout: Duration.zero,
+            sendTimeout: Duration.zero,
+            headers: {'Accept': 'text/event-stream'},
+          ),
+        );
+        final received = response.data;
+        if (received == null) {
+          throw const PersonalityException('Conversation stream unavailable.');
+        }
+        body = received;
+      } on DioException catch (error) {
+        // A cancelled turn keeps its transport error: the caller tells "the
+        // user stopped it" apart from "the server refused".
+        if (CancelToken.isCancel(error)) rethrow;
+        throw PersonalityException(
+          await _chatCompletionErrorMessage(error.response?.data),
+        );
+      }
+
+      final content = StringBuffer();
+
+      // Tool calls stream in fragments, so they are merged by `index`: the id
+      // and name arrive with the first fragment, the JSON arguments are
+      // concatenated across the rest.
+      final calls = <int, Map<String, dynamic>>{};
+
+      await for (final line in body.stream
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())) {
+        if (!line.startsWith('data:')) continue;
+        final payload = line.substring(5).trim();
+        if (payload.isEmpty) continue;
+        if (payload == '[DONE]') break;
+
+        dynamic decoded;
+        try {
+          decoded = jsonDecode(payload);
+        } catch (_) {
+          continue; // A malformed chunk must not kill the turn.
+        }
+        if (decoded is! Map) continue;
+        final choices = decoded['choices'];
+        if (choices is! List || choices.isEmpty) continue;
+        final choice = choices.first;
+        final delta = choice is Map ? choice['delta'] : null;
+        if (delta is! Map) continue;
+
+        final text = delta['content'];
+        if (text is String && text.isNotEmpty) {
+          content.write(text);
+          yield PersonalityMessageDelta(text);
+        }
+        final reasoning = delta['reasoning_content'];
+        if (reasoning is String && reasoning.isNotEmpty) {
+          yield PersonalityReasoningDelta(reasoning);
+        }
+        final fragments = delta['tool_calls'];
+        if (fragments is! List) continue;
+        for (final fragment in fragments.whereType<Map>()) {
+          final rawIndex = fragment['index'];
+          final index = rawIndex is num ? rawIndex.toInt() : calls.length;
+          final call = calls.putIfAbsent(
+            index,
+            () => {
+              'id': '',
+              'type': 'function',
+              'function': <String, dynamic>{'name': '', 'arguments': ''},
+            },
+          );
+          final id = fragment['id'];
+          if (id is String && id.isNotEmpty && (call['id'] as String).isEmpty) {
+            call['id'] = id;
+          }
+          final function = fragment['function'];
+          if (function is! Map) continue;
+          final target = call['function'] as Map<String, dynamic>;
+          final name = function['name'];
+          if (name is String &&
+              name.isNotEmpty &&
+              (target['name'] as String).isEmpty) {
+            target['name'] = name;
+          }
+          final arguments = function['arguments'];
+          if (arguments is String) {
+            target['arguments'] = (target['arguments'] as String) + arguments;
+          }
+        }
+      }
+
+      if (calls.isEmpty) {
+        final answer = content.toString();
+        transcript.add({'role': 'assistant', 'content': answer});
+        // Mirrors `parsePersonalityRunEvents`: an empty answer is no event.
+        if (answer.trim().isNotEmpty) yield PersonalityRunCompleted(answer);
+        return;
+      }
+
+      final toolCalls = [
+        for (final index in calls.keys.toList()..sort()) calls[index]!,
+      ];
+      transcript.add({
+        'role': 'assistant',
+        'content': content.toString(),
+        'tool_calls': toolCalls,
+      });
+
+      for (final call in toolCalls) {
+        final id = call['id'] as String;
+        final function = call['function'] as Map<String, dynamic>;
+        final name = function['name'] as String;
+        final arguments = parsePersonalityToolArguments(function['arguments']);
+        yield PersonalityToolCallStarted(
+          id: id,
+          name: name,
+          arguments: arguments,
+        );
+
+        // A broken tool (or one this client does not own) still owes the model
+        // an answer, and neither may abort the turn.
+        final tool = toolsByName[name];
+        String result;
+        if (tool == null) {
+          result = 'Error: unknown tool "$name"';
+        } else {
+          try {
+            result = await tool.execute(arguments);
+          } catch (error) {
+            result = 'Error: $error';
+          }
+        }
+
+        yield PersonalityToolCallCompleted(
+          id: id,
+          name: name,
+          arguments: arguments,
+          result: result,
+        );
+        transcript.add({
+          'role': 'tool',
+          'tool_call_id': id,
+          'name': name,
+          'content': result,
+        });
+      }
+    }
+
+    yield PersonalityRunFailed(
+      'Stopped after $maxRounds tool rounds without a final answer.',
+    );
+  }
+}
+
+/// Reads the message of a failed chat-completion request: the backend answers
+/// `{"error": {"message": ...}}` (and sometimes `{"error": ...}`), anything
+/// else collapses to a short generic message so the caller still has one.
+Future<String> _chatCompletionErrorMessage(Object? body) async {
+  const fallback = 'Chat completion failed.';
+  if (body is! ResponseBody) return fallback;
+
+  final String text;
+  try {
+    text = await utf8.decoder.bind(body.stream.cast<List<int>>()).join();
+  } catch (_) {
+    return fallback;
+  }
+
+  dynamic decoded;
+  try {
+    decoded = jsonDecode(text);
+  } catch (_) {
+    return fallback;
+  }
+  if (decoded is! Map) return fallback;
+
+  final error = decoded['error'];
+  if (error is String && error.isNotEmpty) return error;
+  if (error is Map) {
+    final message = error['message'];
+    if (message is String && message.isNotEmpty) return message;
+  }
+  return fallback;
 }

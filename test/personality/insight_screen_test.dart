@@ -236,6 +236,15 @@ void main() {
     expect(find.byType(AiConsoleScreen), findsOneWidget);
   });
 
+  testWidgets('toggles local web tools from the header', (tester) async {
+    await _pumpInsightScreen(tester, _FakePersonalityApi());
+
+    await tester.tap(find.byIcon(Symbols.public_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('insightLocalToolsHint'.tr()), findsOneWidget);
+  });
+
   testWidgets('replays a persisted thread into the same rows', (tester) async {
     final api = _FakePersonalityApi(
       history: const [
