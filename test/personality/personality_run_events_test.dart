@@ -68,6 +68,32 @@ void main() {
     expect((events.last as PersonalityRunCompleted).content, 'abc');
   });
 
+  test('parses a client tool handoff with its run id', () async {
+    final events = await parsePersonalityRunEvents(
+      _bytes([
+        'event: tool_call.client\n'
+            'data: {"run_id":"run-7","id":"c2","name":"web_search_local","arguments":{"query":"duckdb"}}\n\n',
+      ]),
+    ).toList();
+
+    expect(events, hasLength(1));
+    final client = events.single as PersonalityToolCallClient;
+    expect(client.runId, 'run-7');
+    expect(client.id, 'c2');
+    expect(client.name, 'web_search_local');
+    expect(client.arguments, {'query': 'duckdb'});
+  });
+
+  test('drops a client handoff without a run id', () async {
+    final events = await parsePersonalityRunEvents(
+      _bytes([
+        'event: tool_call.client\n'
+            'data: {"id":"c2","name":"web_search_local","arguments":"{}"}\n\n',
+      ]),
+    ).toList();
+    expect(events, isEmpty);
+  });
+
   test('surfaces failures and drops empty deltas', () async {
     final events = await parsePersonalityRunEvents(
       _bytes([

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/me/ai_console.dart';
 import 'package:island/core/config.dart';
+import 'package:island/personality/local_web_tools.dart';
 import 'package:island/personality/personality_api.dart';
 import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -21,6 +22,7 @@ class _FakePersonalityApi extends PersonalityApi {
   final List<PersonalityRunEvent> reply;
   final List<SnPersonalityMessage> history;
   final List<String> sentMessages = [];
+  List<SnLocalTool> lastClientTools = const [];
 
   @override
   Future<List<SnPersonalityConversation>> listConversations({
@@ -53,9 +55,11 @@ class _FakePersonalityApi extends PersonalityApi {
     required String conversationId,
     required String message,
     List<String> attachmentIds = const [],
+    List<SnLocalTool> clientTools = const [],
     CancelToken? cancelToken,
   }) {
     sentMessages.add(message);
+    lastClientTools = clientTools;
     return Stream.fromIterable(reply);
   }
 }
@@ -234,15 +238,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AiConsoleScreen), findsOneWidget);
-  });
-
-  testWidgets('toggles local web tools from the header', (tester) async {
-    await _pumpInsightScreen(tester, _FakePersonalityApi());
-
-    await tester.tap(find.byIcon(Symbols.public_rounded));
-    await tester.pumpAndSettle();
-
-    expect(find.text('insightLocalToolsHint'.tr()), findsOneWidget);
   });
 
   testWidgets('replays a persisted thread into the same rows', (tester) async {
