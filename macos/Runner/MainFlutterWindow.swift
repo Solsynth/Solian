@@ -14,6 +14,9 @@ class MainFlutterWindow: NSWindow {
       appDelegate.setupDeepLinkChannel(
         binaryMessenger: flutterViewController.engine.binaryMessenger
       )
+      appDelegate.setupAppIconChannel(
+        binaryMessenger: flutterViewController.engine.binaryMessenger
+      )
     }
 
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in

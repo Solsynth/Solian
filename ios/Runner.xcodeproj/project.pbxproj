@@ -22,6 +22,8 @@
 		73595B832F1803D300AAD53C /* SfxNotification.caf in Resources */ = {isa = PBXBuildFile; fileRef = 73595B172F17FF8000AAD53C /* SfxNotification.caf */; };
 		73595B842F1803D300AAD53C /* SfxMessage.caf in Resources */ = {isa = PBXBuildFile; fileRef = 73595B162F17FF8000AAD53C /* SfxMessage.caf */; };
 		7359B4D32F7ED7C3002F2C19 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 7359B4D22F7ED7C3002F2C19 /* FlutterGeneratedPluginSwiftPackage */; };
+		737A637D305E834C00FB8C1B /* AppIcon-Cuite.icon in Resources */ = {isa = PBXBuildFile; fileRef = 737A637C305E834C00FB8C1B /* AppIcon-Cuite.icon */; };
+		737A6380305E834C00FB8C1C /* AppIconChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737A6381305E834C00FB8C1D /* AppIconChannel.swift */; };
 		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
 		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -149,6 +151,8 @@
 		7310A7D42EB10962002C0FD3 /* SolianWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SolianWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		73595B162F17FF8000AAD53C /* SfxMessage.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SfxMessage.caf; sourceTree = "<group>"; };
 		73595B172F17FF8000AAD53C /* SfxNotification.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SfxNotification.caf; sourceTree = "<group>"; };
+		737A637C305E834C00FB8C1B /* AppIcon-Cuite.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "AppIcon-Cuite.icon"; sourceTree = "<group>"; };
+		737A6381305E834C00FB8C1D /* AppIconChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconChannel.swift; sourceTree = "<group>"; };
 		737E920B2DB6A9FF00BE9CDB /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -242,6 +246,8 @@
 		};
 		7310A7D52EB10962002C0FD3 /* SolianWatchApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = SolianWatchApp;
 			sourceTree = "<group>";
 		};
@@ -464,6 +470,8 @@
 				73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */,
 				AABB02000000000000000002 /* LocalCommunicationNotification.swift */,
 				AABB00010000000000000010 /* Localizable.strings */,
+				737A637C305E834C00FB8C1B /* AppIcon-Cuite.icon */,
+				737A6381305E834C00FB8C1D /* AppIconChannel.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -679,7 +687,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
@@ -752,6 +760,7 @@
 				73595B832F1803D300AAD53C /* SfxNotification.caf in Resources */,
 				73C567652FF4BFAF0001DDFF /* SfxCall.wav in Resources */,
 				73595B842F1803D300AAD53C /* SfxMessage.caf in Resources */,
+				737A637D305E834C00FB8C1B /* AppIcon-Cuite.icon in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
@@ -808,13 +817,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -851,13 +856,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -909,13 +910,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SolianWatchApp/Pods-SolianWatchApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SolianWatchApp/Pods-SolianWatchApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1020,6 +1017,7 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				73D4264B2DEB815D006C0AAE /* NotifyDelegate.swift in Sources */,
 				AABB02000000000000000001 /* LocalCommunicationNotification.swift in Sources */,
+				737A6380305E834C00FB8C1C /* AppIconChannel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1143,6 +1141,7 @@
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
@@ -2007,6 +2006,7 @@
 			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
@@ -2039,6 +2039,7 @@
 			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
@@ -2153,7 +2154,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};

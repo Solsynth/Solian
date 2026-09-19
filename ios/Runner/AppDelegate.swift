@@ -425,6 +425,7 @@ import flutter_callkit_incoming
     
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+        AppIconChannel.install(binaryMessenger: engineBridge.applicationRegistrar.messenger())
         setupWidgetSyncChannel(engineBridge: engineBridge)
         implicitDeepLinkChannel = makeDeepLinkChannel(
             binaryMessenger: engineBridge.applicationRegistrar.messenger()

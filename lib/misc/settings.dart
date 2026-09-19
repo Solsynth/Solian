@@ -17,6 +17,8 @@ import 'package:island/data/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
+import 'package:island/core/services/app_icon_service.dart';
 import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/responsive.dart';
@@ -169,6 +171,8 @@ class SettingsScreen extends HookConsumerWidget {
           'background image',
           'wallpaper',
           'generate color',
+          'app icon',
+          'alternate icon',
           'settingsDisplayLanguage',
           'settingsThemeMode',
           'settingsColorScheme',
@@ -816,6 +820,38 @@ class SettingsScreen extends HookConsumerWidget {
                       },
                     ),
                   ],
+                );
+              },
+            ),
+          ],
+          if (isIos || (!kIsWeb && Platform.isMacOS)) ...[
+            Builder(
+              builder: (context) {
+                final stellarSubscription =
+                    ref.watch(accountStellarSubscriptionProvider);
+                if (stellarSubscription.value?.isActive != true) {
+                  return const SizedBox.shrink();
+                }
+                final isMacOs = !kIsWeb && Platform.isMacOS;
+                return ListTile(
+                  minLeadingWidth: 48,
+                  title: Text('settingsAppIcon').tr(),
+                  subtitle: Text(
+                    isMacOs
+                        ? 'settingsAppIconHelperMac'.tr()
+                        : 'settingsAppIconHelper'.tr(),
+                  ),
+                  contentPadding: _kSettingsTilePadding,
+                  leading: const Icon(Symbols.app_shortcut),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      builder: (_) => const _AppIconSheet(),
+                    );
+                  },
                 );
               },
             ),
@@ -2872,6 +2908,119 @@ class _IpOverrideModeSheet extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AppIconSheet extends HookConsumerWidget {
+  const _AppIconSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final currentIcon = useState<String?>(null);
+
+    useEffect(() {
+      AppIconService.instance.getState().then((state) {
+        currentIcon.value = state?.iconName;
+      });
+      return null;
+    }, []);
+
+    Future<void> select(String? name) async {
+      try {
+        await AppIconService.instance.setIcon(name);
+        currentIcon.value = name;
+        if (context.mounted) {
+          context.pop();
+          showSnackBar('settingsAppIconApplied'.tr());
+        }
+      } catch (_) {
+        if (context.mounted) {
+          context.pop();
+          showErrorAlert('settingsAppIconFailed'.tr());
+        }
+      }
+    }
+
+    Widget iconTile({
+      required String? name,
+      required String asset,
+      required String label,
+    }) {
+      final selected = name == currentIcon.value;
+      return InkWell(
+        onTap: () => select(name),
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(
+                  color: selected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outlineVariant,
+                  width: selected ? 3 : 1,
+                ),
+              ),
+              padding: const EdgeInsets.all(2),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) => Container(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    child: Icon(
+                      Symbols.app_shortcut,
+                      size: 28,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: selected ? theme.colorScheme.primary : null,
+                fontWeight: selected ? FontWeight.w600 : null,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SheetScaffold(
+      titleText: 'settingsAppIcon'.tr(),
+      child: GridView.count(
+        crossAxisCount: 3,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 12,
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        children: [
+          iconTile(
+            name: null,
+            asset: AppIconService.defaultIconAsset,
+            label: 'settingsAppIconDefault'.tr(),
+          ),
+          iconTile(
+            name: AppIconService.cuiteIconName,
+            asset: AppIconService.cuiteIconAsset,
+            label: 'settingsAppIconCuite'.tr(),
+          ),
+        ],
       ),
     );
   }
