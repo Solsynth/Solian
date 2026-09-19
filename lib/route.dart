@@ -41,6 +41,8 @@ class AppRouter extends RootStackRouter {
       path: '/settings/chat-room-storage',
     ),
     AutoRoute(page: AboutRoute.page, path: '/about'),
+    // AI console, opened from account settings and from Insight.
+    AutoRoute(page: AiConsoleRoute.page, path: '/ai-console'),
     AutoRoute(page: CfIpSpeedTestRoute.page, path: '/cf-ip-speed-test'),
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
     AutoRoute(page: PostShuffleRoute.page, path: '/posts/shuffle'),
@@ -157,10 +159,6 @@ class AppRouter extends RootStackRouter {
               page: PhysicalPassportRoute.page,
               path: 'me/physical-passports',
             ),
-            AutoRoute(
-              page: AiConsoleRoute.page,
-              path: 'me/ai-console',
-            ),
             // Ticket routes
             AutoRoute(page: TicketListRoute.page, path: 'tickets'),
             AutoRoute(page: TicketDetailRoute.page, path: 'tickets/:ticketId'),
@@ -216,6 +214,13 @@ class AppRouter extends RootStackRouter {
 
         // Wallet tab
         AutoRoute(page: WalletRoute.page, path: 'wallet', maintainState: false),
+
+        // Insight tab: conversations with personality agents
+        AutoRoute(
+          page: InsightRoute.page,
+          path: 'insight',
+          maintainState: false,
+        ),
       ],
     ),
 

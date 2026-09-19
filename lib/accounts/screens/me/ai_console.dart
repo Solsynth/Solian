@@ -12,6 +12,7 @@ import 'package:island/core/network.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:island/auth/models/authorize_client_info.dart';
+import 'package:island/personality/personality_api.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -24,6 +25,9 @@ part 'ai_console.g.dart';
 // Models — local client-side mirrors of the FloatLand personality backend
 // (/personality). Kept dependency-free (plain fromJson) since these are not
 // part of the typed solar_network_sdk surface.
+//
+// Agents and their provider live in `lib/personality/personality_api.dart`
+// alongside the conversation/run client the pet page uses.
 // ---------------------------------------------------------------------------
 
 class SnPersonalityRunUsage {
@@ -149,40 +153,6 @@ class SnPersonalityModel {
         pricing: json['pricing'] is Map
             ? SnPersonalityModelPricing.fromJson(json['pricing'])
             : null,
-      );
-}
-
-class SnPersonalityAgent {
-  final String id;
-  final String name;
-  final String? description;
-  final String? model;
-  final List<String> abilities;
-  final String? systemPrompt;
-  final bool enabled;
-
-  const SnPersonalityAgent({
-    required this.id,
-    required this.name,
-    this.description,
-    this.model,
-    this.abilities = const [],
-    this.systemPrompt,
-    this.enabled = false,
-  });
-
-  factory SnPersonalityAgent.fromJson(Map<String, dynamic> json) =>
-      SnPersonalityAgent(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        description: json['description']?.toString(),
-        model: json['model']?.toString(),
-        abilities: (json['abilities'] as List?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            const [],
-        systemPrompt: json['system_prompt']?.toString(),
-        enabled: json['enabled'] is bool ? json['enabled'] : false,
       );
 }
 
@@ -330,20 +300,6 @@ const kUserScopedAbilities = <String>{
 // ---------------------------------------------------------------------------
 // Providers
 // ---------------------------------------------------------------------------
-
-@riverpod
-Future<List<SnPersonalityAgent>> personalityAgents(Ref ref) async {
-  final dio = ref.read(apiClientProvider);
-  final resp = await dio.get('/personality/agents');
-  final data = resp.data;
-  if (data is List) {
-    return [
-      for (final e in data)
-        SnPersonalityAgent.fromJson(e as Map<String, dynamic>),
-    ];
-  }
-  return const [];
-}
 
 @riverpod
 Future<List<SnPersonalityModel>> personalityModels(Ref ref) async {

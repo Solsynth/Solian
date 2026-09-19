@@ -39,6 +39,13 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.search,
   ),
   RouteItem(
+    name: 'insight'.tr(),
+    path: '/insight',
+    description: 'insightDescription'.tr(),
+    searchableAliases: ['insight', 'pet', 'agent', 'companion', 'assistant'],
+    icon: Symbols.auto_awesome_rounded,
+  ),
+  RouteItem(
     name: 'postShuffle'.tr(),
     path: '/posts/shuffle',
     description: 'postShuffleDescription'.tr(),
@@ -146,7 +153,7 @@ final List<RouteItem> kAvailableRoutes = [
       'account',
       'account settings',
     ],
-    icon: Symbols.settings,
+    icon: Symbols.settings_rounded,
   ),
   RouteItem(
     name: 'files'.tr(),
@@ -174,7 +181,7 @@ final List<RouteItem> kAvailableRoutes = [
     path: '/settings',
     description: 'appSettingsDescription'.tr(),
     searchableAliases: ['settings', 'preferences', 'app', 'app settings'],
-    icon: Symbols.settings,
+    icon: Symbols.settings_rounded,
   ),
   RouteItem(
     name: 'Plugins',

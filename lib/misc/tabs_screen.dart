@@ -37,6 +37,7 @@ class TabsScreen extends StatelessWidget {
         FileListRoute(),
         WalletRoute(),
         CreatorHubRoute(),
+        InsightRoute(),
       ],
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
@@ -203,6 +204,15 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       iconBuilder: (selected) =>
           Icon(Symbols.design_services_rounded, fill: selected ? 1 : null),
     ),
+    _TabDestination(
+      id: 'insight',
+      routeIndex: 9,
+      routePath: '/insight',
+      label: 'insight'.tr(),
+      navigationIcon: Symbols.auto_awesome_rounded,
+      iconBuilder: (selected) =>
+          Icon(Symbols.auto_awesome_rounded, fill: selected ? 1 : null),
+    ),
   ];
 
   @override
@@ -326,7 +336,11 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     Widget buildNavigationDrawerContent() {
       return SafeArea(
         child: NavigationDrawer(
-          selectedIndex: tabsRouter.activeIndex,
+          // Destinations are indexed by position in `drawerDestinations`,
+          // which skips `files`, so the active tab must be mapped onto it.
+          selectedIndex: drawerDestinations.indexWhere(
+            (d) => d.routeIndex == tabsRouter.activeIndex,
+          ),
           onDestinationSelected: (index) {
             Navigator.of(context).pop();
             if (index < 0 || index >= drawerDestinations.length) return;
