@@ -6,7 +6,6 @@ import 'domains/accounts_api.dart';
 import 'domains/sphere_api.dart';
 import 'domains/wallet_api.dart';
 import 'domains/chat_api.dart';
-import 'domains/thoughts_api.dart';
 import 'domains/e2ee_api.dart';
 import 'domains/drive_api.dart';
 import 'domains/stickers_api.dart';
@@ -59,9 +58,6 @@ class SolarNetworkClient {
 
   /// Chat API (messager endpoints).
   late final ChatApi chat;
-
-  /// Thoughts API (insight endpoints).
-  late final ThoughtsApi thoughts;
 
   /// End-to-End Encryption API (e2ee endpoints).
   late final E2EEApi e2ee;
@@ -146,7 +142,6 @@ class SolarNetworkClient {
     sphere = SphereApi(dio);
     wallet = WalletApi(dio);
     chat = ChatApi(dio);
-    thoughts = ThoughtsApi(dio);
     e2ee = E2EEApi(dio);
     drive = DriveApi(dio);
     stickers = StickersApi(dio);

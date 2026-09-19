@@ -8,7 +8,6 @@ export 'domains/accounts_api.dart';
 export 'domains/sphere_api.dart';
 export 'domains/wallet_api.dart';
 export 'domains/chat_api.dart';
-export 'domains/thoughts_api.dart';
 export 'domains/e2ee_api.dart';
 export 'domains/drive_api.dart';
 export 'domains/stickers_api.dart';

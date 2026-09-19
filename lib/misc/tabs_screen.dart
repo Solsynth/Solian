@@ -37,7 +37,6 @@ class TabsScreen extends StatelessWidget {
         FileListRoute(),
         WalletRoute(),
         CreatorHubRoute(),
-        InsightRoute(),
       ],
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
@@ -203,15 +202,6 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       navigationIcon: Symbols.design_services_rounded,
       iconBuilder: (selected) =>
           Icon(Symbols.design_services_rounded, fill: selected ? 1 : null),
-    ),
-    _TabDestination(
-      id: 'insight',
-      routeIndex: 9,
-      routePath: '/insight',
-      label: 'insight'.tr(),
-      navigationIcon: Symbols.auto_awesome_rounded,
-      iconBuilder: (selected) =>
-          Icon(Symbols.auto_awesome_rounded, fill: selected ? 1 : null),
     ),
   ];
 

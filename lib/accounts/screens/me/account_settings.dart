@@ -861,24 +861,6 @@ class AccountSettingsScreen extends HookConsumerWidget {
             children: integrationsSettings,
           ),
           _SettingsSection(
-            title: 'aiConsole',
-            children: [
-              ListTile(
-                minLeadingWidth: 48,
-                leading: const Icon(
-                  Symbols.smart_toy,
-                ).alignment(Alignment.centerLeft).width(48),
-                title: Text('aiConsole').tr(),
-                subtitle: Text('aiConsoleDescription').tr().fontSize(12),
-                contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: () {
-                  context.router.push(const AiConsoleRoute());
-                },
-              ),
-            ],
-          ),
-          _SettingsSection(
             title: 'accountDangerZoneTitle',
             children: dangerZoneSettings,
           ),

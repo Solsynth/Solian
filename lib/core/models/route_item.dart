@@ -39,13 +39,6 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.search,
   ),
   RouteItem(
-    name: 'insight'.tr(),
-    path: '/insight',
-    description: 'insightDescription'.tr(),
-    searchableAliases: ['insight', 'pet', 'agent', 'companion', 'assistant'],
-    icon: Symbols.auto_awesome_rounded,
-  ),
-  RouteItem(
     name: 'postShuffle'.tr(),
     path: '/posts/shuffle',
     description: 'postShuffleDescription'.tr(),
