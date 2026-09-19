@@ -13,10 +13,6 @@ import 'package:island/posts/screens/compose_blog.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
-import 'package:island/posts/screens/post_detail.dart';
-import 'package:island/posts/widgets/compose/post_interactions.dart';
-import 'package:island/posts/widgets/post_detail_content.dart';
-import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -62,7 +58,6 @@ class ExploreScreen extends HookConsumerWidget {
     );
     final notifier = ref.watch(activityListProvider.notifier);
     final filterTabController = useMaterialTabController(initialLength: 3);
-    final selectedPostId = useState<String?>(null);
     final sidebarPanel = useState<Widget?>(null);
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
@@ -101,16 +96,13 @@ class ExploreScreen extends HookConsumerWidget {
         selectedTagIds.value.isNotEmpty;
 
     final userInfo = ref.watch(userInfoProvider);
-    final isDetailOpen = isWide && selectedPostId.value != null;
 
     if (isWide) {
       return AppScaffold(
         isNoBackground: false,
         appBar: null,
         floatingActionButton:
-            userInfo.value != null &&
-                !isDetailOpen &&
-                sidebarPanel.value == null
+            userInfo.value != null && sidebarPanel.value == null
             ? FloatingActionButton(
                 heroTag: 'explore-fab',
                 child: const Icon(Symbols.create),
@@ -180,7 +172,6 @@ class ExploreScreen extends HookConsumerWidget {
           hasSubscriptionFiltersApplied,
           exploreSettings,
           ref.read(appSettingsProvider.notifier),
-          selectedPostId,
           sidebarPanel,
         ),
       );
@@ -840,7 +831,6 @@ class ExploreScreen extends HookConsumerWidget {
     bool hasSubscriptionFiltersApplied,
     ExploreSettings exploreSettings,
     AppSettingsNotifier appSettingsNotifier,
-    ValueNotifier<String?> selectedPostId,
     ValueNotifier<Widget?> sidebarPanel,
   ) {
     final sliverRefreshInset =
@@ -857,12 +847,10 @@ class ExploreScreen extends HookConsumerWidget {
         (activityState.isLoading || activityState.value?.isLoading == true) &&
         (activityState.value?.items.isEmpty ?? true);
 
+    // Posts open as a full page; the wide layout keeps its timeline pane
+    // behind them rather than substituting an inline detail pane.
     void handlePostTap(String postId) {
-      if (selectedPostId.value == postId) {
-        context.router.push(PostDetailRoute(id: postId));
-        return;
-      }
-      selectedPostId.value = postId;
+      context.router.push(PostDetailRoute(id: postId));
     }
 
     Future<void> refreshTimeline() async {
@@ -988,71 +976,6 @@ class ExploreScreen extends HookConsumerWidget {
       ),
     );
 
-    final selectedId = selectedPostId.value;
-
-    // Keep the timeline in the tree while the detail pane is open. Replacing
-    // it as the AnimatedSwitcher child disposes its scroll view and loses the
-    // user's position when the detail pane is closed.
-    final detailPane = AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      reverseDuration: const Duration(milliseconds: 220),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      layoutBuilder: (currentChild, previousChildren) {
-        return Stack(
-          fit: StackFit.expand,
-          children: [...previousChildren, ?currentChild],
-        );
-      },
-      transitionBuilder: (child, animation) {
-        final offsetAnimation = animation.drive(
-          Tween(
-            begin: const Offset(0.035, 0),
-            end: Offset.zero,
-          ).chain(CurveTween(curve: Curves.easeOutCubic)),
-        );
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(position: offsetAnimation, child: child),
-        );
-      },
-      child: selectedId == null
-          ? const SizedBox.expand(key: ValueKey('no-post-detail'))
-          : KeyedSubtree(
-              key: ValueKey('post_$selectedId'),
-              child: Card(
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: _TimelineDetailPane(
-                  postId: selectedId,
-                  isExpanded: false,
-                  onExpandToggle: () {
-                    context.router.push(PostDetailRoute(id: selectedId));
-                  },
-                  onClose: () {
-                    selectedPostId.value = null;
-                  },
-                  onPostTap: handlePostTap,
-                ),
-              ),
-            ),
-    );
-
-    final mainContent = Stack(
-      fit: StackFit.expand,
-      children: [
-        IgnorePointer(ignoring: selectedId != null, child: timelinePane),
-        Positioned.fill(child: detailPane),
-      ],
-    );
-
     return SidebarPanelHost(
       controller: sidebarPanel,
       child: Row(
@@ -1066,7 +989,7 @@ class ExploreScreen extends HookConsumerWidget {
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                 ),
-                child: mainContent,
+                child: timelinePane,
               ),
             ),
           ),
@@ -2220,238 +2143,6 @@ class AccountDiscoveryCard extends ConsumerWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
       child: card,
-    );
-  }
-}
-
-class _TimelineDetailPane extends HookConsumerWidget {
-  final String postId;
-  final bool isExpanded;
-  final VoidCallback onExpandToggle;
-  final VoidCallback onClose;
-  final void Function(String)? onPostTap;
-
-  const _TimelineDetailPane({
-    required this.postId,
-    required this.isExpanded,
-    required this.onExpandToggle,
-    required this.onClose,
-    this.onPostTap,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final postState = ref.watch(postStateProvider(postId));
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(14),
-          topRight: Radius.circular(14),
-        ),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.18),
-          width: 1,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withOpacity(0.12),
-                  width: 1,
-                ),
-                bottom: BorderSide(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withOpacity(0.12),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Tooltip(
-                  message: isExpanded
-                      ? 'restoreSplitView'.tr()
-                      : 'expandPostDetails'.tr(),
-                  child: IconButton(
-                    onPressed: onExpandToggle,
-                    icon: Icon(
-                      isExpanded ? Symbols.fullscreen_exit : Symbols.fullscreen,
-                      size: 20,
-                    ),
-                    style: IconButton.styleFrom(
-                      foregroundColor: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Tooltip(
-                  message: 'closePostDetails'.tr(),
-                  child: IconButton(
-                    onPressed: onClose,
-                    icon: Icon(Symbols.close, size: 20),
-                    style: IconButton.styleFrom(
-                      foregroundColor: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              child: postState.when(
-                data: (post) {
-                  if (post == null) {
-                    return Center(
-                      key: const ValueKey('error'),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Symbols.error_outline,
-                            size: 48,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const Gap(12),
-                          Text(
-                            'postNotFound'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return Stack(
-                    key: ValueKey(postId),
-                    children: [
-                      PostDetailContent(
-                        postId: postId,
-                        post: post,
-                        maxWidth: double.infinity,
-                        onPostTap: onPostTap,
-                        onRefresh: () async {
-                          ref.invalidate(postProvider(postId));
-                          ref
-                              .read(
-                                postRepliesProvider(
-                                  postRepliesQuery(postId),
-                                ).notifier,
-                              )
-                              .refresh();
-                        },
-                        onUpdate: (newPost) {
-                          ref
-                              .read(postStateProvider(postId).notifier)
-                              .updatePost(newPost);
-                        },
-                        onReplyPosted: () {
-                          ref
-                              .read(
-                                postRepliesProvider(
-                                  postRepliesQuery(postId),
-                                ).notifier,
-                              )
-                              .refresh();
-                        },
-                        collectionSection: post.publisherCollections.isNotEmpty
-                            ? PostCollectionNavigation(post: post)
-                            : null,
-                        realmSection: post.realm != null
-                            ? PostRealmBadge(realm: post.realm!)
-                            : null,
-                        actionBuilder: (context, onTranslate) =>
-                            PostActionButtons(
-                              post: post,
-                              renderingPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              onRefresh: () {
-                                ref.invalidate(postProvider(postId));
-                                ref
-                                    .read(
-                                      postRepliesProvider(
-                                        postRepliesQuery(postId),
-                                      ).notifier,
-                                    )
-                                    .refresh();
-                              },
-                              onUpdate: (newPost) {
-                                ref
-                                    .read(postStateProvider(postId).notifier)
-                                    .updatePost(newPost);
-                              },
-                              onTranslate: onTranslate,
-                            ).alignment(Alignment.centerLeft),
-                        interactionsSection: DefaultTabController(
-                          length: 4,
-                          child: PostInteractionsSlivers(
-                            postId: postId,
-                            maxWidth: double.infinity,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                loading: () => Center(
-                  key: const ValueKey('loading'),
-                  child: ConfuseSpinner(
-                    speed: 7,
-                    size: 48,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                  ),
-                ),
-                error: (error, _) => Center(
-                  key: const ValueKey('error_load'),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.error_outline,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      const Gap(12),
-                      Text(
-                        'failedToLoadPost'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const Gap(8),
-                      TextButton(
-                        onPressed: () => ref.invalidate(postProvider(postId)),
-                        child: Text('retry'.tr()),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
