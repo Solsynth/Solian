@@ -2103,6 +2103,8 @@
   "settingsAppIcon": "앱 아이콘",
   "settingsAppIconHelper": "홈 화면에 표시할 앱 아이콘을 선택하세요.",
   "settingsAppIconHelperMac": "Solian 실행 중 Dock에 표시할 아이콘을 선택하세요.",
+  "settingsAppIconGetStellar": "Stellar 받기",
+  "settingsAppIconRequiresStellar": "사용자 지정 앱 아이콘은 Stellar 프로그램 혜택입니다.",
   "settingsAppIconDefault": "기본",
   "settingsAppIconCuite": "Cuite",
   "settingsAppIconApplied": "앱 아이콘이 업데이트되었습니다.",

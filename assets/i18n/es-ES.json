@@ -1786,6 +1786,8 @@
   "settingsAppIcon": "Icono de la app",
   "settingsAppIconHelper": "Elige el icono de la app que se muestra en la pantalla de inicio.",
   "settingsAppIconHelperMac": "Elige el icono que se muestra en el Dock mientras Solian está en ejecución.",
+  "settingsAppIconGetStellar": "Obtener Stellar",
+  "settingsAppIconRequiresStellar": "Los iconos personalizados son un beneficio del programa Stellar.",
   "settingsAppIconDefault": "Predeterminado",
   "settingsAppIconCuite": "Cuite",
   "settingsAppIconApplied": "Icono de la app actualizado.",

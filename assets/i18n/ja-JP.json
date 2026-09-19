@@ -1874,6 +1874,8 @@
   "settingsAppIcon": "アプリアイコン",
   "settingsAppIconHelper": "ホーム画面に表示するアプリアイコンを選択します。",
   "settingsAppIconHelperMac": "Solian 実行中に Dock に表示するアイコンを選択します。",
+  "settingsAppIconGetStellar": "Stellar を取得",
+  "settingsAppIconRequiresStellar": "カスタムアプリアイコンは Stellar プログラムの特典です。",
   "settingsAppIconDefault": "デフォルト",
   "settingsAppIconCuite": "Cuite",
   "settingsAppIconApplied": "アプリアイコンを更新しました。",

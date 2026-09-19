@@ -1783,6 +1783,8 @@
   "settingsAppIcon": "應用圖標",
   "settingsAppIconHelper": "擇主屏所現之應用圖標。",
   "settingsAppIconHelperMac": "擇 Solian 運行時於 Dock 所示之圖標。",
+  "settingsAppIconGetStellar": "獲取 Stellar",
+  "settingsAppIconRequiresStellar": "自定應用圖標乃 Stellar 會員專屬之益。",
   "settingsAppIconDefault": "默認",
   "settingsAppIconCuite": "Cuite",
   "settingsAppIconApplied": "應用圖標已更新。",

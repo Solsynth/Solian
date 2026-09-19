@@ -827,20 +827,39 @@ class SettingsScreen extends HookConsumerWidget {
           if (isIos || (!kIsWeb && Platform.isMacOS)) ...[
             Builder(
               builder: (context) {
-                final stellarSubscription =
-                    ref.watch(accountStellarSubscriptionProvider);
-                if (stellarSubscription.value?.isActive != true) {
+                final stellarAsync = ref.watch(
+                  accountStellarSubscriptionProvider,
+                );
+                if (stellarAsync.isLoading) {
                   return const SizedBox.shrink();
                 }
                 final isMacOs = !kIsWeb && Platform.isMacOS;
+                final isMember =
+                    stellarAsync.value?.isActive == true;
+                final subtitle = isMacOs
+                    ? 'settingsAppIconHelperMac'.tr()
+                    : 'settingsAppIconHelper'.tr();
+                if (!isMember) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _AppIconLockedBanner(),
+                      ListTile(
+                        minLeadingWidth: 48,
+                        enabled: false,
+                        title: Text('settingsAppIcon').tr(),
+                        subtitle: Text(subtitle),
+                        contentPadding: _kSettingsTilePadding,
+                        leading: const Icon(Symbols.app_shortcut),
+                        trailing: const Icon(Symbols.lock),
+                      ),
+                    ],
+                  );
+                }
                 return ListTile(
                   minLeadingWidth: 48,
                   title: Text('settingsAppIcon').tr(),
-                  subtitle: Text(
-                    isMacOs
-                        ? 'settingsAppIconHelperMac'.tr()
-                        : 'settingsAppIconHelper'.tr(),
-                  ),
+                  subtitle: Text(subtitle),
                   contentPadding: _kSettingsTilePadding,
                   leading: const Icon(Symbols.app_shortcut),
                   trailing: const Icon(Symbols.chevron_right),
@@ -2908,6 +2927,44 @@ class _IpOverrideModeSheet extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Upsell banner shown above the disabled app-icon tile when the user is not
+/// a Stellar Program member.
+class _AppIconLockedBanner extends StatelessWidget {
+  const _AppIconLockedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(Symbols.stars, color: scheme.onSecondaryContainer),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'settingsAppIconRequiresStellar'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => context.router.push(const StoreRoute()),
+            child: Text('settingsAppIconGetStellar'.tr()),
+          ),
+        ],
       ),
     );
   }
