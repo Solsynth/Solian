@@ -31,13 +31,13 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever_windows
   share_plus
   super_native_extensions
-  tray_manager
   url_launcher_windows
   window_manager
   windows_notification
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  cnativeapi
   flutter_local_notifications_windows
   jni
 )
