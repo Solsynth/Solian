@@ -33,6 +33,16 @@ String getStatusDisplayLabel(BuildContext context, SnAccountStatus? status) {
   return getStatusTypeLabel(context, status);
 }
 
+/// The display name of the device the account is currently online from, or
+/// null when no device presence is known (e.g. the status predates the
+/// online-devices field).
+String? getStatusOnlineDeviceLabel(SnAccountStatus? status) {
+  if (status == null || !status.isOnline) return null;
+  final devices = status.onlineDevices;
+  if (devices.isEmpty) return null;
+  return devices.first.displayName;
+}
+
 String? getStatusDisplaySymbol(SnAccountStatus? status) {
   final symbol = status?.symbol?.trim();
   if (symbol == null || symbol.isEmpty) return null;

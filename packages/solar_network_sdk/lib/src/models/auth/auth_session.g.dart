@@ -37,6 +37,7 @@ _SnAuthSession _$SnAuthSessionFromJson(
   childrenCount: (json['children_count'] as num?)?.toInt(),
   category: json['category'] as String? ?? 'device',
   trusted: json['trusted'] as bool? ?? false,
+  isOnline: json['is_online'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
@@ -59,4 +60,5 @@ Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
       'children_count': instance.childrenCount,
       'category': instance.category,
       'trusted': instance.trusted,
+      'is_online': instance.isOnline,
     };

@@ -226,6 +226,10 @@ class AccountStatusWidget extends HookConsumerWidget {
                   getActivitySubtitle(statusValue.meta)!,
                 ).opacity(0.75),
               )
+            else if (getStatusOnlineDeviceLabel(statusValue) case final device?)
+              Flexible(
+                child: Text(device).opacity(0.75),
+              )
             else if (!statusValue.isOnline &&
                 account.value?.profile.lastSeenAt != null)
               Flexible(
@@ -243,6 +247,7 @@ class AccountStatusWidget extends HookConsumerWidget {
       padding: padding,
       trailingText:
           getActivitySubtitle(statusValue.meta) ??
+          getStatusOnlineDeviceLabel(statusValue) ??
           ((!(statusValue.isOnline) &&
                   account.value?.profile.lastSeenAt != null)
               ? account.value!.profile.lastSeenAt!.formatRelative(context)

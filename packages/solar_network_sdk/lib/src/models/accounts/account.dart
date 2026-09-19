@@ -172,6 +172,7 @@ sealed class SnAccountStatus with _$SnAccountStatus {
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
+    @Default([]) List<SnOnlineDevice> onlineDevices,
   }) = _SnAccountStatus;
 
   factory SnAccountStatus.fromJson(Map<String, dynamic> json) =>
@@ -183,6 +184,33 @@ extension SnAccountStatusCompat on SnAccountStatus {
   bool get isNotDisturb => type == SnAccountStatusType.doNotDisturb;
   bool get isBusy => type == SnAccountStatusType.busy;
   bool get isIdleOrOnline => isOnline && isIdle;
+}
+
+/// A device the account currently has a live websocket connection from, as
+/// aggregated by Stargate (device identity from `auth_clients` joined with
+/// Blade's live connections).
+@freezed
+sealed class SnOnlineDevice with _$SnOnlineDevice {
+  const factory SnOnlineDevice({
+    required String id,
+    required String deviceId,
+    required String deviceName,
+    String? deviceLabel,
+    @Default(0) int platform,
+    DateTime? lastGrantedAt,
+  }) = _SnOnlineDevice;
+
+  factory SnOnlineDevice.fromJson(Map<String, dynamic> json) =>
+      _$SnOnlineDeviceFromJson(json);
+}
+
+extension SnOnlineDeviceDisplay on SnOnlineDevice {
+  /// The human-readable name: the device label when set, else the name.
+  String get displayName {
+    final label = deviceLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+    return deviceName;
+  }
 }
 
 @freezed
@@ -351,6 +379,7 @@ sealed class SnAuthDevice with _$SnAuthDevice {
     @Default(false) bool isCurrent,
     @Default('device') String category,
     @Default(false) bool trusted,
+    @Default(false) bool isOnline,
   }) = _SnAuthDevice;
 
   factory SnAuthDevice.fromJson(Map<String, dynamic> json) =>
@@ -370,6 +399,7 @@ sealed class SnAuthDeviceWithSession with _$SnAuthDeviceWithSession {
     @Default(false) bool isCurrent,
     @Default('device') String category,
     @Default(false) bool trusted,
+    @Default(false) bool isOnline,
   }) = _SnAuthDeviceWithSessione;
 
   factory SnAuthDeviceWithSession.fromJson(Map<String, dynamic> json) =>

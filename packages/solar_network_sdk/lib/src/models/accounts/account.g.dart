@@ -202,6 +202,11 @@ _SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
+      onlineDevices:
+          (json['online_devices'] as List<dynamic>?)
+              ?.map((e) => SnOnlineDevice.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
@@ -226,6 +231,29 @@ Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'online_devices': instance.onlineDevices.map((e) => e.toJson()).toList(),
+    };
+
+_SnOnlineDevice _$SnOnlineDeviceFromJson(Map<String, dynamic> json) =>
+    _SnOnlineDevice(
+      id: json['id'] as String,
+      deviceId: json['device_id'] as String,
+      deviceName: json['device_name'] as String,
+      deviceLabel: json['device_label'] as String?,
+      platform: (json['platform'] as num?)?.toInt() ?? 0,
+      lastGrantedAt: json['last_granted_at'] == null
+          ? null
+          : DateTime.parse(json['last_granted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnOnlineDeviceToJson(_SnOnlineDevice instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'device_id': instance.deviceId,
+      'device_name': instance.deviceName,
+      'device_label': instance.deviceLabel,
+      'platform': instance.platform,
+      'last_granted_at': instance.lastGrantedAt?.toIso8601String(),
     };
 
 _SnAccountBadge _$SnAccountBadgeFromJson(Map<String, dynamic> json) =>
@@ -470,6 +498,7 @@ _SnAuthDevice _$SnAuthDeviceFromJson(Map<String, dynamic> json) =>
       isCurrent: json['is_current'] as bool? ?? false,
       category: json['category'] as String? ?? 'device',
       trusted: json['trusted'] as bool? ?? false,
+      isOnline: json['is_online'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
@@ -483,6 +512,7 @@ Map<String, dynamic> _$SnAuthDeviceToJson(_SnAuthDevice instance) =>
       'is_current': instance.isCurrent,
       'category': instance.category,
       'trusted': instance.trusted,
+      'is_online': instance.isOnline,
     };
 
 _SnAuthDeviceWithSessione _$SnAuthDeviceWithSessioneFromJson(
@@ -500,6 +530,7 @@ _SnAuthDeviceWithSessione _$SnAuthDeviceWithSessioneFromJson(
   isCurrent: json['is_current'] as bool? ?? false,
   category: json['category'] as String? ?? 'device',
   trusted: json['trusted'] as bool? ?? false,
+  isOnline: json['is_online'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnAuthDeviceWithSessioneToJson(
@@ -515,6 +546,7 @@ Map<String, dynamic> _$SnAuthDeviceWithSessioneToJson(
   'is_current': instance.isCurrent,
   'category': instance.category,
   'trusted': instance.trusted,
+  'is_online': instance.isOnline,
 };
 
 _SnExperienceRecord _$SnExperienceRecordFromJson(Map<String, dynamic> json) =>

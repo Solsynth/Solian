@@ -29,16 +29,21 @@ $SnAccountCopyWith<SnAccount> get copyWith => _$SnAccountCopyWithImpl<SnAccount>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.region, region) || other.region == region)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other.badges, badges)&&const DeepCollectionEquality().equals(other.contacts, contacts)&&(identical(other.activatedAt, activatedAt) || other.activatedAt == activatedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnAccount;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccount&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.nick, _this.nick) || other.nick == _this.nick)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.region, _this.region) || other.region == _this.region)&&(identical(other.isSuperuser, _this.isSuperuser) || other.isSuperuser == _this.isSuperuser)&&(identical(other.automatedId, _this.automatedId) || other.automatedId == _this.automatedId)&&(identical(other.profile, _this.profile) || other.profile == _this.profile)&&(identical(other.perkSubscription, _this.perkSubscription) || other.perkSubscription == _this.perkSubscription)&&const DeepCollectionEquality().equals(other.badges, _this.badges)&&const DeepCollectionEquality().equals(other.contacts, _this.contacts)&&(identical(other.activatedAt, _this.activatedAt) || other.activatedAt == _this.activatedAt)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nick,language,region,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(badges),const DeepCollectionEquality().hash(contacts),activatedAt,createdAt,updatedAt,deletedAt);
+int get hashCode {
+  final _this = this as SnAccount;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.nick,_this.language,_this.region,_this.isSuperuser,_this.automatedId,_this.profile,_this.perkSubscription,const DeepCollectionEquality().hash(_this.badges),const DeepCollectionEquality().hash(_this.contacts),_this.activatedAt,_this.createdAt,_this.updatedAt,_this.deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, region: $region, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, contacts: $contacts, activatedAt: $activatedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnAccount;
+  return 'SnAccount(id: ${_this.id}, name: ${_this.name}, nick: ${_this.nick}, language: ${_this.language}, region: ${_this.region}, isSuperuser: ${_this.isSuperuser}, automatedId: ${_this.automatedId}, profile: ${_this.profile}, perkSubscription: ${_this.perkSubscription}, badges: ${_this.badges}, contacts: ${_this.contacts}, activatedAt: ${_this.activatedAt}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -283,16 +288,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.region, region) || other.region == region)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other._badges, _badges)&&const DeepCollectionEquality().equals(other._contacts, _contacts)&&(identical(other.activatedAt, activatedAt) || other.activatedAt == activatedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.language, language) || other.language == language)&&(identical(other.region, region) || other.region == region)&&(identical(other.isSuperuser, isSuperuser) || other.isSuperuser == isSuperuser)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.perkSubscription, perkSubscription) || other.perkSubscription == perkSubscription)&&const DeepCollectionEquality().equals(other.badges, _badges)&&const DeepCollectionEquality().equals(other.contacts, _contacts)&&(identical(other.activatedAt, activatedAt) || other.activatedAt == activatedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nick,language,region,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(_badges),const DeepCollectionEquality().hash(_contacts),activatedAt,createdAt,updatedAt,deletedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,nick,language,region,isSuperuser,automatedId,profile,perkSubscription,const DeepCollectionEquality().hash(_badges),const DeepCollectionEquality().hash(_contacts),activatedAt,createdAt,updatedAt,deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, region: $region, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, contacts: $contacts, activatedAt: $activatedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnAccount(id: $id, name: $name, nick: $nick, language: $language, region: $region, isSuperuser: $isSuperuser, automatedId: $automatedId, profile: $profile, perkSubscription: $perkSubscription, badges: $badges, contacts: $contacts, activatedAt: $activatedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -382,16 +389,21 @@ $ProfileLinkCopyWith<ProfileLink> get copyWith => _$ProfileLinkCopyWithImpl<Prof
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileLink&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+  final _this = this as ProfileLink;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileLink&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.url, _this.url) || other.url == _this.url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url);
+int get hashCode {
+  final _this = this as ProfileLink;
+  return Object.hash(runtimeType,_this.name,_this.url);
+}
 
 @override
 String toString() {
-  return 'ProfileLink(name: $name, url: $url)';
+  final _this = this as ProfileLink;
+  return 'ProfileLink(name: ${_this.name}, url: ${_this.url})';
 }
 
 
@@ -577,16 +589,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileLink&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileLink&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url);
+int get hashCode {
+    return Object.hash(runtimeType,name,url);
+}
 
 @override
 String toString() {
-  return 'ProfileLink(name: $name, url: $url)';
+    return 'ProfileLink(name: $name, url: $url)';
 }
 
 
@@ -642,16 +656,21 @@ $UsernameColorCopyWith<UsernameColor> get copyWith => _$UsernameColorCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UsernameColor&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.direction, direction) || other.direction == direction)&&const DeepCollectionEquality().equals(other.colors, colors));
+  final _this = this as UsernameColor;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UsernameColor&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.value, _this.value) || other.value == _this.value)&&(identical(other.direction, _this.direction) || other.direction == _this.direction)&&const DeepCollectionEquality().equals(other.colors, _this.colors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,value,direction,const DeepCollectionEquality().hash(colors));
+int get hashCode {
+  final _this = this as UsernameColor;
+  return Object.hash(runtimeType,_this.type,_this.value,_this.direction,const DeepCollectionEquality().hash(_this.colors));
+}
 
 @override
 String toString() {
-  return 'UsernameColor(type: $type, value: $value, direction: $direction, colors: $colors)';
+  final _this = this as UsernameColor;
+  return 'UsernameColor(type: ${_this.type}, value: ${_this.value}, direction: ${_this.direction}, colors: ${_this.colors})';
 }
 
 
@@ -849,16 +868,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UsernameColor&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.direction, direction) || other.direction == direction)&&const DeepCollectionEquality().equals(other._colors, _colors));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UsernameColor&&(identical(other.type, type) || other.type == type)&&(identical(other.value, value) || other.value == value)&&(identical(other.direction, direction) || other.direction == direction)&&const DeepCollectionEquality().equals(other.colors, _colors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,value,direction,const DeepCollectionEquality().hash(_colors));
+int get hashCode {
+    return Object.hash(runtimeType,type,value,direction,const DeepCollectionEquality().hash(_colors));
+}
 
 @override
 String toString() {
-  return 'UsernameColor(type: $type, value: $value, direction: $direction, colors: $colors)';
+    return 'UsernameColor(type: $type, value: $value, direction: $direction, colors: $colors)';
 }
 
 
@@ -916,16 +937,21 @@ $SnAccountProfileCopyWith<SnAccountProfile> get copyWith => _$SnAccountProfileCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other.links, links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnAccountProfile;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfile&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.firstName, _this.firstName) || other.firstName == _this.firstName)&&(identical(other.middleName, _this.middleName) || other.middleName == _this.middleName)&&(identical(other.lastName, _this.lastName) || other.lastName == _this.lastName)&&(identical(other.bio, _this.bio) || other.bio == _this.bio)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.pronouns, _this.pronouns) || other.pronouns == _this.pronouns)&&(identical(other.location, _this.location) || other.location == _this.location)&&(identical(other.timeZone, _this.timeZone) || other.timeZone == _this.timeZone)&&(identical(other.birthday, _this.birthday) || other.birthday == _this.birthday)&&const DeepCollectionEquality().equals(other.links, _this.links)&&(identical(other.lastSeenAt, _this.lastSeenAt) || other.lastSeenAt == _this.lastSeenAt)&&(identical(other.activeBadge, _this.activeBadge) || other.activeBadge == _this.activeBadge)&&(identical(other.experience, _this.experience) || other.experience == _this.experience)&&(identical(other.level, _this.level) || other.level == _this.level)&&(identical(other.socialCredits, _this.socialCredits) || other.socialCredits == _this.socialCredits)&&(identical(other.socialCreditsLevel, _this.socialCreditsLevel) || other.socialCreditsLevel == _this.socialCreditsLevel)&&(identical(other.levelingProgress, _this.levelingProgress) || other.levelingProgress == _this.levelingProgress)&&(identical(other.picture, _this.picture) || other.picture == _this.picture)&&(identical(other.background, _this.background) || other.background == _this.background)&&(identical(other.verification, _this.verification) || other.verification == _this.verification)&&(identical(other.usernameColor, _this.usernameColor) || other.usernameColor == _this.usernameColor)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,usernameColor,createdAt,updatedAt,deletedAt]);
+int get hashCode {
+  final _this = this as SnAccountProfile;
+  return Object.hashAll([runtimeType,_this.id,_this.firstName,_this.middleName,_this.lastName,_this.bio,_this.gender,_this.pronouns,_this.location,_this.timeZone,_this.birthday,const DeepCollectionEquality().hash(_this.links),_this.lastSeenAt,_this.activeBadge,_this.experience,_this.level,_this.socialCredits,_this.socialCreditsLevel,_this.levelingProgress,_this.picture,_this.background,_this.verification,_this.usernameColor,_this.createdAt,_this.updatedAt,_this.deletedAt]);
+}
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnAccountProfile;
+  return 'SnAccountProfile(id: ${_this.id}, firstName: ${_this.firstName}, middleName: ${_this.middleName}, lastName: ${_this.lastName}, bio: ${_this.bio}, gender: ${_this.gender}, pronouns: ${_this.pronouns}, location: ${_this.location}, timeZone: ${_this.timeZone}, birthday: ${_this.birthday}, links: ${_this.links}, lastSeenAt: ${_this.lastSeenAt}, activeBadge: ${_this.activeBadge}, experience: ${_this.experience}, level: ${_this.level}, socialCredits: ${_this.socialCredits}, socialCreditsLevel: ${_this.socialCreditsLevel}, levelingProgress: ${_this.levelingProgress}, picture: ${_this.picture}, background: ${_this.background}, verification: ${_this.verification}, usernameColor: ${_this.usernameColor}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -1223,16 +1249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other._links, _links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfile&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.pronouns, pronouns) || other.pronouns == pronouns)&&(identical(other.location, location) || other.location == location)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&const DeepCollectionEquality().equals(other.links, _links)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.activeBadge, activeBadge) || other.activeBadge == activeBadge)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.level, level) || other.level == level)&&(identical(other.socialCredits, socialCredits) || other.socialCredits == socialCredits)&&(identical(other.socialCreditsLevel, socialCreditsLevel) || other.socialCreditsLevel == socialCreditsLevel)&&(identical(other.levelingProgress, levelingProgress) || other.levelingProgress == levelingProgress)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(_links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,usernameColor,createdAt,updatedAt,deletedAt]);
+int get hashCode {
+    return Object.hashAll([runtimeType,id,firstName,middleName,lastName,bio,gender,pronouns,location,timeZone,birthday,const DeepCollectionEquality().hash(_links),lastSeenAt,activeBadge,experience,level,socialCredits,socialCreditsLevel,levelingProgress,picture,background,verification,usernameColor,createdAt,updatedAt,deletedAt]);
+}
 
 @override
 String toString() {
-  return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnAccountProfile(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, gender: $gender, pronouns: $pronouns, location: $location, timeZone: $timeZone, birthday: $birthday, links: $links, lastSeenAt: $lastSeenAt, activeBadge: $activeBadge, experience: $experience, level: $level, socialCredits: $socialCredits, socialCreditsLevel: $socialCreditsLevel, levelingProgress: $levelingProgress, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1358,7 +1386,7 @@ $UsernameColorCopyWith<$Res>? get usernameColor {
 /// @nodoc
 mixin _$SnAccountStatus {
 
- String get id; int get attitude; bool get isOnline; bool get isIdle; DateTime? get idleSince; bool get isCustomized;@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int get type; String get label; String? get symbol; SnCloudFileReference? get icon; SnCloudFileReference? get background; Map<String, dynamic>? get meta; DateTime? get clearedAt; String? get appIdentifier; bool get isAutomated; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get attitude; bool get isOnline; bool get isIdle; DateTime? get idleSince; bool get isCustomized;@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int get type; String get label; String? get symbol; SnCloudFileReference? get icon; SnCloudFileReference? get background; Map<String, dynamic>? get meta; DateTime? get clearedAt; String? get appIdentifier; bool get isAutomated; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnOnlineDevice> get onlineDevices;
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1371,16 +1399,21 @@ $SnAccountStatusCopyWith<SnAccountStatus> get copyWith => _$SnAccountStatusCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnAccountStatus;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountStatus&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.attitude, _this.attitude) || other.attitude == _this.attitude)&&(identical(other.isOnline, _this.isOnline) || other.isOnline == _this.isOnline)&&(identical(other.isIdle, _this.isIdle) || other.isIdle == _this.isIdle)&&(identical(other.idleSince, _this.idleSince) || other.idleSince == _this.idleSince)&&(identical(other.isCustomized, _this.isCustomized) || other.isCustomized == _this.isCustomized)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.symbol, _this.symbol) || other.symbol == _this.symbol)&&(identical(other.icon, _this.icon) || other.icon == _this.icon)&&(identical(other.background, _this.background) || other.background == _this.background)&&const DeepCollectionEquality().equals(other.meta, _this.meta)&&(identical(other.clearedAt, _this.clearedAt) || other.clearedAt == _this.clearedAt)&&(identical(other.appIdentifier, _this.appIdentifier) || other.appIdentifier == _this.appIdentifier)&&(identical(other.isAutomated, _this.isAutomated) || other.isAutomated == _this.isAutomated)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.account, _this.account) || other.account == _this.account)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt)&&const DeepCollectionEquality().equals(other.onlineDevices, _this.onlineDevices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,icon,background,const DeepCollectionEquality().hash(meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt]);
+int get hashCode {
+  final _this = this as SnAccountStatus;
+  return Object.hashAll([runtimeType,_this.id,_this.attitude,_this.isOnline,_this.isIdle,_this.idleSince,_this.isCustomized,_this.type,_this.label,_this.symbol,_this.icon,_this.background,const DeepCollectionEquality().hash(_this.meta),_this.clearedAt,_this.appIdentifier,_this.isAutomated,_this.accountId,_this.account,_this.createdAt,_this.updatedAt,_this.deletedAt,const DeepCollectionEquality().hash(_this.onlineDevices)]);
+}
 
 @override
 String toString() {
-  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, icon: $icon, background: $background, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnAccountStatus;
+  return 'SnAccountStatus(id: ${_this.id}, attitude: ${_this.attitude}, isOnline: ${_this.isOnline}, isIdle: ${_this.isIdle}, idleSince: ${_this.idleSince}, isCustomized: ${_this.isCustomized}, type: ${_this.type}, label: ${_this.label}, symbol: ${_this.symbol}, icon: ${_this.icon}, background: ${_this.background}, meta: ${_this.meta}, clearedAt: ${_this.clearedAt}, appIdentifier: ${_this.appIdentifier}, isAutomated: ${_this.isAutomated}, accountId: ${_this.accountId}, account: ${_this.account}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt}, onlineDevices: ${_this.onlineDevices})';
 }
 
 
@@ -1391,7 +1424,7 @@ abstract mixin class $SnAccountStatusCopyWith<$Res>  {
   factory $SnAccountStatusCopyWith(SnAccountStatus value, $Res Function(SnAccountStatus) _then) = _$SnAccountStatusCopyWithImpl;
 @useResult
 $Res call({
- String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, SnCloudFileReference? icon, SnCloudFileReference? background, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, SnCloudFileReference? icon, SnCloudFileReference? background, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnOnlineDevice> onlineDevices
 });
 
 
@@ -1408,7 +1441,7 @@ class _$SnAccountStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? onlineDevices = null,}) {
   return _then(SnAccountStatus(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
@@ -1430,7 +1463,8 @@ as String,account: freezed == account ? _self.account : account // ignore: cast_
 as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,onlineDevices: null == onlineDevices ? _self.onlineDevices : onlineDevices // ignore: cast_nullable_to_non_nullable
+as List<SnOnlineDevice>,
   ));
 }
 /// Create a copy of SnAccountStatus
@@ -1548,10 +1582,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnOnlineDevice> onlineDevices)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAccountStatus() when $default != null:
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.onlineDevices);case _:
   return orElse();
 
 }
@@ -1569,10 +1603,10 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnOnlineDevice> onlineDevices)  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountStatus():
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.onlineDevices);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1586,10 +1620,10 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int attitude,  bool isOnline,  bool isIdle,  DateTime? idleSince,  bool isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)  int type,  String label,  String? symbol,  SnCloudFileReference? icon,  SnCloudFileReference? background,  Map<String, dynamic>? meta,  DateTime? clearedAt,  String? appIdentifier,  bool isAutomated,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnOnlineDevice> onlineDevices)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAccountStatus() when $default != null:
-return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSince,_that.isCustomized,_that.type,_that.label,_that.symbol,_that.icon,_that.background,_that.meta,_that.clearedAt,_that.appIdentifier,_that.isAutomated,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.onlineDevices);case _:
   return null;
 
 }
@@ -1601,7 +1635,7 @@ return $default(_that.id,_that.attitude,_that.isOnline,_that.isIdle,_that.idleSi
 @JsonSerializable()
 
 class _SnAccountStatus implements SnAccountStatus {
-  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, this.isIdle = false, this.idleSince, required this.isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) this.type = SnAccountStatusType.defaultType, this.label = "", this.symbol, this.icon, this.background, required  Map<String, dynamic>? meta, required this.clearedAt, this.appIdentifier, this.isAutomated = false, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _meta = meta;
+  const _SnAccountStatus({required this.id, required this.attitude, required this.isOnline, this.isIdle = false, this.idleSince, required this.isCustomized, @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) this.type = SnAccountStatusType.defaultType, this.label = "", this.symbol, this.icon, this.background, required  Map<String, dynamic>? meta, required this.clearedAt, this.appIdentifier, this.isAutomated = false, required this.accountId, this.account, required this.createdAt, required this.updatedAt, required this.deletedAt,  List<SnOnlineDevice> onlineDevices = const []}): _meta = meta,_onlineDevices = onlineDevices;
   factory _SnAccountStatus.fromJson(Map<String, dynamic> json) => _$SnAccountStatusFromJson(json);
 
 @override final  String id;
@@ -1632,6 +1666,13 @@ class _SnAccountStatus implements SnAccountStatus {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
+ final  List<SnOnlineDevice> _onlineDevices;
+@override@JsonKey() List<SnOnlineDevice> get onlineDevices {
+  if (_onlineDevices is EqualUnmodifiableListView) return _onlineDevices;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_onlineDevices);
+}
+
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
@@ -1646,16 +1687,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountStatus&&(identical(other.id, id) || other.id == id)&&(identical(other.attitude, attitude) || other.attitude == attitude)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.isIdle, isIdle) || other.isIdle == isIdle)&&(identical(other.idleSince, idleSince) || other.idleSince == idleSince)&&(identical(other.isCustomized, isCustomized) || other.isCustomized == isCustomized)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.background, background) || other.background == background)&&const DeepCollectionEquality().equals(other.meta, _meta)&&(identical(other.clearedAt, clearedAt) || other.clearedAt == clearedAt)&&(identical(other.appIdentifier, appIdentifier) || other.appIdentifier == appIdentifier)&&(identical(other.isAutomated, isAutomated) || other.isAutomated == isAutomated)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.onlineDevices, _onlineDevices));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,icon,background,const DeepCollectionEquality().hash(_meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt]);
+int get hashCode {
+    return Object.hashAll([runtimeType,id,attitude,isOnline,isIdle,idleSince,isCustomized,type,label,symbol,icon,background,const DeepCollectionEquality().hash(_meta),clearedAt,appIdentifier,isAutomated,accountId,account,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_onlineDevices)]);
+}
 
 @override
 String toString() {
-  return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, icon: $icon, background: $background, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnAccountStatus(id: $id, attitude: $attitude, isOnline: $isOnline, isIdle: $isIdle, idleSince: $idleSince, isCustomized: $isCustomized, type: $type, label: $label, symbol: $symbol, icon: $icon, background: $background, meta: $meta, clearedAt: $clearedAt, appIdentifier: $appIdentifier, isAutomated: $isAutomated, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, onlineDevices: $onlineDevices)';
 }
 
 
@@ -1666,7 +1709,7 @@ abstract mixin class _$SnAccountStatusCopyWith<$Res> implements $SnAccountStatus
   factory _$SnAccountStatusCopyWith(_SnAccountStatus value, $Res Function(_SnAccountStatus) _then) = __$SnAccountStatusCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, SnCloudFileReference? icon, SnCloudFileReference? background, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int attitude, bool isOnline, bool isIdle, DateTime? idleSince, bool isCustomized,@JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson) int type, String label, String? symbol, SnCloudFileReference? icon, SnCloudFileReference? background, Map<String, dynamic>? meta, DateTime? clearedAt, String? appIdentifier, bool isAutomated, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnOnlineDevice> onlineDevices
 });
 
 
@@ -1683,7 +1726,7 @@ class __$SnAccountStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? attitude = null,Object? isOnline = null,Object? isIdle = null,Object? idleSince = freezed,Object? isCustomized = null,Object? type = null,Object? label = null,Object? symbol = freezed,Object? icon = freezed,Object? background = freezed,Object? meta = freezed,Object? clearedAt = freezed,Object? appIdentifier = freezed,Object? isAutomated = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? onlineDevices = null,}) {
   return _then(_SnAccountStatus(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,attitude: null == attitude ? _self.attitude : attitude // ignore: cast_nullable_to_non_nullable
@@ -1705,7 +1748,8 @@ as String,account: freezed == account ? _self.account : account // ignore: cast_
 as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,onlineDevices: null == onlineDevices ? _self._onlineDevices : onlineDevices // ignore: cast_nullable_to_non_nullable
+as List<SnOnlineDevice>,
   ));
 }
 
@@ -1750,6 +1794,285 @@ $SnAccountCopyWith<$Res>? get account {
 
 
 /// @nodoc
+mixin _$SnOnlineDevice {
+
+ String get id; String get deviceId; String get deviceName; String? get deviceLabel; int get platform; DateTime? get lastGrantedAt;
+/// Create a copy of SnOnlineDevice
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnOnlineDeviceCopyWith<SnOnlineDevice> get copyWith => _$SnOnlineDeviceCopyWithImpl<SnOnlineDevice>(this as SnOnlineDevice, _$identity);
+
+  /// Serializes this SnOnlineDevice to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as SnOnlineDevice;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnOnlineDevice&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.deviceName, _this.deviceName) || other.deviceName == _this.deviceName)&&(identical(other.deviceLabel, _this.deviceLabel) || other.deviceLabel == _this.deviceLabel)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&(identical(other.lastGrantedAt, _this.lastGrantedAt) || other.lastGrantedAt == _this.lastGrantedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as SnOnlineDevice;
+  return Object.hash(runtimeType,_this.id,_this.deviceId,_this.deviceName,_this.deviceLabel,_this.platform,_this.lastGrantedAt);
+}
+
+@override
+String toString() {
+  final _this = this as SnOnlineDevice;
+  return 'SnOnlineDevice(id: ${_this.id}, deviceId: ${_this.deviceId}, deviceName: ${_this.deviceName}, deviceLabel: ${_this.deviceLabel}, platform: ${_this.platform}, lastGrantedAt: ${_this.lastGrantedAt})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnOnlineDeviceCopyWith<$Res>  {
+  factory $SnOnlineDeviceCopyWith(SnOnlineDevice value, $Res Function(SnOnlineDevice) _then) = _$SnOnlineDeviceCopyWithImpl;
+@useResult
+$Res call({
+ String id, String deviceId, String deviceName, String? deviceLabel, int platform, DateTime? lastGrantedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnOnlineDeviceCopyWithImpl<$Res>
+    implements $SnOnlineDeviceCopyWith<$Res> {
+  _$SnOnlineDeviceCopyWithImpl(this._self, this._then);
+
+  final SnOnlineDevice _self;
+  final $Res Function(SnOnlineDevice) _then;
+
+/// Create a copy of SnOnlineDevice
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? platform = null,Object? lastGrantedAt = freezed,}) {
+  return _then(SnOnlineDevice(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
+as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
+as String?,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as int,lastGrantedAt: freezed == lastGrantedAt ? _self.lastGrantedAt : lastGrantedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnOnlineDevice].
+extension SnOnlineDevicePatterns on SnOnlineDevice {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnOnlineDevice value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnOnlineDevice() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnOnlineDevice value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnOnlineDevice():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnOnlineDevice value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnOnlineDevice() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  int platform,  DateTime? lastGrantedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnOnlineDevice() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.platform,_that.lastGrantedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  int platform,  DateTime? lastGrantedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnOnlineDevice():
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.platform,_that.lastGrantedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  int platform,  DateTime? lastGrantedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnOnlineDevice() when $default != null:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.platform,_that.lastGrantedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnOnlineDevice implements SnOnlineDevice {
+  const _SnOnlineDevice({required this.id, required this.deviceId, required this.deviceName, this.deviceLabel, this.platform = 0, this.lastGrantedAt});
+  factory _SnOnlineDevice.fromJson(Map<String, dynamic> json) => _$SnOnlineDeviceFromJson(json);
+
+@override final  String id;
+@override final  String deviceId;
+@override final  String deviceName;
+@override final  String? deviceLabel;
+@override@JsonKey() final  int platform;
+@override final  DateTime? lastGrantedAt;
+
+/// Create a copy of SnOnlineDevice
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnOnlineDeviceCopyWith<_SnOnlineDevice> get copyWith => __$SnOnlineDeviceCopyWithImpl<_SnOnlineDevice>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnOnlineDeviceToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnOnlineDevice&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.lastGrantedAt, lastGrantedAt) || other.lastGrantedAt == lastGrantedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,platform,lastGrantedAt);
+}
+
+@override
+String toString() {
+    return 'SnOnlineDevice(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, platform: $platform, lastGrantedAt: $lastGrantedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnOnlineDeviceCopyWith<$Res> implements $SnOnlineDeviceCopyWith<$Res> {
+  factory _$SnOnlineDeviceCopyWith(_SnOnlineDevice value, $Res Function(_SnOnlineDevice) _then) = __$SnOnlineDeviceCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String deviceId, String deviceName, String? deviceLabel, int platform, DateTime? lastGrantedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnOnlineDeviceCopyWithImpl<$Res>
+    implements _$SnOnlineDeviceCopyWith<$Res> {
+  __$SnOnlineDeviceCopyWithImpl(this._self, this._then);
+
+  final _SnOnlineDevice _self;
+  final $Res Function(_SnOnlineDevice) _then;
+
+/// Create a copy of SnOnlineDevice
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? platform = null,Object? lastGrantedAt = freezed,}) {
+  return _then(_SnOnlineDevice(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
+as String,deviceName: null == deviceName ? _self.deviceName : deviceName // ignore: cast_nullable_to_non_nullable
+as String,deviceLabel: freezed == deviceLabel ? _self.deviceLabel : deviceLabel // ignore: cast_nullable_to_non_nullable
+as String?,platform: null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
+as int,lastGrantedAt: freezed == lastGrantedAt ? _self.lastGrantedAt : lastGrantedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnAccountBadge {
 
  String get id; String get type; String? get label; String? get caption; Map<String, dynamic> get meta; DateTime? get expiredAt; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get activatedAt; DateTime? get deletedAt;
@@ -1765,16 +2088,21 @@ $SnAccountBadgeCopyWith<SnAccountBadge> get copyWith => _$SnAccountBadgeCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountBadge&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.activatedAt, activatedAt) || other.activatedAt == activatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnAccountBadge;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountBadge&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.caption, _this.caption) || other.caption == _this.caption)&&const DeepCollectionEquality().equals(other.meta, _this.meta)&&(identical(other.expiredAt, _this.expiredAt) || other.expiredAt == _this.expiredAt)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.activatedAt, _this.activatedAt) || other.activatedAt == _this.activatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,label,caption,const DeepCollectionEquality().hash(meta),expiredAt,accountId,createdAt,updatedAt,activatedAt,deletedAt);
+int get hashCode {
+  final _this = this as SnAccountBadge;
+  return Object.hash(runtimeType,_this.id,_this.type,_this.label,_this.caption,const DeepCollectionEquality().hash(_this.meta),_this.expiredAt,_this.accountId,_this.createdAt,_this.updatedAt,_this.activatedAt,_this.deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnAccountBadge(id: $id, type: $type, label: $label, caption: $caption, meta: $meta, expiredAt: $expiredAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, activatedAt: $activatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnAccountBadge;
+  return 'SnAccountBadge(id: ${_this.id}, type: ${_this.type}, label: ${_this.label}, caption: ${_this.caption}, meta: ${_this.meta}, expiredAt: ${_this.expiredAt}, accountId: ${_this.accountId}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, activatedAt: ${_this.activatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -1984,16 +2312,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountBadge&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.activatedAt, activatedAt) || other.activatedAt == activatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountBadge&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&const DeepCollectionEquality().equals(other.meta, _meta)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.activatedAt, activatedAt) || other.activatedAt == activatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,label,caption,const DeepCollectionEquality().hash(_meta),expiredAt,accountId,createdAt,updatedAt,activatedAt,deletedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,type,label,caption,const DeepCollectionEquality().hash(_meta),expiredAt,accountId,createdAt,updatedAt,activatedAt,deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnAccountBadge(id: $id, type: $type, label: $label, caption: $caption, meta: $meta, expiredAt: $expiredAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, activatedAt: $activatedAt, deletedAt: $deletedAt)';
+    return 'SnAccountBadge(id: $id, type: $type, label: $label, caption: $caption, meta: $meta, expiredAt: $expiredAt, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, activatedAt: $activatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -2058,16 +2388,21 @@ $BadgeManifestSeriesCopyWith<BadgeManifestSeries> get copyWith => _$BadgeManifes
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BadgeManifestSeries&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order));
+  final _this = this as BadgeManifestSeries;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BadgeManifestSeries&&(identical(other.identifier, _this.identifier) || other.identifier == _this.identifier)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.order, _this.order) || other.order == _this.order));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identifier,title,order);
+int get hashCode {
+  final _this = this as BadgeManifestSeries;
+  return Object.hash(runtimeType,_this.identifier,_this.title,_this.order);
+}
 
 @override
 String toString() {
-  return 'BadgeManifestSeries(identifier: $identifier, title: $title, order: $order)';
+  final _this = this as BadgeManifestSeries;
+  return 'BadgeManifestSeries(identifier: ${_this.identifier}, title: ${_this.title}, order: ${_this.order})';
 }
 
 
@@ -2255,16 +2590,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BadgeManifestSeries&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BadgeManifestSeries&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identifier,title,order);
+int get hashCode {
+    return Object.hash(runtimeType,identifier,title,order);
+}
 
 @override
 String toString() {
-  return 'BadgeManifestSeries(identifier: $identifier, title: $title, order: $order)';
+    return 'BadgeManifestSeries(identifier: $identifier, title: $title, order: $order)';
 }
 
 
@@ -2321,16 +2658,21 @@ $BadgeManifestEntryCopyWith<BadgeManifestEntry> get copyWith => _$BadgeManifestE
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BadgeManifestEntry&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.achievementIdentifier, achievementIdentifier) || other.achievementIdentifier == achievementIdentifier)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.localizationKey, localizationKey) || other.localizationKey == localizationKey)&&(identical(other.category, category) || other.category == category)&&(identical(other.series, series) || other.series == series)&&(identical(other.hidden, hidden) || other.hidden == hidden));
+  final _this = this as BadgeManifestEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BadgeManifestEntry&&(identical(other.identifier, _this.identifier) || other.identifier == _this.identifier)&&(identical(other.achievementIdentifier, _this.achievementIdentifier) || other.achievementIdentifier == _this.achievementIdentifier)&&(identical(other.label, _this.label) || other.label == _this.label)&&(identical(other.caption, _this.caption) || other.caption == _this.caption)&&(identical(other.icon, _this.icon) || other.icon == _this.icon)&&(identical(other.color, _this.color) || other.color == _this.color)&&(identical(other.iconUrl, _this.iconUrl) || other.iconUrl == _this.iconUrl)&&(identical(other.localizationKey, _this.localizationKey) || other.localizationKey == _this.localizationKey)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.series, _this.series) || other.series == _this.series)&&(identical(other.hidden, _this.hidden) || other.hidden == _this.hidden));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identifier,achievementIdentifier,label,caption,icon,color,iconUrl,localizationKey,category,series,hidden);
+int get hashCode {
+  final _this = this as BadgeManifestEntry;
+  return Object.hash(runtimeType,_this.identifier,_this.achievementIdentifier,_this.label,_this.caption,_this.icon,_this.color,_this.iconUrl,_this.localizationKey,_this.category,_this.series,_this.hidden);
+}
 
 @override
 String toString() {
-  return 'BadgeManifestEntry(identifier: $identifier, achievementIdentifier: $achievementIdentifier, label: $label, caption: $caption, icon: $icon, color: $color, iconUrl: $iconUrl, localizationKey: $localizationKey, category: $category, series: $series, hidden: $hidden)';
+  final _this = this as BadgeManifestEntry;
+  return 'BadgeManifestEntry(identifier: ${_this.identifier}, achievementIdentifier: ${_this.achievementIdentifier}, label: ${_this.label}, caption: ${_this.caption}, icon: ${_this.icon}, color: ${_this.color}, iconUrl: ${_this.iconUrl}, localizationKey: ${_this.localizationKey}, category: ${_this.category}, series: ${_this.series}, hidden: ${_this.hidden})';
 }
 
 
@@ -2546,16 +2888,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BadgeManifestEntry&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.achievementIdentifier, achievementIdentifier) || other.achievementIdentifier == achievementIdentifier)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.localizationKey, localizationKey) || other.localizationKey == localizationKey)&&(identical(other.category, category) || other.category == category)&&(identical(other.series, series) || other.series == series)&&(identical(other.hidden, hidden) || other.hidden == hidden));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BadgeManifestEntry&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.achievementIdentifier, achievementIdentifier) || other.achievementIdentifier == achievementIdentifier)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.localizationKey, localizationKey) || other.localizationKey == localizationKey)&&(identical(other.category, category) || other.category == category)&&(identical(other.series, series) || other.series == series)&&(identical(other.hidden, hidden) || other.hidden == hidden));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identifier,achievementIdentifier,label,caption,icon,color,iconUrl,localizationKey,category,series,hidden);
+int get hashCode {
+    return Object.hash(runtimeType,identifier,achievementIdentifier,label,caption,icon,color,iconUrl,localizationKey,category,series,hidden);
+}
 
 @override
 String toString() {
-  return 'BadgeManifestEntry(identifier: $identifier, achievementIdentifier: $achievementIdentifier, label: $label, caption: $caption, icon: $icon, color: $color, iconUrl: $iconUrl, localizationKey: $localizationKey, category: $category, series: $series, hidden: $hidden)';
+    return 'BadgeManifestEntry(identifier: $identifier, achievementIdentifier: $achievementIdentifier, label: $label, caption: $caption, icon: $icon, color: $color, iconUrl: $iconUrl, localizationKey: $localizationKey, category: $category, series: $series, hidden: $hidden)';
 }
 
 
@@ -2632,16 +2976,21 @@ $SnContactMethodCopyWith<SnContactMethod> get copyWith => _$SnContactMethodCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnContactMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.verifiedAt, verifiedAt) || other.verifiedAt == verifiedAt)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.content, content) || other.content == content)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnContactMethod;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnContactMethod&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.verifiedAt, _this.verifiedAt) || other.verifiedAt == _this.verifiedAt)&&(identical(other.isPrimary, _this.isPrimary) || other.isPrimary == _this.isPrimary)&&(identical(other.isPublic, _this.isPublic) || other.isPublic == _this.isPublic)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,verifiedAt,isPrimary,isPublic,content,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode {
+  final _this = this as SnContactMethod;
+  return Object.hash(runtimeType,_this.id,_this.type,_this.verifiedAt,_this.isPrimary,_this.isPublic,_this.content,_this.accountId,_this.createdAt,_this.updatedAt,_this.deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, isPublic: $isPublic, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnContactMethod;
+  return 'SnContactMethod(id: ${_this.id}, type: ${_this.type}, verifiedAt: ${_this.verifiedAt}, isPrimary: ${_this.isPrimary}, isPublic: ${_this.isPublic}, content: ${_this.content}, accountId: ${_this.accountId}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -2843,16 +3192,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnContactMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.verifiedAt, verifiedAt) || other.verifiedAt == verifiedAt)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.content, content) || other.content == content)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnContactMethod&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.verifiedAt, verifiedAt) || other.verifiedAt == verifiedAt)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.content, content) || other.content == content)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,verifiedAt,isPrimary,isPublic,content,accountId,createdAt,updatedAt,deletedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,type,verifiedAt,isPrimary,isPublic,content,accountId,createdAt,updatedAt,deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, isPublic: $isPublic, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnContactMethod(id: $id, type: $type, verifiedAt: $verifiedAt, isPrimary: $isPrimary, isPublic: $isPublic, content: $content, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -2916,16 +3267,21 @@ $SnNotificationCopyWith<SnNotification> get copyWith => _$SnNotificationCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.body, body) || other.body == body)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+  final _this = this as SnNotification;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotification&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.appId, _this.appId) || other.appId == _this.appId)&&(identical(other.topic, _this.topic) || other.topic == _this.topic)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.subtitle, _this.subtitle) || other.subtitle == _this.subtitle)&&(identical(other.body, _this.body) || other.body == _this.body)&&const DeepCollectionEquality().equals(other.meta, _this.meta)&&(identical(other.viewedAt, _this.viewedAt) || other.viewedAt == _this.viewedAt)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,id,appId,topic,title,subtitle,body,const DeepCollectionEquality().hash(meta),viewedAt,accountId);
+int get hashCode {
+  final _this = this as SnNotification;
+  return Object.hash(runtimeType,_this.createdAt,_this.id,_this.appId,_this.topic,_this.title,_this.subtitle,_this.body,const DeepCollectionEquality().hash(_this.meta),_this.viewedAt,_this.accountId);
+}
 
 @override
 String toString() {
-  return 'SnNotification(createdAt: $createdAt, id: $id, appId: $appId, topic: $topic, title: $title, subtitle: $subtitle, body: $body, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
+  final _this = this as SnNotification;
+  return 'SnNotification(createdAt: ${_this.createdAt}, id: ${_this.id}, appId: ${_this.appId}, topic: ${_this.topic}, title: ${_this.title}, subtitle: ${_this.subtitle}, body: ${_this.body}, meta: ${_this.meta}, viewedAt: ${_this.viewedAt}, accountId: ${_this.accountId})';
 }
 
 
@@ -3133,16 +3489,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.body, body) || other.body == body)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.body, body) || other.body == body)&&const DeepCollectionEquality().equals(other.meta, _meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,id,appId,topic,title,subtitle,body,const DeepCollectionEquality().hash(_meta),viewedAt,accountId);
+int get hashCode {
+    return Object.hash(runtimeType,createdAt,id,appId,topic,title,subtitle,body,const DeepCollectionEquality().hash(_meta),viewedAt,accountId);
+}
 
 @override
 String toString() {
-  return 'SnNotification(createdAt: $createdAt, id: $id, appId: $appId, topic: $topic, title: $title, subtitle: $subtitle, body: $body, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
+    return 'SnNotification(createdAt: $createdAt, id: $id, appId: $appId, topic: $topic, title: $title, subtitle: $subtitle, body: $body, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
 }
 
 
@@ -3206,16 +3564,21 @@ $SnVerificationMarkCopyWith<SnVerificationMark> get copyWith => _$SnVerification
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnVerificationMark&&(identical(other.type, type) || other.type == type)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.verifiedBy, verifiedBy) || other.verifiedBy == verifiedBy));
+  final _this = this as SnVerificationMark;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnVerificationMark&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.verifiedBy, _this.verifiedBy) || other.verifiedBy == _this.verifiedBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,title,description,verifiedBy);
+int get hashCode {
+  final _this = this as SnVerificationMark;
+  return Object.hash(runtimeType,_this.type,_this.title,_this.description,_this.verifiedBy);
+}
 
 @override
 String toString() {
-  return 'SnVerificationMark(type: $type, title: $title, description: $description, verifiedBy: $verifiedBy)';
+  final _this = this as SnVerificationMark;
+  return 'SnVerificationMark(type: ${_this.type}, title: ${_this.title}, description: ${_this.description}, verifiedBy: ${_this.verifiedBy})';
 }
 
 
@@ -3405,16 +3768,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnVerificationMark&&(identical(other.type, type) || other.type == type)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.verifiedBy, verifiedBy) || other.verifiedBy == verifiedBy));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnVerificationMark&&(identical(other.type, type) || other.type == type)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.verifiedBy, verifiedBy) || other.verifiedBy == verifiedBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,title,description,verifiedBy);
+int get hashCode {
+    return Object.hash(runtimeType,type,title,description,verifiedBy);
+}
 
 @override
 String toString() {
-  return 'SnVerificationMark(type: $type, title: $title, description: $description, verifiedBy: $verifiedBy)';
+    return 'SnVerificationMark(type: $type, title: $title, description: $description, verifiedBy: $verifiedBy)';
 }
 
 
@@ -3472,16 +3837,21 @@ $SnAccountProfileRefCopyWith<SnAccountProfileRef> get copyWith => _$SnAccountPro
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfileRef&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor));
+  final _this = this as SnAccountProfileRef;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountProfileRef&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.firstName, _this.firstName) || other.firstName == _this.firstName)&&(identical(other.middleName, _this.middleName) || other.middleName == _this.middleName)&&(identical(other.lastName, _this.lastName) || other.lastName == _this.lastName)&&(identical(other.bio, _this.bio) || other.bio == _this.bio)&&(identical(other.picture, _this.picture) || other.picture == _this.picture)&&(identical(other.background, _this.background) || other.background == _this.background)&&(identical(other.verification, _this.verification) || other.verification == _this.verification)&&(identical(other.usernameColor, _this.usernameColor) || other.usernameColor == _this.usernameColor));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,middleName,lastName,bio,picture,background,verification,usernameColor);
+int get hashCode {
+  final _this = this as SnAccountProfileRef;
+  return Object.hash(runtimeType,_this.id,_this.firstName,_this.middleName,_this.lastName,_this.bio,_this.picture,_this.background,_this.verification,_this.usernameColor);
+}
 
 @override
 String toString() {
-  return 'SnAccountProfileRef(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor)';
+  final _this = this as SnAccountProfileRef;
+  return 'SnAccountProfileRef(id: ${_this.id}, firstName: ${_this.firstName}, middleName: ${_this.middleName}, lastName: ${_this.lastName}, bio: ${_this.bio}, picture: ${_this.picture}, background: ${_this.background}, verification: ${_this.verification}, usernameColor: ${_this.usernameColor})';
 }
 
 
@@ -3729,16 +4099,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfileRef&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountProfileRef&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.usernameColor, usernameColor) || other.usernameColor == usernameColor));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,middleName,lastName,bio,picture,background,verification,usernameColor);
+int get hashCode {
+    return Object.hash(runtimeType,id,firstName,middleName,lastName,bio,picture,background,verification,usernameColor);
+}
 
 @override
 String toString() {
-  return 'SnAccountProfileRef(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor)';
+    return 'SnAccountProfileRef(id: $id, firstName: $firstName, middleName: $middleName, lastName: $lastName, bio: $bio, picture: $picture, background: $background, verification: $verification, usernameColor: $usernameColor)';
 }
 
 
@@ -3849,16 +4221,21 @@ $SnAccountReferenceCopyWith<SnAccountReference> get copyWith => _$SnAccountRefer
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountReference&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other.badges, badges)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId));
+  final _this = this as SnAccountReference;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountReference&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.nick, _this.nick) || other.nick == _this.nick)&&(identical(other.profile, _this.profile) || other.profile == _this.profile)&&const DeepCollectionEquality().equals(other.badges, _this.badges)&&(identical(other.automatedId, _this.automatedId) || other.automatedId == _this.automatedId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nick,profile,const DeepCollectionEquality().hash(badges),automatedId);
+int get hashCode {
+  final _this = this as SnAccountReference;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.nick,_this.profile,const DeepCollectionEquality().hash(_this.badges),_this.automatedId);
+}
 
 @override
 String toString() {
-  return 'SnAccountReference(id: $id, name: $name, nick: $nick, profile: $profile, badges: $badges, automatedId: $automatedId)';
+  final _this = this as SnAccountReference;
+  return 'SnAccountReference(id: ${_this.id}, name: ${_this.name}, nick: ${_this.nick}, profile: ${_this.profile}, badges: ${_this.badges}, automatedId: ${_this.automatedId})';
 }
 
 
@@ -4070,16 +4447,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountReference&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other._badges, _badges)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountReference&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.profile, profile) || other.profile == profile)&&const DeepCollectionEquality().equals(other.badges, _badges)&&(identical(other.automatedId, automatedId) || other.automatedId == automatedId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nick,profile,const DeepCollectionEquality().hash(_badges),automatedId);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,nick,profile,const DeepCollectionEquality().hash(_badges),automatedId);
+}
 
 @override
 String toString() {
-  return 'SnAccountReference(id: $id, name: $name, nick: $nick, profile: $profile, badges: $badges, automatedId: $automatedId)';
+    return 'SnAccountReference(id: $id, name: $name, nick: $nick, profile: $profile, badges: $badges, automatedId: $automatedId)';
 }
 
 
@@ -4138,7 +4517,7 @@ $SnAccountProfileRefCopyWith<$Res>? get profile {
 /// @nodoc
 mixin _$SnAuthDevice {
 
- String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; bool get isCurrent; String get category; bool get trusted;
+ String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; bool get isCurrent; String get category; bool get trusted; bool get isOnline;
 /// Create a copy of SnAuthDevice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4151,16 +4530,21 @@ $SnAuthDeviceCopyWith<SnAuthDevice> get copyWith => _$SnAuthDeviceCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDevice&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.category, category) || other.category == category)&&(identical(other.trusted, trusted) || other.trusted == trusted));
+  final _this = this as SnAuthDevice;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDevice&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.deviceName, _this.deviceName) || other.deviceName == _this.deviceName)&&(identical(other.deviceLabel, _this.deviceLabel) || other.deviceLabel == _this.deviceLabel)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&(identical(other.isCurrent, _this.isCurrent) || other.isCurrent == _this.isCurrent)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.trusted, _this.trusted) || other.trusted == _this.trusted)&&(identical(other.isOnline, _this.isOnline) || other.isOnline == _this.isOnline));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,isCurrent,category,trusted);
+int get hashCode {
+  final _this = this as SnAuthDevice;
+  return Object.hash(runtimeType,_this.id,_this.deviceId,_this.deviceName,_this.deviceLabel,_this.accountId,_this.platform,_this.isCurrent,_this.category,_this.trusted,_this.isOnline);
+}
 
 @override
 String toString() {
-  return 'SnAuthDevice(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, isCurrent: $isCurrent, category: $category, trusted: $trusted)';
+  final _this = this as SnAuthDevice;
+  return 'SnAuthDevice(id: ${_this.id}, deviceId: ${_this.deviceId}, deviceName: ${_this.deviceName}, deviceLabel: ${_this.deviceLabel}, accountId: ${_this.accountId}, platform: ${_this.platform}, isCurrent: ${_this.isCurrent}, category: ${_this.category}, trusted: ${_this.trusted}, isOnline: ${_this.isOnline})';
 }
 
 
@@ -4171,7 +4555,7 @@ abstract mixin class $SnAuthDeviceCopyWith<$Res>  {
   factory $SnAuthDeviceCopyWith(SnAuthDevice value, $Res Function(SnAuthDevice) _then) = _$SnAuthDeviceCopyWithImpl;
 @useResult
 $Res call({
- String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, bool isCurrent, String category, bool trusted
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, bool isCurrent, String category, bool trusted, bool isOnline
 });
 
 
@@ -4188,7 +4572,7 @@ class _$SnAuthDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthDevice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,Object? isOnline = null,}) {
   return _then(SnAuthDevice(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
@@ -4199,6 +4583,7 @@ as String,platform: null == platform ? _self.platform : platform // ignore: cast
 as int,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
 as bool,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,trusted: null == trusted ? _self.trusted : trusted // ignore: cast_nullable_to_non_nullable
+as bool,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -4281,10 +4666,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent,  String category,  bool trusted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent,  String category,  bool trusted,  bool isOnline)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAuthDevice() when $default != null:
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent,_that.category,_that.trusted);case _:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent,_that.category,_that.trusted,_that.isOnline);case _:
   return orElse();
 
 }
@@ -4302,10 +4687,10 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent,  String category,  bool trusted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent,  String category,  bool trusted,  bool isOnline)  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthDevice():
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent,_that.category,_that.trusted);}
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent,_that.category,_that.trusted,_that.isOnline);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -4319,10 +4704,10 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent,  String category,  bool trusted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  bool isCurrent,  String category,  bool trusted,  bool isOnline)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthDevice() when $default != null:
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent,_that.category,_that.trusted);case _:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.isCurrent,_that.category,_that.trusted,_that.isOnline);case _:
   return null;
 
 }
@@ -4334,7 +4719,7 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 @JsonSerializable()
 
 class _SnAuthDevice implements SnAuthDevice {
-  const _SnAuthDevice({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, this.isCurrent = false, this.category = 'device', this.trusted = false});
+  const _SnAuthDevice({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, this.isCurrent = false, this.category = 'device', this.trusted = false, this.isOnline = false});
   factory _SnAuthDevice.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceFromJson(json);
 
 @override final  String id;
@@ -4346,6 +4731,7 @@ class _SnAuthDevice implements SnAuthDevice {
 @override@JsonKey() final  bool isCurrent;
 @override@JsonKey() final  String category;
 @override@JsonKey() final  bool trusted;
+@override@JsonKey() final  bool isOnline;
 
 /// Create a copy of SnAuthDevice
 /// with the given fields replaced by the non-null parameter values.
@@ -4360,16 +4746,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDevice&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.category, category) || other.category == category)&&(identical(other.trusted, trusted) || other.trusted == trusted));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDevice&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.category, category) || other.category == category)&&(identical(other.trusted, trusted) || other.trusted == trusted)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,isCurrent,category,trusted);
+int get hashCode {
+    return Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,isCurrent,category,trusted,isOnline);
+}
 
 @override
 String toString() {
-  return 'SnAuthDevice(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, isCurrent: $isCurrent, category: $category, trusted: $trusted)';
+    return 'SnAuthDevice(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, isCurrent: $isCurrent, category: $category, trusted: $trusted, isOnline: $isOnline)';
 }
 
 
@@ -4380,7 +4768,7 @@ abstract mixin class _$SnAuthDeviceCopyWith<$Res> implements $SnAuthDeviceCopyWi
   factory _$SnAuthDeviceCopyWith(_SnAuthDevice value, $Res Function(_SnAuthDevice) _then) = __$SnAuthDeviceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, bool isCurrent, String category, bool trusted
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, bool isCurrent, String category, bool trusted, bool isOnline
 });
 
 
@@ -4397,7 +4785,7 @@ class __$SnAuthDeviceCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthDevice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,Object? isOnline = null,}) {
   return _then(_SnAuthDevice(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
@@ -4408,6 +4796,7 @@ as String,platform: null == platform ? _self.platform : platform // ignore: cast
 as int,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
 as bool,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,trusted: null == trusted ? _self.trusted : trusted // ignore: cast_nullable_to_non_nullable
+as bool,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -4426,7 +4815,7 @@ SnAuthDeviceWithSession _$SnAuthDeviceWithSessionFromJson(
 /// @nodoc
 mixin _$SnAuthDeviceWithSession {
 
- String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; List<SnAuthSession> get sessions; bool get isCurrent; String get category; bool get trusted;
+ String get id; String get deviceId; String get deviceName; String? get deviceLabel; String get accountId; int get platform; List<SnAuthSession> get sessions; bool get isCurrent; String get category; bool get trusted; bool get isOnline;
 /// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4439,16 +4828,21 @@ $SnAuthDeviceWithSessionCopyWith<SnAuthDeviceWithSession> get copyWith => _$SnAu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDeviceWithSession&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other.sessions, sessions)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.category, category) || other.category == category)&&(identical(other.trusted, trusted) || other.trusted == trusted));
+  final _this = this as SnAuthDeviceWithSession;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAuthDeviceWithSession&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.deviceName, _this.deviceName) || other.deviceName == _this.deviceName)&&(identical(other.deviceLabel, _this.deviceLabel) || other.deviceLabel == _this.deviceLabel)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.platform, _this.platform) || other.platform == _this.platform)&&const DeepCollectionEquality().equals(other.sessions, _this.sessions)&&(identical(other.isCurrent, _this.isCurrent) || other.isCurrent == _this.isCurrent)&&(identical(other.category, _this.category) || other.category == _this.category)&&(identical(other.trusted, _this.trusted) || other.trusted == _this.trusted)&&(identical(other.isOnline, _this.isOnline) || other.isOnline == _this.isOnline));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(sessions),isCurrent,category,trusted);
+int get hashCode {
+  final _this = this as SnAuthDeviceWithSession;
+  return Object.hash(runtimeType,_this.id,_this.deviceId,_this.deviceName,_this.deviceLabel,_this.accountId,_this.platform,const DeepCollectionEquality().hash(_this.sessions),_this.isCurrent,_this.category,_this.trusted,_this.isOnline);
+}
 
 @override
 String toString() {
-  return 'SnAuthDeviceWithSession(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent, category: $category, trusted: $trusted)';
+  final _this = this as SnAuthDeviceWithSession;
+  return 'SnAuthDeviceWithSession(id: ${_this.id}, deviceId: ${_this.deviceId}, deviceName: ${_this.deviceName}, deviceLabel: ${_this.deviceLabel}, accountId: ${_this.accountId}, platform: ${_this.platform}, sessions: ${_this.sessions}, isCurrent: ${_this.isCurrent}, category: ${_this.category}, trusted: ${_this.trusted}, isOnline: ${_this.isOnline})';
 }
 
 
@@ -4459,7 +4853,7 @@ abstract mixin class $SnAuthDeviceWithSessionCopyWith<$Res>  {
   factory $SnAuthDeviceWithSessionCopyWith(SnAuthDeviceWithSession value, $Res Function(SnAuthDeviceWithSession) _then) = _$SnAuthDeviceWithSessionCopyWithImpl;
 @useResult
 $Res call({
- String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthSession> sessions, bool isCurrent, String category, bool trusted
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthSession> sessions, bool isCurrent, String category, bool trusted, bool isOnline
 });
 
 
@@ -4476,7 +4870,7 @@ class _$SnAuthDeviceWithSessionCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,Object? isOnline = null,}) {
   return _then(SnAuthDeviceWithSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
@@ -4488,6 +4882,7 @@ as int,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nu
 as List<SnAuthSession>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
 as bool,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,trusted: null == trusted ? _self.trusted : trusted // ignore: cast_nullable_to_non_nullable
+as bool,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -4570,10 +4965,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent,  String category,  bool trusted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent,  String category,  bool trusted,  bool isOnline)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAuthDeviceWithSessione() when $default != null:
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent,_that.category,_that.trusted);case _:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent,_that.category,_that.trusted,_that.isOnline);case _:
   return orElse();
 
 }
@@ -4591,10 +4986,10 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent,  String category,  bool trusted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent,  String category,  bool trusted,  bool isOnline)  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthDeviceWithSessione():
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent,_that.category,_that.trusted);}
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent,_that.category,_that.trusted,_that.isOnline);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -4608,10 +5003,10 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent,  String category,  bool trusted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String deviceId,  String deviceName,  String? deviceLabel,  String accountId,  int platform,  List<SnAuthSession> sessions,  bool isCurrent,  String category,  bool trusted,  bool isOnline)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthDeviceWithSessione() when $default != null:
-return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent,_that.category,_that.trusted);case _:
+return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that.accountId,_that.platform,_that.sessions,_that.isCurrent,_that.category,_that.trusted,_that.isOnline);case _:
   return null;
 
 }
@@ -4623,7 +5018,7 @@ return $default(_that.id,_that.deviceId,_that.deviceName,_that.deviceLabel,_that
 @JsonSerializable()
 
 class _SnAuthDeviceWithSessione implements SnAuthDeviceWithSession {
-  const _SnAuthDeviceWithSessione({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required  List<SnAuthSession> sessions, this.isCurrent = false, this.category = 'device', this.trusted = false}): _sessions = sessions;
+  const _SnAuthDeviceWithSessione({required this.id, required this.deviceId, required this.deviceName, required this.deviceLabel, required this.accountId, required this.platform, required  List<SnAuthSession> sessions, this.isCurrent = false, this.category = 'device', this.trusted = false, this.isOnline = false}): _sessions = sessions;
   factory _SnAuthDeviceWithSessione.fromJson(Map<String, dynamic> json) => _$SnAuthDeviceWithSessioneFromJson(json);
 
 @override final  String id;
@@ -4642,6 +5037,7 @@ class _SnAuthDeviceWithSessione implements SnAuthDeviceWithSession {
 @override@JsonKey() final  bool isCurrent;
 @override@JsonKey() final  String category;
 @override@JsonKey() final  bool trusted;
+@override@JsonKey() final  bool isOnline;
 
 /// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
@@ -4656,16 +5052,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDeviceWithSessione&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other._sessions, _sessions)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.category, category) || other.category == category)&&(identical(other.trusted, trusted) || other.trusted == trusted));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAuthDeviceWithSessione&&(identical(other.id, id) || other.id == id)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.deviceLabel, deviceLabel) || other.deviceLabel == deviceLabel)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.platform, platform) || other.platform == platform)&&const DeepCollectionEquality().equals(other.sessions, _sessions)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.category, category) || other.category == category)&&(identical(other.trusted, trusted) || other.trusted == trusted)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(_sessions),isCurrent,category,trusted);
+int get hashCode {
+    return Object.hash(runtimeType,id,deviceId,deviceName,deviceLabel,accountId,platform,const DeepCollectionEquality().hash(_sessions),isCurrent,category,trusted,isOnline);
+}
 
 @override
 String toString() {
-  return 'SnAuthDeviceWithSession(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent, category: $category, trusted: $trusted)';
+    return 'SnAuthDeviceWithSession(id: $id, deviceId: $deviceId, deviceName: $deviceName, deviceLabel: $deviceLabel, accountId: $accountId, platform: $platform, sessions: $sessions, isCurrent: $isCurrent, category: $category, trusted: $trusted, isOnline: $isOnline)';
 }
 
 
@@ -4676,7 +5074,7 @@ abstract mixin class _$SnAuthDeviceWithSessioneCopyWith<$Res> implements $SnAuth
   factory _$SnAuthDeviceWithSessioneCopyWith(_SnAuthDeviceWithSessione value, $Res Function(_SnAuthDeviceWithSessione) _then) = __$SnAuthDeviceWithSessioneCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthSession> sessions, bool isCurrent, String category, bool trusted
+ String id, String deviceId, String deviceName, String? deviceLabel, String accountId, int platform, List<SnAuthSession> sessions, bool isCurrent, String category, bool trusted, bool isOnline
 });
 
 
@@ -4693,7 +5091,7 @@ class __$SnAuthDeviceWithSessioneCopyWithImpl<$Res>
 
 /// Create a copy of SnAuthDeviceWithSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deviceId = null,Object? deviceName = null,Object? deviceLabel = freezed,Object? accountId = null,Object? platform = null,Object? sessions = null,Object? isCurrent = null,Object? category = null,Object? trusted = null,Object? isOnline = null,}) {
   return _then(_SnAuthDeviceWithSessione(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,deviceId: null == deviceId ? _self.deviceId : deviceId // ignore: cast_nullable_to_non_nullable
@@ -4705,6 +5103,7 @@ as int,sessions: null == sessions ? _self._sessions : sessions // ignore: cast_n
 as List<SnAuthSession>,isCurrent: null == isCurrent ? _self.isCurrent : isCurrent // ignore: cast_nullable_to_non_nullable
 as bool,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,trusted: null == trusted ? _self.trusted : trusted // ignore: cast_nullable_to_non_nullable
+as bool,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -4729,16 +5128,21 @@ $SnExperienceRecordCopyWith<SnExperienceRecord> get copyWith => _$SnExperienceRe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnExperienceRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.bonusMultiplier, bonusMultiplier) || other.bonusMultiplier == bonusMultiplier)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnExperienceRecord;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnExperienceRecord&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.delta, _this.delta) || other.delta == _this.delta)&&(identical(other.reasonType, _this.reasonType) || other.reasonType == _this.reasonType)&&(identical(other.reason, _this.reason) || other.reason == _this.reason)&&(identical(other.bonusMultiplier, _this.bonusMultiplier) || other.bonusMultiplier == _this.bonusMultiplier)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,bonusMultiplier,createdAt,updatedAt,deletedAt);
+int get hashCode {
+  final _this = this as SnExperienceRecord;
+  return Object.hash(runtimeType,_this.id,_this.delta,_this.reasonType,_this.reason,_this.bonusMultiplier,_this.createdAt,_this.updatedAt,_this.deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnExperienceRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, bonusMultiplier: $bonusMultiplier, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnExperienceRecord;
+  return 'SnExperienceRecord(id: ${_this.id}, delta: ${_this.delta}, reasonType: ${_this.reasonType}, reason: ${_this.reason}, bonusMultiplier: ${_this.bonusMultiplier}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -4936,16 +5340,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnExperienceRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.bonusMultiplier, bonusMultiplier) || other.bonusMultiplier == bonusMultiplier)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnExperienceRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.bonusMultiplier, bonusMultiplier) || other.bonusMultiplier == bonusMultiplier)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,bonusMultiplier,createdAt,updatedAt,deletedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,delta,reasonType,reason,bonusMultiplier,createdAt,updatedAt,deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnExperienceRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, bonusMultiplier: $bonusMultiplier, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnExperienceRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, bonusMultiplier: $bonusMultiplier, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -5007,16 +5413,21 @@ $SnSocialCreditRecordCopyWith<SnSocialCreditRecord> get copyWith => _$SnSocialCr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSocialCreditRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnSocialCreditRecord;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSocialCreditRecord&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.delta, _this.delta) || other.delta == _this.delta)&&(identical(other.reasonType, _this.reasonType) || other.reasonType == _this.reasonType)&&(identical(other.reason, _this.reason) || other.reason == _this.reason)&&(identical(other.expiredAt, _this.expiredAt) || other.expiredAt == _this.expiredAt)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,expiredAt,createdAt,updatedAt,deletedAt);
+int get hashCode {
+  final _this = this as SnSocialCreditRecord;
+  return Object.hash(runtimeType,_this.id,_this.delta,_this.reasonType,_this.reason,_this.expiredAt,_this.createdAt,_this.updatedAt,_this.deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnSocialCreditRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, expiredAt: $expiredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnSocialCreditRecord;
+  return 'SnSocialCreditRecord(id: ${_this.id}, delta: ${_this.delta}, reasonType: ${_this.reasonType}, reason: ${_this.reason}, expiredAt: ${_this.expiredAt}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -5214,16 +5625,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSocialCreditRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSocialCreditRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.delta, delta) || other.delta == delta)&&(identical(other.reasonType, reasonType) || other.reasonType == reasonType)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,delta,reasonType,reason,expiredAt,createdAt,updatedAt,deletedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,delta,reasonType,reason,expiredAt,createdAt,updatedAt,deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnSocialCreditRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, expiredAt: $expiredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnSocialCreditRecord(id: $id, delta: $delta, reasonType: $reasonType, reason: $reason, expiredAt: $expiredAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -5285,16 +5698,21 @@ $SnFriendOverviewItemCopyWith<SnFriendOverviewItem> get copyWith => _$SnFriendOv
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFriendOverviewItem&&(identical(other.account, account) || other.account == account)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.activities, activities));
+  final _this = this as SnFriendOverviewItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFriendOverviewItem&&(identical(other.account, _this.account) || other.account == _this.account)&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.activities, _this.activities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,status,const DeepCollectionEquality().hash(activities));
+int get hashCode {
+  final _this = this as SnFriendOverviewItem;
+  return Object.hash(runtimeType,_this.account,_this.status,const DeepCollectionEquality().hash(_this.activities));
+}
 
 @override
 String toString() {
-  return 'SnFriendOverviewItem(account: $account, status: $status, activities: $activities)';
+  final _this = this as SnFriendOverviewItem;
+  return 'SnFriendOverviewItem(account: ${_this.account}, status: ${_this.status}, activities: ${_this.activities})';
 }
 
 
@@ -5506,16 +5924,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFriendOverviewItem&&(identical(other.account, account) || other.account == account)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._activities, _activities));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFriendOverviewItem&&(identical(other.account, account) || other.account == account)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.activities, _activities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,status,const DeepCollectionEquality().hash(_activities));
+int get hashCode {
+    return Object.hash(runtimeType,account,status,const DeepCollectionEquality().hash(_activities));
+}
 
 @override
 String toString() {
-  return 'SnFriendOverviewItem(account: $account, status: $status, activities: $activities)';
+    return 'SnFriendOverviewItem(account: $account, status: $status, activities: $activities)';
 }
 
 
@@ -5590,16 +6010,21 @@ $SnNotificationPreferenceCopyWith<SnNotificationPreference> get copyWith => _$Sn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationPreference&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.preference, preference) || other.preference == preference)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  final _this = this as SnNotificationPreference;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationPreference&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.topic, _this.topic) || other.topic == _this.topic)&&(identical(other.preference, _this.preference) || other.preference == _this.preference)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.deletedAt, _this.deletedAt) || other.deletedAt == _this.deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,topic,preference,createdAt,updatedAt,deletedAt);
+int get hashCode {
+  final _this = this as SnNotificationPreference;
+  return Object.hash(runtimeType,_this.id,_this.accountId,_this.topic,_this.preference,_this.createdAt,_this.updatedAt,_this.deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnNotificationPreference(id: $id, accountId: $accountId, topic: $topic, preference: $preference, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  final _this = this as SnNotificationPreference;
+  return 'SnNotificationPreference(id: ${_this.id}, accountId: ${_this.accountId}, topic: ${_this.topic}, preference: ${_this.preference}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, deletedAt: ${_this.deletedAt})';
 }
 
 
@@ -5795,16 +6220,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationPreference&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.preference, preference) || other.preference == preference)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationPreference&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.preference, preference) || other.preference == preference)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,topic,preference,createdAt,updatedAt,deletedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,accountId,topic,preference,createdAt,updatedAt,deletedAt);
+}
 
 @override
 String toString() {
-  return 'SnNotificationPreference(id: $id, accountId: $accountId, topic: $topic, preference: $preference, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+    return 'SnNotificationPreference(id: $id, accountId: $accountId, topic: $topic, preference: $preference, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -5865,16 +6292,21 @@ $SnNotificationTopicCopyWith<SnNotificationTopic> get copyWith => _$SnNotificati
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationTopic&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.description, description) || other.description == description)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom));
+  final _this = this as SnNotificationTopic;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationTopic&&(identical(other.topic, _this.topic) || other.topic == _this.topic)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.isCustom, _this.isCustom) || other.isCustom == _this.isCustom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,topic,description,isCustom);
+int get hashCode {
+  final _this = this as SnNotificationTopic;
+  return Object.hash(runtimeType,_this.topic,_this.description,_this.isCustom);
+}
 
 @override
 String toString() {
-  return 'SnNotificationTopic(topic: $topic, description: $description, isCustom: $isCustom)';
+  final _this = this as SnNotificationTopic;
+  return 'SnNotificationTopic(topic: ${_this.topic}, description: ${_this.description}, isCustom: ${_this.isCustom})';
 }
 
 
@@ -6062,16 +6494,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationTopic&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.description, description) || other.description == description)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationTopic&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.description, description) || other.description == description)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,topic,description,isCustom);
+int get hashCode {
+    return Object.hash(runtimeType,topic,description,isCustom);
+}
 
 @override
 String toString() {
-  return 'SnNotificationTopic(topic: $topic, description: $description, isCustom: $isCustom)';
+    return 'SnNotificationTopic(topic: $topic, description: $description, isCustom: $isCustom)';
 }
 
 
@@ -6128,16 +6562,21 @@ $SnNotificationPushSubscriptionCopyWith<SnNotificationPushSubscription> get copy
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationPushSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceToken, deviceToken) || other.deviceToken == deviceToken)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.isActivated, isActivated) || other.isActivated == isActivated)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as SnNotificationPushSubscription;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationPushSubscription&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.accountId, _this.accountId) || other.accountId == _this.accountId)&&(identical(other.appId, _this.appId) || other.appId == _this.appId)&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.deviceToken, _this.deviceToken) || other.deviceToken == _this.deviceToken)&&(identical(other.deviceName, _this.deviceName) || other.deviceName == _this.deviceName)&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.isActivated, _this.isActivated) || other.isActivated == _this.isActivated)&&(identical(other.lastUsedAt, _this.lastUsedAt) || other.lastUsedAt == _this.lastUsedAt)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,appId,deviceId,deviceToken,deviceName,provider,isActivated,lastUsedAt,createdAt,updatedAt);
+int get hashCode {
+  final _this = this as SnNotificationPushSubscription;
+  return Object.hash(runtimeType,_this.id,_this.accountId,_this.appId,_this.deviceId,_this.deviceToken,_this.deviceName,_this.provider,_this.isActivated,_this.lastUsedAt,_this.createdAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'SnNotificationPushSubscription(id: $id, accountId: $accountId, appId: $appId, deviceId: $deviceId, deviceToken: $deviceToken, deviceName: $deviceName, provider: $provider, isActivated: $isActivated, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+  final _this = this as SnNotificationPushSubscription;
+  return 'SnNotificationPushSubscription(id: ${_this.id}, accountId: ${_this.accountId}, appId: ${_this.appId}, deviceId: ${_this.deviceId}, deviceToken: ${_this.deviceToken}, deviceName: ${_this.deviceName}, provider: ${_this.provider}, isActivated: ${_this.isActivated}, lastUsedAt: ${_this.lastUsedAt}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -6341,16 +6780,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationPushSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceToken, deviceToken) || other.deviceToken == deviceToken)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.isActivated, isActivated) || other.isActivated == isActivated)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationPushSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.appId, appId) || other.appId == appId)&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.deviceToken, deviceToken) || other.deviceToken == deviceToken)&&(identical(other.deviceName, deviceName) || other.deviceName == deviceName)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.isActivated, isActivated) || other.isActivated == isActivated)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,appId,deviceId,deviceToken,deviceName,provider,isActivated,lastUsedAt,createdAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,accountId,appId,deviceId,deviceToken,deviceName,provider,isActivated,lastUsedAt,createdAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'SnNotificationPushSubscription(id: $id, accountId: $accountId, appId: $appId, deviceId: $deviceId, deviceToken: $deviceToken, deviceName: $deviceName, provider: $provider, isActivated: $isActivated, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SnNotificationPushSubscription(id: $id, accountId: $accountId, appId: $appId, deviceId: $deviceId, deviceToken: $deviceToken, deviceName: $deviceName, provider: $provider, isActivated: $isActivated, lastUsedAt: $lastUsedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 

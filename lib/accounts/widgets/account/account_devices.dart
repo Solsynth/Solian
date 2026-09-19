@@ -107,6 +107,36 @@ class ExpandedSessions extends _$ExpandedSessions {
   bool isExpanded(String sessionId) => state.contains(sessionId);
 }
 
+class _OnlineBadge extends StatelessWidget {
+  const _OnlineBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.green.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.circle, size: 10, color: Colors.green),
+          const Gap(4),
+          Text(
+            'online'.tr(),
+            style: TextStyle(
+              color: Colors.green.shade800,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DeviceCard extends StatelessWidget {
   final SnAuthDeviceWithSession device;
   final VoidCallback onTap;
@@ -184,6 +214,10 @@ class _DeviceCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                            ],
+                            if (device.isOnline) ...[
+                              const Gap(8),
+                              const _OnlineBadge(),
                             ],
                             if (device.trusted) ...[
                               Gap(8),
@@ -980,6 +1014,10 @@ class _SessionListItem extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (session.isOnline) ...[
+                            const Gap(8),
+                            const _OnlineBadge(),
+                          ],
                           if (session.trusted) ...[
                             Gap(8),
                             Container(
@@ -1204,6 +1242,10 @@ class _SessionTreeTile extends HookConsumerWidget {
                                     ),
                                   ),
                                 ),
+                              ],
+                              if (session.isOnline) ...[
+                                const Gap(8),
+                                const _OnlineBadge(),
                               ],
                               if (session.trusted) ...[
                                 Gap(8),
