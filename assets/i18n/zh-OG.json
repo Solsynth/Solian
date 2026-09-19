@@ -1195,6 +1195,8 @@
   "membershipTierUnknown": "未明",
   "messageActions": "訊行",
   "messageContent": "訊內文",
+  "messageDeleteAction": "刪一訊",
+  "messageDeleted": "此訊已刪",
   "messageJumpNotLoaded": "引之訊未載，不得躍至",
   "messageLabel": "言： ",
   "messageNone": "無文可示",

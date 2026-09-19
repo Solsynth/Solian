@@ -392,6 +392,32 @@ void main() {
       },
     );
     test(
+      'deleting a message keeps the tombstone mark and drops the body',
+      () async {
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.receiveMessage(message('room-1'));
+        await pumpEventQueue();
+
+        await notifier.receiveMessageDeletion('message-1');
+        await pumpEventQueue();
+
+        final stored = container
+            .read(messagesProvider('room-1'))
+            .value!
+            .singleWhere((item) => item.id == 'message-1');
+        // The mark is what the timeline renders from; the deleted body must not
+        // survive locally as a placeholder string.
+        expect(stored.deletedAt, isNotNull);
+        expect(stored.isDeleted, isTrue);
+        expect(stored.content, isNull);
+
+        final persisted = await database.getMessageById('message-1');
+        expect(persisted!.deletedAt, isNotNull);
+        expect(persisted.isDeleted, isTrue);
+        expect(persisted.content, isNull);
+      },
+    );
+    test(
       'renders newest messages before background older-history prefetch completes',
       () async {
         final now = DateTime.utc(2026, 1, 1, 12);

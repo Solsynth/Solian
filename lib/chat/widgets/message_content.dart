@@ -73,6 +73,12 @@ class MessageContent extends StatelessWidget {
     }
 
     if (item.type == 'messages.delete' || item.deletedAt != null) {
+      // Deletion is a mark, not content: the body is gone and the server may
+      // still carry an untranslated placeholder in it. Render the client-side
+      // localized marker for both the tombstone and the deletion event row.
+      final label = item.deletedAt != null
+          ? 'messageDeleted'.tr()
+          : 'messageDeleteAction'.tr();
       return Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -86,7 +92,7 @@ class MessageContent extends StatelessWidget {
           ),
           const Gap(4),
           Text(
-            item.content ?? 'Deleted a message',
+            label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               fontSize: 13,
               color: Theme.of(
@@ -323,6 +329,9 @@ class MessageContent extends StatelessWidget {
       return false;
     }
     final resolved = resolveE2eeDisplayContentForMessage(item);
+    // A deleted message has no body left, yet its row must still lay out: the
+    // deletion marker below is what renders in place of the content.
+    if (item.deletedAt != null) return true;
     return item.type != 'text' ||
         (resolved.content?.isNotEmpty ?? false) ||
         resolved.decryptFailed ||

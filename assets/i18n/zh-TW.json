@@ -2183,6 +2183,8 @@
   "message": "訊息",
   "messageActions": "訊息選項",
   "messageContent": "訊息內容",
+  "messageDeleteAction": "刪除了一則訊息",
+  "messageDeleted": "此訊息已被刪除",
   "messageJumpNotLoaded": "引用的訊息沒有被載入，無法跳轉。",
   "messageLabel": "訊息： ",
   "messageNone": "沒有內容可顯示",

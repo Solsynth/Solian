@@ -142,8 +142,15 @@ class _PinnedMessageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sender = message?.sender;
-    final content = message?.content ?? '';
+    final pinned = message;
+    final sender = pinned?.sender;
+    // A pinned message that was deleted has no body left; show the same
+    // localized tombstone marker the timeline renders.
+    final content = pinned == null
+        ? ''
+        : pinned.deletedAt != null
+        ? 'messageDeleted'.tr()
+        : (pinned.content ?? '');
     final createdAt = message?.createdAt;
 
     final timestamp = createdAt != null

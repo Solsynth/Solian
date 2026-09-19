@@ -180,9 +180,12 @@ class LocalChatMessage {
       clientMessageId: clientMessageId ?? message.clientMessageId,
       nonce: nonce ?? message.nonce,
       content: message.content,
-      isDeleted: false,
+      // The server marks a deleted message with `deleted_at`; that timestamp is
+      // the tombstone the timeline renders from. Derive the boolean mark from
+      // it so both survive the remote -> local conversion.
+      isDeleted: message.deletedAt != null,
       updatedAt: message.updatedAt,
-      deletedAt: null,
+      deletedAt: message.deletedAt,
       type: message.type,
       meta: message.meta,
       membersMentioned: message.membersMentioned,

@@ -183,9 +183,17 @@ class ChatRoomSubtitle extends HookConsumerWidget {
               lastMessage.membersMentioned.contains(currentUserId);
           final senderNick = lastMessage.sender.account.nick;
           final resolved = resolveE2eeDisplayContentForMessage(lastMessage);
-          final textContent = resolved.content?.trim() ?? '';
+          final isDeletedMessage = lastMessage.deletedAt != null;
+          // A deleted message has no body and no attachments: preview the same
+          // localized marker the timeline shows instead of the payload's
+          // placeholder text (which is not translated).
+          final textContent = isDeletedMessage
+              ? 'messageDeleted'.tr()
+              : (resolved.content?.trim() ?? '');
           final hasText = textContent.isNotEmpty;
-          final attachmentCount = lastMessage.attachments.length;
+          final attachmentCount = isDeletedMessage
+              ? 0
+              : lastMessage.attachments.length;
           final hasAttachments = attachmentCount > 0;
           final attachmentLabel = attachmentCount == 1
               ? 'Attachment'
@@ -209,6 +217,13 @@ class ChatRoomSubtitle extends HookConsumerWidget {
             return isAdded
                 ? 'Reacted with $symbol'
                 : 'Removed reaction $symbol';
+          }
+
+          // Deletion events reach the summary as the room's last message; like
+          // the reaction case above, they carry no body to preview.
+          String? deletionPreview() {
+            if (lastMessage.type != 'messages.delete') return null;
+            return 'messageDeleteAction'.tr();
           }
 
           Widget buildMessagePreview() {
@@ -300,7 +315,9 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                 ? 'Unable to decrypt message'
                 : resolved.emptyAfterDecrypt
                 ? 'Encrypted message'
-                : reactionPreview() ?? 'No message preview';
+                : deletionPreview() ??
+                      reactionPreview() ??
+                      'No message preview';
 
             return Text(
               preview,

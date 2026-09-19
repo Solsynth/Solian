@@ -1194,6 +1194,8 @@
   "membershipTierUnknown": "Unknown",
   "messageActions": "Message Actions",
   "messageContent": "Message Content",
+  "messageDeleteAction": "Deleted a message",
+  "messageDeleted": "This message was deleted",
   "messageJumpNotLoaded": "The referenced message was not loaded, unable to jump to it.",
   "messageLabel": "Message: ",
   "messageNone": "No content to display",

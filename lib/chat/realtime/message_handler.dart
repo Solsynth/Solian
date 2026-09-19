@@ -355,13 +355,16 @@ class RealtimeMessageHandler {
       return;
     }
 
-    // Mark as deleted
+    // Mark as deleted: drop the body and keep the `deleted_at` tombstone. The
+    // timeline renders a localized marker for it, so no placeholder text is
+    // written into the message (that would surface as a raw, untranslated body
+    // and would keep the deleted body's slot occupied).
     final remote = message.toRemoteMessage();
     final deletedRemote = remote.copyWith(
-      content: 'This message was deleted',
+      content: null,
       deletedAt: DateTime.now(),
-      attachments: [],
-      meta: <String, dynamic>{},
+      attachments: const [],
+      meta: const <String, dynamic>{},
     );
 
     final deleted = LocalChatMessage.fromRemoteMessage(

@@ -266,6 +266,19 @@ class MessageItem extends HookConsumerWidget {
       );
     }
 
+    Widget buildReactionChips({bool insideBubble = false}) =>
+        MessageReactionChips(
+          displayStyle: settings.messageDisplayStyle,
+          isCurrentUser: isCurrentUser,
+          showAvatar: showAvatar,
+          reactionsCount: reactionsCount,
+          reactionsMade: reactionsMade,
+          isExpanded: isSystemInfoExpanded.value,
+          submitting: reacting.value,
+          onReact: reactMessage,
+          insideBubble: insideBubble,
+        );
+
     void openReactionHistorySheet() {
       openReactionSheet(initialTabIndex: 1);
     }
@@ -627,18 +640,14 @@ class MessageItem extends HookConsumerWidget {
                                 onJump: onJump,
                                 translatedText: translatedText.value,
                                 translating: translating.value,
+                                // Bubble mode carries the chips inside the
+                                // bubble; the other styles keep them below.
+                                reactions: buildReactionChips(insideBubble: true),
                               ),
                             },
-                            MessageReactionChips(
-                              displayStyle: settings.messageDisplayStyle,
-                              isCurrentUser: isCurrentUser,
-                              showAvatar: showAvatar,
-                              reactionsCount: reactionsCount,
-                              reactionsMade: reactionsMade,
-                              isExpanded: isSystemInfoExpanded.value,
-                              submitting: reacting.value,
-                              onReact: reactMessage,
-                            ),
+                            if (settings.messageDisplayStyle == 'compact' ||
+                                settings.messageDisplayStyle == 'column')
+                              buildReactionChips(),
                             ThreadRepliesChip(
                               roomId: message.roomId,
                               messageId: message.id,
@@ -1423,6 +1432,11 @@ class MessageReactionChips extends HookConsumerWidget {
   final Map<String, bool> reactionsMade;
   final bool isExpanded;
   final bool submitting;
+
+  /// Renders the chips inside the message bubble instead of below it. The
+  /// bubbles' own horizontal padding is narrower than the below-the-bubble
+  /// gutter (which also offsets the avatar), so the padding differs.
+  final bool insideBubble;
   final Future<void> Function(String symbol, int attitude) onReact;
 
   const MessageReactionChips({
@@ -1435,6 +1449,7 @@ class MessageReactionChips extends HookConsumerWidget {
     required this.isExpanded,
     required this.submitting,
     required this.onReact,
+    this.insideBubble = false,
   });
 
   @override
@@ -1449,11 +1464,13 @@ class MessageReactionChips extends HookConsumerWidget {
         (a, b) => (reactionsCount[b] ?? 0).compareTo(reactionsCount[a] ?? 0),
       );
 
-    final sectionPadding = EdgeInsets.only(
-      left: _messageAccessoryLeftPadding(displayStyle),
-      right: 12,
-      bottom: displayStyle == 'compact' ? 2 : 6,
-    );
+    final sectionPadding = insideBubble
+        ? const EdgeInsets.only(left: 10, right: 10, bottom: 6)
+        : EdgeInsets.only(
+            left: _messageAccessoryLeftPadding(displayStyle),
+            right: 12,
+            bottom: displayStyle == 'compact' ? 2 : 6,
+          );
     final sectionAlign = Alignment.centerLeft;
 
     return Align(
@@ -1551,6 +1568,9 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
   final String? translatedText;
   final bool translating;
 
+  /// Reaction chips rendered inside the bubble body (bubble display style).
+  final Widget? reactions;
+
   const MessageItemDisplayBubble({
     super.key,
     required this.message,
@@ -1564,6 +1584,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     required this.onJump,
     required this.translatedText,
     required this.translating,
+    this.reactions,
   });
 
   @override
@@ -1729,6 +1750,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                   ],
                 ),
               ),
+            ?reactions,
             if (isMentioningCurrentUser)
               Padding(
                 padding: const EdgeInsets.only(left: 10, right: 10, bottom: 6),

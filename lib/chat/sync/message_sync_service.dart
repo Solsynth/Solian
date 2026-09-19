@@ -385,7 +385,11 @@ class MessageSyncService {
       status: incoming.status,
       clientMessageId: incoming.clientMessageId,
       nonce: incoming.nonce,
-      content: incoming.content ?? existing.content,
+      // A deleted message has no body: stop the local row's pre-deletion
+      // content from being restored when a sync page returns the tombstone.
+      content: incoming.deletedAt != null
+          ? incoming.content
+          : (incoming.content ?? existing.content),
       isDeleted: incoming.isDeleted ?? existing.isDeleted,
       updatedAt: incoming.updatedAt ?? existing.updatedAt,
       deletedAt: incoming.deletedAt ?? existing.deletedAt,

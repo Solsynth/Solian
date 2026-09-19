@@ -1264,6 +1264,8 @@
   "membershipTierUnknown": "不明",
   "messageActions": "メッセージオプション",
   "messageContent": "メッセージ内容",
+  "messageDeleteAction": "メッセージを削除しました",
+  "messageDeleted": "このメッセージは削除されました",
   "messageJumpNotLoaded": "参照されたメッセージが読み込まれていないため、ジャンプできません。",
   "messageLabel": "メッセージ：",
   "messageNone": "表示する内容がありません",

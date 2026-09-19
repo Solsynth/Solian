@@ -2280,6 +2280,8 @@
   "message": "消息",
   "messageActions": "消息选项",
   "messageContent": "消息内容",
+  "messageDeleteAction": "删除了一条消息",
+  "messageDeleted": "此消息已被删除",
   "messageJumpNotLoaded": "引用的消息没有被加载，无法跳转。",
   "messageLabel": "消息： ",
   "messageNone": "没有内容可显示",

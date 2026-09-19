@@ -581,11 +581,13 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final existingMsg = await _fetchMessageFromDb(db, messageId, roomId);
     if (existingMsg == null) return;
 
+    // Same tombstone contract as the realtime handler: keep `deleted_at` as the
+    // mark, drop the body instead of writing placeholder text into it.
     final remote = existingMsg.toRemoteMessage();
     final updatedRemote = remote.copyWith(
-      content: 'This message was deleted',
+      content: null,
       deletedAt: DateTime.now(),
-      attachments: [],
+      attachments: const [],
     );
 
     final deletedMessage = LocalChatMessage.fromRemoteMessage(

@@ -1431,6 +1431,8 @@
   "membershipTierUnknown": "알 수 없음",
   "messageActions": "메시지 동작",
   "messageContent": "메시지 내용",
+  "messageDeleteAction": "메시지를 삭제했습니다",
+  "messageDeleted": "이 메시지는 삭제되었습니다",
   "messageJumpNotLoaded": "참조된 메시지가 로드되지 않아 해당 위치로 이동할 수 없습니다.",
   "messageLabel": "메시지: ",
   "messageNone": "표시할 내용이 없습니다",
