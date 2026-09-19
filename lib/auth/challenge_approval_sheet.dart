@@ -91,6 +91,10 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
 
     final pinController = useTextEditingController();
 
+    // Guards the sheet against double-resolution when a poll tick races the
+    // local approve/decline path.
+    final resolved = useRef(false);
+
     useEffect(() {
       Future(() async {
         try {
@@ -132,6 +136,66 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
       return timer.cancel;
     }, [challenge.expiredAt]);
 
+    // Poll the challenge so a resolution performed on another client (e.g. a
+    // second trusted device or a web session) closes this sheet instead of
+    // leaving it open until expiry. Mirrors the Device A polling in
+    // LoginContent; failures are transient and retried on the next tick.
+    useEffect(() {
+      Future<void> pollChallenge() async {
+        if (resolved.value) return;
+        final seconds = remaining.value;
+        if (seconds != null && seconds <= 0) return; // expired; countdown handles it
+        try {
+          final client = ref.read(solarNetworkClientProvider);
+          final resp = await client.dio.get(
+            '/stargate/auth/challenge/${challenge.id}',
+          );
+          if (resolved.value) return;
+          final updated = SnAuthChallenge.fromJson(resp.data);
+          if (updated.approvedAt != null) {
+            resolved.value = true;
+            if (!context.mounted) return;
+            showSnackBar('challengeApproved'.tr());
+            Navigator.pop(context);
+            onResolved?.call();
+            return;
+          }
+          if (updated.declinedAt != null) {
+            resolved.value = true;
+            if (!context.mounted) return;
+            showSnackBar('challengeDeclinedError'.tr());
+            Navigator.pop(context);
+            onResolved?.call();
+            return;
+          }
+          if (updated.deletedAt != null) {
+            // Removed server-side; nothing left to decide.
+            resolved.value = true;
+            if (!context.mounted) return;
+            Navigator.pop(context);
+            onResolved?.call();
+          }
+        } on DioException catch (err) {
+          if (err.response?.statusCode == 404 && !resolved.value) {
+            // Challenge no longer exists; treat as resolved.
+            resolved.value = true;
+            if (!context.mounted) return;
+            Navigator.pop(context);
+            onResolved?.call();
+          }
+        } catch (_) {
+          // Best-effort poll; the next tick retries.
+        }
+      }
+
+      pollChallenge();
+      final timer = Timer.periodic(
+        const Duration(seconds: 2),
+        (_) => pollChallenge(),
+      );
+      return timer.cancel;
+    }, [challenge.id]);
+
     final expired = remaining.value != null && remaining.value! <= 0;
 
     // A PIN is required before approving/declining when the account enforces it.
@@ -158,6 +222,7 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
         hasStoredPin.value = true;
       }
       if (!context.mounted) return;
+      resolved.value = true;
       showSnackBar(
         'challengeApprovedByYou'.tr(
           args: [challenge.deviceName ?? 'unknownDevice'.tr()],
@@ -233,6 +298,7 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
               : null,
         );
         if (!context.mounted) return;
+        resolved.value = true;
         showSnackBar(
           'challengeDeclinedByYou'.tr(
             args: [challenge.deviceName ?? 'unknownDevice'.tr()],
