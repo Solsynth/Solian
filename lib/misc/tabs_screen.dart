@@ -219,8 +219,9 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final allDestinations = _allDestinations;
     // Drive (files) is not surfaced in the sidebar/drawer navigation; its
     // route stays reachable via deep links and direct entry points.
-    final navDestinations =
-        allDestinations.where((d) => d.id != 'files').toList();
+    final navDestinations = allDestinations
+        .where((d) => d.id != 'files')
+        .toList();
     final navCustomization = ref.watch(_navCustomizationProvider);
     final destinationById = {for (final d in navDestinations) d.id: d};
     final defaultBottomNavIds = ['dashboard', 'explore', 'chat', 'account'];
@@ -480,9 +481,13 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
               : null,
           drawerEnableOpenDragGesture: isDrawerEnabled,
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          body: ClipRRect(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(16)),
-            child: RepaintBoundary(child: widget.child),
+          body: SafeArea(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+              ),
+              child: RepaintBoundary(child: widget.child),
+            ),
           ),
           floatingActionButton: isDrawerEnabled
               ? FloatingActionButton.small(
@@ -500,38 +505,40 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             : null,
         drawerEnableOpenDragGesture: isDrawerEnabled,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        body: Row(
-          children: [
-            NavigationRail(
-              backgroundColor: Colors.transparent,
-              destinations: railDestinations.mapIndexed((idx, d) {
-                return NavigationRailDestination(
-                  icon: d.iconBuilder(railCurrentIndex == idx),
-                  label: Text(d.label),
-                );
-              }).toList(),
-              selectedIndex: railCurrentIndex,
-              onDestinationSelected: onRailDestinationSelected,
-              trailingAtBottom: true,
-              trailing: Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: FloatingActionButton(
-                  onPressed: isDrawerEnabled
-                      ? () => rootScaffoldKey.currentState?.openDrawer()
-                      : null,
-                  child: const Icon(Symbols.menu_rounded),
+        body: SafeArea(
+          child: Row(
+            children: [
+              NavigationRail(
+                backgroundColor: Colors.transparent,
+                destinations: railDestinations.mapIndexed((idx, d) {
+                  return NavigationRailDestination(
+                    icon: d.iconBuilder(railCurrentIndex == idx),
+                    label: Text(d.label),
+                  );
+                }).toList(),
+                selectedIndex: railCurrentIndex,
+                onDestinationSelected: onRailDestinationSelected,
+                trailingAtBottom: true,
+                trailing: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: FloatingActionButton(
+                    onPressed: isDrawerEnabled
+                        ? () => rootScaffoldKey.currentState?.openDrawer()
+                        : null,
+                    child: const Icon(Symbols.menu_rounded),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                  ),
+                  child: RepaintBoundary(child: widget.child),
                 ),
-                child: RepaintBoundary(child: widget.child),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }

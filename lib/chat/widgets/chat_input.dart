@@ -1583,7 +1583,10 @@ class ChatInput extends HookConsumerWidget {
 
     final double leftMargin = isWideScreen(context) ? 8 : 16;
     final double rightMargin = isWideScreen(context) ? leftMargin : 16;
-    const double bottomMargin = 16;
+    // Keep clear of the home indicator / windowed safe area (iPad split view,
+    // Stage Manager, iPhone landscape). When the keyboard is up, the system
+    // reports a zero bottom padding, so this stays at the resting 16 there.
+    final double bottomMargin = 16 + MediaQuery.paddingOf(context).bottom;
     final inputBorderRadius = BorderRadius.circular(32);
 
     List<SnChatMember> getValidMembers(List<SnChatMember> members) {
