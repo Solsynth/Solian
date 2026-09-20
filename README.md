@@ -46,21 +46,30 @@ Note: Fediverse support is currently experimental and limited.
 | Feature | Status | Description |
 |---------|--------|-------------|
 | Timeline | Done | Chronological feed of posts |
-| Posts, Articles & Moments | Done | Multiple content types for different needs |
-| Instant Messaging | Done | Real-time chat with group support |
+| Posts, Articles & Blog | Done | Multiple content types for different needs |
+| Post Chaining | Done | Chain related posts into a thread |
+| Instant Messaging | Done | Real-time chat with groups, voice messages, reactions and read receipts |
+| End-to-End Encryption | Done | MLS-encrypted messages and encrypted drive files |
 | Realms | Done | Communities organized by shared interests |
 | OAuth Integration | Done | Secure third-party authentication |
+| Passkeys | Done | Passwordless sign-in with WebAuthn passkeys |
 | Check-in | Done | Location and status sharing |
 | Countdown | Done | Track special dates and festivals |
+| Event Calendar | Done | Plan and share events with your community |
+| Meet | Done | Find and meet people nearby |
+| Weather | Done | Weather forecast on your dashboard |
 | RSS Reader | Done | Subscribe to external feeds |
-| Wallet | Done | Credit system for transactions |
+| Wallet | Done | Credits, exchange, orders and billing |
 | Stickers | Done | Express yourself with custom stickers |
 | Rich Text Editor | Done | Markdown-based with extended syntax |
-| Social Features | Done | Friends list and blocklist management |
+| Social Features | Done | Friends, blocklist and mute management |
 | File Management | Done | Upload and organize files |
-| AI Features | Done | Smart assistance throughout the app |
-| Fitness & Health | Beta | Track your fitness goal and share with your friends |
+| Tickets | Done | Support tickets and issue tracking |
+| Plugins | Done | Extend the app with community plugins |
+| Board | Done | Custom widgets on your profile |
+| Workspaces | Done | Shared spaces for collaboration |
 | Progressions | Done | Make your move on Solar Network memorizable |
+| Fitness & Health | Beta | Track your fitness goal and share with your friends |
 | Fediverse | Beta | Interact with other fediverse instances |
 
 ### Coming Soon
