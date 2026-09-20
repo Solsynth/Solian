@@ -349,25 +349,35 @@ class StartupSplashScreen extends HookConsumerWidget {
                         key: const Key('startup-portrait-glow'),
                         clipBehavior: Clip.none,
                         children: [
-                          // Glow clone: the same artwork, slightly enlarged and
-                          // white-washed, blurred into a soft halo behind the
-                          // sharp portrait so it reads as radiating light.
+                          // Silhouette glow: the artwork's own alpha, filled
+                          // solid and blurred, so the halo follows the
+                          // character's outline in every direction instead of
+                          // the portrait's edges.
                           Positioned.fill(
-                            child: Transform.scale(
-                              scale: 1.07,
+                            child: IgnorePointer(
                               child: ImageFiltered(
                                 imageFilter: ImageFilter.blur(
-                                  sigmaX: 32,
-                                  sigmaY: 32,
+                                  sigmaX: 36,
+                                  sigmaY: 36,
                                 ),
-                                child: Image.asset(
-                                  'assets/images/michan/landing.webp',
-                                  fit: BoxFit.cover,
-                                  // Heavily blurred, so a small decode is
-                                  // visually identical and far cheaper.
-                                  cacheWidth: 480,
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                  colorBlendMode: BlendMode.screen,
+                                child: ColorFiltered(
+                                  colorFilter: ColorFilter.mode(
+                                    // White is invisible on the near-white
+                                    // light surface, so the light theme gets a
+                                    // soft warm cream instead.
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFFFFF8F0)
+                                        : const Color(0xFFFFE4C2),
+                                    BlendMode.srcIn,
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/michan/landing.webp',
+                                    fit: BoxFit.cover,
+                                    // Heavily blurred, so a small decode is
+                                    // visually identical and far cheaper.
+                                    cacheWidth: 480,
+                                  ),
                                 ),
                               ),
                             ),
