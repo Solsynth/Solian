@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -344,25 +345,47 @@ class StartupSplashScreen extends HookConsumerWidget {
                     alignment: Alignment.topCenter,
                     child: AspectRatio(
                       aspectRatio: 9 / 16,
-                      child: Container(
+                      child: Stack(
                         key: const Key('startup-portrait-glow'),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.3),
-                              blurRadius: 56,
-                              offset: const Offset(0, 16),
+                        clipBehavior: Clip.none,
+                        children: [
+                          // Glow clone: the same artwork, slightly enlarged and
+                          // white-washed, blurred into a soft halo behind the
+                          // sharp portrait so it reads as radiating light.
+                          Positioned.fill(
+                            child: Transform.scale(
+                              scale: 1.07,
+                              child: ImageFiltered(
+                                imageFilter: ImageFilter.blur(
+                                  sigmaX: 32,
+                                  sigmaY: 32,
+                                ),
+                                child: Image.asset(
+                                  'assets/images/michan/landing.webp',
+                                  fit: BoxFit.cover,
+                                  // Heavily blurred, so a small decode is
+                                  // visually identical and far cheaper.
+                                  cacheWidth: 480,
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  colorBlendMode: BlendMode.screen,
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.asset(
-                            'assets/images/michan/landing.webp',
-                            fit: BoxFit.cover,
                           ),
-                        ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              'assets/images/michan/landing.webp',
+                              key: const Key('startup-portrait-image'),
+                              fit: BoxFit.cover,
+                              // Fill the rounded box regardless of decode
+                              // timing (intrinsic sizing collapses to zero
+                              // while the asset is still loading).
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

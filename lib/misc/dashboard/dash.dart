@@ -1126,65 +1126,76 @@ class _UnauthorizedCard extends HookConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: colorScheme.surface,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: isWide ? 48 : 32,
-          vertical: isWide ? 40 : 32,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.person, size: 64, color: colorScheme.onSurfaceVariant),
-            const Gap(24),
-            Text(
-              'welcomeToSolarNetwork'.tr(),
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        color: colorScheme.surface,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isWide ? 48 : 32,
+            vertical: isWide ? 40 : 32,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // The island's resident mascot waves hello, inviting a
+              // logged-out guest back into their personal space.
+              Image.asset(
+                'assets/images/stickers/hello.webp',
+                width: 136,
+                height: 136,
+                fit: BoxFit.contain,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(12),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 320),
-              child: Text(
-                'Login to access your personalized dashboard with friends, notifications, chats, and more!',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.5,
+              const Gap(24),
+              Text(
+                'welcomeToSolarNetwork'.tr(),
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                  height: 1.25,
                 ),
                 textAlign: TextAlign.center,
               ),
-            ),
-            const Gap(32),
-            FilledButton.icon(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  builder: (context) => const LoginModal(),
-                );
-              },
-              icon: const Icon(Symbols.login, size: 20),
-              label: Text('login'.tr()),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              const Gap(12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Text(
+                  'loginToAccessDashboard'.tr(),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-          ],
+              const Gap(32),
+              FilledButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    builder: (context) => const LoginModal(),
+                  );
+                },
+                icon: const Icon(Symbols.login, size: 20),
+                label: Text('login'.tr()),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

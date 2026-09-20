@@ -68,8 +68,12 @@ void main() {
     expect(find.byKey(const Key('startup-portrait-glow')), findsOneWidget);
     expect(find.byType(StartupProgressBar), findsOneWidget);
 
-    final portrait = tester.getCenter(find.byType(Image));
-    final imageSize = tester.getSize(find.byType(Image));
+    final portrait = tester.getCenter(
+      find.byKey(const Key('startup-portrait-image')),
+    );
+    final imageSize = tester.getSize(
+      find.byKey(const Key('startup-portrait-image')),
+    );
     expect(imageSize.width / imageSize.height, closeTo(9 / 16, 0.01));
     // Horizontally centered, anchored to the top.
     expect(portrait.dx, closeTo(390 / 2, 1));
@@ -102,13 +106,22 @@ void main() {
     expect(find.byKey(const Key('startup-portrait-glow')), findsOneWidget);
     expect(find.byType(StartupProgressBar), findsOneWidget);
 
-    final portrait = tester.getCenter(find.byType(Image));
-    final imageSize = tester.getSize(find.byType(Image));
+    final portrait = tester.getCenter(
+      find.byKey(const Key('startup-portrait-image')),
+    );
+    final imageSize = tester.getSize(
+      find.byKey(const Key('startup-portrait-image')),
+    );
     expect(imageSize.width / imageSize.height, closeTo(9 / 16, 0.01));
     // Not full-bleed: capped to a centered 9:16 poster.
     expect(imageSize.width, lessThan(600));
     expect(portrait.dx, closeTo(1440 / 2, 1));
     // Top-anchored at the 24px frame margin.
-    expect(tester.getTopLeft(find.byType(Image)).dy, closeTo(24, 1));
+    expect(
+      tester
+          .getTopLeft(find.byKey(const Key('startup-portrait-image')))
+          .dy,
+      closeTo(24, 1),
+    );
   });
 }
