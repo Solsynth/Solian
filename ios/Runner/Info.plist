@@ -80,8 +80,14 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow the Solar Network verify your ownership of the logged in account and continue
 			your action quickly.</string>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>This app does not uses Health Record data directly, but a dependency may reference HealthKit APIs.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Allow Solian read Apple Health&apos;s data to share with your friends.</string>
+	<string>Allow Solian read Apple Health's data to share with your friends.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>This app does not write Health data directly, but a dependency may reference HealthKit APIs.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Solian uses your location data to provide the location pin feature that sharing your current location with your selected friends.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -101,6 +107,8 @@
 	<string>1</string>
 	<key>REVERSED_CLIENT_ID</key>
 	<string>com.googleusercontent.apps.961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig</string>
+	<key>SupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -152,13 +160,5 @@
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>This app does not write Health data directly, but a dependency may reference HealthKit APIs.</string>
-	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
-	<string>This app does not uses Health Record data directly, but a dependency may reference HealthKit APIs.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Solian uses your location data to provide the location pin feature that sharing your current location with your selected friends.</string>
-	<key>SupportsLiveActivities</key>
-	<true/>
 </dict>
 </plist>

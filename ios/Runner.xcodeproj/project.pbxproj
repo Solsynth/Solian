@@ -1160,7 +1160,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -1263,7 +1263,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianWidgetExtension;
@@ -1309,7 +1309,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianWidgetExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1352,7 +1352,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianWidgetExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1399,7 +1399,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.watchkitapp;
@@ -1452,7 +1452,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1503,7 +1503,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1548,7 +1548,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianBroadcastExtension;
@@ -1590,7 +1590,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianBroadcastExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1629,7 +1629,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianBroadcastExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1670,7 +1670,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "";
@@ -1716,7 +1716,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianShareExtension;
@@ -1759,7 +1759,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianShareExtension;
@@ -1801,7 +1801,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianNotificationService;
@@ -1843,7 +1843,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianNotificationService;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1882,7 +1882,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian.SolianNotificationService;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2031,7 +2031,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ENABLE_EXPLICIT_MODULES = "$(SWIFT_USE_INTEGRATED_DRIVER)";
@@ -2064,7 +2064,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.13.0;
+				MARKETING_VERSION = 3.14.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.solsynth.solian;
 				PRODUCT_NAME = "$(TARGET_NAME)";

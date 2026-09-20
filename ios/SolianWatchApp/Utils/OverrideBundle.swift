@@ -13,7 +13,7 @@
 
 import Foundation
 
-final class OverrideBundle: Bundle {
+final class OverrideBundle: Bundle, @unchecked Sendable {
     /// The resolved `.lproj` bundle for the current language override, or
     /// `nil` when using the system default.
     private static var languageBundle: Bundle?
