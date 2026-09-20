@@ -10,7 +10,6 @@
 
 <p align="center">
   <a href="LICENSE.txt"><img src="https://img.shields.io/github/license/Solsynth/HyperNet.Surface" alt="License"></a>
-  <a href="https://crowdin.com/project/solian"><img src="https://badges.crowdin.net/solian/localized.svg" alt="Localization Status"></a>
   <a href="https://github.com/Solsynth/HyperNet.Surface/releases"><img src="https://img.shields.io/github/v/release/Solsynth/HyperNet.Surface?include_prereleases" alt="Latest Release"></a>
 </p>
 
@@ -22,8 +21,6 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 
 提示：中文版本的 README 信息可能更新不及时，请以英文版本的为准。
 
-> **帮助我们翻译！** 点击上方的 Crowdin 徽章参与翻译贡献。
->
 > 中文文档：[Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [English README](./README.md)
 
 ---
@@ -51,7 +48,7 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 | 帖子、文章与博客 | 已完成 | 多种内容类型满足不同需求 |
 | 帖子链 | 已完成 | 将相关帖子串联成线程 |
 | 即时通讯 | 已完成 | 实时聊天，支持群组、语音消息、表情回应与已读回执 |
-| 端到端加密 | 已完成 | 基于 MLS 的加密消息与加密文件 |
+| 端到端加密 | 已完成 | 基于 MLS 的加密消息 |
 | 领域 | 已完成 | 按共同兴趣组织的社区 |
 | OAuth 集成 | 已完成 | 安全的第三方认证 |
 | 通行密钥 | 已完成 | 使用 WebAuthn 通行密钥免密登录 |
@@ -60,7 +57,6 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 | 活动日历 | 已完成 | 与社区一起规划和分享活动 |
 | 会面 | 已完成 | 发现并认识身边的人 |
 | 天气 | 已完成 | 仪表盘上的天气预报 |
-| RSS 阅读器 | 已完成 | 订阅外部资讯源 |
 | 钱包 | 已完成 | 积分、兑换、订单与账单 |
 | 贴纸 | 已完成 | 用自定义贴纸表达自我 |
 | 富文本编辑器 | 已完成 | 基于 Markdown，支持扩展语法 |
@@ -71,12 +67,7 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 | 主页面板 | 已完成 | 个人主页上的自定义小组件 |
 | 工作区 | 已完成 | 共享协作空间 |
 | 成就与进度 | 已完成 | 记录你在 Solar Network 的一点一滴 |
-| 运动与健康 | 测试版 | 追踪健康和运动目标 |
 | 联邦网络 | 测试版 | 与其他联邦实例互动 |
-
-### 即将推出
-
-- **SolarWatt Ideask** - 待办事项和任务管理应用
 
 ---
 
@@ -85,8 +76,8 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 ### 普通用户
 
 1. **下载应用**
-   - 访问 [GitHub Releases](https://github.com/Solsynth/HyperNet.Surface/releases) 下载适合你平台的最新版本
-   - **稳定版与预发布版的区别：** 预发布版包含最新功能但可能未经充分测试。由于我们不做 API 版本控制，破坏性更新可能会影响稳定版，因此建议使用预发布版以获得最佳体验。
+   - 访问 [Solar Network 产品页](https://solsynth.dev/products/solar-network) 下载适合你平台的最新版本
+   - **滚动更新：** Solian 采用滚动发布模式——我们不做 API 版本控制，破坏性更新随时可能出现。请保持应用更新以获得最佳体验。
 
 2. **创建账号**
    - 在 Solar Network 上注册账号
@@ -172,7 +163,6 @@ Solar Network 的后端服务位于：
 
 - [报告 Bug](https://github.com/Solsynth/HyperNet.Surface/issues)
 - [建议新功能](https://github.com/Solsynth/HyperNet.Surface/discussions)
-- [参与应用翻译](https://crowdin.com/project/solian)
 
 ## 许可协议
 

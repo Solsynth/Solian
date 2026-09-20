@@ -10,7 +10,6 @@
 
 <p align="center">
   <a href="LICENSE.txt"><img src="https://img.shields.io/github/license/Solsynth/HyperNet.Surface" alt="License"></a>
-  <a href="https://crowdin.com/project/solian"><img src="https://badges.crowdin.net/solian/localized.svg" alt="Localization Status"></a>
   <a href="https://github.com/Solsynth/HyperNet.Surface/releases"><img src="https://img.shields.io/github/v/release/Solsynth/HyperNet.Surface?include_prereleases" alt="Latest Release"></a>
 </p>
 
@@ -20,8 +19,6 @@ Solian (also known as Solar Network) is a social networking platform, designed t
 
 Note: Fediverse support is currently experimental and limited.
 
-> **Help us translate!** Click the Crowdin badge above to contribute translations.
->
 > If you read Chinese, visit our documentation: [Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [中文 README](./README_CN.md)
 
 ---
@@ -49,7 +46,7 @@ Note: Fediverse support is currently experimental and limited.
 | Posts, Articles & Blog | Done | Multiple content types for different needs |
 | Post Chaining | Done | Chain related posts into a thread |
 | Instant Messaging | Done | Real-time chat with groups, voice messages, reactions and read receipts |
-| End-to-End Encryption | Done | MLS-encrypted messages and encrypted drive files |
+| End-to-End Encryption | Done | MLS-encrypted messages |
 | Realms | Done | Communities organized by shared interests |
 | OAuth Integration | Done | Secure third-party authentication |
 | Passkeys | Done | Passwordless sign-in with WebAuthn passkeys |
@@ -58,7 +55,6 @@ Note: Fediverse support is currently experimental and limited.
 | Event Calendar | Done | Plan and share events with your community |
 | Meet | Done | Find and meet people nearby |
 | Weather | Done | Weather forecast on your dashboard |
-| RSS Reader | Done | Subscribe to external feeds |
 | Wallet | Done | Credits, exchange, orders and billing |
 | Stickers | Done | Express yourself with custom stickers |
 | Rich Text Editor | Done | Markdown-based with extended syntax |
@@ -69,12 +65,7 @@ Note: Fediverse support is currently experimental and limited.
 | Board | Done | Custom widgets on your profile |
 | Workspaces | Done | Shared spaces for collaboration |
 | Progressions | Done | Make your move on Solar Network memorizable |
-| Fitness & Health | Beta | Track your fitness goal and share with your friends |
 | Fediverse | Beta | Interact with other fediverse instances |
-
-### Coming Soon
-
-- **SolarWatt Ideask** - An todo and task management app
 
 ---
 
@@ -83,8 +74,8 @@ Note: Fediverse support is currently experimental and limited.
 ### For Users
 
 1. **Download the App**
-   - Visit [GitHub Releases](https://github.com/Solsynth/HyperNet.Surface/releases) to download the latest version for your platform
-   - **Stable vs Pre-release:** Pre-releases include cutting-edge features but may have untested changes. Since we don't use API versioning, breaking changes may affect stable releases—consider using pre-releases for the best experience.
+   - Visit [Solar Network product page](https://solsynth.dev/products/solar-network) to download the latest version for your platform
+   - **Rolling updates:** Solian uses rolling releases — we don't use API versioning, so breaking changes can land at any time. Keep the app up to date for the best experience.
 
 2. **Create an Account**
    - Sign up on the Solar Network
@@ -170,7 +161,6 @@ We welcome contributions! Please read our [Code of Conduct](./CODE_OF_CONDUCT.md
 
 - [Report bugs](https://github.com/Solsynth/HyperNet.Surface/issues)
 - [Suggest features](https://github.com/Solsynth/HyperNet.Surface/discussions)
-- [Translate the app](https://crowdin.com/project/solian)
 
 ## Licensing
 
