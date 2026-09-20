@@ -100,5 +100,16 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
       config.build_settings['WATCHOS_DEPLOYMENT_TARGET'] = '11.0'
     end
+
+    # libwebp's headers use quoted sibling includes, which Xcode's module
+    # verifier rejects for framework modules (libwebp-watchOS fails with
+    # "double-quoted include ... in framework header"). It's a vendored C
+    # library consumed by KingfisherWebP; skipping verification is the
+    # standard workaround.
+    if target.name.start_with?('libwebp')
+      target.build_configurations.each do |config|
+        config.build_settings['ENABLE_MODULE_VERIFIER'] = 'NO'
+      end
+    end
   end
 end

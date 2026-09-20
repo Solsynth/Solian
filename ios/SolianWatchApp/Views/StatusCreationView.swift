@@ -156,7 +156,6 @@ struct StatusCreationView: View {
     
     private func showDatePickerSheet() {
         let now = Date()
-        let oneYearLater = Calendar.current.date(byAdding: .year, value: 1, to: now) ?? now
         
         // For watchOS, we use a simple approach - just set a default future time
         // The actual date/time picker would be a separate sheet
