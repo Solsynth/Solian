@@ -62,7 +62,6 @@ import 'package:island/core/tour/tour.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:snow_fall_animation/snow_fall_animation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:tray_manager/legacy.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
