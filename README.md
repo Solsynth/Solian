@@ -91,6 +91,7 @@ Note: Fediverse support is currently experimental and limited.
   ```powershell
   winget install NASM.NASM
   ```
+- For macOS development, keep the Rust `stable` toolchain current (`rustup update stable`). Archiving from Xcode fails with `E0463: can't find crate for proc_macro_error_attr` when `stable` is older than 1.98 — Xcode's `MACOSX_DEPLOYMENT_TARGET` (13.5) makes the linker emit chained-fixups proc-macro dylibs that older rustc cannot read.
 - For Linux development, install additional dependencies:
 
 ```bash

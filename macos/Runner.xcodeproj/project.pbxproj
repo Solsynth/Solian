@@ -27,7 +27,7 @@
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
-		33EE00012044A3C60003C045 /* ../ios/Runner/AppIcon-Cuite.icon in Resources */ = {isa = PBXBuildFile; fileRef = 33EE00022044A3C60003C045 /* ../ios/Runner/AppIcon-Cuite.icon */; };
+		33EE00012044A3C60003C045 /* AppIcon-Cuite.icon in Resources */ = {isa = PBXBuildFile; fileRef = 33EE00022044A3C60003C045 /* AppIcon-Cuite.icon */; };
 		33EE00032044A3C60003C045 /* AppIconChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33EE00042044A3C60003C045 /* AppIconChannel.swift */; };
 		733C52742FCAC209005F1191 /* SfxNotification.caf in Resources */ = {isa = PBXBuildFile; fileRef = 733C52732FCAC209005F1191 /* SfxNotification.caf */; };
 		733C52752FCAC209005F1191 /* SfxMessage.caf in Resources */ = {isa = PBXBuildFile; fileRef = 733C52722FCAC209005F1191 /* SfxMessage.caf */; };
@@ -75,7 +75,7 @@
 		33E51913231747F40026EE4D /* DebugProfile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DebugProfile.entitlements; sourceTree = "<group>"; };
 		33E51914231749380026EE4D /* Release.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Release.entitlements; sourceTree = "<group>"; };
 		33E5194F232828860026EE4D /* AppInfo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppInfo.xcconfig; sourceTree = "<group>"; };
-		33EE00022044A3C60003C045 /* ../ios/Runner/AppIcon-Cuite.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "../ios/Runner/AppIcon-Cuite.icon"; sourceTree = "<group>"; };
+		33EE00022044A3C60003C045 /* AppIcon-Cuite.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "../ios/Runner/AppIcon-Cuite.icon"; sourceTree = "<group>"; };
 		33EE00042044A3C60003C045 /* AppIconChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconChannel.swift; sourceTree = "<group>"; };
 		43D88ABB378B9C7DB274779D /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		45CA28B3BA0F7F54A2F794A5 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -153,7 +153,7 @@
 			children = (
 				733C52722FCAC209005F1191 /* SfxMessage.caf */,
 				733C52732FCAC209005F1191 /* SfxNotification.caf */,
-				33EE00022044A3C60003C045 /* ../ios/Runner/AppIcon-Cuite.icon */,
+				33EE00022044A3C60003C045 /* AppIcon-Cuite.icon */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
@@ -308,7 +308,7 @@
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
 			);
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
 			projectDirPath = "";
@@ -334,7 +334,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
-				33EE00012044A3C60003C045 /* ../ios/Runner/AppIcon-Cuite.icon in Resources */,
+				33EE00012044A3C60003C045 /* AppIcon-Cuite.icon in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
 				B48F10F93F6AB0C5490C5A07 /* GoogleService-Info.plist in Resources */,
 				733C52742FCAC209005F1191 /* SfxNotification.caf in Resources */,
@@ -353,13 +353,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -456,13 +452,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -909,7 +901,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
