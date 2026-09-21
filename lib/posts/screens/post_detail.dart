@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart'
-    show RenderAbstractViewport, RenderBox;
+    show RenderAbstractViewport;
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
@@ -37,6 +37,7 @@ import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/post_detail_content.dart';
 import 'package:island/posts/widgets/publisher_collection_info.dart';
+import 'package:island/posts/widgets/article_toc.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/shared/widgets/content/markdown.dart'
     show MarkdownHeadingAnchor, MarkdownHeadingRegistry;
@@ -2272,51 +2273,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   }
 }
 
-bool _sameHeadingAnchors(
-  List<MarkdownHeadingAnchor> a,
-  List<MarkdownHeadingAnchor> b,
-) {
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i].text != b[i].text || a[i].level != b[i].level) return false;
-  }
-  return true;
-}
-
 /// Shared inset for the article panes, so the cover image in the reading pane
 /// starts on the same line as the sidebar card beside it.
 const double _articlePaneInset = 12;
-
-/// Pairs each scanned section with the rendered heading it points at, matching
-/// by level/text and occurrence so repeated headings stay distinct. Entries the
-/// renderer did not produce (or has not produced yet) stay null and simply are
-/// not scrollable.
-List<MarkdownHeadingAnchor?> _matchSectionAnchors(
-  List<SnPostSection> sections,
-  List<MarkdownHeadingAnchor> anchors,
-) {
-  final usedOccurrences = <String, int>{};
-  return [
-    for (final section in sections)
-      () {
-        final signature = '${section.level}\u0000${section.title}';
-        final occurrence = usedOccurrences.update(
-          signature,
-          (count) => count + 1,
-          ifAbsent: () => 0,
-        );
-        var seen = 0;
-        for (final anchor in anchors) {
-          if (anchor.level != section.level || anchor.text != section.title) {
-            continue;
-          }
-          if (seen == occurrence) return anchor;
-          seen++;
-        }
-        return null;
-      }(),
-  ];
-}
 
 /// Article reading layout for wide screens: the article scrolls in the left
 /// 2/3 under a reading-progress line, while the right 1/3 stacks sidebar cards
@@ -2366,7 +2325,7 @@ class _ArticleDetailLayout extends HookConsumerWidget {
     // Scroll targets only exist once the body has rendered; match them to the
     // scanned sections (same source, same order).
     final sectionAnchors = useMemoized(
-      () => _matchSectionAnchors(sections, tocAnchors.value),
+      () => matchSectionAnchors(sections, tocAnchors.value),
       [sections, tocAnchors.value],
     );
     final sectionAnchorsRef = useRef<List<MarkdownHeadingAnchor?>>(const []);
@@ -2380,7 +2339,7 @@ class _ArticleDetailLayout extends HookConsumerWidget {
         final next = List<MarkdownHeadingAnchor>.of(
           headingRegistry.value.items,
         );
-        if (!_sameHeadingAnchors(tocAnchors.value, next)) {
+        if (!sameHeadingAnchors(tocAnchors.value, next)) {
           tocAnchors.value = next;
         }
       });
@@ -2629,7 +2588,7 @@ class _ArticleDetailLayout extends HookConsumerWidget {
                           Expanded(
                             child: TabBarView(
                               children: [
-                                _ArticleTocList(
+                                ArticleTocList(
                                   sections: sections,
                                   activeIndex: activeSection.value,
                                   onSelect: scrollToSection,
@@ -2730,104 +2689,6 @@ class _ArticleDetailLayout extends HookConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// The contents tab: every heading in the article, indented by level, with the
-/// section being read highlighted and finished sections dimmed. The list keeps
-/// the active entry in view while the reader scrolls the article.
-class _ArticleTocList extends HookWidget {
-  final List<SnPostSection> sections;
-  final int activeIndex;
-  final ValueChanged<int> onSelect;
-
-  const _ArticleTocList({
-    required this.sections,
-    required this.activeIndex,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final entryKeys = useRef(<int, GlobalKey>{});
-
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final entry = entryKeys.value[activeIndex]?.currentContext;
-        if (entry == null) return;
-        final entryBox = entry.findRenderObject();
-        final scrollable = entry.findAncestorStateOfType<ScrollableState>();
-        if (entryBox is! RenderBox || scrollable == null) return;
-        final viewportBox = scrollable.context.findRenderObject();
-        if (viewportBox is! RenderBox) return;
-
-        final top = entryBox
-            .localToGlobal(Offset.zero, ancestor: viewportBox)
-            .dy;
-        final inView =
-            top >= 0 && top + entryBox.size.height <= viewportBox.size.height;
-        if (inView) return;
-
-        // Only the contents list scrolls; the horizontal tab view is untouched.
-        scrollable.position.ensureVisible(
-          entryBox,
-          alignment: 0.5,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-        );
-      });
-      return null;
-    }, [activeIndex]);
-
-    if (sections.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: Text(
-          'articleNoContents'.tr(),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            height: 1.5,
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
-      itemCount: sections.length,
-      itemBuilder: (context, index) {
-        final section = sections[index];
-        final isActive = index == activeIndex;
-        final isRead = index < activeIndex;
-        return InkWell(
-          key: entryKeys.value.putIfAbsent(index, GlobalKey.new),
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => onSelect(index),
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 10 + (section.level - 1) * 14,
-              right: 10,
-              top: 7,
-              bottom: 7,
-            ),
-            child: Text(
-              section.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: isActive
-                    ? theme.colorScheme.primary
-                    : isRead
-                    ? theme.colorScheme.onSurface.withOpacity(0.4)
-                    : theme.colorScheme.onSurface,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
@@ -3473,6 +3334,7 @@ class _PostDetailBody extends HookConsumerWidget {
                 postId: id,
                 post: postItem,
                 trailing: trailing,
+                showTableOfContents: true,
                 headerSliver: isEmbedded
                     ? null
                     : buildPostDetailSliverAppBar(

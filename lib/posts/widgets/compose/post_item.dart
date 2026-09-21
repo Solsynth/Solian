@@ -550,6 +550,11 @@ class PostItem extends HookConsumerWidget {
   final VoidCallback? onOpen;
   final Widget? trailing;
   final void Function(String)? onPostTap;
+
+  /// Receives heading anchors captured while this post's body renders, so a
+  /// hosting screen can offer scroll targets (e.g. a table of contents).
+  final MarkdownHeadingRegistry? headingAnchors;
+
   const PostItem({
     super.key,
     required this.item,
@@ -571,6 +576,7 @@ class PostItem extends HookConsumerWidget {
     this.onOpen,
     this.trailing,
     this.onPostTap,
+    this.headingAnchors,
   });
 
   @override
@@ -883,6 +889,7 @@ class PostItem extends HookConsumerWidget {
       translationSection: translationSection,
       renderingPadding: renderingPadding,
       hideAttachments: hideAttachments,
+      headingAnchors: headingAnchors,
       useContainedAttachments: hideAvatar || item.chainedPosts.isNotEmpty,
       forwardedCard:
           (isShowReference &&

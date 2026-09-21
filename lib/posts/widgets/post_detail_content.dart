@@ -4,6 +4,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/rendering.dart'
+    show RenderAbstractViewport;
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -15,14 +17,18 @@ import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/pods/post_chain.dart';
+import 'package:island/posts/widgets/article_toc.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_chained_section.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/content/markdown.dart'
+    show MarkdownHeadingAnchor, MarkdownHeadingRegistry;
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/content/image.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -337,6 +343,11 @@ class PostDetailContent extends HookConsumerWidget {
   final PostDetailActionBuilder actionBuilder;
   final Widget? headerSliver;
 
+  /// Whether a table-of-contents entry point (floating button + sheet) is
+  /// offered for long-form content. Hosts on the full page set this; embedded
+  /// previews (e.g. attention modals) keep their surface minimal.
+  final bool showTableOfContents;
+
   const PostDetailContent({
     super.key,
     required this.postId,
@@ -352,6 +363,7 @@ class PostDetailContent extends HookConsumerWidget {
     this.maxWidth = postDetailMaxWidth,
     this.collectionSection,
     this.realmSection,
+    this.showTableOfContents = false,
   });
 
   @override
@@ -369,6 +381,83 @@ class PostDetailContent extends HookConsumerWidget {
     // a chained post opened on its own has none and renders them from here.
     final showsFollowingChain =
         post.chainedPostId != null && followingChain.isNotEmpty;
+
+    // Table of contents: sections come straight from the article source so the
+    // floating button appears on the first frame, while the heading keys are
+    // captured as the body renders and matched to the sections afterwards.
+    final scrollController = useScrollController();
+    final headingRegistry = useRef(MarkdownHeadingRegistry());
+    final tocAnchors = useState<List<MarkdownHeadingAnchor>>(const []);
+    final activeSection = useState(0);
+    final markdown = useMemoized(
+      () => resolvePostMarkdown(post),
+      [post.content, post.contentType],
+    );
+    final sections = useMemoized(() => scanPostSections(markdown), [markdown]);
+    final sectionAnchors = useMemoized(
+      () => matchSectionAnchors(sections, tocAnchors.value),
+      [sections, tocAnchors.value],
+    );
+    final sectionAnchorsRef = useRef<List<MarkdownHeadingAnchor?>>(const []);
+    sectionAnchorsRef.value = sectionAnchors;
+
+    // The registry is filled while the body renders (during layout), so
+    // reconcile the scroll targets after each frame rather than in-build.
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        final next = List<MarkdownHeadingAnchor>.of(
+          headingRegistry.value.items,
+        );
+        if (!sameHeadingAnchors(tocAnchors.value, next)) {
+          tocAnchors.value = next;
+        }
+      });
+      return null;
+    });
+
+    // Highlight the section whose heading has passed the top of the viewport.
+    useEffect(() {
+      void onScroll() {
+        final position = scrollController.position;
+        final anchors = sectionAnchorsRef.value;
+        if (anchors.isEmpty) return;
+        final offsets = <double?>[
+          for (final anchor in anchors)
+            if (anchor?.key.currentContext?.findRenderObject()
+                case final renderObject?)
+              RenderAbstractViewport.of(
+                renderObject,
+              ).getOffsetToReveal(renderObject, 0.0).offset
+            else
+              null,
+        ];
+        final active = activeSectionIndex(offsets, position.pixels);
+        if (active != activeSection.value) {
+          activeSection.value = active;
+        }
+      }
+
+      scrollController.addListener(onScroll);
+      return () => scrollController.removeListener(onScroll);
+    }, [scrollController]);
+
+    void jumpToSection(int index) {
+      final anchors = sectionAnchorsRef.value;
+      if (index < 0 || index >= anchors.length) return;
+      activeSection.value = index;
+      // Run after the sheet route is gone so the page lays out normally again.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final target = anchors[index]?.key.currentContext;
+        if (target == null) return;
+        Scrollable.ensureVisible(
+          target,
+          duration: const Duration(milliseconds: 360),
+          curve: Curves.easeOutCubic,
+          alignment: 0.08,
+        );
+      });
+    }
 
     Future<void> translatePost(String text) async {
       if (translatedText.value != null) {
@@ -406,6 +495,7 @@ class PostDetailContent extends HookConsumerWidget {
         ExtendedRefreshIndicator(
           onRefresh: onRefresh,
           child: CustomScrollView(
+            controller: scrollController,
             slivers: [
               ?headerSliver,
               if (isMediaPost)
@@ -466,6 +556,7 @@ class PostDetailContent extends HookConsumerWidget {
                     onPostTap: onPostTap,
                     connectChainAbove: precedingChain.isNotEmpty,
                     connectChainBelow: showsFollowingChain,
+                    headingAnchors: headingRegistry.value,
                   ),
                 ),
               ),
@@ -532,6 +623,30 @@ class PostDetailContent extends HookConsumerWidget {
             right: 16,
             child: wrapContent(
               PostQuickReply(parent: post, onPosted: onReplyPosted),
+            ),
+          ),
+        if (showTableOfContents && sections.isNotEmpty)
+          Positioned(
+            right: 16,
+            // Clear the quick reply bar when it is present.
+            bottom:
+                16 +
+                MediaQuery.of(context).padding.bottom +
+                (user.value != null ? 96 : 0),
+            child: FloatingActionButton.small(
+              heroTag: 'post-detail-toc-${post.id}',
+              tooltip: 'articleContents'.tr(),
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+              onPressed: () => showPostTocSheet(
+                context,
+                sections: sections,
+                activeIndex: activeSection,
+                onSelect: jumpToSection,
+              ),
+              child: Icon(
+                Symbols.toc,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
       ],
