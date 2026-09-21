@@ -12,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 class UniversalImage extends HookConsumerWidget {
   final String uri;
@@ -56,6 +57,12 @@ class UniversalImage extends HookConsumerWidget {
 
     final serverUrl = ref.watch(serverUrlProvider);
     final token = ref.watch(tokenProvider);
+
+    // On web, cached_network_image's default HtmlImage render decodes through
+    // a browser <img> element and only snapshots a single frame, so GIFs
+    // never animate. Route app-origin and clearly-animated URIs through
+    // HttpGet (byte decode + multi-frame codec) so they play.
+    final renderMethod = imageRenderMethodForWebFor(uri, serverUrl: serverUrl);
 
     final Map<String, String>? httpHeaders =
         uri.startsWith(serverUrl) && token != null
@@ -117,13 +124,18 @@ class UniversalImage extends HookConsumerWidget {
             CachedNetworkImage(
               imageUrl: uri,
               httpHeaders: httpHeaders,
+              imageRenderMethodForWeb: renderMethod,
               fit: fit,
               width: width,
               height: height,
               memCacheHeight: cacheHeight,
               memCacheWidth: cacheWidth,
               imageBuilder: (context, imageProvider) => Image(
-                image: CachedNetworkImageProvider(uri, headers: httpHeaders),
+                image: CachedNetworkImageProvider(
+                  uri,
+                  headers: httpHeaders,
+                  imageRenderMethodForWeb: renderMethod,
+                ),
                 fit: fit,
                 width: width,
                 height: height,
@@ -140,6 +152,7 @@ class UniversalImage extends HookConsumerWidget {
             CachedNetworkImage(
               imageUrl: uri,
               httpHeaders: httpHeaders,
+              imageRenderMethodForWeb: renderMethod,
               fit: fit,
               width: width,
               height: height,
@@ -180,6 +193,7 @@ class UniversalImage extends HookConsumerWidget {
                         image: CachedNetworkImageProvider(
                           uri,
                           headers: httpHeaders,
+                          imageRenderMethodForWeb: renderMethod,
                         ),
                         fit: fit,
                         width: width,
