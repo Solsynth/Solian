@@ -54,6 +54,33 @@ class UpdateService {
   final String channel;
   final bool enabled;
 
+  /// Strips the ABI version-code offset Flutter's Gradle plugin adds when an
+  /// Android app is built with `--split-per-abi`.
+  ///
+  /// The plugin overrides each split APK's version code with
+  /// `ABI_VERSION[abi] * 1000 + versionCode` (see `FlutterPluginConstants` in
+  /// flutter_tools): armeabi-v7a adds 1,000, arm64-v8a 2,000, and x86_64
+  /// 4,000. `package_info_plus` then reports the overridden value, so the
+  /// build number must be normalized before comparing against releases, which
+  /// use the canonical version code. Builds below the offset (non-split) and
+  /// non-Android platforms are returned unchanged.
+  @visibleForTesting
+  static int normalizeBuildNumber(
+    int buildNumber,
+    String platform,
+    String architecture,
+  ) {
+    if (platform != 'android') return buildNumber;
+    final offset = switch (architecture) {
+      'armeabi-v7a' => 1000,
+      'arm64' => 2000,
+      'x86_64' => 4000,
+      _ => 0,
+    };
+    if (offset == 0 || buildNumber < offset) return buildNumber;
+    return buildNumber - offset;
+  }
+
   /// Checks for a newer release and presents [UpdateSheet] when one exists.
   Future<void> checkForUpdates(BuildContext context) async {
     if (!enabled || !kEnableBuiltInUpdate || kIsWeb || !_api.isConfigured) {
@@ -65,7 +92,14 @@ class UpdateService {
       final info = await PackageInfo.fromPlatform();
       final target = await _currentTarget();
       if (target == null) return;
-      final currentVersion = '${info.version}+${info.buildNumber}';
+      final parsedBuildNumber = int.tryParse(info.buildNumber);
+      final currentVersion = parsedBuildNumber == null
+          ? '${info.version}+${info.buildNumber}'
+          : '${info.version}+${normalizeBuildNumber(
+              parsedBuildNumber,
+              target.platform,
+              target.architecture,
+            )}';
       final result = await _api.checkForUpdate(
         currentVersion: currentVersion,
         platform: target.platform,

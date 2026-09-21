@@ -96,4 +96,47 @@ void main() {
     expect(api.requestedLocale, 'en-US');
     expect(api.requestedOSVersion, '24.3');
   });
+
+  group('Android split-per-abi build number normalization', () {
+    test('strips the ABI offset from split APK version codes', () {
+      expect(
+        UpdateService.normalizeBuildNumber(1020, 'android', 'armeabi-v7a'),
+        20,
+      );
+      expect(
+        UpdateService.normalizeBuildNumber(2020, 'android', 'arm64'),
+        20,
+      );
+      expect(
+        UpdateService.normalizeBuildNumber(4020, 'android', 'x86_64'),
+        20,
+      );
+    });
+
+    test('strips the offset when the canonical build number is large', () {
+      expect(
+        UpdateService.normalizeBuildNumber(3520, 'android', 'arm64'),
+        1520,
+      );
+    });
+
+    test('leaves non-split builds untouched', () {
+      expect(UpdateService.normalizeBuildNumber(20, 'android', 'arm64'), 20);
+      expect(
+        UpdateService.normalizeBuildNumber(20, 'android', 'armeabi-v7a'),
+        20,
+      );
+      // x86 has no ABI offset (its Flutter support was removed), so a build
+      // at or above an offset magnitude is not attributable to splitting.
+      expect(UpdateService.normalizeBuildNumber(4020, 'android', 'x86'), 4020);
+    });
+
+    test('leaves non-Android platforms untouched', () {
+      expect(UpdateService.normalizeBuildNumber(2020, 'macos', 'arm64'), 2020);
+      expect(
+        UpdateService.normalizeBuildNumber(2020, 'windows', 'amd64'),
+        2020,
+      );
+    });
+  });
 }
