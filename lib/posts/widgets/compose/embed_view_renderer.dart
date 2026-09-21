@@ -98,9 +98,16 @@ class EmbedViewRenderer extends HookConsumerWidget {
             ),
 
             // WebView content with lazy loading
-            AspectRatio(
-              aspectRatio: embedView.aspectRatio ?? 1,
-              child: shouldLoad.value
+            // The webview keeps its aspect ratio but must fit the space the
+            // header leaves inside the max-height cap. A plain AspectRatio in
+            // a min-sized column is offered the full cap, not the remaining
+            // height, so header + ratio height overflow the card and paint
+            // over the post below. Flexible clamps it to the leftover space.
+            Flexible(
+              fit: FlexFit.loose,
+              child: AspectRatio(
+                aspectRatio: embedView.aspectRatio ?? 1,
+                child: shouldLoad.value
                   ? Stack(
                       children: [
                         InAppWebView(
@@ -280,6 +287,7 @@ class EmbedViewRenderer extends HookConsumerWidget {
                         ),
                       ),
                     ),
+              ),
             ),
           ],
         ),
