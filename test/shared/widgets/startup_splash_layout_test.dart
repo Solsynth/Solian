@@ -65,7 +65,6 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(StartupSplashScreen), findsOneWidget);
     expect(find.byKey(const Key('startup-bottom-scrim')), findsOneWidget);
-    expect(find.byKey(const Key('startup-portrait-glow')), findsOneWidget);
     expect(find.byType(StartupProgressBar), findsOneWidget);
 
     final portrait = tester.getCenter(
@@ -81,6 +80,10 @@ void main() {
 
     final bar = tester.getCenter(find.byType(StartupProgressBar));
     expect(bar.dy, greaterThan(844 * 0.8));
+    // Portrait ends above the progress cluster: clear gap, no overlap.
+    final barBox = tester.getRect(find.byType(StartupProgressBar));
+    final portraitBottom = portrait.dy + imageSize.height / 2;
+    expect(portraitBottom, lessThan(barBox.top));
 
     final copyright = find.textContaining('© Solsynth');
     expect(copyright, findsOneWidget);
@@ -103,7 +106,6 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('startup-bottom-scrim')), findsOneWidget);
-    expect(find.byKey(const Key('startup-portrait-glow')), findsOneWidget);
     expect(find.byType(StartupProgressBar), findsOneWidget);
 
     final portrait = tester.getCenter(
@@ -116,12 +118,12 @@ void main() {
     // Not full-bleed: capped to a centered 9:16 poster.
     expect(imageSize.width, lessThan(600));
     expect(portrait.dx, closeTo(1440 / 2, 1));
-    // Top-anchored at the 24px frame margin.
+    // Flush with the safe-area top, portrait rides as high as possible.
     expect(
       tester
           .getTopLeft(find.byKey(const Key('startup-portrait-image')))
           .dy,
-      closeTo(24, 1),
+      closeTo(0, 1),
     );
   });
 }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui' show ImageFilter;
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -31,6 +30,11 @@ const kDefaultBootstrapRetryTimeouts = <Duration>[
   Duration(seconds: 2),
   Duration(seconds: 3),
 ];
+
+/// Vertical space reserved at the bottom of the splash for the progress
+/// cluster. The portrait ends above it so the artwork and the cluster never
+/// overlap; kept in sync with the bottom scrim height.
+const kSplashBottomReserve = 280.0;
 
 class StartupSplashScreen extends HookConsumerWidget {
   final bool runBootstrap;
@@ -337,76 +341,44 @@ class StartupSplashScreen extends HookConsumerWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Portrait artwork capped at 9:16, top-centered with a wide margin.
-              Positioned.fill(
+              // Portrait artwork capped at 9:16, top-centered. The reserved
+              // bottom margin keeps it clear of the progress cluster below,
+              // and the top frame is dropped so the picture rides as high as
+              // the safe area allows.
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: kSplashBottomReserve,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: AspectRatio(
                       aspectRatio: 9 / 16,
-                      child: Stack(
-                        key: const Key('startup-portrait-glow'),
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Silhouette glow: the artwork's own alpha, filled
-                          // solid and blurred, so the halo follows the
-                          // character's outline in every direction instead of
-                          // the portrait's edges.
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: ImageFiltered(
-                                imageFilter: ImageFilter.blur(
-                                  sigmaX: 36,
-                                  sigmaY: 36,
-                                ),
-                                child: ColorFiltered(
-                                  colorFilter: ColorFilter.mode(
-                                    // White is invisible on the near-white
-                                    // light surface, so the light theme gets a
-                                    // soft warm cream instead.
-                                    Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? const Color(0xFFFFF8F0)
-                                        : const Color(0xFFFFE4C2),
-                                    BlendMode.srcIn,
-                                  ),
-                                  child: Image.asset(
-                                    'assets/images/michan/landing.webp',
-                                    fit: BoxFit.cover,
-                                    // Heavily blurred, so a small decode is
-                                    // visually identical and far cheaper.
-                                    cacheWidth: 480,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.asset(
-                              'assets/images/michan/landing.webp',
-                              key: const Key('startup-portrait-image'),
-                              fit: BoxFit.cover,
-                              // Fill the rounded box regardless of decode
-                              // timing (intrinsic sizing collapses to zero
-                              // while the asset is still loading).
-                              width: double.infinity,
-                              height: double.infinity,
-                            ),
-                          ),
-                        ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/michan/landing.webp',
+                          key: const Key('startup-portrait-image'),
+                          fit: BoxFit.cover,
+                          // Fill the rounded box regardless of decode timing
+                          // (intrinsic sizing collapses to zero while the
+                          // asset is still loading).
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-              // Gradient easing the artwork into the progress cluster below.
+              // Gradient easing the surface into the progress cluster below.
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: 280,
+                height: kSplashBottomReserve,
                 child: DecoratedBox(
                   key: const Key('startup-bottom-scrim'),
                   decoration: BoxDecoration(
