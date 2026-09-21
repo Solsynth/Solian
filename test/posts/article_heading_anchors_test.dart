@@ -136,14 +136,27 @@ void main() {
     tester,
   ) async {
     final registry = MarkdownHeadingRegistry();
+    final rebuild = ValueNotifier(0);
+    addTearDown(rebuild.dispose);
     final content = '# Intro\n\nbody\n\n## Details\n\nmore\n';
     await _pump(
       tester,
-      MarkdownTextContent(content: content, headingAnchors: registry),
+      ValueListenableBuilder<int>(
+        valueListenable: rebuild,
+        builder: (context, _, _) =>
+            MarkdownTextContent(content: content, headingAnchors: registry),
+      ),
     );
     final firstKeys = registry.items.map((a) => a.key).toList();
 
-    await tester.pump();
+    // An in-place rebuild with identical data does not re-render the headings
+    // (flutter_markdown_plus caches its children when the data and style sheet
+    // are unchanged), so the captured anchors must survive untouched.
+    await tester.runAsync(() async {
+      rebuild.value = 1;
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
     await tester.pumpAndSettle();
 
     expect(registry.items.map((a) => a.key).toList(), firstKeys);

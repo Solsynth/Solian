@@ -118,20 +118,32 @@ class MarkdownHeadingAnchor {
 
 /// Mutable capture buffer for [MarkdownTextContent.headingAnchors].
 ///
-/// Cleared on every markdown build, then repopulated by the heading builders.
+/// The markdown body marks the entries stale on every rebuild, but they are
+/// only dropped when the next heading actually renders. flutter_markdown_plus
+/// caches its built children when the data and style sheet are unchanged, so a
+/// rebuild does not re-run the heading builders; wiping the entries eagerly
+/// would lose every scroll target the moment anything else rebuilds the body.
 /// Keys are reused by heading text/level/occurrence so scroll targets survive
 /// rebuilds, while repeated identical headings still get distinct keys.
 class MarkdownHeadingRegistry {
   final List<MarkdownHeadingAnchor> items = [];
   final Map<String, GlobalKey> _keysByHeading = {};
   final Map<String, int> _occurrences = {};
+  bool _resetPending = true;
 
-  void clear() {
-    items.clear();
-    _occurrences.clear();
+  /// Marks the captured headings stale after a markdown rebuild. The entries
+  /// stay in place until the next heading renders, so a rebuild that does not
+  /// re-render headings leaves the scroll targets intact.
+  void markDirty() {
+    _resetPending = true;
   }
 
   MarkdownHeadingAnchor add(String text, int level) {
+    if (_resetPending) {
+      items.clear();
+      _occurrences.clear();
+      _resetPending = false;
+    }
     final base = '$level\u0000$text';
     final occurrence = _occurrences.update(
       base,
@@ -286,7 +298,7 @@ class MarkdownTextContent extends HookConsumerWidget {
 
     final anchors = headingAnchors;
     if (anchors != null) {
-      anchors.clear();
+      anchors.markDirty();
       for (var level = 1; level <= 6; level++) {
         builders['h$level'] = _HeadingAnchorBuilder(anchors, level);
       }
