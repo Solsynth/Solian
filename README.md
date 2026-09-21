@@ -41,7 +41,7 @@ Note: Fediverse support is currently experimental and limited.
 ### Available Now
 
 | Feature | Status | Description |
-|---------|--------|-------------|
+| --------- | -------- | ------------- |
 | Timeline | Done | Chronological feed of posts |
 | Posts, Articles & Blog | Done | Multiple content types for different needs |
 | Post Chaining | Done | Chain related posts into a thread |
@@ -88,11 +88,14 @@ Note: Fediverse support is currently experimental and limited.
 
 - [Flutter SDK](https://flutter.dev) installed
 - For Windows development, install [NASM](https://www.nasm.us) (required by `webcrypto` native assets):
+
   ```powershell
   winget install NASM.NASM
   ```
+
 - For macOS development, keep the Rust `stable` toolchain current (`rustup update stable`). Archiving from Xcode fails with `E0463: can't find crate for proc_macro_error_attr` when `stable` is older than 1.98 — Xcode's `MACOSX_DEPLOYMENT_TARGET` (13.5) makes the linker emit chained-fixups proc-macro dylibs that older rustc cannot read.
 - For Linux development, install additional dependencies:
+- For web, the preferred build params is: `flutter build web --wasm`
 
 ```bash
 sudo apt-get update -y
@@ -148,7 +151,7 @@ The backend powering Solar Network is available at:
 ## Tech Stack
 
 | Layer | Technology |
-|-------|------------|
+| ------- | ------------ |
 | **Frontend** | Flutter - Cross-platform UI framework |
 | **Backend** | .NET with PostgreSQL database |
 | **Protocols** | ActivityPub (Fediverse), WebSockets, REST API |
