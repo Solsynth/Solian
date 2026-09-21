@@ -479,7 +479,10 @@ class ArticleComposeScreen extends HookConsumerWidget {
                         state: state,
                         onAttachmentAdded: () => showSidebar.value = true,
                       ),
-                      settingsContent: ComposeSettingsSheet(state: state),
+                      settingsContent: ComposeSettingsSheet(
+                        state: state,
+                        fillAvailableHeight: true,
+                      ),
                       showSidebar: showSidebar,
                       mainContent: Padding(
                         padding: const EdgeInsets.only(left: 16, right: 16),
@@ -493,11 +496,8 @@ class ArticleComposeScreen extends HookConsumerWidget {
                                 if (isWide) {
                                   // Desktop: scale animation
                                   return ScaleTransition(
-                                    scale:
-                                        Tween<double>(
-                                          begin: 0.95,
-                                          end: 1.0,
-                                        ).animate(
+                                    scale: Tween<double>(begin: 0.95, end: 1.0)
+                                        .animate(
                                           CurvedAnimation(
                                             parent: animation,
                                             curve: Curves.easeOutCubic,

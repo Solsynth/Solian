@@ -50,7 +50,7 @@ class ArticleSidebarPanelWidget extends HookConsumerWidget {
                 : Container(
                     key: const ValueKey(SidebarPanelType.settings),
                     alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(child: settingsContent),
+                    child: settingsContent,
                   ),
           ),
         ),
