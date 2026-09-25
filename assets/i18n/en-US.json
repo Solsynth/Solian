@@ -5473,5 +5473,7 @@
   "errorCode_AUTH_SESSION_NOT_TRUSTED": "Only trusted sessions can approve or decline login attempts",
   "errorCode_STARGATE_RATE_LIMITED": "Too many failed sign-in attempts. Try again later.",
   "webBrowsers": "Web Browsers",
-  "devices": "Devices"
+  "devices": "Devices",
+  "spoilerText": "Spoiler",
+  "highlightText": "Highlight"
 }

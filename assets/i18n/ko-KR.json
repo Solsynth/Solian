@@ -5117,5 +5117,7 @@
   "useBiometricInstead": "Use Biometric instead",
   "biometricNotAvailable": "Biometrics are not available on this device.",
   "biometricNotEnrolled": "No biometrics are enrolled on this device.",
-  "biometricLockedOut": "Biometrics are locked out. Use your PIN instead."
+  "biometricLockedOut": "Biometrics are locked out. Use your PIN instead.",
+  "spoilerText": "스포일러",
+  "highlightText": "강조"
 }

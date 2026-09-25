@@ -143,6 +143,7 @@ void main() {
     );
     await tester.pump();
   }
+
   testWidgets('desktop toolbar follows caret and hides after mouse idle', (
     tester,
   ) async {
@@ -197,7 +198,9 @@ void main() {
     }
   });
 
-  testWidgets('unmounting with the toolbar open does not throw', (tester) async {
+  testWidgets('unmounting with the toolbar open does not throw', (
+    tester,
+  ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     try {
       final state = ComposeLogic.createState();
@@ -252,7 +255,6 @@ void main() {
         tester.view.viewInsets.bottom / tester.view.devicePixelRatio;
     expect(toolbarBottom, lessThanOrEqualTo(keyboardTop));
   });
-
 
   testWidgets('renders initial markdown content', (tester) async {
     final state = ComposeLogic.createState();
@@ -310,4 +312,347 @@ void main() {
     expect(state.contentController.text, isNot(contains('@fire')));
     expect(find.text('Fire'), findsNothing); // popup closed
   });
+
+  testWidgets('mention popup stays on screen anchored at the caret', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 520);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final state = ComposeLogic.createState();
+    final service = _FakeAutocompleteService([_stickerSuggestion()]);
+    await pumpEditor(tester, state, service);
+
+    await tester.tap(find.byType(QuillEditor));
+    await tester.pump();
+    await imeType(tester, 'look @fire');
+    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pumpAndSettle();
+
+    final popup = find.byType(ListView);
+    expect(popup, findsOneWidget);
+    final rect = tester.getRect(popup);
+
+    // Fully on screen — the old anchor sat at the editor's bottom edge,
+    // which could land off-screen/behind the keyboard.
+    expect(rect.left, greaterThanOrEqualTo(0));
+    expect(rect.top, greaterThanOrEqualTo(0));
+    expect(rect.right, lessThanOrEqualTo(420));
+    expect(rect.bottom, lessThanOrEqualTo(520));
+    // Near the caret (typed text starts at the left), not stretched across
+    // the full editor width.
+    expect(rect.width, lessThanOrEqualTo(360));
+    expect(rect.left, greaterThan(10));
+    expect(rect.left, lessThan(250));
+  });
+
+  testWidgets('quote and code styles match the markdown renderer', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    await pumpEditor(tester, state, _FakeAutocompleteService(const []));
+
+    final editor = tester.widget<QuillEditor>(find.byType(QuillEditor));
+    final styles = editor.config.customStyles!;
+    final scheme = Theme.of(
+      tester.element(find.byType(QuillEditor)),
+    ).colorScheme;
+
+    // Blockquote: plain body text on a tinted rounded box with a 3px primary
+    // left border — same as MarkdownTextContent's blockquoteDecoration.
+    expect(styles.quote!.style.fontStyle, isNot(FontStyle.italic));
+    expect(styles.quote!.decoration!.color, scheme.surfaceContainerHighest);
+    final quoteBorder = styles.quote!.decoration!.border! as Border;
+    expect(quoteBorder.left.color, scheme.primary);
+    expect(quoteBorder.left.width, 3);
+
+    // Code block + inline code: Roboto Mono 14 on surfaceContainerHighest
+    // with the renderer's radius.
+    expect(styles.code!.style.fontFamily, contains('RobotoMono'));
+    expect(styles.code!.style.fontSize, 14);
+    expect(styles.code!.decoration!.color, scheme.surfaceContainerHighest);
+    expect(
+      styles.code!.decoration!.borderRadius,
+      const BorderRadius.all(Radius.circular(8)),
+    );
+    expect(styles.inlineCode!.style.fontFamily, contains('RobotoMono'));
+
+    // Code blocks carry no gutter line numbers, matching the preview.
+    expect(editor.config.showCodeBlockLineNumbers, isFalse);
+  });
+
+  testWidgets('headings and inline syntaxes render like the preview', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    state.contentController.text =
+        '# Heading\n\n==marked== and =!secret!= and @alice';
+    await pumpEditor(tester, state, _FakeAutocompleteService(const []));
+
+    final editor = tester.widget<QuillEditor>(find.byType(QuillEditor));
+    final styles = editor.config.customStyles!;
+    final theme = Theme.of(tester.element(find.byType(QuillEditor)));
+    final scheme = theme.colorScheme;
+
+    // All six markdown heading levels resolve to the renderer's text styles.
+    expect(styles.h1!.style.fontSize, theme.textTheme.headlineSmall?.fontSize);
+    expect(styles.h2!.style.fontSize, theme.textTheme.titleLarge?.fontSize);
+    expect(styles.h3!.style.fontSize, theme.textTheme.titleMedium?.fontSize);
+    expect(styles.h4!.style.fontSize, theme.textTheme.bodyLarge?.fontSize);
+    expect(styles.h5!.style.fontSize, theme.textTheme.bodyLarge?.fontSize);
+    expect(styles.h6!.style.fontSize, theme.textTheme.bodyLarge?.fontSize);
+
+    // The special syntaxes are painted instead of left as raw markdown.
+    expect(
+      _spanStyleFor(tester, 'marked')?.backgroundColor,
+      scheme.primaryContainer,
+    );
+    final concealed = _spanStyleFor(tester, 'secret');
+    expect(concealed?.color, Colors.transparent);
+    expect(concealed?.backgroundColor, Colors.black);
+    final mention = _spanStyleFor(tester, '@alice');
+    expect(mention?.backgroundColor, scheme.secondary);
+    expect(mention?.color, scheme.onSecondary);
+  });
+
+  testWidgets('spoiler is revealed while the caret is inside it', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    state.contentController.text = 'before =!secret!= after';
+    await pumpEditor(tester, state, _FakeAutocompleteService(const []));
+
+    expect(_spanStyleFor(tester, 'secret')?.color, Colors.transparent);
+
+    // Put the caret inside the spoiler content.
+    state.contentQuillController.updateSelection(
+      const TextSelection.collapsed(offset: 10),
+      ChangeSource.local,
+    );
+    await tester.pumpAndSettle();
+
+    expect(_spanStyleFor(tester, 'secret')?.color, isNot(Colors.transparent));
+  });
+
+  testWidgets('toolbar exposes six heading levels and syntax buttons', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final state = ComposeLogic.createState();
+      state.contentController.text = 'secret here';
+      await pumpEditor(
+        tester,
+        state,
+        _FakeAutocompleteService(const []),
+        platform: TargetPlatform.macOS,
+      );
+
+      await tester.tap(find.byType(QuillEditor));
+      await tester.pump();
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      await tester.pump();
+      await mouse.moveTo(tester.getCenter(find.byType(QuillEditor)));
+      await tester.pump(const Duration(milliseconds: 200));
+      // Let the toolbar's entrance callback flip it to interactive.
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Spoiler'), findsOneWidget);
+      expect(find.byTooltip('Highlight'), findsOneWidget);
+
+      // The spoiler button wraps the current selection.
+      state.contentQuillController.updateSelection(
+        const TextSelection(baseOffset: 0, extentOffset: 6),
+        ChangeSource.local,
+      );
+      await tester.pump();
+      await tester.tap(find.byTooltip('Spoiler'));
+      await tester.pumpAndSettle();
+      expect(state.contentController.text.trim(), '=!secret!= here');
+
+      // Open the heading menu: markdown has six levels.
+      await tester.tap(find.byTooltip('Header style'));
+      await tester.pumpAndSettle();
+      for (var level = 1; level <= 6; level++) {
+        expect(find.text('Heading $level'), findsOneWidget);
+      }
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('toolbar stays hidden while the editor is unfocused', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final state = ComposeLogic.createState();
+      await pumpEditor(
+        tester,
+        state,
+        _FakeAutocompleteService(const []),
+        platform: TargetPlatform.macOS,
+      );
+
+      // Pointer movement alone must not surface the toolbar: the editor has
+      // no focus.
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      await tester.pump();
+      await mouse.moveTo(tester.getCenter(find.byType(QuillEditor)));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsNothing,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('toolbar hides after idle typing without a selection', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final state = ComposeLogic.createState();
+      await pumpEditor(
+        tester,
+        state,
+        _FakeAutocompleteService(const []),
+        platform: TargetPlatform.macOS,
+      );
+
+      await tester.tap(find.byType(QuillEditor));
+      await tester.pump();
+      await imeType(tester, 'typing');
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsOneWidget,
+      );
+
+      // Caret is collapsed and the user stopped typing.
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsNothing,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('toolbar remains past the idle window while a selection exists', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final state = ComposeLogic.createState();
+      state.contentController.text = 'select me';
+      await pumpEditor(
+        tester,
+        state,
+        _FakeAutocompleteService(const []),
+        platform: TargetPlatform.macOS,
+      );
+
+      await tester.tap(find.byType(QuillEditor));
+      await tester.pump();
+      state.contentQuillController.updateSelection(
+        const TextSelection(baseOffset: 0, extentOffset: 6),
+        ChangeSource.local,
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsOneWidget,
+      );
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsOneWidget,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('a lone Enter exports a soft break, not a new paragraph', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    await pumpEditor(tester, state, _FakeAutocompleteService(const []));
+
+    await tester.tap(find.byType(QuillEditor));
+    await tester.pump();
+    // One Enter between the lines.
+    await imeType(tester, 'first line\nsecond line');
+    await tester.pumpAndSettle();
+
+    expect(state.contentController.text.trim(), 'first line\nsecond line');
+    expect(state.contentController.text, isNot(contains('first line\n\n')));
+  });
+
+  testWidgets('typing around inline syntax keeps markdown positions', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    state.contentController.text = '=!secret!=';
+    await pumpEditor(tester, state, _FakeAutocompleteService(const []));
+
+    await tester.tap(find.byType(QuillEditor));
+    await tester.pump();
+    // Caret at the end of the spoiler line, then type.
+    state.contentQuillController.updateSelection(
+      const TextSelection.collapsed(offset: 10),
+      ChangeSource.local,
+    );
+    await tester.pump();
+    await imeType(tester, '=!secret!= tail');
+    await tester.pumpAndSettle();
+
+    expect(state.contentController.text.trim(), '=!secret!= tail');
+  });
+
+  testWidgets('syntax buttons wrap the selection in the exported markdown', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    state.contentController.text = 'make me hidden';
+    await pumpEditor(tester, state, _FakeAutocompleteService(const []));
+
+    state.contentQuillController.updateSelection(
+      const TextSelection(baseOffset: 8, extentOffset: 10),
+      ChangeSource.local,
+    );
+    state.wrapSelection('=!', '!=');
+    await tester.pumpAndSettle();
+
+    expect(state.contentController.text.trim(), 'make me =!hi!=dden');
+  });
+}
+
+/// Returns the style applied to [text] anywhere in the rendered editor.
+TextStyle? _spanStyleFor(WidgetTester tester, String text) {
+  for (final widget in tester.widgetList<RichText>(find.byType(RichText))) {
+    TextStyle? found;
+    widget.text.visitChildren((span) {
+      if (span is TextSpan && span.text == text) {
+        found = span.style;
+        return false;
+      }
+      return true;
+    });
+    if (found != null) return found;
+  }
+  return null;
 }

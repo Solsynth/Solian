@@ -1,40 +1,278 @@
 import 'dart:math' as math;
 import 'dart:async';
 
-import 'dart:ui' show PointerDeviceKind;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/discovery/discovery_service.dart';
 import 'package:island/discovery/models/autocomplete_response.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/stickers/models/sticker.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-const _kToolbarMouseIdleDuration = Duration(seconds: 2);
+/// How long the floating toolbar stays after the last editing input
+/// (typing, caret move) or pointer movement.
+const _kToolbarIdleDuration = Duration(seconds: 2);
 const _kToolbarAnimationDuration = Duration(milliseconds: 180);
 const _kFloatingToolbarHeight = 44.0;
 const _kFloatingToolbarMaxWidth = 520.0;
 
 /// Gap between the toolbar and the caret (desktop) or the soft keyboard.
-const _kToolbarCaretGap = 50.0;
+const _kToolbarCaretGap = 56.0;
 
 /// Extra leftward shift so the pill's edge visually lines up with the caret
 /// (the selection endpoint already includes the editor's text padding).
 const _kToolbarLeftShift = 12.0;
 
-const _kComposeToolbarConfig = QuillSimpleToolbarConfig(
-  buttonOptions: QuillSimpleToolbarButtonOptions(
-    base: QuillToolbarBaseButtonOptions(
-      iconSize: 16,
-      iconButtonFactor: 1.35,
-    ),
+/// Inline syntaxes Solian renders in markdown previews. The editor paints them
+/// inline so the WYSIWYG surface stays close to the rendered post. Patterns
+/// mirror `SolarMentionInlineSyntax` / `SolarHighlightInlineSyntax` /
+/// `SolarSpoilerInlineSyntax` in `solar_network_foundation`.
+final _mentionSyntax = RegExp(r'(^|[^A-Za-z0-9._%+\-/\[])(@[-A-Za-z0-9_./]+)');
+final _highlightSyntax = RegExp(r'==([^=]+)==');
+final _spoilerSyntax = RegExp(r'=!([^!]+)!=');
+
+enum _InlineKind { mention, highlight, spoiler }
+
+/// One inline syntax occurrence inside a text node.
+class _InlineMatch {
+  const _InlineMatch({
+    required this.kind,
+    required this.start,
+    required this.end,
+    required this.innerStart,
+    required this.innerEnd,
+  });
+
+  final _InlineKind kind;
+
+  /// Range of the whole match, delimiters included.
+  final int start;
+  final int end;
+
+  /// Range of the content between the delimiters.
+  final int innerStart;
+  final int innerEnd;
+}
+
+/// Collects non-overlapping inline syntaxes in [text], earliest first.
+List<_InlineMatch> _inlineMatchesIn(String text) {
+  final matches = <_InlineMatch>[];
+
+  for (final m in _mentionSyntax.allMatches(text)) {
+    final start = m.start + (m.group(1)?.length ?? 0);
+    matches.add(
+      _InlineMatch(
+        kind: _InlineKind.mention,
+        start: start,
+        end: m.end,
+        innerStart: start,
+        innerEnd: m.end,
+      ),
+    );
+  }
+  for (final m in _highlightSyntax.allMatches(text)) {
+    matches.add(
+      _InlineMatch(
+        kind: _InlineKind.highlight,
+        start: m.start,
+        end: m.end,
+        innerStart: m.start + 2,
+        innerEnd: m.end - 2,
+      ),
+    );
+  }
+  for (final m in _spoilerSyntax.allMatches(text)) {
+    matches.add(
+      _InlineMatch(
+        kind: _InlineKind.spoiler,
+        start: m.start,
+        end: m.end,
+        innerStart: m.start + 2,
+        innerEnd: m.end - 2,
+      ),
+    );
+  }
+
+  matches.sort((a, b) => a.start.compareTo(b.start));
+  final result = <_InlineMatch>[];
+  var cursor = 0;
+  for (final match in matches) {
+    if (match.start < cursor) continue; // Overlapping syntax, keep the first.
+    result.add(match);
+    cursor = match.end;
+  }
+  return result;
+}
+
+/// Builds the span for one text node, painting Solian's inline syntaxes the way
+/// markdown previews do: mention chips, `==highlight==` backgrounds and
+/// `=!spoiler!=` content that stays concealed until the caret enters it.
+/// Delimiters are dimmed rather than removed so they stay editable.
+InlineSpan _buildInlineSyntaxSpan({
+  required BuildContext context,
+  required QuillController controller,
+  required Node node,
+  required String text,
+  required TextStyle? style,
+  required GestureRecognizer? recognizer,
+}) {
+  final scheme = Theme.of(context).colorScheme;
+  final nodeStyle = node.style;
+  final isCode =
+      nodeStyle.containsKey(Attribute.inlineCode.key) ||
+      nodeStyle.containsKey(Attribute.codeBlock.key);
+  if (isCode || text.isEmpty) {
+    return TextSpan(
+      text: text,
+      style: style,
+      recognizer: recognizer,
+      mouseCursor: recognizer != null ? SystemMouseCursors.click : null,
+    );
+  }
+
+  final matches = _inlineMatchesIn(text);
+  if (matches.isEmpty) {
+    return TextSpan(
+      text: text,
+      style: style,
+      recognizer: recognizer,
+      mouseCursor: recognizer != null ? SystemMouseCursors.click : null,
+    );
+  }
+
+  final delimiterStyle = style?.copyWith(
+    color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
+  );
+  final selection = controller.selection;
+  final nodeOffset = node.offset;
+  final spans = <InlineSpan>[];
+  var cursor = 0;
+
+  void addPlain(int start, int end) {
+    if (end <= start) return;
+    spans.add(
+      TextSpan(
+        text: text.substring(start, end),
+        style: style,
+        recognizer: recognizer,
+        mouseCursor: recognizer != null ? SystemMouseCursors.click : null,
+      ),
+    );
+  }
+
+  for (final match in matches) {
+    addPlain(cursor, match.start);
+    switch (match.kind) {
+      case _InlineKind.mention:
+        spans.add(
+          TextSpan(
+            text: text.substring(match.start, match.end),
+            style: style?.copyWith(
+              color: scheme.onSecondary,
+              backgroundColor: scheme.secondary,
+            ),
+          ),
+        );
+      case _InlineKind.highlight:
+        spans.add(
+          TextSpan(
+            text: text.substring(match.start, match.innerStart),
+            style: delimiterStyle,
+          ),
+        );
+        spans.add(
+          TextSpan(
+            text: text.substring(match.innerStart, match.innerEnd),
+            style: style?.copyWith(backgroundColor: scheme.primaryContainer),
+          ),
+        );
+        spans.add(
+          TextSpan(
+            text: text.substring(match.innerEnd, match.end),
+            style: delimiterStyle,
+          ),
+        );
+      case _InlineKind.spoiler:
+        // Concealed unless the caret sits inside, so the content is still
+        // readable and editable while writing.
+        final revealed =
+            selection.isValid &&
+            selection.start < nodeOffset + match.end &&
+            selection.end > nodeOffset + match.start;
+        spans.add(
+          TextSpan(
+            text: text.substring(match.start, match.innerStart),
+            style: delimiterStyle,
+          ),
+        );
+        spans.add(
+          TextSpan(
+            text: text.substring(match.innerStart, match.innerEnd),
+            style: revealed
+                ? style
+                : style?.copyWith(
+                    color: Colors.transparent,
+                    backgroundColor: Colors.black,
+                  ),
+          ),
+        );
+        spans.add(
+          TextSpan(
+            text: text.substring(match.innerEnd, match.end),
+            style: delimiterStyle,
+          ),
+        );
+    }
+    cursor = match.end;
+  }
+  addPlain(cursor, text.length);
+  return TextSpan(children: spans);
+}
+
+/// Toolbar configuration shared by the floating toolbar. [onSpoiler] and
+/// [onHighlight] wrap the current selection in Solian's inline syntaxes.
+QuillSimpleToolbarConfig _composeToolbarConfig({
+  required VoidCallback onSpoiler,
+  required VoidCallback onHighlight,
+}) => QuillSimpleToolbarConfig(
+  buttonOptions: const QuillSimpleToolbarButtonOptions(
+    base: QuillToolbarBaseButtonOptions(iconSize: 16, iconButtonFactor: 1.35),
+    // Markdown has six heading levels; the flutter_quill default only offers
+    // the first three.
+    selectHeaderStyleDropdownButton:
+        QuillToolbarSelectHeaderStyleDropdownButtonOptions(
+          attributes: [
+            Attribute.h1,
+            Attribute.h2,
+            Attribute.h3,
+            Attribute.h4,
+            Attribute.h5,
+            Attribute.h6,
+            Attribute.header,
+          ],
+        ),
   ),
+  customButtons: [
+    QuillToolbarCustomButtonOptions(
+      icon: const Icon(Symbols.hide_source, size: 16),
+      tooltip: 'spoilerText'.tr(),
+      onPressed: onSpoiler,
+    ),
+    QuillToolbarCustomButtonOptions(
+      icon: const Icon(Symbols.ink_highlighter, size: 16),
+      tooltip: 'highlightText'.tr(),
+      onPressed: onHighlight,
+    ),
+  ],
   multiRowsDisplay: true,
   toolbarIconAlignment: WrapAlignment.start,
   showFontFamily: false,
@@ -107,11 +345,35 @@ class QuillContentEditor extends HookConsumerWidget {
       noVertical,
       null,
     );
+    // Match the app's markdown renderer (MarkdownTextContent): blockquote
+    // gets the primary left border on a tinted rounded box, code blocks and
+    // inline code use the renderer's Roboto Mono on surfaceContainerHighest.
+    final codeStyle = GoogleFonts.robotoMono(
+      fontSize: 14,
+      color: bodyStyle.color,
+    );
     final editorStyles = DefaultStyles.getInstance(context).merge(
       DefaultStyles(
         paragraph: block(bodyStyle),
         leading: block(bodyStyle),
         align: block(bodyStyle),
+        // Headings mirror MarkdownTextContent's stylesheet, which maps h1-h6
+        // onto headlineSmall/titleLarge/titleMedium/bodyLarge.
+        h1: block(theme.textTheme.headlineSmall ?? bodyStyle),
+        h2: block(theme.textTheme.titleLarge ?? bodyStyle),
+        h3: block(theme.textTheme.titleMedium ?? bodyStyle),
+        h4: block(theme.textTheme.bodyLarge ?? bodyStyle),
+        h5: block(theme.textTheme.bodyLarge ?? bodyStyle),
+        h6: block(theme.textTheme.bodyLarge ?? bodyStyle),
+        lists: DefaultListBlockStyle(
+          bodyStyle,
+          horizontalSpacing,
+          const VerticalSpacing(6, 0),
+          const VerticalSpacing(0, 6),
+          null,
+          null,
+        ),
+        link: bodyStyle.copyWith(color: theme.colorScheme.primary),
         lineHeightNormal: block(bodyStyle.copyWith(height: 1.15)),
         lineHeightTight: block(bodyStyle.copyWith(height: 1.30)),
         lineHeightOneAndHalf: block(bodyStyle.copyWith(height: 1.55)),
@@ -121,25 +383,49 @@ class QuillContentEditor extends HookConsumerWidget {
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
         ),
+        quote: DefaultTextBlockStyle(
+          bodyStyle,
+          const HorizontalSpacing(12, 12),
+          const VerticalSpacing(4, 4),
+          VerticalSpacing.zero,
+          BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(3),
+            border: Border(
+              left: BorderSide(color: theme.colorScheme.primary, width: 3),
+            ),
+          ),
+        ),
+        code: DefaultTextBlockStyle(
+          codeStyle,
+          const HorizontalSpacing(8, 8),
+          const VerticalSpacing(4, 4),
+          VerticalSpacing.zero,
+          BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        inlineCode: InlineCodeStyle(style: codeStyle),
       ),
     );
 
     final focusNode = useMemoized(() => FocusNode(), []);
     final scrollController = useMemoized(() => ScrollController(), []);
-    final layerLink = useMemoized(() => LayerLink(), []);
 
     final overlayEntry = useRef<OverlayEntry?>(null);
     final suggestions = useRef<List<AutocompleteSuggestion>>(const []);
     final highlighted = useRef(0);
     final fetchTimer = useRef<Timer?>(null);
     final fetchGeneration = useRef(0);
-    final editorWidth = useRef(0.0);
 
     final editorKey = useMemoized(() => GlobalKey<QuillEditorState>(), []);
     final editableTextKey = useMemoized(() => GlobalKey<EditorState>(), []);
     final toolbarEntry = useRef<OverlayEntry?>(null);
     final toolbarMouseTimer = useRef<Timer?>(null);
     final toolbarMouseActive = useRef(false);
+    final toolbarTypingTimer = useRef<Timer?>(null);
+    final toolbarTypingActive = useRef(false);
     final toolbarRemovalTimer = useRef<Timer?>(null);
     final toolbarVisible = useRef(false);
     final mediaQuery = MediaQuery.of(context);
@@ -175,10 +461,18 @@ class QuillContentEditor extends HookConsumerWidget {
     }
 
     void updateFloatingToolbar() {
-      final shouldShow = showToolbar && enabled &&
-          (isTouchPlatform
-              ? keyboardVisible && focusNode.hasFocus
-              : toolbarMouseActive.value);
+      final selection = quill.selection;
+      final hasSelection = selection.isValid && !selection.isCollapsed;
+      // Only surface the pill while the user works in the editor: it needs
+      // focus, and either a live selection, recent typing, or (desktop)
+      // recent pointer movement over the editor.
+      final shouldShow =
+          showToolbar &&
+          enabled &&
+          focusNode.hasFocus &&
+          (hasSelection ||
+              toolbarTypingActive.value ||
+              toolbarMouseActive.value);
       if (!shouldShow) {
         hideFloatingToolbar();
         return;
@@ -194,6 +488,8 @@ class QuillContentEditor extends HookConsumerWidget {
             isTouchPlatform: isTouchPlatform,
             visible: toolbarVisible.value,
             onPointerMove: onToolbarPointerMove,
+            onSpoiler: () => state.wrapSelection('=!', '!='),
+            onHighlight: () => state.wrapSelection('==', '=='),
           ),
         );
         Overlay.of(context).insert(toolbarEntry.value!);
@@ -202,18 +498,30 @@ class QuillContentEditor extends HookConsumerWidget {
         toolbarRemovalTimer.value?.cancel();
         toolbarEntry.value!.markNeedsBuild();
       }
-
     }
+
     onToolbarPointerMove = (event) {
       if (isTouchPlatform || event.kind != PointerDeviceKind.mouse) return;
       toolbarMouseActive.value = true;
       toolbarMouseTimer.value?.cancel();
       updateFloatingToolbar();
-      toolbarMouseTimer.value = Timer(_kToolbarMouseIdleDuration, () {
+      toolbarMouseTimer.value = Timer(_kToolbarIdleDuration, () {
         toolbarMouseActive.value = false;
         updateFloatingToolbar();
       });
     };
+
+    /// Extends the toolbar's visibility window after typing or a caret move, so
+    /// it fades out once the user stops working in the editor.
+    void markToolbarInput() {
+      toolbarTypingActive.value = true;
+      toolbarTypingTimer.value?.cancel();
+      toolbarTypingTimer.value = Timer(_kToolbarIdleDuration, () {
+        toolbarTypingActive.value = false;
+        updateFloatingToolbar();
+      });
+    }
+
     void closeOverlay() {
       fetchTimer.value?.cancel();
       fetchTimer.value = null;
@@ -271,43 +579,43 @@ class QuillContentEditor extends HookConsumerWidget {
       }
       final generation = ++fetchGeneration.value;
       final chopped = trigger.chopped;
-      fetchTimer.value = Timer(
-        const Duration(milliseconds: 1000),
-        () async {
-          if (generation != fetchGeneration.value) return;
-          List<AutocompleteSuggestion> result;
-          try {
-            result = await ref
-                .read(autocompleteServiceProvider)
-                .getGeneralSuggestions(chopped);
-          } catch (_) {
-            if (generation == fetchGeneration.value) closeOverlay();
-            return;
-          }
-          if (generation != fetchGeneration.value) return;
-          suggestions.value = result;
-          highlighted.value = 0;
-          if (result.isEmpty) {
-            closeOverlay();
-            return;
-          }
-          if (overlayEntry.value == null) {
-            if (!context.mounted) return;
-            overlayEntry.value = OverlayEntry(
-              builder: (overlayContext) => _MentionsPopup(
-                link: layerLink,
-                width: editorWidth.value,
-                suggestions: suggestions.value,
-                highlighted: highlighted.value,
-                onSelect: selectSuggestion,
-              ),
-            );
-            Overlay.of(context).insert(overlayEntry.value!);
-          } else {
-            overlayEntry.value!.markNeedsBuild();
-          }
-        },
-      );
+      fetchTimer.value = Timer(const Duration(milliseconds: 1000), () async {
+        if (generation != fetchGeneration.value) return;
+        List<AutocompleteSuggestion> result;
+        try {
+          result = await ref
+              .read(autocompleteServiceProvider)
+              .getGeneralSuggestions(chopped);
+        } catch (_) {
+          if (generation == fetchGeneration.value) closeOverlay();
+          return;
+        }
+        if (generation != fetchGeneration.value) return;
+        suggestions.value = result;
+        highlighted.value = 0;
+        if (result.isEmpty) {
+          closeOverlay();
+          return;
+        }
+        if (overlayEntry.value == null) {
+          if (!context.mounted) return;
+          overlayEntry.value = OverlayEntry(
+            builder: (overlayContext) => _MentionsPopup(
+              editorKey: editorKey,
+              controller: quill,
+              screenSize: mediaQuery.size,
+              keyboardInset: mediaQuery.viewInsets.bottom,
+              isTouchPlatform: isTouchPlatform,
+              suggestions: suggestions.value,
+              highlighted: highlighted.value,
+              onSelect: selectSuggestion,
+            ),
+          );
+          Overlay.of(context).insert(overlayEntry.value!);
+        } else {
+          overlayEntry.value!.markNeedsBuild();
+        }
+      });
     }
 
     // Desktop-only: arrow keys move the highlighted suggestion, Enter picks
@@ -345,6 +653,7 @@ class QuillContentEditor extends HookConsumerWidget {
 
       void onControllerChanged() {
         onQuillChanged();
+        markToolbarInput();
         updateFloatingToolbar();
       }
 
@@ -362,6 +671,7 @@ class QuillContentEditor extends HookConsumerWidget {
     useEffect(() {
       return () {
         toolbarMouseTimer.value?.cancel();
+        toolbarTypingTimer.value?.cancel();
         toolbarRemovalTimer.value?.cancel();
         hideFloatingToolbar(immediate: true);
         focusNode.dispose();
@@ -373,7 +683,6 @@ class QuillContentEditor extends HookConsumerWidget {
       onHover: onToolbarPointerMove,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          editorWidth.value = constraints.maxWidth;
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,15 +708,23 @@ class QuillContentEditor extends HookConsumerWidget {
                   ],
                   unknownEmbedBuilder: const _UnknownEmbedBuilder(),
                   editorKey: editableTextKey,
+                  // The markdown preview renders code blocks without gutter
+                  // numbers.
+                  showCodeBlockLineNumbers: false,
+                  textSpanBuilder:
+                      (context, node, textOffset, text, style, recognizer) =>
+                          _buildInlineSyntaxSpan(
+                            context: context,
+                            controller: quill,
+                            node: node,
+                            text: text,
+                            style: style,
+                            recognizer: recognizer,
+                          ),
                   // ignore: experimental_member_use
                   onKeyPressed: onKeyPressed,
                   textInputAction: TextInputAction.newline,
                 ),
-              ),
-              // Zero-size anchor right below the editor for mention results.
-              CompositedTransformTarget(
-                link: layerLink,
-                child: const SizedBox(width: double.infinity, height: 0),
               ),
             ],
           );
@@ -425,6 +742,8 @@ class _FloatingToolbar extends StatefulWidget {
   final bool isTouchPlatform;
   final bool visible;
   final ValueChanged<PointerEvent> onPointerMove;
+  final VoidCallback onSpoiler;
+  final VoidCallback onHighlight;
 
   const _FloatingToolbar({
     required this.editorKey,
@@ -434,6 +753,8 @@ class _FloatingToolbar extends StatefulWidget {
     required this.isTouchPlatform,
     required this.visible,
     required this.onPointerMove,
+    required this.onSpoiler,
+    required this.onHighlight,
   });
 
   @override
@@ -442,6 +763,12 @@ class _FloatingToolbar extends StatefulWidget {
 
 class _FloatingToolbarState extends State<_FloatingToolbar> {
   bool _visible = false;
+
+  /// Measured height of the toolbar surface. The button set wraps onto extra
+  /// rows on narrower screens, so the height is content-driven rather than
+  /// fixed — otherwise the last row is clipped and untappable.
+  final _surfaceKey = GlobalKey();
+  double _toolbarHeight = _kFloatingToolbarHeight;
 
   @override
   void initState() {
@@ -459,10 +786,24 @@ class _FloatingToolbarState extends State<_FloatingToolbar> {
     }
   }
 
+  /// Repositions the pill once its intrinsic height is known.
+  void _syncToolbarHeight() {
+    if (!mounted) return;
+    final height = _surfaceKey.currentContext?.size?.height;
+    if (height == null || (height - _toolbarHeight).abs() < 0.5) return;
+    setState(() => _toolbarHeight = height);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final renderEditor = widget.editorKey.currentState?.editableTextKey
-        .currentState?.renderEditor;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncToolbarHeight());
+
+    final renderEditor = widget
+        .editorKey
+        .currentState
+        ?.editableTextKey
+        .currentState
+        ?.renderEditor;
     if (renderEditor == null || !renderEditor.hasSize) {
       return const SizedBox.shrink();
     }
@@ -473,7 +814,10 @@ class _FloatingToolbarState extends State<_FloatingToolbar> {
     if (endpoints.isEmpty) return const SizedBox.shrink();
     // Anchor to the selection end: the point sits at the caret bottom.
     final globalCaret = renderEditor.localToGlobal(endpoints.last.point);
-    final maxLeft = math.max(0.0, widget.screenSize.width - _kFloatingToolbarMaxWidth);
+    final maxLeft = math.max(
+      0.0,
+      widget.screenSize.width - _kFloatingToolbarMaxWidth,
+    );
     final left = (globalCaret.dx - _kToolbarLeftShift)
         .clamp(0.0, maxLeft)
         .toDouble();
@@ -481,10 +825,10 @@ class _FloatingToolbarState extends State<_FloatingToolbar> {
       0.0,
       widget.screenSize.height -
           widget.keyboardInset -
-          _kFloatingToolbarHeight -
+          _toolbarHeight -
           _kToolbarCaretGap,
     );
-    final aboveTop = globalCaret.dy - _kFloatingToolbarHeight - _kToolbarCaretGap;
+    final aboveTop = globalCaret.dy - _toolbarHeight - _kToolbarCaretGap;
     final belowTop = globalCaret.dy + _kToolbarCaretGap;
     final toolbarTop = widget.isTouchPlatform
         ? maxTop
@@ -496,7 +840,6 @@ class _FloatingToolbarState extends State<_FloatingToolbar> {
       left: left,
       top: toolbarTop,
       width: math.min(widget.screenSize.width, _kFloatingToolbarMaxWidth),
-      height: _kFloatingToolbarHeight,
       child: IgnorePointer(
         ignoring: !_visible,
         child: AnimatedOpacity(
@@ -516,10 +859,18 @@ class _FloatingToolbarState extends State<_FloatingToolbar> {
                   color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(16),
                   clipBehavior: Clip.antiAlias,
-                  child: Center(
-                    child: QuillSimpleToolbar(
-                      controller: widget.controller,
-                      config: _kComposeToolbarConfig,
+                  child: SizedBox(
+                    key: _surfaceKey,
+                    child: Align(
+                      alignment: Alignment.center,
+                      heightFactor: 1,
+                      child: QuillSimpleToolbar(
+                        controller: widget.controller,
+                        config: _composeToolbarConfig(
+                          onSpoiler: widget.onSpoiler,
+                          onHighlight: widget.onHighlight,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -532,46 +883,96 @@ class _FloatingToolbarState extends State<_FloatingToolbar> {
   }
 }
 
-/// Mention suggestion popup anchored below the editor.
-class _MentionsPopup extends StatelessWidget {
-  final LayerLink link;
-  final double width;
+/// Mention suggestion popup anchored to the caret, positioned like the
+/// floating toolbar so it stays on screen (above the keyboard on touch)
+/// wherever the user is typing — the editor bottom edge may be scrolled out of
+/// view or hidden behind the keyboard.
+class _MentionsPopup extends StatefulWidget {
+  final GlobalKey<QuillEditorState> editorKey;
+  final QuillController controller;
+  final Size screenSize;
+  final double keyboardInset;
+  final bool isTouchPlatform;
   final List<AutocompleteSuggestion> suggestions;
   final int highlighted;
   final ValueChanged<AutocompleteSuggestion> onSelect;
 
   const _MentionsPopup({
-    required this.link,
-    required this.width,
+    required this.editorKey,
+    required this.controller,
+    required this.screenSize,
+    required this.keyboardInset,
+    required this.isTouchPlatform,
     required this.suggestions,
     required this.highlighted,
     required this.onSelect,
   });
 
   @override
+  State<_MentionsPopup> createState() => _MentionsPopupState();
+}
+
+class _MentionsPopupState extends State<_MentionsPopup> {
+  static const _kPopupMaxHeight = 260.0;
+  static const _kPopupMaxWidth = 360.0;
+  static const _kPopupGap = 8.0;
+
+  @override
   Widget build(BuildContext context) {
+    final renderEditor = widget
+        .editorKey
+        .currentState
+        ?.editableTextKey
+        .currentState
+        ?.renderEditor;
+    if (renderEditor == null || !renderEditor.hasSize) {
+      return const SizedBox.shrink();
+    }
+    final selection = widget.controller.selection;
+    if (!selection.isValid) return const SizedBox.shrink();
+    final endpoints = renderEditor.getEndpointsForSelection(selection);
+    if (endpoints.isEmpty) return const SizedBox.shrink();
+    // Anchor to the selection end: the point sits at the caret bottom.
+    final globalCaret = renderEditor.localToGlobal(endpoints.last.point);
+
+    final width = math.min(_kPopupMaxWidth, widget.screenSize.width);
+    final left = (globalCaret.dx - _kToolbarLeftShift)
+        .clamp(0.0, math.max(0.0, widget.screenSize.width - width))
+        .toDouble();
+    final height = math.min(
+      _kPopupMaxHeight,
+      math.max(0.0, widget.screenSize.height - widget.keyboardInset),
+    );
+    final maxBottom = widget.screenSize.height - widget.keyboardInset;
+    final belowSpace = maxBottom - globalCaret.dy - _kPopupGap;
+    // Prefer below the caret (dropdown), flipping above when there is no room
+    // below — always above the keyboard on touch platforms.
+    final top = belowSpace >= height
+        ? globalCaret.dy + _kPopupGap
+        : math.max(0.0, globalCaret.dy - _kPopupGap - height);
+
     final theme = Theme.of(context);
-    return CompositedTransformFollower(
-      link: link,
-      showWhenUnlinked: false,
-      offset: const Offset(0, 4),
+    return Positioned(
+      left: left,
+      top: top,
+      width: width,
       child: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(10),
         clipBehavior: Clip.antiAlias,
         color: theme.colorScheme.surfaceContainerHigh,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 260, maxWidth: width),
+          constraints: BoxConstraints(maxHeight: height),
           child: ListView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
-            itemCount: suggestions.length,
+            itemCount: widget.suggestions.length,
             itemBuilder: (context, index) {
-              final suggestion = suggestions[index];
+              final suggestion = widget.suggestions[index];
               return _MentionTile(
                 suggestion: suggestion,
-                selected: index == highlighted,
-                onTap: () => onSelect(suggestion),
+                selected: index == widget.highlighted,
+                onTap: () => widget.onSelect(suggestion),
               );
             },
           ),
@@ -684,15 +1085,29 @@ class _SolianImageEmbedBuilder extends EmbedBuilder {
         if (!attachment.isOnCloud) continue;
         final cloudFile = attachment.data as IDisplayableCloudFile;
         if (cloudFile.id == id) {
+          // Matches MarkdownTextContent's solian:// image builder: rounded,
+          // tinted container with a cover-fit cloud file.
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: CloudFileWidget(item: cloudFile, fit: BoxFit.cover),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                child: CloudFileWidget(item: cloudFile, fit: BoxFit.cover),
+              ),
+            ),
           );
         }
       }
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: CloudImageWidget(fileId: id, fit: BoxFit.cover),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          child: CloudImageWidget(fileId: id, fit: BoxFit.cover),
+        ),
       );
     }
     return Image.network(
@@ -710,11 +1125,18 @@ class _HorizontalRuleEmbedBuilder extends EmbedBuilder {
   String get key => 'divider';
 
   @override
-  Widget build(BuildContext context, EmbedContext embedContext) =>
-      const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: Divider(height: 1),
-      );
+  Widget build(BuildContext context, EmbedContext embedContext) {
+    final theme = Theme.of(context);
+    // Matches MarkdownTextContent's horizontalRuleDecoration.
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Divider(
+        height: 1,
+        thickness: 1 / MediaQuery.devicePixelRatioOf(context),
+        color: theme.colorScheme.outline,
+      ),
+    );
+  }
 }
 
 class _UnknownEmbedBuilder extends EmbedBuilder {

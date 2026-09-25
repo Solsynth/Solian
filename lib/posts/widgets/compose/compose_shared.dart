@@ -18,6 +18,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/database.dart';
@@ -72,7 +73,7 @@ class ComposeState {
   /// [contentController], and external writes to [contentController] (draft
   /// restore, placeholder/attachment insertion) are re-imported into the
   /// document. Owned and disposed with the rest of the state.
-  final QuillController contentQuillController;
+  late final QuillController contentQuillController;
 
   /// True while [contentQuillController] and [contentController] are being
   /// synced, to prevent listener loops.
@@ -109,15 +110,90 @@ class ComposeState {
        lastOwnPostPublishedAt = ValueNotifier<DateTime?>(null),
        chainWithPrevious = ValueNotifier<bool>(true),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId),
-       contentQuillController = QuillController(
-         document: Document.fromJson(
-           markdownToQuillDelta(contentController.text).toJson(),
-         ),
-         selection: const TextSelection.collapsed(offset: 0),
-       ),
        _lastSyncedText = contentController.text {
+    contentQuillController = QuillController(
+      document: Document.fromJson(
+        markdownToQuillDelta(contentController.text).toJson(),
+      ),
+      selection: const TextSelection.collapsed(offset: 0),
+      // ignore: experimental_member_use
+      config: QuillControllerConfig(
+        // ignore: experimental_member_use
+        clipboardConfig: QuillClipboardConfig(
+          // ignore: experimental_member_use
+          onClipboardPaste: _pasteClipboardMarkdown,
+        ),
+      ),
+    );
     contentController.addListener(_importFromContent);
     contentQuillController.addListener(_exportFromQuill);
+  }
+
+  /// Matches line-leading block markers (heading, quote, list, code fence,
+  /// table) and inline markers (bold, code, strike, link, image) — enough to
+  /// tell pasted markdown apart from prose.
+  static final RegExp _markdownPastePattern = RegExp(
+    r'^\s{0,3}(#{1,6}\s|>\s?|\s*[-*+]\s|\s*\d+\.\s|```|\|)|'
+    r'(\*\*|__|~~|`|!?\[[^\]]*\]\()',
+    multiLine: true,
+  );
+
+  /// Matches a line that opens a block, which must start a new line.
+  static final RegExp _blockMarkerPattern = RegExp(
+    r'^\s{0,3}(#{1,6}\s|>\s?|[-*+]\s|\d+\.\s|```|\|| {4})',
+  );
+
+  /// Pastes markdown from the system clipboard as rich content.
+  ///
+  /// flutter_quill's default handler inserts plain text verbatim, so markdown
+  /// copied from another editor would land as literal `#`/`-`/`**` characters.
+  /// When the clipboard text looks like markdown it is parsed into the same
+  /// document structure as typed input; otherwise `false` is returned so the
+  /// default handling (rich HTML, links, images, plain text) runs.
+  Future<bool> _pasteClipboardMarkdown() async {
+    if (!contentQuillController.selection.isValid) return false;
+    final text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    if (text == null || text.trim().isEmpty) return false;
+    if (!_markdownPastePattern.hasMatch(text)) return false;
+
+    // A single inline-only line stays in the line it was pasted into instead
+    // of pulling the rest of the paragraph down with a paragraph break.
+    final inlineOnly =
+        !text.contains('\n') && !_blockMarkerPattern.hasMatch(text);
+    final delta = inlineOnly
+        ? _withoutTrailingNewline(markdownToQuillDelta(text))
+        : markdownToQuillDelta(text);
+    if (delta.isEmpty) return false;
+    final selection = contentQuillController.selection;
+    var inserted = 0;
+    for (final operation in delta.toList()) {
+      final data = operation.data;
+      inserted += data is String ? data.length : 1;
+    }
+    contentQuillController.replaceText(
+      selection.start,
+      selection.end - selection.start,
+      delta,
+      TextSelection.collapsed(offset: selection.start + inserted),
+    );
+    return true;
+  }
+
+  /// Drops the paragraph-terminating newline from a delta.
+  static Delta _withoutTrailingNewline(Delta delta) {
+    final operations = delta.toList();
+    final last = operations.last;
+    final data = last.data;
+    if (data is! String || !data.endsWith('\n')) return delta;
+    final trimmed = data.substring(0, data.length - 1);
+    final result = Delta();
+    for (final operation in operations.take(operations.length - 1)) {
+      result.push(operation);
+    }
+    if (trimmed.isNotEmpty) {
+      result.insert(trimmed, last.attributes);
+    }
+    return result;
   }
 
   /// Re-imports [contentController]'s markdown into the Quill document when it
@@ -169,6 +245,31 @@ class ComposeState {
       selection.extentOffset - selection.baseOffset,
       text,
       TextSelection.collapsed(offset: index + text.length),
+    );
+  }
+
+  /// Wraps the current editor selection with [left] and [right] delimiters for
+  /// Solian's inline syntaxes (`=!spoiler!=`, `==highlight==`). A collapsed
+  /// caret inserts an empty pair with the caret placed between the delimiters,
+  /// and a range keeps the wrapped text selected so it can be replaced.
+  void wrapSelection(String left, String right) {
+    final controller = contentQuillController;
+    final selection = controller.selection;
+    final index = selection.isValid
+        ? selection.start
+        : controller.document.length;
+    final end = selection.isValid ? selection.end : index;
+    final inner = end > index
+        ? controller.document.toPlainText().substring(index, end)
+        : '';
+    controller.replaceText(
+      index,
+      end - index,
+      '$left$inner$right',
+      TextSelection(
+        baseOffset: index + left.length,
+        extentOffset: index + left.length + inner.length,
+      ),
     );
   }
 
@@ -491,6 +592,10 @@ class ComposeLogic {
     }
 
     try {
+      // Persist the local draft before uploading: the uploads below are
+      // network requests and must not be able to lose the draft.
+      await _persistLocalDraft(ref, state);
+
       // Upload any local attachments first
       for (int i = 0; i < state.attachments.value.length; i++) {
         final attachment = state.attachments.value[i];
@@ -552,6 +657,21 @@ class ComposeLogic {
       Logger.root.severe(
         '[ComposeLogic] Failed to save draft without upload, error: $e',
       );
+    }
+  }
+
+  /// Writes the current editor state to the local draft store. Performs no
+  /// network request and never uploads attachments, so it is safe to call
+  /// before (and again after a failure of) the submission requests: the draft
+  /// on disk only ever converges to the content the user sees.
+  static Future<void> _persistLocalDraft(
+    WidgetRef ref,
+    ComposeState state,
+  ) async {
+    try {
+      await _saveLocalDraft(ref.read(databaseProvider), state);
+    } catch (e) {
+      Logger.root.severe('[ComposeLogic] Failed to persist local draft: $e');
     }
   }
 
@@ -1255,8 +1375,14 @@ class ComposeLogic {
       throw Exception('Post content is empty'); // Don't submit empty posts
     }
 
+    var published = false;
+
     try {
       state.submitting.value = true;
+
+      // Persist the draft before the first web request: a failed upload or
+      // publish must never cost the user their content.
+      await _persistLocalDraft(ref, state);
 
       final localAttachments = state.attachments.value
           .asMap()
@@ -1376,6 +1502,8 @@ class ComposeLogic {
         post = SnPost.fromJson(response.data);
       }
 
+      published = true;
+
       // Call the success callback
       onSuccess();
 
@@ -1403,6 +1531,11 @@ class ComposeLogic {
 
       return post;
     } catch (err) {
+      // A failed publish keeps the draft: re-persist the latest state so
+      // attachments that did upload and any later edits are on disk. A post
+      // that already published stays published — its draft is gone by design.
+      if (!published) await _persistLocalDraft(ref, state);
+
       // Mark task as failed if it was created
       final existingTask = ref
           .read(tasksProvider)
