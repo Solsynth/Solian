@@ -88,15 +88,7 @@ class PostComposeCard extends HookConsumerWidget {
         );
 
     void insertPlaceholder(String placeholder) {
-      final text = composeState.contentController.text;
-      final selection = composeState.contentController.selection;
-      final start = selection.start >= 0 ? selection.start : text.length;
-      final end = selection.end >= 0 ? selection.end : text.length;
-      final newText = text.replaceRange(start, end, placeholder);
-      composeState.contentController.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection.collapsed(offset: start + placeholder.length),
-      );
+      composeState.insertContent(placeholder);
     }
 
     void showStickerPicker() {

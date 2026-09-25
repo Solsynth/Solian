@@ -15,6 +15,7 @@ import 'package:material_ui/material_ui.dart'
 import 'package:flutter_localizations/flutter_localizations.dart'
     as flutter_localizations;
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/log_recorder.dart';
@@ -559,6 +560,7 @@ class IslandApp extends HookConsumerWidget {
         flutter_localizations.GlobalMaterialLocalizations.delegate,
         flutter_localizations.GlobalCupertinoLocalizations.delegate,
         RelativeTimeLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
       ],
       locale: context.locale,
       builder: (context, child) {

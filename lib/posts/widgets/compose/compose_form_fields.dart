@@ -1,16 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/discovery/models/autocomplete_response.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
-import 'package:island/shared/widgets/typeahead_enter_handler.dart';
-import 'package:island/stickers/models/sticker.dart';
-import 'package:island/discovery/discovery_service.dart';
+import 'package:island/posts/widgets/compose/quill_content_editor.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 KeyEventResult _preserveComposeFieldFocus(FocusNode node, KeyEvent event) {
   final isArrowKey =
@@ -34,18 +28,6 @@ KeyEventResult _preserveComposeFieldFocus(FocusNode node, KeyEvent event) {
   return KeyEventResult.ignored;
 }
 
-void _insertNewLine(TextEditingController controller) {
-  final text = controller.text;
-  final selection = controller.selection;
-  final start = selection.start >= 0 ? selection.start : text.length;
-  final end = selection.end >= 0 ? selection.end : text.length;
-  final newText = text.replaceRange(start, end, '\n');
-  controller.value = TextEditingValue(
-    text: newText,
-    selection: TextSelection.collapsed(offset: start + 1),
-  );
-}
-
 /// A reusable widget for the form fields in compose screens.
 /// Includes title, description, and content text fields.
 class ComposeFormFields extends HookConsumerWidget {
@@ -65,10 +47,6 @@ class ComposeFormFields extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final suggestionsController = useMemoized(
-      () => SuggestionsController<AutocompleteSuggestion>(),
-      [],
-    );
 
     return Row(
       spacing: 12,
@@ -164,144 +142,9 @@ class ComposeFormFields extends HookConsumerWidget {
               ),
 
               // Content field
-              Focus(
-                onKeyEvent: _preserveComposeFieldFocus,
-                child: TypeAheadField<AutocompleteSuggestion>(
-                  controller: state.contentController,
-                  suggestionsController: suggestionsController,
-                  builder: (context, controller, focusNode) {
-                    return TypeAheadEnterHandler<AutocompleteSuggestion>(
-                      suggestionsController: suggestionsController,
-                      controller: controller,
-                      onEnter: () => _insertNewLine(controller),
-                      child: TextField(
-                        focusNode: focusNode,
-                        controller: controller,
-                        enabled:
-                            enabled && state.currentPublisher.value != null,
-                        style: theme.textTheme.bodyMedium,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'postContent'.tr(),
-                          isCollapsed: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 8,
-                          ),
-                        ),
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        maxLines: null,
-                        onTapOutside: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                      ),
-                    );
-                  },
-                  suggestionsCallback: (pattern) async {
-                    // Only trigger on @ or :
-                    final atIndex = pattern.lastIndexOf('@');
-                    final colonIndex = pattern.lastIndexOf(':');
-                    final triggerIndex = atIndex > colonIndex
-                        ? atIndex
-                        : colonIndex;
-                    if (triggerIndex == -1) return [];
-                    final chopped = pattern.substring(triggerIndex);
-                    if (chopped.contains(' ')) return [];
-                    final service = ref.read(autocompleteServiceProvider);
-                    try {
-                      return await service.getGeneralSuggestions(chopped);
-                    } catch (e) {
-                      return [];
-                    }
-                  },
-                  itemBuilder: (context, suggestion) {
-                    String title = 'unknown'.tr();
-                    Widget leading = Icon(Icons.help);
-                    switch (suggestion.type) {
-                      case 'user':
-                        final user = SnAccount.fromJson(suggestion.data);
-                        title = user.nick;
-                        leading = ProfilePictureWidget(
-                          file: user.profile.picture,
-                          fallbackName: user.nick,
-                          radius: 18,
-                        );
-                        break;
-                      case 'chatroom':
-                        final chatRoom = SnChatRoom.fromJson(suggestion.data);
-                        title = chatRoom.name ?? 'Chat Room';
-                        leading = ProfilePictureWidget(
-                          file: chatRoom.picture,
-                          fallbackName: chatRoom.name,
-                          radius: 18,
-                        );
-                        break;
-                      case 'realm':
-                        final realm = SnRealm.fromJson(suggestion.data);
-                        title = realm.name;
-                        leading = ProfilePictureWidget(
-                          file: realm.picture,
-                          fallbackName: realm.name,
-                          radius: 18,
-                        );
-                        break;
-                      case 'publisher':
-                        final publisher = SnPublisher.fromJson(suggestion.data);
-                        title = publisher.name;
-                        leading = ProfilePictureWidget(
-                          file: publisher.picture,
-                          fallbackName: publisher.nick,
-                          radius: 18,
-                        );
-                        break;
-                      case 'sticker':
-                        final sticker = SnSticker.fromJson(suggestion.data);
-                        title = sticker.name?.trim().isNotEmpty == true
-                            ? sticker.name!
-                            : sticker.slug;
-                        leading = ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: CloudImageWidget(file: sticker.image),
-                          ),
-                        );
-                        break;
-                      default:
-                    }
-                    return ListTile(
-                      leading: leading,
-                      title: Text(title),
-                      subtitle: Text(suggestion.keyword),
-                      dense: true,
-                    );
-                  },
-                  onSelected: (suggestion) {
-                    final text = state.contentController.text;
-                    final atIndex = text.lastIndexOf('@');
-                    final colonIndex = text.lastIndexOf(':');
-                    final triggerIndex = atIndex > colonIndex
-                        ? atIndex
-                        : colonIndex;
-                    if (triggerIndex == -1) return;
-                    final newText = text.replaceRange(
-                      triggerIndex,
-                      text.length,
-                      suggestion.keyword,
-                    );
-                    state.contentController.value = TextEditingValue(
-                      text: newText,
-                      selection: TextSelection.collapsed(
-                        offset: triggerIndex + suggestion.keyword.length,
-                      ),
-                    );
-                  },
-                  direction: VerticalDirection.down,
-                  hideOnEmpty: true,
-                  hideOnLoading: true,
-                  debounceDuration: const Duration(milliseconds: 1000),
-                ),
+              QuillContentEditor(
+                state: state,
+                enabled: enabled && state.currentPublisher.value != null,
               ),
             ],
           ),
@@ -373,26 +216,13 @@ class ArticleComposeFormFields extends StatelessWidget {
 
             // Content field (expanded)
             Expanded(
-              child: Focus(
-                onKeyEvent: _preserveComposeFieldFocus,
-                child: TextField(
-                  controller: state.contentController,
-                  style: theme.textTheme.bodyMedium,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'postContent',
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 8,
-                    ),
-                  ),
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  onTapOutside: (_) =>
-                      FocusManager.instance.primaryFocus?.unfocus(),
+              child: QuillContentEditor(
+                state: state,
+                enabled: enabled,
+                expands: true,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 8,
                 ),
               ),
             ),

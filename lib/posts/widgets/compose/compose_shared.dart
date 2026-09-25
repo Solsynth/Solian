@@ -17,6 +17,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/database.dart';
@@ -26,6 +27,7 @@ import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/compose_storage_db.dart';
+import 'package:island/posts/widgets/compose/quill_markdown.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/drive/screens/file_pool.dart';
@@ -65,6 +67,21 @@ class ComposeState {
   final ValueNotifier<List<String>> collectionIds;
   Timer? _autoSaveTimer;
 
+  /// WYSIWYG (Quill) editor controller mirroring [contentController]'s
+  /// markdown. Changes flow both ways: editor edits are exported back to
+  /// [contentController], and external writes to [contentController] (draft
+  /// restore, placeholder/attachment insertion) are re-imported into the
+  /// document. Owned and disposed with the rest of the state.
+  final QuillController contentQuillController;
+
+  /// True while [contentQuillController] and [contentController] are being
+  /// synced, to prevent listener loops.
+  bool _syncingContent = false;
+
+  /// Text of [contentController] at the last successful sync. Used to diff
+  /// external changes so the editor caret lands after the edit.
+  String _lastSyncedText;
+
   ComposeState({
     required this.titleController,
     required this.descriptionController,
@@ -91,7 +108,108 @@ class ComposeState {
        collectionIds = ValueNotifier<List<String>>(collectionIds ?? []),
        lastOwnPostPublishedAt = ValueNotifier<DateTime?>(null),
        chainWithPrevious = ValueNotifier<bool>(true),
-       cloudDraftId = ValueNotifier<String?>(cloudDraftId);
+       cloudDraftId = ValueNotifier<String?>(cloudDraftId),
+       contentQuillController = QuillController(
+         document: Document.fromJson(
+           markdownToQuillDelta(contentController.text).toJson(),
+         ),
+         selection: const TextSelection.collapsed(offset: 0),
+       ),
+       _lastSyncedText = contentController.text {
+    contentController.addListener(_importFromContent);
+    contentQuillController.addListener(_exportFromQuill);
+  }
+
+  /// Re-imports [contentController]'s markdown into the Quill document when it
+  /// changes outside the editor (draft restore, placeholder insertion, reset).
+  void _importFromContent() {
+    if (_syncingContent) return;
+    final newText = contentController.text;
+    if (newText == _lastSyncedText) return;
+    _syncingContent = true;
+    contentQuillController.document = Document.fromJson(
+      markdownToQuillDelta(newText).toJson(),
+    );
+    final caret = _changedCaretOffset(_lastSyncedText, newText);
+    if (caret != null && contentQuillController.document.length > 0) {
+      contentQuillController.updateSelection(
+        TextSelection.collapsed(offset: caret),
+        ChangeSource.local,
+      );
+    }
+    _lastSyncedText = newText;
+    _syncingContent = false;
+  }
+
+  /// Exports the Quill document back to [contentController] as markdown when
+  /// the editor changes.
+  void _exportFromQuill() {
+    if (_syncingContent) return;
+    final markdown = quillDeltaToMarkdown(
+      contentQuillController.document.toDelta(),
+    );
+    _syncingContent = true;
+    _lastSyncedText = markdown;
+    contentController.text = markdown;
+    _syncingContent = false;
+  }
+
+  /// Inserts [text] into the document at the current editor selection
+  /// (replacing any selected range), then syncs the resulting markdown to
+  /// [contentController]. Used by toolbar placeholders so the editor caret is
+  /// respected exactly.
+  void insertContent(String text) {
+    final controller = contentQuillController;
+    final selection = controller.selection;
+    final index = selection.isValid
+        ? selection.start
+        : controller.document.length;
+    controller.replaceText(
+      index,
+      selection.extentOffset - selection.baseOffset,
+      text,
+      TextSelection.collapsed(offset: index + text.length),
+    );
+  }
+
+  /// Inserts an image embed for [url] at the current editor selection. Image
+  /// attachments are stored as markdown images (`![](solian://files/<id>)`),
+  /// so they must become Quill image embeds rather than raw markdown text —
+  /// raw text would be re-escaped on export and render literally.
+  void insertImage(String url) {
+    final controller = contentQuillController;
+    final selection = controller.selection;
+    final index = selection.isValid
+        ? selection.start
+        : controller.document.length;
+    controller.replaceText(
+      index,
+      selection.extentOffset - selection.baseOffset,
+      BlockEmbed.image(url),
+      TextSelection.collapsed(offset: index + 1),
+    );
+  }
+
+  /// Offset in [newText] just past the region that differs from [oldText], or
+  /// null when the texts are identical. Positions the caret after external
+  /// edits (insertions/replacements) that share a common prefix/suffix.
+  static int? _changedCaretOffset(String oldText, String newText) {
+    if (oldText == newText) return null;
+    final minLength = oldText.length < newText.length
+        ? oldText.length
+        : newText.length;
+    var prefix = 0;
+    while (prefix < minLength && oldText[prefix] == newText[prefix]) {
+      prefix++;
+    }
+    var suffix = 0;
+    while (suffix < minLength - prefix &&
+        oldText[oldText.length - 1 - suffix] ==
+            newText[newText.length - 1 - suffix]) {
+      suffix++;
+    }
+    return prefix + (newText.length - prefix - suffix);
+  }
 
   void startAutoSave(Future<void> Function(ComposeState state) saveDraft) {
     _autoSaveTimer?.cancel();
@@ -952,15 +1070,7 @@ class ComposeLogic {
       return;
     }
     final cloudFile = attachment.data as IDisplayableCloudFile;
-    final markdown = '![${cloudFile.name}](solian://files/${cloudFile.id})';
-    final controller = state.contentController;
-    final text = controller.text;
-    final selection = controller.selection;
-    final newText = text.replaceRange(selection.start, selection.end, markdown);
-    controller.text = newText;
-    controller.selection = TextSelection.fromPosition(
-      TextPosition(offset: selection.start + markdown.length),
-    );
+    state.insertImage('solian://files/${cloudFile.id}');
   }
 
   static void setEmbedView(ComposeState state, SnPostEmbedView embedView) {
@@ -1734,6 +1844,7 @@ class ComposeLogic {
     state.titleController.dispose();
     state.descriptionController.dispose();
     state.contentController.dispose();
+    state.contentQuillController.dispose();
     state.attachments.dispose();
     state.visibility.dispose();
     state.submitting.dispose();

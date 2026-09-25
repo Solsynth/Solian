@@ -32,15 +32,7 @@ class ComposeToolbar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     void insertPlaceholder(String placeholder) {
-      final text = state.contentController.text;
-      final selection = state.contentController.selection;
-      final start = selection.start >= 0 ? selection.start : text.length;
-      final end = selection.end >= 0 ? selection.end : text.length;
-      final newText = text.replaceRange(start, end, placeholder);
-      state.contentController.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection.collapsed(offset: start + placeholder.length),
-      );
+      state.insertContent(placeholder);
     }
 
     void pickPhotoMedia() async {
