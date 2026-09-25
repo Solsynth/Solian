@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
@@ -80,8 +81,9 @@ void main() {
   Future<void> pumpEditor(
     WidgetTester tester,
     ComposeState state,
-    AutocompleteService service,
-  ) async {
+    AutocompleteService service, {
+    TargetPlatform platform = TargetPlatform.android,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -106,6 +108,7 @@ void main() {
                   FlutterQuillLocalizations.delegate,
                 ],
                 theme: mui.ThemeData(
+                  platform: platform,
                   colorScheme: mui.ColorScheme.fromSeed(
                     seedColor: Colors.indigo,
                   ),
@@ -140,6 +143,116 @@ void main() {
     );
     await tester.pump();
   }
+  testWidgets('desktop toolbar follows caret and hides after mouse idle', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final state = ComposeLogic.createState();
+      await pumpEditor(
+        tester,
+        state,
+        _FakeAutocompleteService(const []),
+        platform: TargetPlatform.macOS,
+      );
+
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsNothing,
+      );
+      await tester.tap(find.byType(QuillEditor));
+      await tester.pump();
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      await tester.pump();
+      await mouse.moveTo(tester.getCenter(find.byType(QuillEditor)));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsOneWidget,
+      );
+
+      await imeType(tester, 'first line\nsecond line');
+      await tester.pumpAndSettle();
+      final toolbarBefore = tester.getTopLeft(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+      );
+      state.contentQuillController.updateSelection(
+        const TextSelection.collapsed(offset: 2),
+        ChangeSource.local,
+      );
+      await tester.pumpAndSettle();
+      final toolbarAfter = tester.getTopLeft(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+      );
+      expect(toolbarBefore.dy, isNot(toolbarAfter.dy));
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsNothing,
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('unmounting with the toolbar open does not throw', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      final state = ComposeLogic.createState();
+      await pumpEditor(
+        tester,
+        state,
+        _FakeAutocompleteService(const []),
+        platform: TargetPlatform.macOS,
+      );
+      await tester.tap(find.byType(QuillEditor));
+      await tester.pump();
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      await tester.pump();
+      await mouse.moveTo(tester.getCenter(find.byType(QuillEditor)));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('compose-floating-toolbar')),
+        findsOneWidget,
+      );
+
+      // Tear the whole tree down while the toolbar overlay is still visible.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('touch toolbar appears immediately above the soft keyboard', (
+    tester,
+  ) async {
+    final state = ComposeLogic.createState();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+    addTearDown(tester.view.resetViewInsets);
+    await pumpEditor(
+      tester,
+      state,
+      _FakeAutocompleteService(const []),
+      platform: TargetPlatform.iOS,
+    );
+
+    await tester.tap(find.byType(QuillEditor));
+    await tester.pumpAndSettle();
+    final toolbar = find.byKey(const ValueKey('compose-floating-toolbar'));
+    expect(toolbar, findsOneWidget);
+    final toolbarBox = tester.renderObject<RenderBox>(toolbar);
+    final toolbarBottom = toolbarBox.localToGlobal(Offset(0, toolbarBox.size.height)).dy;
+    final keyboardTop = tester.view.physicalSize.height /
+        tester.view.devicePixelRatio -
+        tester.view.viewInsets.bottom / tester.view.devicePixelRatio;
+    expect(toolbarBottom, lessThanOrEqualTo(keyboardTop));
+  });
+
 
   testWidgets('renders initial markdown content', (tester) async {
     final state = ComposeLogic.createState();
