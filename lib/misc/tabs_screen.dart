@@ -217,15 +217,10 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final wideScreen = isWideScreen(context);
 
     final allDestinations = _allDestinations;
-    // Drive (files) is not surfaced in the sidebar/drawer navigation; its
-    // route stays reachable via deep links and direct entry points.
-    final navDestinations = allDestinations
-        .where((d) => d.id != 'files')
-        .toList();
     final navCustomization = ref.watch(_navCustomizationProvider);
-    final destinationById = {for (final d in navDestinations) d.id: d};
+    final destinationById = {for (final d in allDestinations) d.id: d};
     final defaultBottomNavIds = ['dashboard', 'explore', 'chat', 'account'];
-    final defaultRailNavIds = navDestinations.map((e) => e.id).toList();
+    final defaultRailNavIds = allDestinations.map((e) => e.id).toList();
 
     List<_TabDestination> resolveDestinations({
       required List<String> preferredIds,
@@ -264,8 +259,8 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final bottomNavRoutes = bottomNavDestinations
         .map((d) => d.routePath)
         .toList();
-    final drawerDestinations = navDestinations;
-    final accountRouteIndex = navDestinations
+    final drawerDestinations = allDestinations;
+    final accountRouteIndex = allDestinations
         .firstWhere((d) => d.id == 'account')
         .routeIndex;
 
@@ -312,7 +307,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         isScrollControlled: true,
         useRootNavigator: true,
         builder: (context) => _NavigationCustomizationSheet(
-          allDestinations: navDestinations,
+          allDestinations: allDestinations,
           initialBottomIds: navCustomization.bottomIds,
           initialRailIds: navCustomization.railIds,
           hasBottomOverride: navCustomization.hasBottomOverride,
@@ -333,7 +328,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       return SafeArea(
         child: NavigationDrawer(
           // Destinations are indexed by position in `drawerDestinations`,
-          // which skips `files`, so the active tab must be mapped onto it.
+          // so the active tab must be mapped onto it.
           selectedIndex: drawerDestinations.indexWhere(
             (d) => d.routeIndex == tabsRouter.activeIndex,
           ),
