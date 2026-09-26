@@ -67,6 +67,27 @@ Note: Fediverse support is currently experimental and limited.
 | Progressions | Done | Make your move on Solar Network memorizable |
 | Fediverse | Beta | Interact with other fediverse instances |
 
+### Relay Route
+
+Traffic can be routed through a nearby **relay node** instead of dialing the
+server directly. Relays are L4: they read the SNI from the TLS ClientHello and
+copy bytes to the origin without terminating TLS, so the certificate, `Host`
+header, and end-to-end encryption are unchanged — only the socket moves.
+
+Pick one under **Settings → Connection → Relay Route**, or leave it on
+*Direct*. The list comes from the server's `GET /relays` catalog (loaded over a
+direct connection so a broken relay can never hide its own picker). Selecting a
+route applies immediately: HTTP clients are rebuilt and the realtime channel is
+re-dialed; the selection persists across launches.
+
+The reusable pieces — catalog client, models, and the connection factory — live
+in [`solar_network_foundation`](packages/solar_network_foundation) so other
+Solar Network clients can route through the same relays.
+
+Not routed through a relay: native transports that never touch Dart's HTTP
+stack (media playback, WebRTC, in-app webviews, platform notification/native
+plugins).
+
 ---
 
 ## Getting Started

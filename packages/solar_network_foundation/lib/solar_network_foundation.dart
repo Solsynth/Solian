@@ -16,3 +16,7 @@ export 'src/drive/drive_service.dart';
 export 'src/drive/drive_task.dart';
 export 'src/drive/quota_sidebar.dart';
 export 'src/drive/upload_tasks.dart';
+
+// Relays.
+export 'src/relay/relay_catalog.dart';
+export 'src/relay/relay_connection.dart';

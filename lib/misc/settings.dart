@@ -15,6 +15,7 @@ import 'package:file_saver/file_saver.dart';
 import 'package:island/core/database.dart';
 import 'package:island/data/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/network/relay.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
@@ -36,6 +37,7 @@ import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/plugins/screens/plugin_manager_screen.dart';
 import 'package:island/route.gr.dart';
@@ -1373,6 +1375,9 @@ class SettingsScreen extends HookConsumerWidget {
           'settingsServerUrl',
           'settingsMediaProxy',
           'settingsIpOverride',
+          'relay',
+          'relay route',
+          'settingsRelayRoute',
           'settingsIpOverrideDomains',
           'settingsIpOverrideEntries',
           'cfIpSpeedTest',
@@ -1422,6 +1427,33 @@ class SettingsScreen extends HookConsumerWidget {
             ),
           ),
           ServerCapabilitiesPreview(serverUrl: serverUrl),
+          Builder(
+            builder: (context) {
+              final relay = ref.watch(relayRouteProvider);
+              return ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsRelayRoute').tr(),
+                subtitle: Text(
+                  relay == null
+                      ? 'settingsRelayRouteDirectHelper'.tr()
+                      : 'settingsRelayRouteVia'.tr(
+                          args: [relay.displayHost, relay.regionLabel],
+                        ),
+                ),
+                contentPadding: _kSettingsTilePadding,
+                leading: const Icon(Symbols.route),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (_) => _RelayRouteSheet(ref: ref),
+                  );
+                },
+              );
+            },
+          ),
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsMediaProxy').tr(),
@@ -2115,11 +2147,6 @@ class SettingsScreen extends HookConsumerWidget {
                     },
                   ),
                 ),
-              ),
-              VerticalDivider(
-                width: 1,
-                thickness: 1,
-                color: colorScheme.outlineVariant.withOpacity(0.4),
               ),
               Expanded(
                 child:
@@ -2953,6 +2980,152 @@ class _IpOverrideModeSheet extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RelayRouteSheet extends StatelessWidget {
+  final WidgetRef ref;
+
+  const _RelayRouteSheet({required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = ref.watch(relayRouteProvider);
+    final catalog = ref.watch(relayCatalogProvider);
+
+    return SheetScaffold(
+      titleText: 'settingsRelayRoute'.tr(),
+      actions: [
+        IconButton(
+          icon: const Icon(Symbols.refresh),
+          tooltip: 'refresh'.tr(),
+          onPressed: () => ref.invalidate(relayCatalogProvider),
+        ),
+      ],
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        children: [
+          Text('settingsRelayRouteHelper'.tr()),
+          const SizedBox(height: 8),
+          _RelayRouteOption(
+            icon: Symbols.public,
+            title: 'settingsRelayRouteDirect'.tr(),
+            subtitle: 'settingsRelayRouteDirectHelper'.tr(),
+            selected: selected == null,
+            onTap: () {
+              ref.read(relayRouteProvider.notifier).select(null);
+              context.pop();
+            },
+          ),
+          const Divider(height: 24),
+          ..._buildCatalogOptions(context, catalog, selected),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildCatalogOptions(
+    BuildContext context,
+    AsyncValue<List<RelayEntry>> catalog,
+    RelayRoute? selected,
+  ) {
+    final current = selected;
+    final currentId = selected?.id;
+
+    return catalog.when(
+      loading: () => [
+        ListTile(
+          leading: const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          title: Text('loading'.tr()),
+        ),
+      ],
+      error: (error, _) => [
+        ListTile(
+          leading: const Icon(Symbols.error),
+          title: Text('settingsRelayRouteError').tr(),
+          subtitle: Text('$error'),
+          trailing: IconButton(
+            icon: const Icon(Symbols.refresh),
+            onPressed: () => ref.invalidate(relayCatalogProvider),
+          ),
+        ),
+      ],
+      data: (entries) {
+        if (entries.isEmpty) {
+          return [ListTile(title: Text('settingsRelayRouteEmpty').tr())];
+        }
+        // A route picked from an earlier catalog may not be announced anymore;
+        // keep it visible so the selection is never invisible.
+        final announced = entries.any((entry) => entry.id == currentId);
+        return [
+          if (current != null && !announced)
+            _RelayRouteOption(
+              icon: Symbols.help,
+              title: current.regionLabel,
+              subtitle: current.displayHost,
+              selected: true,
+              onTap: () => context.pop(),
+            ),
+          for (final entry in entries)
+            _RelayRouteOption(
+              icon: Symbols.dns,
+              title: entry.regionLabel,
+              subtitle: [
+                entry.displayEndpoint,
+                'w${entry.weight}',
+                entry.healthy
+                    ? 'settingsRelayRouteHealthy'.tr()
+                    : 'settingsRelayRouteUnhealthy'.tr(),
+              ].join(' · '),
+              selected: currentId == entry.id,
+              onTap: () {
+                ref
+                    .read(relayRouteProvider.notifier)
+                    .select(RelayRoute.fromEntry(entry));
+                context.pop();
+              },
+            ),
+        ];
+      },
+    );
+  }
+}
+
+class _RelayRouteOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _RelayRouteOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ListTile(
+      minLeadingWidth: 40,
+      leading: Icon(icon, color: selected ? scheme.primary : null),
+      title: Text(
+        title,
+        style: selected
+            ? TextStyle(color: scheme.primary, fontWeight: FontWeight.w600)
+            : null,
+      ),
+      subtitle: Text(subtitle),
+      trailing: selected ? Icon(Symbols.check, color: scheme.primary) : null,
+      onTap: onTap,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -99,6 +100,19 @@ class WebSocketService {
     await _connectInternal(ref);
   }
 
+  /// Re-dials the channel so a changed server address or relay route applies.
+  ///
+  /// A live socket keeps the route it was opened with, so switching routes has
+  /// to drop it; the service reconnects with the same backoff rules.
+  Future<void> reconnect() async {
+    final ref = _ref;
+    if (ref == null) {
+      Logger.root.fine('[WebSocket] Reconnect skipped: never connected yet');
+      return;
+    }
+    await connect(ref);
+  }
+
   Future<void> _connectInternal(Ref ref) async {
     _ref = ref;
     _isClosing = false;
@@ -140,7 +154,15 @@ class WebSocketService {
         final headers = token?.isNotEmpty ?? false
             ? {'Authorization': 'Bearer $token'}
             : null;
-        _channel = IOWebSocketChannel.connect(uri, headers: headers);
+        // A fresh client per connect: dart:io's WebSocket caches a process-wide
+        // HttpClient created under whichever HttpOverrides existed at first
+        // use, so without this the realtime channel would keep dialing the
+        // original route and ignore a later relay selection or IP override.
+        _channel = IOWebSocketChannel.connect(
+          uri,
+          headers: headers,
+          customClient: HttpClient(),
+        );
       }
       await _channel!.ready;
       _isConnecting = false;

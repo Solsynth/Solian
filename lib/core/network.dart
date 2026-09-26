@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network/api_error.dart';
 import 'package:island/core/network/media_proxy_server.dart';
+import 'package:island/core/network/relay.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:dio/dio.dart';
@@ -17,6 +18,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'network.g.dart';
@@ -162,21 +164,6 @@ typedef IpOverrideConnectionFactory =
       int? proxyPort,
     );
 
-class AppHttpOverrides extends HttpOverrides {
-  final IpOverrideConnectionFactory? connectionFactory;
-
-  AppHttpOverrides({this.connectionFactory});
-
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    final client = super.createHttpClient(context);
-    if (connectionFactory != null) {
-      client.connectionFactory = connectionFactory;
-    }
-    return client;
-  }
-}
-
 IpOverrideMode _readIpOverrideMode(SharedPreferences prefs) {
   final rawMode = prefs.getString(kAppIpOverrideMode);
   if (rawMode != null) {
@@ -235,7 +222,9 @@ List<String> _readIpOverrideDomains(SharedPreferences prefs, String serverUrl) {
   return defaults;
 }
 
-HttpOverrides? createAppHttpOverrides({
+/// Builds the IP-override connection factory for the current mode, or null when
+/// the feature is off or unusable.
+IpOverrideConnectionFactory? _buildIpOverrideFactory({
   required IpOverrideMode mode,
   required IpOverrideSettings settings,
   required List<String> domains,
@@ -250,53 +239,86 @@ HttpOverrides? createAppHttpOverrides({
     return null;
   }
 
-  IpOverrideConnectionFactory? connectionFactory;
-
   if (mode == IpOverrideMode.complete) {
     final host = Uri.tryParse(serverUrl)?.host;
     if (host == null || host.isEmpty) {
       Logger.root.fine('[http.override] Disabled: server host is unavailable.');
       return null;
     }
-    connectionFactory = createIpOverrideConnectionFactory(
+    Logger.root.fine(
+      '[http.override] Complete mode enabled for $host -> ${override.ip}${override.port != null ? ':${override.port}' : ''}',
+    );
+    return createIpOverrideConnectionFactory(
       domainSuffix: host,
       ip: override.ip,
       port: override.port,
     );
-    Logger.root.fine(
-      '[http.override] Complete mode enabled for $host -> ${override.ip}${override.port != null ? ':${override.port}' : ''}',
-    );
-  } else {
-    connectionFactory = (uri, proxyHost, proxyPort) async {
-      final useOverride = domains.any(
-        (domain) => matchesIpOverrideDomain(uri, domain),
-      );
-      final targetHost = useOverride ? override.ip : uri.host;
-      final targetPort = (useOverride ? override.port : null) ?? uri.port;
-      Logger.root.fine(
-        '[http.override] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
-      );
-      final socketFuture = () async {
-        final socket = await Socket.connect(
-          targetHost,
-          targetPort == 0 ? 443 : targetPort,
-        );
-
-        return SecureSocket.secure(
-          socket,
-          host: uri.host,
-          onBadCertificate: (_) => true,
-        );
-      }();
-      return ConnectionTask.fromSocket(socketFuture, () {
-        Logger.root.fine(
-          '[http.override] Cancelled IP override connection to ${uri.host} ($targetHost:$targetPort)',
-        );
-      });
-    };
   }
 
-  return AppHttpOverrides(connectionFactory: connectionFactory);
+  return (uri, proxyHost, proxyPort) async {
+    final useOverride = domains.any(
+      (domain) => matchesIpOverrideDomain(uri, domain),
+    );
+    final targetHost = useOverride ? override.ip : uri.host;
+    final targetPort = (useOverride ? override.port : null) ?? uri.port;
+    Logger.root.fine(
+      '[http.override] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
+    );
+    final socketFuture = () async {
+      final socket = await Socket.connect(
+        targetHost,
+        targetPort == 0 ? 443 : targetPort,
+      );
+
+      return SecureSocket.secure(
+        socket,
+        host: uri.host,
+        onBadCertificate: (_) => true,
+      );
+    }();
+    return ConnectionTask.fromSocket(socketFuture, () {
+      Logger.root.fine(
+        '[http.override] Cancelled IP override connection to ${uri.host} ($targetHost:$targetPort)',
+      );
+    });
+  };
+}
+
+/// Composes the connection factory installed on every [HttpClient].
+///
+/// A selected [relay] wins for traffic to the configured server host — only the
+/// socket moves, so SNI, `Host`, and certificate verification stay on the real
+/// server — while the IP override keeps handling everything else. Returns null
+/// to leave the platform transport untouched when neither is configured.
+HttpOverrides? createAppHttpOverrides({
+  required IpOverrideMode mode,
+  required IpOverrideSettings settings,
+  required List<String> domains,
+  required String serverUrl,
+  RelayRoute? relay,
+}) {
+  final ipFactory = _buildIpOverrideFactory(
+    mode: mode,
+    settings: settings,
+    domains: domains,
+    serverUrl: serverUrl,
+  );
+  final hasRelay = relay != null && relay.isValid;
+  if (ipFactory == null && !hasRelay) {
+    return null;
+  }
+
+  return ConnectionFactoryHttpOverrides(
+    connectionFactory: createRelayConnectionFactory(
+      serverHost: Uri.tryParse(serverUrl)?.host ?? '',
+      route: relay,
+      fallback: ipFactory,
+      // An active IP override already means "trust every certificate" for this
+      // client, so the relay path keeps that posture to avoid breaking the
+      // self-signed setups the override exists for.
+      allowUntrustedCertificate: ipFactory != null,
+    ),
+  );
 }
 
 HttpOverrides? createAppHttpOverridesFromPrefs(SharedPreferences prefs) {
@@ -313,6 +335,7 @@ HttpOverrides? createAppHttpOverridesFromPrefs(SharedPreferences prefs) {
     settings: settings,
     domains: domains,
     serverUrl: serverUrl,
+    relay: readRelayRoute(prefs),
   );
 }
 
@@ -321,11 +344,13 @@ final appHttpOverridesProvider = Provider<HttpOverrides?>((ref) {
   final settings = ref.watch(ipOverrideSettingsProvider);
   final domains = ref.watch(ipOverrideDomainsProvider);
   final serverUrl = ref.watch(serverUrlProvider);
+  final relay = ref.watch(relayRouteProvider);
   return createAppHttpOverrides(
     mode: mode,
     settings: settings,
     domains: domains,
     serverUrl: serverUrl,
+    relay: relay,
   );
 });
 
@@ -361,48 +386,66 @@ IpOverrideConnectionFactory createIpOverrideConnectionFactory({
   };
 }
 
+/// Connection factory for the local media proxy.
+///
+/// Media is fetched from the configured server, so a selected relay carries it
+/// too: the relay wins, the IP override handles everything else, and
+/// certificates are trusted exactly as the proxy's own client already trusts
+/// them.
 final mediaIpOverrideConnectionFactoryProvider =
-    Provider<IpOverrideConnectionFactory?>((ref) {
+    Provider<NetworkConnectionFactory?>((ref) {
       final mode = ref.watch(ipOverrideModeProvider);
       final settings = ref.watch(ipOverrideSettingsProvider);
       final domains = ref.watch(ipOverrideDomainsProvider);
-      if (mode == IpOverrideMode.off || settings.overrides.isEmpty) {
-        return null;
-      }
-      if (domains.isEmpty) {
-        return null;
-      }
-      final override = settings.overrides.firstOrNull;
-      if (override == null) {
-        return null;
-      }
-      return (uri, proxyHost, proxyPort) async {
-        final useOverride = domains.any(
-          (domain) => matchesIpOverrideDomain(uri, domain),
-        );
-        final targetHost = useOverride ? override.ip : uri.host;
-        final targetPort = (useOverride ? override.port : null) ?? uri.port;
-        Logger.root.fine(
-          '[media.proxy] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
-        );
-        final socketFuture = () async {
-          final socket = await Socket.connect(
-            targetHost,
-            targetPort == 0 ? 443 : targetPort,
-          );
+      final serverUrl = ref.watch(serverUrlProvider);
+      final relay = ref.watch(relayRouteProvider);
 
-          return SecureSocket.secure(
-            socket,
-            host: uri.host,
-            onBadCertificate: (_) => true,
+      IpOverrideConnectionFactory? ipFactory;
+      final override = settings.overrides.firstOrNull;
+      if (mode != IpOverrideMode.off &&
+          settings.overrides.isNotEmpty &&
+          domains.isNotEmpty &&
+          override != null) {
+        ipFactory = (uri, proxyHost, proxyPort) async {
+          final useOverride = domains.any(
+            (domain) => matchesIpOverrideDomain(uri, domain),
           );
-        }();
-        return ConnectionTask.fromSocket(socketFuture, () {
+          final targetHost = useOverride ? override.ip : uri.host;
+          final targetPort = (useOverride ? override.port : null) ?? uri.port;
           Logger.root.fine(
-            '[media.proxy] Cancelled IP override connection to ${uri.host} ($targetHost:$targetPort)',
+            '[media.proxy] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
           );
-        });
-      };
+          final socketFuture = () async {
+            final socket = await Socket.connect(
+              targetHost,
+              targetPort == 0 ? 443 : targetPort,
+            );
+
+            return SecureSocket.secure(
+              socket,
+              host: uri.host,
+              onBadCertificate: (_) => true,
+            );
+          }();
+          return ConnectionTask.fromSocket(socketFuture, () {
+            Logger.root.fine(
+              '[media.proxy] Cancelled IP override connection to ${uri.host} ($targetHost:$targetPort)',
+            );
+          });
+        };
+      }
+
+      final hasRelay = relay != null && relay.isValid;
+      if (ipFactory == null && !hasRelay) {
+        return null;
+      }
+
+      return createRelayConnectionFactory(
+        serverHost: Uri.tryParse(serverUrl)?.host ?? '',
+        route: relay,
+        fallback: ipFactory,
+        allowUntrustedCertificate: true,
+      );
     });
 
 final stargateApiClientProvider = Provider<Dio>((ref) {

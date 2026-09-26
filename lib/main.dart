@@ -21,6 +21,7 @@ import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/log_recorder.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/network/relay.dart';
 import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/firebase_options.dart';
@@ -492,6 +493,18 @@ class IslandApp extends HookConsumerWidget {
     useEffect(() {
       ref.listen<HttpOverrides?>(appHttpOverridesProvider, (_, overrides) {
         HttpOverrides.global = overrides;
+      });
+
+      // A route change only reaches clients created afterwards: the Dio
+      // providers cache one HttpClient each, and a live websocket keeps the
+      // socket it was opened with. Rebuild the clients and re-dial the channel.
+      ref.listen(relayRouteProvider, (previous, next) {
+        if (previous == next) return;
+        Logger.root.info('[relay] Network route changed: ${previous ?? 'direct'} -> ${next ?? 'direct'}');
+        ref.invalidate(apiClientProvider);
+        ref.invalidate(stargateApiClientProvider);
+        ref.invalidate(mediaProxyServerProvider);
+        unawaited(ref.read(websocketProvider).reconnect());
       });
 
       if (!_firebaseIsReady ||
