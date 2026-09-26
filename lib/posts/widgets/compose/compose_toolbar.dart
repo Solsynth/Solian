@@ -200,6 +200,20 @@ class ComposeToolbar extends HookConsumerWidget {
                           child: Row(
                             children: [
                               UploadMenu(items: uploadMenuItems),
+                              // Import local markdown (article posts only)
+                              if (state.postType == 1)
+                                IconButton(
+                                  onPressed: () async {
+                                    final added = await ComposeLogic
+                                        .importMarkdownFile(ref, state);
+                                    if (added > 0) {
+                                      onAttachmentAdded?.call();
+                                    }
+                                  },
+                                  icon: const Icon(Symbols.markdown),
+                                  color: colorScheme.primary,
+                                  tooltip: 'importMarkdown'.tr(),
+                                ),
                               IconButton(
                                 onPressed: () {
                                   isStickerExpanded.value =

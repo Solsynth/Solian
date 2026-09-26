@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:island/core/config.dart';
@@ -984,6 +985,139 @@ class ComposeLogic {
     if (newFiles.isEmpty) return 0;
     state.attachments.value = [...state.attachments.value, ...newFiles];
     return newFiles.length;
+  }
+
+  /// Matches inline markdown links and images: `[text](target)` and
+  /// `![alt](target)`.
+  static final RegExp inlineMarkdownLinkRegex = RegExp(
+    r'!?\[[^\]]*\]\(([^)]+)\)',
+  );
+
+  /// Matches reference-style link definitions: `[id]: target`.
+  static final RegExp markdownReferenceDefinitionRegex = RegExp(
+    r'^\s{0,3}\[[^\]]+\]:\s*(.+?)\s*$',
+    multiLine: true,
+  );
+
+  /// Picks a local markdown file, loads its content into the editor and scans
+  /// the markdown for links to local files (inline images/links and reference
+  /// definitions). Every referenced file that exists on disk is added to the
+  /// attachment list, deduplicated against existing attachments. Returns the
+  /// number of attachments added.
+  static Future<int> importMarkdownFile(
+    WidgetRef ref,
+    ComposeState state,
+  ) async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['md', 'markdown'],
+    );
+    if (result == null || result.files.isEmpty) return 0;
+    final filePath = result.files.single.path;
+    if (filePath == null) return 0;
+
+    final markdownFile = File(filePath);
+    if (!await markdownFile.exists()) return 0;
+
+    state.contentController.text = await markdownFile.readAsString();
+
+    final linkedPaths = resolveLocalFilesFromMarkdown(
+      markdownFile.parent.path,
+      state.contentController.text,
+    );
+    if (linkedPaths.isEmpty) return 0;
+
+    final existingPaths = state.attachments.value
+        .where((e) => e.data is XFile)
+        .map((e) => (e.data as XFile).path)
+        .where((p) => p.isNotEmpty)
+        .toSet();
+
+    final newFiles = <UniversalFile>[];
+    for (final path in linkedPaths) {
+      if (!existingPaths.add(path)) continue;
+      final file = File(path);
+      if (!await file.exists()) continue;
+      final name = path.split('/').last;
+      final xfile = XFile(
+        path,
+        name: name.isEmpty ? filePath : name,
+        mimeType: lookupMimeType(path) ?? 'application/octet-stream',
+      );
+      final provisional = UniversalFile(
+        data: xfile,
+        type: UniversalFileType.file,
+      );
+      final fileType = switch (FileUploader.getMimeType(provisional)
+          .split('/')
+          .firstOrNull) {
+        'image' => UniversalFileType.image,
+        'video' => UniversalFileType.video,
+        'audio' => UniversalFileType.audio,
+        _ => UniversalFileType.file,
+      };
+      newFiles.add(UniversalFile(data: xfile, type: fileType));
+    }
+    if (newFiles.isEmpty) return 0;
+    state.attachments.value = [...state.attachments.value, ...newFiles];
+    return newFiles.length;
+  }
+
+  /// Collects existing local file paths referenced by [content], resolved
+  /// against [baseDirectory] (the directory of the imported markdown file).
+  /// Remote URLs, anchors and data URIs are ignored.
+  static Set<String> resolveLocalFilesFromMarkdown(
+    String baseDirectory,
+    String content,
+  ) {
+    final targets = <String>[
+      for (final m in inlineMarkdownLinkRegex.allMatches(content))
+        m.group(1)!,
+      for (final m in markdownReferenceDefinitionRegex.allMatches(content))
+        m.group(1)!,
+    ];
+
+    final resolved = <String>{};
+    for (var target in targets) {
+      target = target.trim();
+      // `[text](<path>)` — strip wrapping angle brackets.
+      if (target.length > 2 &&
+          target.startsWith('<') &&
+          target.endsWith('>')) {
+        target = target.substring(1, target.length - 1).trim();
+      }
+      // `path "title"` / `path 'title'` — strip the trailing title.
+      target = target.replaceFirst(
+        RegExp(r'\s+["\x27].*["\x27]$'),
+        '',
+      );
+      if (!_isLocalFileTarget(target)) continue;
+      // Normalize Windows separators so absolute/resolution logic is uniform.
+      target = target.replaceAll('\\', '/');
+      if (target.startsWith('/')) {
+        resolved.add(target);
+        continue;
+      }
+      resolved.add('$baseDirectory/$target');
+    }
+    return resolved;
+  }
+
+  /// True when [target] points at a local filesystem path rather than a
+  /// remote URL, anchor or data URI.
+  static bool _isLocalFileTarget(String target) {
+    if (target.isEmpty || target.startsWith('#')) return false;
+    if (target.startsWith('data:')) return false;
+    final colon = target.indexOf(':');
+    if (colon > 0) {
+      final scheme = target.substring(0, colon);
+      final rest = target.substring(colon + 1);
+      // A single-letter scheme followed by a slash is a Windows drive path.
+      final isWindowsDrive =
+          scheme.length == 1 && (rest.startsWith('/') || rest.startsWith('\\'));
+      if (!isWindowsDrive) return false;
+    }
+    return true;
   }
 
   static Future<void> pickPhotoMedia(WidgetRef ref, ComposeState state) async {
