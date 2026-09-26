@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
-import 'package:island/drive/drive_service.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 void main() {

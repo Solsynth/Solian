@@ -8,7 +8,7 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/chat/utils/chat_room_ordering.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/drive/drive_service.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';

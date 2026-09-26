@@ -10,10 +10,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_image_compress_macos/flutter_image_compress_macos.dart';
 import 'package:image/image.dart' as img;
 import 'package:island/core/config.dart';
+import 'package:island/core/drive_wiring.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/drive/drive_service.dart';
-import 'package:island/drive/screens/upload_tasks.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -278,6 +278,9 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(preferences),
         tokenProvider.overrideWithValue(null),
         weakInternetModeProvider.overrideWithValue(false),
+        // The drive service reads its host bindings through the shared
+        // package; wire them exactly as the app does.
+        ...driveHostOverrides(),
       ],
     );
     // tasksProvider is autoDispose; in production the task tray listens to

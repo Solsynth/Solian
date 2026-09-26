@@ -25,6 +25,7 @@ import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/drive_wiring.dart';
 import 'package:island/core/media_kit_init.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -417,7 +418,10 @@ void main(List<String> args) async {
           return const Duration(milliseconds: 300);
         },
         observers: [ProviderLogger()],
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...driveHostOverrides(),
+        ],
         child: Directionality(
           textDirection: TextDirection.ltr,
           child: EasyLocalization(

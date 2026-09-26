@@ -28,7 +28,7 @@ import "package:island/discovery/discovery_service.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/services/responsive.dart";
 import "package:island/core/widgets/content/attachment_preview.dart";
-import "package:island/drive/drive_service.dart";
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import "package:island/drive/widgets/cloud_files.dart";
 import "package:island/posts/widgets/compose/compose_link_attachments.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";

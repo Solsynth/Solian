@@ -9,7 +9,7 @@ import 'package:island/chat/e2ee_message_service.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/data/message.dart';
-import 'package:island/drive/drive_service.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;

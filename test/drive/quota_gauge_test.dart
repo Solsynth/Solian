@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:island/drive/widgets/quota_sidebar.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 void main() {
   test('gauge spans base quota when there is no extra quota', () {

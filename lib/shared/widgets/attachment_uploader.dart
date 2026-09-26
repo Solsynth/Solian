@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
-import 'package:island/drive/drive_service.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
 import 'package:island/shared/widgets/layouts/attention_modal_scaffold.dart';
 import 'package:easy_localization/easy_localization.dart';

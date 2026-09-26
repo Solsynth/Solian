@@ -26,7 +26,7 @@ import 'package:island/data/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
-import 'package:island/drive/drive_service.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/posts/widgets/compose/quill_markdown.dart';
 import 'package:island/shared/widgets/alert.dart';

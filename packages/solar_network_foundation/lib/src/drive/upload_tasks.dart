@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
-import 'package:island/core/database.dart';
-import 'package:island/tasks/app_task.dart';
-import 'package:island/tasks/tasks_notifier.dart';
-import 'package:island/drive/drive_service.dart';
+import 'drive_task.dart';
+import 'drive_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'drive_host.dart';
 
 class EnhancedFileUploader extends FileUploader {
   EnhancedFileUploader(super.ref);
@@ -61,11 +60,11 @@ class EnhancedFileUploader extends FileUploader {
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     final overallTimer = Stopwatch()..start();
-    final tasks = ref.read(tasksProvider.notifier);
+    final tasks = ref.read(driveTaskSinkProvider);
     final taskId = tasks.addTask(
       title: fileName,
-      type: AppTaskType.driveUpload,
-      status: AppTaskStatus.inProgress,
+      type: DriveTaskTypes.upload,
+      status: DriveTaskStatus.inProgress,
       metadata: DriveUploadTaskMeta(
         fileSize: 0,
         totalChunks: 1,
@@ -181,7 +180,7 @@ class EnhancedFileUploader extends FileUploader {
           reportStage(DriveUploadStage.completed, 1);
           tasks.updateTask(
             taskId,
-            status: AppTaskStatus.completed,
+            status: DriveTaskStatus.completed,
             progress: 1.0,
           );
           onProgress?.call(null, Duration.zero);
@@ -196,7 +195,7 @@ class EnhancedFileUploader extends FileUploader {
       } catch (err) {
         tasks.updateTask(
           taskId,
-          status: AppTaskStatus.failed,
+          status: DriveTaskStatus.failed,
           errorMessage: err.toString(),
         );
         rethrow;
@@ -258,7 +257,7 @@ class EnhancedFileUploader extends FileUploader {
         );
         tasks.updateTask(
           taskId,
-          status: AppTaskStatus.completed,
+          status: DriveTaskStatus.completed,
           statusMessage: DriveUploadStage.label(DriveUploadStage.completed),
           progress: 1.0,
           metadata: {
@@ -270,7 +269,7 @@ class EnhancedFileUploader extends FileUploader {
 
         if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
           try {
-            final db = ref.read(databaseProvider);
+            final db = ref.read(driveSecretStoreProvider);
             await db.setSecret(
               '$driveFileKeySecretPrefix${uploaded.id}',
               localEncryptKey,
@@ -287,7 +286,7 @@ class EnhancedFileUploader extends FileUploader {
       } catch (err) {
         tasks.updateTask(
           taskId,
-          status: AppTaskStatus.failed,
+          status: DriveTaskStatus.failed,
           errorMessage: err.toString(),
         );
         rethrow;
@@ -327,7 +326,7 @@ class EnhancedFileUploader extends FileUploader {
       final existingFile = SnCloudFile.fromJson(createResponse['file']);
       tasks.updateTask(
         taskId,
-        status: AppTaskStatus.completed,
+        status: DriveTaskStatus.completed,
         statusMessage: DriveUploadStage.label(DriveUploadStage.completed),
         progress: 1.0,
         metadata: {
@@ -483,7 +482,7 @@ class EnhancedFileUploader extends FileUploader {
 
     tasks.updateTask(
       taskId,
-      status: AppTaskStatus.completed,
+      status: DriveTaskStatus.completed,
       statusMessage: DriveUploadStage.label(DriveUploadStage.completed),
       progress: 1.0,
       metadata: {
@@ -495,7 +494,7 @@ class EnhancedFileUploader extends FileUploader {
 
     if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
       try {
-        final db = ref.read(databaseProvider);
+        final db = ref.read(driveSecretStoreProvider);
         await db.setSecret(
           '$driveFileKeySecretPrefix${uploaded.id}',
           localEncryptKey,

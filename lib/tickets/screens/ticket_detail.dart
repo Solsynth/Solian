@@ -13,7 +13,7 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
-import 'package:island/drive/drive_service.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/drive/widgets/upload_menu.dart';

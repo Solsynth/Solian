@@ -10,35 +10,30 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:island/core/config.dart';
-import 'package:island/core/database.dart';
-import 'package:island/core/network.dart';
-import 'package:island/tasks/app_task.dart';
-import 'package:island/tasks/tasks_notifier.dart';
-import 'package:island/drive/screens/upload_tasks.dart';
-import 'package:island/drive/widgets/quota_sidebar.dart';
-import 'package:island/payments/quota_purchase_sheet.dart';
-import 'package:island/route.dart';
-import 'package:island/shared/widgets/alert.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'drive_task.dart';
+import 'upload_tasks.dart';
+import 'quota_sidebar.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:island/core/media_kit_init.dart';
+import '../media_kit_init.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:image/image.dart' as img;
-import 'package:island/drive/client_image_compressor.dart';
+import 'client_image_compressor.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:path/path.dart' show basenameWithoutExtension, extension, join;
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'drive_host.dart';
 
 part 'drive_service.g.dart';
 
@@ -349,7 +344,7 @@ class _ConcurrencyLimiter {
   }
 }
 
-class _DriveQuotaExceededSheet extends StatelessWidget {
+class _DriveQuotaExceededSheet extends ConsumerWidget {
   final Map<String, dynamic>? usage;
   final Map<String, dynamic>? quota;
   final List<SnFilePool>? pools;
@@ -363,8 +358,9 @@ class _DriveQuotaExceededSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final upgradeQuota = ref.watch(driveQuotaUpgradePresenterProvider);
     return SheetScaffold(
       titleText: 'storageQuota'.tr(),
       heightFactor: 0.74,
@@ -416,14 +412,9 @@ class _DriveQuotaExceededSheet extends StatelessWidget {
               quota: quota,
               pools: pools,
               showPoolFilter: false,
-              onBuyExtraQuota: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useSafeArea: true,
-                  builder: (sheetContext) => const QuotaPurchaseSheet(),
-                );
-              },
+              onBuyExtraQuota: upgradeQuota == null
+                  ? null
+                  : () => upgradeQuota(context),
             ),
           ),
         ],
@@ -763,9 +754,9 @@ FileUploader driveFileUploader(Ref ref) {
 class FileUploader {
   static Future<void>? _activeQuotaSheetFuture;
   final Ref ref;
-  late final _client = ref.read(solarNetworkClientProvider).dio;
-  late final _driveApi = ref.read(solarNetworkClientProvider).drive;
-  late final _navigatorKey = ref.read(routerProvider).navigatorKey;
+  late final _client = ref.read(driveClientProvider).dio;
+  late final _driveApi = ref.read(driveClientProvider).drive;
+  late final _navigatorKey = ref.read(driveNavigatorKeyProvider);
   FileUploader(this.ref);
 
   String _parseUploadError(DioException err) {
@@ -1351,7 +1342,7 @@ class FileUploader {
     }
     onStage?.call('hashing', 1);
     onStage?.call('preparing_media', 0);
-    final appSettings = ref.read(appSettingsProvider);
+    final appSettings = ref.read(driveSettingsProvider);
     final compressionQuality =
         (imageCompressionEnabled ?? appSettings.imageCompressionEnabled)
         ? (imageCompressionQuality ?? appSettings.imageCompressionQuality)
@@ -2415,7 +2406,7 @@ class FileUploader {
 
   Future<void> _storeFileEncryptKey(String fileId, String key) async {
     try {
-      final db = ref.read(databaseProvider);
+      final db = ref.read(driveSecretStoreProvider);
       await db.setSecret('$driveFileKeySecretPrefix$fileId', key);
     } catch (_) {}
   }
@@ -2740,7 +2731,7 @@ enum FileUploadMode { generic, mediaSafe }
 
 class FileDownloadService {
   final Ref ref;
-  late final _driveApi = ref.read(solarNetworkClientProvider).drive;
+  late final _driveApi = ref.read(driveClientProvider).drive;
 
   FileDownloadService(this.ref);
 
@@ -2803,7 +2794,7 @@ class FileDownloadService {
 
   Future<String?> _getStoredFileEncryptKey(String fileId) async {
     try {
-      final db = ref.read(databaseProvider);
+      final db = ref.read(driveSecretStoreProvider);
       return await db.getSecret('$driveFileKeySecretPrefix$fileId');
     } catch (_) {
       return null;
@@ -2827,7 +2818,7 @@ class FileDownloadService {
 
   Future<String?> _getCachedOriginalFile(IDisplayableCloudFile item) async {
     try {
-      final serverUrl = ref.read(serverUrlProvider);
+      final serverUrl = ref.read(driveServerUrlProvider);
       final url = _getOriginalUrl(item, serverUrl: serverUrl);
       final fileInfo = await DefaultCacheManager().getFileFromCache(url);
       if (fileInfo != null && await File(fileInfo.file.path).exists()) {
@@ -2970,7 +2961,7 @@ class FileDownloadService {
         }
       }
     } catch (e) {
-      showErrorAlert(e);
+      ref.read(driveErrorReporterProvider)(e);
     }
   }
 
@@ -2997,15 +2988,15 @@ class FileDownloadService {
 
       showSnackBar('downloadingFiles'.plural(items.length));
 
-      final tasks = ref.read(tasksProvider.notifier);
+      final tasks = ref.read(driveTaskSinkProvider);
       var completed = 0;
       var failed = 0;
 
       for (final item in items) {
         final taskId = tasks.addTask(
           title: item.name,
-          type: AppTaskType.driveDownload,
-          status: AppTaskStatus.inProgress,
+          type: DriveTaskTypes.download,
+          status: DriveTaskStatus.inProgress,
           metadata: DriveDownloadTaskMeta(fileId: item.id).toMap(),
         );
         try {
@@ -3048,7 +3039,7 @@ class FileDownloadService {
           }
           tasks.updateTask(
             taskId,
-            status: AppTaskStatus.completed,
+            status: DriveTaskStatus.completed,
             progress: 1.0,
           );
           completed++;
@@ -3056,7 +3047,7 @@ class FileDownloadService {
           failed++;
           tasks.updateTask(
             taskId,
-            status: AppTaskStatus.failed,
+            status: DriveTaskStatus.failed,
             errorMessage: e.toString(),
           );
         }
@@ -3075,7 +3066,7 @@ class FileDownloadService {
         );
       }
     } catch (e) {
-      showErrorAlert(e);
+      ref.read(driveErrorReporterProvider)(e);
     }
   }
 
@@ -3084,7 +3075,7 @@ class FileDownloadService {
     bool useDownloadsFolder = false,
     void Function(int received, int total)? onProgress,
   }) async {
-    final tasks = ref.read(tasksProvider.notifier);
+    final tasks = ref.read(driveTaskSinkProvider);
     String? taskId;
 
     try {
@@ -3098,8 +3089,8 @@ class FileDownloadService {
 
       taskId = tasks.addTask(
         title: item.name,
-        type: AppTaskType.driveDownload,
-        status: AppTaskStatus.inProgress,
+        type: DriveTaskTypes.download,
+        status: DriveTaskStatus.inProgress,
         metadata: DriveDownloadTaskMeta(fileId: item.id).toMap(),
       );
       showSnackBar('downloadingFile'.tr());
@@ -3140,17 +3131,17 @@ class FileDownloadService {
               MimeType.custom,
         );
       }
-      tasks.updateTask(taskId, status: AppTaskStatus.completed, progress: 1.0);
+      tasks.updateTask(taskId, status: DriveTaskStatus.completed, progress: 1.0);
       showSnackBar(_isDesktop ? 'fileSaved'.tr() : 'fileSavedToDownloads'.tr());
     } catch (e) {
       if (taskId != null) {
         tasks.updateTask(
           taskId,
-          status: AppTaskStatus.failed,
+          status: DriveTaskStatus.failed,
           errorMessage: e.toString(),
         );
       }
-      showErrorAlert(e);
+      ref.read(driveErrorReporterProvider)(e);
     }
   }
 }
