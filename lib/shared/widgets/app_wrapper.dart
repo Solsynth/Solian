@@ -706,17 +706,6 @@ class AppWrapper extends HookConsumerWidget {
         }
       });
 
-      // Foreground fallback: poll the pending-challenge endpoint so Device B
-      // still surfaces the approval sheet even if the WS push path is unhealthy.
-      final pendingPollTimer = Timer.periodic(
-        const Duration(seconds: 5),
-        (_) {
-          if (ref.read(tokenProvider) != null) {
-            _pollPendingChallenges(ref, shownChallengeIds);
-          }
-        },
-      );
-
       return () {
         ref.read(rpcServerProvider).stop();
         deeplinkService.dispose();
@@ -727,7 +716,6 @@ class AppWrapper extends HookConsumerWidget {
             onTrayMenuItemClick: (menuItem) => {},
           ),
         );
-        pendingPollTimer.cancel();
         ntySubs?.cancel();
         composeSheetSubs.cancel();
         notificationModalSubs.cancel();
@@ -991,7 +979,7 @@ class AppWrapper extends HookConsumerWidget {
   }
 
   /// Shows the approval sheet for a pending challenge exactly once per id,
-  /// deduplicating across the WS push and the foreground poll fallback.
+  /// deduplicating repeated WS pushes for the same challenge.
   void _maybeShowChallenge(
     BuildContext context,
     SnAuthChallenge challenge,
@@ -1004,28 +992,6 @@ class AppWrapper extends HookConsumerWidget {
       challenge,
       onResolved: () => shownChallengeIds.value.remove(challenge.id),
     );
-  }
-
-  /// Foreground fallback for Device B: polls the pending-challenge endpoint so
-  /// the approval sheet still surfaces even if the WS push path is unhealthy.
-  Future<void> _pollPendingChallenges(
-    WidgetRef ref,
-    ObjectRef<Set<String>> shownChallengeIds,
-  ) async {
-    try {
-      final pending = await ref
-          .read(solarNetworkClientProvider)
-          .auth
-          .getPendingChallenges();
-      final ctx = ref.read(routerProvider).navigatorKey.currentContext;
-      if (ctx == null || !ctx.mounted) return;
-      for (final challenge in pending) {
-        _maybeShowChallenge(ctx, challenge, shownChallengeIds);
-      }
-    } catch (_) {
-      // Best-effort poll; failures are expected while unauthenticated or
-      // offline and are retried on the next tick.
-    }
   }
 
   void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {
