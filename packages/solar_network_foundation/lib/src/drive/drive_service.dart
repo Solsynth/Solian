@@ -44,6 +44,11 @@ const int driveDirectUploadMaxFileSizeBytes =
     driveUploadChunkSizeBytes * driveDirectUploadMaxChunks;
 const int driveChunkUploadConcurrency = 3;
 
+/// Maximum number of files uploading at the same time. Callers may hand the
+/// uploader any number of files; this caps how many transfer concurrently so
+/// a large batch does not saturate the connection.
+const int driveFileUploadConcurrency = 3;
+
 /// S3 direct uploads for in-memory byte payloads use one presigned `PUT` per
 /// upload with a known `Content-Length`. S3 rejects single-PUT objects larger
 /// than 5 GB, so larger in-memory payloads must use the proxied chunk flow.
@@ -76,6 +81,7 @@ Future<T> _withSerializedLocalMediaProbe<T>(
     }
   });
 }
+
 class _ClientMediaUpload {
   final Map<String, dynamic> analysis;
   final Uint8List? thumbnail;
@@ -89,6 +95,7 @@ class _ClientMediaUpload {
     this.compressionMimeType,
   });
 }
+
 String? _encodeBlurHashFromImage(img.Image image) {
   try {
     final maxEdge = max(image.width, image.height);
@@ -321,11 +328,14 @@ class DriveQuotaExceededException implements Exception {
   String toString() => message;
 }
 
-class _ConcurrencyLimiter {
+/// Runs tasks while at most [maxConcurrent] are in flight, preserving task
+/// order of arrival. Shared across upload paths so a batch of files never
+/// exceeds the configured limit.
+class ConcurrencyLimiter {
   final int maxConcurrent;
   final List<Future<void>> _running = [];
 
-  _ConcurrencyLimiter(this.maxConcurrent);
+  ConcurrencyLimiter(this.maxConcurrent);
 
   Future<T> run<T>(Future<T> Function() task) async {
     while (_running.length >= maxConcurrent) {
@@ -753,6 +763,15 @@ FileUploader driveFileUploader(Ref ref) {
 
 class FileUploader {
   static Future<void>? _activeQuotaSheetFuture;
+
+  /// Shared across every [FileUploader]/[EnhancedFileUploader] instance so
+  /// concurrent upload requests from any UI flow (multi-file share, drop,
+  /// picker) are throttled to [driveFileUploadConcurrency] files at once.
+  /// [EnhancedFileUploader] uses it too — see upload_tasks.dart.
+  static final ConcurrencyLimiter fileUploadLimiter = ConcurrencyLimiter(
+    driveFileUploadConcurrency,
+  );
+
   final Ref ref;
   late final _client = ref.read(driveClientProvider).dio;
   late final _driveApi = ref.read(driveClientProvider).drive;
@@ -1183,6 +1202,56 @@ class FileUploader {
     }
   }
 
+  /// PUTs the source bytes to their presigned URL. XFiles stream from disk
+  /// with a known `Content-Length` (see [tryUploadViaS3Direct]); in-memory
+  /// payloads go through a bare Dio. Runs concurrently with the thumbnail and
+  /// compression derivative PUTs.
+  Future<void> _putSourceBytes({
+    required String uploadUrl,
+    required String contentType,
+    required XFile? xfile,
+    required Uint8List? byteData,
+    Function(double? progress, Duration estimate)? onProgress,
+    void Function(String stage, double progress)? onStage,
+  }) async {
+    if (xfile != null && !kIsWeb) {
+      await _putXFileToPresignedUrl(
+        uploadUrl: uploadUrl,
+        file: xfile,
+        contentType: contentType,
+        onProgress: (progress, estimate) {
+          onStage?.call('uploading_source', progress ?? 0);
+          onProgress?.call(progress, estimate);
+        },
+      );
+    } else {
+      final body = xfile != null
+          ? Uint8List.fromList(await xfile.readAsBytes())
+          : byteData!;
+      final putClient = Dio();
+      try {
+        await putClient.put<dynamic>(
+          uploadUrl,
+          data: body,
+          options: Options(
+            headers: {'Content-Type': contentType},
+            sendTimeout: const Duration(minutes: 10),
+            receiveTimeout: const Duration(minutes: 5),
+          ),
+          onSendProgress: (sent, total) {
+            if (total > 0) {
+              final progress = sent / total;
+              onStage?.call('uploading_source', progress);
+              onProgress?.call(progress, Duration.zero);
+            }
+          },
+        );
+      } finally {
+        putClient.close();
+      }
+    }
+  }
+
   SnCloudFile _parseUploadedFileResponse(Map<String, dynamic> payload) {
     final directFile = payload['file'];
     if (directFile is Map) {
@@ -1453,71 +1522,59 @@ class FileUploader {
         : preparedContentType;
 
     onStage?.call('uploading_source', 0);
-    final putTimer = Stopwatch()..start();
-    if (xfile != null && !kIsWeb) {
-      await _putXFileToPresignedUrl(
-        uploadUrl: uploadUrl,
-        file: xfile,
-        contentType: resolvedContentType,
-        onProgress: (progress, estimate) {
-          onStage?.call('uploading_source', progress ?? 0);
-          onProgress?.call(progress, estimate);
-        },
-      );
-    } else {
-      final body = xfile != null
-          ? Uint8List.fromList(await xfile.readAsBytes())
-          : byteData!;
-      final putClient = Dio();
-      try {
-        await putClient.put<dynamic>(
-          uploadUrl,
-          data: body,
-          options: Options(
-            headers: {'Content-Type': resolvedContentType},
-            sendTimeout: const Duration(minutes: 10),
-            receiveTimeout: const Duration(minutes: 5),
-          ),
-          onSendProgress: (sent, total) {
-            if (total > 0) {
-              final progress = sent / total;
-              onStage?.call('uploading_source', progress);
-              onProgress?.call(progress, Duration.zero);
-            }
-          },
-        );
-      } finally {
-        putClient.close();
-      }
-    }
-    onStage?.call('uploading_source', 1);
     final thumbnailUploadUrl = prepared['thumbnail_upload_url']?.toString();
-    if (clientMedia?.thumbnail != null &&
+    final hasThumbnail =
+        clientMedia?.thumbnail != null &&
         thumbnailUploadUrl != null &&
-        thumbnailUploadUrl.isNotEmpty) {
-      onStage?.call('uploading_thumbnail', 0);
-      await _putClientDerivative(
-        thumbnailUploadUrl,
-        clientMedia!.thumbnail!,
-        'image/jpeg',
-      );
-      onStage?.call('uploading_thumbnail', 1);
-    }
+        thumbnailUploadUrl.isNotEmpty;
     final compressionUploadUrl = prepared['compression_upload_url']?.toString();
-    if (clientMedia?.compression != null &&
+    final hasCompression =
+        clientMedia?.compression != null &&
         clientMedia?.compressionMimeType != null &&
         compressionUploadUrl != null &&
-        compressionUploadUrl.isNotEmpty) {
-      onStage?.call('uploading_compression', 0);
-      await _putClientDerivative(
-        compressionUploadUrl,
-        clientMedia!.compression!,
-        clientMedia.compressionMimeType!,
+        compressionUploadUrl.isNotEmpty;
+
+    final derivativeFutures = <Future<void>>[];
+    if (hasThumbnail) {
+      onStage?.call('uploading_thumbnail', 0);
+      derivativeFutures.add(
+        _putClientDerivative(
+          thumbnailUploadUrl,
+          clientMedia!.thumbnail!,
+          'image/jpeg',
+        ),
       );
-      onStage?.call('uploading_compression', 1);
     }
+    if (hasCompression) {
+      onStage?.call('uploading_compression', 0);
+      derivativeFutures.add(
+        _putClientDerivative(
+          compressionUploadUrl,
+          clientMedia!.compression!,
+          clientMedia.compressionMimeType!,
+        ),
+      );
+    }
+
+    // Source, thumbnail and compression PUT to independent presigned URLs, so
+    // they run in parallel; source progress still drives `onProgress`.
+    final putTimer = Stopwatch()..start();
+    await Future.wait<void>([
+      _putSourceBytes(
+        uploadUrl: uploadUrl,
+        contentType: resolvedContentType,
+        xfile: xfile,
+        byteData: byteData,
+        onProgress: onProgress,
+        onStage: onStage,
+      ),
+      ...derivativeFutures,
+    ], eagerError: true);
     putTimer.stop();
     debugPrint('[DriveUpload] S3 PUT took: ${putTimer.elapsedMilliseconds}ms');
+    onStage?.call('uploading_source', 1);
+    if (hasThumbnail) onStage?.call('uploading_thumbnail', 1);
+    if (hasCompression) onStage?.call('uploading_compression', 1);
     onStage?.call('finalizing', 0);
     final result = await _completeS3DirectUpload(taskId, onProgress);
     onStage?.call('finalizing', 1);
@@ -1679,8 +1736,88 @@ class FileUploader {
     }
 
     onStage?.call('uploading_source', 0);
+    final thumbnailUploadUrl = prepared['thumbnail_upload_url']?.toString();
+    final hasThumbnail =
+        clientMedia?.thumbnail != null &&
+        thumbnailUploadUrl != null &&
+        thumbnailUploadUrl.isNotEmpty;
+    final compressionUploadUrl = prepared['compression_upload_url']?.toString();
+    final hasCompression =
+        clientMedia?.compression != null &&
+        clientMedia?.compressionMimeType != null &&
+        compressionUploadUrl != null &&
+        compressionUploadUrl.isNotEmpty;
+
+    final derivativeFutures = <Future<void>>[];
+    if (hasThumbnail) {
+      onStage?.call('uploading_thumbnail', 0);
+      derivativeFutures.add(
+        _putClientDerivative(
+          thumbnailUploadUrl,
+          clientMedia!.thumbnail!,
+          'image/jpeg',
+        ),
+      );
+    }
+    if (hasCompression) {
+      onStage?.call('uploading_compression', 0);
+      derivativeFutures.add(
+        _putClientDerivative(
+          compressionUploadUrl,
+          clientMedia!.compression!,
+          clientMedia.compressionMimeType!,
+        ),
+      );
+    }
+
+    // The source part window uploads in parallel with the thumbnail and
+    // compression derivatives (independent presigned URLs).
     final putTimer = Stopwatch()..start();
-    final limiter = _ConcurrencyLimiter(driveChunkUploadConcurrency);
+    await Future.wait<void>([
+      _uploadS3Parts(
+        xfile: xfile,
+        taskId: taskId,
+        partSize: partSize,
+        partCount: partCount,
+        fileSize: fileSize,
+        uploadedParts: uploadedParts,
+        contentType: resolvedContentType,
+        onProgress: (progress) {
+          onStage?.call('uploading_source', progress);
+          onProgress?.call(progress, Duration.zero);
+        },
+      ),
+      ...derivativeFutures,
+    ], eagerError: true);
+    putTimer.stop();
+    debugPrint(
+      '[DriveUpload] S3 multipart PUT took: '
+      '${putTimer.elapsedMilliseconds}ms',
+    );
+    onStage?.call('uploading_source', 1);
+    if (hasThumbnail) onStage?.call('uploading_thumbnail', 1);
+    if (hasCompression) onStage?.call('uploading_compression', 1);
+    onStage?.call('finalizing', 0);
+    final result = await _completeS3DirectUpload(taskId, onProgress);
+    onStage?.call('finalizing', 1);
+    return result;
+  }
+
+  /// Uploads every part of a multipart direct upload in windows of
+  /// [driveChunkUploadConcurrency] so memory stays bounded to a few parts.
+  /// Parts the server already holds (a resumed session) are skipped but their
+  /// byte counts are still folded into the reported progress.
+  Future<void> _uploadS3Parts({
+    required XFile xfile,
+    required String taskId,
+    required int partSize,
+    required int partCount,
+    required int fileSize,
+    required Set<int> uploadedParts,
+    required String contentType,
+    void Function(double progress)? onProgress,
+  }) async {
+    final limiter = ConcurrencyLimiter(driveChunkUploadConcurrency);
     final partProgress = <int, int>{};
     var sent = 0;
 
@@ -1697,9 +1834,7 @@ class FileUploader {
       if (current == previous) return;
       partProgress[partNumber] = current;
       sent += current - previous;
-      final progress = sent / fileSize;
-      onStage?.call('uploading_source', progress);
-      onProgress?.call(progress, Duration.zero);
+      onProgress?.call(sent / fileSize);
     }
 
     for (
@@ -1725,7 +1860,7 @@ class FileUploader {
                     partNumber: partNumber,
                     partSize: partSize,
                     fileSize: fileSize,
-                    contentType: resolvedContentType,
+                    contentType: contentType,
                     onProgress: (bytes) =>
                         reportPartProgress(partNumber, bytes),
                   ).then((bytes) {
@@ -1734,41 +1869,6 @@ class FileUploader {
             ),
       ]);
     }
-    putTimer.stop();
-    debugPrint(
-      '[DriveUpload] S3 multipart PUT took: '
-      '${putTimer.elapsedMilliseconds}ms',
-    );
-
-    final thumbnailUploadUrl = prepared['thumbnail_upload_url']?.toString();
-    if (clientMedia?.thumbnail != null &&
-        thumbnailUploadUrl != null &&
-        thumbnailUploadUrl.isNotEmpty) {
-      onStage?.call('uploading_thumbnail', 0);
-      await _putClientDerivative(
-        thumbnailUploadUrl,
-        clientMedia!.thumbnail!,
-        'image/jpeg',
-      );
-      onStage?.call('uploading_thumbnail', 1);
-    }
-    final compressionUploadUrl = prepared['compression_upload_url']?.toString();
-    if (clientMedia?.compression != null &&
-        clientMedia?.compressionMimeType != null &&
-        compressionUploadUrl != null &&
-        compressionUploadUrl.isNotEmpty) {
-      onStage?.call('uploading_compression', 0);
-      await _putClientDerivative(
-        compressionUploadUrl,
-        clientMedia!.compression!,
-        clientMedia.compressionMimeType!,
-      );
-      onStage?.call('uploading_compression', 1);
-    }
-    onStage?.call('finalizing', 0);
-    final result = await _completeS3DirectUpload(taskId, onProgress);
-    onStage?.call('finalizing', 1);
-    return result;
   }
 
   /// Presigns and uploads one part of a multipart direct upload, returning
@@ -2112,7 +2212,7 @@ class FileUploader {
     var bytesUploaded = 0;
     final bytesBeingUploaded = List<int>.filled(chunks.length, 0);
     final futures = <Future<void>>[];
-    final semaphore = _ConcurrencyLimiter(driveChunkUploadConcurrency);
+    final semaphore = ConcurrencyLimiter(driveChunkUploadConcurrency);
 
     void reportProgress() {
       final uploaded =
@@ -2167,241 +2267,243 @@ class FileUploader {
     bool? imageCompressionEnabled,
     int? imageCompressionQuality,
     Function(double? progress, Duration estimate)? onProgress,
-  }) async {
-    final overallTimer = Stopwatch()..start();
-    dynamic uploadData = fileData;
-    String? encryptionScheme;
-    String? encryptionHeader;
-    String? encryptionSignature;
-    String? localEncryptKey;
+  }) {
+    return fileUploadLimiter.run(() async {
+      final overallTimer = Stopwatch()..start();
+      dynamic uploadData = fileData;
+      String? encryptionScheme;
+      String? encryptionHeader;
+      String? encryptionSignature;
+      String? localEncryptKey;
 
-    if (encryptPassword != null && encryptPassword.trim().isNotEmpty) {
-      final encryptTimer = Stopwatch()..start();
-      final plaintext = switch (fileData) {
-        XFile value => Uint8List.fromList(await value.readAsBytes()),
-        Uint8List value => value,
-        _ => throw ArgumentError(
-          'Encrypted upload only supports XFile/Uint8List input.',
-        ),
-      };
-      localEncryptKey = encryptPassword.trim();
-      encryptionScheme = DriveE2eeFileEnvelope.scheme;
-      final headerJson = jsonEncode({'v': 1, 'kdf': 'hkdf-sha256'});
-      encryptionHeader = base64Encode(utf8.encode(headerJson));
-      uploadData = DriveE2eeFileEnvelope.encryptBytes(
-        plaintext: plaintext,
-        encryptKey: localEncryptKey,
-        encryptionHeader: encryptionHeader,
-        encryptionSignature: encryptionSignature,
-        encryptionScheme: encryptionScheme,
-      );
-      encryptTimer.stop();
-      debugPrint(
-        '[DriveUpload] Encryption took: ${encryptTimer.elapsedMilliseconds}ms',
-      );
-    }
+      if (encryptPassword != null && encryptPassword.trim().isNotEmpty) {
+        final encryptTimer = Stopwatch()..start();
+        final plaintext = switch (fileData) {
+          XFile value => Uint8List.fromList(await value.readAsBytes()),
+          Uint8List value => value,
+          _ => throw ArgumentError(
+            'Encrypted upload only supports XFile/Uint8List input.',
+          ),
+        };
+        localEncryptKey = encryptPassword.trim();
+        encryptionScheme = DriveE2eeFileEnvelope.scheme;
+        final headerJson = jsonEncode({'v': 1, 'kdf': 'hkdf-sha256'});
+        encryptionHeader = base64Encode(utf8.encode(headerJson));
+        uploadData = DriveE2eeFileEnvelope.encryptBytes(
+          plaintext: plaintext,
+          encryptKey: localEncryptKey,
+          encryptionHeader: encryptionHeader,
+          encryptionSignature: encryptionSignature,
+          encryptionScheme: encryptionScheme,
+        );
+        encryptTimer.stop();
+        debugPrint(
+          '[DriveUpload] Encryption took: ${encryptTimer.elapsedMilliseconds}ms',
+        );
+      }
 
-    final totalSize = await resolveUploadDataSize(uploadData);
+      final totalSize = await resolveUploadDataSize(uploadData);
 
-    // Prefer the S3-backed direct upload (presigned PUT, multipart for large
-    // XFiles) when the pool supports it; fall back to the proxied flow when it
-    // cannot issue signed URLs. XFiles of any size are eligible (multipart
-    // above the threshold, single PUT below); in-memory payloads are capped by
-    // the single-PUT object limit. E2EE payloads and explicit chunk sizes stay
-    // on the proxied path.
-    if (localEncryptKey == null &&
-        customChunkSize == null &&
-        (uploadData is XFile ||
-            totalSize <= driveS3DirectUploadMaxFileSizeBytes)) {
-      final s3Uploaded = await tryUploadViaS3Direct(
-        fileData: uploadData,
-        fileName: fileName,
-        contentType: contentType,
-        poolId: poolId,
-        expiredAt: expiredAt,
-        parentId: parentId,
-        path: path,
-        workspaceId: workspaceId,
-        usage: usage,
-        applicationType: applicationType,
-        imageCompressionEnabled: imageCompressionEnabled,
-        imageCompressionQuality: imageCompressionQuality,
-        onProgress: onProgress,
-      );
-      if (s3Uploaded != null) {
+      // Prefer the S3-backed direct upload (presigned PUT, multipart for large
+      // XFiles) when the pool supports it; fall back to the proxied flow when it
+      // cannot issue signed URLs. XFiles of any size are eligible (multipart
+      // above the threshold, single PUT below); in-memory payloads are capped by
+      // the single-PUT object limit. E2EE payloads and explicit chunk sizes stay
+      // on the proxied path.
+      if (localEncryptKey == null &&
+          customChunkSize == null &&
+          (uploadData is XFile ||
+              totalSize <= driveS3DirectUploadMaxFileSizeBytes)) {
+        final s3Uploaded = await tryUploadViaS3Direct(
+          fileData: uploadData,
+          fileName: fileName,
+          contentType: contentType,
+          poolId: poolId,
+          expiredAt: expiredAt,
+          parentId: parentId,
+          path: path,
+          workspaceId: workspaceId,
+          usage: usage,
+          applicationType: applicationType,
+          imageCompressionEnabled: imageCompressionEnabled,
+          imageCompressionQuality: imageCompressionQuality,
+          onProgress: onProgress,
+        );
+        if (s3Uploaded != null) {
+          overallTimer.stop();
+          debugPrint(
+            '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
+          );
+          return s3Uploaded;
+        }
+      }
+
+      if (shouldUseDirectUpload(
+        totalSize: totalSize,
+        customChunkSize: customChunkSize,
+      )) {
+        onProgress?.call(null, Duration.zero);
+        final directTimer = Stopwatch()..start();
+        final uploaded = await uploadFileDirect(
+          fileData: uploadData,
+          fileName: fileName,
+          contentType: contentType,
+          poolId: poolId,
+          expiredAt: expiredAt,
+          parentId: parentId,
+          path: path,
+          workspaceId: workspaceId,
+          usage: usage,
+          applicationType: applicationType,
+          onSendProgress: (sent, total) {
+            if (total > 0) {
+              onProgress?.call(sent / total, Duration.zero);
+            }
+          },
+        );
+        directTimer.stop();
+        debugPrint(
+          '[DriveUpload] Direct upload took: ${directTimer.elapsedMilliseconds}ms',
+        );
+
+        if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
+          await _storeFileEncryptKey(uploaded.id, localEncryptKey);
+        }
+
+        onProgress?.call(null, Duration.zero);
         overallTimer.stop();
         debugPrint(
           '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
         );
-        return s3Uploaded;
+        return uploaded;
       }
-    }
 
-    if (shouldUseDirectUpload(
-      totalSize: totalSize,
-      customChunkSize: customChunkSize,
-    )) {
+      // Step 1: Create upload task
       onProgress?.call(null, Duration.zero);
-      final directTimer = Stopwatch()..start();
-      final uploaded = await uploadFileDirect(
+      final createTimer = Stopwatch()..start();
+      final createResponse = await createUploadTask(
         fileData: uploadData,
         fileName: fileName,
         contentType: contentType,
         poolId: poolId,
         expiredAt: expiredAt,
+        chunkSize: customChunkSize,
         parentId: parentId,
         path: path,
         workspaceId: workspaceId,
         usage: usage,
         applicationType: applicationType,
-        onSendProgress: (sent, total) {
-          if (total > 0) {
-            onProgress?.call(sent / total, Duration.zero);
-          }
-        },
       );
-      directTimer.stop();
+      createTimer.stop();
       debugPrint(
-        '[DriveUpload] Direct upload took: ${directTimer.elapsedMilliseconds}ms',
+        '[DriveUpload] Step 1 (Create upload task) total took: ${createTimer.elapsedMilliseconds}ms',
+      );
+
+      if (createResponse['file_exists'] == true) {
+        // File already exists, return the existing file
+        overallTimer.stop();
+        debugPrint(
+          '[DriveUpload] File exists, total upload time: ${overallTimer.elapsedMilliseconds}ms',
+        );
+        return SnCloudFile.fromJson(createResponse['file']);
+      }
+
+      final taskId = createResponse['task_id'] as String;
+      final chunkSize = createResponse['chunk_size'] as int;
+      // Step 2: Upload chunks in batches
+      final chunkTimer = Stopwatch()..start();
+      int totalChunks = 0;
+      int bytesUploaded = 0;
+
+      if (uploadData is XFile) {
+        final chunks = <Uint8List>[];
+        await for (final chunk in _readChunksFromStream(
+          uploadData.openRead(),
+          chunkSize,
+        )) {
+          chunks.add(chunk);
+        }
+        totalChunks = chunks.length;
+
+        for (
+          int batchStart = 0;
+          batchStart < chunks.length;
+          batchStart += driveChunkUploadConcurrency
+        ) {
+          final batchEnd =
+              (batchStart + driveChunkUploadConcurrency > chunks.length)
+              ? chunks.length
+              : batchStart + driveChunkUploadConcurrency;
+          final batch = chunks.sublist(batchStart, batchEnd);
+
+          await uploadChunksBatch(
+            taskId: taskId,
+            chunks: batch,
+            startIndex: batchStart,
+            totalSize: totalSize,
+            completedBytes: bytesUploaded,
+            onProgress: onProgress,
+          );
+          bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
+        }
+      } else if (uploadData is Uint8List) {
+        final chunks = <Uint8List>[];
+        for (int i = 0; i < uploadData.length; i += chunkSize) {
+          final end = i + chunkSize > uploadData.length
+              ? uploadData.length
+              : i + chunkSize;
+          chunks.add(Uint8List.fromList(uploadData.sublist(i, end)));
+        }
+        totalChunks = chunks.length;
+
+        for (
+          int batchStart = 0;
+          batchStart < chunks.length;
+          batchStart += driveChunkUploadConcurrency
+        ) {
+          final batchEnd =
+              (batchStart + driveChunkUploadConcurrency > chunks.length)
+              ? chunks.length
+              : batchStart + driveChunkUploadConcurrency;
+          final batch = chunks.sublist(batchStart, batchEnd);
+
+          await uploadChunksBatch(
+            taskId: taskId,
+            chunks: batch,
+            startIndex: batchStart,
+            totalSize: totalSize,
+            completedBytes: bytesUploaded,
+            onProgress: onProgress,
+          );
+          bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
+        }
+      } else {
+        throw ArgumentError('Invalid fileData type');
+      }
+      chunkTimer.stop();
+      debugPrint(
+        '[DriveUpload] Step 2 (Upload $totalChunks chunks) total took: ${chunkTimer.elapsedMilliseconds}ms',
+      );
+
+      // Step 3: Complete upload
+      onProgress?.call(null, Duration.zero);
+      final completeTimer = Stopwatch()..start();
+      final uploaded = await completeUpload(taskId);
+      completeTimer.stop();
+      debugPrint(
+        '[DriveUpload] Step 3 (Complete upload) took: ${completeTimer.elapsedMilliseconds}ms',
       );
 
       if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
         await _storeFileEncryptKey(uploaded.id, localEncryptKey);
       }
 
-      onProgress?.call(null, Duration.zero);
       overallTimer.stop();
       debugPrint(
         '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
       );
       return uploaded;
-    }
-
-    // Step 1: Create upload task
-    onProgress?.call(null, Duration.zero);
-    final createTimer = Stopwatch()..start();
-    final createResponse = await createUploadTask(
-      fileData: uploadData,
-      fileName: fileName,
-      contentType: contentType,
-      poolId: poolId,
-      expiredAt: expiredAt,
-      chunkSize: customChunkSize,
-      parentId: parentId,
-      path: path,
-      workspaceId: workspaceId,
-      usage: usage,
-      applicationType: applicationType,
-    );
-    createTimer.stop();
-    debugPrint(
-      '[DriveUpload] Step 1 (Create upload task) total took: ${createTimer.elapsedMilliseconds}ms',
-    );
-
-    if (createResponse['file_exists'] == true) {
-      // File already exists, return the existing file
-      overallTimer.stop();
-      debugPrint(
-        '[DriveUpload] File exists, total upload time: ${overallTimer.elapsedMilliseconds}ms',
-      );
-      return SnCloudFile.fromJson(createResponse['file']);
-    }
-
-    final taskId = createResponse['task_id'] as String;
-    final chunkSize = createResponse['chunk_size'] as int;
-    // Step 2: Upload chunks in batches
-    final chunkTimer = Stopwatch()..start();
-    int totalChunks = 0;
-    int bytesUploaded = 0;
-
-    if (uploadData is XFile) {
-      final chunks = <Uint8List>[];
-      await for (final chunk in _readChunksFromStream(
-        uploadData.openRead(),
-        chunkSize,
-      )) {
-        chunks.add(chunk);
-      }
-      totalChunks = chunks.length;
-
-      for (
-        int batchStart = 0;
-        batchStart < chunks.length;
-        batchStart += driveChunkUploadConcurrency
-      ) {
-        final batchEnd =
-            (batchStart + driveChunkUploadConcurrency > chunks.length)
-            ? chunks.length
-            : batchStart + driveChunkUploadConcurrency;
-        final batch = chunks.sublist(batchStart, batchEnd);
-
-        await uploadChunksBatch(
-          taskId: taskId,
-          chunks: batch,
-          startIndex: batchStart,
-          totalSize: totalSize,
-          completedBytes: bytesUploaded,
-          onProgress: onProgress,
-        );
-        bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
-      }
-    } else if (uploadData is Uint8List) {
-      final chunks = <Uint8List>[];
-      for (int i = 0; i < uploadData.length; i += chunkSize) {
-        final end = i + chunkSize > uploadData.length
-            ? uploadData.length
-            : i + chunkSize;
-        chunks.add(Uint8List.fromList(uploadData.sublist(i, end)));
-      }
-      totalChunks = chunks.length;
-
-      for (
-        int batchStart = 0;
-        batchStart < chunks.length;
-        batchStart += driveChunkUploadConcurrency
-      ) {
-        final batchEnd =
-            (batchStart + driveChunkUploadConcurrency > chunks.length)
-            ? chunks.length
-            : batchStart + driveChunkUploadConcurrency;
-        final batch = chunks.sublist(batchStart, batchEnd);
-
-        await uploadChunksBatch(
-          taskId: taskId,
-          chunks: batch,
-          startIndex: batchStart,
-          totalSize: totalSize,
-          completedBytes: bytesUploaded,
-          onProgress: onProgress,
-        );
-        bytesUploaded += batch.fold(0, (sum, chunk) => sum + chunk.length);
-      }
-    } else {
-      throw ArgumentError('Invalid fileData type');
-    }
-    chunkTimer.stop();
-    debugPrint(
-      '[DriveUpload] Step 2 (Upload $totalChunks chunks) total took: ${chunkTimer.elapsedMilliseconds}ms',
-    );
-
-    // Step 3: Complete upload
-    onProgress?.call(null, Duration.zero);
-    final completeTimer = Stopwatch()..start();
-    final uploaded = await completeUpload(taskId);
-    completeTimer.stop();
-    debugPrint(
-      '[DriveUpload] Step 3 (Complete upload) took: ${completeTimer.elapsedMilliseconds}ms',
-    );
-
-    if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
-      await _storeFileEncryptKey(uploaded.id, localEncryptKey);
-    }
-
-    overallTimer.stop();
-    debugPrint(
-      '[DriveUpload] Total upload time: ${overallTimer.elapsedMilliseconds}ms',
-    );
-    return uploaded;
+    });
   }
 
   Future<void> _storeFileEncryptKey(String fileId, String key) async {
@@ -3131,7 +3233,11 @@ class FileDownloadService {
               MimeType.custom,
         );
       }
-      tasks.updateTask(taskId, status: DriveTaskStatus.completed, progress: 1.0);
+      tasks.updateTask(
+        taskId,
+        status: DriveTaskStatus.completed,
+        progress: 1.0,
+      );
       showSnackBar(_isDesktop ? 'fileSaved'.tr() : 'fileSavedToDownloads'.tr());
     } catch (e) {
       if (taskId != null) {

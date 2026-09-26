@@ -456,30 +456,34 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
       final messageId = DateTime.now().millisecondsSinceEpoch.toString();
       _fileUploadProgress[messageId] = List.filled(universalFiles.length, 0.0);
 
-      List<SnCloudFile> uploadedFiles = [];
-
-      // Upload each file
-      for (var idx = 0; idx < universalFiles.length; idx++) {
-        final file = universalFiles[idx];
-        final cloudFile = await ref
-            .read(driveFileUploaderProvider)
-            .createCloudFile(
-              fileData: file,
-              onProgress: (progress, _) {
-                if (mounted) {
-                  setState(() {
-                    _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
-                  });
-                }
-              },
-            )
-            .future;
-
-        if (cloudFile == null) {
-          throw Exception('Failed to upload file: ${file.data.name}');
-        }
-        uploadedFiles.add(cloudFile);
+      // Start every file at once; the uploader service caps how many
+      // transfer concurrently (driveFileUploadConcurrency), so a large batch
+      // is throttled instead of serializing the whole share.
+      final uploadFutures = <Future<SnCloudFile?>>[
+        for (var idx = 0; idx < universalFiles.length; idx++)
+          ref
+              .read(driveFileUploaderProvider)
+              .createCloudFile(
+                fileData: universalFiles[idx],
+                onProgress: (progress, _) {
+                  if (mounted) {
+                    setState(() {
+                      _fileUploadProgress[messageId]?[idx] = progress ?? 0.0;
+                    });
+                  }
+                },
+              )
+              .future,
+      ];
+      final uploads = await Future.wait(uploadFutures);
+      final failedIndex = uploads.indexWhere((file) => file == null);
+      if (failedIndex != -1) {
+        throw Exception(
+          'Failed to upload file: '
+          '${universalFiles[failedIndex].data.name}',
+        );
       }
+      final uploadedFiles = uploads.cast<SnCloudFile>();
 
       if (mounted) setState(() => _hasCompleted = true);
 
@@ -756,8 +760,10 @@ class _ChatRoomsList extends ConsumerWidget {
     return chatRooms.when(
       data: (rooms) {
         final summariesData = summaries.whenData((data) => data).value ?? {};
-        final filteredRooms = sortChatRoomsByActivity(rooms, summariesData)
-            .toList();
+        final filteredRooms = sortChatRoomsByActivity(
+          rooms,
+          summariesData,
+        ).toList();
         if (rooms.isEmpty) {
           return Container(
             height: 80,

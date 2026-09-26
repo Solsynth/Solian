@@ -43,6 +43,11 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
   bool singlePut = false;
   bool includeClientDerivativeUrls = false;
 
+  /// Single-PUT prepare returns a per-call upload URL (`/single/<n>`) so
+  /// concurrent uploads do not overwrite each other's objects.
+  bool distinctSinglePutUrls = false;
+  int _singlePutCounter = 0;
+
   /// Part numbers the fake server reports as already uploaded, so prepare
   /// returns a resumed session the client must skip.
   List<int> preloadedParts = const [];
@@ -107,7 +112,9 @@ class _FakeDysonFSAdapter implements HttpClientAdapter {
           'upload_id': 'upload-1',
           'status': 1,
           'object_key': 'objects/task-1',
-          'upload_url': '$s3Base/single',
+          'upload_url': distinctSinglePutUrls
+              ? '$s3Base/single/${++_singlePutCounter}'
+              : '$s3Base/single',
           'compression_upload_url': includeClientDerivativeUrls
               ? '$s3Base/compression'
               : null,
@@ -188,6 +195,11 @@ class _FakeS3Server {
   final HttpServer server;
   final Map<String, Uint8List> objects = {};
 
+  /// Highest number of PUT handlers executing at the same time; used to
+  /// assert the client's file-upload concurrency cap.
+  int maxConcurrentPuts = 0;
+  int _activePuts = 0;
+
   _FakeS3Server._(this.server);
 
   static Future<_FakeS3Server> start() async {
@@ -195,14 +207,22 @@ class _FakeS3Server {
     final fake = _FakeS3Server._(server);
     server.listen((request) async {
       if (request.method == 'PUT') {
-        final builder = BytesBuilder(copy: false);
-        await for (final chunk in request) {
-          builder.add(chunk);
+        fake._activePuts++;
+        if (fake._activePuts > fake.maxConcurrentPuts) {
+          fake.maxConcurrentPuts = fake._activePuts;
         }
-        fake.objects[request.uri.path] = builder.takeBytes();
-        request.response.statusCode = 200;
-        request.response.headers.set(HttpHeaders.etagHeader, '"etag"');
-        await request.response.close();
+        try {
+          final builder = BytesBuilder(copy: false);
+          await for (final chunk in request) {
+            builder.add(chunk);
+          }
+          fake.objects[request.uri.path] = builder.takeBytes();
+          request.response.statusCode = 200;
+          request.response.headers.set(HttpHeaders.etagHeader, '"etag"');
+          await request.response.close();
+        } finally {
+          fake._activePuts--;
+        }
         return;
       }
       request.response.statusCode = 404;
@@ -239,6 +259,7 @@ void main() {
 
   setUp(() async {
     s3.objects.clear();
+    s3.maxConcurrentPuts = 0;
     dyson = _FakeDysonFSAdapter(s3.base);
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
@@ -251,26 +272,26 @@ void main() {
     // can decode and assert dimensions.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('flutter_image_compress'),
-      (call) async {
-        if (call.method == 'compressWithList') {
-          // macOS sends a Map with the image under 'list' (common sends a
-          // positional List); accept both.
-          final args = call.arguments;
-          final imageBytes = args is Map
-              ? args['list'] as Uint8List
-              : (args as List<dynamic>)[0] as Uint8List;
-          final decoded = img.decodeImage(imageBytes);
-          final quality = args is Map
-              ? (args['quality'] as num?)?.toInt() ?? 80
-              : 80;
-          return Uint8List.fromList(
-            img.encodeJpg(decoded!, quality: quality),
-          );
-        }
-        return null;
-      },
-    );
+          const MethodChannel('flutter_image_compress'),
+          (call) async {
+            if (call.method == 'compressWithList') {
+              // macOS sends a Map with the image under 'list' (common sends a
+              // positional List); accept both.
+              final args = call.arguments;
+              final imageBytes = args is Map
+                  ? args['list'] as Uint8List
+                  : (args as List<dynamic>)[0] as Uint8List;
+              final decoded = img.decodeImage(imageBytes);
+              final quality = args is Map
+                  ? (args['quality'] as num?)?.toInt() ?? 80
+                  : 80;
+              return Uint8List.fromList(
+                img.encodeJpg(decoded!, quality: quality),
+              );
+            }
+            return null;
+          },
+        );
     container = ProviderContainer(
       retry: (_, _) => null,
       overrides: [
@@ -444,6 +465,39 @@ void main() {
     expect(s3.objects['/single']!.length, source.length);
     expect(s3.objects['/single'], equals(source));
   });
+  test(
+    'concurrent file uploads never exceed the file concurrency cap',
+    () async {
+      dyson.singlePut = true;
+      dyson.distinctSinglePutUrls = true;
+      final uploader = container.read(driveFileUploaderProvider);
+
+      // Six files fired at once; the uploader must run at most
+      // driveFileUploadConcurrency of them concurrently.
+      final results = await Future.wait([
+        for (var i = 0; i < 6; i++)
+          uploader.uploadFile(
+            fileData: XFile.fromData(
+              Uint8List.fromList(List.generate(64 * 1024, (j) => j % 251)),
+              name: 'file-$i.bin',
+            ),
+            fileName: 'file-$i.bin',
+            contentType: 'application/octet-stream',
+            parentId: 'parent-1',
+          ),
+      ]);
+
+      expect(results, hasLength(6));
+      expect(dyson.prepareCalls, 6);
+      // All six source objects landed; at no point were more than
+      // driveFileUploadConcurrency PUTs in flight.
+      expect(s3.objects.length, 6);
+      expect(
+        s3.maxConcurrentPuts,
+        lessThanOrEqualTo(driveFileUploadConcurrency),
+      );
+    },
+  );
   test('enhanced upload tracks task progress during direct PUT', () async {
     final file = File(
       '${Directory.systemTemp.path}/'
@@ -580,8 +634,12 @@ void main() {
     expect(decoded.height, 1132);
     final top = decoded.getPixel(263, 0);
     final bottom = decoded.getPixel(263, 1131);
-    expect((top.r - bottom.r).abs() + (top.g - bottom.g).abs() +
-        (top.b - bottom.b).abs(), greaterThan(20));
+    expect(
+      (top.r - bottom.r).abs() +
+          (top.g - bottom.g).abs() +
+          (top.b - bottom.b).abs(),
+      greaterThan(20),
+    );
   });
 
   test('image direct upload forwards safe local EXIF analysis', () async {
@@ -602,10 +660,7 @@ void main() {
       '${Directory.systemTemp.path}/'
       's3_exif_${DateTime.now().microsecondsSinceEpoch}.jpg',
     );
-    await file.writeAsBytes(
-      img.encodeJpg(source, quality: 90),
-      flush: true,
-    );
+    await file.writeAsBytes(img.encodeJpg(source, quality: 90), flush: true);
     addTearDown(() => file.deleteSync());
 
     final uploader = container.read(driveFileUploaderProvider);
