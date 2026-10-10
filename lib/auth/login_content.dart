@@ -9,7 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/auth/auth_form_widgets.dart';
-import 'package:island/auth/login.dart';
+import 'package:island/auth/widgets/auth_factor_widgets.dart';
 import 'package:island/accounts/screens/punishment_user_sheet.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
@@ -25,7 +25,6 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
-import 'package:pinput/pinput.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -88,38 +87,6 @@ List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
     }
     return true;
   }).toList();
-}
-
-/// Compact chip showing how many trust points a factor contributes.
-class _FactorTrustChip extends StatelessWidget {
-  final int trustworthy;
-
-  const _FactorTrustChip({required this.trustworthy});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return Chip(
-      avatar: Icon(
-        Symbols.shield_person,
-        size: 16,
-        color: scheme.onSecondaryContainer,
-      ),
-      label: Text('authFactorTrustworthy'.tr(args: ['$trustworthy'])),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      padding: EdgeInsets.zero,
-      labelPadding: const EdgeInsets.only(right: 8),
-      backgroundColor: scheme.secondaryContainer,
-      side: BorderSide.none,
-      labelStyle: theme.textTheme.labelSmall?.copyWith(
-        color: scheme.onSecondaryContainer,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
 }
 
 class _QrLoginChallenge {
@@ -485,24 +452,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final defaultPinTheme = PinTheme(
-      width: 48,
-      height: 56,
-      textStyle: theme.textTheme.titleLarge?.copyWith(color: scheme.onSurface),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outline),
-      ),
-    );
-    final focusedPinTheme = defaultPinTheme.copyWith(
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.primary, width: 2),
-      ),
-    );
-
     final Widget credentialInput;
     if (factor!.type == 6) {
       credentialInput = Column(
@@ -547,37 +496,19 @@ class _LoginCheckScreen extends HookConsumerWidget {
         label: Text('passkeyAuthenticate'.tr()),
       );
     } else if ([0].contains(factor!.type)) {
-      credentialInput = TextField(
-        autocorrect: false,
-        enableSuggestions: false,
+      credentialInput = AuthFactorTextInput(
         controller: passwordController,
+        label: 'password'.tr(),
         obscureText: true,
-        autofillHints: [
-          factor!.type == 0
-              ? AutofillHints.password
-              : AutofillHints.oneTimeCode,
-        ],
-        decoration: InputDecoration(labelText: 'password'.tr()),
-        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
       );
     } else {
-      credentialInput = Pinput(
-        showCursor: true,
-        length: 6,
-        obscureText: false,
-        defaultPinTheme: defaultPinTheme,
-        focusedPinTheme: focusedPinTheme,
-        submittedPinTheme: focusedPinTheme,
+      credentialInput = AuthFactorCodeInput(
         onSubmitted: (value) {
           passwordController.text = value;
           performCheckTicket();
         },
         onChanged: (value) => passwordController.text = value,
-        onCompleted: (value) {
-          passwordController.text = value;
-          performCheckTicket();
-        },
       );
     }
 
@@ -601,7 +532,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
                 children: [
                   Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
                   const Gap(6),
-                  _FactorTrustChip(trustworthy: factor!.trustworthy),
+                  AuthFactorTrustChip(trustworthy: factor!.trustworthy),
                 ],
               ),
               isThreeLine: true,
@@ -836,9 +767,6 @@ class _LoginPickerScreen extends HookConsumerWidget {
       }
     }
 
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
     return AuthFormColumn(
       columnKey: const ValueKey<int>(1),
       children: [
@@ -847,35 +775,11 @@ class _LoginPickerScreen extends HookConsumerWidget {
           title: 'loginPickFactor'.tr(),
           subtitle: 'loginMultiFactor'.plural(challenge!.stepRemain),
         ),
-        AuthSectionCard(
-          children: _filterLoginFactors(factors ?? const [])
-              .map(
-                (x) => RadioListTile<SnAuthFactor>(
-                  value: x,
-                  groupValue: factorPicked.value,
-                  onChanged: challenge!.blacklistFactors.contains(x.id)
-                      ? null
-                      : (value) {
-                          if (value != null) factorPicked.value = value;
-                        },
-                  secondary: Icon(
-                    kFactorTypes[x.type]?.$3 ?? Symbols.question_mark,
-                    color: scheme.primary,
-                  ),
-                  title: Text(kFactorTypes[x.type]?.$1 ?? 'unknown').tr(),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(kFactorTypes[x.type]?.$2 ?? 'unknown').tr(),
-                      const Gap(6),
-                      _FactorTrustChip(trustworthy: x.trustworthy),
-                    ],
-                  ),
-                  isThreeLine: true,
-                  controlAffinity: ListTileControlAffinity.trailing,
-                ),
-              )
-              .toList(),
+        AuthFactorRadioList(
+          factors: _filterLoginFactors(factors ?? const []),
+          selected: factorPicked.value,
+          blacklistedIds: challenge!.blacklistFactors,
+          onSelected: (value) => factorPicked.value = value,
         ),
         AuthFormActions(
           isBusy: isBusy.value || factorPicked.value == null,

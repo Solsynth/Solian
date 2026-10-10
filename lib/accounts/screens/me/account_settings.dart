@@ -26,7 +26,8 @@ import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/accounts/screens/me/settings_contacts.dart';
 import 'package:island/accounts/screens/me/settings_webdav.dart';
 import 'package:island/auth/captcha.dart';
-import 'package:island/auth/login.dart';
+import 'package:island/auth/sudo_prompt.dart';
+import 'package:island/auth/widgets/auth_factor_widgets.dart';
 import 'package:island/chat/widgets/chat_groups_manager.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
@@ -147,7 +148,12 @@ class AccountSettingsScreen extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(solarNetworkClientProvider);
-        await client.accounts.deleteCurrentAccount();
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.accounts.deleteCurrentAccount(),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) {
           showSnackBar('accountDeletionSent'.tr());
         }

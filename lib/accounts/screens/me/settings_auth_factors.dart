@@ -9,7 +9,8 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
-import 'package:island/auth/login.dart';
+import 'package:island/auth/sudo_prompt.dart';
+import 'package:island/auth/widgets/auth_factor_widgets.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -110,10 +111,15 @@ class AuthFactorSheet extends HookConsumerWidget {
 
       try {
         showLoadingModal(context);
-        await ref
-            .read(solarNetworkClientProvider)
-            .auth
-            .deletePasskey(passkey.id);
+        await withSudoRetry(
+          context,
+          ref,
+          () => ref
+              .read(solarNetworkClientProvider)
+              .auth
+              .deletePasskey(passkey.id),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         await loadPasskeys();
       } catch (err) {
         showErrorAlert(err);
@@ -132,7 +138,12 @@ class AuthFactorSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(solarNetworkClientProvider);
-        await client.auth.deleteFactor(factor.id);
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.auth.deleteFactor(factor.id),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -150,7 +161,12 @@ class AuthFactorSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(solarNetworkClientProvider);
-        await client.auth.disableFactor(factor.id);
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.auth.disableFactor(factor.id),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -220,11 +236,19 @@ class AuthFactorSheet extends HookConsumerWidget {
       }
 
       try {
-        if (context.mounted) showLoadingModal(context);
+        if (!context.mounted) return;
+        showLoadingModal(context);
         final client = ref.read(solarNetworkClientProvider);
-        final response = await client.dio.post(
-          '/stargate/factors/${factor.id}/enable',
-          data: verificationCode != null ? jsonEncode(verificationCode) : null,
+        final response = await withSudoRetry(
+          context,
+          ref,
+          () => client.dio.post(
+            '/stargate/factors/${factor.id}/enable',
+            data: verificationCode != null
+                ? jsonEncode(verificationCode)
+                : null,
+          ),
+          onBeforePrompt: () => hideLoadingModal(context),
         );
         if (!context.mounted) return;
         hideLoadingModal(context);
@@ -485,7 +509,13 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                 ?.any((factor) => factor.type == 7) ??
             false;
         if (!hasPasskeyFactor) {
-          await client.auth.createFactor(type: _selectedType, secret: null);
+          if (!mounted) return;
+          await withSudoRetry(
+            context,
+            ref,
+            () => client.auth.createFactor(type: _selectedType, secret: null),
+            onBeforePrompt: () => hideLoadingModal(context),
+          );
         }
 
         final deviceId = await getUdid();
@@ -547,26 +577,37 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
 
         final credential = await passkeyAuthenticator.register(request);
 
-        await client.auth.completePasskeyRegistration(
-          deviceId: deviceId,
-          label: _passkeyLabelController.text.trim().isEmpty
-              ? deviceName
-              : _passkeyLabelController.text.trim(),
-          attestationObject: credential.attestationObject,
-          clientDataJson: credential.clientDataJSON,
+        if (!mounted) return;
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.auth.completePasskeyRegistration(
+            deviceId: deviceId,
+            label: _passkeyLabelController.text.trim().isEmpty
+                ? deviceName
+                : _passkeyLabelController.text.trim(),
+            attestationObject: credential.attestationObject,
+            clientDataJson: credential.clientDataJSON,
+          ),
+          onBeforePrompt: () => hideLoadingModal(context),
         );
         if (!mounted) return;
         hideLoadingModal(context);
         Navigator.pop(context, true);
         return;
       } else {
-        factor = await client.auth.createFactor(
-          type: _selectedType,
-          secret: _selectedType == 4
-              ? _pinController.text
-              : _selectedType == 0
-              ? _secretController.text
-              : null,
+        factor = await withSudoRetry<SnAuthFactor>(
+          context,
+          ref,
+          () => client.auth.createFactor(
+            type: _selectedType,
+            secret: _selectedType == 4
+                ? _pinController.text
+                : _selectedType == 0
+                ? _secretController.text
+                : null,
+          ),
+          onBeforePrompt: () => hideLoadingModal(context),
         );
       }
 

@@ -2,35 +2,20 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/auth/sudo_prompt.dart';
 import 'package:island/auth/widgets/auth_consent.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/network/api_error.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
-import 'package:island/wallets/pin_status.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:pinput/pinput.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-/// Shared secure-storage key for a locally-cached PIN. The same key is used by
-/// the payment overlay so a PIN entered once on this device also unlocks
-/// cross-device login approvals via biometric.
-const String _pinStorageKey = 'app_pin_code';
-final _secureStorage = FlutterSecureStorage(
-  aOptions: AndroidOptions(),
-);
-
-/// PIN length enforced by the server.
-const int _pinLength = 6;
 
 class ChallengeApprovalSheet extends HookConsumerWidget {
   final SnAuthChallenge challenge;
@@ -62,53 +47,13 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
     final remaining = useState<int?>(null);
     final isMobile = MediaQuery.sizeOf(context).width < 700;
 
-    // PIN status drives whether a PIN / biometric gate is shown. Mirrors the
-    // payment overlay: no gate when validation is not required.
-    final requiresPin = useState(false);
-    final hasStoredPin = useState(false);
-    final hasBiometric = useState(false);
-    final isInitializing = useState(true);
-    final isPinMode = useState(true);
-
-    final pinController = useTextEditingController();
-
     // Guards the sheet against double-resolution when a poll tick races the
     // local approve/decline path.
     final resolved = useState(false);
 
     // Surfaced inline rather than only as a transient snackbar, so the user can
-    // see why an attempt failed while they retype the PIN.
+    // see why an attempt failed.
     final authError = useState<String?>(null);
-
-    // Drives the Approve button's enabled state in PIN mode.
-    final pinInput = useState('');
-    final pinIsComplete = pinInput.value.length == _pinLength;
-
-    useEffect(() {
-      Future(() async {
-        try {
-          final pinStatus = await fetchWalletPinStatus(ref);
-          final requires = pinStatus.validationRequired;
-          if (!requires) {
-            isInitializing.value = false;
-            return;
-          }
-          requiresPin.value = true;
-          final la = LocalAuthentication();
-          final supported =
-              await la.isDeviceSupported() && await la.canCheckBiometrics;
-          hasBiometric.value = supported;
-          final stored = await _secureStorage.read(key: _pinStorageKey);
-          hasStoredPin.value = stored != null && stored.isNotEmpty;
-          isPinMode.value = !(hasStoredPin.value && hasBiometric.value);
-        } catch (_) {
-          isPinMode.value = true;
-        } finally {
-          isInitializing.value = false;
-        }
-      });
-      return null;
-    }, const []);
 
     useEffect(() {
       if (challenge.expiredAt == null) return null;
@@ -189,108 +134,50 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
 
     final expired = remaining.value != null && remaining.value! <= 0;
 
-    // A PIN is required before approving/declining when the account enforces it.
-    void clearStoredPin() {
-      _secureStorage.delete(key: _pinStorageKey);
-      hasStoredPin.value = false;
-      isPinMode.value = true;
-    }
-
-    // Core network approve + local PIN caching + success teardown. Callers
-    // own the isBusy flag so the biometric path can reuse this without a
-    // deadlock from a nested busy check.
-    Future<void> approveWithCode(String? pin) async {
-      final client = ref.read(solarNetworkClientProvider);
-      await client.auth.approveChallenge(
-        challengeId: challenge.id,
-        pinCode: pin,
-      );
-      if (requiresPin.value &&
-          hasBiometric.value &&
-          !hasStoredPin.value &&
-          pin != null) {
-        await _secureStorage.write(key: _pinStorageKey, value: pin);
-        hasStoredPin.value = true;
-      }
-      if (!context.mounted) return;
-      resolved.value = true;
-      showSnackBar(
-        'challengeApprovedByYou'.tr(
-          args: [challenge.deviceName ?? 'unknownDevice'.tr()],
-        ),
-      );
-      Navigator.pop(context);
-      onResolved?.call();
-    }
-
-    Future<void> submitPin(String pin) async {
-      if (isBusy.value || pin.length != _pinLength) return;
-      isBusy.value = true;
-      authError.value = null;
-      try {
-        await approveWithCode(pin);
-      } catch (err) {
-        authError.value = _authErrorMessage(err, clearStoredPin);
-      } finally {
-        isBusy.value = false;
-      }
-    }
-
-    // No PIN is enforced: approve directly with no credential.
-    Future<void> approveDirect() async {
+    // Approving someone else's login is a gated action, so it elevates this
+    // session first (via the shared sudo prompt) and then retries once. No
+    // credential is sent with the approval itself.
+    Future<void> approve() async {
       if (isBusy.value) return;
       isBusy.value = true;
       authError.value = null;
       try {
-        await approveWithCode(null);
-      } catch (err) {
-        authError.value = _authErrorMessage(err, clearStoredPin);
-      } finally {
-        isBusy.value = false;
-      }
-    }
-
-    Future<void> approveWithBiometric() async {
-      if (isBusy.value) return;
-      isBusy.value = true;
-      authError.value = null;
-      try {
-        final la = LocalAuthentication();
-        final ok = await la.authenticate(
-          localizedReason: 'challengeBiometricReason'.tr(),
-          biometricOnly: true,
+        await withSudoRetry(
+          context,
+          ref,
+          () => ref
+              .read(solarNetworkClientProvider)
+              .auth
+              .approveChallenge(challengeId: challenge.id),
         );
-        if (!ok) {
-          isPinMode.value = true;
-          authError.value = 'biometricAuthFailed'.tr();
-          return;
-        }
-        final stored = await _secureStorage.read(key: _pinStorageKey);
-        if (stored == null || stored.isEmpty) {
-          isPinMode.value = true;
-          authError.value = 'noStoredPin'.tr();
-          return;
-        }
-        await approveWithCode(stored);
+        if (!context.mounted) return;
+        resolved.value = true;
+        showSnackBar(
+          'challengeApprovedByYou'.tr(
+            args: [challenge.deviceName ?? 'unknownDevice'.tr()],
+          ),
+        );
+        Navigator.pop(context);
+        onResolved?.call();
       } catch (err) {
-        isPinMode.value = true;
-        authError.value = _biometricError(err);
+        authError.value = _authErrorMessage(err);
       } finally {
         isBusy.value = false;
       }
     }
 
-    Future<void> performDecline() async {
+    Future<void> decline() async {
       if (isBusy.value) return;
       isBusy.value = true;
       authError.value = null;
       try {
-        final client = ref.read(solarNetworkClientProvider);
-        await client.auth.declineChallenge(
-          challengeId: challenge.id,
-          pinCode: requiresPin.value && pinIsComplete
-              ? pinController.text
-              : null,
+        await withSudoRetry(
+          context,
+          ref,
+          () => ref
+              .read(solarNetworkClientProvider)
+              .auth
+              .declineChallenge(challengeId: challenge.id),
         );
         if (!context.mounted) return;
         resolved.value = true;
@@ -302,33 +189,11 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
         Navigator.pop(context);
         onResolved?.call();
       } catch (err) {
-        authError.value = _authErrorMessage(err, clearStoredPin);
+        authError.value = _authErrorMessage(err);
       } finally {
         isBusy.value = false;
       }
     }
-
-    Future<void> onApprovePressed() async {
-      if (isBusy.value) return;
-      if (!requiresPin.value) {
-        await approveDirect();
-        return;
-      }
-      if (isPinMode.value) {
-        // The button is disabled until the PIN is complete; this is a guard for
-        // the keyboard-submit path racing a rebuild.
-        if (!pinIsComplete) return;
-        await submitPin(pinController.text);
-        return;
-      }
-      await approveWithBiometric();
-    }
-
-    /// Whether the Approve button can act right now. In PIN mode it stays
-    /// disabled until all digits are entered, instead of silently no-oping.
-    final canApprove =
-        !isBusy.value &&
-        (!requiresPin.value || !isPinMode.value || pinIsComplete);
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -487,119 +352,6 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
                         ),
                       ],
                       const SizedBox(height: 24),
-
-                      // PIN / biometric gate, only when the account enforces it.
-                      if (expired)
-                        SizedBox.shrink()
-                      else if (isInitializing.value)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      else if (requiresPin.value) ...[
-                        if (isPinMode.value)
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'challengeEnterPin'.tr(),
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const Gap(20),
-                                // Six fixed-width fields overflow a narrow
-                                // phone, so derive the field size from the
-                                // space actually available.
-                                LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    const gap = 6.0;
-                                    final width =
-                                        ((constraints.maxWidth -
-                                                    gap * (_pinLength - 1)) /
-                                                _pinLength)
-                                            .clamp(34.0, 52.0);
-                                    return Pinput(
-                                      length: _pinLength,
-                                      obscureText: true,
-                                      keyboardType: TextInputType.number,
-                                      controller: pinController,
-                                      separatorBuilder: (_) =>
-                                          const SizedBox(width: gap),
-                                      defaultPinTheme: _pinTheme(
-                                        theme,
-                                        scheme,
-                                        width: width,
-                                      ),
-                                      focusedPinTheme: _pinTheme(
-                                        theme,
-                                        scheme,
-                                        width: width,
-                                        focused: true,
-                                      ),
-                                      submittedPinTheme: _pinTheme(
-                                        theme,
-                                        scheme,
-                                        width: width,
-                                        submitted: true,
-                                      ),
-                                      onChanged: (value) {
-                                        pinInput.value = value;
-                                        if (authError.value != null) {
-                                          authError.value = null;
-                                        }
-                                      },
-                                      onSubmitted: submitPin,
-                                    );
-                                  },
-                                ),
-                                if (hasStoredPin.value && hasBiometric.value)
-                                  TextButton(
-                                    onPressed: isBusy.value
-                                        ? null
-                                        : approveWithBiometric,
-                                    child: Text('useBiometricInstead'.tr()),
-                                  ),
-                              ],
-                            ),
-                          )
-                        else
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Symbols.fingerprint,
-                                  size: 48,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'challengeBiometricPrompt'.tr(),
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 24),
-                                FilledButton.tonalIcon(
-                                  onPressed: approveWithBiometric,
-                                  icon: const Icon(Symbols.fingerprint),
-                                  label: Text('authenticateNow'.tr()),
-                                ),
-                                TextButton(
-                                  onPressed: () => isPinMode.value = true,
-                                  child: Text('usePinInstead'.tr()),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ] else
-                        SizedBox.shrink(),
                     ],
                   ),
                 ),
@@ -634,7 +386,7 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: isBusy.value ? null : performDecline,
+                        onPressed: isBusy.value ? null : decline,
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           foregroundColor: scheme.onSurface,
@@ -654,7 +406,7 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton(
-                        onPressed: canApprove ? onApprovePressed : null,
+                        onPressed: isBusy.value ? null : approve,
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -681,64 +433,20 @@ class ChallengeApprovalSheet extends HookConsumerWidget {
 
 /// Resolves an approve/decline failure into inline copy.
 ///
-/// Returns null when the failure was already surfaced another way (a biometric
-/// [PlatformException], whose caller builds its own message, or an unexpected
-/// error handed to [showErrorAlert]).
-String? _authErrorMessage(Object err, void Function() clearStoredPin) {
-  if (err is PlatformException) return null;
-
+/// Returns null when the failure was handed to [showErrorAlert].
+String? _authErrorMessage(Object err) {
   if (err is DioException) {
-    final statusCode = err.response?.statusCode;
+    final apiError = ApiError.tryParse(err);
     // AUTH_SESSION_NOT_TRUSTED: only trusted sessions can approve/decline.
-    if (statusCode == 403) {
-      final apiError = ApiError.tryParse(err);
-      if (apiError?.code == 'AUTH_SESSION_NOT_TRUSTED') {
-        return 'challengeNotTrustedMessage'.tr();
-      }
+    if (apiError?.code == 'AUTH_SESSION_NOT_TRUSTED') {
+      return 'challengeNotTrustedMessage'.tr();
     }
-    // Invalid PIN / missing credentials surface as 401/403.
-    if (statusCode == 403 || statusCode == 401) {
-      clearStoredPin();
-      return 'invalidPin'.tr();
+    // The elevation prompt was dismissed, so nothing was approved/declined.
+    if (isSudoRequired(err)) {
+      return 'sudoNotCompleted'.tr();
     }
   }
 
   showErrorAlert(err);
   return null;
-}
-
-String _biometricError(Object err) {
-  if (err is PlatformException) {
-    return switch (err.code) {
-      'NotAvailable' => 'biometricNotAvailable'.tr(),
-      'NotEnrolled' => 'biometricNotEnrolled'.tr(),
-      'LockedOut' || 'PermanentlyLockedOut' => 'biometricLockedOut'.tr(),
-      _ => 'biometricAuthFailed'.tr(),
-    };
-  }
-  return 'biometricAuthFailed'.tr();
-}
-
-PinTheme _pinTheme(
-  ThemeData theme,
-  ColorScheme scheme, {
-  required double width,
-  bool focused = false,
-  bool submitted = false,
-}) {
-  return PinTheme(
-    width: width,
-    height: (width * 1.15).clamp(44.0, 60.0),
-    textStyle: theme.textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.w600,
-    ),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(12),
-      border: focused
-          ? Border.all(color: scheme.primary, width: 2)
-          : submitted
-          ? Border.all(color: scheme.outlineVariant)
-          : Border.all(color: scheme.outline),
-    ),
-  );
 }

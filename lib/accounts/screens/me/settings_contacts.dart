@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/auth/sudo_prompt.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -32,7 +33,12 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/stargate/contacts/${contact.id}');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.delete('/stargate/contacts/${contact.id}'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -45,7 +51,12 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/stargate/contacts/${contact.id}/verify');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.post('/stargate/contacts/${contact.id}/verify'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) {
           showSnackBar('contactMethodVerificationSent'.tr());
         }
@@ -60,7 +71,12 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/stargate/contacts/${contact.id}/primary');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.post('/stargate/contacts/${contact.id}/primary'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -226,9 +242,14 @@ class ContactMethodNewSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final apiClient = ref.read(apiClientProvider);
-        await apiClient.post(
-          '/stargate/contacts',
-          data: {'type': contactType.value, 'content': contentController.text},
+        await withSudoRetry(
+          context,
+          ref,
+          () => apiClient.post(
+            '/stargate/contacts',
+            data: {'type': contactType.value, 'content': contentController.text},
+          ),
+          onBeforePrompt: () => hideLoadingModal(context),
         );
         if (context.mounted) {
           showSnackBar('contactMethodVerificationNeeded'.tr());
@@ -353,7 +374,12 @@ class ResendVerificationSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/stargate/contacts/${contact.id}/verify');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.post('/stargate/contacts/${contact.id}/verify'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) {
           showSnackBar('contactMethodVerificationSent'.tr());
         }
