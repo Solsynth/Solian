@@ -220,6 +220,72 @@ Future<void> handleLockedError(
   }
 }
 
+/// Waits for the resolved user agent before the first auth request of a login
+/// attempt.
+///
+/// Stargate binds the challenge factor surface to the user agent that created
+/// the challenge, and the network interceptor can only forward the header once
+/// [userAgentProvider] has resolved. Without this wait a challenge created on a
+/// cold start is recorded with the HTTP client's default user agent and its
+/// factor read then looks like a missing challenge. A provider failure is
+/// swallowed so the interceptor keeps its current behaviour.
+Future<void> _resolveUserAgent(WidgetRef ref) async {
+  try {
+    await ref.read(userAgentProvider.future);
+  } catch (_) {
+    // The interceptor falls back to whatever the HTTP client sends.
+  }
+}
+
+/// Creates a login challenge for [account] through Stargate.
+Future<SnAuthChallenge> _createAuthChallenge(Dio dio, String account) async {
+  final resp = await dio.post(
+    '/stargate/auth/challenge',
+    data: {
+      'account': account,
+      'device_id': await getUdid(),
+      'device_name': await getDeviceName(),
+      'platform': _currentPlatformCode(),
+    },
+  );
+  return SnAuthChallenge.fromJson(resp.data);
+}
+
+/// Reads the factors a login picker can offer for [challengeId].
+Future<List<SnAuthFactor>> _fetchLoginFactors(
+  Dio dio,
+  String challengeId,
+) async {
+  final resp = await dio.get('/stargate/auth/challenge/$challengeId/factors');
+  return _filterLoginFactors(
+    (resp.data as List).map((ele) => SnAuthFactor.fromJson(ele)),
+  );
+}
+
+/// Reads the factors of [challenge], recreating the challenge once on a 404.
+///
+/// `GET /auth/challenge/{id}/factors` is bound to the client IP and user agent
+/// recorded when the challenge was created, and a mismatch answers 404 — the
+/// same status as a missing challenge. A challenge created before the user
+/// agent resolved, or one whose read crossed a network change, is therefore
+/// indistinguishable from a missing one here. [recreate] obtains a challenge
+/// bound to the current caller; the read is then retried against it exactly
+/// once, so the recovery can never loop. Any other failure — and a second 404 —
+/// propagates to the caller's existing error handling.
+Future<(SnAuthChallenge, List<SnAuthFactor>)> _readChallengeFactors(
+  Dio dio,
+  SnAuthChallenge challenge, {
+  required Future<SnAuthChallenge> Function() recreate,
+}) async {
+  try {
+    return (challenge, await _fetchLoginFactors(dio, challenge.id));
+  } on DioException catch (err) {
+    if (err.response?.statusCode != 404) rethrow;
+    final retried = await recreate();
+    return (retried, await _fetchLoginFactors(dio, retried.id));
+  }
+}
+
 class _LoginCheckScreen extends HookConsumerWidget {
   final SnAuthChallenge? challenge;
   final SnAuthFactor? factor;
@@ -970,21 +1036,25 @@ class _LoginLookupScreen extends HookConsumerWidget {
         waitingForOidc.value = false;
         final client = ref.watch(solarNetworkClientProvider);
         try {
+          await _resolveUserAgent(ref);
           final resp = await client.dio.get(
             '/stargate/auth/challenge/${event.challengeId}',
           );
           final challenge = SnAuthChallenge.fromJson(resp.data);
-          onChallenge(challenge);
-          final factorResp = await client.dio.get(
-            '/stargate/auth/challenge/${challenge.id}/factors',
-          );
-          onFactor(
-            _filterLoginFactors(
-              (factorResp.data as List).map(
-                (ele) => SnAuthFactor.fromJson(ele),
-              ),
+          final (current, factors) = await _readChallengeFactors(
+            client.dio,
+            challenge,
+            // The challenge is created by the OIDC exchange before the deep
+            // link reaches this client, so it cannot be re-created here; the
+            // only recovery is to re-read it and retry the factor read once.
+            recreate: () async => SnAuthChallenge.fromJson(
+              (await client.dio.get(
+                '/stargate/auth/challenge/${challenge.id}',
+              )).data,
             ),
           );
+          onChallenge(current);
+          onFactor(factors);
           onNext();
         } catch (err) {
           showErrorAlert(err);
@@ -1021,35 +1091,16 @@ class _LoginLookupScreen extends HookConsumerWidget {
       if (uname.isEmpty) return;
       isBusy.value = true;
       try {
+        await _resolveUserAgent(ref);
         final client = ref.watch(solarNetworkClientProvider);
-        final resp = await client.dio.post(
-          '/stargate/auth/challenge',
-          data: {
-            'account': uname,
-            'device_id': await getUdid(),
-            'device_name': await getDeviceName(),
-            'platform': kIsWeb
-                ? 1
-                : switch (defaultTargetPlatform) {
-                    TargetPlatform.iOS => 2,
-                    TargetPlatform.android => 3,
-                    TargetPlatform.macOS => 4,
-                    TargetPlatform.windows => 5,
-                    TargetPlatform.linux => 6,
-                    _ => 0,
-                  },
-          },
+        final initial = await _createAuthChallenge(client.dio, uname);
+        final (challenge, factors) = await _readChallengeFactors(
+          client.dio,
+          initial,
+          recreate: () => _createAuthChallenge(client.dio, uname),
         );
-        final result = SnAuthChallenge.fromJson(resp.data);
-        onChallenge(result);
-        final factorResp = await client.dio.get(
-          '/stargate/auth/challenge/${result.id}/factors',
-        );
-        onFactor(
-          _filterLoginFactors(
-            (factorResp.data as List).map((ele) => SnAuthFactor.fromJson(ele)),
-          ),
-        );
+        onChallenge(challenge);
+        onFactor(factors);
         onNext();
       } catch (err) {
         if (!context.mounted) return;
