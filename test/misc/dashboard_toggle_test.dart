@@ -289,7 +289,7 @@ void main() {
     expect(find.byType(Drawer), findsNothing);
 
     // A destination only the expanded rail offers is selectable, and picking
-    // one navigates and collapses the rail.
+    // one navigates without collapsing the rail.
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationRail),
@@ -300,8 +300,8 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(_router.currentPath, '/wallet');
-    expect(rail().extended, isFalse);
-    expect(rail().destinations.length, 2);
+    expect(rail().extended, isTrue);
+    expect(rail().destinations.length, 7);
 
     await _teardown(tester);
     debugDefaultTargetPlatformOverride = null;

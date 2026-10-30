@@ -6,6 +6,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/navigation/navigation_rail_scope.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/pill_surface.dart';
 
 /// The navigation toggle shared by the root tabs.
 ///
@@ -13,10 +14,26 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 /// navigation bar, so every root tab's leading slot uses this exact button.
 ///
 /// On the wide layout the rail replaces the drawer, so the same button expands
-/// and collapses the rail over every destination instead.
+/// and collapses the rail over every destination instead. In landscape the
+/// shell moves that toggle to the rail's bottom-left corner and page app bars
+/// drop their copy, leaving a single entry point.
 class SolDrawerButton extends StatelessWidget {
   final Color? color;
-  const SolDrawerButton({super.key, this.color});
+
+  /// Set when the shell renders this button in the rail's bottom slot.
+  final bool pinnedToRail;
+
+  const SolDrawerButton({super.key, this.color, this.pinnedToRail = false});
+
+  /// Whether a page-level (non-rail) copy of this button would be visible.
+  ///
+  /// In landscape the rail owns the toggle, so page headers drop theirs.
+  static bool isShownIn(BuildContext context) {
+    final rail = NavigationRailScope.maybeOf(context);
+    return rail == null ||
+        !rail.available ||
+        MediaQuery.orientationOf(context) == Orientation.portrait;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +46,10 @@ class SolDrawerButton extends StatelessWidget {
         Theme.of(context).colorScheme.onSurface;
     final rail = NavigationRailScope.maybeOf(context);
     if (rail != null && rail.available) {
+      if (!pinnedToRail &&
+          MediaQuery.orientationOf(context) == Orientation.landscape) {
+        return const SizedBox.shrink();
+      }
       return IconButton(
         icon: const Icon(Symbols.menu_rounded),
         color: foreground,
@@ -41,6 +62,40 @@ class SolDrawerButton extends StatelessWidget {
       color: foreground,
       tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
       onPressed: () => rootScaffoldKey.currentState?.openDrawer(),
+    );
+  }
+}
+
+/// Diameter of the standalone glass navigation control.
+///
+/// The control is pinned to the height the split chat headers use, so the
+/// hamburger and the piped section picker read as one row.
+const double kGlassNavigationButtonSize = 48;
+
+/// A single glass-circle navigation toggle.
+///
+/// Pages without a header pill (the dashboard) and the portrait chat header use
+/// it as a standalone control: the same [SolDrawerButton] behaviour wrapped in
+/// the app's liquid-glass surface.
+class GlassNavigationButton extends StatelessWidget {
+  final Color? color;
+
+  const GlassNavigationButton({super.key, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return PillSurface(
+      t: 1,
+      margin: EdgeInsets.zero,
+      radius: SolRadius.pillRadius,
+      contentPadding: EdgeInsets.zero,
+      child: SizedBox.square(
+        dimension: kGlassNavigationButtonSize,
+        child: Material(
+          color: Colors.transparent,
+          child: SolDrawerButton(color: color),
+        ),
+      ),
     );
   }
 }

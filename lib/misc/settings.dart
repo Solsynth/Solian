@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -2513,54 +2514,67 @@ class SettingsScreen extends HookConsumerWidget {
       );
     }
 
+    // Center the search field in the app bar. Keep the left and right margins
+    // symmetric so the field stays visually centered even with the leading
+    // back button.
+    final searchBarWidth = math.min(
+      420.0,
+      math.max(160.0, MediaQuery.sizeOf(context).width - 144),
+    );
+
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        title: SearchBar(
-          controller: searchController,
-          focusNode: searchFocusNode,
-          constraints: const BoxConstraints(maxWidth: 420, minHeight: 36),
-          // Flat, shadowless search field so it blends into the app bar instead
-          // of floating above it with the default M3 elevation (6dp + shadow).
-          elevation: const WidgetStatePropertyAll(0),
-          shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-          // One tone deeper than the surrounding top bar so the field still
-          // reads clearly against the unified gray background.
-          backgroundColor: WidgetStatePropertyAll(
-            Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          hintText: 'searchSettings'.tr(),
-          hintStyle: WidgetStatePropertyAll(
-            TextStyle(
-              fontSize: 14,
+        centerTitle: true,
+        title: SizedBox(
+          width: searchBarWidth,
+          child: SearchBar(
+            controller: searchController,
+            focusNode: searchFocusNode,
+            constraints: const BoxConstraints(minHeight: 36),
+            // Flat, shadowless search field so it blends into the app bar
+            // instead of floating above it with the default M3 elevation
+            // (6dp + shadow).
+            elevation: const WidgetStatePropertyAll(0),
+            shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+            surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+            // One tone deeper than the surrounding top bar so the field still
+            // reads clearly against the unified gray background.
+            backgroundColor: WidgetStatePropertyAll(
+              Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+            hintText: 'searchSettings'.tr(),
+            hintStyle: WidgetStatePropertyAll(
+              TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+            onTapOutside: (_) => searchFocusNode.unfocus(),
+            trailing: [
+              if (searchQuery.value.isNotEmpty)
+                IconButton(
+                  onPressed: () {
+                    searchController.clear();
+                    searchQuery.value = '';
+                    searchFocusNode.unfocus();
+                  },
+                  icon: Icon(
+                    Symbols.close,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+            onChanged: (value) => searchQuery.value = value,
+            leading: Icon(
+              Symbols.search,
+              size: 20,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ),
-          textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14)),
-          onTapOutside: (_) => searchFocusNode.unfocus(),
-          trailing: [
-            if (searchQuery.value.isNotEmpty)
-              IconButton(
-                onPressed: () {
-                  searchController.clear();
-                  searchQuery.value = '';
-                  searchFocusNode.unfocus();
-                },
-                icon: Icon(
-                  Symbols.close,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                visualDensity: VisualDensity.compact,
-              ),
-          ],
-          onChanged: (value) => searchQuery.value = value,
-          leading: Icon(
-            Symbols.search,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         leading: const AutoLeadingButton(),

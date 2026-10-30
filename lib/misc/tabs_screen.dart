@@ -18,6 +18,7 @@ import 'package:island/core/navigation/navigation_rail_scope.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/page_app_bar.dart';
 import 'package:island/core/navigation/tab_destinations.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -106,7 +107,9 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
   /// Whether the wide layout's rail is expanded over every destination.
   ///
   /// The rail replaces the drawer there, so a request to open the navigation
-  /// expands it instead of sliding a drawer over the page.
+  /// expands it instead of sliding a drawer over the page. The choice is kept
+  /// while switching destinations, so a collapsed rail stays collapsed and an
+  /// expanded one stays expanded.
   bool _railExpanded = false;
 
   void _toggleRail() {
@@ -220,6 +223,11 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     // The rail is the wide layout's navigation surface: whenever it is shown,
     // expanding it replaces the drawer entirely.
     final railAvailable = wideScreen && railDestinations.isNotEmpty;
+    // In landscape the rail carries the navigation toggle in its bottom-left
+    // corner, so pages no longer spend their leading slot on the hamburger.
+    final showRailToggle =
+        railAvailable &&
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     final drawerEnabled = isDrawerEnabled && !railAvailable;
 
     /// Handles the "open the navigation" request: expand the rail where it
@@ -264,7 +272,6 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     void onRailDestinationSelected(int index) {
       if (index < 0 || index >= displayedRailDestinations.length) return;
       tabsRouter.setActiveIndex(displayedRailDestinations[index].routeIndex);
-      if (_railExpanded) setState(() => _railExpanded = false);
     }
 
     void onBottomNavDestinationSelected(int index) {
@@ -521,33 +528,52 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       // No drawer on this layout: the rail is present, so a menu request
       // expands it over every destination instead of sliding a second
       // navigation surface over the page.
+      //
+      // The rail sizes itself to its content, so a trailing child cannot be
+      // spread across its full width. The toggle is therefore overlaid on the
+      // bottom slot reserved by `trailing`: 16px in, so its 24px glyph lines
+      // up with the destination icons (which are centred in the rail's 80px
+      // control column), but with no label beside it.
+      Widget rail = NavigationRail(
+        backgroundColor: Colors.transparent,
+        extended: railExpanded,
+        // Extended rails always paint their labels and reject any
+        // other label type.
+        labelType: railExpanded ? NavigationRailLabelType.none : null,
+        // Short windows cannot fit every destination, and the
+        // expanded rail shows all of them.
+        scrollable: true,
+        destinations: displayedRailDestinations.mapIndexed((idx, d) {
+          return NavigationRailDestination(
+            icon: withEntranceMenu(d.iconBuilder(railCurrentIndex == idx), d),
+            label: withEntranceMenu(Text(d.label), d),
+          );
+        }).toList(),
+        selectedIndex: railCurrentIndex,
+        onDestinationSelected: onRailDestinationSelected,
+        trailing: showRailToggle ? const SizedBox(height: 56) : null,
+        trailingAtBottom: true,
+      );
+      if (showRailToggle) {
+        rail = Stack(
+          children: [
+            rail,
+            Positioned(
+              left: 16,
+              bottom: 8,
+              child: const SolDrawerButton(pinnedToRail: true),
+            ),
+          ],
+        );
+      }
+
       final railContent = Scaffold(
         key: rootScaffoldKey,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         body: SafeArea(
           child: Row(
             children: [
-              NavigationRail(
-                backgroundColor: Colors.transparent,
-                extended: railExpanded,
-                // Extended rails always paint their labels and reject any
-                // other label type.
-                labelType: railExpanded ? NavigationRailLabelType.none : null,
-                // Short windows cannot fit every destination, and the
-                // expanded rail shows all of them.
-                scrollable: true,
-                destinations: displayedRailDestinations.mapIndexed((idx, d) {
-                  return NavigationRailDestination(
-                    icon: withEntranceMenu(
-                      d.iconBuilder(railCurrentIndex == idx),
-                      d,
-                    ),
-                    label: withEntranceMenu(Text(d.label), d),
-                  );
-                }).toList(),
-                selectedIndex: railCurrentIndex,
-                onDestinationSelected: onRailDestinationSelected,
-              ),
+              rail,
               Expanded(
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(

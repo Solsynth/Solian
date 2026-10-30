@@ -315,9 +315,11 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     _chatRoom = chatRoomAsync.value!;
     _chatIdentity = chatIdentityAsync.value!;
 
-    // Subscribe to messages
-    final wsState = ref.read(websocketStateProvider.notifier);
-    _sendMessage = wsState.sendMessage;
+    // Subscribe to messages. Capture the service's own send function, not the
+    // notifier method: `onCancel`/`onResume` run inside Riverpod life-cycles
+    // where any `ref.read` is forbidden, and `WebSocketStateNotifier.sendMessage`
+    // reads `websocketProvider` from its ref on every call.
+    _sendMessage = ref.read(websocketProvider).sendMessage;
     _sendSubscribe(reason: 'initial');
 
     // Send initial read receipt

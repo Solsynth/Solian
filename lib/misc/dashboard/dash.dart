@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:island/discovery/widgets/pill_app_bar.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
+import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -68,33 +68,23 @@ class DashboardScreen extends HookConsumerWidget {
     );
     if (!dashboardEnabled) return const _DisabledDashboardRedirect();
 
-    final fade = useValueNotifier(0.0);
+    final isPortrait =
+        MediaQuery.orientationOf(context) == Orientation.portrait;
 
     return AppScaffold(
-      appBarOverContent: true,
       isNoBackground: false,
-      appBar: PillAppBar(
-        fade: fade,
-        statusTop: MediaQuery.paddingOf(context).top,
-        child: Row(
-          children: [
-            const SolDrawerButton(),
-            const Gap(SolSpace.sm),
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Solar Network',
-                  style: Theme.of(context).appBarTheme.titleTextStyle,
-                ),
-              ),
+      body: Stack(
+        children: [
+          Center(child: DashboardGrid()),
+          // The dashboard no longer carries a header pill, so portrait keeps a
+          // single glass hamburger at the top-left as its navigation entry.
+          if (isPortrait)
+            Positioned(
+              left: kPillSideGutter,
+              top: MediaQuery.paddingOf(context).top + kPillSideGutter,
+              child: const GlassNavigationButton(),
             ),
-          ],
-        ),
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) => updatePillFade(notification, fade),
-        child: Center(child: DashboardGrid()),
+        ],
       ),
     );
   }

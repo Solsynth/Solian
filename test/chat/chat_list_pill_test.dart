@@ -16,6 +16,8 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/data/database.dart';
 import 'package:island/discovery/widgets/pill_app_bar.dart';
+import 'package:island/shared/widgets/page_app_bar.dart';
+import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -174,7 +176,9 @@ void main() {
     while (tester.takeException() != null) {}
   }
 
-  testWidgets('narrow: the rooms render under a glass pill', (tester) async {
+  testWidgets('narrow: the rooms render under the split glass header', (
+    tester,
+  ) async {
     await pumpList(
       tester,
       const Size(400, 800),
@@ -184,18 +188,27 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(ChatRoomListTile), findsNWidgets(2));
     expect(find.text('Design crew'), findsOneWidget);
-    expect(find.byType(PillAppBar), findsOneWidget);
+    // The portrait header is two separate glass surfaces: navigation on the
+    // left and the section picker on the right.
+    expect(find.byType(PillAppBar), findsNothing);
+    expect(find.byType(GlassNavigationButton), findsOneWidget);
+    final pills = find.byType(PillSurface);
+    expect(pills, findsNWidgets(2));
+    expect(
+      tester.getSize(pills.at(0)).height,
+      tester.getSize(pills.at(1)).height,
+      reason: 'both portrait header controls share one row height',
+    );
     // The switcher is the explore page's dropdown: one trigger naming the
     // current filter, and no leftover tab strip.
     expect(find.byType(TabBar), findsNothing);
     expect(find.byType(MenuAnchor), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
 
-    // The first room sits exactly under the capsule: the bar's band is reserved
-    // once, not once by the scaffold's spacer and again by the list.
+    // The first room sits exactly under the split header's band.
     expect(
       tester.getTopLeft(find.byType(ChatRoomListTile).first).dy,
-      closeTo(kPillAppBarHeight, 1),
+      closeTo(kChatSplitBarBand, 1),
     );
 
     await disposeTree(tester);
@@ -265,7 +278,7 @@ void main() {
     await disposeTree(tester);
   });
 
-  testWidgets('wide: the sidebar is a pill over the list, with no outer card', (
+  testWidgets('wide: the title scrolls while the controls float', (
     tester,
   ) async {
     await pumpList(
@@ -276,22 +289,30 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(ChatRoomListTile), findsNWidgets(2));
-    expect(find.byType(PillAppBar), findsOneWidget);
+    // The pane title now scrolls with the rooms; the section picker still
+    // floats above the list.
+    expect(find.byType(PillAppBar), findsNothing);
+    final heading = find.text('Chat');
+    expect(heading, findsOneWidget);
+    expect(find.byType(PillSurface), findsNWidgets(2));
+    expect(find.byType(BackdropFilter), findsNothing);
     // The three-way switcher is the explore page's dropdown, not a tab strip.
     expect(find.byType(TabBar), findsNothing);
     expect(find.byType(MenuAnchor), findsOneWidget);
 
-    // The sidebar pill is floated in a Stack rather than placed in a scaffold
-    // slot, so it has to measure the same band as every other pill and the list
-    // has to start under it.
-    expect(tester.getSize(find.byType(PillAppBar)).height, kPillAppBarHeight);
+    // The floating controls own the same band as the list's title row: the
+    // title sits at the picker's height but still scrolls with the rooms.
+    expect(
+      tester.getCenter(heading).dy,
+      closeTo(tester.getCenter(find.byType(MenuAnchor)).dy, 1),
+    );
     expect(
       tester.getTopLeft(find.byType(ChatRoomListTile).first).dy,
-      closeTo(kPillAppBarHeight, 1),
+      closeTo(kChatSplitBarBand, 1),
     );
 
-    // The pane no longer paints a card surface of its own: only the pill header
-    // carries a surface, and the list floats on the page background.
+    // The pane no longer paints a card surface of its own: only the header
+    // pills carry a surface, and the list floats on the page background.
     expect(
       find.descendant(
         of: find.byType(ChatListWidget),

@@ -113,10 +113,31 @@ class AccountFeatureWidget extends HookConsumerWidget {
     final scrollController = useScrollController();
     final statusTop = MediaQuery.paddingOf(context).top;
     final artwork = account.profile.background;
+    // With artwork the page opens on a clean header image that runs all the way
+    // to the top edge, so the pill is kept out of sight until the page has
+    // scrolled 30% of the viewport. Accounts without artwork keep the pill
+    // surfaced from the start: there is nothing to uncover.
+    final pillRevealThreshold = MediaQuery.sizeOf(context).height * 0.3;
     // The artwork sliding under the pill drives its glass. Without artwork the
     // page opens on the identity block and never scrolls anything behind the
     // bar, so the pill stays surfaced instead of hiding over an empty gap.
     final fade = useValueNotifier(0.0);
+
+    final pillChild = Row(
+      children: [
+        const SolDrawerButton(),
+        const Gap(SolSpace.sm),
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'account'.tr(),
+              style: Theme.of(context).appBarTheme.titleTextStyle,
+            ),
+          ),
+        ),
+      ],
+    );
 
     return AppScaffold(
       isNoBackground: isWide,
@@ -124,40 +145,31 @@ class AccountFeatureWidget extends HookConsumerWidget {
       appBar: PillAppBar(
         fade: artwork == null ? null : fade,
         statusTop: statusTop,
-        child: Row(
-          children: [
-            const SolDrawerButton(),
-            const Gap(SolSpace.sm),
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'account'.tr(),
-                  style: Theme.of(context).appBarTheme.titleTextStyle,
+        child: artwork == null
+            ? pillChild
+            : ValueListenableBuilder<double>(
+                valueListenable: fade,
+                builder: (context, t, child) => IgnorePointer(
+                  ignoring: t == 0,
+                  child: Opacity(opacity: t, child: child),
                 ),
+                child: pillChild,
               ),
-            ),
-          ],
-        ),
       ),
       body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) => updatePillFade(notification, fade),
+        onNotification: (notification) =>
+            updatePillFade(notification, fade, threshold: pillRevealThreshold),
         child: CustomScrollView(
           controller: scrollController,
           slivers: [
-            // The band the pill floats in. Its content is painted by the
-            // header below, which overhangs into it: the artwork's own top
-            // edge, mirrored upward and blurred, so the picture reads as
-            // continuing off the top of the screen instead of starting at a
-            // seam.
-            if (artwork != null) SliverGap(statusTop + kPillAppBarHeight),
+            // The artwork owns the very top of the page while the pill is
+            // hidden; once revealed, the pill floats over the content that has
+            // scrolled beneath it.
             SliverToBoxAdapter(
               child: _AccountHeader(
                 account: account,
                 statusTop: statusTop,
-                reflectionBand: artwork == null
-                    ? 0
-                    : statusTop + kPillAppBarHeight,
+                reflectionBand: 0,
                 onAvatarTap: () {
                   context.router.push(AccountProfileRoute(name: account.name));
                 },

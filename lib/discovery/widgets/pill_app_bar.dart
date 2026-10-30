@@ -31,19 +31,25 @@ const double kPillAppBarHeight = kPillBarContentHeight + SolSpace.md;
 /// Feeds a pill's fade ramp (0..1) from a scroll notification.
 ///
 /// The ramp is read off the scroll offset itself so the surface tracks the
-/// drag instead of snapping at the first pixel. Only the outermost scrollable
-/// counts: inside a [NestedScrollView] the inner list reports `depth` 1 and
-/// restarts at offset 0 whenever the header re-expands, which would slam the
-/// pill back to invisible while content is still under it.
+/// drag instead of snapping at the first pixel. [threshold] keeps the pill
+/// hidden until the page has scrolled that far, which lets a page open on its
+/// artwork before the bar appears. Only the outermost scrollable counts:
+/// inside a [NestedScrollView] the inner list reports `depth` 1 and restarts
+/// at offset 0 whenever the header re-expands, which would slam the pill back
+/// to invisible while content is still under it.
 ///
 /// Returns false so the notification keeps bubbling to other listeners.
 bool updatePillFade(
   ScrollNotification notification,
-  ValueNotifier<double> fade,
-) {
+  ValueNotifier<double> fade, {
+  double threshold = 0,
+}) {
   final metrics = notification.metrics;
   if (notification.depth != 0 || metrics.axis != Axis.vertical) return false;
-  final ramp = (metrics.pixels / kPillFadeDistance).clamp(0.0, 1.0);
+  final ramp = ((metrics.pixels - threshold) / kPillFadeDistance).clamp(
+    0.0,
+    1.0,
+  );
   if (fade.value != ramp) fade.value = ramp;
   return false;
 }
