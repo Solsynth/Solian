@@ -1030,7 +1030,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
         final itemData = _extractDiscoveryItemData(item);
         final reasons =
             (item['reasons'] as List?)?.whereType<String>().toList() ??
-            const <String>[];
+            <String>[];
         if (reasons.isEmpty) reasons.add('discoverySuggestionReason'.tr());
         final rank = item['score'] is num
             ? (item['score'] as num).toDouble()
