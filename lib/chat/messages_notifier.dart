@@ -10,6 +10,7 @@ import "package:island/chat/pods/chat_outbox.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_room_state.dart";
 import "package:island/chat/data/message_cache.dart";
+import "package:island/chat/data/message_member_directory.dart";
 import "package:island/chat/data/message_repository.dart";
 import "package:island/chat/models/chat_view_state.dart";
 import "package:island/chat/realtime/message_handler.dart";
@@ -95,7 +96,7 @@ const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
 
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier
-    implements MessageRealtimeSink {
+    implements MessageRealtimeSink, MessageTimelineHost {
   late Dio _apiClient;
   late AppDatabase _database;
   SnChatMember? _identity;
@@ -110,8 +111,8 @@ class MessagesNotifier extends _$MessagesNotifier
   String? _mlsGroupId;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
-  final Map<String, SnChatMember> _membersById = {};
   final Map<String, SnChatMessagePin> _pinnedMessages = {};
+  late MessageMemberDirectory _memberDirectory;
   String? _searchQuery;
   bool? _withLinks;
   bool? _withAttachments;
@@ -156,13 +157,6 @@ class MessagesNotifier extends _$MessagesNotifier
   int _lastApiFetchOffset = 0;
 
   final Set<String> _prefetchedVoiceUrls = <String>{};
-
-  /// Sender accounts that were repaired from a bare/missing sender after a
-  /// member-account loss. Guards against re-running the repair for ids that
-  /// already resolved; a genuinely deleted account (unrecoverable) stays
-  /// absent from this set only if the room-member list keeps omitting it.
-  final Set<String> _repairedAccountIds = <String>{};
-  bool _senderRepairInFlight = false;
 
   late Future<SnAccount?> Function(String) _fetchAccount;
 
@@ -593,21 +587,6 @@ class MessagesNotifier extends _$MessagesNotifier
   }
 
   String? _stringValue(dynamic value) => value?.toString();
-  Map<String, dynamic> _accountProfileDiagnostic(SnAccount account) {
-    final profile = account.profile;
-    return {
-      'account_id': account.id,
-      'profile_id': profile.id,
-      'profile_id_empty': profile.id.trim().isEmpty,
-      'profile_has_first_name': profile.firstName.trim().isNotEmpty,
-      'profile_has_last_name': profile.lastName.trim().isNotEmpty,
-      'profile_has_bio': profile.bio.trim().isNotEmpty,
-      'profile_has_picture': profile.picture != null,
-      // Only an id-less (server-fabricated) shell is bare; empty content
-      // fields are legitimate for a real account with no profile data.
-      'profile_is_bare': profile.id.trim().isEmpty,
-    };
-  }
 
   void _logSenderFailure(
     String message, {
@@ -695,6 +674,14 @@ class MessagesNotifier extends _$MessagesNotifier
     _messageCache = MessageCache(maxSize: PaginationConfig.maxCacheSize);
     _pendingCache = ref.read(chatPendingMessageCacheProvider);
     _repository = MessageRepository(ref, roomId, _messageCache);
+    _memberDirectory = MessageMemberDirectory(
+      ref: ref,
+      roomId: roomId,
+      database: _database,
+      repository: _repository,
+      apiClient: _apiClient,
+      timeline: this,
+    );
     _syncService = MessageSyncService(
       roomId,
       _repository,
@@ -770,7 +757,7 @@ class MessagesNotifier extends _$MessagesNotifier
     }
     _roomEncryptionMode = room.encryptionMode;
     _mlsGroupId = room.mlsGroupId;
-    await _hydrateMemberDirectory(room);
+    await _memberDirectory.hydrate(room);
 
     if (disposed || !ref.mounted) {
       return const <LocalChatMessage>[];
@@ -832,7 +819,7 @@ class MessagesNotifier extends _$MessagesNotifier
     // Allow building even if identity is null for public rooms
     if (identity != null) {
       _identity = identity;
-      _upsertMember(identity);
+      _memberDirectory.upsert(identity);
     }
 
     Logger.root.info('MessagesNotifier built for room $roomId');
@@ -962,7 +949,7 @@ class MessagesNotifier extends _$MessagesNotifier
       next,
     ) {
       next.whenData((member) {
-        if (_upsertMember(member) && ref.mounted) {
+        if (_memberDirectory.upsert(member) && ref.mounted) {
           _emitMessages(_currentMessages);
         }
       });
@@ -970,7 +957,7 @@ class MessagesNotifier extends _$MessagesNotifier
 
     final initial = _dedupeMessages(
       _sortMessages(
-        _normalizeMessageMembers(
+        _memberDirectory.normalizeMessages(
           await _loadInitialMessages(forceRemoteRefresh: false),
         ),
       ),
@@ -990,7 +977,10 @@ class MessagesNotifier extends _$MessagesNotifier
         ? initial
         : _dedupeMessages(
             _sortMessages(
-              _normalizeMessageMembers([...activeOutboxMessages, ...initial]),
+              _memberDirectory.normalizeMessages([
+                ...activeOutboxMessages,
+                ...initial,
+              ]),
             ),
           );
 
@@ -1003,83 +993,6 @@ class MessagesNotifier extends _$MessagesNotifier
     return _filterActiveMessages(initialWithOutbox);
   }
 
-  bool _upsertMember(SnChatMember? member, {bool force = false}) {
-    if (member == null) return false;
-    final existing = _membersById[member.id] ?? _membersById[member.accountId];
-    // A bare member (empty account) is degraded data from a server fallback or
-    // a pruned cache: it must never replace a member whose account is intact.
-    // The sender repair uses force to install the authoritative member.
-    if (!force &&
-        existing != null &&
-        _isBareSender(member) &&
-        !_isBareSender(existing)) {
-      return false;
-    }
-    if (!force &&
-        existing != null &&
-        !member.updatedAt.isAfter(existing.updatedAt) &&
-        existing == member) {
-      return false;
-    }
-    if (!force &&
-        existing != null &&
-        existing.updatedAt.isAfter(member.updatedAt)) {
-      return false;
-    }
-    _membersById[member.id] = member;
-    _membersById[member.accountId] = member;
-    return true;
-  }
-
-  /// Stores sender data separately from messages so account/profile updates
-  /// received with a new message survive a timeline or app reload.
-  Future<void> _upsertIncomingMessageSender(SnChatMember sender) async {
-    if (!_upsertMember(sender)) return;
-
-    try {
-      await _database.saveAccount(
-        sender.account,
-        source: 'realtime chat message sender',
-      );
-      await _database.saveMember(sender);
-    } catch (error, stackTrace) {
-      // A bare/empty sender profile (server-side fallback) is refused by the
-      // cache guard; that must not fail the message pipeline. The in-memory
-      // member is already upserted above, so the UI still renders this session.
-      final accountDiagnostic = <String, dynamic>{
-        'member_id': sender.id,
-        ..._accountProfileDiagnostic(sender.account),
-      };
-      _logSenderFailure(
-        'Failed to persist sender ${sender.accountId} for room $roomId; '
-        'account/profile diagnostic: ${jsonEncode(accountDiagnostic)}',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return;
-    }
-
-    // Existing messages refer to the canonical member directory. Emit them
-    // again so a repaired account/profile is reflected immediately. Goes
-    // through the coalescer so a burst of new senders does not each trigger a
-    // full-list rebuild.
-    if (ref.mounted) {
-      _scheduleEmit();
-    }
-  }
-
-  /// True when the member carries a server-fabricated profile shell (random
-  /// id, only account_id set) or an empty account name. Such members are what
-  /// a "lost chat member account" looks like: the room/member row survived
-  /// but the account graph did not, and the UI would render a raw ID.
-  bool _isBareSender(SnChatMember member) {
-    final account = member.account;
-    return account.id.trim().isEmpty ||
-        (account.name.trim().isEmpty &&
-            account.nick.trim().isEmpty &&
-            account.profile.picture == null);
-  }
-
   List<LocalChatMessage> get _currentMessages => _messages;
 
   /// True while the room is revealing a jump target. Timeline mutations that
@@ -1088,321 +1001,19 @@ class MessagesNotifier extends _$MessagesNotifier
   bool get _isJumpPending =>
       ref.read(chatRoomStateProvider(roomId)).pendingJumpMessageId != null;
 
-  /// Scans the active timeline for messages whose sender member/account is
-  /// missing or bare and asynchronously repairs the member directory from the
-  /// room member list, falling back to per-account and per-message refetches.
-  ///
-  /// A member-account loss is a local-data problem: the server still holds the
-  /// room member and account. The message payload itself only carries a sender
-  /// id, and the local cache refused to persist a bare account, so the repair
-  /// re-fetches the authoritative member/account and re-emits the timeline.
+  @override
+  List<LocalChatMessage> get timelineMessages => _messages;
+
+  @override
+  void scheduleTimelineEmit() => _scheduleEmit();
+
+  @override
+  void emitTimelineNow() => _emitMessages(_messages);
+
   void _scheduleSenderRepair() {
-    if (!ref.mounted || _senderRepairInFlight) return;
     if (_isJumping || _isLoadingInitial || _isLoadingMore) return;
     if (_searchQuery != null && _searchQuery!.isNotEmpty) return;
-
-    final missing = <String>[];
-    final bare = <String>[];
-    for (final message in _currentMessages) {
-      final sender = message.sender;
-      if (sender == null) {
-        if (message.senderId.isEmpty) continue;
-        missing.add(message.senderId);
-        continue;
-      }
-      if (sender.accountId == 'system') continue;
-      if (_isBareSender(sender)) bare.add(sender.id);
-    }
-    if (missing.isEmpty && bare.isEmpty) return;
-    if (missing.length + bare.length > _senderRepairMaxMessages) return;
-
-    _senderRepairInFlight = true;
-    unawaited(
-      _repairSenders(
-        memberIds: {...bare, ...missing}.toList(),
-      ).whenComplete(() => _senderRepairInFlight = false),
-    );
-  }
-
-  static const int _senderRepairMaxMessages = 100;
-
-  Future<void> _repairSenders({required List<String> memberIds}) async {
-    final resolvedByMemberId = <String, SnChatMember>{};
-
-    try {
-      // 1. Authoritative per-member endpoint: every active room member comes
-      // back with its account hydrated, and leavers are excluded.
-      var offset = 0;
-      const pageSize = 50;
-      final wanted = memberIds.toSet();
-      while (wanted.isNotEmpty) {
-        final response = await _apiClient.get(
-          '/messager/chat/$roomId/members',
-          queryParameters: {'offset': offset, 'take': pageSize},
-        );
-        final rawMembers = (response.data as List?) ?? const [];
-        for (final raw in rawMembers.whereType<Map>()) {
-          final member = _tryParseChatMemberJson(raw);
-          if (member == null) continue;
-          if (wanted.remove(member.id)) {
-            resolvedByMemberId[member.id] = member;
-          }
-        }
-        final totalRaw = response.headers['x-total']?.firstOrNull;
-        final total = int.tryParse(totalRaw ?? '') ?? rawMembers.length;
-        offset += rawMembers.length;
-        if (rawMembers.isEmpty || offset >= total) break;
-      }
-    } catch (err, stackTrace) {
-      Logger.root.info(
-        'Failed to fetch room members for sender repair in room $roomId',
-        err,
-        stackTrace,
-      );
-    }
-
-    // 2. Fall back to the per-account endpoint for ids the member list did not
-    // cover (leavers, or members filtered from the page). The member id and
-    // account id differ, so resolve the account id from the in-memory
-    // directory or the local message row.
-    final unresolved = memberIds
-        .where((memberId) => !resolvedByMemberId.containsKey(memberId))
-        .toList();
-    if (unresolved.isNotEmpty) {
-      final sdk = ref.read(solarNetworkClientProvider);
-      final accountIds = <String, String>{}; // memberId -> accountId
-      final memberForMessage =
-          <String, LocalChatMessage>{}; // memberId -> sample
-      for (final memberId in unresolved) {
-        final existing = _membersById[memberId];
-        if (existing != null) {
-          accountIds[memberId] = existing.accountId;
-          continue;
-        }
-        final sample = _currentMessages
-            .where((m) => m.senderId == memberId)
-            .firstOrNull;
-        if (sample == null) continue;
-        memberForMessage[memberId] = sample;
-        final local = await _repository.getLocalMessage(sample.id);
-        if (local?.sender != null) {
-          accountIds[memberId] = local!.sender!.accountId;
-        }
-      }
-      final distinctAccountIds = accountIds.values.toSet();
-      for (final accountId in distinctAccountIds) {
-        if (_repairedAccountIds.contains(accountId)) continue;
-        try {
-          final account = await sdk.accounts.getAccountById(accountId);
-          await _database.saveAccount(account, source: 'chat sender repair');
-          final member = _membersById.entries
-              .where((entry) => entry.value.accountId == accountId)
-              .firstOrNull
-              ?.value;
-          if (member != null) {
-            final repaired = member.copyWith(account: account);
-            _upsertMember(repaired, force: true);
-            await _database.saveMember(repaired);
-            _repairedAccountIds.add(accountId);
-            _emitMessages(_currentMessages);
-          } else {
-            // No local member row to attach the account to (deleted member or
-            // cache evicted): rebuild the member from the message's own
-            // accountId, and let step 3's re-emit pick it up.
-            final fallbackMember = SnChatMember(
-              id: accountId,
-              chatRoomId: roomId,
-              chatRoom: null,
-              accountId: accountId,
-              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
-              updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
-              deletedAt: null,
-              account: account,
-              nick: null,
-              notify: 0,
-              joinedAt: null,
-              breakUntil: null,
-              timeoutUntil: null,
-              chatGroupId: null,
-              chatGroup: null,
-              lastReadAt: null,
-              status: null,
-              realmNick: null,
-              realmBio: null,
-              realmExperience: null,
-              realmLevel: null,
-              realmLevelingProgress: null,
-              realmLabel: null,
-            );
-            _upsertMember(fallbackMember, force: true);
-            await _database.saveMember(fallbackMember);
-            _repairedAccountIds.add(accountId);
-            _emitMessages(_currentMessages);
-          }
-        } catch (err, stackTrace) {
-          Logger.root.info(
-            'Failed to repair sender account $accountId for room $roomId',
-            err,
-            stackTrace,
-          );
-        }
-      }
-
-      // Members with no resolvable account id locally (sender row missing
-      // entirely): refetch one of their messages; the server hydrates the
-      // sender member on that response.
-      for (final entry in memberForMessage.entries) {
-        if (accountIds.containsKey(entry.key)) continue;
-        if (_repairedAccountIds.contains(entry.key)) continue;
-        try {
-          final remote = await _repository.fetchRemoteMessage(entry.value.id);
-          final sender = remote?.sender;
-          if (sender == null || sender.accountId == 'system') continue;
-          if (_isBareSender(sender)) continue;
-          if (!_upsertMember(sender, force: true)) continue;
-          await _database.saveAccount(
-            sender.account,
-            source: 'chat sender repair',
-          );
-          await _database.saveMember(sender);
-          _repairedAccountIds.add(entry.key);
-          _emitMessages(_currentMessages);
-        } catch (err, stackTrace) {
-          Logger.root.info(
-            'Failed to repair sender member ${entry.key} for room $roomId',
-            err,
-            stackTrace,
-          );
-        }
-      }
-    }
-
-    // 3. Apply the room-member results and re-emit so the normalized member
-    // directory refreshes every message.
-    var changed = false;
-    for (final member in resolvedByMemberId.values) {
-      final existing = _membersById[member.id];
-      if (existing != null && !_isBareSender(existing)) {
-        if (!_upsertMember(member)) continue;
-        changed = true;
-      } else {
-        _upsertMember(member, force: true);
-        changed = true;
-      }
-      try {
-        await _database.saveAccount(
-          member.account,
-          source: 'chat sender repair',
-        );
-        await _database.saveMember(member);
-      } catch (err, stackTrace) {
-        Logger.root.info(
-          'Failed to persist repaired sender ${member.id} for room $roomId',
-          err,
-          stackTrace,
-        );
-      }
-    }
-    if (changed && ref.mounted) {
-      _emitMessages(_currentMessages);
-    }
-  }
-
-  SnChatMember? _tryParseChatMemberJson(dynamic data) {
-    if (data is! Map<String, dynamic>) return null;
-    try {
-      return SnChatMember.fromJson(data);
-    } catch (err, stackTrace) {
-      _logSenderFailure(
-        'Skipping invalid chat member during sender repair; '
-        'diagnostic: ${jsonEncode({'member_id': data['id'], 'account_id': data['account_id'], 'account_keys': _mapKeys(data['account'])})}',
-        error: err,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-  }
-
-  /// Restores the room's member directory before messages are normalized.
-  ///
-  /// Message payloads do not always include their sender.  In that case the
-  /// local message cache only contains a sender ID, so this directory is what
-  /// lets [_normalizeMessageMember] recover the account name and avatar
-  /// instead of falling back to displaying that ID.
-  Future<void> _hydrateMemberDirectory(SnChatRoom room) async {
-    for (final member in room.members ?? const <SnChatMember>[]) {
-      _upsertMember(member);
-    }
-
-    final cachedMembers = await _database.getMembersByRoomId(roomId);
-    for (final member in cachedMembers) {
-      _upsertMember(member);
-    }
-  }
-
-  LocalChatMessage _copyWithSender(
-    LocalChatMessage message,
-    SnChatMember? sender,
-  ) {
-    final data = Map<String, dynamic>.from(message.data)..remove('sender');
-    return LocalChatMessage(
-      id: message.id,
-      roomId: message.roomId,
-      senderId: message.senderId,
-      sender: sender,
-      data: data,
-      createdAt: message.createdAt,
-      clientMessageId: message.clientMessageId,
-      nonce: message.nonce,
-      status: message.status,
-      content: message.content,
-      isDeleted: message.isDeleted,
-      updatedAt: message.updatedAt,
-      deletedAt: message.deletedAt,
-      type: message.type,
-      meta: message.meta,
-      membersMentioned: message.membersMentioned,
-      editedAt: message.editedAt,
-      attachments: message.attachments,
-      reactions: message.reactions,
-      repliedMessageId: message.repliedMessageId,
-      forwardedMessageId: message.forwardedMessageId,
-      localAttachments: message.localAttachments,
-    );
-  }
-
-  LocalChatMessage _normalizeMessageMember(LocalChatMessage message) {
-    final incoming = message.sender;
-    if (incoming != null) {
-      final existing = _membersById[incoming.id];
-      final canonical =
-          existing == null || incoming.updatedAt.isAfter(existing.updatedAt)
-          ? incoming
-          : existing;
-      _membersById[incoming.id] = canonical;
-      _membersById[incoming.accountId] = canonical;
-      if (!identical(message.sender, canonical) ||
-          message.data.containsKey('sender')) {
-        return _copyWithSender(message, canonical);
-      }
-      return message;
-    }
-
-    final cached = _membersById[message.senderId];
-    if (cached != null || message.data.containsKey('sender')) {
-      return _copyWithSender(message, cached);
-    }
-    return message;
-  }
-
-  List<LocalChatMessage> _normalizeMessageMembers(
-    Iterable<LocalChatMessage> messages,
-  ) {
-    final list = messages.toList();
-    for (final message in list) {
-      _upsertMember(message.sender);
-    }
-    return list.map(_normalizeMessageMember).toList();
+    _memberDirectory.scheduleRepair();
   }
 
   List<LocalChatMessage> _sortMessages(List<LocalChatMessage> messages) {
@@ -1418,7 +1029,9 @@ class MessagesNotifier extends _$MessagesNotifier
     _isUpdatingState = true;
     try {
       // Ensure messages are properly sorted and deduplicated
-      final sortedMessages = _sortMessages(_normalizeMessageMembers(messages));
+      final sortedMessages = _sortMessages(
+        _memberDirectory.normalizeMessages(messages),
+      );
       final uniqueMessages = <LocalChatMessage>[];
       final seenIds = <String>{};
       for (final message in sortedMessages) {
@@ -1519,7 +1132,7 @@ class MessagesNotifier extends _$MessagesNotifier
   void _emitMessages(List<LocalChatMessage> messages) {
     if (!ref.mounted) return;
     final normalized = _dedupeMessages(
-      _sortMessages(_normalizeMessageMembers(messages)),
+      _sortMessages(_memberDirectory.normalizeMessages(messages)),
     );
     _messages = normalized;
     _refreshLatestObservedRoomSequence(normalized);
@@ -1806,11 +1419,13 @@ class MessagesNotifier extends _$MessagesNotifier
         }
       }
       return _filterActiveMessages(
-        _normalizeMessageMembers(finalUniqueMessages),
+        _memberDirectory.normalizeMessages(finalUniqueMessages),
       );
     }
 
-    return _filterActiveMessages(_normalizeMessageMembers(uniqueMessages));
+    return _filterActiveMessages(
+      _memberDirectory.normalizeMessages(uniqueMessages),
+    );
   }
 
   /// Consolidated initialization that handles pagination reset, sync, and initial load
@@ -2219,7 +1834,7 @@ class MessagesNotifier extends _$MessagesNotifier
 
   @override
   Future<void> onSenderObserved(SnChatMember sender) =>
-      _upsertIncomingMessageSender(sender);
+      _memberDirectory.upsertIncomingSender(sender);
 
   @override
   void onRealtimeRefreshRequested() {
@@ -2232,7 +1847,7 @@ class MessagesNotifier extends _$MessagesNotifier
     if (sender != null) {
       // This also covers messages recovered through room-sequence sync, which
       // bypass the real-time handler's intake callback.
-      unawaited(_upsertIncomingMessageSender(sender));
+      unawaited(_memberDirectory.upsertIncomingSender(sender));
     }
 
     final isMessageUpdate =
