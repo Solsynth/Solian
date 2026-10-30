@@ -4,6 +4,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/data/message_cache.dart';
 import 'package:island/chat/data/message_repository.dart';
 import 'package:island/chat/e2ee_message_service.dart';
+import 'package:island/chat/realtime/message_realtime_sink.dart';
 import 'package:island/chat/sync/message_sync_service.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/data/message.dart';
@@ -25,15 +26,8 @@ class RealtimeMessageHandler {
   // Subscriptions
   StreamSubscription<WebSocketPacket>? _wsSubscription;
 
-  // Callbacks for UI updates
-  final void Function(LocalChatMessage message, int? roomSequence)?
-  onNewMessage;
-  final void Function(LocalChatMessage message, int? roomSequence)?
-  onMessageUpdate;
-  final void Function(LocalChatMessage message, int? roomSequence)?
-  onMessageDelete;
-  final Future<void> Function(SnChatMember sender)? onIncomingMessageSender;
-  final void Function()? onReconnectionNeeded;
+  /// Receives the parsed rows for the open room's timeline.
+  final MessageRealtimeSink _sink;
 
   bool _isJumping = false;
   bool _hasPendingRefresh = false;
@@ -46,12 +40,9 @@ class RealtimeMessageHandler {
     this._pendingCache,
     this._messageCache, {
     E2eeMessageService? e2eeService,
-    this.onNewMessage,
-    this.onMessageUpdate,
-    this.onMessageDelete,
-    this.onIncomingMessageSender,
-    this.onReconnectionNeeded,
-  }) : _e2eeService = e2eeService;
+    required MessageRealtimeSink sink,
+  }) : _e2eeService = e2eeService,
+       _sink = sink;
 
   /// Starts listening to real-time events.
   void startListening() {
@@ -103,7 +94,7 @@ class RealtimeMessageHandler {
 
     if (_hasPendingRefresh) {
       _hasPendingRefresh = false;
-      onReconnectionNeeded?.call();
+      _sink.onRealtimeRefreshRequested();
     }
   }
 
@@ -180,7 +171,7 @@ class RealtimeMessageHandler {
     // delaying rendering. The in-memory member directory is updated
     // synchronously inside the call, so normalization still resolves the
     // sender; the notifier re-emits once the writes land.
-    onIncomingMessageSender?.call(remoteMessage.sender);
+    unawaited(_sink.onSenderObserved(remoteMessage.sender));
 
     final existing = await _repository.getLocalMessage(remoteMessage.id);
 
@@ -195,7 +186,7 @@ class RealtimeMessageHandler {
         'Message ${remoteMessage.id} already exists; emitting stored row',
       );
       _pendingCache.removeByClientId(remoteMessage.clientMessageId);
-      onNewMessage?.call(existing, roomSequence);
+      _sink.onMessageAdded(existing, roomSequence);
       return;
     }
 
@@ -203,7 +194,7 @@ class RealtimeMessageHandler {
     final processed = await _syncService.processRemoteMessages([remoteMessage]);
 
     if (processed.isNotEmpty) {
-      onNewMessage?.call(processed.first, roomSequence);
+      _sink.onMessageAdded(processed.first, roomSequence);
     }
   }
 
@@ -247,13 +238,13 @@ class RealtimeMessageHandler {
     // it there if processing is interrupted before the merged write below).
     if (!isSilentSync && updateEvent.id != targetId) {
       await _repository.saveMessage(updateEvent);
-      onNewMessage?.call(updateEvent, roomSequence);
+      _sink.onMessageAdded(updateEvent, roomSequence);
     }
 
     final updated = _buildUpdatedMessage(existing, updateEvent);
 
     await _repository.saveMessage(updated);
-    onMessageUpdate?.call(updated, roomSequence);
+    _sink.onMessageChanged(updated, roomSequence);
   }
 
   Future<void> _handleReactionEvent(
@@ -316,7 +307,7 @@ class RealtimeMessageHandler {
     final updated = _copyWithMergedData(existing, updatedData);
     await _repository.saveMessage(updated);
     _messageCache.put(updated);
-    onMessageUpdate?.call(updated, roomSequence);
+    _sink.onMessageChanged(updated, roomSequence);
   }
 
   Future<void> _handleDeleteMessageEvent(
@@ -333,7 +324,7 @@ class RealtimeMessageHandler {
       MessageStatus.sent,
     );
     await _repository.saveMessage(deleteEvent);
-    onNewMessage?.call(deleteEvent, roomSequence);
+    _sink.onMessageAdded(deleteEvent, roomSequence);
 
     final targetId =
         remoteMessage.meta['message_id']?.toString() ?? remoteMessage.id;
@@ -374,13 +365,13 @@ class RealtimeMessageHandler {
 
     await _repository.saveMessage(deleted);
     _messageCache.put(deleted);
-    onMessageDelete?.call(deleted, null);
+    _sink.onMessageRemoved(deleted, null);
   }
 
   void _handleE2eeEnabled() {
     _logger.info('E2EE enabled for room $_roomId');
     // Trigger re-sync to ensure proper encryption state
-    onReconnectionNeeded?.call();
+    _sink.onRealtimeRefreshRequested();
   }
 
   // ── Placeholder Message Handling ──────────────────────────────────────────
@@ -412,7 +403,7 @@ class RealtimeMessageHandler {
       );
       await _repository.saveMessage(local);
       _messageCache.put(local);
-      onMessageUpdate?.call(local, null);
+      _sink.onMessageChanged(local, null);
     } catch (e) {
       _logger.warning('Failed to handle placeholder update: $e');
     }
@@ -433,7 +424,7 @@ class RealtimeMessageHandler {
       );
       await _repository.saveMessage(local);
       _messageCache.put(local);
-      onMessageUpdate?.call(local, null);
+      _sink.onMessageChanged(local, null);
     } catch (e) {
       _logger.warning('Failed to handle placeholder finalize: $e');
     }
@@ -449,7 +440,7 @@ class RealtimeMessageHandler {
 
     final message = await _repository.getLocalMessage(messageId);
     if (message != null) {
-      onMessageDelete?.call(message, null);
+      _sink.onMessageRemoved(message, null);
     }
   }
 
@@ -499,7 +490,7 @@ class RealtimeMessageHandler {
     );
 
     await _repository.saveMessage(systemMessage);
-    onNewMessage?.call(systemMessage, null);
+    _sink.onMessageAdded(systemMessage, null);
   }
 
   /// Inserts the E2EE history unavailable message.

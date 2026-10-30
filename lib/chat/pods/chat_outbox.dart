@@ -7,6 +7,7 @@ import 'package:island/chat/data/message_repository.dart';
 import 'package:island/chat/e2ee_message_service.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
+import 'package:island/chat/send/message_send_session.dart';
 import 'package:island/chat/send/message_sender.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/ios_share_suggestions.dart';
@@ -141,43 +142,9 @@ final chatPendingMessageCacheProvider = Provider<PendingMessageCache>(
   (ref) => PendingMessageCache(),
 );
 
-class _ChatSendRequest {
-  final String roomId;
-  final String content;
-  final List<UniversalFile> attachments;
-  final SnChatMember sender;
-  final int encryptionMode;
-  final String? mlsGroupId;
-  final List<Map<String, dynamic>>? embeds;
-  final SnChatMessage? editingTo;
-  final SnChatMessage? forwardingTo;
-  final SnChatMessage? replyingTo;
-  final SnChatMessage? threadingTo;
-  final bool isVoice;
-  final String? voiceFilePath;
-  final int? voiceDurationMs;
-
-  const _ChatSendRequest({
-    required this.roomId,
-    required this.content,
-    required this.attachments,
-    required this.sender,
-    required this.encryptionMode,
-    required this.mlsGroupId,
-    this.embeds,
-    this.editingTo,
-    this.forwardingTo,
-    this.replyingTo,
-    this.threadingTo,
-    this.isVoice = false,
-    this.voiceFilePath,
-    this.voiceDurationMs,
-  });
-}
-
 class _ChatSendTask {
   final String entryId;
-  final _ChatSendRequest request;
+  final MessageSendRequest request;
   final MessageSender sender;
   final MessageRepository repository;
 
@@ -287,20 +254,21 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
       return SendResult.failure('Blocked by plugin');
     }
 
-    final request = _ChatSendRequest(
-      roomId: roomId,
-      content: hookResult.data ?? content,
-      attachments: attachments,
-      sender: sender,
+    return _start(
+      MessageSendRequest(
+        roomId: roomId,
+        content: hookResult.data ?? content,
+        attachments: attachments,
+        sender: sender,
+        embeds: embeds,
+        editingTo: editingTo,
+        forwardingTo: forwardingTo,
+        replyingTo: replyingTo,
+        threadingTo: threadingTo,
+      ),
       encryptionMode: encryptionMode,
       mlsGroupId: mlsGroupId,
-      embeds: embeds,
-      editingTo: editingTo,
-      forwardingTo: forwardingTo,
-      replyingTo: replyingTo,
-      threadingTo: threadingTo,
     );
-    return _start(request);
   }
 
   /// Starts sending a recorded voice message.
@@ -315,19 +283,19 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
     SnChatMessage? replyingTo,
   }) {
     return _start(
-      _ChatSendRequest(
+      MessageSendRequest(
         roomId: roomId,
         content: '',
         attachments: const [],
         sender: sender,
-        encryptionMode: encryptionMode,
-        mlsGroupId: mlsGroupId,
         forwardingTo: forwardingTo,
         replyingTo: replyingTo,
         isVoice: true,
         voiceFilePath: filePath,
         voiceDurationMs: durationMs,
       ),
+      encryptionMode: encryptionMode,
+      mlsGroupId: mlsGroupId,
     );
   }
 
@@ -357,12 +325,11 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
       );
     });
 
-    final result = await task.sender.retryMessage(
+    final session = task.sender.retryMessage(
       pendingId,
       sender: task.request.sender,
-      onProgress: (messageId, progress) =>
-          _onProgress(task, messageId, progress),
     );
+    final result = await _observeSession(task, session);
     await _finish(task, result);
     return result;
   }
@@ -392,7 +359,11 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
     state = next;
   }
 
-  Future<SendResult> _start(_ChatSendRequest request) {
+  Future<SendResult> _start(
+    MessageSendRequest request, {
+    required int encryptionMode,
+    String? mlsGroupId,
+  }) {
     final entryId = const Uuid().v4();
     _putEntry(
       ChatOutboxEntry(
@@ -406,18 +377,28 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
       ),
     );
 
-    final task = _createTask(entryId, request);
+    final task = _createTask(
+      entryId,
+      request,
+      encryptionMode: encryptionMode,
+      mlsGroupId: mlsGroupId,
+    );
     _tasks[entryId] = task;
     return request.isVoice ? _runVoice(task) : _runText(task);
   }
 
-  _ChatSendTask _createTask(String entryId, _ChatSendRequest request) {
+  _ChatSendTask _createTask(
+    String entryId,
+    MessageSendRequest request, {
+    required int encryptionMode,
+    String? mlsGroupId,
+  }) {
     final repository = MessageRepository(ref, request.roomId, MessageCache());
     final pendingCache = ref.read(chatPendingMessageCacheProvider);
     final e2eeService = E2eeMessageService(
       ref: ref,
-      mlsGroupId: request.mlsGroupId,
-      isE2eeRoom: request.encryptionMode == 3,
+      mlsGroupId: mlsGroupId,
+      isE2eeRoom: encryptionMode == 3,
     );
     final sender = MessageSender(
       ref,
@@ -425,7 +406,7 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
       repository,
       pendingCache,
       e2eeService: e2eeService,
-      fileEncryptKey: request.encryptionMode == 3
+      fileEncryptKey: encryptionMode == 3
           ? deriveE2eeFileEncryptKey(request.roomId)
           : null,
     );
@@ -438,36 +419,41 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
   }
 
   Future<SendResult> _runText(_ChatSendTask task) async {
-    final request = task.request;
-    final result = await task.sender.sendTextMessage(
-      content: request.content,
-      attachments: request.attachments,
-      sender: request.sender,
-      editingTo: request.editingTo,
-      replyingTo: request.replyingTo,
-      forwardingTo: request.forwardingTo,
-      threadingTo: request.threadingTo,
-      embeds: request.embeds,
-      onPending: (pending) => _onPending(task, pending),
-      onProgress: (messageId, progress) =>
-          _onProgress(task, messageId, progress),
+    final result = await _observeSession(
+      task,
+      task.sender.sendTextMessage(task.request),
     );
     await _finish(task, result);
     return result;
   }
 
   Future<SendResult> _runVoice(_ChatSendTask task) async {
-    final request = task.request;
-    final result = await task.sender.sendVoiceMessage(
-      filePath: request.voiceFilePath!,
-      sender: request.sender,
-      durationMs: request.voiceDurationMs,
-      forwardingTo: request.forwardingTo,
-      replyingTo: request.replyingTo,
-      onPending: (pending) => _onPending(task, pending),
+    final result = await _observeSession(
+      task,
+      task.sender.sendVoiceMessage(task.request),
     );
     await _finish(task, result);
     return result;
+  }
+
+  /// Subscribes the outbox task to a send session and returns its result.
+  Future<SendResult> _observeSession(
+    _ChatSendTask task,
+    MessageSendSession session,
+  ) async {
+    unawaited(
+      session.pending
+          .then((pending) => _onPending(task, pending))
+          .catchError((Object _) {}),
+    );
+    final progressSubscription = session.progress.listen(
+      (progress) => _onProgress(task, progress),
+    );
+    try {
+      return await session.result;
+    } finally {
+      await progressSubscription.cancel();
+    }
   }
 
   void _onPending(_ChatSendTask task, LocalChatMessage pending) {
@@ -490,12 +476,11 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
     }
   }
 
-  void _onProgress(
-    _ChatSendTask task,
-    String messageId,
-    Map<int, double?> progress,
-  ) {
-    final overall = _overallProgress(task.request.attachments, progress);
+  void _onProgress(_ChatSendTask task, MessageUploadProgress progress) {
+    final overall = _overallProgress(
+      task.request.attachments,
+      progress.attachments,
+    );
     final last = task.lastReportedProgress;
     if (last != null && overall < 1 && (overall - last).abs() < 0.02) {
       return;
@@ -507,7 +492,7 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
       _eventController.add(
         ChatOutboxProgressEvent(
           task.request.roomId,
-          messageId: task.pending?.id ?? messageId,
+          messageId: task.pending?.id ?? progress.messageId,
           progress: overall,
         ),
       );

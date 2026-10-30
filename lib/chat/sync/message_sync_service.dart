@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/data/message_cache.dart';
 import 'package:island/chat/data/message_repository.dart';
 import 'package:island/chat/e2ee_message_service.dart';
@@ -25,7 +24,6 @@ class MessageSyncService {
   bool _allRemoteFetched = false;
 
   MessageSyncService(
-    Ref _,
     this._roomId,
     this._repository,
     this._cache,

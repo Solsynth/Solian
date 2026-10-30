@@ -13,6 +13,7 @@ import "package:island/chat/data/message_cache.dart";
 import "package:island/chat/data/message_repository.dart";
 import "package:island/chat/models/chat_view_state.dart";
 import "package:island/chat/realtime/message_handler.dart";
+import "package:island/chat/realtime/message_realtime_sink.dart";
 import "package:island/chat/send/message_sender.dart";
 import "package:island/chat/sync/message_sync_service.dart";
 import "package:island/data/database.dart";
@@ -93,7 +94,8 @@ class ReferencedChatMessageCache
 const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
 
 @riverpod
-class MessagesNotifier extends _$MessagesNotifier {
+class MessagesNotifier extends _$MessagesNotifier
+    implements MessageRealtimeSink {
   late Dio _apiClient;
   late AppDatabase _database;
   SnChatMember? _identity;
@@ -694,7 +696,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     _pendingCache = ref.read(chatPendingMessageCacheProvider);
     _repository = MessageRepository(ref, roomId, _messageCache);
     _syncService = MessageSyncService(
-      ref,
       roomId,
       _repository,
       _messageCache,
@@ -717,81 +718,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _pendingCache,
       _messageCache,
       e2eeService: _e2eeService,
-      onNewMessage: (message, roomSequence) {
-        final messageWithSequence = _applyRoomSequence(message, roomSequence);
-        if (messageWithSequence.status == MessageStatus.sent &&
-            messageWithSequence.type != 'placeholder') {
-          ref
-              .read(chatOutboxProvider.notifier)
-              .markFinalized(roomId, messageWithSequence);
-        }
-        ref
-            .read(referencedChatMessageCacheProvider(roomId).notifier)
-            .put(messageWithSequence, messageId: messageWithSequence.id);
-        _observeRoomSequence(roomSequence, message.createdAt);
-        _upsertReceivedMessageInState(messageWithSequence);
-      },
-      onMessageUpdate: (message, roomSequence) {
-        final messageWithSequence = _applyRoomSequence(message, roomSequence);
-        ref
-            .read(referencedChatMessageCacheProvider(roomId).notifier)
-            .put(messageWithSequence, messageId: messageWithSequence.id);
-        _observeRoomSequence(roomSequence, message.createdAt);
-        if (messageWithSequence.status == MessageStatus.sent &&
-            messageWithSequence.type != 'placeholder') {
-          ref
-              .read(chatOutboxProvider.notifier)
-              .markFinalized(roomId, messageWithSequence);
-          _pendingMessages.remove(messageWithSequence.id);
-          _pendingCache.remove(messageWithSequence.id);
-          ref
-              .read(chatRoomStateProvider(roomId).notifier)
-              .updateAttachmentProgress(messageWithSequence.id, null);
-        }
-        // In-thread replies live in the thread panel; the main timeline never
-        // renders them and timeline pagination counts top-level rows only.
-        if (messageWithSequence.threadId != null) return;
-        final list = _messages;
-        final index = list.indexWhere((m) => m.id == messageWithSequence.id);
-        if (index >= 0) {
-          list[index] = messageWithSequence;
-        } else {
-          list.add(messageWithSequence);
-        }
-        _scheduleEmit();
-      },
-      onMessageDelete: (message, roomSequence) {
-        final messageWithSequence = _applyRoomSequence(message, roomSequence);
-        ref
-            .read(referencedChatMessageCacheProvider(roomId).notifier)
-            .put(messageWithSequence, messageId: messageWithSequence.id);
-        _observeRoomSequence(roomSequence, message.createdAt);
-        if (messageWithSequence.type == 'placeholder') {
-          _pendingMessages.remove(messageWithSequence.id);
-          _pendingCache.remove(messageWithSequence.id);
-          unawaited(_repository.deleteMessage(messageWithSequence.id));
-          final list = _messages;
-          list.removeWhere((item) => item.id == messageWithSequence.id);
-          _scheduleEmit();
-          return;
-        }
-        // In-thread replies live in the thread panel; the main timeline never
-        // renders them and timeline pagination counts top-level rows only.
-        if (messageWithSequence.threadId != null) return;
-        final list = _messages;
-        final index = list.indexWhere((m) => m.id == messageWithSequence.id);
-        if (index >= 0) {
-          list[index] = messageWithSequence;
-        } else {
-          list.add(messageWithSequence);
-        }
-        _scheduleEmit();
-      },
-      onIncomingMessageSender: _upsertIncomingMessageSender,
-      onReconnectionNeeded: () {
-        unawaited(loadInitial(forceRemoteRefresh: false));
-        _scheduleSenderRepair();
-      },
+      sink: this,
     );
     StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
     StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
@@ -2212,6 +2139,94 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  // ── MessageRealtimeSink ─────────────────────────────────────────────
+
+  @override
+  void onMessageAdded(LocalChatMessage message, int? roomSequence) {
+    final messageWithSequence = _applyRoomSequence(message, roomSequence);
+    if (messageWithSequence.status == MessageStatus.sent &&
+        messageWithSequence.type != 'placeholder') {
+      ref
+          .read(chatOutboxProvider.notifier)
+          .markFinalized(roomId, messageWithSequence);
+    }
+    ref
+        .read(referencedChatMessageCacheProvider(roomId).notifier)
+        .put(messageWithSequence, messageId: messageWithSequence.id);
+    _observeRoomSequence(roomSequence, message.createdAt);
+    _upsertReceivedMessageInState(messageWithSequence);
+  }
+
+  @override
+  void onMessageChanged(LocalChatMessage message, int? roomSequence) {
+    final messageWithSequence = _applyRoomSequence(message, roomSequence);
+    ref
+        .read(referencedChatMessageCacheProvider(roomId).notifier)
+        .put(messageWithSequence, messageId: messageWithSequence.id);
+    _observeRoomSequence(roomSequence, message.createdAt);
+    if (messageWithSequence.status == MessageStatus.sent &&
+        messageWithSequence.type != 'placeholder') {
+      ref
+          .read(chatOutboxProvider.notifier)
+          .markFinalized(roomId, messageWithSequence);
+      _pendingMessages.remove(messageWithSequence.id);
+      _pendingCache.remove(messageWithSequence.id);
+      ref
+          .read(chatRoomStateProvider(roomId).notifier)
+          .updateAttachmentProgress(messageWithSequence.id, null);
+    }
+    // In-thread replies live in the thread panel; the main timeline never
+    // renders them and timeline pagination counts top-level rows only.
+    if (messageWithSequence.threadId != null) return;
+    final list = _messages;
+    final index = list.indexWhere((m) => m.id == messageWithSequence.id);
+    if (index >= 0) {
+      list[index] = messageWithSequence;
+    } else {
+      list.add(messageWithSequence);
+    }
+    _scheduleEmit();
+  }
+
+  @override
+  void onMessageRemoved(LocalChatMessage message, int? roomSequence) {
+    final messageWithSequence = _applyRoomSequence(message, roomSequence);
+    ref
+        .read(referencedChatMessageCacheProvider(roomId).notifier)
+        .put(messageWithSequence, messageId: messageWithSequence.id);
+    _observeRoomSequence(roomSequence, message.createdAt);
+    if (messageWithSequence.type == 'placeholder') {
+      _pendingMessages.remove(messageWithSequence.id);
+      _pendingCache.remove(messageWithSequence.id);
+      unawaited(_repository.deleteMessage(messageWithSequence.id));
+      final list = _messages;
+      list.removeWhere((item) => item.id == messageWithSequence.id);
+      _scheduleEmit();
+      return;
+    }
+    // In-thread replies live in the thread panel; the main timeline never
+    // renders them and timeline pagination counts top-level rows only.
+    if (messageWithSequence.threadId != null) return;
+    final list = _messages;
+    final index = list.indexWhere((m) => m.id == messageWithSequence.id);
+    if (index >= 0) {
+      list[index] = messageWithSequence;
+    } else {
+      list.add(messageWithSequence);
+    }
+    _scheduleEmit();
+  }
+
+  @override
+  Future<void> onSenderObserved(SnChatMember sender) =>
+      _upsertIncomingMessageSender(sender);
+
+  @override
+  void onRealtimeRefreshRequested() {
+    unawaited(loadInitial(forceRemoteRefresh: false));
+    _scheduleSenderRepair();
+  }
+
   void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
     final sender = localMessage.sender;
     if (sender != null) {
@@ -2311,7 +2326,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
     SnChatMessage? threadingTo,
-    Function(String, Map<int, double?>)? onProgress,
   }) async {
     if (content.trim().isEmpty &&
         attachments.isEmpty &&
@@ -2322,8 +2336,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (sender == null) return;
 
     // The outbox owns the upload/send and reports progress through its own
-    // event stream. `onProgress` is kept for source compatibility while
-    // callers migrate; no caller needs to observe the send to keep it alive.
+    // event stream. No caller needs to observe the send to keep it alive.
     await ref
         .read(chatOutboxProvider.notifier)
         .enqueueText(
@@ -2374,7 +2387,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     // task (for example one loaded from the DB after an app restart).
     final sender = _identity;
     if (sender == null) return;
-    final result = await _sender.retryMessage(pendingMessageId, sender: sender);
+    final session = _sender.retryMessage(pendingMessageId, sender: sender);
+    final result = await session.result;
 
     if (!result.success || result.message == null) {
       showErrorAlert(result.error ?? 'Failed to retry message');
