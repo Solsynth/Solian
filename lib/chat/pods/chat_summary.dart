@@ -321,6 +321,32 @@ class ChatSummary extends _$ChatSummary {
     });
   }
 
+  /// Shows a message the signed-in account just sent as the room preview.
+  ///
+  /// The websocket echo may be missed when the user has already left the room,
+  /// and an own message must never raise the unread badge. Claiming the id in
+  /// the re-delivery guard keeps the later socket frame from counting it.
+  void applyOwnSentMessage(String chatId, SnChatMessage message) {
+    if (!_summarizedMessageIds.add(message.id)) return;
+
+    state.whenData((summaries) {
+      final summary = summaries[chatId];
+      if (summary == null) return;
+      final existing = summary.lastMessage;
+      if (existing != null && existing.createdAt.isAfter(message.createdAt)) {
+        return;
+      }
+      state = AsyncData({
+        ...summaries,
+        chatId: SnChatSummary(
+          unreadCount: summary.unreadCount,
+          hasUnread: summary.hasUnread,
+          lastMessage: message,
+        ),
+      });
+    });
+  }
+
   void incrementUnreadCount(String chatId) {
     state.whenData((summaries) {
       final summary = summaries[chatId];
@@ -390,8 +416,8 @@ class ChatSummary extends _$ChatSummary {
         // not reopen a badge here.
         final lastReadAt = member?.lastReadAt?.toUtc();
 
-        for (final newMessage in newMessagesByRoom[chatId] ??
-            const <SnChatMessage>[]) {
+        for (final newMessage
+            in newMessagesByRoom[chatId] ?? const <SnChatMessage>[]) {
           // Claiming the id here is what makes the bump safe against the socket
           // path: a live frame for the same message can arrive while this sync
           // is still in flight, and whichever folds it first takes the count.

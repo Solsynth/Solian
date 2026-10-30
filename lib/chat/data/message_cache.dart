@@ -148,6 +148,21 @@ class PendingMessageCache {
     }
   }
 
+  /// Removes the pending messages of one room.
+  ///
+  /// A room-scoped notifier is disposed when its screen closes, but sends that
+  /// are still in flight must keep their pending rows. Only rows that belong to
+  /// the closing room are dropped here; the cache itself is app-wide.
+  void removeForRoom(String roomId) {
+    final ids = _pending.entries
+        .where((entry) => entry.value.roomId == roomId)
+        .map((entry) => entry.key)
+        .toList();
+    for (final id in ids) {
+      remove(id);
+    }
+  }
+
   /// Gets all pending message IDs.
   Set<String> get keys => Set.unmodifiable(_pending.keys);
 

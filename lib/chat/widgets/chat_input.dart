@@ -13,8 +13,8 @@ import "package:island/accounts/utils/account_status_utils.dart";
 import "package:island/discovery/models/autocomplete_response.dart";
 import "package:island/chat/e2ee_message_display.dart";
 import "package:island/e2ee/e2ee.dart";
-import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_online_count.dart";
+import "package:island/chat/pods/chat_outbox.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
 import "package:island/posts/widgets/compose/compose_calendar_event_sheet.dart";
 import "package:island/posts/widgets/compose/compose_location_sheet.dart";
@@ -1327,7 +1327,6 @@ class ChatInput extends HookConsumerWidget {
     final amplitudeSub = useRef<StreamSubscription<rec.Amplitude>?>(null);
     final recordingTicker = useRef<Timer?>(null);
     final recordingStartedAt = useRef<DateTime?>(null);
-    final messagesNotifier = ref.read(messagesProvider(chatRoom.id).notifier);
     const maxVoiceRecordDuration = Duration(minutes: 5);
     final userInfo = ref.watch(userInfoProvider);
     final effectiveIdentity =
@@ -1460,16 +1459,29 @@ class ChatInput extends HookConsumerWidget {
       }
 
       try {
+        final sender = effectiveIdentity;
+        if (sender == null) {
+          showErrorAlert('Failed to resolve the room identity.');
+          return;
+        }
+
         isUploadingVoice.value = true;
-        await messagesNotifier.sendVoiceMessage(
-          path,
-          durationMs: durationMs,
-          replyingTo: messageReplyingTo,
-          forwardingTo: messageForwardingTo,
-        );
-        onClear();
+        // The outbox owns the upload; closing this page does not cancel it.
+        await ref
+            .read(chatOutboxProvider.notifier)
+            .enqueueVoice(
+              roomId: chatRoom.id,
+              filePath: path,
+              sender: sender,
+              encryptionMode: chatRoom.encryptionMode,
+              mlsGroupId: chatRoom.mlsGroupId,
+              durationMs: durationMs,
+              replyingTo: messageReplyingTo,
+              forwardingTo: messageForwardingTo,
+            );
+        if (context.mounted) onClear();
       } catch (_) {
-        // Error UI already handled by notifier.
+        // Error UI already handled by the outbox.
       } finally {
         isUploadingVoice.value = false;
         isVoiceCancelArmed.value = false;

@@ -4,8 +4,10 @@ import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/chat/models/redirect_data.dart';
+import 'package:island/chat/pods/chat_outbox.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/image.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -39,9 +41,7 @@ class ChatRoomAvatar extends StatelessWidget {
         : room.picture == null
         ? CircleAvatar(
             radius: radius,
-            child: Text(
-              avatarFallbackText(room.name ?? 'DM') ?? 'DM',
-            ),
+            child: Text(avatarFallbackText(room.name ?? 'DM') ?? 'DM'),
           )
         : ProfilePictureWidget(
             file: room.picture,
@@ -120,6 +120,18 @@ class ChatRoomSubtitle extends HookConsumerWidget {
     // Callers that provide a custom subtitle should not subscribe to provider
     // updates that the custom child does not use.
     if (subtitle != null) return subtitle!;
+
+    final outboxEntries = ref.watch(
+      chatOutboxProvider.select(
+        (rooms) => rooms[room.id] ?? const <ChatOutboxEntry>[],
+      ),
+    );
+    if (outboxEntries.isNotEmpty) {
+      return ChatOutboxStatusPreview(
+        entries: outboxEntries,
+        emphasizeUnread: emphasizeUnread,
+      );
+    }
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -393,6 +405,93 @@ class ChatRoomSubtitle extends HookConsumerWidget {
           key: const ValueKey('error'),
           child: fallbackDescription(),
         ),
+      ),
+    );
+  }
+}
+
+/// Preview of the newest message waiting in the app-wide outbox.
+///
+/// This is what the room list shows while a send is in flight (or failed), so
+/// the status stays visible after the room screen is closed.
+class ChatOutboxStatusPreview extends StatelessWidget {
+  final List<ChatOutboxEntry> entries;
+  final bool emphasizeUnread;
+
+  const ChatOutboxStatusPreview({
+    super.key,
+    required this.entries,
+    this.emphasizeUnread = false,
+  });
+
+  ChatOutboxEntry get _entry => entries.last;
+
+  bool get _isFailed => _entry.status == ChatOutboxStatus.failed;
+
+  String get _previewText {
+    final content = _entry.content.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (content.isNotEmpty) return content;
+    if (_entry.isVoice) return 'Voice message';
+    if (_entry.attachmentCount > 0) {
+      return _entry.attachmentCount == 1
+          ? 'Attachment'
+          : '${_entry.attachmentCount} attachments';
+    }
+    return 'chatNoContent'.tr();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final color = _isFailed ? colorScheme.error : colorScheme.primary;
+    final textStyle = theme.textTheme.bodySmall?.copyWith(
+      color: _isFailed
+          ? colorScheme.error
+          : colorScheme.onSurfaceVariant.withOpacity(
+              emphasizeUnread ? 0.95 : 0.82,
+            ),
+      fontWeight: FontWeight.w500,
+      height: 1.25,
+    );
+
+    return Semantics(
+      label: _isFailed ? 'Message failed to send' : 'Sending message',
+      child: Row(
+        children: [
+          SizedBox(
+            width: 15,
+            height: 15,
+            child: _isFailed
+                ? Icon(Symbols.error, size: 15, color: color)
+                : _entry.progress != null
+                ? CircularProgressIndicator(
+                    value: _entry.progress,
+                    strokeWidth: 2,
+                    color: color,
+                  )
+                : Icon(Symbols.schedule_send, size: 15, color: color),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              _previewText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textStyle,
+            ),
+          ),
+          if (entries.length > 1) ...[
+            const SizedBox(width: 6),
+            Text(
+              '+${entries.length - 1}',
+              style: textStyle?.copyWith(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

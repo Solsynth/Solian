@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_share_payload.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/chat/messages_notifier.dart';
+import 'package:island/chat/pods/chat_outbox.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/chat/services/chat_attachment_upload.dart';
@@ -633,6 +634,10 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       return;
     }
 
+    final room = ref.read(chatRoomProvider(roomId)).value;
+    final identity = ref.read(chatRoomIdentityProvider(roomId)).value;
+    if (room == null || identity == null) return;
+
     // Hand any running upload of these attachments over to the send process
     // before the composer state is cleared: the pending message bubble then
     // shows their progress and the send joins them instead of uploading the
@@ -643,25 +648,23 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       uploads.adoptProgress(attachment, (_) {});
     }
 
-    // Read fresh notifier each time to avoid using disposed instance
-    final notifier = ref.read(messagesProvider(roomId).notifier);
-    final subscribeNotifier = ref.read(chatSubscribeProvider(roomId).notifier);
-    notifier.sendMessage(
-      text,
-      attachments,
-      embeds: state.embeds,
-      editingTo: state.messageEditingTo,
-      forwardingTo: state.messageForwardingTo,
-      replyingTo: state.messageReplyingTo,
-      onProgress: (messageId, progress) {
-        final overallProgress = _calculateOverallUploadProgress(
-          attachments,
-          progress,
-        );
-        updateAttachmentProgress(messageId, overallProgress);
-        subscribeNotifier.sendUploadingStatus(overallProgress);
-        notifier.updatePendingMessageProgress(messageId, overallProgress);
-      },
+    // The send lives in the app-wide outbox, not in this room-scoped
+    // notifier. Clearing the composer (or closing the room) cannot cancel it.
+    unawaited(
+      ref
+          .read(chatOutboxProvider.notifier)
+          .enqueueText(
+            roomId: roomId,
+            content: text,
+            attachments: attachments,
+            sender: identity,
+            encryptionMode: room.encryptionMode,
+            mlsGroupId: room.mlsGroupId,
+            embeds: state.embeds,
+            editingTo: state.messageEditingTo,
+            forwardingTo: state.messageForwardingTo,
+            replyingTo: state.messageReplyingTo,
+          ),
     );
 
     clearInput();
@@ -682,23 +685,6 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     if (payload.attachments.isNotEmpty) {
       updateAttachments([...state.attachments, ...payload.attachments]);
     }
-  }
-
-  double _calculateOverallUploadProgress(
-    List<UniversalFile> attachments,
-    Map<int, double?> progress,
-  ) {
-    if (attachments.isEmpty) return 1.0;
-
-    var total = 0.0;
-    for (var i = 0; i < attachments.length; i++) {
-      if (attachments[i].isOnCloud) {
-        total += 1.0;
-        continue;
-      }
-      total += (progress[i] ?? 0.0).clamp(0.0, 1.0);
-    }
-    return (total / attachments.length).clamp(0.0, 1.0);
   }
 
   // ==================== Scroll Actions ====================

@@ -6,6 +6,7 @@ import "package:easy_localization/easy_localization.dart";
 import 'package:flutter/widgets.dart';
 import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
+import "package:island/chat/pods/chat_outbox.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_room_state.dart";
 import "package:island/chat/data/message_cache.dart";
@@ -20,16 +21,13 @@ import "package:island/core/config.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
-import "package:island/core/services/ios_share_suggestions.dart";
 import "package:island/core/lifecycle.dart";
 import 'package:island/core/websocket.dart';
 import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
-import "package:island/accounts/account_pod.dart";
 import "package:island/accounts/screens/profile.dart";
 import "package:logging/logging.dart";
 import "package:island/shared/widgets/alert.dart";
-import "package:island_plugin_foundation/island_plugin_foundation.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -98,7 +96,7 @@ const _kChatSenderDiagnosticLogPrefix = '[ChatSenderDiagnostic]';
 class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
-  late SnChatMember _identity;
+  SnChatMember? _identity;
 
   /// Keep-alive global sync notifier, captured at build time. Room-scoped
   /// providers like this one can be disposed mid-operation (user leaves the
@@ -142,6 +140,13 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Set<int> _inFlightMissingRoomSequences = <int>{};
   Future<void>? _missingSequenceSyncOperation;
   Timer? _missingSequenceRetryTimer;
+
+  /// Outbox events are buffered until the async build has installed its
+  /// initial message list. Emitting during build would mutate provider state
+  /// before the provider finished building.
+  StreamSubscription<ChatOutboxEvent>? _outboxSubscription;
+  final List<ChatOutboxEvent> _bufferedOutboxEvents = [];
+  bool _outboxEventsReady = false;
 
   /// Track the last offset fetched from API to prevent overlapping fetches
   /// This is separate from DB offset since we fetch in larger batches (_fetchBatchSize)
@@ -197,15 +202,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
     final operation = _olderMessagesPrefetchOperation;
     if (operation != null) await operation;
-  }
-
-  Future<T> _keepAliveWhileSending<T>(Future<T> Function() task) async {
-    final keepAliveLink = ref.keepAlive();
-    try {
-      return await task();
-    } finally {
-      keepAliveLink.close();
-    }
   }
 
   late final MessageCache _messageCache;
@@ -695,7 +691,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _database = ref.read(databaseProvider);
     _globalSyncNotifier = ref.read(chatSyncingProvider.notifier);
     _messageCache = MessageCache(maxSize: PaginationConfig.maxCacheSize);
-    _pendingCache = PendingMessageCache();
+    _pendingCache = ref.read(chatPendingMessageCacheProvider);
     _repository = MessageRepository(ref, roomId, _messageCache);
     _syncService = MessageSyncService(
       ref,
@@ -723,6 +719,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       e2eeService: _e2eeService,
       onNewMessage: (message, roomSequence) {
         final messageWithSequence = _applyRoomSequence(message, roomSequence);
+        if (messageWithSequence.status == MessageStatus.sent &&
+            messageWithSequence.type != 'placeholder') {
+          ref
+              .read(chatOutboxProvider.notifier)
+              .markFinalized(roomId, messageWithSequence);
+        }
         ref
             .read(referencedChatMessageCacheProvider(roomId).notifier)
             .put(messageWithSequence, messageId: messageWithSequence.id);
@@ -737,6 +739,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         _observeRoomSequence(roomSequence, message.createdAt);
         if (messageWithSequence.status == MessageStatus.sent &&
             messageWithSequence.type != 'placeholder') {
+          ref
+              .read(chatOutboxProvider.notifier)
+              .markFinalized(roomId, messageWithSequence);
           _pendingMessages.remove(messageWithSequence.id);
           _pendingCache.remove(messageWithSequence.id);
           ref
@@ -807,9 +812,14 @@ class MessagesNotifier extends _$MessagesNotifier {
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
       typingProgressSub?.cancel();
+      _outboxSubscription?.cancel();
+      _outboxSubscription = null;
+      _bufferedOutboxEvents.clear();
       _messageCache.clear();
       _messageCache.clearPendingFetches();
-      _pendingCache.clear();
+      // The pending cache is app-wide because an outbox send can outlive this
+      // notifier. Do not clear it here: an in-flight E2EE send still needs its
+      // plaintext when the server echo arrives.
     });
 
     final room = await ref.read(chatRoomProvider(roomId).future);
@@ -1005,7 +1015,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     typingProgressSub = eventBus.on<ChatTypingEvent>().listen((event) {
       if (event.roomId != roomId) return;
       if (event.activityType != 'uploading') return;
-      if (event.sender.id == _identity.id) return;
+      if (event.sender.id == _identity?.id) return;
       final progress = event.progress;
       if (progress == null) return;
       updatePlaceholderProgressBySender(event.sender.id, progress);
@@ -1038,12 +1048,32 @@ class MessagesNotifier extends _$MessagesNotifier {
         ),
       ),
     );
-    _messages = initial;
-    _refreshLatestObservedRoomSequence(initial);
+
+    // A send can outlive the previous room screen. Its pending bubble is
+    // persisted, but when this notifier is recreated before that write lands,
+    // the outbox still knows it. Merge those rows so a quick leave/re-enter
+    // never loses the "sending" bubble.
+    final activeOutboxMessages = ref
+        .read(chatOutboxProvider)[roomId]
+        ?.map((entry) => entry.pendingMessage)
+        .whereType<LocalChatMessage>()
+        .toList();
+    final initialWithOutbox =
+        activeOutboxMessages == null || activeOutboxMessages.isEmpty
+        ? initial
+        : _dedupeMessages(
+            _sortMessages(
+              _normalizeMessageMembers([...activeOutboxMessages, ...initial]),
+            ),
+          );
+
+    _messages = initialWithOutbox;
+    _refreshLatestObservedRoomSequence(initialWithOutbox);
+    _subscribeToOutbox();
     _scheduleOlderMessagesPrefetch();
     unawaited(_cleanupExpiredPlaceholders());
     _scheduleSenderRepair();
-    return _filterActiveMessages(initial);
+    return _filterActiveMessages(initialWithOutbox);
   }
 
   bool _upsertMember(SnChatMember? member, {bool force = false}) {
@@ -1567,6 +1597,115 @@ class MessagesNotifier extends _$MessagesNotifier {
     _messages = normalized;
     _refreshLatestObservedRoomSequence(normalized);
     state = AsyncValue.data(_filterActiveMessages(normalized));
+  }
+
+  void _subscribeToOutbox() {
+    _outboxSubscription?.cancel();
+    _bufferedOutboxEvents.clear();
+    _outboxEventsReady = false;
+
+    _outboxSubscription = ref
+        .read(chatOutboxProvider.notifier)
+        .events
+        .where((event) => event.roomId == roomId)
+        .listen((event) {
+          if (!_outboxEventsReady) {
+            _bufferedOutboxEvents.add(event);
+            return;
+          }
+          _handleOutboxEvent(event);
+        });
+
+    // The build is async: events can arrive after the initial list was read
+    // but before it is installed. Flush them once the provider has finished
+    // building so the state write is legal.
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      _outboxEventsReady = true;
+      final buffered = List<ChatOutboxEvent>.of(_bufferedOutboxEvents);
+      _bufferedOutboxEvents.clear();
+      for (final event in buffered) {
+        _handleOutboxEvent(event);
+      }
+    });
+  }
+
+  void _handleOutboxEvent(ChatOutboxEvent event) {
+    if (!ref.mounted) return;
+
+    switch (event) {
+      case ChatOutboxPendingEvent():
+        final pending = event.message;
+        _pendingMessages[pending.id] = pending;
+        _emitMessages([pending, ..._currentMessages]);
+      case ChatOutboxProgressEvent():
+        final pending = _pendingMessages[event.messageId];
+        if (pending != null) {
+          updatePendingMessageProgress(pending.id, event.progress);
+        }
+        ref
+            .read(chatRoomStateProvider(roomId).notifier)
+            .updateAttachmentProgress(event.messageId, event.progress);
+      case ChatOutboxCompletedEvent():
+        final sent = event.message;
+        _pendingMessages.remove(event.pendingMessageId);
+        ref
+            .read(chatRoomStateProvider(roomId).notifier)
+            .updateAttachmentProgress(event.pendingMessageId, null);
+
+        if (event.isEditing) {
+          var replaced = false;
+          final updated = _currentMessages.map((message) {
+            if (message.id != sent.id) return message;
+            replaced = true;
+            return sent;
+          }).toList();
+          if (!replaced) updated.add(sent);
+
+          final eventMessage = event.eventMessage;
+          if (eventMessage != null &&
+              _shouldIncludeInActiveList(
+                eventMessage,
+                ref.read(appSettingsProvider).chatEventMessageMode,
+              ) &&
+              !updated.any((message) => message.id == eventMessage.id)) {
+            updated.add(eventMessage);
+          }
+          _emitMessages(updated);
+          return;
+        }
+
+        _replaceMessage(event.pendingMessageId, sent);
+      case ChatOutboxFailedEvent():
+        ref
+            .read(chatRoomStateProvider(roomId).notifier)
+            .updateAttachmentProgress(event.pendingMessageId, null);
+
+        // A room-wide messages.sync.finalize can win the race against the
+        // device-specific acknowledgement awaited by the sender. The message
+        // is already on the server then; do not revert it to a failed bubble
+        // or leave a failed row in the room list.
+        final finalized = _currentMessages.any(
+          (message) =>
+              message.id == event.pendingMessageId &&
+              message.status == MessageStatus.sent &&
+              message.type != 'placeholder',
+        );
+        if (finalized) {
+          ref
+              .read(chatOutboxProvider.notifier)
+              .discardMessage(roomId, event.pendingMessageId);
+          return;
+        }
+
+        final pending = event.pendingMessage;
+        if (pending != null) {
+          pending.status = MessageStatus.failed;
+          _pendingMessages[pending.id] = pending;
+          _replaceMessage(pending.id, pending);
+        }
+        showErrorAlert(event.error);
+    }
   }
 
   void _replaceMessage(String messageId, LocalChatMessage replacement) {
@@ -2174,122 +2313,32 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? threadingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    await _keepAliveWhileSending(() async {
-      if (content.trim().isEmpty &&
-          attachments.isEmpty &&
-          (embeds == null || embeds.isEmpty)) {
-        return;
-      }
+    if (content.trim().isEmpty &&
+        attachments.isEmpty &&
+        (embeds == null || embeds.isEmpty)) {
+      return;
+    }
+    final sender = _identity;
+    if (sender == null) return;
 
-      // Run plugin hooks before sending
-      final hookResult = PluginHooks().runBeforeMessageSend(content);
-      if (hookResult.cancelled) {
-        showSnackBar('Message blocked by plugin: ${hookResult.cancelledBy}');
-        return;
-      }
-      final effectiveContent = hookResult.data ?? content;
-
-      String? pendingMessageId;
-      final result = await _sender.sendTextMessage(
-        content: effectiveContent,
-        attachments: attachments,
-        sender: _identity,
-        editingTo: editingTo,
-        replyingTo: replyingTo,
-        forwardingTo: forwardingTo,
-        threadingTo: threadingTo,
-        embeds: embeds,
-        onPending: editingTo == null
-            ? (pending) {
-                pendingMessageId = pending.id;
-                _pendingMessages[pending.id] = pending;
-                _emitMessages([pending, ..._currentMessages]);
-              }
-            : null,
-        onProgress: onProgress,
-      );
-
-      if (!result.success || result.message == null) {
-        if (pendingMessageId != null) {
-          ref
-              .read(chatRoomStateProvider(roomId).notifier)
-              .updateAttachmentProgress(pendingMessageId!, null);
-          final pending = _pendingMessages[pendingMessageId!];
-          if (pending != null) {
-            pending.status = MessageStatus.failed;
-            _replaceMessage(pending.id, pending);
-          }
-
-          // A room-wide messages.sync.finalize can arrive before (or instead
-          // of) the device-specific acknowledgement awaited by MessageSender.
-          // In that case the message has already been finalized by the
-          // server; do not turn it back into a failed placeholder.
-          final finalized = _currentMessages.any(
-            (message) =>
-                message.id == pendingMessageId &&
-                message.status == MessageStatus.sent &&
-                message.type != 'placeholder',
-          );
-          if (finalized) return;
-        }
-        showErrorAlert(result.error ?? 'Failed to send message');
-        return;
-      }
-
-      final sentMessage = result.message!;
-      final room = await ref.read(chatRoomProvider(roomId).future);
-      final currentAccount = await ref.read(userInfoProvider.future);
-      if (room != null) {
-        unawaited(
-          IosShareSuggestionsService.instance.donateChatRoom(
-            room,
-            currentUserId: currentAccount?.id,
-            currentAccountName: currentAccount?.name,
-            currentAccountNick: currentAccount?.nick,
-            currentUser: currentAccount,
-            serverUrl: ref.read(serverUrlProvider),
-          ),
+    // The outbox owns the upload/send and reports progress through its own
+    // event stream. `onProgress` is kept for source compatibility while
+    // callers migrate; no caller needs to observe the send to keep it alive.
+    await ref
+        .read(chatOutboxProvider.notifier)
+        .enqueueText(
+          roomId: roomId,
+          content: content,
+          attachments: attachments,
+          sender: sender,
+          encryptionMode: _roomEncryptionMode,
+          mlsGroupId: _mlsGroupId,
+          embeds: embeds,
+          editingTo: editingTo,
+          forwardingTo: forwardingTo,
+          replyingTo: replyingTo,
+          threadingTo: threadingTo,
         );
-      }
-      if (pendingMessageId != null) {
-        _pendingMessages.remove(pendingMessageId);
-      }
-
-      if (editingTo != null) {
-        var replaced = false;
-        final updated = _currentMessages.map((message) {
-          if (message.id != sentMessage.id) return message;
-          replaced = true;
-          return sentMessage;
-        }).toList();
-
-        if (!replaced) {
-          updated.add(sentMessage);
-        }
-
-        final eventMessage = result.eventMessage;
-        if (eventMessage != null &&
-            _shouldIncludeInActiveList(
-              eventMessage,
-              ref.read(appSettingsProvider).chatEventMessageMode,
-            ) &&
-            !updated.any((message) => message.id == eventMessage.id)) {
-          updated.add(eventMessage);
-        }
-
-        _emitMessages(updated);
-        return;
-      }
-
-      if (pendingMessageId != null) {
-        ref
-            .read(chatRoomStateProvider(roomId).notifier)
-            .updateAttachmentProgress(pendingMessageId!, null);
-        _replaceMessage(pendingMessageId!, sentMessage);
-      } else {
-        _emitMessages([sentMessage, ..._currentMessages]);
-      }
-    });
   }
 
   Future<void> sendVoiceMessage(
@@ -2298,42 +2347,45 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
   }) async {
-    await _keepAliveWhileSending(() async {
-      final result = await _sender.sendVoiceMessage(
-        filePath: filePath,
-        sender: _identity,
-        durationMs: durationMs,
-        forwardingTo: forwardingTo,
-        replyingTo: replyingTo,
-      );
-
-      if (!result.success || result.message == null) {
-        showErrorAlert(result.error ?? 'Failed to send voice message');
-        return;
-      }
-
-      _emitMessages([result.message!, ..._currentMessages]);
-    });
+    final sender = _identity;
+    if (sender == null) return;
+    await ref
+        .read(chatOutboxProvider.notifier)
+        .enqueueVoice(
+          roomId: roomId,
+          filePath: filePath,
+          sender: sender,
+          encryptionMode: _roomEncryptionMode,
+          mlsGroupId: _mlsGroupId,
+          durationMs: durationMs,
+          forwardingTo: forwardingTo,
+          replyingTo: replyingTo,
+        );
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    await _keepAliveWhileSending(() async {
-      final result = await _sender.retryMessage(
-        pendingMessageId,
-        sender: _identity,
-      );
+    final outbox = ref.read(chatOutboxProvider.notifier);
+    if (outbox.canRetry(roomId, pendingMessageId)) {
+      await outbox.retry(roomId, pendingMessageId);
+      return;
+    }
 
-      if (!result.success || result.message == null) {
-        showErrorAlert(result.error ?? 'Failed to retry message');
-        return;
-      }
+    // Fallback for a failed row created before this notifier had an outbox
+    // task (for example one loaded from the DB after an app restart).
+    final sender = _identity;
+    if (sender == null) return;
+    final result = await _sender.retryMessage(pendingMessageId, sender: sender);
 
-      final updated = _currentMessages.map((m) {
-        if (m.id == pendingMessageId) return result.message!;
-        return m;
-      }).toList();
-      _emitMessages(updated);
-    });
+    if (!result.success || result.message == null) {
+      showErrorAlert(result.error ?? 'Failed to retry message');
+      return;
+    }
+
+    final updated = _currentMessages.map((message) {
+      if (message.id == pendingMessageId) return result.message!;
+      return message;
+    }).toList();
+    _emitMessages(updated);
   }
 
   Future<void> receiveMessage(
@@ -2371,6 +2423,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       Logger.root.info('Skipping server delete for failed message $messageId');
       // For failed messages, remove them completely from the active list
       _pendingMessages.remove(messageId);
+      ref.read(chatOutboxProvider.notifier).discardMessage(roomId, messageId);
       await _repository.deleteMessage(messageId);
 
       final currentMessages = _currentMessages;

@@ -17,6 +17,7 @@ import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/chat/pods/chat_account_status.dart';
 import 'package:island/chat/pods/chat_foreground_rooms.dart';
+import 'package:island/chat/pods/chat_outbox.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -187,6 +188,7 @@ Widget _buildChatRoomContextMenu({
 
               try {
                 await db.deleteChatRoomLocalData(room.id);
+                ref.read(chatOutboxProvider.notifier).discardRoom(room.id);
                 ref.invalidate(chatRoomJoinedProvider);
                 ref.invalidate(chatRoomProvider(room.id));
                 ref.invalidate(chatSummaryProvider);

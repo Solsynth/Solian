@@ -407,6 +407,7 @@ class MessageSender {
     int? durationMs,
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
+    Function(LocalChatMessage message)? onPending,
   }) async {
     // Voice messages not supported in E2EE rooms yet
     if (_e2eeService?.isE2eeRoom == true) {
@@ -430,6 +431,7 @@ class MessageSender {
       );
 
       _pendingCache.add(pending);
+      onPending?.call(pending);
 
       // Upload voice file
       final mimeType = lookupMimeType(filePath) ?? 'audio/m4a';
