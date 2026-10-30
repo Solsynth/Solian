@@ -53,9 +53,7 @@ class ExploreCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: padding == null
-          ? child
-          : Padding(padding: padding!, child: child),
+      child: padding == null ? child : Padding(padding: padding!, child: child),
     );
   }
 }

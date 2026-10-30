@@ -68,24 +68,35 @@ class SolDrawerButton extends StatelessWidget {
 
 /// Diameter of the standalone glass navigation control.
 ///
-/// The control is pinned to the height the split chat headers use, so the
-/// hamburger and the piped section picker read as one row.
+/// The control is pinned to the height every split pill header uses, so the
+/// hamburger and the capsule beside it read as one row.
 const double kGlassNavigationButtonSize = 48;
+
+/// Height of a split pill header's control row, excluding the status-bar inset.
+///
+/// The row is the navigation circle's own height, plus the pill's top gutter
+/// and [SolSpace.xs] underneath, so the band matches the single capsule's.
+const double kPillSplitBarBand =
+    kPillSideGutter + kGlassNavigationButtonSize + SolSpace.xs;
 
 /// A single glass-circle navigation toggle.
 ///
-/// Pages without a header pill (the dashboard) and the portrait chat header use
-/// it as a standalone control: the same [SolDrawerButton] behaviour wrapped in
-/// the app's liquid-glass surface.
+/// Pages without a header pill (the dashboard) and split headers use it as a
+/// standalone control: the same [SolDrawerButton] behaviour wrapped in the
+/// app's liquid-glass surface. [t] fades that surface the way a pill header
+/// fades its capsule.
 class GlassNavigationButton extends StatelessWidget {
   final Color? color;
 
-  const GlassNavigationButton({super.key, this.color});
+  /// Surface fade, 0..1.
+  final double t;
+
+  const GlassNavigationButton({super.key, this.color, this.t = 1});
 
   @override
   Widget build(BuildContext context) {
     return PillSurface(
-      t: 1,
+      t: t,
       margin: EdgeInsets.zero,
       radius: SolRadius.pillRadius,
       contentPadding: EdgeInsets.zero,

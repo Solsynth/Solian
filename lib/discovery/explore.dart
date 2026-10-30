@@ -29,6 +29,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/discovery/widgets/explore_card.dart';
+import 'package:island/discovery/widgets/explore_config_sheet.dart';
 import 'package:island/discovery/widgets/pill_app_bar.dart';
 import 'package:island/discovery/widgets/friend_presence_strip.dart';
 import 'package:island/discovery/widgets/friend_presence_widgets.dart';
@@ -101,8 +102,8 @@ class ExploreScreen extends HookConsumerWidget {
             SnPost? replyingTo,
             SnPost? forwardingTo,
             SnPost? chainingTo,
-          })
-       ?>(null);
+          })?
+        >(null);
 
     // The pending `PostComposeScreen.show` future, so closing the pane
     // resolves the awaiting caller exactly as a popped route would.
@@ -171,6 +172,13 @@ class ExploreScreen extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider);
 
+    // The tune action lives at the trailing edge of both headers: it opens
+    // the quick configuration sheet without leaving the feed.
+    final configButton = _buildConfigButton(
+      context,
+      selectedPublisherNames: selectedPublisherNames,
+    );
+
     final feed = _buildFeed(
       context,
       ref,
@@ -182,6 +190,7 @@ class ExploreScreen extends HookConsumerWidget {
       currentFilter: exploreSettings.filter,
       isWide: isWide,
       onOpenPost: isWide ? openPost : null,
+      headerTrailing: configButton,
     );
 
     final composeFab = userInfo.value != null
@@ -209,6 +218,7 @@ class ExploreScreen extends HookConsumerWidget {
               hasSubscriptionFiltersApplied: hasSubscriptionFiltersApplied,
               handleFilterChange: handleFilterChange,
             ),
+            barTrailing: configButton,
             feed: feed,
             onOpenFullPage: (id) =>
                 context.router.push(PostDetailRoute(id: id)),
@@ -276,58 +286,64 @@ class ExploreScreen extends HookConsumerWidget {
     ).padding(bottom: MediaQuery.of(context).padding.bottom);
   }
 
-  /// The pill's single row of controls: the drawer toggle and the section
-  /// picker, which replaced the tab strip that used to be the bar's `bottom`
-  /// row.
+  /// The header's trailing action: the quick configuration sheet.
+  Widget _buildConfigButton(
+    BuildContext context, {
+    required ValueNotifier<List<String>> selectedPublisherNames,
+  }) {
+    return IconButton(
+      icon: const Icon(Symbols.tune),
+      tooltip: 'settings'.tr(),
+      onPressed: () => showExploreConfigSheet(
+        context,
+        selectedPublisherNames: selectedPublisherNames,
+      ),
+    );
+  }
+
+  /// The content capsule's controls: the section picker, which replaced the
+  /// tab strip that used to be the bar's `bottom` row.
   ///
-  /// Shared by both layouts so the controls never move between them: narrow
-  /// pins this row inside the feed, wide floats it over the reading column.
+  /// The navigation toggle is not part of this row: the header paints it as
+  /// its own glass circle ([PillSplitBar]), so the capsule only holds what the
+  /// page can act on. Shared by both layouts so the controls never move
+  /// between them: narrow pins this row inside the feed, wide floats it over
+  /// the reading column.
   Widget _buildExploreBarControls({
     required String? currentFilter,
     required bool hasSubscriptionFiltersApplied,
     required void Function(String?) handleFilterChange,
   }) {
-    return Row(
-      children: [
-        // The section picker takes the brand mark's place, so the bar holds
-        // exactly two things: the drawer toggle and the dropdown.
-        const SolDrawerButton(),
-        const Gap(8),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: _ExploreSectionButton(
-              filter: currentFilter,
-              hasFiltersApplied: hasSubscriptionFiltersApplied,
-              onSelected: handleFilterChange,
-            ),
-          ),
-        ),
-      ],
+    return _ExploreSectionButton(
+      filter: currentFilter,
+      hasFiltersApplied: hasSubscriptionFiltersApplied,
+      onSelected: handleFilterChange,
     );
   }
 
   /// Header of the narrow feed: a pinned sliver inside the feed's own scroll
   /// view.
   ///
-  /// The bar never moves within the viewport: a capsule inset 12px left/right
-  /// and 12px below the status bar at every scroll offset, so the drawer toggle
-  /// and the section picker stay under the same spot of the user's thumb.
-  /// Scrolling only fades the pill's glass in and raises its shadow
-  /// ([PillSliverAppBar]).
+  /// The bar never moves within the viewport: both surfaces sit 12px in from
+  /// the edges and 12px below the status bar at every scroll offset, so the
+  /// drawer toggle and the section picker stay under the same spot of the
+  /// user's thumb. Scrolling only fades the glass in and raises its shadow
+  /// ([PillSplitSliverAppBar]).
   ///
-  /// The wide layout does not pin the bar inside the feed: its pill spans the
-  /// window instead (see [ExploreScreen.build]).
+  /// The wide layout does not pin the bar inside the feed: its surfaces float
+  /// over the window instead (see [ExploreScreen.build]).
   Widget _buildExploreSliverAppBar({
     required BuildContext context,
     required ValueNotifier<double> fade,
     required String? currentFilter,
     required bool hasSubscriptionFiltersApplied,
     required void Function(String?) handleFilterChange,
+    required Widget trailing,
   }) {
-    return PillSliverAppBar(
+    return PillSplitSliverAppBar(
       fade: fade,
       statusTop: MediaQuery.paddingOf(context).top,
+      trailing: trailing,
       child: _buildExploreBarControls(
         currentFilter: currentFilter,
         hasSubscriptionFiltersApplied: hasSubscriptionFiltersApplied,
@@ -402,15 +418,16 @@ class ExploreScreen extends HookConsumerWidget {
     required String? currentFilter,
     required bool isWide,
     required void Function(SnPost)? onOpenPost,
+    required Widget headerTrailing,
   }) {
     final appSettings = ref.watch(appSettingsProvider);
     final exploreSettings = appSettings.exploreSettings;
     final gutter = explorePageGutter(context);
-    // The header is a single pinned toolbar row: the refresh indicator has to
-    // clear the bar itself plus the pill's top margin, exactly as the bar
-    // measures itself.
+    // The header is a pinned row of two glass surfaces: the refresh indicator
+    // has to clear the band itself plus the pill's top margin, exactly as the
+    // bar measures itself.
     final sliverRefreshInset =
-        MediaQuery.paddingOf(context).top + kPillAppBarHeight;
+        MediaQuery.paddingOf(context).top + kPillSplitBarBand;
     final usePostList =
         selectedPublisherNames.value.isNotEmpty ||
         exploreSettings.selectedCategoryIds.isNotEmpty ||
@@ -463,18 +480,19 @@ class ExploreScreen extends HookConsumerWidget {
                 currentFilter: currentFilter,
                 hasSubscriptionFiltersApplied: hasSubscriptionFiltersApplied,
                 handleFilterChange: handleFilterChange,
+                trailing: headerTrailing,
               ),
               const SliverGap(kExploreCardGap),
             ],
-            // The wide pill floats over the feed instead of being a sliver of
-            // it, so the column has to reserve the bar's own height (plus the
-            // status inset the pill's margin already carries) before its first
-            // card. The gap is the scroll distance the rows travel under the
-            // glass.
+            // The wide header floats over the feed instead of being a sliver
+            // of it, so the column has to reserve the band's own height (plus
+            // the status inset the pill's margin already carries) before its
+            // first card. The gap is the scroll distance the rows travel under
+            // the glass.
             if (isWide)
               SliverGap(
                 MediaQuery.paddingOf(context).top +
-                    kPillAppBarHeight +
+                    kPillSplitBarBand +
                     kExploreCardGap,
               ),
             // The Subscriptions tab keeps the publisher quick pick; Explore and
@@ -573,6 +591,9 @@ class _WideExploreLayout extends StatelessWidget {
   composeRequest;
 
   final Widget barControls;
+
+  /// The header's trailing action, in its own glass capsule.
+  final Widget barTrailing;
   final Widget feed;
   final ValueChanged<String> onOpenFullPage;
 
@@ -590,6 +611,7 @@ class _WideExploreLayout extends StatelessWidget {
     required this.detailPostId,
     required this.composeRequest,
     required this.barControls,
+    required this.barTrailing,
     required this.feed,
     required this.onOpenFullPage,
     required this.onOpenInPane,
@@ -602,6 +624,7 @@ class _WideExploreLayout extends StatelessWidget {
 
   /// The curve the pane eases along.
   static const _curve = Curves.easeOutCubic;
+
   /// Whether either a post or the composer currently occupies the pane.
   bool get _isPaneOpen => detailPostId != null || composeRequest != null;
 
@@ -632,11 +655,12 @@ class _WideExploreLayout extends StatelessWidget {
                 left: 0,
                 right: 0,
                 // The same measurement the sliver's toolbar height gives it,
-                // so the capsule is exactly one control row tall either way.
-                height: statusTop + kPillAppBarHeight,
-                child: PillAppBar(
+                // so both surfaces are exactly one control row tall either way.
+                height: statusTop + kPillSplitBarBand,
+                child: PillSplitBar(
                   fade: fade,
                   statusTop: statusTop,
+                  trailing: barTrailing,
                   child: barControls,
                 ),
               ),

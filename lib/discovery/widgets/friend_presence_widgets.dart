@@ -599,7 +599,8 @@ class FriendStatusItem extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    if (getStatusOnlineDeviceLabel(status) case final device?) ...[
+                    if (getStatusOnlineDeviceLabel(status)
+                        case final device?) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,

@@ -42,7 +42,6 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
-import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/empty_state.dart';
 import 'package:island/shared/widgets/response.dart';
@@ -616,16 +615,11 @@ class ChatListBodyWidget extends HookConsumerWidget {
   /// view can drive the pill's fade off this list's own scroll.
   final bool Function(ScrollNotification notification)? onScroll;
 
-  /// Content pinned to the top of the scrolling list, above the rooms. It
-  /// scrolls away with them instead of hovering over the list.
-  final Widget? leadingHeader;
-
   const ChatListBodyWidget({
     super.key,
     this.isFloating = false,
     this.headerGap = 0,
     this.onScroll,
-    this.leadingHeader,
     required this.tabController,
     required this.selectedTab,
     required this.chatGroups,
@@ -762,8 +756,6 @@ class ChatListBodyWidget extends HookConsumerWidget {
                       // capsule.
                       if (headerGap > 0)
                         SliverToBoxAdapter(child: SizedBox(height: headerGap)),
-                      if (leadingHeader != null)
-                        SliverToBoxAdapter(child: leadingHeader),
                       // Global notification status indicator
                       if (accountStatus
                               .whenData((data) => data)
@@ -1379,7 +1371,8 @@ class ChatFabWidget extends HookConsumerWidget {
 /// label as the trigger, the alternatives in the menu.
 ///
 /// It drives the page's [TabController] instead of replacing it, so the list
-/// below stays a tab view and the switcher stays the bar's title.
+/// below stays a tab view and the switcher leads the header instead of
+/// carrying a separate title next to it.
 class _ChatSectionButton extends StatelessWidget {
   final TabController tabController;
 
@@ -1502,24 +1495,15 @@ class _MarkAllReadButton extends ConsumerWidget {
   }
 }
 
-/// Height of each half of the portrait chat header. Shares the standalone
-/// glass navigation control's diameter so the two pills line up.
-const double _kChatSplitControlHeight = kGlassNavigationButtonSize;
+/// The section picker and its trailing actions. The header wraps them in its
+/// own glass capsule ([PillSplitBar]), so this row paints no surface.
 
-/// Vertical band the split portrait chat header occupies below the status bar.
-///
-/// Kept public alongside the other pill bands so tests and neighbouring chrome
-/// can reserve the same space.
-const double kChatSplitBarBand =
-    kPillSideGutter + _kChatSplitControlHeight + SolSpace.xs;
-
-/// The section picker and its trailing actions, in their own glass pill.
-class _ChatActionPill extends StatelessWidget {
+class _ChatHeaderActions extends StatelessWidget {
   final TabController tabController;
   final bool isSyncing;
   final Color foreground;
 
-  const _ChatActionPill({
+  const _ChatHeaderActions({
     required this.tabController,
     required this.isSyncing,
     required this.foreground,
@@ -1527,46 +1511,34 @@ class _ChatActionPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: _kChatSplitControlHeight,
-      child: PillSurface(
-        t: 1,
-        margin: EdgeInsets.zero,
-        radius: SolRadius.pillRadius,
-        contentPadding: const EdgeInsets.symmetric(horizontal: SolSpace.xs),
-        child: Material(
-          color: Colors.transparent,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: _ChatSectionButton(tabController: tabController)),
-              if (isSyncing)
-                Padding(
-                  padding: const EdgeInsets.only(right: SolSpace.sm),
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: ConfuseSpinner(
-                      size: 24,
-                      speed: 7,
-                      fontSize: 12,
-                      color: foreground.withOpacity(0.65),
-                    ),
-                  ),
-                ),
-              _MarkAllReadButton(color: foreground),
-            ],
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: _ChatSectionButton(tabController: tabController)),
+        if (isSyncing)
+          Padding(
+            padding: const EdgeInsets.only(right: SolSpace.sm),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: ConfuseSpinner(
+                size: 24,
+                speed: 7,
+                fontSize: 12,
+                color: foreground.withOpacity(0.65),
+              ),
+            ),
           ),
-        ),
-      ),
+        _MarkAllReadButton(color: foreground),
+      ],
     );
   }
 }
 
-/// Portrait chat header, split into two independent glass surfaces.
+/// Portrait chat header: the shared split pair of glass surfaces.
 ///
-/// The navigation toggle sits alone at the top-left, mirroring the dashboard;
-/// the section picker (and its trailing actions) keeps the top-right corner.
+/// The navigation toggle and the section picker sit together at the top-left,
+/// mirroring the wide pane; the picker's trailing actions stay inside its pill.
 class _ChatSplitBar extends StatelessWidget implements PreferredSizeWidget {
   final double statusTop;
   final TabController tabController;
@@ -1581,35 +1553,16 @@ class _ChatSplitBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(statusTop + kChatSplitBarBand);
+  Size get preferredSize => Size.fromHeight(statusTop + kPillSplitBarBand);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: preferredSize.height,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          kPillSideGutter,
-          statusTop + kPillSideGutter,
-          kPillSideGutter,
-          SolSpace.xs,
-        ),
-        child: Row(
-          children: [
-            const GlassNavigationButton(),
-            const SizedBox(width: SolSpace.xs),
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: _ChatActionPill(
-                  tabController: tabController,
-                  isSyncing: isSyncing,
-                  foreground: foreground,
-                ),
-              ),
-            ),
-          ],
-        ),
+    return PillSplitBar(
+      statusTop: statusTop,
+      child: _ChatHeaderActions(
+        tabController: tabController,
+        isSyncing: isSyncing,
+        foreground: foreground,
       ),
     );
   }
@@ -1617,8 +1570,8 @@ class _ChatSplitBar extends StatelessWidget implements PreferredSizeWidget {
 
 /// Floating controls above the wide chat layout's list pane.
 ///
-/// The pane title now lives inside the scrolling list; this layer only carries
-/// the navigation toggle (where the rail cannot) and the section picker.
+/// The navigation toggle (where the rail cannot show one) and the section
+/// picker lead the pane's top row, both at the same band as the list's gap.
 class _ChatListFloatingButtons extends StatelessWidget {
   final TabController tabController;
   final bool isSyncing;
@@ -1632,64 +1585,12 @@ class _ChatListFloatingButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: kChatSplitBarBand,
-      child: Stack(
-        children: [
-          if (SolDrawerButton.isShownIn(context))
-            const Positioned(
-              left: kPillSideGutter,
-              top: kPillSideGutter,
-              child: GlassNavigationButton(),
-            ),
-          Positioned(
-            right: kPillSideGutter,
-            top: kPillSideGutter,
-            child: _ChatActionPill(
-              tabController: tabController,
-              isSyncing: isSyncing,
-              foreground: foreground,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The list pane's own title, scrolled with the rooms instead of floating.
-///
-/// Its row uses the same vertical band as the floating controls, so the title
-/// and the section picker sit at one height at rest. The title still belongs to
-/// the scrollable list, so it slides away with the rooms.
-class _ChatListHeading extends StatelessWidget {
-  const _ChatListHeading();
-
-  @override
-  Widget build(BuildContext context) {
-    // Where the navigation toggle floats on the left (portrait wide layouts),
-    // the title starts after it instead of running underneath.
-    final leftInset = SolDrawerButton.isShownIn(context)
-        ? kPillSideGutter + _kChatSplitControlHeight + SolSpace.xs
-        : SolSpace.xl;
-    return SizedBox(
-      height: kChatSplitBarBand,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          leftInset,
-          kPillSideGutter,
-          SolSpace.xl,
-          SolSpace.xs,
-        ),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'chat'.tr(),
-            style: Theme.of(
-              context,
-            ).appBarTheme.titleTextStyle?.copyWith(fontSize: 18),
-          ),
-        ),
+    return PillSplitBar(
+      statusTop: 0,
+      child: _ChatHeaderActions(
+        tabController: tabController,
+        isSyncing: isSyncing,
+        foreground: foreground,
       ),
     );
   }
@@ -1794,8 +1695,8 @@ class ChatListWidget extends HookConsumerWidget {
         width: sidebarWidth.value,
         child: Stack(
           children: [
-            // The room list runs the full height of the pane; the pane title
-            // scrolls with it while the two controls float above.
+            // The room list runs the full height of the pane; the band above
+            // it is reserved so the floating controls never cover a room.
             ChatListBodyWidget(
               isFloating: false,
               tabController: tabController,
@@ -1803,7 +1704,7 @@ class ChatListWidget extends HookConsumerWidget {
               chatGroups: chatGroups,
               onChatGroupsChanged: refreshChatGroups,
               accountId: accountId,
-              leadingHeader: const _ChatListHeading(),
+              headerGap: kPillSplitBarBand,
             ),
             Positioned(
               top: 0,
@@ -1916,7 +1817,7 @@ class ChatListWidget extends HookConsumerWidget {
                     onChatGroupsChanged: refreshChatGroups,
                     accountId: accountId,
                     headerGap: isPortrait
-                        ? statusTop + kChatSplitBarBand
+                        ? statusTop + kPillSplitBarBand
                         : statusTop + kPillAppBarHeight,
                     onScroll: isPortrait
                         ? null

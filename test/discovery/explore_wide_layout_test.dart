@@ -22,6 +22,8 @@ import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/shared/widgets/layouts/sidebar_panel_host.dart';
+import 'package:island/shared/widgets/page_app_bar.dart';
+import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -266,41 +268,41 @@ void main() {
       ..httpClientAdapter = _EmptyAdapter();
 
     await tester.runAsync(() async {
+      // The scope sits above the app, exactly as `main.dart` mounts it, so a
+      // sheet pushed onto the root navigator still resolves providers.
       await tester.pumpWidget(
-        EasyLocalization(
-          supportedLocales: const [Locale('en', 'US')],
-          path: 'assets/i18n',
-          saveLocale: false,
-          child: Builder(
-            builder: (context) => MaterialApp(
-              navigatorKey: navigatorKey,
-              locale: const Locale('en', 'US'),
-              supportedLocales: const [Locale('en', 'US')],
-              localizationsDelegates: context.localizationDelegates,
-              home: ProviderScope(
-                overrides: [
-                  sharedPreferencesProvider.overrideWithValue(prefs),
-                  apiClientProvider.overrideWithValue(dio),
-                  userInfoProvider.overrideWith(() => _GuestUserInfo()),
-                  activityListProvider.overrideWith(
-                    feed ?? () => _LoadingActivityList(),
-                  ),
-                  publishersSubscriptionsLiveProvider.overrideWith(
-                    () => _OnePublisherSubscription(),
-                  ),
-                  featuredPostsProvider.overrideWith(
-                    (ref) async => featuredPosts ?? [_featuredPost()],
-                  ),
-                  friendsOverviewExpandedProvider.overrideWith(
-                    (ref) async => [_friendOverviewItem()],
-                  ),
-                  // Lets a test hand the pane a post to render, so reference
-                  // cards and reply rows can be exercised without a backend.
-                  postProvider.overrideWith(
-                    (ref, id) async => detailPosts[id],
-                  ),
-                ],
-                child: const ExploreScreen(),
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            apiClientProvider.overrideWithValue(dio),
+            userInfoProvider.overrideWith(() => _GuestUserInfo()),
+            activityListProvider.overrideWith(
+              feed ?? () => _LoadingActivityList(),
+            ),
+            publishersSubscriptionsLiveProvider.overrideWith(
+              () => _OnePublisherSubscription(),
+            ),
+            featuredPostsProvider.overrideWith(
+              (ref) async => featuredPosts ?? [_featuredPost()],
+            ),
+            friendsOverviewExpandedProvider.overrideWith(
+              (ref) async => [_friendOverviewItem()],
+            ),
+            // Lets a test hand the pane a post to render, so reference
+            // cards and reply rows can be exercised without a backend.
+            postProvider.overrideWith((ref, id) async => detailPosts[id]),
+          ],
+          child: EasyLocalization(
+            supportedLocales: const [Locale('en', 'US')],
+            path: 'assets/i18n',
+            saveLocale: false,
+            child: Builder(
+              builder: (context) => MaterialApp(
+                navigatorKey: navigatorKey,
+                locale: const Locale('en', 'US'),
+                supportedLocales: const [Locale('en', 'US')],
+                localizationsDelegates: context.localizationDelegates,
+                home: const ExploreScreen(),
               ),
             ),
           ),
@@ -351,15 +353,16 @@ void main() {
     final paneRect = tester.getRect(pane.first);
     expect(paneRect.width, closeTo(720, 1));
     expect(paneRect.left, closeTo((windowWidth - paneRect.width) / 2, 1));
-    // The wide header is no longer a sliver: it floats over the pane at the
-    // window's full width, so the feed starts with the gap that reserves its
-    // height and the quick pick is the first content sliver.
+    // The wide header is no longer a sliver: it floats over the pane as two
+    // glass surfaces, so the feed starts with the gap that reserves its height
+    // and the quick pick is the first content sliver.
     expect(
-      find.ancestor(of: strip, matching: find.byType(PillSliverAppBar)),
+      find.ancestor(of: strip, matching: find.byType(PillSplitSliverAppBar)),
       findsNothing,
       reason: 'the wide pill is not pinned inside the feed',
     );
-    expect(find.byType(PillAppBar), findsOneWidget);
+    expect(find.byType(PillSplitBar), findsOneWidget);
+    expect(find.byType(PillAppBar), findsNothing);
 
     final sliverWidget = tester.widget(sliver);
     expect(
@@ -534,10 +537,7 @@ void main() {
     final detail = find.byType(PostDetailBody);
     expect(detail, findsOneWidget);
     final feedCard = find.byType(PostActionableItem);
-    expect(
-      tester.getRect(detail).left,
-      moreOrLessEquals(1400 / 2, epsilon: 1),
-    );
+    expect(tester.getRect(detail).left, moreOrLessEquals(1400 / 2, epsilon: 1));
     expect(
       tester.getRect(feedCard).left + tester.getRect(feedCard).width,
       lessThanOrEqualTo(tester.getRect(detail).left + 1),
@@ -630,16 +630,19 @@ void main() {
       featuredPosts: const <SnPost>[],
     );
 
-    // Only the feed's pill floats before the pane opens.
-    expect(find.byType(PillAppBar), findsOneWidget);
+    // The feed's header is a split pair of surfaces; the pane has none yet.
+    expect(find.byType(PillSplitBar), findsOneWidget);
+    expect(find.byType(PillAppBar), findsNothing);
 
     await tester.tap(find.textContaining('A short post body.'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    // The pane carries its own pill — the same glass bar the feed uses — so the
-    // window now floats two, and the pane's holds the detail chrome.
-    expect(find.byType(PillAppBar), findsNWidgets(2));
+    // The pane carries its own pill — the same glass capsule the detail page
+    // uses — so the window now floats the split header plus one, and the
+    // pane's holds the detail chrome.
+    expect(find.byType(PillSplitBar), findsOneWidget);
+    expect(find.byType(PillAppBar), findsOneWidget);
     expect(find.text('Post Detail'), findsOneWidget);
     expect(find.byTooltip('Close'), findsOneWidget);
     expect(find.byTooltip('Open'), findsOneWidget);
@@ -776,7 +779,7 @@ void main() {
 
     await disposeTree(tester);
   });
-  testWidgets('the header stays put and only fades its surface in', (
+  testWidgets('the split header stays put and only fades its surfaces in', (
     tester,
   ) async {
     // A feed tall enough to hold the drag below: with only a couple of short
@@ -790,24 +793,23 @@ void main() {
       featuredPosts: const <SnPost>[],
     );
 
-    // The pill's own box is the only container inside the surface chrome that
-    // carries an outer margin.
-    Container barContainer() => tester
-        .widgetList<Container>(
-          find.descendant(
-            of: find.byType(PillBarSurface),
-            matching: find.byType(Container),
-          ),
-        )
-        .firstWhere((container) => container.margin != null);
+    final surfaces = find.descendant(
+      of: find.byType(PillSplitBar),
+      matching: find.byType(PillSurface),
+    );
+    // Navigation circle, the picker's capsule, then the tune action.
+    expect(surfaces, findsNWidgets(3));
+    final nav = surfaces.at(0);
+    final capsule = surfaces.at(1);
+    final tune = surfaces.at(2);
 
-    // The pill's own [DecoratedBox], the first one in the surface — the
-    // controls inside it come after.
-    BoxDecoration barDecoration() =>
+    // The surface's own [DecoratedBox], the first one it paints — the controls
+    // inside it come after.
+    BoxDecoration chrome(Finder surface) =>
         (tester
                 .widgetList<DecoratedBox>(
                   find.descendant(
-                    of: find.byType(PillBarSurface),
+                    of: surface,
                     matching: find.byType(DecoratedBox),
                   ),
                 )
@@ -815,59 +817,129 @@ void main() {
                 .decoration
             as BoxDecoration);
 
-    // The bar's own geometry never changes with the scroll: the container
-    // keeps the same height, margins and capsule at every offset. On wide it
-    // spans the whole window, so the pill is as wide as the viewport minus its
-    // own 12px margins.
-    void expectBarGeometry() {
-      final container = barContainer();
-      final margin = container.margin! as EdgeInsets;
-      expect(margin.left, SolSpace.md);
-      expect(margin.right, SolSpace.md);
-      expect(margin.top, SolSpace.md);
+    // Nothing moves with the scroll, the capsule hugs the picker instead of
+    // stretching across the window, and the tune action keeps the far edge.
+    void expectGeometry() {
+      final navRect = tester.getRect(nav);
+      final capsuleRect = tester.getRect(capsule);
+      final tuneRect = tester.getRect(tune);
+      expect(navRect.size, const Size.square(kGlassNavigationButtonSize));
+      expect(navRect.left, closeTo(kPillSideGutter, 1));
+      expect(capsuleRect.height, closeTo(kGlassNavigationButtonSize, 1));
+      expect(capsuleRect.top, closeTo(navRect.top, 1));
+      expect(capsuleRect.left, closeTo(navRect.right + SolSpace.xs, 1));
       expect(
-        barDecoration().borderRadius,
-        SolRadius.pillRadius,
-        reason: 'the shape is always the capsule',
+        capsuleRect.right,
+        lessThan(500),
+        reason: 'the capsule ends with its controls, not at the window edge',
       );
-      final barRect = tester.getRect(find.byWidget(container));
-      expect(barRect.width, closeTo(1400, 1));
-      expect(barRect.height, closeTo(kPillAppBarHeight, 1));
+      expect(tuneRect.size, const Size.square(kGlassNavigationButtonSize));
+      expect(tuneRect.right, closeTo(1400 - kPillSideGutter, 1));
+      expect(tuneRect.top, closeTo(navRect.top, 1));
+      expect(chrome(nav).borderRadius, SolRadius.pillRadius);
+      expect(chrome(capsule).borderRadius, SolRadius.pillRadius);
+      expect(chrome(tune).borderRadius, SolRadius.pillRadius);
     }
 
-    expectBarGeometry();
+    // The picker keeps a full spacing step of inset from the capsule's edge,
+    // so its icon clears the curved end cap.
+    final pickerRect = tester.getRect(find.byType(MenuAnchor));
     expect(
-      barDecoration().boxShadow,
-      isNull,
-      reason: 'a transparent pill over the empty page top has no shadow',
+      pickerRect.left,
+      closeTo(tester.getRect(capsule).left + SolSpace.md, 1),
     );
 
-    // The pill deliberately no longer aligns with the cards: it owns the
-    // window's full width while the feed stays in the centred reading column,
-    // so the capsule is wider than a card by the gutters on both sides.
-    final barRect = tester.getRect(find.byWidget(barContainer()));
-    final stripRect = tester.getRect(find.byType(FriendPresenceStrip));
-    expect(barRect.left, closeTo(0, 1));
-    expect(barRect.right, closeTo(1400, 1));
+    expectGeometry();
+    for (final surface in [nav, capsule, tune]) {
+      expect(
+        chrome(surface).boxShadow,
+        isNull,
+        reason: 'transparent surfaces over the empty page top cast no shadow',
+      );
+    }
+
+    // The feed reserves exactly the band the surfaces occupy, so the quick
+    // pick clears them at rest.
     expect(
-      barRect.width - stripRect.width,
-      closeTo(1400 - (720 - SolSpace.md * 2), 1),
-      reason: 'the cards stay in the 720 column under the full-width pill',
+      tester.getTopLeft(find.byType(FriendPresenceStrip)).dy,
+      closeTo(kPillSplitBarBand + kExploreCardGap, 1),
     );
-    expect(stripRect.left, greaterThan(barRect.left + SolSpace.md));
 
     await tester.drag(
       find.byType(CustomScrollView).first,
       const Offset(0, -200),
     );
-    // Let the fling settle: a pinned header interpolates its height while
-    // the scroll is still animating.
+    // Let the fling settle: the surfaces interpolate their fill while the
+    // scroll is still animating.
     await tester.pumpAndSettle();
 
-    // Scrolled: same geometry, and the surfaced pill casts its soft shadow.
-    expectBarGeometry();
-    final shadow = barDecoration().boxShadow!.single;
-    expect(shadow.color.a, greaterThan(0));
+    // Scrolled: same geometry, and every surfaced shape casts its soft shadow.
+    expectGeometry();
+    for (final surface in [nav, capsule, tune]) {
+      expect(chrome(surface).boxShadow!.single.color.a, greaterThan(0));
+    }
+
+    await disposeTree(tester);
+  });
+
+  testWidgets('narrow explore: the header is split into two pills', (
+    tester,
+  ) async {
+    await pumpExplore(
+      tester,
+      const Size(420, 900),
+      featuredPosts: const <SnPost>[],
+    );
+
+    expect(find.byType(PillSplitSliverAppBar), findsOneWidget);
+    expect(find.byType(PillSliverAppBar), findsNothing);
+    final nav = find.byType(GlassNavigationButton);
+    final picker = find.byType(MenuAnchor);
+    expect(nav, findsOneWidget);
+    expect(picker, findsOneWidget);
+
+    final navRect = tester.getRect(nav);
+    final pickerRect = tester.getRect(picker);
+    expect(navRect.left, closeTo(kPillSideGutter, 1));
+    expect(pickerRect.left, greaterThan(navRect.right));
+    expect(pickerRect.center.dy, closeTo(navRect.center.dy, 1));
+    expect(
+      pickerRect.right,
+      lessThan(420 - kPillSideGutter),
+      reason: 'the capsule hugs the picker instead of filling the row',
+    );
+    // The tune action keeps the trailing edge, one circle of its own.
+    final tuneRect = tester.getRect(
+      find.descendant(
+        of: find.byType(PillSplitSliverAppBar),
+        matching: find.byTooltip('Settings'),
+      ),
+    );
+    expect(tuneRect.right, closeTo(420 - kPillSideGutter, 1));
+    expect(tuneRect.center.dy, closeTo(navRect.center.dy, 1));
+    expect(
+      tuneRect.left,
+      greaterThan(pickerRect.right),
+      reason: 'the tune action sits outside the picker capsule',
+    );
+
+    // The action opens the quick configuration sheet in place.
+    await tester.tap(find.byTooltip('Settings'));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Preferred'), findsWidgets);
+    expect(find.byType(SegmentedButton<String>), findsOneWidget);
+
+    // The sheet writes the same persisted settings the settings screen owns.
+    await tester.tap(find.text('Latest'));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(kAppExploreSettings);
+    expect(stored, isNotNull);
+    expect(stored, contains('latest'));
 
     await disposeTree(tester);
   });

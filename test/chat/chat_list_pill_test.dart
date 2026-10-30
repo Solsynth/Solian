@@ -188,8 +188,8 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(ChatRoomListTile), findsNWidgets(2));
     expect(find.text('Design crew'), findsOneWidget);
-    // The portrait header is two separate glass surfaces: navigation on the
-    // left and the section picker on the right.
+    // The portrait header is two separate glass surfaces: navigation and the
+    // section picker both lead from the left.
     expect(find.byType(PillAppBar), findsNothing);
     expect(find.byType(GlassNavigationButton), findsOneWidget);
     final pills = find.byType(PillSurface);
@@ -204,11 +204,16 @@ void main() {
     expect(find.byType(TabBar), findsNothing);
     expect(find.byType(MenuAnchor), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
+    final navRect = tester.getRect(find.byType(GlassNavigationButton));
+    final pickerRect = tester.getRect(find.byType(MenuAnchor));
+    expect(pickerRect.left, greaterThan(navRect.right));
+    expect(pickerRect.left, lessThan(200));
+    expect(pickerRect.center.dy, closeTo(navRect.center.dy, 1));
 
     // The first room sits exactly under the split header's band.
     expect(
       tester.getTopLeft(find.byType(ChatRoomListTile).first).dy,
-      closeTo(kChatSplitBarBand, 1),
+      closeTo(kPillSplitBarBand, 1),
     );
 
     await disposeTree(tester);
@@ -278,7 +283,7 @@ void main() {
     await disposeTree(tester);
   });
 
-  testWidgets('wide: the title scrolls while the controls float', (
+  testWidgets('wide: the picker leads the pane while the controls float', (
     tester,
   ) async {
     await pumpList(
@@ -289,26 +294,29 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(ChatRoomListTile), findsNWidgets(2));
-    // The pane title now scrolls with the rooms; the section picker still
-    // floats above the list.
+    // The pane carries no "Chat" title any more: the section picker takes the
+    // leading slot of the floating band.
     expect(find.byType(PillAppBar), findsNothing);
-    final heading = find.text('Chat');
-    expect(heading, findsOneWidget);
+    expect(find.text('Chat'), findsNothing);
     expect(find.byType(PillSurface), findsNWidgets(2));
     expect(find.byType(BackdropFilter), findsNothing);
     // The three-way switcher is the explore page's dropdown, not a tab strip.
     expect(find.byType(TabBar), findsNothing);
     expect(find.byType(MenuAnchor), findsOneWidget);
 
-    // The floating controls own the same band as the list's title row: the
-    // title sits at the picker's height but still scrolls with the rooms.
+    // Navigation toggle first, then the picker: both lead the pane's row
+    // instead of the picker sitting flush right.
+    final navLeft = tester.getTopLeft(find.byType(GlassNavigationButton)).dx;
+    final pickerLeft = tester.getTopLeft(find.byType(MenuAnchor)).dx;
+    expect(pickerLeft, greaterThan(navLeft));
+    expect(pickerLeft, lessThan(400));
     expect(
-      tester.getCenter(heading).dy,
-      closeTo(tester.getCenter(find.byType(MenuAnchor)).dy, 1),
+      tester.getCenter(find.byType(MenuAnchor)).dy,
+      closeTo(tester.getCenter(find.byType(GlassNavigationButton)).dy, 1),
     );
     expect(
       tester.getTopLeft(find.byType(ChatRoomListTile).first).dy,
-      closeTo(kChatSplitBarBand, 1),
+      closeTo(kPillSplitBarBand, 1),
     );
 
     // The pane no longer paints a card surface of its own: only the header

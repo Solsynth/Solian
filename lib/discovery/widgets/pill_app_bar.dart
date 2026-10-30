@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/shared/widgets/pill_surface.dart';
+import 'package:island/shared/widgets/page_app_bar.dart';
 
 /// Scroll distance over which a pill header finishes fading its surface in.
 ///
@@ -106,6 +107,176 @@ class PillBarSurface extends StatelessWidget {
       // page reserved space for. Pinning it keeps every pill the same shape and
       // makes the bar's `preferredSize` the whole truth.
       child: SizedBox(height: kPillBarContentHeight, child: child),
+    );
+  }
+}
+
+/// A header split into two independent glass surfaces.
+///
+/// The navigation toggle keeps its own glass circle at the leading edge and
+/// the page's controls sit in a capsule beside it, instead of one full-width
+/// capsule carrying an empty stretch between them. [fade] drives both
+/// surfaces the way [PillBarSurface] does for a single bar; null keeps them
+/// surfaced.
+///
+/// [showNavigation] defaults to [SolDrawerButton.isShownIn], so a page whose
+/// rail already owns the toggle simply drops the circle. [trailing] sits in a
+/// capsule of its own at the far edge, for a single persistent action.
+class PillSplitBar extends StatelessWidget implements PreferredSizeWidget {
+  /// Fade position, 0..1. Null keeps every surface surfaced.
+  final ValueListenable<double>? fade;
+
+  /// Status-bar inset, reserved inside the bar's own box.
+  final double statusTop;
+
+  /// Lap the capsule's outline as a spinner.
+  final bool loading;
+
+  /// Draw the navigation circle; null asks the layout.
+  final bool? showNavigation;
+
+  /// The content capsule's controls.
+  final Widget child;
+
+  /// An action pinned to the trailing edge in its own capsule.
+  final Widget? trailing;
+
+  const PillSplitBar({
+    super.key,
+    this.fade,
+    required this.statusTop,
+    required this.child,
+    this.loading = false,
+    this.showNavigation,
+    this.trailing,
+  });
+
+  @override
+  Size get preferredSize => Size.fromHeight(statusTop + kPillSplitBarBand);
+
+  @override
+  Widget build(BuildContext context) {
+    final fade = this.fade;
+    if (fade == null) return _build(context, 1);
+    return ValueListenableBuilder<double>(
+      valueListenable: fade,
+      builder: (context, t, _) => _build(context, t),
+    );
+  }
+
+  Widget _build(BuildContext context, double t) {
+    final showNav = showNavigation ?? SolDrawerButton.isShownIn(context);
+    final trailing = this.trailing;
+    return SizedBox(
+      height: preferredSize.height,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          kPillSideGutter,
+          statusTop + kPillSideGutter,
+          kPillSideGutter,
+          SolSpace.xs,
+        ),
+        child: Row(
+          children: [
+            if (showNav) ...[
+              GlassNavigationButton(t: t),
+              const SizedBox(width: SolSpace.xs),
+            ],
+            Flexible(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: PillSurface(
+                  t: t,
+                  loading: loading,
+                  margin: EdgeInsets.zero,
+                  radius: SolRadius.pillRadius,
+                  // Roomier than the old `SolSpace.xs`: the capsule's end caps
+                  // curve inwards, so the picker's icon needs a full spacing
+                  // step before it clears the contour.
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: SolSpace.md,
+                  ),
+                  // Pinned to the navigation circle's height so the two
+                  // surfaces read as one row instead of a tall capsule beside
+                  // a small circle.
+                  child: SizedBox(
+                    height: kGlassNavigationButtonSize,
+                    child: Material(color: Colors.transparent, child: child),
+                  ),
+                ),
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: SolSpace.sm),
+              PillSurface(
+                t: t,
+                margin: EdgeInsets.zero,
+                radius: SolRadius.pillRadius,
+                contentPadding: EdgeInsets.zero,
+                child: SizedBox.square(
+                  dimension: kGlassNavigationButtonSize,
+                  child: Material(color: Colors.transparent, child: trailing),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pinned header sliver for [PillSplitBar].
+///
+/// The sliver's geometry never changes and because it is pinned nothing moves
+/// the bar: the feed slides underneath while only the surfaces' fill animates.
+class PillSplitSliverAppBar extends StatelessWidget {
+  final ValueListenable<double> fade;
+
+  /// Status-bar inset, measured by the caller so the sliver's height matches.
+  final double statusTop;
+
+  /// Lap the capsule's outline as a spinner.
+  final bool loading;
+
+  /// Draw the navigation circle; null asks the layout.
+  final bool? showNavigation;
+
+  /// The content capsule's controls.
+  final Widget child;
+
+  /// An action pinned to the trailing edge in its own capsule.
+  final Widget? trailing;
+
+  const PillSplitSliverAppBar({
+    super.key,
+    required this.fade,
+    required this.statusTop,
+    required this.child,
+    this.loading = false,
+    this.showNavigation,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      primary: false,
+      automaticallyImplyLeading: false,
+      toolbarHeight: statusTop + kPillSplitBarBand,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      pinned: true,
+      flexibleSpace: PillSplitBar(
+        fade: fade,
+        statusTop: statusTop,
+        loading: loading,
+        showNavigation: showNavigation,
+        trailing: trailing,
+        child: child,
+      ),
     );
   }
 }
