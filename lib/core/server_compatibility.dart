@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/server_capabilities.g.dart';
 
 /// The capabilities required before the app can safely start its core flows.
 /// Optional product capabilities are deliberately not listed here.
@@ -61,8 +60,6 @@ bool serverFeatureEnabled(
 enum ServerCompatibilityIssue {
   invalidMetadata,
   incomplete,
-  serverTooOld,
-  clientTooOld,
   missingCapability,
 }
 
@@ -77,26 +74,9 @@ class ServerCompatibility {
   bool get isCompatible => issue == null;
 
   static ServerCompatibility fromMetadata(Map<String, dynamic> metadata) {
-    final apiRevision = _readInt(metadata['api_revision']);
-    final minimumRevision = _readInt(metadata['minimum_revision']);
-    if (apiRevision == null || minimumRevision == null) {
-      return const ServerCompatibility._(
-        issue: ServerCompatibilityIssue.invalidMetadata,
-      );
-    }
     if (metadata['incomplete'] == true) {
       return const ServerCompatibility._(
         issue: ServerCompatibilityIssue.incomplete,
-      );
-    }
-    if (apiRevision < kSupportedServerApiRevision) {
-      return const ServerCompatibility._(
-        issue: ServerCompatibilityIssue.serverTooOld,
-      );
-    }
-    if (minimumRevision > kSupportedServerApiRevision) {
-      return const ServerCompatibility._(
-        issue: ServerCompatibilityIssue.clientTooOld,
       );
     }
 

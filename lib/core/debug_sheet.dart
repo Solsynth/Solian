@@ -15,7 +15,7 @@ import 'package:island/core/check_in_debug.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/server_capabilities.g.dart';
+import 'package:island/core/server_compatibility.dart';
 import 'package:solsynth_express/solsynth_express.dart';
 import 'package:island/core/services/notify.dart' as local_notify;
 import 'package:solar_network_foundation/solar_network_foundation.dart';
@@ -95,12 +95,12 @@ void _showMockCapabilityConflict(WidgetRef ref) {
   final navigatorContext = ref.read(routerProvider).navigatorKey.currentContext;
   if (navigatorContext == null || !navigatorContext.mounted) return;
   final metadata = <String, dynamic>{
-    'api_revision': kSupportedServerApiRevision,
+    'api_revision': 1,
     'minimum_revision': 0,
     'incomplete': false,
     'capabilities': {
-      for (final entry in kClientSupportedCapabilities.entries)
-        entry.key: {'enabled': entry.key != 'chat', 'revision': entry.value},
+      for (final capability in kRequiredServerCapabilities)
+        capability: {'enabled': capability != 'chat', 'revision': 1},
     },
   };
   showServerCapabilitiesDetails(navigatorContext, metadata: metadata);

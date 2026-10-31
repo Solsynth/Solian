@@ -2,13 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:island/core/server_compatibility.dart';
 
 Map<String, dynamic> metadata({
-  int apiRevision = 1,
-  int minimumRevision = 0,
   bool incomplete = false,
   Set<String> disabledCapabilities = const {},
 }) => {
-  'api_revision': apiRevision,
-  'minimum_revision': minimumRevision,
   'incomplete': incomplete,
   'capabilities': {
     for (final capability in kRequiredServerCapabilities)
@@ -20,15 +16,8 @@ Map<String, dynamic> metadata({
 };
 
 void main() {
-  test('accepts a server with a compatible protocol and core capabilities', () {
+  test('accepts a server exposing the core capabilities', () {
     expect(ServerCompatibility.fromMetadata(metadata()).isCompatible, isTrue);
-  });
-
-  test('rejects a server that requires a newer client protocol', () {
-    final result = ServerCompatibility.fromMetadata(
-      metadata(minimumRevision: 2),
-    );
-    expect(result.issue, ServerCompatibilityIssue.clientTooOld);
   });
 
   test('rejects an incomplete metadata response', () {

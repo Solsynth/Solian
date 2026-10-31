@@ -4,7 +4,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/server_capabilities.g.dart';
 import 'package:island/core/server_compatibility.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -157,11 +156,7 @@ class _ServerCapabilitiesSheet extends StatelessWidget {
               title: Text('settingsServerCapabilities').tr(),
               subtitle: Text(
                 'settingsServerCapabilitiesProtocol'.tr(
-                  args: [
-                    '$apiRevision',
-                    '$minimumRevision',
-                    '$kSupportedServerApiRevision',
-                  ],
+                  args: ['$apiRevision', '$minimumRevision'],
                 ),
               ),
               trailing: Icon(
@@ -188,18 +183,6 @@ class _ServerCapabilitiesSheet extends StatelessWidget {
               isHealthy: false,
               initiallyExpanded: true,
             ),
-          const Divider(),
-          _CapabilitiesSection(
-            title: 'settingsClientCapabilities'.tr(),
-            capabilities: {
-              for (final entry in kClientSupportedCapabilities.entries)
-                entry.key: _CapabilityInfo(
-                  enabled: true,
-                  revision: entry.value,
-                ),
-            },
-          ),
-          const Divider(),
           _CapabilitiesSection(
             title: 'settingsServerProvidedCapabilities'.tr(),
             capabilities: serverCapabilities,
