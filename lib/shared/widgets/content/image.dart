@@ -54,7 +54,6 @@ class UniversalImage extends HookConsumerWidget {
     final loadingCompletionScheduled = useRef(false);
     final isCached = useState<bool?>(null);
     final isSvgImage = isSvg || uri.toLowerCase().endsWith('.svg');
-
     final serverUrl = ref.watch(serverUrlProvider);
     final token = ref.watch(tokenProvider);
 
@@ -78,6 +77,19 @@ class UniversalImage extends HookConsumerWidget {
       });
       return null;
     }, [uri]);
+
+    // A blank or relative URI can only fail downstream — "No host specified
+    // in URI" — and that failure surfaces far from its cause. Answer with the
+    // error presentation instead of handing an unloadable address to the cache.
+    // Declared after every hook so the hook order stays unconditional.
+    if ((Uri.tryParse(uri)?.host ?? '').isEmpty) {
+      return CachedImageErrorWidget(
+        useFallbackImage: useFallbackImage,
+        uri: uri,
+        blurHash: blurHash,
+        error: 'Image URI has no host: "$uri"',
+      );
+    }
 
     if (isSvgImage) {
       return SvgPicture.network(

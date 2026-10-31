@@ -9,7 +9,10 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const _serverUrl = 'https://api.example.com';
 
-Future<void> _pumpAvatar(WidgetTester tester, IDisplayableCloudFile? file) async {
+Future<void> _pumpAvatar(
+  WidgetTester tester,
+  IDisplayableCloudFile? file,
+) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
@@ -52,6 +55,21 @@ void main() {
 
     testWidgets('loads a local avatar from the drive endpoint', (tester) async {
       await _pumpAvatar(tester, const SnCloudFileReference(id: 'file-1'));
+
+      final image = tester.widget<UniversalImage>(find.byType(UniversalImage));
+      expect(image.uri, '$_serverUrl/drive/files/file-1');
+    });
+
+    testWidgets('loads a local avatar over a blank storage url', (
+      tester,
+    ) async {
+      // A blank storage url is not an address. Falling through to the drive
+      // endpoint is what keeps the avatar visible instead of failing with
+      // "No host specified in URI".
+      await _pumpAvatar(
+        tester,
+        const SnCloudFileReference(id: 'file-1', storageUrl: ''),
+      );
 
       final image = tester.widget<UniversalImage>(find.byType(UniversalImage));
       expect(image.uri, '$_serverUrl/drive/files/file-1');

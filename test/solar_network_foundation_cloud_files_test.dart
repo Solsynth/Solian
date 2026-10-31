@@ -26,6 +26,38 @@ void main() {
         'https://storage.example.com/file-1?signature=abc&original=true&workspace_id=workspace-1',
       );
     });
+
+    test('treats a blank storage url as no storage url', () {
+      // A blank url is not an address: honouring it produced a schemeless
+      // image URL and every loader failed with "No host specified in URI".
+      expect(
+        cloudFileUrl(
+          serverUrl: 'https://api.example.com',
+          id: 'file-1',
+          storageUrl: '',
+        ),
+        'https://api.example.com/drive/files/file-1',
+      );
+      expect(
+        cloudFileUrl(
+          serverUrl: 'https://api.example.com',
+          id: 'file-1',
+          storageUrl: '   ',
+        ),
+        'https://api.example.com/drive/files/file-1',
+      );
+    });
+
+    test('appends the thumbnail flag to a local file url', () {
+      expect(
+        cloudFileUrl(
+          serverUrl: 'https://api.example.com',
+          id: 'file-1',
+          thumbnail: true,
+        ),
+        'https://api.example.com/drive/files/file-1?thumbnail=true',
+      );
+    });
   });
 
   group('cloudFileReferenceUrl', () {
@@ -73,14 +105,30 @@ void main() {
 
     test('returns null when the reference has nothing to load', () {
       expect(
-        cloudFileReferenceUrl(
-          serverUrl: 'https://api.example.com',
-          id: '',
-        ),
+        cloudFileReferenceUrl(serverUrl: 'https://api.example.com', id: ''),
         isNull,
       );
       expect(
         cloudFileReferenceUrl(serverUrl: 'https://api.example.com'),
+        isNull,
+      );
+    });
+
+    test('ignores a blank storage url on a local file', () {
+      expect(
+        cloudFileReferenceUrl(
+          serverUrl: 'https://api.example.com',
+          id: 'file-1',
+          storageUrl: '',
+        ),
+        'https://api.example.com/drive/files/file-1',
+      );
+      expect(
+        cloudFileReferenceUrl(
+          serverUrl: 'https://api.example.com',
+          id: '',
+          storageUrl: '',
+        ),
         isNull,
       );
     });

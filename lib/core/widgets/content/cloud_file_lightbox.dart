@@ -713,7 +713,11 @@ class _LightboxVideoPage extends StatelessWidget {
     required this.isActive,
   });
 
-  String get _uri => item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
+  String get _uri => cloudFileUrl(
+    serverUrl: serverUrl,
+    id: item.id,
+    storageUrl: item.storageUrl,
+  );
 
   double get _ratio {
     final ratio = item.ratio;

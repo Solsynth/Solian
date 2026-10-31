@@ -33,6 +33,7 @@ import 'package:island/shared/widgets/content/image.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 const postDetailMaxWidth = 640.0;
 const _postDetailAttachmentMaxHeight = 760.0;
@@ -63,8 +64,12 @@ class _PostDetailMediaBackdrop extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final isImage = file.mimeType.startsWith('image');
     final isVideo = file.mimeType.startsWith('video');
-    final thumbnailUri =
-        file.storageUrl ?? '$serverUrl/drive/files/${file.id}?thumbnail=true';
+    final thumbnailUri = cloudFileUrl(
+      serverUrl: serverUrl,
+      id: file.id,
+      storageUrl: file.storageUrl,
+      thumbnail: true,
+    );
 
     Widget child;
     if (isImage && file.blurhash?.isNotEmpty == true) {

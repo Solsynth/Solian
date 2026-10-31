@@ -64,6 +64,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 part 'post_detail.g.dart';
 
@@ -2746,8 +2747,12 @@ class _DesktopMediaBackground extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final isImage = file.mimeType.startsWith('image');
     final isVideo = file.mimeType.startsWith('video');
-    final thumbnailUri =
-        file.storageUrl ?? '$serverUrl/drive/files/${file.id}?thumbnail=true';
+    final thumbnailUri = cloudFileUrl(
+      serverUrl: serverUrl,
+      id: file.id,
+      storageUrl: file.storageUrl,
+      thumbnail: true,
+    );
 
     Widget child;
     if (isImage && file.blurhash?.isNotEmpty == true) {

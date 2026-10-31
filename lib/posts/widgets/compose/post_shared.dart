@@ -36,6 +36,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 part 'post_shared.g.dart';
 
@@ -1863,8 +1864,12 @@ class FullBleedSingleAttachment extends ConsumerWidget {
         ],
       );
     } else if (isVideo) {
-      final thumbnailUri =
-          file.storageUrl ?? '$serverUrl/drive/files/${file.id}?thumbnail=true';
+      final thumbnailUri = cloudFileUrl(
+        serverUrl: serverUrl,
+        id: file.id,
+        storageUrl: file.storageUrl,
+        thumbnail: true,
+      );
       backdrop = Stack(
         fit: StackFit.expand,
         children: [
