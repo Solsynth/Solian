@@ -199,6 +199,8 @@ class ThoughtsScreen extends HookConsumerWidget {
       extendBody: true,
       body: wideScreen
           ? ResponsiveSidebar(
+              sidebarBackgroundColor: Colors.transparent,
+              sidebarElevation: 0,
               showSidebar: showThreads,
               sidebarWidth: 320,
               minWideSidebarWidth: 260,
@@ -595,13 +597,15 @@ class _TraceRow extends StatelessWidget {
                     _TraceChevron(collapsed: bubble.collapsed),
                     const Gap(6),
                     Icon(
-                      Symbols.psychology_rounded,
+                      Symbols.auto_awesome_rounded,
                       size: 14,
                       color: scheme.onSurfaceVariant,
                     ),
                     const Gap(SolSpace.xs),
                     Text(
-                      bubble.streaming ? 'thoughtThinking'.tr() : 'thoughtThought'.tr(),
+                      bubble.streaming
+                          ? 'thoughtThinking'.tr()
+                          : 'thoughtThought'.tr(),
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: scheme.onSurfaceVariant,
@@ -770,11 +774,7 @@ class _TraceDetail extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       firstChild: const SizedBox(width: double.infinity, height: 0),
       secondChild: Padding(
-        padding: const EdgeInsets.only(
-          left: 22,
-          top: 6,
-          right: SolSpace.sm,
-        ),
+        padding: const EdgeInsets.only(left: 22, top: 6, right: SolSpace.sm),
         child: child,
       ),
       crossFadeState: collapsed
@@ -1031,7 +1031,8 @@ class _Composer extends HookConsumerWidget {
           return KeyEventResult.handled;
         }
 
-        final isEnter = event.logicalKey == LogicalKeyboardKey.enter ||
+        final isEnter =
+            event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter;
         final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
         final isMetaOrCtrlPressed =
@@ -1123,14 +1124,14 @@ class _Composer extends HookConsumerWidget {
                                     const Gap(SolSpace.sm),
                                 itemBuilder: (context, index) =>
                                     _PendingAttachment(
-                                  attachment: attachments[index],
-                                  onRemove: onRemoveAttachment == null
-                                      ? null
-                                      : () => onRemoveAttachment!(index),
-                                  onRetry: onRetryAttachment == null
-                                      ? null
-                                      : () => onRetryAttachment!(index),
-                                ),
+                                      attachment: attachments[index],
+                                      onRemove: onRemoveAttachment == null
+                                          ? null
+                                          : () => onRemoveAttachment!(index),
+                                      onRetry: onRetryAttachment == null
+                                          ? null
+                                          : () => onRetryAttachment!(index),
+                                    ),
                               ),
                             ),
                           )
@@ -1189,7 +1190,8 @@ class _Composer extends HookConsumerWidget {
                             final uploading = attachments
                                 .where((attachment) => attachment.isUploading)
                                 .length;
-                            final canSend = uploading == 0 &&
+                            final canSend =
+                                uploading == 0 &&
                                 (value.text.trim().isNotEmpty ||
                                     attachments.any(
                                       (attachment) => attachment.isSendable,
@@ -1368,10 +1370,7 @@ class _GlassComposerSurface extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: radius,
-                  border: Border.all(
-                    color: colorScheme.primary,
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: colorScheme.primary, width: 1.5),
                 ),
               ),
             ),
@@ -1412,15 +1411,17 @@ class _ReasoningControl extends ConsumerWidget {
     return Tooltip(
       message: active == null
           ? 'thoughtReasoningDefault'.tr()
-          : 'thoughtReasoningActive'.tr(namedArgs: {
-              'level': _levels
-                  .firstWhere(
-                    (level) => level.$1 == active,
-                    orElse: () => (active, active),
-                  )
-                  .$2
-                  .tr(),
-            }),
+          : 'thoughtReasoningActive'.tr(
+              namedArgs: {
+                'level': _levels
+                    .firstWhere(
+                      (level) => level.$1 == active,
+                      orElse: () => (active, active),
+                    )
+                    .$2
+                    .tr(),
+              },
+            ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: scheme.surfaceContainerHigh.withValues(
@@ -1513,6 +1514,7 @@ class _ReasoningSegment extends StatelessWidget {
     );
   }
 }
+
 /// A token count short enough for a one-line footer: `512`, `12.4k`, `1.2M`.
 String formatThoughtTokens(int value) {
   String scaled(double amount, String suffix) {
@@ -1529,9 +1531,8 @@ String formatThoughtTokens(int value) {
 }
 
 /// The readout beside the reasoning pill: the conversation's running total.
-String thoughtTokensSpent(int value) => 'thoughtTokensSpent'.tr(
-  namedArgs: {'count': formatThoughtTokens(value)},
-);
+String thoughtTokensSpent(int value) =>
+    'thoughtTokensSpent'.tr(namedArgs: {'count': formatThoughtTokens(value)});
 
 /// The full sentence behind the token readout, for the tooltip.
 String _usageTooltip(SnConversationUsage usage) {
@@ -1540,10 +1541,12 @@ String _usageTooltip(SnConversationUsage usage) {
   final window = usage.contextWindowTokens;
   if (used != null && window != null && window > 0) {
     parts.add(
-      'thoughtContextPeak'.tr(namedArgs: {
-        'used': formatThoughtTokens(used),
-        'window': formatThoughtTokens(window),
-      }),
+      'thoughtContextPeak'.tr(
+        namedArgs: {
+          'used': formatThoughtTokens(used),
+          'window': formatThoughtTokens(window),
+        },
+      ),
     );
   }
   parts.add('thoughtRuns'.tr(namedArgs: {'count': '${usage.runs}'}));

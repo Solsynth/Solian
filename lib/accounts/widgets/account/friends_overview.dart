@@ -144,7 +144,7 @@ class FriendsOverviewWidget extends HookConsumerWidget {
                 ).padding(horizontal: 16, vertical: 12),
                 if (displayFriends.isEmpty)
                   Container(
-                    height: 80,
+                    height: 88,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Center(
                       child: Text(
@@ -155,7 +155,7 @@ class FriendsOverviewWidget extends HookConsumerWidget {
                   )
                 else
                   SizedBox(
-                    height: 80,
+                    height: 88,
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
                       scrollDirection: Axis.horizontal,
@@ -210,7 +210,7 @@ class FriendsOverviewWidget extends HookConsumerWidget {
                 ],
               ).padding(horizontal: 16, vertical: 12),
               SizedBox(
-                height: 80,
+                height: 88,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
                   scrollDirection: Axis.horizontal,
@@ -251,7 +251,7 @@ class SkeletonFriendTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
+      width: 72,
       margin: const EdgeInsets.only(right: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -260,7 +260,7 @@ class SkeletonFriendTile extends StatelessWidget {
           Stack(
             children: [
               CircleAvatar(
-                radius: 24,
+                radius: 30,
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 child: Text(
                   'A',
@@ -274,8 +274,8 @@ class SkeletonFriendTile extends StatelessWidget {
                 bottom: 0,
                 right: 0,
                 child: Container(
-                  width: 16,
-                  height: 16,
+                  width: 18,
+                  height: 18,
                   decoration: BoxDecoration(
                     color: Colors.green,
                     shape: BoxShape.circle,
@@ -422,11 +422,12 @@ class _FriendOverviewListTile extends StatelessWidget {
             ProfilePictureWidget(
               file: friend.account.profile.picture,
               fallbackName: friend.account.nick,
+              radius: 24,
             ),
             Positioned(
               bottom: 0,
               right: 0,
-              child: FriendPresenceBadge(friend: friend),
+              child: FriendPresenceBadge(friend: friend, size: 18),
             ),
           ],
         ),
@@ -513,7 +514,7 @@ class _FriendTile extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Container(
-      width: 60,
+      width: 72,
       margin: const EdgeInsets.only(right: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -524,13 +525,13 @@ class _FriendTile extends ConsumerWidget {
               ProfilePictureWidget(
                 file: friend.account.profile.picture,
                 fallbackName: friend.account.nick,
-                radius: 24,
+                radius: 30,
               ),
               // Play arrow while the friend has an activity, else status dot.
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: FriendPresenceBadge(friend: friend),
+                child: FriendPresenceBadge(friend: friend, size: 18),
               ),
             ],
           ),

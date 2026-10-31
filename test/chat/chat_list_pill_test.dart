@@ -375,12 +375,13 @@ void main() {
     expect(find.byType(ChatRoomListTile), findsNWidgets(2));
     expect(find.text('Pinned pal'), findsNWidgets(2));
 
-    // The strip borrows the explore feed's gutter and tile height but not its
+    // The strip borrows the explore feed's gutter and tile shape but not its
     // floating card: the list is already one surface, so the avatars sit on
-    // it and no rule separates them from the rooms below.
+    // it and no rule separates them from the rooms below. Its band is taller
+    // than the explore strip because the pinned avatars are larger.
     final strip = find.byType(HoverHorizontalScrollList);
     expect(strip, findsOneWidget);
-    expect(tester.getSize(strip).height, closeTo(84, 1));
+    expect(tester.getSize(strip).height, closeTo(92, 1));
     expect(find.byType(ExploreCard), findsNothing);
     expect(find.byType(Divider), findsNothing);
 

@@ -1243,9 +1243,11 @@ class ChatMessageSearchView extends HookConsumerWidget {
 
     // The host page's pill floats over this section, so its band is reserved
     // as the scroll view's first sliver: the first result clears the capsule
-    // and everything after it travels under the glass.
-    final topGap =
-        MediaQuery.paddingOf(context).top + kPillAppBarHeight + kExploreCardGap;
+    // and everything after it travels under the glass. The narrow layout
+    // reserves it inside its sliver; the wide layout's panes are siblings of
+    // the pill, so they reserve it as padding instead (see below).
+    final band = MediaQuery.paddingOf(context).top + kPillAppBarHeight;
+    final topGap = band + kExploreCardGap;
 
     Widget buildGroup(_SearchRoomGroup group) => _SearchRoomSection(
       group: group,
@@ -1301,14 +1303,24 @@ class ChatMessageSearchView extends HookConsumerWidget {
       ),
     );
 
+    // The pill is the host scaffold's app bar, so it floats over the filter
+    // pane as well as over the results: both have to start below it, or the
+    // pane's first control paints behind the capsule. The pane carries no
+    // surface of its own — it is a column of controls over the page ground.
     if (isWideScreen(context)) {
       return ResponsiveSidebar(
         showSidebar: filtersVisible,
         isLeft: false,
         sidebarWidth: 320,
-        sidebarBackgroundColor: Theme.of(context).colorScheme.surface,
+        sidebarBackgroundColor: Colors.transparent,
+        sidebarElevation: 0,
         sidebarContent: SingleChildScrollView(
-          padding: const EdgeInsets.all(SolSpace.md),
+          padding: EdgeInsets.fromLTRB(
+            SolSpace.md,
+            band + SolSpace.md,
+            SolSpace.md,
+            SolSpace.md,
+          ),
           child: filterBar,
         ),
         mainContent: results,

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,10 +7,9 @@ import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/activity_presence.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
-import 'package:gap/gap.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -22,14 +20,6 @@ final friendAccountMapProvider = Provider<Map<String, SnAccount>>((ref) {
   if (friends == null) return {};
   return {for (final f in friends) f.account.id: f.account};
 });
-
-String resolvePresenceArtworkUrl(WidgetRef ref, String imageUri) {
-  if (imageUri.startsWith('sha256:')) {
-    final serverURL = ref.read(serverUrlProvider);
-    return '$serverURL/stargate/presence/artworks/$imageUri';
-  }
-  return imageUri;
-}
 
 Map<String, dynamic> asStringKeyedMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
@@ -118,40 +108,181 @@ String _resolveActivityStatusKey(String type, bool isActive) {
   return presenceActivityTypeKey(type);
 }
 
-class _SteamHeroImage extends StatelessWidget {
-  final Map<String, dynamic> meta;
+/// Avatar plus the row's single presence overlay: the activity glyph while
+/// something is playing, a bare tinted dot otherwise. Presence is drawn here
+/// and nowhere else in the row, so the same state is never also spelled out as
+/// a chip.
+class _PresenceAvatar extends StatelessWidget {
+  final SnAccount? account;
 
-  const _SteamHeroImage({required this.meta});
+  /// Tint of the overlay and of the placeholder avatar.
+  final Color color;
+
+  /// Glyph inside the overlay badge; null paints a bare dot (account status).
+  final IconData? overlayIcon;
+
+  /// Glyph used when the account itself could not be resolved.
+  final IconData fallbackIcon;
+  final double pointFill;
+
+  const _PresenceAvatar({
+    required this.account,
+    required this.color,
+    required this.fallbackIcon,
+    this.overlayIcon,
+    this.pointFill = 1,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final gameId = meta['game_id']?.toString().replaceAll('"', '');
-    if (gameId == null) return const SizedBox.shrink();
-
-    final heroUrl =
-        'https://cdn.cloudflare.steamstatic.com/steam/apps/$gameId/library_hero.jpg';
-
-    return CachedNetworkImage(
-      imageUrl: heroUrl,
-      height: 120,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
-        height: 80,
-        color: const Color(0xFF1B2838),
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      errorWidget: (context, url, error) => Container(
-        height: 80,
-        color: const Color(0xFF1B2838),
-        child: const Center(
-          child: Icon(Symbols.sports_esports, color: Colors.white70, size: 32),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (account != null)
+          ProfilePictureWidget(
+            file: account!.profile.picture,
+            fallbackName: account!.nick,
+            radius: 18,
+          )
+        else
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              fallbackIcon,
+              size: 18,
+              color: color,
+              fill: pointFill,
+            ),
+          ),
+        Positioned(
+          right: -4,
+          bottom: -4,
+          child: Container(
+            width: 18,
+            height: 18,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Theme.of(context).colorScheme.surface,
+                width: 2,
+              ),
+            ),
+            child: overlayIcon == null
+                ? null
+                : Icon(
+                    overlayIcon,
+                    size: 10,
+                    color: Colors.white,
+                    fill: pointFill,
+                  ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
+/// One muted identity line: who the row is about, and how long ago it happened.
+class _PresenceMetaLine extends StatelessWidget {
+  final SnAccount? account;
+  final DateTime at;
+
+  const _PresenceMetaLine({required this.account, required this.at});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    return Row(
+      children: [
+        if (account != null) ...[
+          Flexible(
+            child: AccountName(
+              account: account!,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: muted,
+                fontWeight: FontWeight.w600,
+              ),
+              hideOverlay: true,
+            ),
+          ),
+          const Gap(4),
+          Text(
+            '·',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: muted.withOpacity(0.5),
+            ),
+          ),
+          const Gap(4),
+        ],
+        Text(
+          at.toLocal().formatRelative(context),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: muted.withOpacity(0.7),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The row's payload on one line, with its link affordance if the source gave
+/// one. [secondary] renders a subtitle: smaller and muted.
+class _PresenceTitleLine extends StatelessWidget {
+  final String text;
+  final String? url;
+  final bool secondary;
+
+  const _PresenceTitleLine({
+    required this.text,
+    this.url,
+    this.secondary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = secondary
+        ? theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          )
+        : theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500);
+
+    return Row(
+      spacing: 4,
+      children: [
+        Flexible(
+          child: Text(
+            text,
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (url != null && url!.isNotEmpty)
+          GestureDetector(
+            onTap: () => launchUrlString(url!),
+            child: Icon(
+              Symbols.launch_rounded,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// A friend's current activity ("now playing"): what they are doing, with the
+/// activity type carried entirely by the avatar overlay.
 class FriendPresenceItem extends ConsumerWidget {
   final SnPresenceActivity activity;
   final Map<String, dynamic> rawData;
@@ -164,7 +295,6 @@ class FriendPresenceItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final userInfo = ref.watch(userInfoProvider);
     final currentUser = userInfo.value;
     final friendMap = ref.watch(friendAccountMapProvider);
@@ -175,172 +305,41 @@ class FriendPresenceItem extends ConsumerWidget {
         (rawData['is_active'] as bool?) ??
         (activity.deletedAt == null &&
             activity.leaseExpiresAt.isAfter(DateTime.now()));
-    final providerKey =
-        (rawData['provider'] as String?) ??
-        (activity.meta?['provider']?.toString());
-    final isSpotify = providerKey == 'spotify';
-    final isSteam = providerKey == 'steam';
+    final title = (activity.title?.trim().isNotEmpty ?? false)
+        ? activity.title!
+        : _resolveActivityStatusKey(activity.type, isActive).tr();
+    final subtitle = activity.subtitle?.trim();
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isSteam && activity.meta != null)
-          _SteamHeroImage(meta: activity.meta as Map<String, dynamic>),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAvatarStack(theme, account, isSpotify, isSteam),
-              if (_hasArtwork(activity) && !isSteam)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: resolvePresenceArtworkUrl(
-                      ref,
-                      activity.largeImage ?? activity.smallImage!,
-                    ),
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (account != null) ...[
-                      Row(
-                        children: [
-                          Flexible(
-                            child: AccountName(
-                              account: account,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              hideOverlay: true,
-                            ),
-                          ),
-                          const Gap(4),
-                          Text(
-                            '·',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withOpacity(0.5),
-                            ),
-                          ),
-                          const Gap(4),
-                          Text(
-                            activity.createdAt.toLocal().formatRelative(
-                              context,
-                            ),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    Row(
-                      spacing: 6,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            activity.title ?? 'unknown'.tr(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (activity.titleUrl != null &&
-                            activity.titleUrl!.isNotEmpty)
-                          GestureDetector(
-                            onTap: () => launchUrlString(activity.titleUrl!),
-                            child: Icon(
-                              Symbols.launch_rounded,
-                              size: 14,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (activity.subtitle != null &&
-                        activity.subtitle!.isNotEmpty) ...[
-                      const Gap(2),
-                      Row(
-                        spacing: 4,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              activity.subtitle!,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (activity.subtitleUrl != null &&
-                              activity.subtitleUrl!.isNotEmpty)
-                            GestureDetector(
-                              onTap: () =>
-                                  launchUrlString(activity.subtitleUrl!),
-                              child: Icon(
-                                Symbols.launch_rounded,
-                                size: 14,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                    if (activity.caption != null &&
-                        activity.caption!.isNotEmpty) ...[
-                      const Gap(2),
-                      Text(
-                        activity.caption!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const Gap(6),
-                    Row(
-                      spacing: 6,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _resolveActivityStatusKey(activity.type, isActive),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onTertiaryContainer,
-                            ),
-                          ).tr(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        spacing: 10,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _PresenceAvatar(
+            account: account,
+            color: _getActivityColor(activity.type),
+            overlayIcon: presenceActivityIcon(activity.type),
+            fallbackIcon: presenceActivityIcon(activity.type),
           ),
-        ),
-      ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _PresenceMetaLine(account: account, at: activity.createdAt),
+                _PresenceTitleLine(text: title, url: activity.titleUrl),
+                if (subtitle != null && subtitle.isNotEmpty)
+                  _PresenceTitleLine(
+                    text: subtitle,
+                    url: activity.subtitleUrl,
+                    secondary: true,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
 
     if (account != null) {
@@ -348,99 +347,10 @@ class FriendPresenceItem extends ConsumerWidget {
     }
     return content;
   }
-
-  Widget _buildAvatarStack(
-    ThemeData theme,
-    SnAccount? account,
-    bool isSpotify,
-    bool isSteam,
-  ) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        if (account != null)
-          ProfilePictureWidget(
-            file: account.profile.picture,
-            fallbackName: account.nick,
-            radius: 18,
-          )
-        else
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: _getActivityColor(activity.type).withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              presenceActivityIcon(activity.type),
-              size: 18,
-              color: _getActivityColor(activity.type),
-            ),
-          ),
-        Positioned(
-          right: -4,
-          bottom: -4,
-          child: Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(
-              color: _getActivityColor(activity.type),
-              shape: BoxShape.circle,
-              border: Border.all(color: theme.colorScheme.surface, width: 2),
-            ),
-            child: Icon(
-              presenceActivityIcon(activity.type),
-              size: 10,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        if (isSpotify)
-          Positioned(
-            right: -6,
-            top: -2,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: const BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Symbols.music_note,
-                size: 8,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        if (isSteam)
-          Positioned(
-            right: -6,
-            top: -2,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1B2838),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Symbols.sports_esports,
-                size: 8,
-                color: Colors.white,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  static bool _hasArtwork(SnPresenceActivity activity) {
-    return activity.largeImage != null || activity.smallImage != null;
-  }
 }
 
+/// A friend's account status change. The dot on the avatar is the state; the
+/// label is the human wording of it, so the row never says both twice.
 class FriendStatusItem extends ConsumerWidget {
   final SnAccountStatus status;
   final DateTime createdAt;
@@ -462,9 +372,6 @@ class FriendStatusItem extends ConsumerWidget {
         : (friendMap[status.accountId] ?? status.account);
     final displayLabel = getStatusDisplayLabel(context, status);
     final displaySymbol = getStatusDisplaySymbol(status);
-    final indicatorColor = getStatusIndicatorColor(status);
-    final indicatorIcon = getStatusIndicatorIcon(status);
-    final indicatorFill = getStatusIndicatorFill(status);
 
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -472,87 +379,18 @@ class FriendStatusItem extends ConsumerWidget {
         spacing: 10,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              if (account != null)
-                ProfilePictureWidget(
-                  file: account.profile.picture,
-                  fallbackName: account.nick,
-                  radius: 18,
-                )
-              else
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: indicatorColor.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    indicatorIcon,
-                    size: 18,
-                    color: indicatorColor,
-                    fill: indicatorFill,
-                  ),
-                ),
-              Positioned(
-                right: -4,
-                bottom: -4,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: indicatorColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.colorScheme.surface,
-                      width: 2,
-                    ),
-                  ),
-                  child: const SizedBox.shrink(),
-                ),
-              ),
-            ],
+          _PresenceAvatar(
+            account: account,
+            color: getStatusIndicatorColor(status),
+            fallbackIcon: getStatusIndicatorIcon(status),
+            pointFill: getStatusIndicatorFill(status),
           ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (account != null) ...[
-                  Row(
-                    children: [
-                      Flexible(
-                        child: AccountName(
-                          account: account,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          hideOverlay: true,
-                        ),
-                      ),
-                      const Gap(4),
-                      Text(
-                        '·',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
-                            0.5,
-                          ),
-                        ),
-                      ),
-                      const Gap(4),
-                      Text(
-                        createdAt.toLocal().formatRelative(context),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
-                            0.7,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                _PresenceMetaLine(account: account, at: createdAt),
                 Row(
                   spacing: 6,
                   children: [
@@ -568,73 +406,6 @@ class FriendStatusItem extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
-                const Gap(2),
-                Text(
-                  getStatusTypeLabel(context, status),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const Gap(6),
-                Row(
-                  spacing: 6,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        status.isOnline ? 'online'.tr() : 'offline'.tr(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
-                    if (getStatusOnlineDeviceLabel(status)
-                        case final device?) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          device,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (status.isAutomated)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.tertiaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'bot',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onTertiaryContainer,
-                          ),
-                        ).tr(),
-                      ),
                   ],
                 ),
               ],

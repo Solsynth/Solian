@@ -333,7 +333,7 @@ private struct AgentBubbleRow: View {
 
     // MARK: Thinking trace — expandable, compact
 
-    /// Collapsed: `🧠 › thinking…` (one line). Expanded: full text with
+    /// Collapsed: `✨ › thinking…` (one line). Expanded: full text with
     /// italic styling. Tap toggles. Streaming traces stay expanded.
     private var thinkingTrace: some View {
         let isExpanded = expanded || bubble.streaming
@@ -347,7 +347,7 @@ private struct AgentBubbleRow: View {
                     ProgressView()
                         .controlSize(.mini)
                 } else {
-                    Image(systemName: "brain")
+                    Image(systemName: "sparkles")
                         .font(.system(size: 9))
                 }
                 Text(isExpanded ? bubble.text : "…")

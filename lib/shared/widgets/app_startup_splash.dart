@@ -382,7 +382,7 @@ class StartupSplashScreen extends HookConsumerWidget {
                 key: const Key('startup-bottom-bar'),
                 height: 80,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -435,7 +435,6 @@ class StartupSplashScreen extends HookConsumerWidget {
                               ],
                             ],
                           ),
-                          const SizedBox(height: 4),
                           _StageInfo(
                             stages: stages,
                             currentIndex: periodCursor.value,

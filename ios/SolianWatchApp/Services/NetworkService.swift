@@ -2152,12 +2152,12 @@ class NetworkService {
         self.currentConnectionState = .disconnected
     }
 
-    // MARK: - Personality Core (Agent Chat) API
+    // MARK: - Persona Core (Agent Chat) API
 
-    /// GET /personality/agents — list available agents.
+    /// GET /persona/agents — list available agents.
     func fetchAgentList(token: String, serverUrl: String) async throws -> [SnAgent] {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
-        let url = baseURL.appendingPathComponent("/personality/agents")
+        let url = baseURL.appendingPathComponent("/persona/agents")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -2168,11 +2168,11 @@ class NetworkService {
         return try Self.decodeJSON([SnAgent].self, from: data)
     }
 
-    /// GET /personality/conversations — list persisted conversations.
+    /// GET /persona/conversations — list persisted conversations.
     func fetchAgentConversations(token: String, serverUrl: String, take: Int = 50, offset: Int = 0) async throws -> [SnAgentConversation] {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/personality/conversations"),
+            url: baseURL.appendingPathComponent("/persona/conversations"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [
@@ -2189,10 +2189,10 @@ class NetworkService {
         return try Self.decodeJSON([SnAgentConversation].self, from: data)
     }
 
-    /// POST /personality/conversations — create a new conversation.
+    /// POST /persona/conversations — create a new conversation.
     func createAgentConversation(agentId: String, title: String = "", token: String, serverUrl: String) async throws -> String {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
-        let url = baseURL.appendingPathComponent("/personality/conversations")
+        let url = baseURL.appendingPathComponent("/persona/conversations")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -2209,11 +2209,11 @@ class NetworkService {
         return id
     }
 
-    /// GET /personality/conversations/{id}/messages — load conversation history.
+    /// GET /persona/conversations/{id}/messages — load conversation history.
     func fetchAgentMessages(conversationId: String, token: String, serverUrl: String, take: Int = 200, offset: Int = 0) async throws -> [SnAgentMessage] {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/personality/conversations/\(conversationId)/messages"),
+            url: baseURL.appendingPathComponent("/persona/conversations/\(conversationId)/messages"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [
@@ -2229,7 +2229,7 @@ class NetworkService {
         return try Self.decodeJSON([SnAgentMessage].self, from: data)
     }
 
-    /// POST /personality/conversations/{id}/runs — send a message and stream
+    /// POST /persona/conversations/{id}/runs — send a message and stream
     /// the response via SSE. The caller parses `event:` / `data:` lines from
     /// the returned `URLSession.AsyncBytes` stream.
     ///
@@ -2253,7 +2253,7 @@ class NetworkService {
         onError: @escaping @Sendable (String) -> Void
     ) async throws {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
-        let url = baseURL.appendingPathComponent("/personality/conversations/\(conversationId)/runs")
+        let url = baseURL.appendingPathComponent("/persona/conversations/\(conversationId)/runs")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

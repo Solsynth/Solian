@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
 
 // ---------------------------------------------------------------------------
-// Models — client-side mirrors of the PersonalityCore backend (`/personality`).
+// Models — client-side mirrors of the PersonalityCore backend (`/persona`).
 //
 // Kept dependency-free (plain fromJson) because the typed SDK does not cover
 // these endpoints.
@@ -44,7 +44,7 @@ class SnPersonalityAgent {
       );
 }
 
-/// One persisted thread (`GET /personality/conversations`), newest first.
+/// One persisted thread (`GET /persona/conversations`), newest first.
 @immutable
 class SnPersonalityConversation {
   const SnPersonalityConversation({
@@ -270,7 +270,7 @@ class SnRunUsage {
 }
 
 /// The token total across every run in one conversation
-/// (`GET /personality/conversations/:id/usage`).
+/// (`GET /persona/conversations/:id/usage`).
 @immutable
 class SnConversationUsage {
   const SnConversationUsage({
@@ -301,7 +301,7 @@ class SnConversationUsage {
 }
 
 // ---------------------------------------------------------------------------
-// Run events — the `POST /personality/conversations/:id/runs` SSE grammar
+// Run events — the `POST /persona/conversations/:id/runs` SSE grammar
 // ---------------------------------------------------------------------------
 
 sealed class PersonalityRunEvent {
@@ -516,7 +516,7 @@ Map<String, dynamic> parsePersonalityToolArguments(dynamic raw) {
 final personalityAgentsProvider = FutureProvider<List<SnPersonalityAgent>>((
   ref,
 ) async {
-  final resp = await ref.watch(apiClientProvider).get('/personality/agents');
+  final resp = await ref.watch(apiClientProvider).get('/persona/agents');
   final data = resp.data;
   if (data is! List) return const [];
   return [
@@ -560,7 +560,7 @@ class PersonalityApi {
     int offset = 0,
   }) async {
     final resp = await _client.get(
-      '/personality/conversations',
+      '/persona/conversations',
       queryParameters: {'take': take, 'offset': offset},
     );
     final data = resp.data;
@@ -578,7 +578,7 @@ class PersonalityApi {
     int offset = 0,
   }) async {
     final resp = await _client.get(
-      '/personality/conversations/${Uri.encodeComponent(conversationId)}/messages',
+      '/persona/conversations/${Uri.encodeComponent(conversationId)}/messages',
       queryParameters: {'take': take, 'offset': offset},
     );
     final data = resp.data;
@@ -594,7 +594,7 @@ class PersonalityApi {
     String title = '',
   }) async {
     final resp = await _client.post(
-      '/personality/conversations',
+      '/persona/conversations',
       data: {'agent_id': agentId, 'title': title},
     );
     final data = resp.data;
@@ -608,7 +608,7 @@ class PersonalityApi {
   /// Deletes one thread, and with it its messages and runs.
   Future<void> deleteConversation(String id) async {
     await _client.delete(
-      '/personality/conversations/${Uri.encodeComponent(id)}',
+      '/persona/conversations/${Uri.encodeComponent(id)}',
     );
   }
 
@@ -623,7 +623,7 @@ class PersonalityApi {
     CancelToken? cancelToken,
   }) async* {
     final response = await _streamClient().post<ResponseBody>(
-      '/personality/conversations/${Uri.encodeComponent(conversationId)}/runs',
+      '/persona/conversations/${Uri.encodeComponent(conversationId)}/runs',
       data: {
         'message': message,
         'stream': true,
@@ -653,7 +653,7 @@ class PersonalityApi {
   /// The conversation's token total, summed from every run in it.
   Future<SnConversationUsage> conversationUsage(String conversationId) async {
     final resp = await _client.get(
-      '/personality/conversations/${Uri.encodeComponent(conversationId)}/usage',
+      '/persona/conversations/${Uri.encodeComponent(conversationId)}/usage',
     );
     final data = resp.data;
     if (data is! Map) {

@@ -301,21 +301,21 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(10),
           child: SizedBox(
-            width: 64,
+            width: 72,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                   child: Stack(
                     alignment: Alignment.center,
                     clipBehavior: Clip.none,
                     children: [
                       if (isActive)
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
@@ -329,13 +329,16 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
                         isDirect: isDirect,
                         summary: summary,
                         validMembers: validMembers,
-                        radius: isActive ? 20 : 22,
+                        radius: isActive ? 24 : 26,
                       ),
                       if (presenceFriend != null)
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: FriendPresenceBadge(friend: presenceFriend),
+                          child: FriendPresenceBadge(
+                            friend: presenceFriend,
+                            size: 18,
+                          ),
                         ),
                     ],
                   ),
@@ -458,7 +461,7 @@ class _ChatListSkeleton extends StatelessWidget {
             SliverToBoxAdapter(child: SizedBox(height: headerGap)),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 84,
+              height: 92,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
@@ -468,7 +471,7 @@ class _ChatListSkeleton extends StatelessWidget {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CircleAvatar(radius: 20),
+                      const CircleAvatar(radius: 26),
                       const SizedBox(height: 4),
                       Text(
                         'Friend',
@@ -782,10 +785,10 @@ class ChatListBodyWidget extends HookConsumerWidget {
                       // both land here; rooms still appear in the list below.
                       if (pinnedItems.isNotEmpty) ...[
                         SliverToBoxAdapter(
-                          // Height: 10 top + 48 avatar + 4 gap + ~14 label
-                          // + 8 bottom, exactly the explore strip.
+                          // Height: 10 top + 56 avatar + 4 gap + ~14 label
+                          // + 8 bottom.
                           child: SizedBox(
-                            height: 84,
+                            height: 92,
                             child: HoverHorizontalScrollList(
                               padding: const EdgeInsets.fromLTRB(
                                 12,
@@ -1422,7 +1425,7 @@ class _MarkAllReadButton extends ConsumerWidget {
     final readSyncState = ref.watch(chatReadSyncProvider);
     final unreadCount = ref.watch(chatUnreadCountProvider).value ?? 0;
 
-    if (unreadCount <= 0) {
+    if (unreadCount <= 0 && !readSyncState.isLoading) {
       return const SizedBox.shrink();
     }
 
@@ -1434,8 +1437,8 @@ class _MarkAllReadButton extends ConsumerWidget {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: color),
             )
-          : Icon(Symbols.done_all),
-      tooltip: 'Mark all as read',
+          : const Icon(Symbols.done_all),
+      tooltip: 'markAllRead'.tr(),
       onPressed: readSyncState.isLoading
           ? null
           : () async {
@@ -1449,35 +1452,11 @@ class _MarkAllReadButton extends ConsumerWidget {
   }
 }
 
-/// The section picker and its trailing actions. The header wraps them in its
-/// own glass capsule ([PillSplitBar]), so this row paints no surface.
-
-class _ChatHeaderActions extends StatelessWidget {
-  final TabController tabController;
-  final Color foreground;
-
-  const _ChatHeaderActions({
-    required this.tabController,
-    required this.foreground,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(child: _ChatSectionButton(tabController: tabController)),
-        _MarkAllReadButton(color: foreground),
-      ],
-    );
-  }
-}
-
 /// Portrait chat header: the shared split pair of glass surfaces.
 ///
-/// The navigation toggle and the section picker sit together at the top-left,
-/// mirroring the wide pane; the picker's trailing actions stay inside its pill.
-class _ChatSplitBar extends StatelessWidget implements PreferredSizeWidget {
+/// The navigation toggle sits at the top-left, the section picker in the middle
+/// capsule, and the mark-as-read action on the right side in its own capsule.
+class _ChatSplitBar extends ConsumerWidget implements PreferredSizeWidget {
   final double statusTop;
   final TabController tabController;
   final bool isSyncing;
@@ -1494,14 +1473,15 @@ class _ChatSplitBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => Size.fromHeight(statusTop + kPillSplitBarBand);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasUnread = (ref.watch(chatUnreadCountProvider).value ?? 0) > 0 ||
+        ref.watch(chatReadSyncProvider).isLoading;
+
     return PillSplitBar(
       statusTop: statusTop,
       loading: isSyncing,
-      child: _ChatHeaderActions(
-        tabController: tabController,
-        foreground: foreground,
-      ),
+      trailing: hasUnread ? _MarkAllReadButton(color: foreground) : null,
+      child: _ChatSectionButton(tabController: tabController),
     );
   }
 }
@@ -1509,8 +1489,9 @@ class _ChatSplitBar extends StatelessWidget implements PreferredSizeWidget {
 /// Floating controls above the wide chat layout's list pane.
 ///
 /// The navigation toggle (where the rail cannot show one) and the section
-/// picker lead the pane's top row, both at the same band as the list's gap.
-class _ChatListFloatingButtons extends StatelessWidget {
+/// picker lead the pane's top row, with the mark-as-read action in its own
+/// capsule on the trailing edge.
+class _ChatListFloatingButtons extends ConsumerWidget {
   final TabController tabController;
   final bool isSyncing;
   final Color foreground;
@@ -1522,14 +1503,15 @@ class _ChatListFloatingButtons extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasUnread = (ref.watch(chatUnreadCountProvider).value ?? 0) > 0 ||
+        ref.watch(chatReadSyncProvider).isLoading;
+
     return PillSplitBar(
       statusTop: 0,
       loading: isSyncing,
-      child: _ChatHeaderActions(
-        tabController: tabController,
-        foreground: foreground,
-      ),
+      trailing: hasUnread ? _MarkAllReadButton(color: foreground) : null,
+      child: _ChatSectionButton(tabController: tabController),
     );
   }
 }

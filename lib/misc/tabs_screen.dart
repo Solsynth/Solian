@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:collection/collection.dart';
+import 'package:island/core/theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +23,7 @@ import 'package:island/shared/widgets/page_app_bar.dart';
 import 'package:island/core/navigation/tab_destinations.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
+import 'package:island/discovery/widgets/pill_app_bar.dart';
 import 'package:native_glass_navbar/native_glass_navbar.dart';
 
 const double kBottomNavHeight = 56.0;
@@ -312,15 +314,17 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     ///
     /// Only Explore has entrances today: category/tag browsing, shuffle, the
     /// post footprints (bookmarks and reactions) and the draft box.
-    /// Long-pressing its destination in the bottom bar, drawer or rail is the
-    /// replacement for the app-bar icons and list rows these used to have.
+    /// Long-pressing (or secondary clicking) its destination in the bottom
+    /// bar, drawer or rail is the replacement for the app-bar icons and list
+    /// rows these used to have.
     void showDestinationEntrances(TabDestination destination) {
       if (destination.id != 'explore') return;
       HapticFeedback.mediumImpact();
       showModalBottomSheet<void>(
         context: context,
         useRootNavigator: true,
-        showDragHandle: true,
+        showDragHandle: false,
+        constraints: const BoxConstraints(maxWidth: 480),
         builder: (sheetContext) => SafeArea(
           top: false,
           child: Padding(
@@ -330,7 +334,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                   child: Text(
                     'explore'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
@@ -383,151 +387,186 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: () => showDestinationEntrances(destination),
+        onSecondaryTap: () => showDestinationEntrances(destination),
         child: child,
       );
     }
 
     Widget buildNavigationDrawerContent() {
-      return SafeArea(
-        child: NavigationDrawer(
-          // Destinations are indexed by position in `drawerDestinations`,
-          // so the active tab must be mapped onto it.
-          selectedIndex: drawerDestinations.indexWhere(
-            (d) => d.routeIndex == tabsRouter.activeIndex,
-          ),
-          onDestinationSelected: (index) {
-            Navigator.of(context).pop();
-            if (index < 0 || index >= drawerDestinations.length) return;
-            tabsRouter.setActiveIndex(drawerDestinations[index].routeIndex);
-          },
-          children: [
-            InkWell(
-              onTap: () {
-                Navigator.of(context).pop();
-                onDestinationSelected(accountRouteIndex);
-              },
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                height: 120,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (token != null &&
-                        userInfo.value?.profile.background != null)
-                      CloudImageWidget(
-                        file: userInfo.value!.profile.background!,
-                        fit: BoxFit.cover,
-                        imageOnly: true,
-                      ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.12),
-                            Colors.black.withOpacity(0.48),
-                          ],
-                        ),
-                      ),
+      return NavigationDrawer(
+        // A flat card: the floating wrapper below owns the shape, so the
+        // drawer paints no shadow of its own.
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+        // Destinations are indexed by position in `drawerDestinations`,
+        // so the active tab must be mapped onto it.
+        selectedIndex: drawerDestinations.indexWhere(
+          (d) => d.routeIndex == tabsRouter.activeIndex,
+        ),
+        onDestinationSelected: (index) {
+          Navigator.of(context).pop();
+          if (index < 0 || index >= drawerDestinations.length) return;
+          tabsRouter.setActiveIndex(drawerDestinations[index].routeIndex);
+        },
+        children: [
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              onDestinationSelected(accountRouteIndex);
+            },
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              height: 120,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (token != null &&
+                      userInfo.value?.profile.background != null)
+                    CloudImageWidget(
+                      file: userInfo.value!.profile.background!,
+                      fit: BoxFit.cover,
+                      imageOnly: true,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (token != null && userInfo.value != null)
-                            ProfilePictureWidget(
-                              file: userInfo.value!.profile.picture,
-                              fallbackName: userInfo.value!.nick,
-                              radius: 18,
-                            )
-                          else
-                            CircleAvatar(
-                              radius: 18,
-                              child: Icon(
-                                token != null
-                                    ? Symbols.account_circle_rounded
-                                    : Symbols.login_rounded,
-                              ),
-                            ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: token == null
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'notLoggedIn'.tr(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(color: Colors.white),
-                                      ),
-                                      Text(
-                                        'tapToSignIn'.tr(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(color: Colors.white70),
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        userInfo.value?.nick ?? 'Account',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.copyWith(color: Colors.white),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        '@${userInfo.value?.name ?? ''}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(color: Colors.white70),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                          const Icon(
-                            Symbols.chevron_right_rounded,
-                            color: Colors.white,
-                          ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.12),
+                          Colors.black.withOpacity(0.48),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (token != null && userInfo.value != null)
+                          ProfilePictureWidget(
+                            file: userInfo.value!.profile.picture,
+                            fallbackName: userInfo.value!.nick,
+                            radius: 18,
+                          )
+                        else
+                          CircleAvatar(
+                            radius: 18,
+                            child: Icon(
+                              token != null
+                                  ? Symbols.account_circle_rounded
+                                  : Symbols.login_rounded,
+                            ),
+                          ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: token == null
+                              ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'notLoggedIn'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(color: Colors.white),
+                                    ),
+                                    Text(
+                                      'tapToSignIn'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: Colors.white70),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      userInfo.value?.nick ?? 'Account',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(color: Colors.white),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '@${userInfo.value?.name ?? ''}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: Colors.white70),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                        ),
+                        const Icon(
+                          Symbols.chevron_right_rounded,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            ...drawerDestinations.map((d) {
-              return NavigationDrawerDestination(
-                label: withEntranceMenu(Text(d.label), d),
-                icon: withEntranceMenu(Icon(d.navigationIcon), d),
-                selectedIcon: withEntranceMenu(
-                  Icon(d.navigationIcon, fill: 1),
-                  d,
-                ),
-              );
-            }),
-          ],
+          ),
+          ...drawerDestinations.map((d) {
+            return NavigationDrawerDestination(
+              label: withEntranceMenu(Text(d.label), d),
+              icon: withEntranceMenu(Icon(d.navigationIcon), d),
+              selectedIcon: withEntranceMenu(
+                Icon(d.navigationIcon, fill: 1),
+                d,
+              ),
+            );
+          }),
+        ],
+      );
+    }
+
+    // The drawer as a floating rounded card inset from the screen edges, like
+    // the pill surfaces, with no shadow.
+    //
+    // The card opens below the page's pill header rather than under it: the
+    // drawer is a sibling of the page in the same scaffold, so nothing else
+    // reserves that band for it, and a card starting at the top would put its
+    // first rows behind the capsule. The safe-area inset is applied by hand
+    // instead of a [SafeArea] so the pill's band and the card's own gutter are
+    // both spent out of the same top edge.
+    Widget buildFloatingDrawer() {
+      final safePadding = MediaQuery.paddingOf(context);
+      return Drawer(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            safePadding.left + SolSpace.sm,
+            safePadding.top + kPillAppBarHeight + SolSpace.sm,
+            safePadding.right + SolSpace.sm,
+            safePadding.bottom + SolSpace.sm,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(SolRadius.xl),
+            child: buildNavigationDrawerContent(),
+          ),
         ),
       );
     }
@@ -538,9 +577,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         return withNavigationShortcut(
           Scaffold(
             key: rootScaffoldKey,
-            drawer: drawerEnabled
-                ? Drawer(child: buildNavigationDrawerContent())
-                : null,
+            drawer: drawerEnabled ? buildFloatingDrawer() : null,
             drawerEnableOpenDragGesture: drawerEnabled,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             body: SafeArea(
@@ -574,8 +611,24 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         scrollable: true,
         destinations: displayedRailDestinations.mapIndexed((idx, d) {
           return NavigationRailDestination(
-            icon: withEntranceMenu(d.iconBuilder(railCurrentIndex == idx), d),
-            label: withEntranceMenu(Text(d.label), d),
+            icon: withEntranceMenu(
+              SizedBox(
+                width: 56,
+                height: 32,
+                child: Center(child: d.iconBuilder(railCurrentIndex == idx)),
+              ),
+              d,
+            ),
+            label: withEntranceMenu(
+              SizedBox(
+                height: 32,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(d.label),
+                ),
+              ),
+              d,
+            ),
           );
         }).toList(),
         selectedIndex: railCurrentIndex,
@@ -720,9 +773,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       backgroundColor: Colors.transparent,
       extendBody: true,
       resizeToAvoidBottomInset: false,
-      drawer: drawerEnabled
-          ? Drawer(child: buildNavigationDrawerContent())
-          : null,
+      drawer: drawerEnabled ? buildFloatingDrawer() : null,
       drawerEnableOpenDragGesture: drawerEnabled,
       body: mobileTabBody,
       bottomNavigationBar: ConditionalBottomNav(

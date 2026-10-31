@@ -45,6 +45,16 @@ const _kResultGap = kExploreCardGap;
 /// Extra gutter the wide result panes add on top of [explorePageGutter].
 const _kWidePaneInset = 12.0;
 
+/// The band this page's pill actually occupies, measured from the top of the
+/// viewport.
+///
+/// [kPillAppBarHeight] is only the capsule and its top gutter; the bar also
+/// carries the status-bar inset, and the scaffold here draws it over the body
+/// (`extendBodyBehindAppBar`). A section that reserved only the constant would
+/// start its first result that many pixels *under* the capsule.
+double _pillBand(BuildContext context) =>
+    MediaQuery.paddingOf(context).top;
+
 enum SearchScope { local, remote }
 
 @RoutePage()
@@ -353,7 +363,7 @@ class _RealmsSearchTab extends HookConsumerWidget {
       slivers: [
         // The pill's band lives inside the scroll view, so rows pass under
         // the capsule instead of stopping at it.
-        SliverGap(kPillAppBarHeight + _kResultGap),
+        SliverGap(_pillBand(context) + _kResultGap),
         // The same gutter the posts rows and the explore feed use, so a card
         SliverPadding(
           padding: explorePageGutter(context),
@@ -489,12 +499,28 @@ class _PostsSearchTab extends HookConsumerWidget {
       // card sits on the same measure in either tab; the filter content is
       // inset inside the sliding panel so it does not sit flush against its
       // edge.
+      //
+      // The pill is the scaffold's app bar, so it floats over both panes
+      // rather than over the results alone: the sidebar spans the viewport
+      // from the very top and would otherwise paint behind the capsule, with
+      // its own first control cut by it. Both panes reserve the band the pill
+      // occupies; only the results add the card gap below it.
+      final band = _pillBand(context);
       return ResponsiveSidebar(
         showSidebar: filtersVisible,
         sidebarWidth: 320,
-        sidebarBackgroundColor: Theme.of(context).colorScheme.surface,
+        // The pane paints no surface and no shadow of its own: it is a column
+        // of controls floating over the page, so the page background runs
+        // behind it and the panel never reads as a card laid over the results.
+        sidebarBackgroundColor: Colors.transparent,
+        sidebarElevation: 0,
         sidebarContent: Padding(
-          padding: const EdgeInsets.all(_kWidePaneInset),
+          padding: EdgeInsets.fromLTRB(
+            _kWidePaneInset,
+            band + _kWidePaneInset,
+            _kWidePaneInset,
+            _kWidePaneInset,
+          ),
           child: filterSidebarContent,
         ),
         mainContent: Center(
@@ -504,7 +530,7 @@ class _PostsSearchTab extends HookConsumerWidget {
             ),
             child: Padding(
               padding: explorePageGutter(context),
-              child: buildMainContent(topGap: kPillAppBarHeight + _kResultGap),
+              child: buildMainContent(topGap: band + _kResultGap),
             ),
           ),
         ),
@@ -518,7 +544,7 @@ class _PostsSearchTab extends HookConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: SolSpace.md),
       child: buildMainContent(
-        topGap: kPillAppBarHeight + _kResultGap,
+        topGap: _pillBand(context) + _kResultGap,
         header: AnimatedSlide(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
@@ -647,7 +673,7 @@ class _AccountSearchTab extends HookConsumerWidget {
       onRefresh: () => performSearch(searchQuery.value),
       child: CustomScrollView(
         slivers: [
-          SliverGap(kPillAppBarHeight + _kResultGap),
+          SliverGap(_pillBand(context) + _kResultGap),
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(

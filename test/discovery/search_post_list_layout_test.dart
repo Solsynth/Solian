@@ -99,10 +99,18 @@ void main() {
     Size size, {
     AppDatabase? database,
     Future<void>? until,
+    double statusTop = 0,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
+    if (statusTop > 0) {
+      // The band a pill occupies is `statusTop + kPillAppBarHeight`; a device
+      // with no status bar would hide a section that forgot the inset.
+      final inset = FakeViewPadding(top: statusTop);
+      tester.view.padding = inset;
+      tester.view.viewPadding = inset;
+    }
     addTearDown(tester.view.reset);
 
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
@@ -453,6 +461,64 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byIcon(Symbols.cloud), findsOneWidget);
+
+    await disposeTree(tester);
+  });
+
+  /// The page's pill is the scaffold's app bar, drawn *over* the body
+  /// (`extendBodyBehindAppBar`). Every section therefore has to reserve the
+  /// pill's whole band — the status-bar inset plus the capsule — or its first
+  /// row starts underneath the capsule.
+  testWidgets('narrow: the first result clears the whole pill band', (
+    tester,
+  ) async {
+    const statusTop = 44.0;
+    await pumpSearch(tester, const Size(400, 880), statusTop: statusTop);
+
+    final pill = tester.getRect(find.byType(PillAppBar));
+    expect(pill.bottom, closeTo(statusTop + kPillAppBarHeight, 1));
+
+    final firstRow = tester.getRect(find.byType(PostActionableItem).first);
+    expect(
+      firstRow.top,
+      greaterThanOrEqualTo(pill.bottom),
+      reason: 'results must start below the capsule, not behind it',
+    );
+
+    await disposeTree(tester);
+  });
+
+  testWidgets('wide: the filter pane clears the pill and paints no surface', (
+    tester,
+  ) async {
+    const statusTop = 44.0;
+    await pumpSearch(tester, const Size(1400, 900), statusTop: statusTop);
+
+    await tester.tap(filterAction());
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final panel = find.byType(PostFilterWidget);
+    expect(panel, findsOneWidget);
+    // The pane is a column of controls over the page ground, so its first
+    // control starts below the pill rather than behind it.
+    expect(
+      tester.getRect(panel).top,
+      greaterThanOrEqualTo(statusTop + kPillAppBarHeight),
+      reason: 'the filter pane must not slide under the pill',
+    );
+
+    await disposeTree(tester);
+  });
+
+  testWidgets('wide: the first result clears the whole pill band', (
+    tester,
+  ) async {
+    const statusTop = 44.0;
+    await pumpSearch(tester, const Size(1400, 900), statusTop: statusTop);
+
+    final pill = tester.getRect(find.byType(PillAppBar));
+    final firstRow = tester.getRect(find.byType(PostActionableItem).first);
+    expect(firstRow.top, greaterThanOrEqualTo(pill.bottom));
 
     await disposeTree(tester);
   });
