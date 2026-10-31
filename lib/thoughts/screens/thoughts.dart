@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:io' show File;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
@@ -15,13 +18,18 @@ import 'package:island/core/theme.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/empty_state.dart';
+import 'package:island/shared/widgets/glass_effects.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/measure_height.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
 import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:island/thoughts/personality_api.dart';
 import 'package:island/thoughts/thoughts_controller.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:pasteboard/pasteboard.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
@@ -53,6 +61,7 @@ class ThoughtsScreen extends HookConsumerWidget {
     final wideScreen = MediaQuery.sizeOf(context).width > kWideScreenWidth;
     // An open panel when wide, an on-demand sheet when narrow.
     final showThreads = useState(wideScreen);
+    final composerHeight = useState(0.0);
 
     final agentId = chat.agentId ?? (agents.isEmpty ? null : agents.first.id);
     final agentName = _agentLabel(agents, agentId);
@@ -78,6 +87,10 @@ class ThoughtsScreen extends HookConsumerWidget {
               displayName: file.name,
             ),
       ]);
+    }
+
+    Future<void> attachFiles(List<UniversalFile> files) async {
+      await controller.attachImages(files);
     }
 
     Future<void> linkCloudFile() async {
@@ -115,45 +128,69 @@ class ThoughtsScreen extends HookConsumerWidget {
     }
 
     final thread = chat.bubbles.isEmpty
-        ? EmptyState(
-            icon: Symbols.psychology_rounded,
-            title: 'thoughtsStartTitle'.tr(),
-            description: 'thoughtsStartHint'.tr(namedArgs: {'name': agentName}),
+        ? Padding(
+            padding: EdgeInsets.only(
+              bottom: composerHeight.value > 0 ? composerHeight.value : 80.0,
+            ),
+            child: EmptyState(
+              icon: Symbols.psychology_rounded,
+              title: 'thoughtsStartTitle'.tr(),
+              description: 'thoughtsStartHint'.tr(
+                namedArgs: {'name': agentName},
+              ),
+            ),
           )
         : _ThoughtThread(
             bubbles: chat.bubbles,
             busy: chat.busy,
             onToggleTrace: controller.toggleTrace,
+            bottomInset: composerHeight.value,
           );
 
     // The pill floats over the page; the scaffold reserves its band, so the
-    // body starts below it and both panes share the rest.
+    // body starts below it and both panes share the rest. The composer floats
+    // over the thread in liquid glass, with the messages scrolling behind it.
     final mainContent = token == null
         ? const _SignedOutPanel()
-        : Column(
+        : Stack(
             children: [
-              if (chat.error != null)
-                _ErrorBanner(
-                  message: chat.error!,
-                  onDismiss: controller.dismissError,
+              Positioned.fill(
+                child: Column(
+                  children: [
+                    if (chat.error != null)
+                      _ErrorBanner(
+                        message: chat.error!,
+                        onDismiss: controller.dismissError,
+                      ),
+                    Expanded(child: thread),
+                  ],
                 ),
-              Expanded(child: thread),
-              _Composer(
-                controller: inputController,
-                focusNode: focusNode,
-                attachments: chat.pendingAttachments,
-                busy: chat.busy,
-                usage: chat.conversationUsage,
-                onSend: send,
-                onStop: controller.stop,
-                onAttach: attach,
-                onLinkCloudFile: linkCloudFile,
-                onRemoveAttachment: chat.busy
-                    ? null
-                    : controller.removePendingAttachment,
-                onRetryAttachment: chat.busy
-                    ? null
-                    : controller.retryAttachment,
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: MeasureHeight(
+                  onHeight: (height) => composerHeight.value = height,
+                  child: _Composer(
+                    controller: inputController,
+                    focusNode: focusNode,
+                    attachments: chat.pendingAttachments,
+                    busy: chat.busy,
+                    usage: chat.conversationUsage,
+                    onSend: send,
+                    onStop: controller.stop,
+                    onAttach: attach,
+                    onAttachFiles: attachFiles,
+                    onLinkCloudFile: linkCloudFile,
+                    onRemoveAttachment: chat.busy
+                        ? null
+                        : controller.removePendingAttachment,
+                    onRetryAttachment: chat.busy
+                        ? null
+                        : controller.retryAttachment,
+                  ),
+                ),
               ),
             ],
           );
@@ -349,21 +386,23 @@ class _ThoughtThread extends StatelessWidget {
     required this.bubbles,
     required this.busy,
     required this.onToggleTrace,
+    this.bottomInset = 0.0,
   });
 
   final List<ThoughtBubble> bubbles;
   final bool busy;
   final void Function(int index) onToggleTrace;
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       reverse: true,
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         SolSpace.md,
         SolSpace.lg,
         SolSpace.md,
-        SolSpace.sm,
+        bottomInset > 0 ? bottomInset + SolSpace.xs : SolSpace.sm,
       ),
       itemCount: bubbles.length + (busy ? 1 : 0),
       itemBuilder: (context, index) {
@@ -858,9 +897,21 @@ class _TurnIndicatorState extends State<_TurnIndicator>
   }
 }
 
+void _insertNewline(TextEditingController controller) {
+  final text = controller.text;
+  final selection = controller.selection;
+  final start = selection.start >= 0 ? selection.start : text.length;
+  final end = selection.end >= 0 ? selection.end : text.length;
+  final newText = text.replaceRange(start, end, '\n');
+  controller.value = TextEditingValue(
+    text: newText,
+    selection: TextSelection.collapsed(offset: start + 1),
+  );
+}
+
 /// The composer, with the pending strip above the field and the run controls
-/// below it.
-class _Composer extends ConsumerWidget {
+/// below it, encased in floating liquid glass.
+class _Composer extends HookConsumerWidget {
   const _Composer({
     required this.controller,
     required this.focusNode,
@@ -870,6 +921,7 @@ class _Composer extends ConsumerWidget {
     required this.onSend,
     required this.onStop,
     required this.onAttach,
+    required this.onAttachFiles,
     required this.onLinkCloudFile,
     required this.onRemoveAttachment,
     required this.onRetryAttachment,
@@ -884,71 +936,222 @@ class _Composer extends ConsumerWidget {
   final VoidCallback onSend;
   final VoidCallback onStop;
   final VoidCallback onAttach;
+  final Future<void> Function(List<UniversalFile> files) onAttachFiles;
   final VoidCallback onLinkCloudFile;
   final void Function(int index)? onRemoveAttachment;
   final void Function(int index)? onRetryAttachment;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        SolSpace.md,
-        SolSpace.sm,
-        SolSpace.md,
-        SolSpace.md + MediaQuery.paddingOf(context).bottom,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: Material(
-            color: scheme.surfaceContainerHighest,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(SolRadius.xl),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final glass = GlassEffects.of(context);
+    final settings = ref.watch(appSettingsProvider);
+    final isDraggingOver = useState(false);
+
+    Future<void> handlePaste() async {
+      try {
+        final image = await Pasteboard.image;
+        if (image != null && image.isNotEmpty) {
+          final tempDir = await getTemporaryDirectory();
+          final file = File(
+            '${tempDir.path}/thought_paste_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          );
+          await file.writeAsBytes(image);
+          await onAttachFiles([
+            UniversalFile(
+              data: XFile(file.path),
+              type: UniversalFileType.image,
+              displayName: 'image.jpg',
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: SolSpace.xs,
-              ),
+          ]);
+          return;
+        }
+      } catch (_) {
+        // Fall back to plain text paste
+      }
+
+      final textData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (textData != null && textData.text != null) {
+        final text = controller.text;
+        final selection = controller.selection;
+        final start = selection.start >= 0 ? selection.start : text.length;
+        final end = selection.end >= 0 ? selection.end : text.length;
+        final newText = text.replaceRange(start, end, textData.text!);
+        controller.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(
+            offset: start + textData.text!.length,
+          ),
+        );
+      }
+    }
+
+    Future<void> handleDroppedFiles(DropDoneDetails details) async {
+      final droppedFiles = <UniversalFile>[];
+      for (final xfile in details.files) {
+        if (xfile.path.isEmpty) continue;
+        final ext = xfile.name.split('.').last.toLowerCase();
+        const imageExts = {
+          'jpg',
+          'jpeg',
+          'png',
+          'gif',
+          'webp',
+          'bmp',
+          'heic',
+          'heif',
+        };
+        if (imageExts.contains(ext)) {
+          droppedFiles.add(
+            UniversalFile(
+              data: xfile,
+              type: UniversalFileType.image,
+              displayName: xfile.name,
+            ),
+          );
+        }
+      }
+      if (droppedFiles.isNotEmpty) {
+        await onAttachFiles(droppedFiles);
+      }
+    }
+
+    useEffect(() {
+      focusNode.onKeyEvent = (node, event) {
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+        final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
+        final isPasteModifierPressed =
+            HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed;
+
+        if (isPaste && isPasteModifierPressed) {
+          handlePaste();
+          return KeyEventResult.handled;
+        }
+
+        final isEnter = event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.numpadEnter;
+        final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
+        final isMetaOrCtrlPressed =
+            HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed;
+
+        if (isEnter) {
+          if (settings.enterToSend) {
+            if (isShiftPressed) {
+              _insertNewline(controller);
+              return KeyEventResult.handled;
+            } else {
+              if (!busy) onSend();
+              return KeyEventResult.handled;
+            }
+          } else {
+            if (isMetaOrCtrlPressed) {
+              if (!busy) onSend();
+              return KeyEventResult.handled;
+            }
+          }
+        }
+
+        return KeyEventResult.ignored;
+      };
+      return null;
+    }, [focusNode, settings.enterToSend, busy, controller, onSend]);
+
+    final double bottomMargin =
+        SolSpace.md + MediaQuery.paddingOf(context).bottom;
+
+    return DropTarget(
+      onDragEntered: (_) => isDraggingOver.value = true,
+      onDragExited: (_) => isDraggingOver.value = false,
+      onDragDone: (details) async {
+        isDraggingOver.value = false;
+        await handleDroppedFiles(details);
+      },
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          SolSpace.md,
+          SolSpace.xs,
+          SolSpace.md,
+          bottomMargin,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: _GlassComposerSurface(
+              radius: BorderRadius.circular(SolRadius.xl),
+              highlight: isDraggingOver.value,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (attachments.isNotEmpty) ...[
-                    const Gap(SolSpace.xs),
-                    SizedBox(
-                      height: 64,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: attachments.length,
-                        separatorBuilder: (_, _) => const Gap(SolSpace.sm),
-                        itemBuilder: (context, index) => _PendingAttachment(
-                          attachment: attachments[index],
-                          onRemove: onRemoveAttachment == null
-                              ? null
-                              : () => onRemoveAttachment!(index),
-                          onRetry: onRetryAttachment == null
-                              ? null
-                              : () => onRetryAttachment!(index),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) => SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: FadeTransition(
+                        opacity: animation,
+                        child: SizeTransition(
+                          sizeFactor: animation,
+                          axisAlignment: -1.0,
+                          child: child,
                         ),
                       ),
                     ),
-                  ],
+                    child: attachments.isNotEmpty
+                        ? Padding(
+                            key: ValueKey('attachments-${attachments.length}'),
+                            padding: const EdgeInsets.only(
+                              left: 4,
+                              right: 4,
+                              top: 4,
+                              bottom: 6,
+                            ),
+                            child: SizedBox(
+                              height: 64,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: attachments.length,
+                                separatorBuilder: (_, _) =>
+                                    const Gap(SolSpace.sm),
+                                itemBuilder: (context, index) =>
+                                    _PendingAttachment(
+                                  attachment: attachments[index],
+                                  onRemove: onRemoveAttachment == null
+                                      ? null
+                                      : () => onRemoveAttachment!(index),
+                                  onRetry: onRetryAttachment == null
+                                      ? null
+                                      : () => onRetryAttachment!(index),
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(
+                            key: ValueKey('no-attachments'),
+                          ),
+                  ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: SolSpace.xs),
-                        // One button, two sources: the device's picker is the
-                        // common case and takes the tap, the drive is the
-                        // long-press, so neither costs a second control.
-                        child: Tooltip(
-                          message: 'attach'.tr(),
-                          child: IconButton(
-                            onPressed: busy ? null : onAttach,
-                            onLongPress: busy ? null : onLinkCloudFile,
-                            icon: const Icon(Symbols.attach_file_rounded),
+                        padding: const EdgeInsets.only(left: 2, bottom: 2),
+                        child: GestureDetector(
+                          onSecondaryTap: busy ? null : onLinkCloudFile,
+                          child: Tooltip(
+                            message: 'attach'.tr(),
+                            child: IconButton(
+                              onPressed: busy ? null : onAttach,
+                              onLongPress: busy ? null : onLinkCloudFile,
+                              icon: const Icon(Symbols.attach_file_rounded),
+                            ),
                           ),
                         ),
                       ),
@@ -959,7 +1162,10 @@ class _Composer extends ConsumerWidget {
                           maxLines: 5,
                           minLines: 1,
                           textCapitalization: TextCapitalization.sentences,
-                          textInputAction: TextInputAction.newline,
+                          textInputAction: settings.enterToSend
+                              ? TextInputAction.send
+                              : TextInputAction.newline,
+                          keyboardType: TextInputType.multiline,
                           onTapOutside: (_) =>
                               FocusManager.instance.primaryFocus?.unfocus(),
                           decoration: InputDecoration(
@@ -970,46 +1176,62 @@ class _Composer extends ConsumerWidget {
                             filled: false,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: SolSpace.sm,
-                              vertical: SolSpace.md,
+                              vertical: 10,
                             ),
                           ),
                         ),
                       ),
-                      ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: controller,
-                        builder: (context, value, _) {
-                          final uploading = attachments
-                              .where((attachment) => attachment.isUploading)
-                              .length;
-                          final canSend =
-                              uploading == 0 &&
-                              (value.text.trim().isNotEmpty ||
-                                  attachments.any(
-                                    (attachment) => attachment.isSendable,
-                                  ));
-                          return IconButton.filled(
-                            tooltip: busy
-                                ? 'stop'.tr()
-                                : uploading > 0
-                                ? 'thoughtUploading'.tr()
-                                : 'send'.tr(),
-                            onPressed: busy
-                                ? onStop
-                                : (canSend ? onSend : null),
-                            icon: Icon(
-                              busy
-                                  ? Symbols.stop_circle_rounded
-                                  : Symbols.send_rounded,
-                            ),
-                          );
-                        },
+                      Padding(
+                        padding: const EdgeInsets.only(right: 2, bottom: 2),
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: controller,
+                          builder: (context, value, _) {
+                            final uploading = attachments
+                                .where((attachment) => attachment.isUploading)
+                                .length;
+                            final canSend = uploading == 0 &&
+                                (value.text.trim().isNotEmpty ||
+                                    attachments.any(
+                                      (attachment) => attachment.isSendable,
+                                    ));
+
+                            return AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 180),
+                              transitionBuilder: (child, animation) =>
+                                  ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  ),
+                              child: busy
+                                  ? IconButton.filled(
+                                      key: const ValueKey('composer-stop-btn'),
+                                      tooltip: 'stop'.tr(),
+                                      style: IconButton.styleFrom(
+                                        backgroundColor: scheme.errorContainer,
+                                        foregroundColor:
+                                            scheme.onErrorContainer,
+                                      ),
+                                      onPressed: onStop,
+                                      icon: const Icon(Symbols.stop_rounded),
+                                    )
+                                  : IconButton.filled(
+                                      key: const ValueKey('composer-send-btn'),
+                                      tooltip: uploading > 0
+                                          ? 'thoughtUploading'.tr()
+                                          : 'send'.tr(),
+                                      onPressed: canSend ? onSend : null,
+                                      icon: const Icon(Symbols.send_rounded),
+                                    ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
-                  const Gap(2),
+                  const Gap(4),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      SolSpace.sm,
+                      SolSpace.xs,
                       0,
                       SolSpace.xs,
                       SolSpace.xs,
@@ -1025,17 +1247,36 @@ class _Composer extends ConsumerWidget {
                                 ? const SizedBox.shrink()
                                 : Tooltip(
                                     message: _usageTooltip(usage!),
-                                    child: Text(
-                                      thoughtTokensSpent(usage!.totalTokens),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            fontSize: 11,
-                                            color: scheme.onSurfaceVariant,
-                                          ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: scheme.surfaceContainerHigh
+                                            .withValues(
+                                              alpha: glass ? 0.35 : 0.6,
+                                            ),
+                                        borderRadius: BorderRadius.circular(
+                                          SolRadius.pill,
+                                        ),
+                                        border: Border.all(
+                                          color: scheme.outlineVariant
+                                              .withValues(alpha: 0.2),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        thoughtTokensSpent(usage!.totalTokens),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontSize: 11,
+                                              color: scheme.onSurfaceVariant,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                      ),
                                     ),
                                   ),
                           ),
@@ -1048,6 +1289,97 @@ class _Composer extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Alpha of the solid fallback's hairline, matching the pill's own edge.
+const double _kPillBorderOpacity = 0.5;
+
+/// The composer's floating shell: the same iOS 27 liquid glass material as the
+/// chat composer and pill app bar.
+class _GlassComposerSurface extends StatelessWidget {
+  final BorderRadius radius;
+  final Widget child;
+  final bool highlight;
+
+  const _GlassComposerSurface({
+    required this.radius,
+    required this.child,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final glass = GlassEffects.of(context);
+    final edgeColor = highlight
+        ? colorScheme.primary
+        : colorScheme.outlineVariant.withValues(alpha: _kPillBorderOpacity);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          if (glass)
+            Positioned.fill(
+              child: LiquidGlassLayer(
+                settings: LiquidGlassSettings.ios27Regular(
+                  brightness: theme.brightness,
+                ),
+                defaultAppearance: LiquidGlassAppearance.ios27Regular(
+                  brightness: theme.brightness,
+                ),
+                child: LiquidGlass(
+                  shape: LiquidRoundedSuperellipse(
+                    borderRadius: radius.topLeft.x,
+                  ),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            )
+          else
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: radius,
+                  border: Border.all(
+                    color: edgeColor,
+                    width: highlight ? 1.5 : 1,
+                  ),
+                ),
+              ),
+            ),
+          if (highlight && glass)
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: radius,
+                  border: Border.all(
+                    color: colorScheme.primary,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+            child: Material(type: MaterialType.transparency, child: child),
+          ),
+        ],
       ),
     );
   }
@@ -1068,6 +1400,7 @@ class _ReasoningControl extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final glass = GlassEffects.of(context);
     final active = ref.watch(thoughtReasoningEffortProvider);
 
     void choose(String effort) {
@@ -1090,8 +1423,14 @@ class _ReasoningControl extends ConsumerWidget {
             }),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: scheme.surface,
+          color: scheme.surfaceContainerHigh.withValues(
+            alpha: glass ? 0.45 : 0.75,
+          ),
           borderRadius: BorderRadius.circular(SolRadius.pill),
+          border: Border.all(
+            color: scheme.outlineVariant.withValues(alpha: 0.2),
+            width: 0.5,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(2),
@@ -1099,7 +1438,7 @@ class _ReasoningControl extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 5, right: SolSpace.xs),
+                padding: const EdgeInsets.only(left: 6, right: SolSpace.xs),
                 child: Icon(
                   Symbols.psychology_rounded,
                   size: 14,
@@ -1136,6 +1475,7 @@ class _ReasoningSegment extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final glass = GlassEffects.of(context);
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return Semantics(
       selected: selected,
@@ -1153,7 +1493,9 @@ class _ReasoningSegment extends StatelessWidget {
             vertical: SolSpace.xs,
           ),
           decoration: BoxDecoration(
-            color: selected ? scheme.primaryContainer : Colors.transparent,
+            color: selected
+                ? scheme.primaryContainer.withValues(alpha: glass ? 0.85 : 1.0)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(SolRadius.pill),
           ),
           child: Text(

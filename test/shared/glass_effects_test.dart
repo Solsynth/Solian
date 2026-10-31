@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:island/chat/widgets/call_chrome.dart';
 import 'package:island/shared/widgets/glass_effects.dart';
 import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
@@ -78,5 +79,99 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LiquidGlassLayer), findsNothing);
+  });
+
+  testWidgets(
+    'toggling GlassEffects outside an Overlay dynamically updates descendant surfaces',
+    (tester) async {
+      final enabled = ValueNotifier<bool>(true);
+      final overlayKey = GlobalKey<OverlayState>();
+
+      await tester.pumpWidget(
+        ValueListenableBuilder<bool>(
+          valueListenable: enabled,
+          builder: (context, glass, _) => GlassEffects(
+            enabled: glass,
+            child: MaterialApp(
+              home: Overlay(
+                key: overlayKey,
+                initialEntries: [
+                  OverlayEntry(
+                    builder: (_) => Scaffold(
+                      body: Center(
+                        child: PillSurface(
+                          t: 1,
+                          margin: EdgeInsets.zero,
+                          radius: const BorderRadius.all(Radius.circular(999)),
+                          contentPadding: const EdgeInsets.all(8),
+                          child: const SizedBox(width: 200, height: 40),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LiquidGlassLayer), findsOneWidget);
+
+      enabled.value = false;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LiquidGlassLayer), findsNothing);
+
+      enabled.value = true;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    },
+  );
+
+  testWidgets('CallHeaderPill uses liquid glass texture and renders actions', (
+    tester,
+  ) async {
+    final enabled = ValueNotifier<bool>(true);
+
+    await tester.pumpWidget(
+      ValueListenableBuilder<bool>(
+        valueListenable: enabled,
+        builder: (context, glass, _) => GlassEffects(
+          enabled: glass,
+          child: MaterialApp(
+            home: Scaffold(
+              body: CallHeaderPill(
+                title: 'Test Call',
+                status: '00:42',
+                statusTop: 20,
+                actions: const [
+                  IconButton(
+                    onPressed: null,
+                    icon: Icon(Icons.star, key: ValueKey('test-action-star')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Renders liquid glass and action button
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(find.byType(PillSurface), findsOneWidget);
+    expect(find.byKey(const ValueKey('test-action-star')), findsOneWidget);
+
+    // Toggling off removes liquid glass layer
+    enabled.value = false;
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LiquidGlassLayer), findsNothing);
+    expect(find.byType(PillSurface), findsOneWidget);
+    expect(find.byKey(const ValueKey('test-action-star')), findsOneWidget);
   });
 }

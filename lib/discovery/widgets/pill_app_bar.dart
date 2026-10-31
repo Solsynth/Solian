@@ -4,22 +4,14 @@ import 'package:island/core/theme.dart';
 import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
 
+export 'package:island/shared/widgets/pill_surface.dart'
+    show kPillBarContentHeight;
+
 /// Scroll distance over which a pill header finishes fading its surface in.
 ///
 /// Tied to roughly one header height: by the time the content has meaningfully
 /// slid under the bar, the pill is fully surfaced and can carry its controls.
 const double kPillFadeDistance = 96.0;
-
-/// Inner height of a pill bar's capsule — the glass box itself, before the
-/// status-bar inset and the top gutter are added on top.
-///
-/// A step above a bare [SolSpace.control] row: it adds the chat composer's
-/// vertical padding (6px above and below the control row — [SolSpace.md]
-/// together) so the floating header reads at the same relaxed height as the
-/// composer capsule instead of the tight single-row band it had. Moving this
-/// moves [kPillAppBarHeight] with it, so the band every page reserves stays
-/// exactly the capsule plus its top gutter.
-const double kPillBarContentHeight = SolSpace.control + SolSpace.md;
 
 /// Total height of a pill bar, excluding the status-bar inset.
 ///

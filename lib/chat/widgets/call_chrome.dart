@@ -1,8 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/core/theme.dart';
-import 'package:island/discovery/widgets/pill_app_bar.dart'
-    show kPillBarContentHeight;
+import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -32,12 +31,9 @@ const double kCallHeaderBandHeight = kCallChromeGutter + kPillBarContentHeight;
 /// The call's identity bar: what the session is, how it is doing, and the
 /// actions that belong to the call as a whole.
 ///
-/// A flat tonal capsule, not glass: call chrome sits over video for the whole
-/// session, which is the most expensive possible place for a backdrop sample
-/// and the least useful — the fill only has to make the title legible, and a
-/// theme role does that without touching the shader. Geometry matches the
-/// app's pill headers ([kPillBarContentHeight]) so a call's top band and every
-/// other page's top band are the same height.
+/// Shares the app's liquid glass surface ([PillSurface]) and geometry
+/// ([kPillBarContentHeight]) so the floating header matches the appearance
+/// and height of the pill app bars across the rest of the app.
 class CallHeaderPill extends StatelessWidget {
   final String title;
   final String status;
@@ -68,21 +64,20 @@ class CallHeaderPill extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
+    return PillSurface(
+      t: 1.0,
+      margin: EdgeInsets.fromLTRB(
         kCallChromeGutter,
         statusTop + kCallChromeGutter,
         kCallChromeGutter,
         0,
       ),
-      child: Material(
-        color: colorScheme.surfaceContainerHigh,
-        clipBehavior: Clip.antiAlias,
-        shape: StadiumBorder(
-          side: BorderSide(color: colorScheme.outlineVariant),
-        ),
-        child: SizedBox(
-          height: kPillBarContentHeight,
+      radius: SolRadius.pillRadius,
+      contentPadding: EdgeInsets.zero,
+      child: SizedBox(
+        height: kPillBarContentHeight,
+        child: Material(
+          color: Colors.transparent,
           child: Row(
             children: [
               if (onBack != null) ...[
@@ -127,6 +122,7 @@ class CallHeaderPill extends StatelessWidget {
                   ),
                 ),
               ),
+              ...actions,
               // One [SolSpace.sm] of trailing air, mirroring the title's
               // leading inset: the row ends on a compact `IconButton`, whose
               // own padding alone does not clear the capsule's end curve.

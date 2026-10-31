@@ -621,33 +621,33 @@ class IslandApp extends HookConsumerWidget {
           child: Builder(
             builder: (bridgeContext) {
               final legacyTheme = legacy_material.Theme.of(bridgeContext);
-              return legacy_material.Theme(
-                data: legacyTheme.copyWith(
-                  inputDecorationTheme: _toLegacyInputDecoration(
-                    Theme.of(bridgeContext).inputDecorationTheme,
+              return GlassEffects(
+                // One scope for every glass surface in the app:
+                // flipping the setting repaints the pills and the
+                // composers solid without touching their layouts.
+                enabled: settings.glassEffects,
+                child: legacy_material.Theme(
+                  data: legacyTheme.copyWith(
+                    inputDecorationTheme: _toLegacyInputDecoration(
+                      Theme.of(bridgeContext).inputDecorationTheme,
+                    ),
                   ),
-                ),
-                child: legacy_material.Material(
-                  type: legacy_material.MaterialType.transparency,
-                  child: Overlay(
-                    key: globalOverlay,
-                    initialEntries: [
-                      OverlayEntry(
-                        builder: (_) {
-                          return WindowScaffold(
-                            // One scope for every glass surface in the app:
-                            // flipping the setting repaints the pills and the
-                            // composers solid without touching their layouts.
-                            child: GlassEffects(
-                              enabled: settings.glassEffects,
+                  child: legacy_material.Material(
+                    type: legacy_material.MaterialType.transparency,
+                    child: Overlay(
+                      key: globalOverlay,
+                      initialEntries: [
+                        OverlayEntry(
+                          builder: (_) {
+                            return WindowScaffold(
                               child: AppWrapper(
                                 child: child ?? const SizedBox.shrink(),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

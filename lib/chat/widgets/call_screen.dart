@@ -284,9 +284,8 @@ class CallScreen extends HookConsumerWidget {
                       : CallContent(outerMaxHeight: mediaQuery.size.height),
                 ),
               ),
-              // Identity and call-level actions float over the stage as a flat
-              // tonal capsule: no scrim, no glass, same height as every other
-              // page's header band.
+              // Identity and call-level actions float over the stage as a
+              // liquid glass capsule matching the app's pill header surface.
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
