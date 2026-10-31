@@ -226,7 +226,7 @@ class FundEnvelopeWidget extends HookConsumerWidget {
         onClaim: () async {
           try {
             final client = ref.read(solarNetworkClientProvider);
-            await client.dio.post('/wallet/wallets/funds/${fund.id}/receive');
+            await client.dio.post('/stargate/wallets/funds/${fund.id}/receive');
 
             // Refresh the fund data after claiming
             ref.invalidate(walletFundProvider(fund.id));

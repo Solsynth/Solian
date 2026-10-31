@@ -125,7 +125,7 @@ class _QuotaPurchaseSheetState extends ConsumerState<QuotaPurchaseSheet> {
       SnWalletOrder order;
       try {
         final orderResp = await client.dio.get(
-          '/wallet/orders/${created.orderId}',
+          '/stargate/orders/${created.orderId}',
         );
         order = SnWalletOrder.fromJson(
           orderResp.data,

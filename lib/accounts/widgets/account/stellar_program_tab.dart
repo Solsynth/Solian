@@ -270,7 +270,7 @@ class GoldResupplyOffer {
 final walletProductCatalogProvider =
     FutureProvider<List<WalletProductCatalogItem>>((ref) async {
       final client = ref.watch(apiClientProvider);
-      final resp = await client.get('/wallet/wallet-products/catalog');
+      final resp = await client.get('/stargate/wallet-products/catalog');
       final data = resp.data;
 
       if (data is List) {
@@ -326,7 +326,7 @@ Future<SnWalletSubscription?> accountStellarSubscription(Ref ref) async {
   try {
     final client = ref.watch(apiClientProvider);
     final resp = await client.get(
-      '/wallet/subscriptions/groups/solian.stellar/active',
+      '/stargate/subscriptions/groups/solian.stellar/active',
     );
     return SnWalletSubscription.fromJson(resp.data);
   } catch (err) {
@@ -342,7 +342,7 @@ Future<List<SnWalletGift>> accountSentGifts(
 }) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get(
-    '/wallet/subscriptions/gifts/sent?offset=$offset&take=$take',
+    '/stargate/subscriptions/gifts/sent?offset=$offset&take=$take',
   );
   return (resp.data as List).map((e) => SnWalletGift.fromJson(e)).toList();
 }
@@ -355,7 +355,7 @@ Future<List<SnWalletGift>> accountReceivedGifts(
 }) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get(
-    '/wallet/subscriptions/gifts/received?offset=$offset&take=$take',
+    '/stargate/subscriptions/gifts/received?offset=$offset&take=$take',
   );
   return (resp.data as List).map((e) => SnWalletGift.fromJson(e)).toList();
 }
@@ -363,14 +363,14 @@ Future<List<SnWalletGift>> accountReceivedGifts(
 @riverpod
 Future<SnWalletGift> accountGift(Ref ref, String giftId) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/wallet/subscriptions/gifts/$giftId');
+  final resp = await client.get('/stargate/subscriptions/gifts/$giftId');
   return SnWalletGift.fromJson(resp.data);
 }
 
 @riverpod
 Future<SnSubscriptionGroup?> accountSubscriptionGroup(Ref ref) async {
   final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/wallet/subscriptions/groups/solian.stellar');
+  final resp = await client.get('/stargate/subscriptions/groups/solian.stellar');
   return SnSubscriptionGroup.fromJson(resp.data);
 }
 
@@ -839,7 +839,7 @@ class StellarProgramView extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/wallet/subscriptions/${currentSubscription.id}/cancel',
+          '/stargate/subscriptions/${currentSubscription.id}/cancel',
         );
         await _refreshSubscriptionState(ref);
         if (context.mounted) {
@@ -1922,7 +1922,7 @@ class StellarProgramView extends HookConsumerWidget {
 
           try {
             await client.post(
-              '/wallet/subscriptions/order/restore/apple',
+              '/stargate/subscriptions/order/restore/apple',
               data: {'signed_transaction_info': result.signedTransactionInfo},
             );
           } catch (e) {
@@ -2190,7 +2190,7 @@ class StellarProgramView extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final response = await client.post(
-        '/wallet/wallet-products/golds-resupply-pack/checkout/afdian',
+        '/stargate/wallet-products/golds-resupply-pack/checkout/afdian',
       );
       final checkoutUrl = response.data['checkout_url'] as String?;
       if (context.mounted) hideLoadingModal(context);
@@ -2224,7 +2224,7 @@ class StellarProgramView extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final resp = await client.post(
-        '/wallet/subscriptions',
+        '/stargate/subscriptions',
         data: {
           'identifier': tierId,
           'cycle_duration_days': 30 * quantity.clamp(1, 12),
@@ -2238,7 +2238,7 @@ class StellarProgramView extends HookConsumerWidget {
         return;
       }
       final orderResp = await client.post(
-        '/wallet/subscriptions/${subscription.identifier}/order',
+        '/stargate/subscriptions/${subscription.identifier}/order',
       );
       final order = SnWalletOrder.fromJson(orderResp.data);
 
@@ -2278,7 +2278,7 @@ class StellarProgramView extends HookConsumerWidget {
       showLoadingModal(context);
 
       final resp = await client.post(
-        '/wallet/subscriptions/${tier.identifier}/checkout/afdian',
+        '/stargate/subscriptions/${tier.identifier}/checkout/afdian',
       );
 
       if (context.mounted) hideLoadingModal(context);
@@ -2325,7 +2325,7 @@ class StellarProgramView extends HookConsumerWidget {
       showLoadingModal(context);
       final client = ref.read(apiClientProvider);
       await client.post(
-        '/wallet/subscriptions/groups/$groupIdentifier/activate',
+        '/stargate/subscriptions/groups/$groupIdentifier/activate',
         data: {'subscription_id': subscriptionId},
       );
       await _refreshSubscriptionState(ref);
@@ -2691,7 +2691,7 @@ class StellarProgramView extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final resp = await client.post(
-        '/wallet/subscriptions/gifts/purchase',
+        '/stargate/subscriptions/gifts/purchase',
         data: {
           'subscription_identifier': subscriptionId,
           'recipient_id': recipientId,
@@ -2707,7 +2707,7 @@ class StellarProgramView extends HookConsumerWidget {
       if (gift.status == 1) return; // Already paid
 
       final orderResp = await client.post(
-        '/wallet/subscriptions/gifts/${gift.id}/order',
+        '/stargate/subscriptions/gifts/${gift.id}/order',
       );
       final order = SnWalletOrder.fromJson(orderResp.data);
 
@@ -2730,7 +2730,7 @@ class StellarProgramView extends HookConsumerWidget {
 
         // Get the updated gift
         final giftResp = await client.get(
-          '/wallet/subscriptions/gifts/${gift.id}',
+          '/stargate/subscriptions/gifts/${gift.id}',
         );
         final updatedGift = SnWalletGift.fromJson(giftResp.data);
 
@@ -2832,7 +2832,7 @@ class StellarProgramView extends HookConsumerWidget {
 
       // First check if gift can be redeemed
       final checkResp = await client.get(
-        '/wallet/subscriptions/gifts/check/$giftCode',
+        '/stargate/subscriptions/gifts/check/$giftCode',
       );
       final checkData = checkResp.data as Map<String, dynamic>;
 
@@ -2844,7 +2844,7 @@ class StellarProgramView extends HookConsumerWidget {
 
       // Redeem the gift
       await client.post(
-        '/wallet/subscriptions/gifts/redeem',
+        '/stargate/subscriptions/gifts/redeem',
         data: {'gift_code': giftCode},
       );
 
@@ -2887,7 +2887,7 @@ class StellarProgramView extends HookConsumerWidget {
     final client = ref.watch(apiClientProvider);
     try {
       showLoadingModal(context);
-      await client.post('/wallet/subscriptions/gifts/${gift.id}/cancel');
+      await client.post('/stargate/subscriptions/gifts/${gift.id}/cancel');
       ref.invalidate(accountSentGiftsProvider);
       if (context.mounted) {
         hideLoadingModal(context);

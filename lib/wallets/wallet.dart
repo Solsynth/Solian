@@ -588,7 +588,7 @@ final walletStatsFilteredProvider = FutureProvider.autoDispose
     ) async {
       final client = ref.watch(solarNetworkClientProvider);
       final response = await client.dio.get<Map<String, dynamic>>(
-        '/wallet/wallets/stats',
+        '/stargate/wallets/stats',
         options: Options(listFormat: ListFormat.multi),
         queryParameters: {
           'period': filter.period,
@@ -753,7 +753,7 @@ Future<WalletTransferRequestData> createWalletTransferRequest(
 }) async {
   final client = ref.read(solarNetworkClientProvider);
   final response = await client.dio.post<Map<String, dynamic>>(
-    '/wallet/wallets/transfer/requests',
+    '/stargate/wallets/transfer/requests',
     data: {
       'amount': amount,
       'currency': currency,
@@ -773,7 +773,7 @@ Future<WalletTransferRequestData> getWalletTransferRequest(
 ) async {
   final client = ref.read(solarNetworkClientProvider);
   final response = await client.dio.get<Map<String, dynamic>>(
-    '/wallet/wallets/transfer/requests/$id',
+    '/stargate/wallets/transfer/requests/$id',
   );
   return WalletTransferRequestData.fromJson(response.data!);
 }
@@ -786,7 +786,7 @@ Future<void> submitWalletTransfer(
   final client = ref.read(solarNetworkClientProvider);
   try {
     showLoadingModal(context);
-    await client.dio.post('/wallet/wallets/transfer', data: transferData);
+    await client.dio.post('/stargate/wallets/transfer', data: transferData);
 
     if (context.mounted) hideLoadingModal(context);
 
@@ -2044,7 +2044,7 @@ class WalletFundRecipientsNotifier
     final offset = fetchedCount;
 
     final response = await client.dio.get(
-      '/wallet/wallets/funds/recipients',
+      '/stargate/wallets/funds/recipients',
       queryParameters: {'offset': offset, 'take': _pageSize},
     );
     final list = (response.data as List)
@@ -4316,7 +4316,7 @@ class WalletScreen extends HookConsumerWidget {
     try {
       showLoadingModal(context);
       final resp = await client.dio.post(
-        '/wallet/wallets/funds',
+        '/stargate/wallets/funds',
         data: fundData,
         options: Options(headers: {'X-Noop': true}),
       );
@@ -4324,7 +4324,7 @@ class WalletScreen extends HookConsumerWidget {
       if (fund.status == 0) return; // Already created
 
       final orderResp = await client.dio.post(
-        '/wallet/wallets/funds/${fund.id}/order',
+        '/stargate/wallets/funds/${fund.id}/order',
       );
       final order = SnWalletOrder.fromJson(orderResp.data);
 

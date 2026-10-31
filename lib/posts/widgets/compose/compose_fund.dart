@@ -232,7 +232,7 @@ class ComposeFundSheet extends HookConsumerWidget {
 
                                       // Use raw Dio call for custom headers
                                       final resp = await client.dio.post(
-                                        '/wallet/wallets/funds',
+                                        '/stargate/wallets/funds',
                                         data: result,
                                         options: Options(
                                           headers: {'X-Noop': true},

@@ -170,7 +170,7 @@ class AppWrapper extends HookConsumerWidget {
         try {
           final client = ref.read(apiClientProvider);
           final resp = await client.get(
-            '/wallet/subscriptions/groups/solian.stellar/active',
+            '/stargate/subscriptions/groups/solian.stellar/active',
           );
           lapsed = !SnWalletSubscription.fromJson(resp.data).isActive;
         } on DioException catch (err) {
@@ -1196,7 +1196,7 @@ class AppWrapper extends HookConsumerWidget {
     showLoadingModal(context);
     try {
       final client = ref.read(solarNetworkClientProvider);
-      final response = await client.dio.get('/wallet/orders/$orderId');
+      final response = await client.dio.get('/stargate/orders/$orderId');
       final data = Map<String, dynamic>.from(response.data as Map);
       final order = SnWalletOrder.fromJson(data);
       final orderInfo = PaymentOverlayOrderInfo.fromJson(data);

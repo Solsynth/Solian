@@ -533,7 +533,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     try {
       final client = ref.read(solarNetworkClientProvider);
       final response = await client.dio.post(
-        '/wallet/orders/${widget.order.id}/pay',
+        '/stargate/orders/${widget.order.id}/pay',
         data: {
           'pin_code': pin,
           if (widget.payerWalletId != null)

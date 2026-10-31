@@ -2392,10 +2392,10 @@ class NetworkService {
 
     // MARK: - Wallet
 
-    /// GET /wallet/wallets — default wallet for the current user.
+    /// GET /stargate/wallets — default wallet for the current user.
     func fetchWallet(token: String, serverUrl: String) async throws -> SnWatchWallet? {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
-        let url = baseURL.appendingPathComponent("/wallet/wallets")
+        let url = baseURL.appendingPathComponent("/stargate/wallets")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -2408,11 +2408,11 @@ class NetworkService {
         return try Self.decodeJSON(SnWatchWallet.self, from: data)
     }
 
-    /// GET /wallet/wallets/transactions — recent transactions.
+    /// GET /stargate/wallets/transactions — recent transactions.
     func fetchTransactions(offset: Int = 0, take: Int = 20, token: String, serverUrl: String) async throws -> [SnWatchTransaction] {
         guard let baseURL = URL(string: serverUrl) else { throw URLError(.badURL) }
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/wallet/wallets/transactions"),
+            url: baseURL.appendingPathComponent("/stargate/wallets/transactions"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [

@@ -7,7 +7,7 @@ A reusable payment verification overlay that supports both 6-digit PIN input and
 - **6-digit PIN Input**: Secure numeric PIN entry with automatic focus management
 - **Biometric Authentication**: Support for fingerprint and face recognition
 - **Order Summary**: Display payment details including amount, description, and remarks
-- **Integrated API Calls**: Automatically handles payment processing via `/orders/{orderId}/pay`
+- **Integrated API Calls**: Automatically handles payment processing via `/stargate/orders/{orderId}/pay`
 - **Error Handling**: Comprehensive error handling with user-friendly messages
 - **Loading States**: Visual feedback during payment processing
 - **Responsive Design**: Adapts to different screen sizes and orientations
@@ -103,7 +103,7 @@ PaymentOverlay.show(
 
 ## API Integration
 
-The PaymentOverlay automatically handles payment processing by calling the `/orders/{orderId}/pay` endpoint with the following request body:
+The PaymentOverlay automatically handles payment processing by calling the `/stargate/orders/{orderId}/pay` endpoint with the following request body:
 
 ### PIN Payment
 ```json

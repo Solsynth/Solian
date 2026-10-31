@@ -114,7 +114,7 @@ class _WalletOrderDetailViewState extends ConsumerState<WalletOrderDetailView> {
     try {
       final client = ref.read(solarNetworkClientProvider);
       final response = await client.dio.get(
-        '/wallet/orders/mine/${widget.orderId}',
+        '/stargate/orders/mine/${widget.orderId}',
       );
       final data = Map<String, dynamic>.from(response.data as Map);
       if (!mounted) return;
