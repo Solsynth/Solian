@@ -31,7 +31,6 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/discovery/widgets/pill_app_bar.dart';
-import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/data/database.dart';

@@ -1490,7 +1490,9 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
           return localMember;
         }
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      Logger.root.info("[Chat] Unable to obtain the current chat identity...", e, stackTrace);
+    }
 
     // Fallback to API
     try {
