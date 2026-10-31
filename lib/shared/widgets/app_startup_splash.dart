@@ -93,7 +93,6 @@ class StartupSplashScreen extends HookConsumerWidget {
         _BootstrapStage(
           label: 'startupStageCompatibilityCheck'.tr(),
           isCritical: true,
-          blocksStartupOnFailure: true,
           action: () async {
             await runWithTimeoutRetries(
               stageLabel: 'startupStageCompatibilityCheck'.tr(),
@@ -219,6 +218,7 @@ class StartupSplashScreen extends HookConsumerWidget {
       showSkip.value = false;
       warnings.value = [];
       sessionExpiredWarning.value = false;
+      final failedStages = <String>[];
 
       for (var idx = 0; idx < stages.length; idx++) {
         if (phaseNonce.value != phase) return;
@@ -258,11 +258,9 @@ class StartupSplashScreen extends HookConsumerWidget {
             }
           }
         } catch (error) {
+          failedStages.add(stage.label);
           final String warning;
-          if (stage.blocksStartupOnFailure &&
-              error is ServerIncompatibleException) {
-            warning = 'startupServerIncompatible'.tr();
-          } else if (error is DioException &&
+          if (error is DioException &&
               error.response?.statusCode == 401) {
             // Session logged out or expired: show a specific, dismissable
             // message instead of the generic retry-failure notice. No retries,
@@ -288,9 +286,18 @@ class StartupSplashScreen extends HookConsumerWidget {
       } else {
         isErrored.value = true;
         isDismissable.value = true;
-        subtitle.value = sessionExpiredWarning.value
-            ? 'failedToLoadUserInfoUnauthorized'.tr()
-            : 'startupStagesSkipped'.tr(args: ['${warnings.value.length}']);
+        if (sessionExpiredWarning.value) {
+          subtitle.value = 'failedToLoadUserInfoUnauthorized'.tr();
+        } else if (failedStages.length == 1) {
+          subtitle.value =
+              '${'startupStageFailedAfterRetries'.tr(args: [failedStages.first])} ${'startupTapToContinue'.tr()}';
+        } else if (failedStages.isNotEmpty) {
+          subtitle.value =
+              '${'startupStagesSkipped'.tr(args: ['${failedStages.length}'])} (${failedStages.join(', ')})';
+        } else {
+          subtitle.value =
+              'startupStagesSkipped'.tr(args: ['${warnings.value.length}']);
+        }
       }
     }
 
@@ -538,7 +545,7 @@ class _StageInfo extends StatelessWidget {
                     key: ValueKey('subtitle-$subtitle'),
                     subtitle!,
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodyMedium?.copyWith(
                       color: mutedColor,
@@ -623,13 +630,11 @@ class _StageInfo extends StatelessWidget {
 class _BootstrapStage {
   final String label;
   final bool isCritical;
-  final bool blocksStartupOnFailure;
   final Future<void> Function() action;
 
   const _BootstrapStage({
     required this.label,
     required this.isCritical,
-    this.blocksStartupOnFailure = false,
     required this.action,
   });
 }

@@ -3612,7 +3612,6 @@
   "startupPreviousStage": "Previous: {}",
   "startupRetryFailed": "{} retry {}/{} failed.",
   "startupServerCompatibilityCheckFailed": "Could not verify server compatibility. Tap to retry.",
-  "startupServerIncompatible": "This server is not compatible with this version of Solian.",
   "startupSkipOptional": "Skip optional stage",
   "startupSkippedStage": "Skipped optional stage: {}",
   "startupStageAudioAssets": "Preparing audio assets",

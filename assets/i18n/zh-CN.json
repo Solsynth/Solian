@@ -3587,7 +3587,6 @@
   "startupPreviousStage": "上一步：{}",
   "startupRetryFailed": "{} 重试 {}/{} 失败",
   "startupServerCompatibilityCheckFailed": "无法确认服务器兼容性。点击以重试。",
-  "startupServerIncompatible": "此服务器与当前版本的 Solian 不兼容。",
   "startupSkipOptional": "跳过可选阶段",
   "startupSkippedStage": "已跳过可选阶段：{}",
   "startupStageAudioAssets": "正在准备音频资源",

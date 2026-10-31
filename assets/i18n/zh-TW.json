@@ -3361,7 +3361,6 @@
   "startupPreviousStage": "上一步：{}",
   "startupRetryFailed": "{} 重試 {}/{} 失敗",
   "startupServerCompatibilityCheckFailed": "無法確認伺服器相容性。點選以重試。",
-  "startupServerIncompatible": "此伺服器與目前版本的 Solian 不相容。",
   "startupSkipOptional": "跳過可選階段",
   "startupSkippedStage": "已跳過可選階段：{}",
   "startupStageAudioAssets": "正在準備音訊資源",
