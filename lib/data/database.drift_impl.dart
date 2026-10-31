@@ -270,6 +270,8 @@ class AppDatabase {
   }
 
   Future<List<SnChatRoom>> getAllChatRooms() => _read(_memory.getAllChatRooms);
+  Future<List<SnChatRoom>> getAllChatRoomsWithDetails() =>
+      _read(_memory.getAllChatRoomsWithDetails);
   Future<SnChatRoom?> getChatRoomById(String id) =>
       _read(() => _memory.getChatRoomById(id));
   Future<void> saveChatRooms(List<SnChatRoom> rooms, {bool override = false}) =>
@@ -297,6 +299,8 @@ class AppDatabase {
       _read(() => _memory.getMemberById(id));
   Future<void> saveMember(SnChatMember member) =>
       _write(() => _memory.saveMember(member));
+  Future<void> saveMembers(List<SnChatMember> members) =>
+      _write(() => _memory.saveMembers(members));
 
   /// True when the account carries a server-fabricated profile shell. The
   /// server always assigns a real profile UUID id to a DB-backed account; a

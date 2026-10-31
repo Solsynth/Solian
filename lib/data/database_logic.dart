@@ -489,6 +489,25 @@ class AppDatabase {
   Future<List<SnChatRoom>> getAllChatRooms() async =>
       _webChatRoomStore.values.toList();
 
+  Future<List<SnChatRoom>> getAllChatRoomsWithDetails() async {
+    final membersByRoom = <String, List<SnChatMember>>{};
+    for (final member in _webChatMemberStore.values) {
+      (membersByRoom[member.chatRoomId] ??= []).add(member);
+    }
+    return _webChatRoomStore.values.map((room) {
+      final encryptionModeRaw =
+          _webKvStore['chat_room_encryption_mode_${room.id}'];
+      final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
+      final members = membersByRoom[room.id] ?? const <SnChatMember>[];
+      final realm = _webRealmStore[room.realmId];
+      return room.copyWith(
+        encryptionMode: encryptionMode,
+        members: members,
+        realm: realm,
+      );
+    }).toList();
+  }
+
   Future<SnChatRoom?> getChatRoomById(String id) async => _webChatRoomStore[id];
 
   Future<List<SnChatGroup>> getChatGroups(String accountId) async {
@@ -547,6 +566,13 @@ class AppDatabase {
   Future<void> saveMember(SnChatMember member) async {
     _webChatMemberStore[member.id] = member;
     _webChatMemberJsonStore[member.id] = member.toJson();
+  }
+
+  Future<void> saveMembers(List<SnChatMember> members) async {
+    for (final member in members) {
+      _webChatMemberStore[member.id] = member;
+      _webChatMemberJsonStore[member.id] = member.toJson();
+    }
   }
 
   // ---------------------------------------------------------------------------

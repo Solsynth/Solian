@@ -1268,104 +1268,114 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     final userInfo = ref.watch(userInfoProvider);
 
     Future<List<SnChatRoom>> loadLocalRooms() async {
-      final localRooms = await db.getAllChatRooms();
-      final localRealms = await db.getAllRealms();
-      return Future.wait(
-        localRooms.map((room) async {
-          final encryptionModeRaw = await db.getSecret(
-            _chatRoomEncryptionModeStoreKey(room.id),
-          );
-          final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
-          final members = await db.getMembersByRoomId(room.id);
-          final realm = localRealms
-              .where((e) => e.id == room.realmId)
-              .firstOrNull;
-          return room.copyWith(
-            encryptionMode: encryptionMode,
-            members: members,
-            realm: realm,
-          );
-        }),
-      );
+      return db.getAllChatRoomsWithDetails();
     }
 
     Future<void> syncRemoteRooms(List<SnChatRoom> localRooms) async {
-      final client = ref.read(apiClientProvider);
-      final savedCursor = prefs.getInt(_chatRoomSyncCursorStoreKey) ?? 0;
-      final syncCursor = localRooms.isEmpty ? 0 : savedCursor;
+      ref.read(chatSyncingProvider.notifier).begin();
+      try {
+        final client = ref.read(apiClientProvider);
+        final savedCursor = prefs.getInt(_chatRoomSyncCursorStoreKey) ?? 0;
+        final syncCursor = localRooms.isEmpty ? 0 : savedCursor;
 
-      final resp = await client.post(
-        '/messager/chat/rooms/sync',
-        data: {'last_sync_timestamp': syncCursor},
-      );
-      final body = resp.data as Map<String, dynamic>;
-      final rawChanges = (body['changes'] as List?) ?? const [];
-      final rawSummaries = (body['summaries'] as List?) ?? const [];
-      final rawGroups = (body['groups'] as List?) ?? const [];
-      final currentTimestampRaw =
-          body['current_timestamp'] ?? body['currentTimestamp'];
-      final currentTimestamp = _parseSyncTimestamp(currentTimestampRaw);
+        final resp = await client.post(
+          '/messager/chat/rooms/sync',
+          data: {'last_sync_timestamp': syncCursor},
+        );
+        final body = resp.data as Map<String, dynamic>;
+        final rawChanges = (body['changes'] as List?) ?? const [];
+        final rawSummaries = (body['summaries'] as List?) ?? const [];
+        final rawGroups = (body['groups'] as List?) ?? const [];
+        final currentTimestampRaw =
+            body['current_timestamp'] ?? body['currentTimestamp'];
+        final currentTimestamp = _parseSyncTimestamp(currentTimestampRaw);
 
-      final roomsById = {
-        for (final room in await db.getAllChatRooms()) room.id: room,
-      };
-      final removedRoomIds = <String>{};
+        final roomsById = {
+          for (final room in await db.getAllChatRooms()) room.id: room,
+        };
+        final removedRoomIds = <String>{};
+        final membersToSave = <SnChatMember>[];
+        final secretsToSave = <String, String>{};
 
-      for (final rawChange in rawChanges.whereType<Map>()) {
-        final change = Map<String, dynamic>.from(rawChange);
-        final roomId = change['room_id']?.toString();
-        final changeType = change['type']?.toString();
+        for (final rawChange in rawChanges.whereType<Map>()) {
+          final change = Map<String, dynamic>.from(rawChange);
+          final roomId = change['room_id']?.toString();
+          final changeType = change['type']?.toString();
 
-        if (roomId != null && changeType == 'removed') {
-          roomsById.remove(roomId);
-          removedRoomIds.add(roomId);
-          continue;
-        }
+          if (roomId != null && changeType == 'removed') {
+            roomsById.remove(roomId);
+            removedRoomIds.add(roomId);
+            continue;
+          }
 
-        final rawRoom = change['room'];
-        if (rawRoom is Map) {
-          final roomJson = Map<String, dynamic>.from(rawRoom);
-          await _persistRoomEncryptionModeFromJson(db, roomJson);
-          roomsById[SnChatRoom.fromJson(roomJson).id] = SnChatRoom.fromJson(
-            roomJson,
-          );
-        }
-
-        final rawMember = change['member'];
-        if (rawMember is Map) {
-          try {
-            await db.saveMember(
-              SnChatMember.fromJson(Map<String, dynamic>.from(rawMember)),
+          final rawRoom = change['room'];
+          if (rawRoom is Map) {
+            final roomJson = Map<String, dynamic>.from(rawRoom);
+            final encRoomId = roomJson['id']?.toString();
+            if (encRoomId != null) {
+              final encMode = _safeToInt(roomJson['encryption_mode']);
+              secretsToSave[_chatRoomEncryptionModeStoreKey(encRoomId)] =
+                  encMode.toString();
+            }
+            roomsById[SnChatRoom.fromJson(roomJson).id] = SnChatRoom.fromJson(
+              roomJson,
             );
-          } catch (e) {
-            Logger.root.info('Skipping invalid synced chat member: $e');
+          }
+
+          final rawMember = change['member'];
+          if (rawMember is Map) {
+            try {
+              membersToSave.add(
+                SnChatMember.fromJson(Map<String, dynamic>.from(rawMember)),
+              );
+            } catch (e) {
+              Logger.root.info('Skipping invalid synced chat member: $e');
+            }
           }
         }
-      }
 
-      await db.saveChatRooms(roomsById.values.toList(), override: true);
-      if (userInfo.value != null) {
-        final groups = rawGroups
-            .whereType<Map>()
-            .map(
-              (group) => SnChatGroup.fromJson(Map<String, dynamic>.from(group)),
-            )
-            .toList();
-        await db.saveChatGroups(userInfo.value!.id, groups);
-        eventBus.fire(const ChatGroupsRefreshEvent());
+        await db.transaction(() async {
+          for (final entry in secretsToSave.entries) {
+            await db.setSecret(entry.key, entry.value);
+          }
+          if (membersToSave.isNotEmpty) {
+            await db.saveMembers(membersToSave);
+          }
+          await db.saveChatRooms(roomsById.values.toList(), override: true);
+          if (userInfo.value != null) {
+            final groups = rawGroups
+                .whereType<Map>()
+                .map(
+                  (group) =>
+                      SnChatGroup.fromJson(Map<String, dynamic>.from(group)),
+                )
+                .toList();
+            await db.saveChatGroups(userInfo.value!.id, groups);
+          }
+        });
+
+        if (userInfo.value != null) {
+          eventBus.fire(const ChatGroupsRefreshEvent());
+        }
+        if (!ref.mounted) return;
+        ref
+            .read(chatSummaryProvider.notifier)
+            .applySyncedSummaries(rawSummaries, removedRoomIds: removedRoomIds);
+        await prefs.setInt(
+          _chatRoomSyncCursorStoreKey,
+          currentTimestamp.millisecondsSinceEpoch,
+        );
+      } finally {
+        if (ref.mounted) {
+          ref.read(chatSyncingProvider.notifier).end();
+        }
       }
-      if (!ref.mounted) return;
-      ref
-          .read(chatSummaryProvider.notifier)
-          .applySyncedSummaries(rawSummaries, removedRoomIds: removedRoomIds);
-      await prefs.setInt(
-        _chatRoomSyncCursorStoreKey,
-        currentTimestamp.millisecondsSinceEpoch,
-      );
     }
 
     final localRooms = await loadLocalRooms();
-    yield localRooms;
+    if (localRooms.isNotEmpty) {
+      yield localRooms;
+    }
 
     try {
       await syncRemoteRooms(localRooms);
