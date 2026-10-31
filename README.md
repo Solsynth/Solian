@@ -53,7 +53,6 @@ Note: Fediverse support is currently experimental and limited.
 | Check-in | Done | Location and status sharing |
 | Countdown | Done | Track special dates and festivals |
 | Event Calendar | Done | Plan and share events with your community |
-| Meet | Done | Find and meet people nearby |
 | Weather | Done | Weather forecast on your dashboard |
 | Wallet | Done | Credits, exchange, orders and billing |
 | Stickers | Done | Express yourself with custom stickers |

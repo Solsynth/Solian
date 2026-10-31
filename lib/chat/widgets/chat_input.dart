@@ -18,7 +18,6 @@ import "package:island/chat/pods/chat_outbox.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
 import "package:island/posts/widgets/compose/compose_calendar_event_sheet.dart";
 import "package:island/posts/widgets/compose/compose_location_sheet.dart";
-import "package:island/posts/widgets/compose/compose_meet_sheet.dart";
 import "package:island/posts/widgets/compose/compose_survey.dart";
 import "package:island/stickers/widgets/stickers/sticker_picker.dart";
 import "package:island/stickers/models/sticker.dart";
@@ -587,7 +586,7 @@ class _ExpandedSection extends StatefulWidget {
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
   final String? roomEncryptKey;
-  // Unified embeds list (surveys, funds, locations, meets, calendar events)
+  // Unified embeds list (surveys, funds, locations, calendar events)
   final List<Map<String, dynamic>> embeds;
   final Function(List<Map<String, dynamic>>) onEmbedsChanged;
   final bool isE2eeRoom;
@@ -869,46 +868,6 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                   const Gap(4),
                                   Text(
                                     'location'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        if (!widget.isE2eeRoom)
-                          InkWell(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                            onTap: () async {
-                              final meetId = await showModalBottomSheet<String>(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (context) => const ComposeMeetSheet(),
-                              );
-                              if (meetId != null) {
-                                widget.onEmbedsChanged([
-                                  ...widget.embeds.where(
-                                    (e) => e['type'] != 'meet',
-                                  ),
-                                  {'type': 'meet', 'id': meetId},
-                                ]);
-                              }
-                            },
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Symbols.groups),
-                                  const Gap(4),
-                                  Text(
-                                    'meet'.tr(),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodySmall,
@@ -1272,7 +1231,7 @@ class ChatInput extends HookConsumerWidget {
   final Function(int, int) onMoveAttachment;
   final Function(List<UniversalFile>) onAttachmentsChanged;
   final Map<String, Map<int, double?>> attachmentProgress;
-  // Unified embeds list (surveys, funds, locations, meets, calendar events)
+  // Unified embeds list (surveys, funds, locations, calendar events)
   final List<Map<String, dynamic>> embeds;
   final Function(List<Map<String, dynamic>>) onEmbedsChanged;
 
@@ -2009,87 +1968,6 @@ class ChatInput extends HookConsumerWidget {
                     : const SizedBox.shrink(
                         key: ValueKey('no-selected-location'),
                       ),
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, -0.2),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: SizeTransition(
-                        sizeFactor: animation,
-                        axisAlignment: -1.0,
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
-                child: embeds.any((e) => e['type'] == 'meet')
-                    ? Container(
-                        key: const ValueKey('selected-meet'),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.outline.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        margin: const EdgeInsets.only(
-                          left: 8,
-                          right: 8,
-                          top: 8,
-                          bottom: 8,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Symbols.groups,
-                              size: 18,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const Gap(8),
-                            Expanded(
-                              child: Text(
-                                'meetLinked'.tr(),
-                                style: Theme.of(context).textTheme.bodySmall!
-                                    .copyWith(fontWeight: FontWeight.w500),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                icon: const Icon(Icons.close, size: 18),
-                                onPressed: () => onEmbedsChanged(
-                                  embeds
-                                      .where((e) => e['type'] != 'meet')
-                                      .toList(),
-                                ),
-                                tooltip: 'clear'.tr(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : const SizedBox.shrink(key: ValueKey('no-selected-meet')),
               ),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),

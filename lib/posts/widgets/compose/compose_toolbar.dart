@@ -101,10 +101,6 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickLocation(ref, state, context);
     }
 
-    void pickMeet() {
-      ComposeLogic.pickMeet(ref, state, context);
-    }
-
     void pickCalendarEvent() {
       ComposeLogic.pickCalendarEvent(ref, state, context);
     }
@@ -286,29 +282,6 @@ class ComposeToolbar extends HookConsumerWidget {
                                       backgroundColor: WidgetStatePropertyAll(
                                         state.embeds.value.any(
                                               (e) => e['type'] == 'fund',
-                                            )
-                                            ? colorScheme.primary.withOpacity(
-                                                0.15,
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              // Meet
-                              ListenableBuilder(
-                                listenable: state.embeds,
-                                builder: (context, _) {
-                                  return IconButton(
-                                    onPressed: pickMeet,
-                                    icon: const Icon(Symbols.groups),
-                                    tooltip: 'meet'.tr(),
-                                    color: colorScheme.primary,
-                                    style: ButtonStyle(
-                                      backgroundColor: WidgetStatePropertyAll(
-                                        state.embeds.value.any(
-                                              (e) => e['type'] == 'meet',
                                             )
                                             ? colorScheme.primary.withOpacity(
                                                 0.15,

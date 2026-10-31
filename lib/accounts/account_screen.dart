@@ -250,13 +250,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                           },
                         },
                         {
-                          'icon': Symbols.handshake,
-                          'title': 'meet',
-                          'onTap': () {
-                            context.router.push(const MeetRoute());
-                          },
-                        },
-                        {
                           'icon': Symbols.qr_code_rounded,
                           'title': 'qrCode',
                           'onTap': () {

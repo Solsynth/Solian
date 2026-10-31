@@ -8,7 +8,6 @@ import 'package:island/posts/widgets/compose/compose_calendar_event_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_location_sheet.dart';
-import 'package:island/posts/widgets/compose/compose_meet_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_survey.dart';
 import 'package:island/posts/widgets/compose/compose_recorder.dart';
 import 'package:logging/logging.dart';
@@ -61,7 +60,7 @@ class ComposeState {
   final ValueNotifier<String?> cloudDraftId;
   int postType;
 
-  // Unified embeds list (surveys, funds, meets, calendar events, locations, notable days)
+  // Unified embeds list (surveys, funds, calendar events, locations, notable days)
   final ValueNotifier<List<Map<String, dynamic>>> embeds;
 
   // Thumbnail id for article type post (nullable)
@@ -1621,27 +1620,6 @@ class ComposeLogic {
       if (location['address'] != null) 'address': location['address'],
       if (location['wkt'] != null) 'wkt': location['wkt'],
     });
-  }
-
-  static Future<void> pickMeet(
-    WidgetRef ref,
-    ComposeState state,
-    BuildContext context,
-  ) async {
-    if (hasEmbed(state, 'meet')) {
-      removeEmbed(state, 'meet');
-      return;
-    }
-
-    final meet = await showModalBottomSheet<String>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      builder: (context) => const ComposeMeetSheet(),
-    );
-
-    if (meet == null) return;
-    addEmbed(state, {'type': 'meet', 'id': meet});
   }
 
   static Future<void> pickCalendarEvent(

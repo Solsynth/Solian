@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/meet_service.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/embeds/embed_list.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
@@ -91,16 +90,13 @@ void main() {
     }
   });
 
-  testWidgets('survey, meet and calendar cards paint on surfaceContainerLow', (
+  testWidgets('survey and calendar cards paint on surfaceContainerLow', (
     tester,
   ) async {
     await pump(
       tester,
       ProviderScope(
         overrides: [
-          meetDetailProvider(
-            'meet-1',
-          ).overrideWith((ref) => Future<SnMeet>.error(Exception('offline'))),
           surveyWithStatsProvider('survey-1').overrideWith(
             (ref) => Future<SnSurveyWithStats>.error(Exception('offline')),
           ),
@@ -112,7 +108,6 @@ void main() {
           embeds: const [
             {'type': 'survey'},
             {'type': 'survey', 'id': 'survey-1'},
-            {'type': 'meet', 'id': 'meet-1'},
             {'type': 'calendar_event', 'id': 'event-1'},
           ],
           maxWidth: 480,
@@ -121,7 +116,7 @@ void main() {
     );
 
     final cards = tester.widgetList<Card>(find.byType(Card)).toList();
-    expect(cards, hasLength(4));
+    expect(cards, hasLength(3));
     for (final card in cards) {
       expect(card.color, schemeOf(tester).surfaceContainerLow);
     }

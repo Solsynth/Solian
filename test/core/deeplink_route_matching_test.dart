@@ -18,7 +18,6 @@ void main() {
         '/realms',
         '/realms/foo',
         '/account/me/leveling',
-        '/account/me/meet/7',
         '/account/stickers',
         '/account/stickers/pack-1',
         '/wallet',

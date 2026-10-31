@@ -45,7 +45,7 @@ class ChatRoomState {
   final SnChatMessage? messageEditingTo;
   final SnChatMessage? messageReplyingTo;
   final SnChatMessage? messageForwardingTo;
-  // Unified embeds list (surveys, funds, locations, meets, calendar events)
+  // Unified embeds list (surveys, funds, locations, calendar events)
   final List<Map<String, dynamic>> embeds;
 
   // One-shot signal: the message to open a thread sheet on (with a composer
