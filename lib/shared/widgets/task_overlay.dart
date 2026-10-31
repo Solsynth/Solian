@@ -16,12 +16,24 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'task_overlay_state.dart';
 import 'unfold_reveal.dart';
 
-/// Height of the lane the task pill floats in.
+/// The capsule's own height: the 36px status ring plus the 6px padding that
+/// wraps it. Mirrors `_TaskOverlayPill._ringSize` and its inner padding.
+const double _taskPillHeight = 48;
+
+/// Clear space the capsule keeps from the window's bottom edge, so it never
+/// sits flush against it. Widens past the system inset (home indicator,
+/// gesture bar) when one is present.
+const double _taskOverlayBottomMargin = 16;
+
+/// Height of the lane the task pill floats in, above the system bottom inset.
 ///
-/// The pill is narrower than the lane and centered in it, the way a Live
-/// Activity floats over the content instead of spanning the window edge to
-/// edge; the slack carries its elevation shadow.
-double taskOverlayHeight(bool isDesktop) => isDesktop ? 56 : 64;
+/// The pill is narrower than the lane and centered horizontally, the way a
+/// Live Activity floats over the content instead of spanning the window edge
+/// to edge. Vertically it sits at least [_taskOverlayBottomMargin] above the
+/// bottom edge, so the lane's top slack carries its elevation shadow while the
+/// strip below it is that margin.
+const double taskOverlayHeight =
+    _taskPillHeight + _taskOverlayBottomMargin * 2;
 
 /// Toggles the process-wide wakelock while an app task is running.
 ///
@@ -173,15 +185,26 @@ class TaskOverlay extends HookConsumerWidget {
 
     if (shown == null) return const SizedBox.shrink();
 
-    return Center(
-      child: _TaskOverlayPill(
-        snapshot: shown,
-        unfold: CurvedAnimation(
-          parent: unfold,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
+    // Pinned to the lane's lower edge rather than centered, so the capsule
+    // keeps its clearance even when a large text scale makes it taller than
+    // the nominal pill height. The lane already reserves the system inset, so
+    // the margin stacks on top of it here.
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom:
+              _taskOverlayBottomMargin + MediaQuery.paddingOf(context).bottom,
         ),
-        isDesktop: isDesktop,
+        child: _TaskOverlayPill(
+          snapshot: shown,
+          unfold: CurvedAnimation(
+            parent: unfold,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          ),
+          isDesktop: isDesktop,
+        ),
       ),
     );
   }
@@ -285,8 +308,8 @@ class _TaskOverlayHostState extends ConsumerState<TaskOverlayHost>
   Widget build(BuildContext context) {
     final allTasks = ref.watch(tasksProvider);
     final snapshot = buildTaskOverlaySnapshot(allTasks, now: DateTime.now());
-    final isDesktop = DesktopWindowFrame.isPlatformDesktop;
-    final laneHeight = taskOverlayHeight(isDesktop);
+    final laneHeight =
+        taskOverlayHeight + MediaQuery.paddingOf(context).bottom;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     _syncWakelock(allTasks);
