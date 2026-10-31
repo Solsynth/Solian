@@ -11,7 +11,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/server_compatibility.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
@@ -60,75 +59,11 @@ class StartupSplashScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Future<void> runWithTimeoutRetries({
-      required Future<void> Function(Duration timeout) action,
-      required String stageLabel,
-      required ValueNotifier<String?> subtitle,
-    }) async {
-      Object? lastError;
-      StackTrace? lastStackTrace;
-      for (var idx = 0; idx < retryTimeouts.length; idx++) {
-        final timeout = retryTimeouts[idx];
-        try {
-          await action(timeout);
-          return;
-        } catch (e, stackTrace) {
-          lastError = e;
-          lastStackTrace = stackTrace;
-          subtitle.value = 'startupRetryFailed'.tr(
-            args: [stageLabel, '${idx + 1}', '${retryTimeouts.length}'],
-          );
-        }
-      }
-      if (lastError != null && lastStackTrace != null) {
-        Error.throwWithStackTrace(lastError, lastStackTrace);
-      }
-    }
-
     final subtitle = useState<String?>(null);
     final connectivityStatus = ref.watch(connectivityStatusProvider);
     final hasConnectivity = hasNetworkConnectivityValue(connectivityStatus);
     final stages = useMemoized(
       () => <_BootstrapStage>[
-        _BootstrapStage(
-          label: 'startupStageCompatibilityCheck'.tr(),
-          isCritical: true,
-          action: () async {
-            await runWithTimeoutRetries(
-              stageLabel: 'startupStageCompatibilityCheck'.tr(),
-              subtitle: subtitle,
-              action: (timeout) async {
-                final apiClient = ref.read(solarNetworkClientProvider);
-                final response = await apiClient.dio.get(
-                  '/meta',
-                  options: Options(
-                    validateStatus: (_) => true,
-                    connectTimeout: timeout,
-                    sendTimeout: timeout,
-                    receiveTimeout: timeout,
-                  ),
-                );
-                if (response.statusCode != 200 || response.data is! Map) {
-                  throw DioException(
-                    requestOptions: response.requestOptions,
-                    response: response,
-                    error:
-                        'Metadata check failed with status ${response.statusCode}',
-                  );
-                }
-                final metadata = Map<String, dynamic>.from(
-                  response.data as Map,
-                );
-                final compatibility = ServerCompatibility.fromMetadata(
-                  metadata,
-                );
-                if (!compatibility.isCompatible) {
-                  throw const ServerIncompatibleException();
-                }
-              },
-            );
-          },
-        ),
         _BootstrapStage(
           label: 'startupStageLoadProfile'.tr(),
           isCritical: true,
@@ -637,8 +572,4 @@ class _BootstrapStage {
     required this.isCritical,
     required this.action,
   });
-}
-
-class ServerIncompatibleException implements Exception {
-  const ServerIncompatibleException();
 }

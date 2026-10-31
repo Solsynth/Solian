@@ -31,7 +31,6 @@ import 'package:island/discovery/widgets/discovery_profile_sheet.dart';
 import 'package:island/misc/connectivity_self_check_screen.dart';
 import 'package:island/misc/about_content.dart';
 import 'package:island/misc/widgets/relay_route_sheet.dart';
-import 'package:island/misc/widgets/server_capabilities_preview.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/empty_state.dart';
@@ -1437,7 +1436,6 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-          ServerCapabilitiesPreview(serverUrl: serverUrl),
           Builder(
             builder: (context) {
               final relay = ref.watch(activeRelayRouteProvider);
