@@ -276,17 +276,17 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
     final attitudeOptions = [
       (
         value: 0,
-        icon: Symbols.sentiment_satisfied_rounded,
+        icon: Symbols.sunny_rounded,
         label: 'attitudePositive'.tr(),
       ),
       (
         value: 1,
-        icon: Symbols.sentiment_neutral_rounded,
+        icon: Symbols.circle_rounded,
         label: 'attitudeNeutral'.tr(),
       ),
       (
         value: 2,
-        icon: Symbols.sentiment_dissatisfied_rounded,
+        icon: Symbols.rainy_rounded,
         label: 'attitudeNegative'.tr(),
       ),
     ];

@@ -189,7 +189,7 @@ class AccountStatusWidget extends HookConsumerWidget {
               }
             : null,
         showIdleBadge: statusValue.isIdleOrOnline,
-        attitude: statusValue.attitude,
+        attitude: statusValue.isCustomized ? statusValue.attitude : null,
         meta:
             getActivitySubtitle(statusValue.meta) ??
             getStatusOnlineDeviceLabel(statusValue) ??
@@ -360,7 +360,7 @@ class _StatusDisplayCard extends StatelessWidget {
       indicatorIcon: getStatusIndicatorIcon(status),
       indicatorFill: getStatusIndicatorFill(status),
       indicatorColor: getStatusIndicatorColor(status),
-      attitude: status.attitude,
+      attitude: status.isCustomized ? status.attitude : null,
       showIdleBadge: status.isIdleOrOnline,
       margin: hasBackground
           ? EdgeInsets.zero

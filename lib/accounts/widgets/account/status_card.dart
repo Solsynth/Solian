@@ -52,29 +52,63 @@ class AccountStatusInline extends StatelessWidget {
       color: colorScheme.onSurfaceVariant,
     );
 
-    Widget titleText = Text(
-      title,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-    if (onLongPress != null) {
-      titleText = GestureDetector(onLongPress: onLongPress, child: titleText);
-    }
-    if (titleTooltip != null) {
-      titleText = Tooltip(richMessage: titleTooltip, child: titleText);
-    }
-
     final mood = switch (attitude) {
       0 => (
-        icon: Symbols.sentiment_satisfied_rounded,
+        icon: Symbols.sunny_rounded,
         label: 'attitudePositive'.tr(),
       ),
       2 => (
-        icon: Symbols.sentiment_dissatisfied_rounded,
+        icon: Symbols.rainy_rounded,
         label: 'attitudeNegative'.tr(),
       ),
       _ => null,
     };
+
+    final isNeutralOrUnset = mood == null;
+
+    Widget content = Text.rich(
+      TextSpan(
+        style: theme.textTheme.bodyMedium,
+        children: [
+          TextSpan(text: title),
+          if (showIdleBadge)
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'idle'.tr(),
+                    style:
+                        TextStyle(fontSize: 11, color: Colors.amber.shade700),
+                  ),
+                ),
+              ),
+            ),
+          if (meta?.isNotEmpty ?? false) ...[
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: meta!,
+              style: mutedStyle,
+            ),
+          ],
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+    if (onLongPress != null) {
+      content = GestureDetector(onLongPress: onLongPress, child: content);
+    }
+    if (titleTooltip != null) {
+      content = Tooltip(richMessage: titleTooltip, child: content);
+    }
 
     return Padding(
       padding:
@@ -86,45 +120,16 @@ class AccountStatusInline extends StatelessWidget {
           Semantics(
             label: mood?.label,
             child: Icon(
-              mood?.icon ?? indicatorIcon,
-              fill: indicatorFill,
-              // A face is ink, not presence: presence keeps its own color when
-              // the dot leads, and the face stays neutral so it never reads as
-              // a green "sad" or an orange "happy".
-              color: mood != null
-                  ? colorScheme.onSurfaceVariant
-                  : indicatorColor,
+              isNeutralOrUnset ? Symbols.circle_rounded : mood.icon,
+              fill: 1,
+              color: indicatorColor ?? colorScheme.primary,
               // Faces need a touch more room than a dot to stay legible.
               size: mood != null ? 18 : 16,
             ),
           ),
           // Breathing room: the mark frames the line, it does not sit on the text.
           const Gap(SolSpace.md),
-          Flexible(child: titleText),
-          if (showIdleBadge)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'idle'.tr(),
-                style: TextStyle(fontSize: 11, color: Colors.amber.shade700),
-              ),
-            ),
-          if (meta?.isNotEmpty ?? false)
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.only(left: SolSpace.xs),
-                child: Text(
-                  meta!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: mutedStyle,
-                ),
-              ),
-            ),
+          Flexible(child: content),
         ],
       ),
     );
@@ -193,10 +198,14 @@ class AccountStatusCard extends StatelessWidget {
           ]
         : null;
     final moodIcon = switch (attitude) {
-      0 => Symbols.sentiment_satisfied_rounded,
-      2 => Symbols.sentiment_dissatisfied_rounded,
+      0 => Symbols.sunny_rounded,
+      2 => Symbols.rainy_rounded,
       _ => null,
     };
+    final isNeutralOrUnset = moodIcon == null;
+    final displayIcon = isNeutralOrUnset ? Symbols.circle_rounded : moodIcon;
+    const displayFill = 1.0;
+
     // A status without a custom label falls back to its presence name for the
     // title; repeating it on the line below would say the same thing twice.
     final resolvedSubtitle = subtitle == title ? null : subtitle;
@@ -206,8 +215,8 @@ class AccountStatusCard extends StatelessWidget {
             file: icon,
             radius: hasBackground ? 24 : 20,
             borderRadius: hasBackground ? 14 : 12,
-            fallbackIcon: moodIcon ?? indicatorIcon,
-            fallbackColor: hasBackground ? Colors.white : null,
+            fallbackIcon: displayIcon,
+            fallbackColor: hasBackground ? Colors.white : indicatorColor,
           )
         : Container(
             width: hasBackground ? 48 : 40,
@@ -219,13 +228,12 @@ class AccountStatusCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(hasBackground ? 14 : 12),
             ),
             child: Icon(
-              moodIcon ?? indicatorIcon,
-              fill: indicatorFill,
+              displayIcon,
+              fill: displayFill,
+              size: isNeutralOrUnset ? (hasBackground ? 20 : 16) : null,
               color: hasBackground
                   ? Colors.white
-                  : moodIcon != null || indicatorColor == Colors.transparent
-                  ? colorScheme.onPrimaryContainer
-                  : indicatorColor,
+                  : (indicatorColor ?? colorScheme.onPrimaryContainer),
             ),
           );
 

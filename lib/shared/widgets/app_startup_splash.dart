@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,10 +13,11 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/notify.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/shared/widgets/app_startup_progress.dart';
-import 'package:styled_widget/styled_widget.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// Flip to `true` to keep the splash stuck on its final bootstrap stage
 /// (cannot be skipped), for previewing the startup UI.
@@ -59,6 +61,18 @@ class StartupSplashScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final packageVersion = useState<String?>(null);
+
+    useEffect(() {
+      PackageInfo.fromPlatform().then((info) {
+        final versionStr = info.buildNumber.isNotEmpty
+            ? '${info.version}+${info.buildNumber}'
+            : info.version;
+        packageVersion.value = versionStr;
+      }).catchError((_) {});
+      return null;
+    }, const []);
+
     final subtitle = useState<String?>(null);
     final connectivityStatus = ref.watch(connectivityStatusProvider);
     final hasConnectivity = hasNetworkConnectivityValue(connectivityStatus);
@@ -267,6 +281,7 @@ class StartupSplashScreen extends HookConsumerWidget {
         ? 0.0
         : (periodCursor.value + (isBusy.value ? 0.5 : 1.0)) / stages.length;
     final percentage = (progress * 100).round();
+    final wide = isWideScreen(context);
 
     return Material(
       color: colorScheme.surface,
@@ -280,145 +295,193 @@ class StartupSplashScreen extends HookConsumerWidget {
           }
         },
         behavior: HitTestBehavior.opaque,
-        child: SafeArea(
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Portrait artwork capped at 9:16, top-centered. The reserved
-              // bottom margin keeps it clear of the progress cluster below,
-              // and the top inset slides the picture slightly down from the
-              // safe-area edge so it reads as a poster.
-              Positioned(
-                top: kSplashImageTopInset,
-                left: 0,
-                right: 0,
-                bottom: kSplashImageBottomInset,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top section: future artwork
+            Expanded(
+              child: ColoredBox(
+                color: colorScheme.surfaceContainer,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                  ClipRect(
+                    child: wide
+                        ? Center(
+                            child: AspectRatio(
+                              aspectRatio: 9 / 16,
+                              child: Image.asset(
+                                'assets/images/michan/landing.webp',
+                                key: const Key('startup-portrait-image'),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/michan/landing.webp',
+                            key: const Key('startup-portrait-image'),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: Alignment.center,
+                          ),
+                  ),
+                  // Progress indicator label (bottom-right above the divider)
+                  Positioned(
+                    right: 16,
+                    bottom: 8,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: isBusy.value
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    colorScheme.surface.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '$percentage%',
+                                key: ValueKey(percentage),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.primary,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+            // Progress divider line separating artwork from the bottom panel
+            Container(
+              height: 3.0,
+              color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+              child: StartupProgressBar(
+                progress: progress,
+                isErrored: isErrored.value,
+                colorScheme: colorScheme,
+              ),
+            ),
+            // Bottom section: app icon, wordmark + version, current stage
+            SafeArea(
+              top: false,
+              child: SizedBox(
+                key: const Key('startup-bottom-bar'),
+                height: 80,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: AspectRatio(
-                      aspectRatio: 9 / 16,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          'assets/images/michan/landing.webp',
-                          key: const Key('startup-portrait-image'),
-                          fit: BoxFit.cover,
-                          // Fill the rounded box regardless of decode timing
-                          // (intrinsic sizing collapses to zero while the
-                          // asset is still loading).
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                    SvgPicture.asset(
+                      'assets/icons/icon-outline.svg',
+                      key: const Key('startup-app-icon'),
+                      width: 40,
+                      height: 40,
+                      colorFilter: ColorFilter.mode(
+                        colorScheme.onSurface,
+                        BlendMode.srcIn,
                       ),
                     ),
-                  ),
-                ),
-              ),
-              // Gradient easing the surface into the progress cluster below.
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: kSplashBottomReserve,
-                child: DecoratedBox(
-                  key: const Key('startup-bottom-scrim'),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.55, 1.0],
-                      colors: [
-                        colorScheme.surface.withValues(alpha: 0),
-                        colorScheme.surface.withValues(alpha: 0.7),
-                        colorScheme.surface,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Progress cluster snapped to the bottom edge.
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: isBusy.value
-                              ? Text(
-                                  '$percentage%',
-                                  key: ValueKey(percentage),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.primary,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Solar Network',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.2,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              if (packageVersion.value != null &&
+                                  packageVersion.value!.isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  'v${packageVersion.value}',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface
+                                        .withValues(alpha: 0.5),
+                                    fontWeight: FontWeight.w500,
                                     fontFeatures: const [
                                       FontFeature.tabularFigures(),
                                     ],
                                   ),
-                                )
-                              : const SizedBox(
-                                  key: ValueKey('idle-progress-label'),
-                                  height: 18,
                                 ),
-                        ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          _StageInfo(
+                            stages: stages,
+                            currentIndex: periodCursor.value,
+                            subtitle: subtitle.value,
+                            isBusy: isBusy.value,
+                            isErrored: isErrored.value,
+                            isDismissable: isDismissable.value,
+                            textTheme: textTheme,
+                            colorScheme: colorScheme,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      StartupProgressBar(
-                        progress: progress,
-                        isErrored: isErrored.value,
-                        colorScheme: colorScheme,
-                      ),
-                      const SizedBox(height: 16),
-                      _StageInfo(
-                        stages: stages,
-                        currentIndex: periodCursor.value,
-                        subtitle: subtitle.value,
-                        isBusy: isBusy.value,
-                        isErrored: isErrored.value,
-                        isDismissable: isDismissable.value,
-                        showSkip: showSkip.value,
-                        isCurrentStageSkippable: isCurrentStageSkippable.value,
-                        onSkip: () {
+                    ),
+                    if (isBusy.value &&
+                        isCurrentStageSkippable.value &&
+                        showSkip.value) ...[
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () {
                           if (skipCompleterRef.value?.isCompleted == false) {
                             skipCompleterRef.value?.complete();
                           }
                         },
-                        textTheme: textTheme,
-                        colorScheme: colorScheme,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'startupSkipOptional'.tr(),
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Solar Network',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                          color: colorScheme.onSurface.withValues(alpha: 0.9),
-                        ),
-                      ).center(),
-                      const SizedBox(height: 6),
-                      Text(
-                        'startupCopyright'.tr(args: ['${DateTime.now().year}']),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                      ).center(),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
+          ],
         ),
       ),
     );
@@ -432,9 +495,6 @@ class _StageInfo extends StatelessWidget {
   final bool isBusy;
   final bool isErrored;
   final bool isDismissable;
-  final bool showSkip;
-  final bool isCurrentStageSkippable;
-  final VoidCallback onSkip;
   final TextTheme textTheme;
   final ColorScheme colorScheme;
 
@@ -445,9 +505,6 @@ class _StageInfo extends StatelessWidget {
     required this.isBusy,
     required this.isErrored,
     required this.isDismissable,
-    required this.showSkip,
-    required this.isCurrentStageSkippable,
-    required this.onSkip,
     required this.textTheme,
     required this.colorScheme,
   });
@@ -456,107 +513,66 @@ class _StageInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final mutedColor = colorScheme.onSurface.withValues(alpha: 0.5);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.3),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                ),
-              );
-            },
-            child: subtitle != null
-                ? Text(
-                    key: ValueKey('subtitle-$subtitle'),
-                    subtitle!,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: mutedColor,
-                      fontSize: 13,
-                    ),
-                  )
-                : isBusy
-                ? Column(
-                    key: ValueKey('busy-$currentIndex'),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        stages[currentIndex].label,
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${currentIndex + 1} / ${stages.length}',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: mutedColor,
-                          fontSize: 12,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ],
-                  )
-                : isErrored && isDismissable
-                ? Column(
-                    key: const ValueKey('incomplete'),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'startupIncomplete'.tr(),
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: mutedColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'startupTapToContinue'.tr(),
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(key: ValueKey('empty')),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        layoutBuilder: (currentChild, previousChildren) {
+          return Stack(
+            alignment: Alignment.centerLeft,
+            children: <Widget>[
+              ...previousChildren,
+              ?currentChild,
+            ],
+          );
+        },
+        transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.2),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
           ),
-          if (isBusy && isCurrentStageSkippable && showSkip) ...[
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: onSkip,
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        );
+      },
+      child: subtitle != null
+          ? Text(
+              key: ValueKey('subtitle-$subtitle'),
+              subtitle!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: isErrored ? colorScheme.error : mutedColor,
+                fontSize: 13,
               ),
-              child: Text(
-                'startupSkipOptional'.tr(),
-                style: TextStyle(color: colorScheme.primary, fontSize: 12),
+            )
+          : isBusy && stages.isNotEmpty && currentIndex < stages.length
+          ? Text(
+              key: ValueKey('busy-$currentIndex'),
+              stages[currentIndex].label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: mutedColor,
+                fontSize: 13,
               ),
-            ),
-          ],
-        ],
+            )
+          : isErrored && isDismissable
+          ? Text(
+              key: const ValueKey('incomplete'),
+              '${'startupIncomplete'.tr()} — ${'startupTapToContinue'.tr()}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            )
+          : const SizedBox.shrink(key: ValueKey('empty')),
       ),
     );
   }

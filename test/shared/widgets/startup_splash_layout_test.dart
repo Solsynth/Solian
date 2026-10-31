@@ -7,6 +7,7 @@ import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_startup_progress.dart';
 import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:material_ui/material_ui.dart' as mui;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> _pump(WidgetTester tester, Size size) async {
@@ -54,65 +55,63 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'Solar Network',
+      packageName: 'dev.solsynth.solian',
+      version: '3.15.0',
+      buildNumber: '306',
+      buildSignature: '',
+    );
     await EasyLocalization.ensureInitialized();
   });
 
-  testWidgets('phone: 9:16 portrait top-centered, content at bottom', (
+  testWidgets('phone: artwork top, progress divider, bottom bar with icon and wordmark', (
     tester,
   ) async {
     await _pump(tester, const Size(390, 844));
 
     expect(tester.takeException(), isNull);
     expect(find.byType(StartupSplashScreen), findsOneWidget);
-    expect(find.byKey(const Key('startup-bottom-scrim')), findsOneWidget);
     expect(find.byType(StartupProgressBar), findsOneWidget);
+    expect(find.byKey(const Key('startup-app-icon')), findsOneWidget);
 
     final portrait = tester.getCenter(
       find.byKey(const Key('startup-portrait-image')),
     );
-    final imageSize = tester.getSize(
-      find.byKey(const Key('startup-portrait-image')),
-    );
-    expect(imageSize.width / imageSize.height, closeTo(9 / 16, 0.01));
-    // Horizontally centered, inset from the safe-area top.
-    expect(portrait.dx, closeTo(390 / 2, 1));
-    expect(portrait.dy, lessThan(844 * 0.5));
-    expect(
-      tester
-          .getTopLeft(find.byKey(const Key('startup-portrait-image')))
-          .dy,
-      closeTo(kSplashImageTopInset, 1),
-    );
-
-    final bar = tester.getCenter(find.byType(StartupProgressBar));
-    expect(bar.dy, greaterThan(844 * 0.8));
-    // Portrait ends above the progress cluster: clear gap, no overlap.
     final barBox = tester.getRect(find.byType(StartupProgressBar));
-    final portraitBottom = portrait.dy + imageSize.height / 2;
-    expect(portraitBottom, lessThan(barBox.top));
-
-    final copyright = find.textContaining('© Solsynth');
-    expect(copyright, findsOneWidget);
-    final dy = tester.getCenter(copyright).dy;
-    expect(dy, greaterThan(844 * 0.8));
-    expect(dy, lessThan(844));
-
+    final iconBox = tester.getRect(find.byKey(const Key('startup-app-icon')));
     final wordmark = find.text('Solar Network');
     expect(wordmark, findsOneWidget);
-    expect(
-      tester.getCenter(wordmark).dy,
-      lessThan(tester.getCenter(copyright).dy),
-    );
+    final wordmarkBox = tester.getRect(wordmark);
+
+    // Artwork is in top section above progress bar.
+    expect(portrait.dy, lessThan(barBox.top));
+
+    // Progress bar sits above the fixed 80px bottom panel.
+    final bottomBarBox = tester.getRect(find.byKey(const Key('startup-bottom-bar')));
+    expect(bottomBarBox.height, closeTo(80, 0.1));
+    expect(barBox.bottom, closeTo(bottomBarBox.top, 0.1));
+    expect(bottomBarBox.top, lessThanOrEqualTo(iconBox.top));
+
+    // App icon sits on the left of the wordmark.
+    expect(iconBox.right, lessThan(wordmarkBox.left));
+
+    // Bottom cluster is located near the bottom of the screen.
+    expect(iconBox.bottom, greaterThan(844 * 0.8));
+    expect(wordmarkBox.bottom, greaterThan(844 * 0.8));
+
+    // Version label is present next to wordmark (including build number).
+    expect(find.text('v3.15.0+306'), findsOneWidget);
   });
 
-  testWidgets('desktop: portrait stays 9:16 instead of stretching full-bleed', (
+  testWidgets('desktop: artwork stays centered with 9:16 aspect ratio', (
     tester,
   ) async {
     await _pump(tester, const Size(1440, 900));
 
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('startup-bottom-scrim')), findsOneWidget);
     expect(find.byType(StartupProgressBar), findsOneWidget);
+    expect(find.byKey(const Key('startup-app-icon')), findsOneWidget);
 
     final portrait = tester.getCenter(
       find.byKey(const Key('startup-portrait-image')),
@@ -121,15 +120,10 @@ void main() {
       find.byKey(const Key('startup-portrait-image')),
     );
     expect(imageSize.width / imageSize.height, closeTo(9 / 16, 0.01));
-    // Not full-bleed: capped to a centered 9:16 poster.
-    expect(imageSize.width, lessThan(600));
+    // Centered horizontally.
     expect(portrait.dx, closeTo(1440 / 2, 1));
-    // Inset from the safe-area top by the artwork top margin.
-    expect(
-      tester
-          .getTopLeft(find.byKey(const Key('startup-portrait-image')))
-          .dy,
-      closeTo(kSplashImageTopInset, 1),
-    );
+
+    final barBox = tester.getRect(find.byType(StartupProgressBar));
+    expect(portrait.dy, lessThan(barBox.top));
   });
 }

@@ -13,11 +13,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
-import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/core/widgets/content/image_quality_loading.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/video.dart';
+import 'package:island/shared/widgets/glass_effects.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -420,8 +421,9 @@ class _LightboxGallery extends StatelessWidget {
         final progress =
             event.cumulativeBytesLoaded / event.expectedTotalBytes!;
         return Center(
-          child: MediaChromeSurface(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: _LightboxPill(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: _kLightboxControlHeight,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -526,6 +528,7 @@ class _LightboxChrome extends HookConsumerWidget {
     final isVideo = isLightboxVideo(currentItem);
     final showDesktopImageTools = _isDesktopImageControlsPlatform() && isImage;
     final mediaQuery = MediaQuery.of(context);
+    final glassEnabled = GlassEffects.of(context);
 
     void revealControls() {
       showControls.value = true;
@@ -548,6 +551,112 @@ class _LightboxChrome extends HookConsumerWidget {
       builder: (context, _) {
         final controlsShown =
             isVideo || (showControls.value && controlsVisible.value);
+
+        final controlsStack = Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: mediaQuery.padding.top + 72,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.65),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Avoid overlapping the video player controls at bottom.
+            if (!isVideo)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: mediaQuery.padding.bottom + 96,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.65),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            _LightboxTopBar(
+              items: items,
+              currentIndex: currentIndex,
+              onClose: onClose,
+              onShowActions: onShowActions,
+            ),
+            if (!isVideo)
+              _LightboxBottomBar(
+                item: currentItem,
+                showOriginal: showOriginal,
+                showExif: showExif.value,
+                isQualityLoading: qualityLoad.isLoading,
+                showTransformControls: showDesktopImageTools,
+                onZoomOut: onZoomOut,
+                onZoomIn: onZoomIn,
+                onRotateLeft: onRotateLeft,
+                onRotateRight: onRotateRight,
+                onToggleOriginal: handleToggleOriginal,
+                onToggleExif: handleToggleExif,
+                onOpenDetail: onOpenDetail,
+              ),
+            if (items.length > 1) ...[
+              if (currentIndex > 0)
+                Positioned(
+                  left: 12,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _LightboxIconButton(
+                      icon: Symbols.chevron_left,
+                      size: 44,
+                      iconSize: 28,
+                      onPressed: onGoPrevious,
+                      tooltip: 'Previous',
+                    ),
+                  ),
+                ),
+              if (currentIndex < items.length - 1)
+                Positioned(
+                  right: 12,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _LightboxIconButton(
+                      icon: Symbols.chevron_right,
+                      size: 44,
+                      iconSize: 28,
+                      onPressed: onGoNext,
+                      tooltip: 'Next',
+                    ),
+                  ),
+                ),
+            ],
+          ],
+        );
+
+        final controlsContent = glassEnabled
+            ? LiquidGlassLayer(
+                settings: LiquidGlassSettings.ios27RegularDark(),
+                defaultAppearance:
+                    const LiquidGlassAppearance.ios27RegularDark(),
+                child: controlsStack,
+              )
+            : controlsStack;
+
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -587,114 +696,9 @@ class _LightboxChrome extends HookConsumerWidget {
               duration: const Duration(milliseconds: 180),
               child: IgnorePointer(
                 ignoring: !controlsShown,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: mediaQuery.padding.top + 72,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.65),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Avoid overlapping the video player controls at bottom.
-                    if (!isVideo)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: mediaQuery.padding.bottom + 96,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Colors.black.withValues(alpha: 0.65),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    _LightboxTopBar(
-                      items: items,
-                      currentIndex: currentIndex,
-                      onClose: onClose,
-                      onShowActions: onShowActions,
-                    ),
-                    if (!isVideo)
-                      _LightboxBottomBar(
-                        item: currentItem,
-                        showOriginal: showOriginal,
-                        showExif: showExif.value,
-                        isQualityLoading: qualityLoad.isLoading,
-                        showTransformControls: showDesktopImageTools,
-                        onZoomOut: onZoomOut,
-                        onZoomIn: onZoomIn,
-                        onRotateLeft: onRotateLeft,
-                        onRotateRight: onRotateRight,
-                        onToggleOriginal: handleToggleOriginal,
-                        onToggleExif: handleToggleExif,
-                        onOpenDetail: onOpenDetail,
-                      ),
-                  ],
-                ),
+                child: controlsContent,
               ),
             ),
-
-            if (items.length > 1)
-              AnimatedOpacity(
-                opacity: controlsShown ? 1 : 0,
-                duration: const Duration(milliseconds: 180),
-                child: IgnorePointer(
-                  ignoring: !controlsShown,
-                  child: Stack(
-                    children: [
-                      if (currentIndex > 0)
-                        Positioned(
-                          left: 12,
-                          top: 0,
-                          bottom: 0,
-                          child: Center(
-                            child: MediaIconButton(
-                              icon: Symbols.chevron_left,
-                              size: 44,
-                              iconSize: 28,
-                              onPressed: onGoPrevious,
-                              tooltip: 'Previous',
-                            ),
-                          ),
-                        ),
-                      if (currentIndex < items.length - 1)
-                        Positioned(
-                          right: 12,
-                          top: 0,
-                          bottom: 0,
-                          child: Center(
-                            child: MediaIconButton(
-                              icon: Symbols.chevron_right,
-                              size: 44,
-                              iconSize: 28,
-                              onPressed: onGoNext,
-                              tooltip: 'Next',
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         );
       },
@@ -776,7 +780,7 @@ class _LightboxVideoPlaceholder extends StatelessWidget {
                 const ColoredBox(color: Colors.black),
           ),
           const Center(
-            child: MediaIconButton(
+            child: _LightboxIconButton(
               icon: Icons.play_arrow_rounded,
               size: 56,
               iconSize: 36,
@@ -854,7 +858,7 @@ class _LightboxTopBar extends StatelessWidget {
       right: 12,
       child: Row(
         children: [
-          MediaIconButton(
+          _LightboxIconButton(
             icon: Icons.close,
             onPressed: onClose,
             tooltip: 'Close',
@@ -893,7 +897,7 @@ class _LightboxTopBar extends StatelessWidget {
             ),
           ),
           const Gap(8),
-          MediaIconButton(
+          _LightboxIconButton(
             icon: Icons.more_horiz,
             onPressed: onShowActions,
             tooltip: 'More',
@@ -939,13 +943,26 @@ class _LightboxBottomBar extends StatelessWidget {
     required String tooltip,
     Widget? iconWidget,
   }) {
-    return IconButton(
-      visualDensity: VisualDensity.compact,
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-      padding: EdgeInsets.zero,
-      tooltip: tooltip,
-      onPressed: onPressed,
-      icon: iconWidget ?? Icon(icon, color: Colors.white, size: 22),
+    return GlassGlow(
+      glowColor: Colors.white24,
+      child: IconButton(
+        visualDensity: VisualDensity.compact,
+        constraints: const BoxConstraints(
+          minWidth: _kLightboxControlHeight,
+          minHeight: _kLightboxControlHeight,
+        ),
+        padding: EdgeInsets.zero,
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: iconWidget ??
+            Icon(
+              icon,
+              color: onPressed == null
+                  ? Colors.white.withValues(alpha: 0.38)
+                  : Colors.white,
+              size: 22,
+            ),
+      ),
     );
   }
 
@@ -963,7 +980,7 @@ class _LightboxBottomBar extends StatelessWidget {
         children: [
           if (isImage) ...[
             if (showTransformControls) ...[
-              MediaChromeSurface.pill(
+              _LightboxPill(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -993,7 +1010,7 @@ class _LightboxBottomBar extends StatelessWidget {
               const Gap(8),
             ],
             if (item.hasCompression || hasExifData)
-              MediaChromeSurface.pill(
+              _LightboxPill(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1029,7 +1046,7 @@ class _LightboxBottomBar extends StatelessWidget {
           ] else
             const SizedBox(width: 48),
           const Spacer(),
-          MediaChromeSurface.pill(
+          _LightboxPill(
             child: _pillIconButton(
               icon: Symbols.open_in_new,
               tooltip: 'Open details',
@@ -1038,6 +1055,143 @@ class _LightboxBottomBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Standard height of lightbox glass control buttons and pills.
+const double _kLightboxControlHeight = 44.0;
+
+/// The soft drop shadow iOS gives floating glass.
+const _kLightboxGlassShadows = [
+  BoxShadow(
+    color: Color(0x33000000),
+    blurRadius: 16,
+    offset: Offset(0, 4),
+  ),
+];
+
+/// A circular button that renders liquid glass over the lightbox backdrop,
+/// or falls back to a solid dark circle when glass effects are disabled.
+class _LightboxIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? tooltip;
+  final double size;
+  final double iconSize;
+
+  const _LightboxIconButton({
+    required this.icon,
+    this.onPressed,
+    this.tooltip,
+    this.size = _kLightboxControlHeight,
+    this.iconSize = 22,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final glassEnabled = GlassEffects.of(context);
+    final iconColor = onPressed == null
+        ? Colors.white.withValues(alpha: 0.38)
+        : Colors.white;
+
+    final content = SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: Icon(
+          icon,
+          color: iconColor,
+          size: iconSize,
+        ),
+      ),
+    );
+
+    Widget button;
+    if (glassEnabled) {
+      button = LiquidGlass.auto(
+        shape: const LiquidOval(),
+        shadows: _kLightboxGlassShadows,
+        settings: LiquidGlassSettings.ios27RegularDark(),
+        appearance: const LiquidGlassAppearance.ios27RegularDark(),
+        child: GlassGlowLayer(
+          child: GlassGlow(
+            glowColor: Colors.white24,
+            child: Material(
+              type: MaterialType.transparency,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onPressed,
+                child: content,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      button = Material(
+        color: Colors.black.withValues(alpha: 0.55),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: content,
+        ),
+      );
+    }
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip!, child: button);
+    }
+    return button;
+  }
+}
+
+/// A pill capsule surface that renders liquid glass over the lightbox backdrop,
+/// or falls back to a solid dark pill when glass effects are disabled.
+class _LightboxPill extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double height;
+
+  const _LightboxPill({
+    required this.child,
+    this.padding = const EdgeInsets.symmetric(horizontal: 6),
+    this.height = _kLightboxControlHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final glassEnabled = GlassEffects.of(context);
+    final effectiveRadius = height / 2;
+
+    final content = SizedBox(
+      height: height,
+      child: Padding(
+        padding: padding,
+        child: child,
+      ),
+    );
+
+    if (glassEnabled) {
+      return LiquidGlass.auto(
+        shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
+        shadows: _kLightboxGlassShadows,
+        settings: LiquidGlassSettings.ios27RegularDark(),
+        appearance: const LiquidGlassAppearance.ios27RegularDark(),
+        child: GlassGlowLayer(
+          child: content,
+        ),
+      );
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(effectiveRadius),
+      ),
+      child: content,
     );
   }
 }
