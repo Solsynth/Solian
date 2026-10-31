@@ -52,6 +52,7 @@ class TabsScreen extends StatelessWidget {
         AccountRoute(),
         WalletRoute(),
         CreatorHubRoute(),
+        ThoughtsRoute(),
       ],
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,

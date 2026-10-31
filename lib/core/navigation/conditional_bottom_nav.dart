@@ -14,6 +14,7 @@ const kTabRoutes = [
   '/account',
   '/files',
   '/creators',
+  '/thoughts',
 ];
 
 const kWideScreenRouteStart = 6;

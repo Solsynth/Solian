@@ -201,6 +201,13 @@ class AppRouter extends RootStackRouter {
 
         // Wallet tab
         AutoRoute(page: WalletRoute.page, path: 'wallet', maintainState: false),
+
+        // Thoughts tab: conversations with personality agents
+        AutoRoute(
+          page: ThoughtsRoute.page,
+          path: 'thoughts',
+          maintainState: false,
+        ),
       ],
     ),
 

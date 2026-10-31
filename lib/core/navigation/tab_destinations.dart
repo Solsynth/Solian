@@ -152,6 +152,16 @@ List<TabDestination> get allTabDestinations => [
     nativeSymbol: 'paintbrush.pointed',
     nativeSelectedSymbol: 'paintbrush.pointed.fill',
   ),
+  TabDestination(
+    id: 'thoughts',
+    routeIndex: 8,
+    routePath: '/thoughts',
+    label: 'thoughts'.tr(),
+    navigationIcon: Symbols.psychology_rounded,
+    iconBuilder: (selected) =>
+        Icon(Symbols.psychology_rounded, fill: selected ? 1 : null),
+    nativeSymbol: 'brain.head.profile',
+  ),
 ];
 
 /// The reachable destinations: a disabled dashboard is not one.

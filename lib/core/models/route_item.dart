@@ -167,6 +167,13 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.create,
   ),
   RouteItem(
+    name: 'thoughts'.tr(),
+    path: '/thoughts',
+    description: 'thoughtsDescription'.tr(),
+    searchableAliases: ['thoughts', 'thought', 'ai', 'agent', 'companion'],
+    icon: Symbols.psychology_rounded,
+  ),
+  RouteItem(
     name: 'webArticlesStand'.tr(),
     path: '/feeds/articles',
     description: 'webArticlesStandDescription'.tr(),

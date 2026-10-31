@@ -160,9 +160,9 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(DashboardGrid), findsOneWidget);
     expect(find.byType(ExploreScreen), findsNothing);
-    // The dashboard is one of the eight navigation destinations.
+    // The dashboard is one of the nine navigation destinations.
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-    expect(rail.destinations.length, 8);
+    expect(rail.destinations.length, 9);
 
     await _teardown(tester);
   });
@@ -178,7 +178,7 @@ void main() {
     expect(_router.currentPath, '/explore');
     // One fewer navigation destination: the dashboard is not reachable.
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-    expect(rail.destinations.length, 7);
+    expect(rail.destinations.length, 8);
 
     await _teardown(tester);
   });
@@ -285,7 +285,7 @@ void main() {
 
     // Expanded: the whole reachable set, in rail order with the rest behind.
     expect(rail().extended, isTrue);
-    expect(rail().destinations.length, 7);
+    expect(rail().destinations.length, 8);
     expect(find.byType(Drawer), findsNothing);
 
     // A destination only the expanded rail offers is selectable, and picking
@@ -301,7 +301,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(_router.currentPath, '/wallet');
     expect(rail().extended, isTrue);
-    expect(rail().destinations.length, 7);
+    expect(rail().destinations.length, 8);
 
     await _teardown(tester);
     debugDefaultTargetPlatformOverride = null;
