@@ -60,19 +60,21 @@ class ChatRoomListTile extends HookConsumerWidget {
         .toList(growable: false);
 
     final memberIds = validMembers.map((member) => member.accountId).toSet();
-    final isOnline =
-        isDirect &&
-        ref.watch(
-          friendsOverviewProvider.select(
-            (friends) =>
-                friends.value?.any(
-                  (friend) =>
-                      memberIds.contains(friend.account.id) &&
-                      showsOnlinePresence(friend.status),
-                ) ??
-                false,
-          ),
-        );
+    // The friend behind this DM while they are online; the badge itself picks
+    // the status colour and dot/activity glyph, matching the explore strip.
+    final presenceFriend = !isDirect
+        ? null
+        : ref.watch(
+            friendsOverviewProvider.select(
+              (friends) => friends.value
+                  ?.where(
+                    (friend) =>
+                        memberIds.contains(friend.account.id) &&
+                        showsOnlinePresence(friend.status),
+                  )
+                  .firstOrNull,
+            ),
+          );
 
     String titleText;
     if (isDirect && room.name == null) {
@@ -150,22 +152,11 @@ class ChatRoomListTile extends HookConsumerWidget {
                       validMembers: validMembers,
                       radius: 22,
                     ),
-                    if (isOnline)
+                    if (presenceFriend != null)
                       Positioned(
                         bottom: 0,
                         right: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF34C759),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.surface,
-                              width: 2,
-                            ),
-                          ),
-                        ),
+                        child: FriendPresenceBadge(friend: presenceFriend),
                       ),
                   ],
                 ),

@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-import 'dart:ui' show PointerDeviceKind;
-
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -34,6 +31,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/discovery/widgets/pill_app_bar.dart';
+import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/data/database.dart';
@@ -44,6 +42,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/empty_state.dart';
+import 'package:island/shared/widgets/hover_horizontal_scroll_list.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -88,14 +87,18 @@ List<SnChatMember> _getValidMembers(SnChatRoom room, SnAccount? userInfo) {
   return validMembers;
 }
 
-Set<String> _getOnlineFriendIds(
+/// Online friends by account id, so a direct room can paint the same presence
+/// sprite the explore feed paints for that friend.
+Map<String, SnFriendOverviewItem> _getOnlineFriends(
   AsyncValue<List<SnFriendOverviewItem>> friendsOverview,
 ) {
-  if (!friendsOverview.hasValue) return <String>{};
-  return friendsOverview.value!
-      .where((f) => showsOnlinePresence(f.status))
-      .map((f) => f.account.id)
-      .toSet();
+  if (!friendsOverview.hasValue) {
+    return const <String, SnFriendOverviewItem>{};
+  }
+  return {
+    for (final friend in friendsOverview.value!)
+      if (showsOnlinePresence(friend.status)) friend.account.id: friend,
+  };
 }
 
 String _getRoomTitle(
@@ -247,13 +250,19 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
     final validMembers = _getValidMembers(room, userInfo.value);
 
     final friendsOverview = ref.watch(friendsOverviewProvider);
-    final onlineFriendIds = useMemoized(
-      () => _getOnlineFriendIds(friendsOverview),
+    final onlineFriends = useMemoized(
+      () => _getOnlineFriends(friendsOverview),
       [friendsOverview.value],
     );
-    final isOnline =
-        isDirect &&
-        validMembers.any((m) => onlineFriendIds.contains(m.accountId));
+    // The friend whose avatar the badge sits on: the DM's peer while they are
+    // online. The badge itself picks dot vs activity colour and glyph, so the
+    // pinned tile and the explore strip always agree.
+    final presenceFriend = isDirect
+        ? validMembers
+              .map((member) => onlineFriends[member.accountId])
+              .nonNulls
+              .firstOrNull
+        : null;
 
     // Build aliases map for title computation
     final aliases = useMemoized(() {
@@ -323,37 +332,31 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
                         validMembers: validMembers,
                         radius: isActive ? 20 : 22,
                       ),
-                      if (isOnline)
+                      if (presenceFriend != null)
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            width: 11,
-                            height: 11,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF34C759),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: colorScheme.surface,
-                                width: 2,
-                              ),
-                            ),
-                          ),
+                          child: FriendPresenceBadge(friend: presenceFriend),
                         ),
                     ],
                   ),
                 ),
                 const Gap(4),
+                // Same label ramp as the explore strip: emphasis (bold, 0.95)
+                // when the peer is online or the room has unread mail, else
+                // the quieter 0.7. The active room keeps its primary tint as
+                // the list's selection cue.
                 Text(
                   titleText,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: hasUnread || isActive
+                    fontWeight:
+                        hasUnread || presenceFriend != null || isActive
                         ? FontWeight.w600
                         : FontWeight.w500,
                     color: isActive
                         ? colorScheme.primary
                         : colorScheme.onSurface.withOpacity(
-                            hasUnread ? 0.95 : 0.78,
+                            hasUnread || presenceFriend != null ? 0.95 : 0.7,
                           ),
                     height: 1.1,
                   ),
@@ -369,163 +372,6 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
     );
   }
 }
-
-/// Horizontal list with desktop hover chevrons (same idea as cloud file gallery).
-class _HoverHorizontalScrollList extends HookWidget {
-  final int itemCount;
-  final IndexedWidgetBuilder itemBuilder;
-  final EdgeInsetsGeometry padding;
-  final double separatorWidth;
-
-  const _HoverHorizontalScrollList({
-    required this.itemCount,
-    required this.itemBuilder,
-    this.padding = EdgeInsets.zero,
-    this.separatorWidth = 2,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = useScrollController();
-    final isHovered = useState(false);
-    final canScrollLeft = useState(false);
-    final canScrollRight = useState(false);
-
-    void updateScrollState() {
-      if (!controller.hasClients) {
-        canScrollLeft.value = false;
-        canScrollRight.value = false;
-        return;
-      }
-      final position = controller.position;
-      canScrollLeft.value = position.pixels > 0.5;
-      canScrollRight.value = position.pixels < position.maxScrollExtent - 0.5;
-    }
-
-    useEffect(() {
-      void listener() => updateScrollState();
-      controller.addListener(listener);
-      WidgetsBinding.instance.addPostFrameCallback((_) => updateScrollState());
-      return () => controller.removeListener(listener);
-    }, [controller, itemCount, padding, separatorWidth]);
-
-    Future<void> scrollBy(double direction) async {
-      if (!controller.hasClients) return;
-      final position = controller.position;
-      final delta = math.max(position.viewportDimension * 0.75, 180.0);
-      final target = (position.pixels + delta * direction).clamp(
-        0.0,
-        position.maxScrollExtent,
-      );
-      await controller.animateTo(
-        target,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
-    }
-
-    final scrollBehavior = ScrollConfiguration.of(context).copyWith(
-      dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.trackpad},
-    );
-
-    return MouseRegion(
-      onEnter: (_) => isHovered.value = true,
-      onExit: (_) => isHovered.value = false,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ScrollConfiguration(
-              behavior: scrollBehavior,
-              child: ListView.separated(
-                controller: controller,
-                scrollDirection: Axis.horizontal,
-                padding: padding,
-                itemCount: itemCount,
-                separatorBuilder: (_, _) => SizedBox(width: separatorWidth),
-                itemBuilder: itemBuilder,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 6,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: _PinnedScrollArrowButton(
-                icon: Symbols.chevron_left,
-                isVisible: isHovered.value && canScrollLeft.value,
-                hiddenOffset: const Offset(-0.4, 0),
-                onTap: () => scrollBy(-1),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 6,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: _PinnedScrollArrowButton(
-                icon: Symbols.chevron_right,
-                isVisible: isHovered.value && canScrollRight.value,
-                hiddenOffset: const Offset(0.4, 0),
-                onTap: () => scrollBy(1),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PinnedScrollArrowButton extends StatelessWidget {
-  final IconData icon;
-  final bool isVisible;
-  final Offset hiddenOffset;
-  final VoidCallback onTap;
-
-  const _PinnedScrollArrowButton({
-    required this.icon,
-    required this.isVisible,
-    required this.hiddenOffset,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return IgnorePointer(
-      ignoring: !isVisible,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        offset: isVisible ? Offset.zero : hiddenOffset,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          opacity: isVisible ? 1 : 0,
-          child: Material(
-            color: colorScheme.surface.withOpacity(0.92),
-            elevation: 2,
-            shadowColor: Colors.black26,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: Icon(icon, color: colorScheme.onSurface, size: 18),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 int _totalUnreadForRooms(
   Iterable<SnChatRoom> rooms,
   Map<String, SnChatSummary> summaries,
@@ -694,8 +540,8 @@ class ChatListBodyWidget extends HookConsumerWidget {
                     .toList(),
                 [sortedItems, selectedTabValue],
               );
-              final onlineFriendIds = useMemoized(
-                () => _getOnlineFriendIds(friendsOverview),
+              final onlineFriends = useMemoized(
+                () => _getOnlineFriends(friendsOverview),
                 [friendsOverview.value],
               );
               // Pinned strip is quick access only; rooms still appear in the main list.
@@ -709,13 +555,13 @@ class ChatListBodyWidget extends HookConsumerWidget {
                   } else if (item.type == 1 &&
                       item.members != null &&
                       item.members!.any(
-                        (m) => onlineFriendIds.contains(m.accountId),
+                        (m) => onlineFriends.containsKey(m.accountId),
                       )) {
                     pinned.add(item);
                   }
                 }
                 return pinned;
-              }, [filteredItems, onlineFriendIds]);
+              }, [filteredItems, onlineFriends]);
               final groupedSections = useMemoized(
                 () => _buildGroupedChatSections(
                   filteredItems,
@@ -821,82 +667,70 @@ class ChatListBodyWidget extends HookConsumerWidget {
                             ),
                           ),
                         ),
-                      // Always show pinned chats in horizontal scrollable section
-                      if (pinnedItems.isNotEmpty)
+                      // Quick access, styled like the explore feed's friend
+                      // strip but without its floating card: the chat list is
+                      // already one continuous surface, so the avatars sit
+                      // straight on it, inset by the feed's 12px gutter and
+                      // separated from the room list by one card gap instead
+                      // of a rule. Pinned rooms and DMs with an online peer
+                      // both land here; rooms still appear in the list below.
+                      if (pinnedItems.isNotEmpty) ...[
                         SliverToBoxAdapter(
-                          child: Material(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerLow.withOpacity(0.65),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Height: 8 top + 48 avatar + 4 gap + ~14 label + 6 bottom
-                                SizedBox(
-                                  height: 80,
-                                  child: _HoverHorizontalScrollList(
-                                    // Left inset 6 + tile centers avatar in 64 → avatar at ~14,
-                                    // matching ChatRoomListTile horizontal padding.
-                                    padding: const EdgeInsets.fromLTRB(
-                                      6,
-                                      8,
-                                      6,
-                                      6,
-                                    ),
-                                    itemCount: pinnedItems.length,
-                                    separatorWidth: 2,
-                                    itemBuilder: (context, index) {
-                                      final room = pinnedItems[index];
-                                      return Align(
-                                        alignment: Alignment.topCenter,
-                                        child: _PinnedChatRoomTile(
-                                          room: room,
-                                          isActive: activeChatId == room.id,
-                                          isDirect: room.type == 1,
-                                          onTap: () {
-                                            ref
-                                                .read(
-                                                  chatSummaryProvider.future,
-                                                )
-                                                .then((summary) {
-                                                  if (summary[room.id]
-                                                          ?.hasUnread ??
-                                                      false) {
-                                                    ref
-                                                        .read(
-                                                          chatSummaryProvider
-                                                              .notifier,
-                                                        )
-                                                        .clearUnreadCount(
-                                                          room.id,
-                                                        );
-                                                  }
-                                                });
-                                            if (isWideScreen(context)) {
-                                              context.router.navigate(
-                                                ChatRoomRoute(id: room.id),
-                                              );
-                                            } else {
-                                              context.router.push(
-                                                ChatRoomRoute(id: room.id),
-                                              );
+                          // Height: 10 top + 48 avatar + 4 gap + ~14 label
+                          // + 8 bottom, exactly the explore strip.
+                          child: SizedBox(
+                            height: 84,
+                            child: HoverHorizontalScrollList(
+                              padding: const EdgeInsets.fromLTRB(
+                                12,
+                                10,
+                                12,
+                                8,
+                              ),
+                              itemCount: pinnedItems.length,
+                              separatorWidth: 2,
+                              itemBuilder: (context, index) {
+                                final room = pinnedItems[index];
+                                return Align(
+                                  alignment: Alignment.topCenter,
+                                  child: _PinnedChatRoomTile(
+                                    room: room,
+                                    isActive: activeChatId == room.id,
+                                    isDirect: room.type == 1,
+                                    onTap: () {
+                                      ref
+                                          .read(chatSummaryProvider.future)
+                                          .then((summary) {
+                                            if (summary[room.id]?.hasUnread ??
+                                                false) {
+                                              ref
+                                                  .read(
+                                                    chatSummaryProvider
+                                                        .notifier,
+                                                  )
+                                                  .clearUnreadCount(room.id);
                                             }
-                                          },
-                                          chatGroups: chatGroups,
-                                          onChatGroupsChanged:
-                                              onChatGroupsChanged,
-                                          accountId: accountId,
-                                        ),
-                                      );
+                                          });
+                                      if (isWideScreen(context)) {
+                                        context.router.navigate(
+                                          ChatRoomRoute(id: room.id),
+                                        );
+                                      } else {
+                                        context.router.push(
+                                          ChatRoomRoute(id: room.id),
+                                        );
+                                      }
                                     },
+                                    chatGroups: chatGroups,
+                                    onChatGroupsChanged: onChatGroupsChanged,
+                                    accountId: accountId,
                                   ),
-                                ),
-                                Divider(height: 1),
-                              ],
+                                );
+                              },
                             ),
                           ),
                         ),
+                      ],
                       Builder(
                         builder: (context) {
                           final theme = Theme.of(context);

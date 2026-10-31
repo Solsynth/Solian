@@ -16,8 +16,10 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/data/database.dart';
 import 'package:island/discovery/widgets/pill_app_bar.dart';
+import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
 import 'package:island/shared/widgets/pill_surface.dart';
+import 'package:island/shared/widgets/hover_horizontal_scroll_list.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -45,7 +47,13 @@ class _EmptyAdapter implements HttpClientAdapter {
   }
 }
 
-SnChatRoom _room(String id, String name, {bool pinned = false, int type = 0}) {
+SnChatRoom _room(
+  String id,
+  String name, {
+  bool pinned = false,
+  int type = 0,
+  List<SnChatMember>? members,
+}) {
   final now = DateTime.utc(2026);
   return SnChatRoom(
     id: id,
@@ -60,8 +68,91 @@ SnChatRoom _room(String id, String name, {bool pinned = false, int type = 0}) {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
-    members: null,
+    members: members,
     isPinned: pinned,
+  );
+}
+
+SnChatMember _member(SnAccount account) {
+  final now = DateTime.utc(2026);
+  return SnChatMember(
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+    id: 'member-${account.id}',
+    chatRoomId: 'dm',
+    chatRoom: null,
+    accountId: account.id,
+    account: account,
+    nick: null,
+    notify: 0,
+    joinedAt: now,
+    breakUntil: null,
+    timeoutUntil: null,
+    lastReadAt: null,
+    status: null,
+    realmNick: null,
+    realmBio: null,
+    realmExperience: null,
+    realmLevel: null,
+    realmLevelingProgress: null,
+    realmLabel: null,
+  );
+}
+
+SnAccount _account(String id, String nick) {
+  final now = DateTime.utc(2026);
+  return SnAccount(
+    id: id,
+    name: id,
+    nick: nick,
+    language: 'en',
+    isSuperuser: false,
+    automatedId: null,
+    profile: SnAccountProfile(
+      id: 'profile-$id',
+      experience: 0,
+      level: 1,
+      levelingProgress: 0,
+      picture: null,
+      background: null,
+      verification: null,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    ),
+    perkSubscription: null,
+    activatedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  );
+}
+
+/// The DM peer as the friends overview reports them: the status carries the
+/// presence the badge paints.
+SnFriendOverviewItem _friend(
+  SnAccount account, {
+  required bool isOnline,
+  int type = SnAccountStatusType.defaultType,
+}) {
+  final now = DateTime.utc(2026);
+  return SnFriendOverviewItem(
+    account: account,
+    status: SnAccountStatus(
+      id: 'status-${account.id}',
+      attitude: 0,
+      isOnline: isOnline,
+      type: type,
+      isCustomized: false,
+      meta: null,
+      clearedAt: null,
+      accountId: account.id,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    ),
+    activities: const <SnPresenceActivity>[],
   );
 }
 
@@ -122,6 +213,7 @@ void main() {
     WidgetTester tester,
     Size size, {
     required List<SnChatRoom> rooms,
+    List<SnFriendOverviewItem> friends = const <SnFriendOverviewItem>[],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -151,8 +243,11 @@ void main() {
                   ),
                   chatSummaryProvider.overrideWith(_NoSummaries.new),
                   userInfoProvider.overrideWith(_SignedIn.new),
+                  // The chat list reads the compact overview while the explore
+                  // strip reads the expanded one; both see the same friends.
+                  friendsOverviewProvider.overrideWith((ref) async => friends),
                   friendsOverviewExpandedProvider.overrideWith(
-                    (ref) async => const <SnFriendOverviewItem>[],
+                    (ref) async => friends,
                   ),
                 ],
                 child: const ChatListWidget(),
@@ -279,6 +374,68 @@ void main() {
     // The pinned room is quick access only: both rooms still occupy the list.
     expect(find.byType(ChatRoomListTile), findsNWidgets(2));
     expect(find.text('Pinned pal'), findsNWidgets(2));
+
+    // The strip borrows the explore feed's gutter and tile height but not its
+    // floating card: the list is already one surface, so the avatars sit on
+    // it and no rule separates them from the rooms below.
+    final strip = find.byType(HoverHorizontalScrollList);
+    expect(strip, findsOneWidget);
+    expect(tester.getSize(strip).height, closeTo(84, 1));
+    expect(find.byType(ExploreCard), findsNothing);
+    expect(find.byType(Divider), findsNothing);
+
+    await disposeTree(tester);
+  });
+
+  testWidgets('an online DM paints the explore presence badge', (
+    tester,
+  ) async {
+    final nia = _account('nia', 'Nia');
+    await pumpList(
+      tester,
+      const Size(400, 800),
+      rooms: [_room('d1', 'Nia', type: 1, members: [_member(nia)])],
+      // A busy friend: the badge must follow the status colour, not paint a
+      // fixed green dot the way the pinned tile used to.
+      friends: [_friend(nia, isOnline: true, type: SnAccountStatusType.busy)],
+    );
+
+    expect(tester.takeException(), isNull);
+    // The online DM auto-joins the quick strip, so both the pinned tile and
+    // the list row carry the badge.
+    expect(find.text('Nia'), findsNWidgets(2));
+    final badges = find.byType(FriendPresenceBadge);
+    expect(badges, findsNWidgets(2));
+    for (final badge in tester.widgetList<FriendPresenceBadge>(badges)) {
+      expect(badge.friend.account.id, 'nia');
+    }
+    for (var i = 0; i < 2; i++) {
+      final dot = tester.widget<Container>(
+        find.descendant(of: badges.at(i), matching: find.byType(Container)),
+      );
+      expect(
+        (dot.decoration as BoxDecoration).color,
+        Colors.orange,
+        reason: 'busy friends read orange in explore, so chat must agree',
+      );
+    }
+
+    await disposeTree(tester);
+  });
+
+  testWidgets('an offline DM paints no presence badge', (tester) async {
+    final nia = _account('nia', 'Nia');
+    await pumpList(
+      tester,
+      const Size(400, 800),
+      rooms: [_room('d1', 'Nia', type: 1, members: [_member(nia)])],
+      friends: [_friend(nia, isOnline: false)],
+    );
+
+    expect(tester.takeException(), isNull);
+    // Offline: no quick-strip entry, no sprite on the row.
+    expect(find.text('Nia'), findsOneWidget);
+    expect(find.byType(FriendPresenceBadge), findsNothing);
 
     await disposeTree(tester);
   });
