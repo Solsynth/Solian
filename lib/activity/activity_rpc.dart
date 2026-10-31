@@ -441,7 +441,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
               'lease_minutes': kPresenceActivityLease,
             };
 
-            await apiClient.post('/passport/activities', data: activityData);
+            await apiClient.post('/stargate/activities', data: activityData);
             setCurrentActivity(appId, activityData);
           } catch (e) {
             Logger.root.info('Failed to set remote activity status: $e');
@@ -478,7 +478,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
         if (currentId != null && currentId == appId) {
           try {
             await apiClient.delete(
-              '/passport/activities',
+              '/stargate/activities',
               queryParameters: {'manualId': currentId},
             );
             setCurrentActivity(null, null);
@@ -588,7 +588,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
     if (state.currentActivityData != null) {
       try {
         await apiClient.post(
-          '/passport/activities',
+          '/stargate/activities',
           data: state.currentActivityData,
         );
         Logger.root.info('Activity lease renewed');
@@ -616,7 +616,7 @@ Future<List<SnPresenceActivity>> presenceActivities(
   String uname,
 ) async {
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/passport/activities/$uname');
+  final response = await apiClient.get('/stargate/activities/$uname');
   final data = response.data as List<dynamic>;
   final activities = data
       .map((json) => SnPresenceActivity.fromJson(json))

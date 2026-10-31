@@ -1098,7 +1098,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             try {
               final dio = ref.read(apiClientProvider);
               await dio.post(
-                '/passport/admin/progression/test-ws-packet',
+                '/stargate/admin/progression/test-ws-packet',
                 queryParameters: {'kind': 'achievement'},
               );
               if (!context.mounted) return;
@@ -1906,7 +1906,7 @@ class DebugSheet extends HookConsumerWidget {
                 try {
                   final dio = ref.read(apiClientProvider);
                   await dio.post(
-                    '/passport/admin/progression/test-ws-packet',
+                    '/stargate/admin/progression/test-ws-packet',
                     queryParameters: {'kind': 'achievement'},
                   );
                   if (!context.mounted) return;

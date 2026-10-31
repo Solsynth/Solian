@@ -415,7 +415,7 @@ class _RealmPermissionsCard extends HookConsumerWidget {
                                           solarNetworkClientProvider,
                                         );
                                         await client.realms.dio.delete(
-                                          '/passport/realms/$realmSlug/permissions/roles/${entry.level}',
+                                          '/stargate/realms/$realmSlug/permissions/roles/${entry.level}',
                                         );
                                         ref.invalidate(
                                           realmRolePermissionsProvider(
@@ -2568,7 +2568,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       try {
         final client = ref.watch(solarNetworkClientProvider);
         await client.realms.dio.post(
-          '/passport/realms/invites/$realmSlug',
+          '/stargate/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
         await refreshMemberList(refreshIdentity: true);
@@ -3144,7 +3144,7 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
                           try {
                             final client = ref.read(solarNetworkClientProvider);
                             await client.realms.dio.delete(
-                              '/passport/realms/$realmSlug/members/me/profile',
+                              '/stargate/realms/$realmSlug/members/me/profile',
                             );
                             ref.invalidate(realmIdentityProvider(realmSlug));
                             ref.invalidate(

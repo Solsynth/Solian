@@ -958,7 +958,7 @@ Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
   if (pub.type != 0 || pub.account == null) return [];
   final client = ref.watch(solarNetworkClientProvider);
   final resp = await client.dio.get(
-    "/passport/accounts/${pub.account!.name}/badges",
+    "/stargate/accounts/${pub.account!.name}/badges",
   );
   return List<SnAccountBadge>.from(
     resp.data.map((x) => SnAccountBadge.fromJson(x)),

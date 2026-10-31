@@ -119,7 +119,7 @@ class CheckInService {
     private let networkService = WidgetNetworkService()
     
     func fetchCheckInResult() async throws -> CheckInResult? {
-        return try await networkService.makeRequest(path: "/passport/accounts/me/check-in")
+        return try await networkService.makeRequest(path: "/stargate/accounts/me/check-in")
     }
 }
 
@@ -127,7 +127,7 @@ class NotableDayService {
     private let networkService = WidgetNetworkService()
     
     func fetchRecentNotableDay() async throws -> NotableDay? {
-        try await networkService.makeRequest(path: "/passport/notable/me/recent")
+        try await networkService.makeRequest(path: "/stargate/notable/me/recent")
     }
 }
 

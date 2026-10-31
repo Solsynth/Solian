@@ -154,7 +154,7 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
     if (imageUri == null) return '';
     if (imageUri.startsWith('sha256:')) {
       final serverURL = ref.read(serverUrlProvider);
-      return '$serverURL/passport/presence/artworks/$imageUri';
+      return '$serverURL/stargate/presence/artworks/$imageUri';
     }
     return imageUri;
   }

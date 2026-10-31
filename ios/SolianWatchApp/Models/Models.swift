@@ -1927,7 +1927,7 @@ enum SnEventCountdownType {
     static let notableDay = 3
 }
 
-/// One upcoming event countdown (`GET /passport/accounts/me/calendar/countdown`).
+/// One upcoming event countdown (`GET /stargate/accounts/me/calendar/countdown`).
 /// Mirrors `SnEventCountdownItem`; `meta`/`background`/`icon` are omitted —
 /// the watch doesn't need them. Remaining time is recomputed locally from
 /// `startTime`, so the readout stays live between refreshes.

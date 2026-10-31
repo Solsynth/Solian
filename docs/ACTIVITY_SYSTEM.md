@@ -8,7 +8,7 @@ The activity system consists of:
 
 1. **Desktop Presence Services** - Monitor idle status and now playing state
 2. **Activity RPC Server** - Discord-compatible server for third-party app integration
-3. **Server API** - REST endpoints to manage activities (`/passport/activities`)
+3. **Server API** - REST endpoints to manage activities (`/stargate/activities`)
 4. **WebSocket Updates** - Real-time presence updates via WebSocket
 
 ## Architecture
@@ -33,8 +33,8 @@ The activity system consists of:
                                 ▼
                     ┌───────────────────────┐
                     │   Server API          │
-                    │ POST /passport/activities │
-                    │ DELETE /passport/activities │
+                    │ POST /stargate/activities │
+                    │ DELETE /stargate/activities │
                     └───────────────────────┘
 ```
 
@@ -239,7 +239,7 @@ Providers are resolved in this order:
 
 Artwork URLs can be:
 1. **HTTP/HTTPS URLs**: Direct image links
-2. **`sha256:` hashes**: Resolved to `$serverURL/passport/presence/artworks/$hash`
+2. **`sha256:` hashes**: Resolved to `$serverURL/stargate/presence/artworks/$hash`
 3. **Discord asset IDs**: Prefixed with `discord:` for RPC activities
 
 ## Error Handling
@@ -266,7 +266,7 @@ The RPC server captures the last 50 packets with:
 
 ## API Endpoints
 
-### POST /passport/activities
+### POST /stargate/activities
 
 Create or update an activity.
 
@@ -275,14 +275,14 @@ Create or update an activity.
 
 **Request Body:** Activity data object (see structure above)
 
-### DELETE /passport/activities
+### DELETE /stargate/activities
 
 Remove an activity.
 
 **Query Parameters:**
 - `manualId` (required): Activity identifier to remove
 
-### GET /passport/activities/:username
+### GET /stargate/activities/:username
 
 Get activities for a user.
 

@@ -819,7 +819,7 @@ class AccountTimelineItem extends ConsumerWidget {
   String _resolveArtworkUrl(WidgetRef ref, String imageUri) {
     if (imageUri.startsWith('sha256:')) {
       final serverURL = ref.read(serverUrlProvider);
-      return '$serverURL/passport/presence/artworks/$imageUri';
+      return '$serverURL/stargate/presence/artworks/$imageUri';
     }
     return imageUri;
   }
@@ -897,7 +897,7 @@ class AccountTimelineNotifier
     };
 
     final response = await client.get(
-      '/passport/accounts/$arg/timeline',
+      '/stargate/accounts/$arg/timeline',
       queryParameters: queryParams,
     );
 

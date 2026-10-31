@@ -2432,10 +2432,10 @@ class _PhysicalPassportScanSheetState
       // e.g., solian://phpass/{tag_id}
       if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
         final tagId = uri.pathSegments.first;
-        final response = await client.dio.get('/passport/nfc/tags/$tagId');
+        final response = await client.dio.get('/stargate/nfc/tags/$tagId');
         result = SnScanResult.fromJson(response.data);
       } else {
-        // Forward all query parameters directly to /passport/nfc
+        // Forward all query parameters directly to /stargate/nfc
         // This handles both encrypted (e, c, mac) and unencrypted (uid) tags
         final queryParams = uri.queryParameters;
         if (queryParams.isEmpty) {
@@ -2446,7 +2446,7 @@ class _PhysicalPassportScanSheetState
           return;
         }
         final response = await client.dio.get(
-          '/passport/nfc',
+          '/stargate/nfc',
           queryParameters: {...queryParams, 'tag': tag.id},
         );
         result = SnScanResult.fromJson(response.data);
@@ -2474,12 +2474,12 @@ class _PhysicalPassportScanSheetState
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.dio.post(
-        '/passport/nfc/tags/claim',
+        '/stargate/nfc/tags/claim',
         data: {'record_id': recordId},
       );
 
       // Refresh the scan result to show claimed status
-      final response = await client.dio.get('/passport/nfc/tags/$recordId');
+      final response = await client.dio.get('/stargate/nfc/tags/$recordId');
       final result = SnScanResult.fromJson(response.data);
 
       setState(() {
@@ -2588,7 +2588,7 @@ class _PhysicalPassportScanResultCard extends StatelessWidget {
 final scanPhysicalPassportProvider = FutureProvider.autoDispose
     .family<SnScanResult, String>((ref, id) async {
       final client = ref.watch(solarNetworkClientProvider);
-      final response = await client.dio.get('/passport/nfc/tags/$id');
+      final response = await client.dio.get('/stargate/nfc/tags/$id');
       return SnScanResult.fromJson(response.data);
     });
 
@@ -2596,7 +2596,7 @@ final scanPhysicalPassportByParamsProvider = FutureProvider.autoDispose
     .family<SnScanResult, Map<String, String>>((ref, params) async {
       final client = ref.watch(solarNetworkClientProvider);
       final response = await client.dio.get(
-        '/passport/nfc',
+        '/stargate/nfc',
         queryParameters: params,
       );
       return SnScanResult.fromJson(response.data);

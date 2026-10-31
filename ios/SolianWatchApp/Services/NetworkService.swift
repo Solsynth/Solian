@@ -699,7 +699,7 @@ class NetworkService {
             print("[NetworkService] fetchAccountStatus - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
+        let url = baseURL.appendingPathComponent("/stargate/accounts/me/statuses")
         print("[NetworkService] fetchAccountStatus - url: \(url)")
         
         var request = URLRequest(url: url)
@@ -734,7 +734,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
+        let url = baseURL.appendingPathComponent("/stargate/accounts/me/statuses")
         
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -782,7 +782,7 @@ class NetworkService {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
+        let url = baseURL.appendingPathComponent("/stargate/accounts/me/statuses")
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
@@ -859,14 +859,14 @@ class NetworkService {
 
     // MARK: - Check-in & Fortune (mirrors Flutter AccountsApi)
 
-    /// GET /passport/accounts/me/check-in?version=2 — today's check-in, or nil
+    /// GET /stargate/accounts/me/check-in?version=2 — today's check-in, or nil
     /// if not checked in yet (404). Mirrors `getCheckInResultToday`.
     func fetchCheckInResult(token: String, serverUrl: String) async throws -> SnCheckInResult? {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/passport/accounts/me/check-in"),
+            url: baseURL.appendingPathComponent("/stargate/accounts/me/check-in"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [URLQueryItem(name: "version", value: "2")]
@@ -892,14 +892,14 @@ class NetworkService {
         return try decoder.decode(SnCheckInResult.self, from: data)
     }
 
-    /// POST /passport/accounts/me/check-in?version=2 — perform today's
+    /// POST /stargate/accounts/me/check-in?version=2 — perform today's
     /// check-in. Mirrors `checkIn`.
     func checkIn(token: String, serverUrl: String) async throws -> SnCheckInResult {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/passport/accounts/me/check-in"),
+            url: baseURL.appendingPathComponent("/stargate/accounts/me/check-in"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [URLQueryItem(name: "version", value: "2")]
@@ -923,13 +923,13 @@ class NetworkService {
         return try decoder.decode(SnCheckInResult.self, from: data)
     }
 
-    /// GET /passport/fortune/daily — today's fortune saying. Mirrors
+    /// GET /stargate/fortune/daily — today's fortune saying. Mirrors
     /// `getDailyFortune`.
     func fetchDailyFortune(token: String, serverUrl: String) async throws -> SnFortuneSaying {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        let url = baseURL.appendingPathComponent("/passport/fortune/daily")
+        let url = baseURL.appendingPathComponent("/stargate/fortune/daily")
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -950,7 +950,7 @@ class NetworkService {
 
     // MARK: - Event Countdowns (mirrors Flutter AccountsApi)
 
-    /// GET /passport/accounts/me/calendar/countdown — the current user's
+    /// GET /stargate/accounts/me/calendar/countdown — the current user's
     /// upcoming event countdowns (user events + notable days). Mirrors
     /// `getEventCountdowns` (the `username: nil` path the dashboard's
     /// `EventCountdownQuery(username: 'me')` takes). Returns the bare JSON
@@ -966,7 +966,7 @@ class NetworkService {
             throw URLError(.badURL)
         }
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("/passport/accounts/me/calendar/countdown"),
+            url: baseURL.appendingPathComponent("/stargate/accounts/me/calendar/countdown"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [

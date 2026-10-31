@@ -388,10 +388,10 @@ Future<({double latitude, double longitude, String label})> _resolveIpLocation(
 }
 
 /// Solar Network public route — no auth required.
-/// (`/passport/ip-check` remains admin-only diagnostics.)
+/// (`/stargate/ip-check` remains admin-only diagnostics.)
 Future<({double latitude, double longitude, String label})>
 _resolveIpLocationFromSolarNetwork(Dio apiClient) async {
-  final response = await apiClient.get('/passport/ip-check/geo');
+  final response = await apiClient.get('/stargate/ip-check/geo');
   final data = response.data;
   if (data is! Map) {
     throw StateError('weatherIpLocationEmpty');

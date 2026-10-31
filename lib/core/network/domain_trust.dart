@@ -49,7 +49,7 @@ class DomainTrustService {
 
     try {
       final response = await _dio.get(
-        '/passport/domain-blocks/check',
+        '/stargate/domain-blocks/check',
         queryParameters: {'url': url.toString()},
       );
 

@@ -46,7 +46,7 @@ final achievementsProvider =
     FutureProvider.autoDispose<List<SnAchievementState>>((ref) async {
       final client = ref.watch(apiClientProvider);
       final response = await client.get(
-        '/passport/accounts/me/progression/achievements',
+        '/stargate/accounts/me/progression/achievements',
       );
       final data = response.data;
       if (data is List) {
@@ -63,7 +63,7 @@ final achievementStatsProvider = FutureProvider.autoDispose<SnAchievementStats>(
   (ref) async {
     final client = ref.watch(apiClientProvider);
     final response = await client.get(
-      '/passport/accounts/me/progression/achievements/stats',
+      '/stargate/accounts/me/progression/achievements/stats',
     );
     return SnAchievementStats.fromJson(
       Map<String, dynamic>.from(response.data),
@@ -75,7 +75,7 @@ final questsProvider = FutureProvider.autoDispose<List<SnQuestState>>((
   ref,
 ) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.get('/passport/accounts/me/progression/quests');
+  final response = await client.get('/stargate/accounts/me/progression/quests');
   final data = response.data;
   if (data is List) {
     return data
@@ -120,7 +120,7 @@ class RewardGrantsNotifier
   Future<List<SnProgressRewardGrant>> fetch() async {
     final client = ref.read(apiClientProvider);
     final response = await client.get(
-      '/passport/accounts/me/progression/grants',
+      '/stargate/accounts/me/progression/grants',
       queryParameters: {'offset': fetchedCount.toString(), 'take': pageSize},
     );
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
@@ -441,7 +441,7 @@ class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.get(
-        '/passport/accounts/me/progression/achievements',
+        '/stargate/accounts/me/progression/achievements',
         queryParameters: {'query': query},
       );
       final data = response.data;

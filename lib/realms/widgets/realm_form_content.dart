@@ -19,7 +19,7 @@ part 'realm_form_content.g.dart';
 @riverpod
 Future<RealmQuotaInfo> realmQuotaInfo(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
-  final response = await client.dio.get('/passport/realms/quota');
+  final response = await client.dio.get('/stargate/realms/quota');
   return RealmQuotaInfo.fromJson(response.data);
 }
 
@@ -124,7 +124,7 @@ class RealmFormContent extends HookConsumerWidget {
         final realm = await ref.watch(realmProvider(slug).future);
         final isCreate = realm == null;
         final resp = await client.dio.request(
-          '/passport/realms${isCreate ? '' : '/$slug'}',
+          '/stargate/realms${isCreate ? '' : '/$slug'}',
           data: {
             'slug': slugController.text,
             'name': nameController.text,

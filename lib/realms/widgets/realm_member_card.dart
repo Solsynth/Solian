@@ -31,7 +31,7 @@ final realmMemberDetailsProvider = FutureProvider.autoDispose
     .family<SnRealmMember?, RealmMemberLookup>((ref, lookup) async {
       final client = ref.watch(solarNetworkClientProvider);
       final response = await client.dio.get(
-        '/passport/realms/${lookup.realmId}/members/${lookup.accountId}',
+        '/stargate/realms/${lookup.realmId}/members/${lookup.accountId}',
         queryParameters: {'withStatus': true},
       );
       return SnRealmMember.fromJson(response.data as Map<String, dynamic>);
@@ -420,7 +420,7 @@ class _RealmMemberActionSheet extends HookConsumerWidget {
     final client = ref.read(solarNetworkClientProvider);
     try {
       await client.dio.delete(
-        '/passport/realms/$realmId/members/${member.accountId}',
+        '/stargate/realms/$realmId/members/${member.accountId}',
       );
       await _refreshAfterAction(ref);
       if (context.mounted) {
@@ -441,7 +441,7 @@ class _RealmMemberActionSheet extends HookConsumerWidget {
     final client = ref.read(solarNetworkClientProvider);
     try {
       await client.dio.put(
-        '/passport/realms/$realmId/members/${member.accountId}',
+        '/stargate/realms/$realmId/members/${member.accountId}',
         data: {'role': newRole},
       );
       await _refreshAfterAction(ref);

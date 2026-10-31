@@ -43,7 +43,7 @@ class LevelingHistoryNotifier
     final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
 
     final response = await client.get(
-      '/passport/accounts/me/leveling',
+      '/stargate/accounts/me/leveling',
       queryParameters: queryParams,
     );
 

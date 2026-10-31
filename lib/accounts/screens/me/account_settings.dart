@@ -1859,7 +1859,7 @@ sealed class SnPhysicalPassport with _$SnPhysicalPassport {
 final physicalPassportsProvider =
     FutureProvider.autoDispose<List<SnPhysicalPassport>>((ref) async {
       final client = ref.watch(solarNetworkClientProvider);
-      final response = await client.dio.get('/passport/nfc/tags');
+      final response = await client.dio.get('/stargate/nfc/tags');
       return (response.data as List)
           .map((e) => SnPhysicalPassport.fromJson(e))
           .toList();
@@ -2330,7 +2330,7 @@ class _AddPhysicalPassportSheetState
     try {
       final client = ref.read(solarNetworkClientProvider);
       final response = await client.dio.post(
-        '/passport/nfc/tags',
+        '/stargate/nfc/tags',
         data: {
           'uid': _scannedUid,
           if (_labelController.text.trim().isNotEmpty)
@@ -2699,7 +2699,7 @@ class _PhysicalPassportDetailSheetState
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.dio.patch(
-        '/passport/nfc/tags/${widget.passport.id}',
+        '/stargate/nfc/tags/${widget.passport.id}',
         data: {
           'label': _labelController.text.trim().isEmpty
               ? null
@@ -2735,7 +2735,7 @@ class _PhysicalPassportDetailSheetState
 
     try {
       final client = ref.read(solarNetworkClientProvider);
-      await client.dio.post('/passport/nfc/tags/${widget.passport.id}/lock');
+      await client.dio.post('/stargate/nfc/tags/${widget.passport.id}/lock');
       ref.invalidate(physicalPassportsProvider);
       if (mounted) {
         showSnackBar('physicalPassportLocked'.tr());
@@ -2764,7 +2764,7 @@ class _PhysicalPassportDetailSheetState
 
     try {
       final client = ref.read(solarNetworkClientProvider);
-      await client.dio.delete('/passport/nfc/tags/${widget.passport.id}');
+      await client.dio.delete('/stargate/nfc/tags/${widget.passport.id}');
       ref.invalidate(physicalPassportsProvider);
       if (mounted) {
         showSnackBar('physicalPassportDeleted'.tr());
@@ -3048,7 +3048,7 @@ class _AdminRegisterEncryptedTagSheetState
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.dio.post(
-        '/passport/admin/nfc/tags',
+        '/stargate/admin/nfc/tags',
         data: {
           'uid': _scannedUid,
           'sun_key': _sunKeyController.text.trim(),
@@ -3156,7 +3156,7 @@ class _ClaimByUidSheetState extends ConsumerState<_ClaimByUidSheet> {
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.dio.post(
-        '/passport/nfc/tags/claim',
+        '/stargate/nfc/tags/claim',
         data: {'uid': _uidController.text.trim().toUpperCase()},
       );
       ref.invalidate(physicalPassportsProvider);

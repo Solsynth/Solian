@@ -139,7 +139,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
       final name = ref.read(userInfoProvider).value?.name;
       try {
         submitting.value = true;
-        await apiClient.delete('/passport/accounts/me/statuses');
+        await apiClient.delete('/stargate/accounts/me/statuses');
         ref.read(currentAccountStatusProvider.notifier).clearStatus();
         if (name != null) ref.invalidate(accountStatusProvider(name));
         if (!context.mounted) return;
@@ -160,7 +160,7 @@ class AccountStatusCreationSheet extends HookConsumerWidget {
       try {
         submitting.value = true;
         final response = await apiClient.request(
-          '/passport/accounts/me/statuses',
+          '/stargate/accounts/me/statuses',
           data: {
             'attitude': attitude.value,
             'type': statusType.value,

@@ -26,7 +26,7 @@ final friendAccountMapProvider = Provider<Map<String, SnAccount>>((ref) {
 String resolvePresenceArtworkUrl(WidgetRef ref, String imageUri) {
   if (imageUri.startsWith('sha256:')) {
     final serverURL = ref.read(serverUrlProvider);
-    return '$serverURL/passport/presence/artworks/$imageUri';
+    return '$serverURL/stargate/presence/artworks/$imageUri';
   }
   return imageUri;
 }

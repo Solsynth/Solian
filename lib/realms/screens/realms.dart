@@ -194,7 +194,7 @@ class RealmListScreen extends HookConsumerWidget {
 @riverpod
 Future<List<SnRealmMember>> realmInvites(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
-  final resp = await client.dio.get('/passport/realms/invites');
+  final resp = await client.dio.get('/stargate/realms/invites');
   return (resp.data as List).map((e) => SnRealmMember.fromJson(e)).toList();
 }
 
@@ -209,7 +209,7 @@ class _RealmInviteSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         await client.dio.post(
-          '/passport/realms/invites/${invite.realm!.slug}/accept',
+          '/stargate/realms/invites/${invite.realm!.slug}/accept',
         );
         ref.invalidate(realmInvitesProvider);
         ref.invalidate(realmsJoinedProvider);
@@ -222,7 +222,7 @@ class _RealmInviteSheet extends HookConsumerWidget {
       try {
         final client = ref.read(solarNetworkClientProvider);
         await client.dio.post(
-          '/passport/realms/invites/${invite.realm!.slug}/decline',
+          '/stargate/realms/invites/${invite.realm!.slug}/decline',
         );
         ref.invalidate(realmInvitesProvider);
       } catch (err) {
