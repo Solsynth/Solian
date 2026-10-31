@@ -36,6 +36,30 @@ const int kNativeGlassMaxTabs = 5;
 /// transition. Subtle: the page must stay readable while it resolves.
 const double kTabBlurSigma = 12.0;
 
+/// Switches the shell to the tab destination named [routeName], if it is one.
+///
+/// Tab pages live in the shell's own stack (`TabsScreen.routes`). Pushing one
+/// from a page that is already inside the shell stacks a second `TabsScreen`,
+/// which collides with the first on the shared [rootScaffoldKey]; the router
+/// then throws every frame and the pushed page never paints. Entry points that
+/// would otherwise push a tab route ask the shell for the tab instead.
+///
+/// Returns false when [routeName] is not a tab destination, or when [context]
+/// is not inside the shell (a page pushed over it, such as a post detail), in
+/// which case the caller keeps its own navigation.
+bool openTabDestination(BuildContext context, String routeName) {
+  final tabsRouter = TabsRouterScope.of(context, watch: false)?.controller;
+  if (tabsRouter == null) return false;
+  final index = tabsRouter.stackData.indexWhere(
+    (data) => data.name == routeName,
+  );
+  if (index < 0) return false;
+  if (tabsRouter.activeIndex != index) {
+    tabsRouter.setActiveIndex(index);
+  }
+  return true;
+}
+
 @RoutePage()
 class TabsScreen extends StatelessWidget {
   const TabsScreen({super.key});
@@ -205,16 +229,20 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             ),
           ]
         : railDestinations;
+    // A tab the surface does not carry selects nothing. Falling back to the
+    // first entry would mark Dashboard selected while Wallet or Creator Hub is
+    // open, which reads as "you are on the dashboard" — and the first entry is
+    // the one a tap on that false selection navigates to.
     final selectedRailIndex = displayedRailDestinations.indexWhere(
       (d) => d.routeIndex == tabsRouter.activeIndex,
     );
-    final railCurrentIndex = selectedRailIndex >= 0 ? selectedRailIndex : 0;
+    final railCurrentIndex = selectedRailIndex >= 0 ? selectedRailIndex : null;
     final selectedBottomNavIndex = bottomNavDestinations.indexWhere(
       (d) => d.routeIndex == tabsRouter.activeIndex,
     );
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
-        : 0;
+        : null;
     final isDrawerEnabled =
         kIsWeb ||
         defaultTargetPlatform == TargetPlatform.macOS ||
@@ -619,7 +647,10 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         // selection indicator, and the band is 56px tall.
         height: kBottomNavHeight,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-        selectedIndex: bottomNavCurrentIndex,
+        // `NavigationBar` rejects a null selection. A route the bar does not
+        // carry (reached from the drawer) collapses the bar's slot instead, so
+        // this fallback is never painted.
+        selectedIndex: bottomNavCurrentIndex ?? 0,
         onDestinationSelected: (index) {
           onBottomNavDestinationSelected(index);
         },

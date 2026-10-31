@@ -29,6 +29,7 @@ import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/misc/tabs_screen.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -46,6 +47,18 @@ import 'package:url_launcher/url_launcher.dart';
 
 Color _monoInk(ThemeData theme) {
   return theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+}
+
+/// Opens the wallet tab of the tab shell the account pages live in.
+///
+/// Pushing a tab route stacks a second `TabsScreen` — from inside the shell as
+/// well as from above it — and the two collide on the shared scaffold key.
+/// This asks the shell for the tab when the caller is inside it, and otherwise
+/// navigates, which pops back to the shell and switches it there.
+/// `openTabDestination` documents the collision.
+void openWalletFromAccount(BuildContext context) {
+  if (openTabDestination(context, WalletRoute.name)) return;
+  context.router.navigate(const WalletRoute());
 }
 
 Color _monoSurface(ThemeData theme, double opacity) {
@@ -345,14 +358,14 @@ class AccountQrScreen extends HookConsumerWidget {
             if (currentWallet == null) {
               return _TransferUnavailableCard(
                 theme: theme,
-                onOpenWallet: () => context.router.push(const WalletRoute()),
+                onOpenWallet: () => openWalletFromAccount(context),
                 messageKey: 'accountQrWalletUnavailable',
               );
             }
             if (currentWallet.publicId == null) {
               return _TransferUnavailableCard(
                 theme: theme,
-                onOpenWallet: () => context.router.push(const WalletRoute()),
+                onOpenWallet: () => openWalletFromAccount(context),
                 onEnableWalletId: () => enableWalletId(currentWallet.id),
                 messageKey: 'accountQrTransferUnavailable',
               );
@@ -413,7 +426,7 @@ class AccountQrScreen extends HookConsumerWidget {
           ),
           error: (_, _) => _TransferUnavailableCard(
             theme: theme,
-            onOpenWallet: () => context.router.push(const WalletRoute()),
+            onOpenWallet: () => openWalletFromAccount(context),
             messageKey: 'accountQrTransferUnavailable',
           ),
         ),

@@ -31,6 +31,7 @@ import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
+import 'package:island/misc/tabs_screen.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/sharing/share_sheet.dart';
@@ -1555,7 +1556,13 @@ Future<void> showFediverseInteractionHint(
           FilledButton(
             onPressed: () {
               close(null);
-              context.router.navigate(const CreatorHubRoute());
+              // The creator hub is a tab: switching to it is navigation the
+              // shell owns, and pushing a tab route would stack a second
+              // shell. Above the shell there is no tab to switch to, so the
+              // route is navigated there instead.
+              if (!openTabDestination(context, CreatorHubRoute.name)) {
+                context.router.navigate(const CreatorHubRoute());
+              }
             },
             child: Text('learnMore'.tr()),
           ),
