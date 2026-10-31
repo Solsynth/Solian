@@ -54,6 +54,22 @@ const kChainedRowGap = 8.0;
 Color postRowSurfaceColor(BuildContext context) =>
     Theme.of(context).colorScheme.surfaceContainerLow;
 
+/// The surface color for a post card hosted on a sheet surface (such as
+/// [PostRepliesSheet]), where the sheet ground is already `surfaceContainerLow`.
+Color postRowSheetSurfaceColor(BuildContext context) {
+  final theme = Theme.of(context);
+  return theme.brightness == Brightness.light
+      ? theme.colorScheme.surfaceContainerLowest
+      : theme.colorScheme.surfaceContainerHigh;
+}
+
+/// The default subtle border side for a post card hosted on a sheet surface.
+BorderSide postRowSheetBorderSide(BuildContext context) {
+  return BorderSide(
+    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
+  );
+}
+
 /// The card chrome of one post row (or of a compact post list).
 ///
 /// Fixed geometry: [SolRadius.card] corners, no elevation and no shadow, and a
@@ -65,6 +81,7 @@ class PostRowSurface extends StatelessWidget {
   final Color? color;
   final EdgeInsetsGeometry margin;
   final double radius;
+  final BorderSide? side;
 
   const PostRowSurface({
     super.key,
@@ -72,6 +89,7 @@ class PostRowSurface extends StatelessWidget {
     this.color,
     this.margin = EdgeInsets.zero,
     this.radius = SolRadius.card,
+    this.side,
   });
 
   @override
@@ -85,6 +103,7 @@ class PostRowSurface extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radius),
+        side: side ?? BorderSide.none,
       ),
       child: child,
     );
@@ -983,8 +1002,16 @@ class PostReplyPreview extends HookConsumerWidget {
               vertical: SolSpace.md,
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Theme.of(context).colorScheme.surfaceContainer
+                  : Theme.of(context).colorScheme.surfaceContainerLowest,
               borderRadius: SolRadius.cardRadius,
+              border: Border.all(
+                color: Theme.of(context)
+                    .colorScheme
+                    .outlineVariant
+                    .withValues(alpha: 0.35),
+              ),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {

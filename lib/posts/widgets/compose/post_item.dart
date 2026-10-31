@@ -931,6 +931,9 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: SolRadius.cardRadius,
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(

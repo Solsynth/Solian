@@ -18,6 +18,8 @@ class PostItemSkeleton extends StatelessWidget {
   /// straight on the background pass false so the placeholder carries the same
   /// full-bleed extent and insets as the rows it stands in for.
   final bool showCard;
+  final Color? cardColor;
+  final BorderSide? side;
 
   const PostItemSkeleton({
     super.key,
@@ -29,6 +31,8 @@ class PostItemSkeleton extends StatelessWidget {
     this.borderRadius,
     this.maxWidth = 640,
     this.showCard = true,
+    this.cardColor,
+    this.side,
   });
 
   @override
@@ -66,7 +70,19 @@ class PostItemSkeleton extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: showCard
-            ? Card(margin: const EdgeInsets.only(bottom: 8), child: row)
+            ? Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                color: cardColor,
+                shape: side != null
+                    ? RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          borderRadius ?? SolRadius.card,
+                        ),
+                        side: side!,
+                      )
+                    : null,
+                child: row,
+              )
             : row,
       ),
     );

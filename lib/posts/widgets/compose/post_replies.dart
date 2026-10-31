@@ -59,6 +59,9 @@ class PostRepliesList extends HookConsumerWidget {
   final bool orderDesc;
   final double? maxWidth;
   final VoidCallback? onOpen;
+  final Color? surfaceColor;
+  final BorderSide? side;
+
   const PostRepliesList({
     super.key,
     required this.postId,
@@ -66,6 +69,8 @@ class PostRepliesList extends HookConsumerWidget {
     this.orderDesc = true,
     this.maxWidth,
     this.onOpen,
+    this.surfaceColor,
+    this.side,
   });
 
   @override
@@ -75,9 +80,17 @@ class PostRepliesList extends HookConsumerWidget {
     );
     final notifier = ref.read(provider.notifier);
 
+    final effectiveSurfaceColor =
+        surfaceColor ?? postRowSheetSurfaceColor(context);
+    final effectiveSide = side ?? postRowSheetBorderSide(context);
+
     final skeletonItem = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: PostItemSkeleton(maxWidth: maxWidth ?? double.infinity),
+      child: PostItemSkeleton(
+        maxWidth: maxWidth ?? double.infinity,
+        cardColor: effectiveSurfaceColor,
+        side: effectiveSide,
+      ),
     );
 
     return PaginationList(
@@ -96,6 +109,8 @@ class PostRepliesList extends HookConsumerWidget {
       itemBuilder: (context, index, item) {
         final contentWidget = PostRowSurface(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          color: effectiveSurfaceColor,
+          side: effectiveSide,
           child: PostActionableItem(
             item: item,
             isShowReference: false,
