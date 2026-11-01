@@ -3123,24 +3123,30 @@ class WalletScreen extends HookConsumerWidget {
                 // a separate scrollable, so it keeps the band as plain padding
                 // instead of starting underneath the capsule.
                 Expanded(
-                  child: ColoredBox(
-                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: statusTop + kPillAppBarHeight,
+                  child:
+                      ColoredBox(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLowest,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            top: statusTop + kPillAppBarHeight,
+                          ),
+                          child: selectedOrderId.value != null
+                              ? WalletOrderDetailView(
+                                  orderId: selectedOrderId.value!,
+                                )
+                              : selectedTransactionId.value != null
+                              ? TransactionDetailEmbedded(
+                                  transactionId: selectedTransactionId.value!,
+                                  currentWalletId: selectedWalletId.value,
+                                )
+                              : _buildEmptyDetailPlaceholder(),
+                        ),
+                      ).clipRRect(
+                        topLeft: SolRadius.card,
+                        bottomLeft: SolRadius.card,
                       ),
-                      child: selectedOrderId.value != null
-                          ? WalletOrderDetailView(
-                              orderId: selectedOrderId.value!,
-                            )
-                          : selectedTransactionId.value != null
-                          ? TransactionDetailEmbedded(
-                              transactionId: selectedTransactionId.value!,
-                              currentWalletId: selectedWalletId.value,
-                            )
-                          : _buildEmptyDetailPlaceholder(),
-                    ),
-                  ).clipRRect(topLeft: SolRadius.card),
                 ),
               ],
             )
