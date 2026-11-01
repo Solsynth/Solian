@@ -15,6 +15,7 @@ import 'package:island/misc/tabs_screen.dart';
 import 'package:island/route.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/wallets/wallet.dart';
+import 'package:native_glass_navbar/native_glass_navbar.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -467,4 +468,41 @@ void main() {
     await _teardown(tester);
     debugDefaultTargetPlatformOverride = null;
   });
+
+  testWidgets(
+    'the iOS glass bar is never handed a tab it does not carry',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      tester.view.physicalSize = const Size(420, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await _pumpApp(tester, const {});
+      final tabs = _router.innerRouterOf<TabsRouter>(TabsRoute.name)!;
+
+      // Carried by the default bottom bar: the glass bar paints it.
+      tabs.setActiveIndex(3);
+      await tester.pumpAndSettle();
+      final chatBar = tester.widget<NativeGlassNavBar>(
+        find.byType(NativeGlassNavBar),
+      );
+      expect(chatBar.currentIndex, 2);
+
+      // Thoughts is opt-in for the bottom bar. The native bar is a real
+      // `UITabBarController` that echoes the index it is given back through
+      // `onTap`, so handing it a fallback index 0 does not mean "nothing
+      // selected" — it means Dashboard, and the echo sent the shell there.
+      tabs.setActiveIndex(8);
+      await tester.pumpAndSettle();
+      expect(_router.currentPath, '/thoughts');
+      expect(
+        find.byType(NativeGlassNavBar),
+        findsNothing,
+        reason: 'an uncarried tab must not build a native bar',
+      );
+
+      await _teardown(tester);
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
 }

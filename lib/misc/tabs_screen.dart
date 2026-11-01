@@ -693,21 +693,29 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     // [pillBar] itself when the async Liquid Glass support check comes back
     // negative (older iOS), so an unsupported device just keeps the pill bar.
     final glassDestinations = bottomNavDestinations;
+    final selectedGlassIndex = glassDestinations.indexWhere(
+      (d) => d.routeIndex == tabsRouter.activeIndex,
+    );
     // A bar with no tab at all is not a navigation bar.
+    //
+    // The native bar is a real `UITabBarController`, and `currentIndex` is a
+    // command to it, not a paint hint: a selection it is handed is echoed back
+    // through `onTap`, which would route the shell there. A route the bar does
+    // not carry (Thoughts, Wallet, Creator Hub — reached from the drawer) has
+    // no index to report, and the fallback index 0 does not mean "nothing
+    // selected" to it: it means Dashboard, so opening such a tab sent the user
+    // to the dashboard first and needed a second tap to stick. Such a route
+    // builds no native bar at all; the shell collapses the bar's slot on it
+    // (see `ConditionalBottomNav`), so the pill fallback here is never painted.
     final useGlassBar =
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
         glassDestinations.isNotEmpty &&
-        glassDestinations.length <= kNativeGlassMaxTabs;
-    final selectedGlassIndex = glassDestinations.indexWhere(
-      (d) => d.routeIndex == tabsRouter.activeIndex,
-    );
-    // A route the bar does not carry (reached from the drawer) selects no
-    // tab, same as the pill bar.
-    final glassCurrentIndex = selectedGlassIndex >= 0 ? selectedGlassIndex : 0;
+        glassDestinations.length <= kNativeGlassMaxTabs &&
+        selectedGlassIndex >= 0;
     final bottomBar = useGlassBar
         ? NativeGlassNavBar(
-            currentIndex: glassCurrentIndex,
+            currentIndex: selectedGlassIndex,
             onTap: (index) {
               if (index < 0 || index >= glassDestinations.length) return;
               tabsRouter.setActiveIndex(glassDestinations[index].routeIndex);
