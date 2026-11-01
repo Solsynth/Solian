@@ -11,6 +11,9 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/thoughts/personality_api.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:island/thoughts/plugins/plugin.dart';
+import 'package:island/thoughts/plugins/local_tool.dart';
+import 'package:island/thoughts/plugins/plugin_registry.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -496,6 +499,12 @@ class ThoughtsController extends Notifier<ThoughtsState> {
       final cancelToken = CancelToken();
       _cancelToken = cancelToken;
       final reasoningEffort = ref.read(thoughtReasoningEffortProvider);
+      // Snapshot what the run is offered before it starts, so a skill loaded
+      // mid-run can be told apart from one the model was already given.
+      final offeredTools = {
+        for (final tool in ref.read(pluginToolsProvider)) tool.name,
+      };
+      final offeredOverrides = ref.read(pluginOverridesProvider).toSet();
 
       await for (final event in _api.runConversation(
         conversationId: conversationId,
@@ -504,10 +513,25 @@ class ThoughtsController extends Notifier<ThoughtsState> {
           for (final attachment in pending)
             if (attachment.fileId != null) attachment.fileId!,
         ],
+        clientTools: [
+          for (final tool in ref.read(pluginToolsProvider)) tool.toOpenAiTool(),
+        ],
+        clientSkills: ref.read(pluginSkillsProvider),
+        overrides: ref.read(pluginOverridesProvider),
+        context: ref.read(pluginSystemPromptProvider),
         reasoningEffort: reasoningEffort,
         disableReasoning: reasoningEffort == null ? null : false,
         cancelToken: cancelToken,
       )) {
+        if (event is PersonalityToolCallClient) {
+          await _runClientTool(
+            event,
+            conversationId,
+            offeredTools,
+            offeredOverrides,
+          );
+          continue;
+        }
         _handleEvent(event, turnId);
       }
     } catch (e) {
@@ -552,6 +576,11 @@ class ThoughtsController extends Notifier<ThoughtsState> {
         _appendReasoningDelta(delta);
       case PersonalityToolCallStarted(:final id, :final name, :final arguments):
         _startToolBubble(id, name, arguments);
+      case PersonalityToolCallClient():
+        // Answered by the send loop, which owns the resume. Reaching here
+        // means a caller routed the event without one, and a trace row alone
+        // could not answer it.
+        break;
       case PersonalityToolCallCompleted(
         :final id,
         :final name,
@@ -620,6 +649,81 @@ class ThoughtsController extends Notifier<ThoughtsState> {
       ),
     );
   }
+
+  /// Executes one device-local tool call and hands its answer back.
+  ///
+  /// The run stays open throughout: the result is posted to the same run and
+  /// the stream above continues with whatever the model does next. A tool that
+  /// throws reports the failure as its result rather than ending the turn, so
+  /// the model can correct itself instead of hitting a dead end.
+  Future<void> _runClientTool(
+    PersonalityToolCallClient event,
+    String conversationId,
+    Set<String> offeredTools,
+    Set<String> offeredOverrides,
+  ) async {
+    _startToolBubble(event.id, event.name, event.arguments);
+    // The model calls a client tool under the server's namespace; the registry
+    // holds it under the plain name the app gave it.
+    final called = unnamespacedToolName(event.name);
+    final tool = called == null
+        ? null
+        : ref
+              .read(pluginToolsProvider)
+              .where((tool) => tool.name == called)
+              .firstOrNull;
+
+    // A tool that throws is answered with its error rather than ending the
+    // turn: the model can then correct itself.
+    final String result;
+    if (tool == null) {
+      result = 'Error: unknown tool "${event.name}"';
+    } else {
+      result = await _executeTool(tool, event.arguments);
+    }
+
+    // Only what became callable since the run began travels with the answer,
+    // so a skill loaded by this very call reaches the model without a new
+    // message.
+    final additions = [
+      for (final candidate in ref.read(pluginToolsProvider))
+        if (!offeredTools.contains(candidate.name)) candidate,
+    ];
+    offeredTools.addAll(additions.map((tool) => tool.name));
+    final overrideAdditions = [
+      for (final name in ref.read(pluginOverridesProvider))
+        if (!offeredOverrides.contains(name)) name,
+    ];
+    offeredOverrides.addAll(overrideAdditions);
+
+    try {
+      await _api.submitClientToolResult(
+        conversationId: conversationId,
+        runId: event.runId,
+        toolCallId: event.id,
+        result: result,
+        clientTools: [for (final tool in additions) tool.toOpenAiTool()],
+        overrides: overrideAdditions,
+      );
+    } catch (error) {
+      // The run may already have timed out server-side; report it rather than
+      // leaving the trace spinning forever.
+      _fail(error);
+    }
+  }
+
+  /// Runs one tool body, turning a throw into the answer the model gets.
+  Future<String> _executeTool(
+    SnLocalTool tool,
+    Map<String, dynamic> arguments,
+  ) async {
+    try {
+      return await tool.execute(arguments);
+    } catch (error) {
+      return 'Error: $error';
+    }
+  }
+
 
   /// The fold state a new trace row opens in: the state of the trace above it,
   /// the reader's pin included.

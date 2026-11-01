@@ -15,6 +15,7 @@ import 'package:island/auth/login_modal.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/theme.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/empty_state.dart';
@@ -244,6 +245,11 @@ class ThoughtsScreen extends HookConsumerWidget {
                 onPressed: chat.busy ? null : controller.newConversation,
                 icon: const Icon(Symbols.edit_square_rounded),
               ),
+              IconButton(
+                tooltip: 'thoughtsConsoleTitle'.tr(),
+                onPressed: () => context.pushRoute(AiConsoleRoute()),
+                icon: const Icon(Symbols.tune_rounded),
+              ),
             ],
             const Gap(SolSpace.xs),
           ],
@@ -460,7 +466,11 @@ class _UserBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final bodyStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: scheme.onPrimaryContainer,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: SolSpace.xs),
       child: Align(
@@ -490,8 +500,12 @@ class _UserBubble extends StatelessWidget {
                           SizedBox.square(
                             dimension: _imageSize,
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(SolRadius.sm),
-                              child: _AttachmentPicture(attachment: attachment),
+                              borderRadius: BorderRadius.circular(
+                                SolRadius.sm,
+                              ),
+                              child: _AttachmentPicture(
+                                attachment: attachment,
+                              ),
                             ),
                           ),
                       ],
@@ -501,12 +515,17 @@ class _UserBubble extends StatelessWidget {
                       padding: EdgeInsets.only(
                         top: bubble.attachments.isEmpty ? 0 : SolSpace.sm,
                       ),
-                      child: Text(
-                        bubble.text,
-                        style: TextStyle(
-                          color: scheme.onPrimaryContainer,
-                          fontSize: 14,
-                          height: 1.45,
+                      // What was typed is markdown too: a pasted link, inline
+                      // code or a mention reads the way it would in the reply
+                      // it earns, in the app's own type.
+                      child: MarkdownTextContent(
+                        content: bubble.text,
+                        isSelectable: true,
+                        noMentionChip: false,
+                        textStyle: bodyStyle,
+                        linkStyle: bodyStyle?.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: scheme.onPrimaryContainer,
                         ),
                       ),
                     ),
@@ -573,7 +592,6 @@ class _TraceRow extends StatelessWidget {
       fontSize: 11.5,
       height: 1.5,
       color: scheme.onSurfaceVariant,
-      fontFamily: 'IBM Plex Mono',
     );
     final snippet = bubble.text.trim().split('\n').first;
 
@@ -651,7 +669,6 @@ class _ToolTraceRow extends StatelessWidget {
       fontSize: 11.5,
       height: 1.5,
       color: scheme.onSurfaceVariant,
-      fontFamily: 'IBM Plex Mono',
     );
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
       color: scheme.onSurfaceVariant,

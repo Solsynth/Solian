@@ -37,7 +37,7 @@ final class ChatGlobalSyncNotifierProvider
 }
 
 String _$chatGlobalSyncNotifierHash() =>
-    r'9b93156b87fa3c3312be07d3e0bd1a1c7a6f9731';
+    r'4a96eecf633527e6465f985de161d06b54e26981';
 
 /// Global chat sync notifier that syncs messages from all chat rooms
 
@@ -84,7 +84,7 @@ final class ChatRoomJoinedNotifierProvider
 }
 
 String _$chatRoomJoinedNotifierHash() =>
-    r'a669ab2aa9d1f51940d9d8a8371ee5e770961263';
+    r'8ca23712bd45f905241be8495da295117fe4e768';
 
 abstract class _$ChatRoomJoinedNotifier
     extends $StreamNotifier<List<SnChatRoom>> {
@@ -238,7 +238,7 @@ final class ChatRoomIdentityNotifierProvider
 }
 
 String _$chatRoomIdentityNotifierHash() =>
-    r'998d4350021d50d9c63aa6cd6aaa8afa68d2248c';
+    r'3e8d33f64d276f8f08d0a0535f4898970e6f11b1';
 
 final class ChatRoomIdentityNotifierFamily extends $Family
     with

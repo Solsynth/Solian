@@ -141,7 +141,7 @@ final class PublisherBadgesProvider
   }
 }
 
-String _$publisherBadgesHash() => r'1c6bee1a43870030042f5ee38e5a619e5025b268';
+String _$publisherBadgesHash() => r'8adae5716f4a9fc7bddd77d8c11ea8a9c1e2fa15';
 
 final class PublisherBadgesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {
@@ -221,7 +221,7 @@ final class PublisherSubscriptionStatusProvider
 }
 
 String _$publisherSubscriptionStatusHash() =>
-    r'572ea6e776caec4c8d6e2aa80ab587a9658e796d';
+    r'43bbb9b1c3ffddc0529977772a349e881ba7e2c2';
 
 final class PublisherSubscriptionStatusFamily extends $Family
     with
@@ -459,7 +459,7 @@ final class PublisherHeatmapProvider
   }
 }
 
-String _$publisherHeatmapHash() => r'2ff6ae15f79f8709ba0a5bf61d0fb99451762b02';
+String _$publisherHeatmapHash() => r'33ff67e1066474dc54ed49811830934084b947e9';
 
 final class PublisherHeatmapFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnHeatmap?>, String> {
@@ -538,7 +538,7 @@ final class PublisherRatingOverviewProvider
 }
 
 String _$publisherRatingOverviewHash() =>
-    r'03526e1032d4e2465c3896ad4418937ee7be49c5';
+    r'08a2873ff1048ba140c3df74b5f07cf73e0bac45';
 
 final class PublisherRatingOverviewFamily extends $Family
     with

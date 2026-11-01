@@ -42,7 +42,7 @@ final class ComposeStorageNotifierProvider
 }
 
 String _$composeStorageNotifierHash() =>
-    r'59dfef505e6d159ade578ff5e164d1fa2552cf30';
+    r'b2d3e237efc7014154290dfd55e89ed6ab38a2a0';
 
 abstract class _$ComposeStorageNotifier extends $Notifier<Map<String, SnPost>> {
   Map<String, SnPost> build();

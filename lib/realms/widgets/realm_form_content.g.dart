@@ -46,7 +46,7 @@ final class RealmQuotaInfoProvider
   }
 }
 
-String _$realmQuotaInfoHash() => r'b3df729241c93bae08fd777318525cd6850784cd';
+String _$realmQuotaInfoHash() => r'3c9d3b07ddcc6001f59a0f3368b1f656886300c7';
 
 @ProviderFor(_realm)
 final _realmProvider = _RealmFamily._();

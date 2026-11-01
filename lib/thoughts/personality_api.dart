@@ -155,6 +155,22 @@ class SnRunInputPart {
   };
 }
 
+/// One on-demand skill a run advertises to the server, so its own `list_skills`
+/// can offer it beside the server's: the name the model asks for, and the one
+/// line it reads when deciding whether to ask.
+@immutable
+class SnClientSkill {
+  const SnClientSkill({required this.name, required this.description});
+
+  final String name;
+  final String description;
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'description': description,
+  };
+}
+
 /// One persisted message. Reasoning, tool calls and attachments ride under the
 /// message's `metadata` bag rather than as top-level fields.
 @immutable
@@ -330,6 +346,26 @@ class PersonalityToolCallStarted extends PersonalityRunEvent {
   final Map<String, dynamic> arguments;
 }
 
+/// The run paused on a call this device owns: the tool's body runs here, and
+/// the answer goes back to [runId] to resume the same stream.
+///
+/// Distinct from [PersonalityToolCallStarted], which is the server telling the
+/// log that a tool is running. This one is a request, and it is the only
+/// event that names the run it belongs to.
+class PersonalityToolCallClient extends PersonalityRunEvent {
+  const PersonalityToolCallClient({
+    required this.runId,
+    required this.id,
+    required this.name,
+    required this.arguments,
+  });
+
+  final String runId;
+  final String id;
+  final String name;
+  final Map<String, dynamic> arguments;
+}
+
 class PersonalityToolCallCompleted extends PersonalityRunEvent {
   const PersonalityToolCallCompleted({
     required this.id,
@@ -436,11 +472,24 @@ Stream<PersonalityRunEvent> parsePersonalityRunEvents(
             ? PersonalityReasoningDelta(delta)
             : null;
       case 'tool_call.delta':
-      case 'tool_call.client':
         final name = json['name'];
         if (name is! String || name.isEmpty) return null;
         return PersonalityToolCallStarted(
           id: json['id']?.toString() ?? '',
+          name: name,
+          arguments: parsePersonalityToolArguments(json['arguments']),
+        );
+      case 'tool_call.client':
+        final name = json['name'];
+        final runId = json['run_id']?.toString() ?? '';
+        final id = json['id']?.toString() ?? '';
+        // A call with no run or no id cannot be answered, and answering it
+        // would resume a stream the app does not hold.
+        if (name is! String || name.isEmpty) return null;
+        if (runId.isEmpty || id.isEmpty) return null;
+        return PersonalityToolCallClient(
+          runId: runId,
+          id: id,
           name: name,
           arguments: parsePersonalityToolArguments(json['arguments']),
         );
@@ -613,11 +662,22 @@ class PersonalityApi {
   }
 
   /// Starts one assistant turn and relays its streamed events.
+  ///
+  /// [clientTools], [clientSkills], [overrides] and [context] are what makes a
+  /// tool run on this device: the tools are offered to the model as callable
+  /// functions, the skills are the on-demand sets it can still load, the
+  /// overrides name the server's own tools those local ones replace, and the
+  /// context is the prompt text explaining them. Empty lists are left off the
+  /// body entirely, so a run with no local capability reads as it always did.
   Stream<PersonalityRunEvent> runConversation({
     required String conversationId,
     required String message,
     List<String> attachmentIds = const [],
     List<SnRunInputPart> inputParts = const [],
+    List<Map<String, dynamic>> clientTools = const [],
+    List<SnClientSkill> clientSkills = const [],
+    List<String> overrides = const [],
+    List<String> context = const [],
     String? reasoningEffort,
     bool? disableReasoning,
     CancelToken? cancelToken,
@@ -630,6 +690,11 @@ class PersonalityApi {
         if (attachmentIds.isNotEmpty) 'attachment_ids': attachmentIds,
         if (inputParts.isNotEmpty)
           'input_parts': [for (final part in inputParts) part.toJson()],
+        if (clientTools.isNotEmpty) 'client_tools': clientTools,
+        if (clientSkills.isNotEmpty)
+          'client_skills': [for (final skill in clientSkills) skill.toJson()],
+        if (overrides.isNotEmpty) 'overrides': overrides,
+        if (context.isNotEmpty) 'context': context,
         if (reasoningEffort != null && reasoningEffort.trim().isNotEmpty)
           'reasoning_effort': reasoningEffort.trim(),
         'disable_reasoning': ?disableReasoning,
@@ -648,6 +713,33 @@ class PersonalityApi {
       throw const PersonalityException('Conversation stream unavailable.');
     }
     yield* parsePersonalityRunEvents(body.stream.cast<List<int>>());
+  }
+
+  /// Hands the result of one device-local tool back to the paused run.
+  ///
+  /// The run is not restarted: the server persists the answer as a tool
+  /// message and replays it on the stream the caller is still reading, exactly
+  /// as it does for a tool of its own. [clientTools] and [overrides] carry only
+  /// what became callable since the run began — a skill the model loaded
+  /// mid-run — so the model can reach it without waiting for the next message.
+  Future<void> submitClientToolResult({
+    required String conversationId,
+    required String runId,
+    required String toolCallId,
+    required String result,
+    List<Map<String, dynamic>> clientTools = const [],
+    List<String> overrides = const [],
+  }) async {
+    await _client.post(
+      '/persona/conversations/${Uri.encodeComponent(conversationId)}/runs/'
+      '${Uri.encodeComponent(runId)}/tool-results',
+      data: {
+        'tool_call_id': toolCallId,
+        'result': result,
+        if (clientTools.isNotEmpty) 'client_tools': clientTools,
+        if (overrides.isNotEmpty) 'overrides': overrides,
+      },
+    );
   }
 
   /// The conversation's token total, summed from every run in it.

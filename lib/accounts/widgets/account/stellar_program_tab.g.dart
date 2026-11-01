@@ -50,7 +50,7 @@ final class AccountStellarSubscriptionProvider
 }
 
 String _$accountStellarSubscriptionHash() =>
-    r'ebab0cee5e8598a2bf3ad5ed2592373b4411631f';
+    r'64d6cf5f2b2132af8b1502145f9db5aa6b7263d0';
 
 @ProviderFor(accountSentGifts)
 final accountSentGiftsProvider = AccountSentGiftsFamily._();
@@ -109,7 +109,7 @@ final class AccountSentGiftsProvider
   }
 }
 
-String _$accountSentGiftsHash() => r'9fa99729b9efa1a74695645ee1418677b5e63027';
+String _$accountSentGiftsHash() => r'21d7deea0c72b446abdac49c41ca916705a267e7';
 
 final class AccountSentGiftsFamily extends $Family
     with
@@ -198,7 +198,7 @@ final class AccountReceivedGiftsProvider
 }
 
 String _$accountReceivedGiftsHash() =>
-    r'b9e9ad5e8de8916f881ceeca7f2032f344c5c58b';
+    r'1f53edb4924ff11085ea125f27dbf6b888a961da';
 
 final class AccountReceivedGiftsFamily extends $Family
     with
@@ -280,7 +280,7 @@ final class AccountGiftProvider
   }
 }
 
-String _$accountGiftHash() => r'78890be44865accadeabdc26a96447bb3e841a5d';
+String _$accountGiftHash() => r'5961cfe3a7ef5bfc446b42d85d48b7b29ce3e8cc';
 
 final class AccountGiftFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWalletGift>, String> {
@@ -340,4 +340,4 @@ final class AccountSubscriptionGroupProvider
 }
 
 String _$accountSubscriptionGroupHash() =>
-    r'e6e7109d3dab1f9c4e29ea1f080845b1c0a37770';
+    r'13ca3f3ed13540d91979827cae2af1bc5c59860d';

@@ -157,4 +157,4 @@ final class RealmInvitesProvider
   }
 }
 
-String _$realmInvitesHash() => r'700aae999f6fe4c562f7d6e902d2a31d08514c3b';
+String _$realmInvitesHash() => r'9fcb9c1d1c73df91a781829de23036ba971540ef';
