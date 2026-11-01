@@ -99,7 +99,8 @@ List<TabDestination> get allTabDestinations => [
     routePath: '/realms',
     label: 'realms'.tr(),
     navigationIcon: Symbols.groups_3,
-    iconBuilder: (selected) => Icon(Symbols.groups_3, fill: selected ? 1 : null),
+    iconBuilder: (selected) =>
+        Icon(Symbols.groups_3, fill: selected ? 1 : null),
     nativeSymbol: 'person.3',
     nativeSelectedSymbol: 'person.3.fill',
   ),
@@ -157,9 +158,9 @@ List<TabDestination> get allTabDestinations => [
     routeIndex: 8,
     routePath: '/thoughts',
     label: 'thoughts'.tr(),
-    navigationIcon: Symbols.psychology_rounded,
+    navigationIcon: Symbols.robot_2_rounded,
     iconBuilder: (selected) =>
-        Icon(Symbols.psychology_rounded, fill: selected ? 1 : null),
+        Icon(Symbols.robot_2_rounded, fill: selected ? 1 : null),
     nativeSymbol: 'brain.head.profile',
   ),
 ];
@@ -282,15 +283,11 @@ class _NavigationCustomizationSheetState
     final allIds = _allDestinations.map((e) => e.id).toList();
     // Defaults are sanitized too: a disabled dashboard is not a destination.
     _bottomIds =
-        (_hasBottomOverride
-                ? customization.bottomIds
-                : kDefaultBottomNavIds)
+        (_hasBottomOverride ? customization.bottomIds : kDefaultBottomNavIds)
             .where(allIds.contains)
             .toList();
 
-    final sanitizedRail = customization.railIds
-        .where(allIds.contains)
-        .toList();
+    final sanitizedRail = customization.railIds.where(allIds.contains).toList();
     _railIds = _hasRailOverride ? sanitizedRail : allIds;
   }
 
@@ -313,12 +310,9 @@ class _NavigationCustomizationSheetState
         ),
         IconButton(
           onPressed: () {
-            ProviderScope.containerOf(
-              context,
-            ).read(navCustomizationProvider.notifier).setLayouts(
-              bottomIds: _bottomIds,
-              railIds: _railIds,
-            );
+            ProviderScope.containerOf(context)
+                .read(navCustomizationProvider.notifier)
+                .setLayouts(bottomIds: _bottomIds, railIds: _railIds);
             Navigator.of(context).pop();
           },
           icon: const Icon(Symbols.save_rounded),

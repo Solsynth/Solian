@@ -134,7 +134,7 @@ class ThoughtsScreen extends HookConsumerWidget {
               bottom: composerHeight.value > 0 ? composerHeight.value : 80.0,
             ),
             child: EmptyState(
-              icon: Symbols.psychology_rounded,
+              icon: Symbols.robot_2_rounded,
               title: 'thoughtsStartTitle'.tr(),
               description: 'thoughtsStartHint'.tr(
                 namedArgs: {'name': agentName},
@@ -500,12 +500,8 @@ class _UserBubble extends StatelessWidget {
                           SizedBox.square(
                             dimension: _imageSize,
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                SolRadius.sm,
-                              ),
-                              child: _AttachmentPicture(
-                                attachment: attachment,
-                              ),
+                              borderRadius: BorderRadius.circular(SolRadius.sm),
+                              child: _AttachmentPicture(attachment: attachment),
                             ),
                           ),
                       ],

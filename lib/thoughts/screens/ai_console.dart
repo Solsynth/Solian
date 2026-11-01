@@ -188,12 +188,42 @@ class _ReadError extends StatelessWidget {
   }
 }
 
-const _consolePadding = EdgeInsets.fromLTRB(
-  SolSpace.lg,
-  SolSpace.lg,
-  SolSpace.lg,
-  SolSpace.xxxl,
+// Vertical inset on the scroll; horizontal is handled by _ConsoleBody so the
+// content stays centred at a fixed max width rather than stretching to fill.
+const _consoleScrollPadding = EdgeInsets.only(
+  top: SolSpace.lg,
+  bottom: SolSpace.xxxl,
 );
+
+/// Centres tab content and pins it to a comfortable reading width.
+///
+/// Mirrors how [RealmListScreen] wraps each list item in a [ConstrainedBox] and
+/// centres it: all four console tabs feel narrow and focused on a wide display
+/// while still filling the screen on a phone.
+class _ConsoleBody extends StatelessWidget {
+  const _ConsoleBody({required this.children, super.key});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: _consoleScrollPadding,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: SolSpace.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: children,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// A ledger amount as a reader reads it: two decimals, with a charge too small
 /// to show kept visible rather than rounded to a free-looking zero.
@@ -269,64 +299,60 @@ class _CatalogTab extends ConsumerWidget {
     final agents = ref.watch(personalityAgentsProvider);
     final models = ref.watch(personaModelsProvider);
 
-    return SingleChildScrollView(
-      padding: _consolePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _SectionTitle('thoughtsConsoleAgents'.tr()),
-          agents.when(
-            data: (list) => list.isEmpty
-                ? EmptyState(
-                    icon: Symbols.psychology_rounded,
-                    title: 'thoughtsConsoleNoAgents'.tr(),
-                    compact: true,
-                  )
-                : Column(
-                    spacing: SolSpace.sm,
-                    children: [
-                      for (final agent in list) _AgentCard(agent: agent),
-                    ],
-                  ),
-            error: (error, _) => _ReadError(
-              error: error,
-              onRetry: () => ref.invalidate(personalityAgentsProvider),
-            ),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.xl),
-                child: CircularProgressIndicator(),
-              ),
+    return _ConsoleBody(
+      children: [
+        _SectionTitle('thoughtsConsoleAgents'.tr()),
+        agents.when(
+          data: (list) => list.isEmpty
+              ? EmptyState(
+                  icon: Symbols.psychology_rounded,
+                  title: 'thoughtsConsoleNoAgents'.tr(),
+                  compact: true,
+                )
+              : Column(
+                  spacing: SolSpace.sm,
+                  children: [
+                    for (final agent in list) _AgentCard(agent: agent),
+                  ],
+                ),
+          error: (error, _) => _ReadError(
+            error: error,
+            onRetry: () => ref.invalidate(personalityAgentsProvider),
+          ),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(SolSpace.xl),
+              child: CircularProgressIndicator(),
             ),
           ),
-          const Gap(SolSpace.lg),
-          _SectionTitle('thoughtsConsoleModels'.tr()),
-          models.when(
-            data: (list) => list.isEmpty
-                ? EmptyState(
-                    icon: Symbols.memory_rounded,
-                    title: 'thoughtsConsoleNoModels'.tr(),
-                    compact: true,
-                  )
-                : Column(
-                    spacing: SolSpace.sm,
-                    children: [
-                      for (final model in list) _ModelCard(model: model),
-                    ],
-                  ),
-            error: (error, _) => _ReadError(
-              error: error,
-              onRetry: () => ref.invalidate(personaModelsProvider),
-            ),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.xl),
-                child: CircularProgressIndicator(),
-              ),
+        ),
+        const Gap(SolSpace.lg),
+        _SectionTitle('thoughtsConsoleModels'.tr()),
+        models.when(
+          data: (list) => list.isEmpty
+              ? EmptyState(
+                  icon: Symbols.memory_rounded,
+                  title: 'thoughtsConsoleNoModels'.tr(),
+                  compact: true,
+                )
+              : Column(
+                  spacing: SolSpace.sm,
+                  children: [
+                    for (final model in list) _ModelCard(model: model),
+                  ],
+                ),
+          error: (error, _) => _ReadError(
+            error: error,
+            onRetry: () => ref.invalidate(personaModelsProvider),
+          ),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(SolSpace.xl),
+              child: CircularProgressIndicator(),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -482,63 +508,59 @@ class _BillingTab extends HookConsumerWidget {
           initialized.value = true;
         }
         final saved = (value.spendingQuota ?? '0').trim();
-        return SingleChildScrollView(
-          padding: _consolePadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _StandingCard(
-                blacklisted: value.blacklisted,
-                onSettle: () => _settle(context, ref),
-              ),
-              const Gap(SolSpace.md),
-              _ConsoleCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'thoughtsConsoleSpendingQuota'.tr(),
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const Gap(SolSpace.xs),
-                    Text(
-                      'thoughtsConsoleSpendingQuotaHint'.tr(),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const Gap(SolSpace.md),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: quotaController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (_) {
-                              if (quotaText.isNotEmpty && quotaText != saved) {
-                                _saveQuota(context, ref, quotaText);
-                              }
-                            },
-                            decoration: const InputDecoration(hintText: '0'),
+        return _ConsoleBody(
+          children: [
+            _StandingCard(
+              blacklisted: value.blacklisted,
+              onSettle: () => _settle(context, ref),
+            ),
+            const Gap(SolSpace.md),
+            _ConsoleCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'thoughtsConsoleSpendingQuota'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const Gap(SolSpace.xs),
+                  Text(
+                    'thoughtsConsoleSpendingQuotaHint'.tr(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Gap(SolSpace.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: quotaController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
                           ),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) {
+                            if (quotaText.isNotEmpty && quotaText != saved) {
+                              _saveQuota(context, ref, quotaText);
+                            }
+                          },
+                          decoration: const InputDecoration(hintText: '0'),
                         ),
-                        const Gap(SolSpace.sm),
-                        FilledButton(
-                          onPressed: quotaText.isEmpty || quotaText == saved
-                              ? null
-                              : () => _saveQuota(context, ref, quotaText),
-                          child: Text('save'.tr()),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const Gap(SolSpace.sm),
+                      FilledButton(
+                        onPressed: quotaText.isEmpty || quotaText == saved
+                            ? null
+                            : () => _saveQuota(context, ref, quotaText),
+                        child: Text('save'.tr()),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const Gap(SolSpace.md),
-              _MeteredUsageCard(usage: value.usage),
-            ],
-          ),
+            ),
+            const Gap(SolSpace.md),
+            _MeteredUsageCard(usage: value.usage),
+          ],
         );
       },
       error: (error, _) => _ReadError(
@@ -784,78 +806,74 @@ class _UsageTab extends HookConsumerWidget {
     final summary = ref.watch(personaLedgerSummaryProvider(windowQuery));
     final ledger = ref.watch(personaBillingLedgerProvider(listQuery));
 
-    return SingleChildScrollView(
-      padding: _consolePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _SectionTitle('thoughtsConsoleSearchProvider'.tr()),
-          const _SearchProviderCard(),
-          const Gap(SolSpace.lg),
-          _SectionTitle('thoughtsConsoleSpend'.tr()),
-          Wrap(
-            spacing: SolSpace.sm,
-            runSpacing: SolSpace.sm,
-            children: [
-              for (final entry in _ledgerWindowKeys.entries)
-                _FilterPill(
-                  label: entry.value.tr(),
-                  selected: days.value == entry.key,
-                  onTap: () => days.value = entry.key,
-                ),
-              if (filterKey.value != null && filterValue.value != null)
-                _FilterPill(
-                  label:
-                      '${_ledgerDimensionLabel(filterKey.value!)}: '
-                      '${filterValue.value}',
-                  selected: true,
-                  icon: Symbols.close_rounded,
-                  onTap: () {
-                    filterKey.value = null;
-                    filterValue.value = null;
-                  },
-                ),
-            ],
-          ),
-          const Gap(SolSpace.md),
-          summary.when(
-            data: (value) => _SpendBreakdown(
-              summary: value,
-              onFilter: (key, value) {
-                filterKey.value = key;
-                filterValue.value = value;
-              },
-            ),
-            error: (error, _) => _ReadError(
-              error: error,
-              onRetry: () =>
-                  ref.invalidate(personaLedgerSummaryProvider(windowQuery)),
-            ),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.xl),
-                child: CircularProgressIndicator(),
+    return _ConsoleBody(
+      children: [
+        _SectionTitle('thoughtsConsoleSearchProvider'.tr()),
+        const _SearchProviderCard(),
+        const Gap(SolSpace.lg),
+        _SectionTitle('thoughtsConsoleSpend'.tr()),
+        Wrap(
+          spacing: SolSpace.sm,
+          runSpacing: SolSpace.sm,
+          children: [
+            for (final entry in _ledgerWindowKeys.entries)
+              _FilterPill(
+                label: entry.value.tr(),
+                selected: days.value == entry.key,
+                onTap: () => days.value = entry.key,
               ),
-            ),
-          ),
-          const Gap(SolSpace.lg),
-          _SectionTitle('thoughtsConsoleRecentCharges'.tr()),
-          ledger.when(
-            data: (entries) => _LedgerCard(entries: entries),
-            error: (error, _) => _ReadError(
-              error: error,
-              onRetry: () =>
-                  ref.invalidate(personaBillingLedgerProvider(listQuery)),
-            ),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.xl),
-                child: CircularProgressIndicator(),
+            if (filterKey.value != null && filterValue.value != null)
+              _FilterPill(
+                label:
+                    '${_ledgerDimensionLabel(filterKey.value!)}: '
+                    '${filterValue.value}',
+                selected: true,
+                icon: Symbols.close_rounded,
+                onTap: () {
+                  filterKey.value = null;
+                  filterValue.value = null;
+                },
               ),
+          ],
+        ),
+        const Gap(SolSpace.md),
+        summary.when(
+          data: (value) => _SpendBreakdown(
+            summary: value,
+            onFilter: (key, value) {
+              filterKey.value = key;
+              filterValue.value = value;
+            },
+          ),
+          error: (error, _) => _ReadError(
+            error: error,
+            onRetry: () =>
+                ref.invalidate(personaLedgerSummaryProvider(windowQuery)),
+          ),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(SolSpace.xl),
+              child: CircularProgressIndicator(),
             ),
           ),
-        ],
-      ),
+        ),
+        const Gap(SolSpace.lg),
+        _SectionTitle('thoughtsConsoleRecentCharges'.tr()),
+        ledger.when(
+          data: (entries) => _LedgerCard(entries: entries),
+          error: (error, _) => _ReadError(
+            error: error,
+            onRetry: () =>
+                ref.invalidate(personaBillingLedgerProvider(listQuery)),
+          ),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(SolSpace.xl),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1343,76 +1361,72 @@ class _SkillsTab extends ConsumerWidget {
     final enabled = ref.watch(pluginEnablementProvider);
     final notifier = ref.read(pluginEnablementProvider.notifier);
 
-    return SingleChildScrollView(
-      padding: _consolePadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'thoughtsConsoleSkillsHint'.tr(),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return _ConsoleBody(
+      children: [
+        Text(
+          'thoughtsConsoleSkillsHint'.tr(),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
-          const Gap(SolSpace.md),
-          for (final plugin in plugins)
-            Padding(
-              padding: const EdgeInsets.only(bottom: SolSpace.sm),
-              child: _ConsoleCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            plugin.label,
-                            style: theme.textTheme.titleSmall,
-                          ),
+        ),
+        const Gap(SolSpace.md),
+        for (final plugin in plugins)
+          Padding(
+            padding: const EdgeInsets.only(bottom: SolSpace.sm),
+            child: _ConsoleCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          plugin.label,
+                          style: theme.textTheme.titleSmall,
                         ),
-                        Switch(
-                          value: enabled.contains(plugin.id),
-                          onChanged: (value) =>
-                              notifier.setEnabled(plugin.id, value),
-                        ),
-                      ],
+                      ),
+                      Switch(
+                        value: enabled.contains(plugin.id),
+                        onChanged: (value) =>
+                            notifier.setEnabled(plugin.id, value),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    plugin.description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    Text(
-                      plugin.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
+                  ),
+                  const Gap(SolSpace.xs),
+                  Row(
+                    children: [
+                      Icon(
+                        plugin.onDemand
+                            ? Symbols.bolt_rounded
+                            : Symbols.all_inclusive_rounded,
+                        size: 14,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                    const Gap(SolSpace.xs),
-                    Row(
-                      children: [
-                        Icon(
+                      const Gap(SolSpace.xs),
+                      Expanded(
+                        child: Text(
                           plugin.onDemand
-                              ? Symbols.bolt_rounded
-                              : Symbols.all_inclusive_rounded,
-                          size: 14,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const Gap(SolSpace.xs),
-                        Expanded(
-                          child: Text(
-                            plugin.onDemand
-                                ? 'thoughtsConsoleSkillOnDemand'.tr()
-                                : 'thoughtsConsoleSkillEager'.tr(),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                              ? 'thoughtsConsoleSkillOnDemand'.tr()
+                              : 'thoughtsConsoleSkillEager'.tr(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                      ],
-                    ),
-                    ...plugin.settingsRows(ref),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                  ...plugin.settingsRows(ref),
+                ],
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

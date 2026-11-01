@@ -277,7 +277,7 @@ class _ExchangeCurrencySheetState extends ConsumerState<ExchangeCurrencySheet> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(kSolarRadius),
+        borderRadius: BorderRadius.circular(kSolarRadius),
         border: Border.all(color: colorScheme.primary.withOpacity(0.18)),
       ),
       child: Column(
@@ -902,9 +902,7 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                     },
                     selectedItemBuilder: (context) {
                       return kCurrencyIconData.keys.map((currency) {
-                        return Text(
-                          walletCurrencyShort(currency),
-                        );
+                        return Text(walletCurrencyShort(currency));
                       }).toList();
                     },
                     buttonStyleData: const FormFieldButtonStyleData(
@@ -1571,9 +1569,7 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                     },
                     selectedItemBuilder: (context) {
                       return kCurrencyIconData.keys.map((currency) {
-                        return Text(
-                          walletCurrencyShort(currency),
-                        );
+                        return Text(walletCurrencyShort(currency));
                       }).toList();
                     },
                     buttonStyleData: const FormFieldButtonStyleData(
@@ -2955,7 +2951,8 @@ class WalletScreen extends HookConsumerWidget {
           return NotificationListener<ScrollNotification>(
             // Only the outer scrollable counts: the tab lists inside report a
             // deeper `depth` and restart at 0 whenever the header re-expands.
-            onNotification: (notification) => updatePillFade(notification, fade),
+            onNotification: (notification) =>
+                updatePillFade(notification, fade),
             child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 // The pill floats over this list rather than occupying a row of
@@ -2967,105 +2964,105 @@ class WalletScreen extends HookConsumerWidget {
                 ),
                 SliverToBoxAdapter(
                   child: Column(
-                  children: [
-                    _buildWalletSwitcher(
-                      context,
-                      ref,
-                      walletList,
-                      selectedWalletId,
-                      selectedCurrency.value,
-                      isBalanceVisible,
-                      setDefaultWallet,
-                      togglePublicId,
-                    ).padding(horizontal: 16, top: 16),
-                    _buildBalanceCard(
-                      context,
-                      allPockets,
-                      selectedCurrency,
-                      isBalanceVisible,
-                      isFullAmountVisible,
-                      balanceAnimationController,
-                      animatedBalance,
-                      selectedWallet,
-                    ).padding(horizontal: 16, top: 8),
-                    _buildBalanceStats(
-                      context,
-                      ref,
-                      selectedWallet,
-                      selectedCurrency,
-                    ),
+                    children: [
+                      _buildWalletSwitcher(
+                        context,
+                        ref,
+                        walletList,
+                        selectedWalletId,
+                        selectedCurrency.value,
+                        isBalanceVisible,
+                        setDefaultWallet,
+                        togglePublicId,
+                      ).padding(horizontal: 16, top: 16),
+                      _buildBalanceCard(
+                        context,
+                        allPockets,
+                        selectedCurrency,
+                        isBalanceVisible,
+                        isFullAmountVisible,
+                        balanceAnimationController,
+                        animatedBalance,
+                        selectedWallet,
+                      ).padding(horizontal: 16, top: 8),
+                      _buildBalanceStats(
+                        context,
+                        ref,
+                        selectedWallet,
+                        selectedCurrency,
+                      ),
                     ],
                   ),
                 ),
 
-              SliverToBoxAdapter(
-                child: _buildQuickActionsGrid(
-                  context,
-                  createTransfer,
-                  createFund,
-                  exchangeCurrency,
-                ).padding(horizontal: 16, bottom: 8, top: 8),
-              ),
-
-              // Tab Bar
-              SliverToBoxAdapter(
-                child: Material(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withOpacity(0.55),
-                  borderRadius: BorderRadius.circular(16),
-                  child: TabBar(
-                    controller: tabController,
-                    isScrollable: false,
-                    tabAlignment: TabAlignment.fill,
-                    dividerColor: Colors.transparent,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    labelColor:
-                        Theme.of(context).colorScheme.onPrimaryContainer,
-                    unselectedLabelColor:
-                        Theme.of(context).colorScheme.onSurfaceVariant,
-                    labelStyle: Theme.of(context)
-                        .textTheme
-                        .labelLarge
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                    unselectedLabelStyle:
-                        Theme.of(context).textTheme.labelLarge,
-                    padding: const EdgeInsets.all(4),
-                    tabs: [
-                      Tab(text: 'transactions'.tr()),
-                      Tab(text: 'myFunds'.tr()),
-                      Tab(text: 'walletOrder'.tr()),
-                    ],
-                  ),
-                ).padding(horizontal: 16),
-              ),
-            ],
-            body: TabBarView(
-              controller: tabController,
-              children: [
-                _buildTransactionsList(
-                  context,
-                  ref,
-                  selectedWallet,
-                  transactionFilter,
-                  selectedTransactionId,
-                  selectedOrderId,
-                  createTransfer,
+                SliverToBoxAdapter(
+                  child: _buildQuickActionsGrid(
+                    context,
+                    createTransfer,
+                    createFund,
+                    exchangeCurrency,
+                  ).padding(horizontal: 16, bottom: 8, top: 8),
                 ),
-                _buildFundsList(context, ref),
-                _buildOrdersList(
-                  context,
-                  ref,
-                  selectedOrderId,
-                  selectedTransactionId,
+
+                // Tab Bar
+                SliverToBoxAdapter(
+                  child: Material(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.55),
+                    borderRadius: BorderRadius.circular(16),
+                    child: TabBar(
+                      controller: tabController,
+                      isScrollable: false,
+                      tabAlignment: TabAlignment.fill,
+                      dividerColor: Colors.transparent,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicator: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      labelColor: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer,
+                      unselectedLabelColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
+                      labelStyle: Theme.of(context).textTheme.labelLarge
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                      unselectedLabelStyle: Theme.of(
+                        context,
+                      ).textTheme.labelLarge,
+                      padding: const EdgeInsets.all(4),
+                      tabs: [
+                        Tab(text: 'transactions'.tr()),
+                        Tab(text: 'myFunds'.tr()),
+                        Tab(text: 'walletOrder'.tr()),
+                      ],
+                    ),
+                  ).padding(horizontal: 16),
                 ),
               ],
-            ),
+              body: TabBarView(
+                controller: tabController,
+                children: [
+                  _buildTransactionsList(
+                    context,
+                    ref,
+                    selectedWallet,
+                    transactionFilter,
+                    selectedTransactionId,
+                    selectedOrderId,
+                    createTransfer,
+                  ),
+                  _buildFundsList(context, ref),
+                  _buildOrdersList(
+                    context,
+                    ref,
+                    selectedOrderId,
+                    selectedTransactionId,
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -3126,19 +3123,24 @@ class WalletScreen extends HookConsumerWidget {
                 // a separate scrollable, so it keeps the band as plain padding
                 // instead of starting underneath the capsule.
                 Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: statusTop + kPillAppBarHeight,
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        top: statusTop + kPillAppBarHeight,
+                      ),
+                      child: selectedOrderId.value != null
+                          ? WalletOrderDetailView(
+                              orderId: selectedOrderId.value!,
+                            )
+                          : selectedTransactionId.value != null
+                          ? TransactionDetailEmbedded(
+                              transactionId: selectedTransactionId.value!,
+                              currentWalletId: selectedWalletId.value,
+                            )
+                          : _buildEmptyDetailPlaceholder(),
                     ),
-                    child: selectedOrderId.value != null
-                        ? WalletOrderDetailView(orderId: selectedOrderId.value!)
-                        : selectedTransactionId.value != null
-                            ? TransactionDetailEmbedded(
-                                transactionId: selectedTransactionId.value!,
-                                currentWalletId: selectedWalletId.value,
-                              )
-                            : _buildEmptyDetailPlaceholder(),
-                  ),
+                  ).clipRRect(topLeft: SolRadius.card),
                 ),
               ],
             )
@@ -3352,18 +3354,18 @@ class WalletScreen extends HookConsumerWidget {
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
       ),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.14),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 18),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.14),
+              shape: BoxShape.circle,
             ),
-            const Gap(10),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const Gap(10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3435,213 +3437,215 @@ class WalletScreen extends HookConsumerWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(kSolarRadius),
             ),
-          child: Padding(
-            padding: EdgeInsets.all(isWide ? 20.0 : 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Symbols.account_balance_wallet,
-                      color: theme.colorScheme.onPrimaryContainer,
-                      size: 20,
-                    ),
-                    const Gap(8),
-                    Expanded(
-                      child: Text(
-                        (wallet.name.isNotEmpty
-                                ? wallet.name
-                                : 'balance'.tr())
-                            .toUpperCase(),
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.72),
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (wallet.isPrimary) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'walletIsDefault'.tr(),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      const Gap(8),
-                    ],
-                    PopupMenuButton<String>(
-                      icon: Icon(
-                        Symbols.more_horiz,
+            child: Padding(
+              padding: EdgeInsets.all(isWide ? 20.0 : 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.account_balance_wallet,
                         color: theme.colorScheme.onPrimaryContainer,
                         size: 20,
                       ),
-                      iconSize: 20,
-                      style: ButtonStyle(
-                        visualDensity: VisualDensity(
-                          vertical: -4,
-                          horizontal: -2,
+                      const Gap(8),
+                      Expanded(
+                        child: Text(
+                          (wallet.name.isNotEmpty
+                                  ? wallet.name
+                                  : 'balance'.tr())
+                              .toUpperCase(),
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer
+                                .withOpacity(0.72),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      padding: EdgeInsets.zero,
-                      onSelected: (value) {
-                        if (value == 'visibility') {
-                          isBalanceVisible.value = !isBalanceVisible.value;
-                        } else if (value == 'full_amount') {
-                          isFullAmountVisible.value =
-                              !isFullAmountVisible.value;
-                        } else if (value == 'copy_wallet_id') {
-                          Clipboard.setData(ClipboardData(text: wallet.id));
-                          showSnackBar('walletIdCopied'.tr());
-                        } else if (value == 'copy_public_id' &&
-                            wallet.publicId != null) {
-                          Clipboard.setData(
-                            ClipboardData(text: wallet.publicId!),
-                          );
-                          showSnackBar('walletPublicIdCopied'.tr());
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'visibility',
-                          child: Row(
-                            children: [
-                              Icon(
-                                isBalanceVisible.value
-                                    ? Symbols.visibility_off
-                                    : Symbols.visibility,
-                                size: 18,
-                              ),
-                              const Gap(8),
-                              Text(
-                                isBalanceVisible.value
-                                    ? 'hideBalance'.tr()
-                                    : 'showBalance'.tr(),
-                              ),
-                            ],
+                      if (wallet.isPrimary) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.onPrimaryContainer
+                                .withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'walletIsDefault'.tr(),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
                           ),
                         ),
-                        if (isBalanceVisible.value)
+                        const Gap(8),
+                      ],
+                      PopupMenuButton<String>(
+                        icon: Icon(
+                          Symbols.more_horiz,
+                          color: theme.colorScheme.onPrimaryContainer,
+                          size: 20,
+                        ),
+                        iconSize: 20,
+                        style: ButtonStyle(
+                          visualDensity: VisualDensity(
+                            vertical: -4,
+                            horizontal: -2,
+                          ),
+                        ),
+                        padding: EdgeInsets.zero,
+                        onSelected: (value) {
+                          if (value == 'visibility') {
+                            isBalanceVisible.value = !isBalanceVisible.value;
+                          } else if (value == 'full_amount') {
+                            isFullAmountVisible.value =
+                                !isFullAmountVisible.value;
+                          } else if (value == 'copy_wallet_id') {
+                            Clipboard.setData(ClipboardData(text: wallet.id));
+                            showSnackBar('walletIdCopied'.tr());
+                          } else if (value == 'copy_public_id' &&
+                              wallet.publicId != null) {
+                            Clipboard.setData(
+                              ClipboardData(text: wallet.publicId!),
+                            );
+                            showSnackBar('walletPublicIdCopied'.tr());
+                          }
+                        },
+                        itemBuilder: (context) => [
                           PopupMenuItem(
-                            value: 'full_amount',
+                            value: 'visibility',
                             child: Row(
                               children: [
                                 Icon(
-                                  isFullAmountVisible.value
-                                      ? Symbols.unfold_less
-                                      : Symbols.unfold_more,
+                                  isBalanceVisible.value
+                                      ? Symbols.visibility_off
+                                      : Symbols.visibility,
                                   size: 18,
                                 ),
                                 const Gap(8),
                                 Text(
-                                  isFullAmountVisible.value
-                                      ? 'collapseAmount'.tr()
-                                      : 'expandAmount'.tr(),
+                                  isBalanceVisible.value
+                                      ? 'hideBalance'.tr()
+                                      : 'showBalance'.tr(),
                                 ),
                               ],
                             ),
                           ),
-                        PopupMenuItem(
-                          value: 'copy_wallet_id',
-                          child: Row(
-                            children: [
-                              const Icon(Symbols.key, size: 18),
-                              const Gap(8),
-                              Text('walletCopyId'.tr()),
-                            ],
-                          ),
-                        ),
-                        if (wallet.publicId != null)
+                          if (isBalanceVisible.value)
+                            PopupMenuItem(
+                              value: 'full_amount',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isFullAmountVisible.value
+                                        ? Symbols.unfold_less
+                                        : Symbols.unfold_more,
+                                    size: 18,
+                                  ),
+                                  const Gap(8),
+                                  Text(
+                                    isFullAmountVisible.value
+                                        ? 'collapseAmount'.tr()
+                                        : 'expandAmount'.tr(),
+                                  ),
+                                ],
+                              ),
+                            ),
                           PopupMenuItem(
-                            value: 'copy_public_id',
+                            value: 'copy_wallet_id',
                             child: Row(
                               children: [
-                                const Icon(Symbols.content_copy, size: 18),
+                                const Icon(Symbols.key, size: 18),
                                 const Gap(8),
-                                Text('walletCopyPublicId'.tr()),
+                                Text('walletCopyId'.tr()),
                               ],
                             ),
                           ),
-                      ],
-                    ),
-                  ],
-                ),
-                if (wallet.publicId != null) ...[
-                  const Gap(8),
-                  InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: wallet.publicId!));
-                      showSnackBar('walletPublicIdCopied'.tr());
-                    },
-                    borderRadius: BorderRadius.circular(4),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Symbols.tag,
-                          size: 14,
-                          color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.7),
-                        ),
-                        const Gap(4),
-                        Text(
-                          wallet.publicId!,
-                          style: theme.textTheme.bodySmall?.copyWith(
+                          if (wallet.publicId != null)
+                            PopupMenuItem(
+                              value: 'copy_public_id',
+                              child: Row(
+                                children: [
+                                  const Icon(Symbols.content_copy, size: 18),
+                                  const Gap(8),
+                                  Text('walletCopyPublicId'.tr()),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  if (wallet.publicId != null) ...[
+                    const Gap(8),
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(
+                          ClipboardData(text: wallet.publicId!),
+                        );
+                        showSnackBar('walletPublicIdCopied'.tr());
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.tag,
+                            size: 14,
                             color: theme.colorScheme.onPrimaryContainer
                                 .withOpacity(0.7),
-                            fontFamily: 'monospace',
                           ),
-                        ),
-                        const Gap(4),
-                        Icon(
-                          Symbols.content_copy,
-                          size: 12,
-                          color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const Gap(12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      formatDisplayAmount(animatedValue),
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w800,
-                        fontSize: isWide ? 44 : 36,
-                        letterSpacing: -1.2,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                          const Gap(4),
+                          Text(
+                            wallet.publicId!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer
+                                  .withOpacity(0.7),
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                          const Gap(4),
+                          Icon(
+                            Symbols.content_copy,
+                            size: 12,
+                            color: theme.colorScheme.onPrimaryContainer
+                                .withOpacity(0.5),
+                          ),
+                        ],
                       ),
                     ),
-                    const Gap(8),
-                    _currencyChip(
-                      selectedCurrency: selectedCurrency,
-                      pockets: pockets,
-                      theme: theme,
-                    ),
                   ],
-                ),
-              ],
+                  const Gap(12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        formatDisplayAmount(animatedValue),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w800,
+                          fontSize: isWide ? 44 : 36,
+                          letterSpacing: -1.2,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const Gap(8),
+                      _currencyChip(
+                        selectedCurrency: selectedCurrency,
+                        pockets: pockets,
+                        theme: theme,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         );
       },
     );
@@ -4967,20 +4971,20 @@ class _WalletGlowState extends State<WalletGlow>
   }
 
   Widget _paint(double opacity) => Positioned.fill(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: widget.borderRadius,
-            gradient: RadialGradient(
-              center: const Alignment(-0.35, -0.65),
-              radius: 1.25,
-              colors: [
-                widget.color.withOpacity(widget.intensity * opacity),
-                widget.color.withOpacity(0.0),
-              ],
-            ),
-          ),
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: widget.borderRadius,
+        gradient: RadialGradient(
+          center: const Alignment(-0.35, -0.65),
+          radius: 1.25,
+          colors: [
+            widget.color.withOpacity(widget.intensity * opacity),
+            widget.color.withOpacity(0.0),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -4989,12 +4993,8 @@ class _WalletGlowState extends State<WalletGlow>
     }
     return AnimatedBuilder(
       animation: _breath,
-      builder: (context, _) => Stack(
-        children: [
-          _paint(0.55 + 0.45 * _breath.value),
-          widget.child,
-        ],
-      ),
+      builder: (context, _) =>
+          Stack(children: [_paint(0.55 + 0.45 * _breath.value), widget.child]),
     );
   }
 }
