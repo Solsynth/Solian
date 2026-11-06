@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/theme.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/core/services/udid.dart';
@@ -116,15 +117,15 @@ class _OnlineBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.green.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(SolRadius.pill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.circle, size: 10, color: Colors.green),
+          const Icon(Icons.circle, size: 8, color: Colors.green),
           const Gap(4),
           Text(
             'online'.tr(),
@@ -149,42 +150,51 @@ class _DeviceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isCurrent = device.isCurrent;
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
+        color: isCurrent
+            ? colorScheme.primaryContainer.withValues(alpha: 0.35)
+            : colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(SolRadius.card),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(SolRadius.card),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isCurrent
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(SolRadius.md),
                     ),
-                    child: Icon(switch (device.platform) {
-                      0 => Icons.device_unknown,
-                      1 => Icons.web,
-                      2 => Icons.phone_iphone,
-                      3 => Icons.phone_android,
-                      4 => Icons.laptop_mac,
-                      5 => Icons.window,
-                      6 => Icons.computer,
-                      _ => Icons.device_unknown,
-                    }, color: colorScheme.onPrimaryContainer),
+                    child: Icon(
+                      switch (device.platform) {
+                        0 => Icons.device_unknown,
+                        1 => Icons.web,
+                        2 => Icons.phone_iphone,
+                        3 => Icons.phone_android,
+                        4 => Icons.laptop_mac,
+                        5 => Icons.window,
+                        6 => Icons.computer,
+                        _ => Icons.device_unknown,
+                      },
+                      color: isCurrent
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  Gap(12),
+                  const Gap(12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,22 +208,27 @@ class _DeviceCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (device.isCurrent) ...[
-                              Gap(8),
+                            if (isCurrent) ...[
+                              const Gap(8),
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    SolRadius.pill,
+                                  ),
                                 ),
                                 child: Text(
                                   'authDeviceCurrent'.tr(),
                                   style: TextStyle(
-                                    color: colorScheme.onPrimary,
-                                    fontSize: 12,
+                                    color: colorScheme.primary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -223,15 +238,17 @@ class _DeviceCard extends StatelessWidget {
                               const _OnlineBadge(),
                             ],
                             if (device.trusted) ...[
-                              Gap(8),
+                              const Gap(8),
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
                                   color: colorScheme.tertiaryContainer,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(
+                                    SolRadius.pill,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -241,7 +258,7 @@ class _DeviceCard extends StatelessWidget {
                                       size: 12,
                                       color: colorScheme.onTertiaryContainer,
                                     ),
-                                    Gap(4),
+                                    const Gap(4),
                                     Text(
                                       'authTrusted'.tr(),
                                       style: TextStyle(
@@ -254,15 +271,17 @@ class _DeviceCard extends StatelessWidget {
                               ),
                             ],
                             if (device.sessions.isNotEmpty) ...[
-                              Gap(8),
+                              const Gap(8),
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
                                   color: colorScheme.secondaryContainer,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(
+                                    SolRadius.pill,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -272,7 +291,7 @@ class _DeviceCard extends StatelessWidget {
                                       size: 12,
                                       color: colorScheme.onSecondaryContainer,
                                     ),
-                                    Gap(4),
+                                    const Gap(4),
                                     Text(
                                       '${device.sessions.length}',
                                       style: TextStyle(
@@ -287,6 +306,14 @@ class _DeviceCard extends StatelessWidget {
                             ],
                           ],
                         ),
+                        if (device.deviceLabel != null) ...[
+                          const Gap(2),
+                          Text(
+                            device.deviceName,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
                         if (device.sessions.isNotEmpty)
                           Text(
                             'lastActiveAt'.tr(
@@ -300,6 +327,7 @@ class _DeviceCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const Gap(8),
                   Icon(
                     Icons.chevron_right,
                     color: colorScheme.onSurfaceVariant,
@@ -678,11 +706,7 @@ class _SessionMapPin extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.75),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 0.5,
-              ),
+              borderRadius: BorderRadius.circular(SolRadius.xs),
             ),
             child: Text(
               session.location?.city ?? 'Unknown',
@@ -773,6 +797,10 @@ class _DeviceInfoCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Card.filled(
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SolRadius.card),
+      ),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -783,10 +811,10 @@ class _DeviceInfoCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(SolRadius.md),
                   ),
                   child: Icon(
                     _getPlatformIcon(device.platform),
@@ -1159,23 +1187,28 @@ class _SessionTreeTile extends HookConsumerWidget {
         ? ref.watch(sessionChildrenProvider(session.id))
         : null;
 
+    final isCurrent = session.isCurrent;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           margin: EdgeInsets.only(
-            left: 16 + (depth * 24),
+            left: 16 + (depth * 20),
             right: 16,
             top: 6,
             bottom: 6,
           ),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colorScheme.outlineVariant),
+            color: isCurrent
+                ? colorScheme.primaryContainer.withValues(alpha: 0.35)
+                : (depth > 0
+                    ? colorScheme.surfaceContainer
+                    : colorScheme.surfaceContainerLow),
+            borderRadius: BorderRadius.circular(depth > 0 ? SolRadius.md : SolRadius.card),
           ),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1400,7 +1433,9 @@ class _SessionTreeTile extends HookConsumerWidget {
 }
 
 class AccountSessionSheet extends HookConsumerWidget {
-  const AccountSessionSheet({super.key});
+  final int initialIndex;
+
+  const AccountSessionSheet({super.key, this.initialIndex = 0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1532,16 +1567,18 @@ class AccountSessionSheet extends HookConsumerWidget {
       titleText: 'authSessions'.tr(),
       child: DefaultTabController(
         length: 2,
+        initialIndex: initialIndex,
         child: Column(
           children: [
             TabBar(
+              dividerColor: Colors.transparent,
               tabs: [
                 Tab(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Symbols.devices, size: 18),
-                      Gap(8),
+                      const Icon(Symbols.devices, size: 18),
+                      const Gap(8),
                       Text('authDevicesTab'.tr()),
                     ],
                   ),
@@ -1550,8 +1587,8 @@ class AccountSessionSheet extends HookConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Symbols.key, size: 18),
-                      Gap(8),
+                      const Icon(Symbols.key, size: 18),
+                      const Gap(8),
                       Text('authSessionsTab'.tr()),
                     ],
                   ),
@@ -1826,26 +1863,46 @@ class _SessionsTab extends StatelessWidget {
                       spacing: 8,
                       children: [
                         FilterChip(
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(SolRadius.pill),
+                          ),
                           label: Text('all'.tr()),
                           selected: selectedType == null,
                           onSelected: (_) => onTypeChanged(null),
                         ),
                         FilterChip(
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(SolRadius.pill),
+                          ),
                           label: Text('sessionTypeLogin'.tr()),
                           selected: selectedType == 0,
                           onSelected: (_) => onTypeChanged(0),
                         ),
                         FilterChip(
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(SolRadius.pill),
+                          ),
                           label: Text('sessionTypeOAuth'.tr()),
                           selected: selectedType == 1,
                           onSelected: (_) => onTypeChanged(1),
                         ),
                         FilterChip(
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(SolRadius.pill),
+                          ),
                           label: Text('sessionTypeOidc'.tr()),
                           selected: selectedType == 2,
                           onSelected: (_) => onTypeChanged(2),
                         ),
                         FilterChip(
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(SolRadius.pill),
+                          ),
                           label: Text('sessionTypeApiKey'.tr()),
                           selected: selectedType == 3,
                           onSelected: (_) => onTypeChanged(3),
@@ -1856,7 +1913,11 @@ class _SessionsTab extends StatelessWidget {
                 ),
                 if (data.items.where((s) => !s.isCurrent).isNotEmpty) ...[
                   const Gap(12),
-                  FilledButton.icon(
+                  FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                      foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
                     onPressed: logoutAllOtherSessions,
                     icon: const Icon(Icons.logout),
                     label: Text('authLogoutAllOtherSessions'.tr()),

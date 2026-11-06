@@ -132,6 +132,47 @@ Future<String> securityPreferencesMode(Ref ref) async {
   return (data['mode'] as String?) ?? 'default';
 }
 
+Widget _buildLeadingIcon(
+  BuildContext context,
+  IconData icon, {
+  Color? background,
+  Color? color,
+}) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return Container(
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      color: background ?? colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(SolRadius.md),
+    ),
+    child: Icon(
+      icon,
+      size: 20,
+      color: color ?? colorScheme.onSurfaceVariant,
+    ),
+  );
+}
+
+Widget _buildCountBadge(BuildContext context, int count) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+    decoration: BoxDecoration(
+      color: colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(SolRadius.pill),
+    ),
+    child: Text(
+      '$count',
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: colorScheme.onSurfaceVariant,
+      ),
+    ),
+  );
+}
+
 @RoutePage()
 class AccountSettingsScreen extends HookConsumerWidget {
   const AccountSettingsScreen({super.key});
@@ -192,26 +233,32 @@ class AccountSettingsScreen extends HookConsumerWidget {
     }
 
     final authFactors = ref.watch(authFactorsProvider);
+    final devicesCount = ref.watch(authDevicesProvider).whenOrNull(
+      data: (data) => data.totalCount ?? data.items.length,
+    );
+    final sessionsCount = ref.watch(authSessionsProvider()).whenOrNull(
+      data: (data) => data.totalCount,
+    );
 
     // Group settings into categories for better organization
     final profileSettings = [
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.person_edit),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.person_edit),
         title: Text('updateYourProfile').tr(),
         subtitle: Text('updateYourProfileDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           context.router.push(const AccountUpdateProfileRoute());
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.badge),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.badge),
         title: Text('changeName').tr(),
         subtitle: Text('changeNameDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           showModalBottomSheet(
@@ -223,11 +270,11 @@ class AccountSettingsScreen extends HookConsumerWidget {
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.dashboard_customize),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.dashboard_customize),
         title: Text('editBoard').tr(),
         subtitle: Text('editBoardDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           context.router.push(const AccountBoardEditRoute());
@@ -237,26 +284,55 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     final securitySettings = [
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.devices),
-        title: Text('authSessions').tr(),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.devices),
+        title: Text('authDevicesTab').tr(),
         subtitle: Text('authSessionsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        trailing: const Icon(Symbols.chevron_right),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (devicesCount != null) _buildCountBadge(context, devicesCount),
+            const Gap(8),
+            const Icon(Symbols.chevron_right),
+          ],
+        ),
         onTap: () {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => const AccountSessionSheet(),
+            builder: (context) => const AccountSessionSheet(initialIndex: 0),
           );
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.connected_tv),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.key),
+        title: Text('authSessionsTab').tr(),
+        subtitle: Text('authSessions').tr().fontSize(12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (sessionsCount != null) _buildCountBadge(context, sessionsCount),
+            const Gap(8),
+            const Icon(Symbols.chevron_right),
+          ],
+        ),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const AccountSessionSheet(initialIndex: 1),
+          );
+        },
+      ),
+      ListTile(
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.connected_tv),
         title: Text('authorizedApps').tr(),
         subtitle: Text('authorizedAppsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           showModalBottomSheet(
@@ -267,8 +343,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.lock),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.lock),
         title: Text('securityMode').tr(),
         subtitle: ref.watch(securityPreferencesModeProvider).when(
           data: (mode) => Text(
@@ -285,7 +361,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
           ),
           error: (_, _) => Text('securityModeDefault'.tr()).fontSize(12),
         ),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () async {
           final currentMode =
@@ -356,78 +432,87 @@ class AccountSettingsScreen extends HookConsumerWidget {
         },
       ),
       ExpansionTile(
-        leading: const Icon(
-          Symbols.link,
-        ).alignment(Alignment.centerLeft).width(48),
+        leading: _buildLeadingIcon(context, Symbols.link),
         title: Text('accountConnections').tr(),
         subtitle: Text('accountConnectionsDescription').tr().fontSize(12),
-        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         children: [
           ref
               .watch(accountConnectionsProvider)
               .when(
-                data: (connections) => Column(
-                  children: [
-                    for (final connection in connections)
-                      ListTile(
-                        minLeadingWidth: 48,
-                        contentPadding: const EdgeInsets.only(
-                          left: 16,
-                          right: 17,
-                          top: 2,
-                          bottom: 4,
-                        ),
-                        title: Text(
-                          getLocalizedProviderName(connection.provider),
-                        ).tr(),
-                        subtitle: connection.meta['email'] != null
-                            ? Text(connection.meta['email'])
-                            : Text(connection.providedIdentifier),
-                        leading: CircleAvatar(
-                          child: getProviderIcon(
-                            connection.provider,
-                            size: 16,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
+                data: (connections) => Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: Column(
+                    spacing: 6,
+                    children: [
+                      for (final connection in connections)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainer,
+                            borderRadius: BorderRadius.circular(SolRadius.md),
                           ),
-                        ).padding(top: 4),
-                        trailing: const Icon(Symbols.chevron_right),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) =>
-                                AccountConnectionSheet(connection: connection),
-                          ).then((value) {
-                            if (value == true) {
-                              ref.invalidate(accountConnectionsProvider);
-                            }
-                          });
-                        },
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
+                            title: Text(
+                              getLocalizedProviderName(connection.provider),
+                            ).tr(),
+                            subtitle: connection.meta['email'] != null
+                                ? Text(connection.meta['email'])
+                                : Text(connection.providedIdentifier),
+                            leading: CircleAvatar(
+                              child: getProviderIcon(
+                                connection.provider,
+                                size: 16,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) =>
+                                    AccountConnectionSheet(connection: connection),
+                              ).then((value) {
+                                if (value == true) {
+                                  ref.invalidate(accountConnectionsProvider);
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(SolRadius.md),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 2,
+                          ),
+                          title: Text('accountConnectionAdd').tr(),
+                          leading: const Icon(Symbols.add),
+                          trailing: const Icon(Symbols.chevron_right),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) =>
+                                  const AccountConnectionNewSheet(),
+                            ).then((value) {
+                              if (value == true) {
+                                ref.invalidate(accountConnectionsProvider);
+                              }
+                            });
+                          },
+                        ),
                       ),
-                    if (connections.isNotEmpty) const Divider(height: 1),
-                    ListTile(
-                      minLeadingWidth: 48,
-                      contentPadding: const EdgeInsets.only(
-                        left: 24,
-                        right: 17,
-                      ),
-                      title: Text('accountConnectionAdd').tr(),
-                      leading: const Icon(Symbols.add),
-                      trailing: const Icon(Symbols.chevron_right),
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) =>
-                              const AccountConnectionNewSheet(),
-                        ).then((value) {
-                          if (value == true) {
-                            ref.invalidate(accountConnectionsProvider);
-                          }
-                        });
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 error: (err, _) => ResponseErrorWidget(
                   error: err,
@@ -438,185 +523,205 @@ class AccountSettingsScreen extends HookConsumerWidget {
         ],
       ),
       ExpansionTile(
-        leading: const Icon(
-          Symbols.security,
-        ).alignment(Alignment.centerLeft).width(48),
+        leading: _buildLeadingIcon(context, Symbols.security),
         title: Text('accountAuthFactor').tr(),
         subtitle: Text('accountAuthFactorDescription').tr().fontSize(12),
-        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         children: [
           authFactors.when(
-            data: (factors) => Column(
-              children: [
-                for (final factor in factors)
-                  ListTile(
-                    minLeadingWidth: 48,
-                    contentPadding: const EdgeInsets.only(
-                      left: 16,
-                      right: 17,
-                      top: 2,
-                      bottom: 4,
+            data: (factors) => Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Column(
+                spacing: 6,
+                children: [
+                  for (final factor in factors)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(SolRadius.md),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 2,
+                        ),
+                        title: Text(
+                          kFactorTypes[factor.type]!.$1,
+                          style: factor.enabledAt == null
+                              ? const TextStyle(decoration: TextDecoration.lineThrough)
+                              : null,
+                        ).tr(),
+                        subtitle: Text(
+                          kFactorTypes[factor.type]!.$2,
+                          style: factor.enabledAt == null
+                              ? const TextStyle(decoration: TextDecoration.lineThrough)
+                              : null,
+                        ).tr(),
+                        leading: CircleAvatar(
+                          backgroundColor: factor.enabledAt == null
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.primaryContainer,
+                          child: Icon(kFactorTypes[factor.type]!.$3),
+                        ),
+                        trailing: const Icon(Symbols.chevron_right),
+                        isThreeLine: true,
+                        onTap: () {
+                          if (factor.type == 0) {
+                            requestResetPassword();
+                            return;
+                          }
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => AuthFactorSheet(factor: factor),
+                          ).then((value) {
+                            if (value == true) {
+                              ref.invalidate(authFactorsProvider);
+                            }
+                          });
+                        },
+                      ),
                     ),
-                    title: Text(
-                      kFactorTypes[factor.type]!.$1,
-                      style: factor.enabledAt == null
-                          ? TextStyle(decoration: TextDecoration.lineThrough)
-                          : null,
-                    ).tr(),
-                    subtitle: Text(
-                      kFactorTypes[factor.type]!.$2,
-                      style: factor.enabledAt == null
-                          ? TextStyle(decoration: TextDecoration.lineThrough)
-                          : null,
-                    ).tr(),
-                    leading: CircleAvatar(
-                      backgroundColor: factor.enabledAt == null
-                          ? Theme.of(context).colorScheme.secondaryContainer
-                          : Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(kFactorTypes[factor.type]!.$3),
-                    ).padding(top: 4),
-                    trailing: const Icon(Symbols.chevron_right),
-                    isThreeLine: true,
-                    onTap: () {
-                      if (factor.type == 0) {
-                        requestResetPassword();
-                        return;
-                      }
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) => AuthFactorSheet(factor: factor),
-                      ).then((value) {
-                        if (value == true) {
-                          ref.invalidate(authFactorsProvider);
-                        }
-                      });
-                    },
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(SolRadius.md),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 2,
+                      ),
+                      title: Text('authFactorNew').tr(),
+                      leading: const Icon(Symbols.add),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => const AuthFactorNewSheet(),
+                        ).then((value) {
+                          if (value == true) {
+                            ref.invalidate(authFactorsProvider);
+                          }
+                        });
+                      },
+                    ),
                   ),
-                if (factors.isNotEmpty) Divider(height: 1),
-                ListTile(
-                  minLeadingWidth: 48,
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  title: Text('authFactorNew').tr(),
-                  leading: const Icon(Symbols.add),
-                  trailing: const Icon(Symbols.chevron_right),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => const AuthFactorNewSheet(),
-                    ).then((value) {
-                      if (value == true) {
-                        ref.invalidate(authFactorsProvider);
-                      }
-                    });
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
             error: (err, _) => ResponseErrorWidget(
               error: err,
               onRetry: () => ref.invalidate(authFactorsProvider),
             ),
-            loading: () => ResponseLoadingWidget(),
+            loading: () => const ResponseLoadingWidget(),
           ),
         ],
       ),
       ListTile(
-        leading: const Icon(
-          Symbols.nfc,
-        ).alignment(Alignment.centerLeft).width(48),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.nfc),
         title: Text('physicalPassports').tr(),
         subtitle: Text('physicalPassportsEmptyDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           context.router.push(const PhysicalPassportRoute());
         },
       ),
       ExpansionTile(
-        leading: const Icon(
-          Symbols.contact_mail,
-        ).alignment(Alignment.centerLeft).width(48),
+        leading: _buildLeadingIcon(context, Symbols.contact_mail),
         title: Text('accountContactMethod').tr(),
         subtitle: Text('accountContactMethodDescription').tr().fontSize(12),
-        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         children: [
           ref
               .watch(contactMethodsProvider)
               .when(
-                data: (contacts) => Column(
-                  children: [
-                    for (final contact in contacts)
-                      ListTile(
-                        minLeadingWidth: 48,
-                        contentPadding: const EdgeInsets.only(
-                          left: 16,
-                          right: 17,
-                          top: 2,
-                          bottom: 4,
-                        ),
-                        title: Text(
-                          contact.content,
-                          style: contact.verifiedAt == null
-                              ? TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                )
-                              : null,
-                        ),
-                        subtitle: Text(
-                          contact.type == 0
-                              ? 'contactMethodTypeEmail'.tr()
-                              : 'contactMethodTypePhone'.tr(),
-                          style: contact.verifiedAt == null
-                              ? TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                )
-                              : null,
-                        ),
-                        leading: CircleAvatar(
-                          backgroundColor: contact.verifiedAt == null
-                              ? Theme.of(context).colorScheme.secondaryContainer
-                              : Theme.of(context).colorScheme.primaryContainer,
-                          child: Icon(
-                            contact.type == 0 ? Symbols.mail : Symbols.phone,
+                data: (contacts) => Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: Column(
+                    spacing: 6,
+                    children: [
+                      for (final contact in contacts)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainer,
+                            borderRadius: BorderRadius.circular(SolRadius.md),
                           ),
-                        ).padding(top: 4),
-                        trailing: const Icon(Symbols.chevron_right),
-                        isThreeLine: false,
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) =>
-                                ContactMethodSheet(contact: contact),
-                          ).then((value) {
-                            if (value == true) {
-                              ref.invalidate(contactMethodsProvider);
-                            }
-                          });
-                        },
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
+                            title: Text(
+                              contact.content,
+                              style: contact.verifiedAt == null
+                                  ? const TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                    )
+                                  : null,
+                            ),
+                            subtitle: Text(
+                              contact.type == 0
+                                  ? 'contactMethodTypeEmail'.tr()
+                                  : 'contactMethodTypePhone'.tr(),
+                              style: contact.verifiedAt == null
+                                  ? const TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                    )
+                                  : null,
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: contact.verifiedAt == null
+                                  ? Theme.of(context).colorScheme.secondaryContainer
+                                  : Theme.of(context).colorScheme.primaryContainer,
+                              child: Icon(
+                                contact.type == 0 ? Symbols.mail : Symbols.phone,
+                              ),
+                            ),
+                            trailing: const Icon(Symbols.chevron_right),
+                            isThreeLine: false,
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) =>
+                                    ContactMethodSheet(contact: contact),
+                              ).then((value) {
+                                if (value == true) {
+                                  ref.invalidate(contactMethodsProvider);
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(SolRadius.md),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 2,
+                          ),
+                          title: Text('contactMethodNew').tr(),
+                          leading: const Icon(Symbols.add),
+                          trailing: const Icon(Symbols.chevron_right),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => const ContactMethodNewSheet(),
+                            ).then((value) {
+                              if (value == true) {
+                                ref.invalidate(contactMethodsProvider);
+                              }
+                            });
+                          },
+                        ),
                       ),
-                    if (contacts.isNotEmpty) const Divider(height: 1),
-                    ListTile(
-                      minLeadingWidth: 48,
-                      contentPadding: const EdgeInsets.only(
-                        left: 24,
-                        right: 17,
-                      ),
-                      title: Text('contactMethodNew').tr(),
-                      leading: const Icon(Symbols.add),
-                      trailing: const Icon(Symbols.chevron_right),
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) => const ContactMethodNewSheet(),
-                        ).then((value) {
-                          if (value == true) {
-                            ref.invalidate(contactMethodsProvider);
-                          }
-                        });
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 error: (err, _) => ResponseErrorWidget(
                   error: err,
@@ -634,54 +739,74 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     final defaultPublisherSettings = [
       ExpansionTile(
-        leading: const Icon(
-          Symbols.edit,
-        ).alignment(Alignment.centerLeft).width(48),
+        leading: _buildLeadingIcon(context, Symbols.edit),
         title: Text('defaultPublisher').tr(),
         subtitle: Text('defaultPublisherDescription').tr().fontSize(12),
-        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         children: [
           publishingSettings.when(
             data: (settings) => publishers.when(
               data: (publisherList) => fediverseAvailability.when(
-                data: (fediversePublishers) => Column(
-                  children: [
-                    _PublisherListTile(
-                      title: 'defaultPostingPublisher'.tr(),
-                      publisherId: settings.defaultPostingPublisherId,
-                      publishers: publisherList,
-                      onTap: () => _showPublisherPicker(
-                        context,
-                        ref,
-                        settings.defaultPostingPublisherId,
-                        publisherList,
-                        'posting',
+                data: (fediversePublishers) => Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: Column(
+                    spacing: 6,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(SolRadius.md),
+                        ),
+                        child: _PublisherListTile(
+                          title: 'defaultPostingPublisher'.tr(),
+                          publisherId: settings.defaultPostingPublisherId,
+                          publishers: publisherList,
+                          onTap: () => _showPublisherPicker(
+                            context,
+                            ref,
+                            settings.defaultPostingPublisherId,
+                            publisherList,
+                            'posting',
+                          ),
+                        ),
                       ),
-                    ),
-                    _PublisherListTile(
-                      title: 'defaultReplyPublisher'.tr(),
-                      publisherId: settings.defaultReplyPublisherId,
-                      publishers: publisherList,
-                      onTap: () => _showPublisherPicker(
-                        context,
-                        ref,
-                        settings.defaultReplyPublisherId,
-                        publisherList,
-                        'reply',
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(SolRadius.md),
+                        ),
+                        child: _PublisherListTile(
+                          title: 'defaultReplyPublisher'.tr(),
+                          publisherId: settings.defaultReplyPublisherId,
+                          publishers: publisherList,
+                          onTap: () => _showPublisherPicker(
+                            context,
+                            ref,
+                            settings.defaultReplyPublisherId,
+                            publisherList,
+                            'reply',
+                          ),
+                        ),
                       ),
-                    ),
-                    _FediversePublisherListTile(
-                      title: 'defaultFediversePublisher'.tr(),
-                      publisherId: settings.defaultFediversePublisherId,
-                      fediversePublishers: fediversePublishers,
-                      onTap: () => _showFediversePublisherPicker(
-                        context,
-                        ref,
-                        settings.defaultFediversePublisherId,
-                        fediversePublishers,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(SolRadius.md),
+                        ),
+                        child: _FediversePublisherListTile(
+                          title: 'defaultFediversePublisher'.tr(),
+                          publisherId: settings.defaultFediversePublisherId,
+                          fediversePublishers: fediversePublishers,
+                          onTap: () => _showFediversePublisherPicker(
+                            context,
+                            ref,
+                            settings.defaultFediversePublisherId,
+                            fediversePublishers,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 error: (err, _) => ResponseErrorWidget(
                   error: err,
@@ -707,17 +832,17 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     final notificationPreferencesSettings = [
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.notifications),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.notifications),
         title: Text('notificationPreferences').tr(),
         subtitle: Text('notificationPreferencesDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => NotificationTopicsSheet(),
+            builder: (context) => const NotificationTopicsSheet(),
           ).then((value) {
             if (value == true) {
               ref.invalidate(notificationPreferencesProvider);
@@ -726,13 +851,13 @@ class AccountSettingsScreen extends HookConsumerWidget {
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.cell_tower),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.cell_tower),
         title: Text('notificationSubscriptions').tr(),
         subtitle: Text(
           'notificationSubscriptionsDescription',
         ).tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           showModalBottomSheet(
@@ -747,11 +872,11 @@ class AccountSettingsScreen extends HookConsumerWidget {
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.notifications_active),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.notifications_active),
         title: Text('postWatchSettings').tr(),
         subtitle: Text('postWatchSettingsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () => showPostWatchSheet(context),
       ),
@@ -759,22 +884,22 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     final activitySettings = [
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.history),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.history),
         title: Text('actionLogs').tr(),
         subtitle: Text('actionLogsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           context.router.push(const ActionLogsRoute());
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.gavel),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.gavel),
         title: Text('punishments').tr(),
         subtitle: Text('punishmentsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           context.router.push(const PunishmentsRoute());
@@ -785,11 +910,11 @@ class AccountSettingsScreen extends HookConsumerWidget {
         'affiliations',
       ))
         ListTile(
-          minLeadingWidth: 48,
-          leading: const Icon(Symbols.auto_fix_high),
+          minLeadingWidth: 44,
+          leading: _buildLeadingIcon(context, Symbols.auto_fix_high),
           title: Text('affiliations').tr(),
           subtitle: Text('affiliationsDescription').tr().fontSize(12),
-          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
             context.router.push(const AffiliationRoute());
@@ -799,23 +924,37 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
     final dangerZoneSettings = [
       ListTile(
-        minLeadingWidth: 48,
-        title: Text('accountDeletion').tr(),
+        minLeadingWidth: 44,
+        title: Text(
+          'accountDeletion'.tr(),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         subtitle: Text('accountDeletionDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.delete_forever, color: Colors.red),
-        trailing: const Icon(Symbols.chevron_right),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        leading: _buildLeadingIcon(
+          context,
+          Symbols.delete_forever,
+          background: Theme.of(context).colorScheme.error.withValues(alpha: 0.15),
+          color: Theme.of(context).colorScheme.error,
+        ),
+        trailing: Icon(
+          Symbols.chevron_right,
+          color: Theme.of(context).colorScheme.error,
+        ),
         onTap: requestAccountDeletion,
       ),
     ];
 
     final integrationsSettings = [
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.group),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.group),
         title: Text('settingsChatGroups').tr(),
         subtitle: Text('settingsChatGroupsDesc').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () async {
           final accountId = ref.read(userInfoProvider).value?.id;
@@ -839,11 +978,11 @@ class AccountSettingsScreen extends HookConsumerWidget {
         },
       ),
       ListTile(
-        minLeadingWidth: 48,
-        leading: const Icon(Symbols.cloud_sync),
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.cloud_sync),
         title: Text('storageSettings').tr(),
         subtitle: Text('storageSettingsDescription').tr().fontSize(12),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           showModalBottomSheet(
@@ -887,6 +1026,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
           ),
           _SettingsSection(
             title: 'accountDangerZoneTitle',
+            isDanger: true,
             children: dangerZoneSettings,
           ),
         ],
@@ -977,28 +1117,50 @@ class AccountSettingsScreen extends HookConsumerWidget {
 class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
+  final bool isDanger;
 
-  const _SettingsSection({required this.title, required this.children});
+  const _SettingsSection({
+    required this.title,
+    required this.children,
+    this.isDanger = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
+      elevation: 0,
       margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      color: isDanger
+          ? colorScheme.errorContainer.withValues(alpha: 0.22)
+          : colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SolRadius.card),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            padding: const EdgeInsets.fromLTRB(
+              SolSpace.xl,
+              SolSpace.lg,
+              SolSpace.xl,
+              SolSpace.sm,
+            ),
             child: Text(
               title.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: isDanger ? colorScheme.error : colorScheme.primary,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
               ),
             ),
           ),
           ...children,
-          const SizedBox(height: 16),
+          const Gap(SolSpace.sm),
         ],
       ),
     );
@@ -1776,18 +1938,21 @@ class NotificationSubscriptionDetailSheet extends ConsumerWidget {
               ],
             ),
           ),
-          const Divider(height: 1),
-          ListTile(
-            leading: Icon(
-              Symbols.delete,
-              color: Theme.of(context).colorScheme.error,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: FilledButton.tonalIcon(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(SolRadius.control),
+                ),
+              ),
+              icon: const Icon(Symbols.delete),
+              label: Text('notificationSubscriptionDelete'.tr()),
+              onPressed: unsubscribe,
             ),
-            title: Text(
-              'notificationSubscriptionDelete'.tr(),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            onTap: unsubscribe,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           ),
         ],
       ),
@@ -2012,10 +2177,14 @@ class _PhysicalPassportListItem extends StatelessWidget {
 
     return Card(
       elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SolRadius.card),
+      ),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(SolRadius.card),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -2580,11 +2749,9 @@ class _PhysicalPassportDetailSheetState
                 ),
               ],
             ),
-            const Gap(24),
-            const Divider(),
             const Gap(16),
             if (!passport.isLocked && !passport.isEncrypted) ...[
-              OutlinedButton.icon(
+              FilledButton.tonalIcon(
                 onPressed: _isSubmitting ? null : _writePassport,
                 icon: _isSubmitting
                     ? const SizedBox(
@@ -2615,7 +2782,7 @@ class _PhysicalPassportDetailSheetState
               if (!passport.isEncrypted)
                 ...([
                   const Gap(8),
-                  OutlinedButton.icon(
+                  FilledButton.tonalIcon(
                     onPressed: _isSubmitting ? null : _writePassport,
                     icon: _isSubmitting
                         ? const SizedBox(
@@ -2627,7 +2794,7 @@ class _PhysicalPassportDetailSheetState
                     label: Text('writePhysicalPassport'.tr()),
                   ),
                 ]),
-              OutlinedButton.icon(
+              FilledButton.tonalIcon(
                 onPressed: _isSubmitting ? null : _lockPassport,
                 icon: _isSubmitting
                     ? const SizedBox(
@@ -2639,13 +2806,17 @@ class _PhysicalPassportDetailSheetState
                 label: Text('lockPhysicalPassport'.tr()),
               ),
               const Gap(8),
-              OutlinedButton.icon(
+              FilledButton.tonalIcon(
                 onPressed: () => setState(() => _isEditing = true),
                 icon: const Icon(Symbols.edit),
                 label: Text('editPhysicalPassport'.tr()),
               ),
               const Gap(8),
-              OutlinedButton.icon(
+              FilledButton.tonalIcon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.errorContainer,
+                  foregroundColor: colorScheme.onErrorContainer,
+                ),
                 onPressed: _isSubmitting ? null : _deletePassport,
                 icon: _isSubmitting
                     ? const SizedBox(
@@ -2653,18 +2824,15 @@ class _PhysicalPassportDetailSheetState
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Icon(Symbols.delete, color: colorScheme.error),
-                label: Text(
-                  'physicalPassportDelete'.tr(),
-                  style: TextStyle(color: colorScheme.error),
-                ),
+                    : const Icon(Symbols.delete),
+                label: Text('physicalPassportDelete'.tr()),
               ),
             ],
             if (_isEditing) ...[
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: FilledButton.tonal(
                       onPressed: _isSubmitting
                           ? null
                           : () {
@@ -3217,14 +3385,30 @@ class _SecurityModeOption extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return ListTile(
-      leading: Icon(
-        isSelected ? Symbols.radio_button_checked : Symbols.radio_button_unchecked,
-        color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? scheme.primaryContainer.withValues(alpha: 0.35)
+              : scheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(SolRadius.md),
+        ),
+        child: ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SolRadius.md),
+          ),
+          leading: Icon(
+            isSelected
+                ? Symbols.radio_button_checked
+                : Symbols.radio_button_unchecked,
+            color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
+          ),
+          title: Text(label),
+          subtitle: Text(description).fontSize(12),
+          onTap: () => Navigator.pop(context, value),
+        ),
       ),
-      title: Text(label),
-      subtitle: Text(description).fontSize(12),
-      onTap: () => Navigator.pop(context, value),
     );
   }
 }
