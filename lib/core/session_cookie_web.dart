@@ -9,9 +9,6 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/core/shared_sign_in_url.dart';
 
-/// Whether this build can sign in through the console's shared page.
-const bool canUseSharedSignIn = true;
-
 /// Opts a Dio client into the browser's cookie jar.
 ///
 /// The browser only attaches cookies to a cross-origin request when the

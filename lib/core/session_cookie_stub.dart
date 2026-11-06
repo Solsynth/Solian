@@ -1,12 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Whether this build can sign in through the console's shared page.
-///
-/// A native client has no browser cookie jar, so the console's session never
-/// reaches it: it keeps its in-app sign-in and shows no shared-page affordance.
-const bool canUseSharedSignIn = false;
-
 /// No-op: a native client has no browser cookie jar to opt into.
 void enableSharedCookieCredentials(Dio dio) {}
 

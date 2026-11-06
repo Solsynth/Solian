@@ -12,11 +12,8 @@ import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/accounts/screens/punishment_user_sheet.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/session_cookie.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/accounts/screens/me/settings_connections.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/nfc_scan_service.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
@@ -26,12 +23,11 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'captcha.dart';
-import 'widgets/shared_sign_in_card.dart';
+import 'web_sign_in.dart';
 
 /// Performs post-login tasks including fetching user info, subscribing to push
 /// notifications, connecting websocket, and closing the login dialog.
@@ -957,47 +953,11 @@ class _LoginLookupScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
     final usernameController = useTextEditingController();
-    final waitingForOidc = useState(false);
 
     useEffect(() {
       onBusy.call(isBusy.value);
       return null;
     }, [isBusy]);
-
-    useEffect(() {
-      final subscription = eventBus.on<OidcAuthCallbackEvent>().listen((
-        event,
-      ) async {
-        if (!waitingForOidc.value || !context.mounted) return;
-        waitingForOidc.value = false;
-        final client = ref.watch(solarNetworkClientProvider);
-        try {
-          await _resolveUserAgent(ref);
-          final resp = await client.dio.get(
-            '/stargate/auth/challenge/${event.challengeId}',
-          );
-          final challenge = SnAuthChallenge.fromJson(resp.data);
-          final (current, factors) = await _readChallengeFactors(
-            client.dio,
-            challenge,
-            // The challenge is created by the OIDC exchange before the deep
-            // link reaches this client, so it cannot be re-created here; the
-            // only recovery is to re-read it and retry the factor read once.
-            recreate: () async => SnAuthChallenge.fromJson(
-              (await client.dio.get(
-                '/stargate/auth/challenge/${challenge.id}',
-              )).data,
-            ),
-          );
-          onChallenge(current);
-          onFactor(factors);
-          onNext();
-        } catch (err) {
-          showErrorAlert(err);
-        }
-      });
-      return subscription.cancel;
-    }, [waitingForOidc.value, context.mounted]);
 
     Future<void> requestResetPassword() async {
       final uname = usernameController.value.text;
@@ -1054,45 +1014,36 @@ class _LoginLookupScreen extends HookConsumerWidget {
       }
     }
 
-    Future<void> withApple() async {
-      final client = ref.watch(solarNetworkClientProvider);
+    /// Signs in through the identity console.
+    ///
+    /// Every social provider now lives there, so this app asks the console for
+    /// one authorization code instead of greeting each provider itself. On a
+    /// native build the code comes back on a loopback listener and is exchanged
+    /// with PKCE; on the web the tab leaves for the console and the shared
+    /// cookie signs this app in when it returns, so nothing is handed back here.
+    Future<void> signInOverWebPressed() async {
+      isBusy.value = true;
+      if (kWebSignInReturnsToApp) showLoadingModal(context);
       try {
-        final credential = await SignInWithApple.getAppleIDCredential(
-          scopes: [AppleIDAuthorizationScopes.email],
-          webAuthenticationOptions: WebAuthenticationOptions(
-            clientId: 'dev.solsynth.solarpass',
-            redirectUri: Uri.parse('https://nt.solian.app/auth/callback/apple'),
-          ),
+        final tokens = await signInOverWeb(
+          serverUrl: ref.read(serverUrlProvider),
         );
+        if (tokens == null) return; // The web leaves the page; nothing to do.
 
-        if (context.mounted) showLoadingModal(context);
-        final resp = await client.dio.post(
-          '/stargate/auth/login/apple/mobile',
-          data: {
-            'identity_token': credential.identityToken!,
-            'authorization_code': credential.authorizationCode,
-            'device_id': await getUdid(),
-            'device_name': await getDeviceName(),
-          },
-        );
-
-        final token = resp.data['token'];
-        setToken(
-          ref.watch(sharedPreferencesProvider),
-          token,
-          refreshToken: resp.data['refresh_token'] as String?,
-          expiresIn: (resp.data['expires_in'] as num?)?.toInt(),
-          refreshExpiresIn: (resp.data['refresh_expires_in'] as num?)?.toInt(),
+        await setToken(
+          ref.read(sharedPreferencesProvider),
+          tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          expiresIn: tokens.expiresIn,
         );
         ref.invalidate(tokenProvider);
         if (!context.mounted) return;
-
-        // Do post login tasks
         await performPostLogin(context, ref);
       } catch (err) {
-        if (err is SignInWithAppleAuthorizationException) return;
+        if (!context.mounted) return;
         showErrorAlert(err);
       } finally {
+        isBusy.value = false;
         if (context.mounted) hideLoadingModal(context);
       }
     }
@@ -1139,46 +1090,12 @@ class _LoginLookupScreen extends HookConsumerWidget {
       }
     }
 
-    Future<void> withOidc(String provider) async {
-      waitingForOidc.value = true;
-      final serverUrl = ref.watch(serverUrlProvider);
-      final token = ref.watch(tokenProvider);
-      final deviceId = await getUdid();
-      final queryParams = <String, String>{
-        'returnUrl': 'solian://auth/callback',
-        'deviceId': deviceId,
-        'flow': 'login',
-      };
-      if (token?.token != null) {
-        queryParams['token'] = token!.token;
-      }
-      final url = Uri.parse(
-        '$serverUrl/stargate/auth/login/${provider.toLowerCase()}',
-      ).replace(queryParameters: queryParams).toString();
-      final isLaunched = await launchUrlString(
-        url,
-        mode: kIsWeb
-            ? LaunchMode.platformDefault
-            : LaunchMode.externalApplication,
-        webOnlyWindowName: token?.token != null
-            ? 'auth-${token!.token}'
-            : 'auth',
-      );
-      if (!isLaunched) {
-        waitingForOidc.value = false;
-        showErrorAlert('failedToLaunchBrowser'.tr());
-      }
-    }
-
     final scheme = Theme.of(context).colorScheme;
     final methodIconColor = scheme.onSecondaryContainer;
 
     return AuthFormColumn(
       children: [
         AuthFormHeader(icon: Symbols.login, title: 'loginGreeting'.tr()),
-        // Web only: the same session the console holds in its cookie can sign
-        // this app in, and that page has factors this form does not.
-        if (canUseSharedSignIn) const SharedSignInCard(),
         TextField(
           autocorrect: false,
           enableSuggestions: false,
@@ -1217,36 +1134,15 @@ class _LoginLookupScreen extends HookConsumerWidget {
               icon: Icon(Symbols.fingerprint, size: 18, color: methodIconColor),
               tooltip: 'authFactorPasskey'.tr(),
             ),
-            if (!kIsWeb) ...[
-              AuthMethodIconButton(
-                onPressed: () => withOidc('github'),
-                icon: getProviderIcon(
-                  'github',
-                  size: 18,
-                  color: methodIconColor,
-                ),
-                tooltip: 'GitHub',
-              ),
-              AuthMethodIconButton(
-                onPressed: () => withOidc('google'),
-                icon: getProviderIcon(
-                  'google',
-                  size: 18,
-                  color: methodIconColor,
-                ),
-                tooltip: 'Google',
-              ),
-              AuthMethodIconButton(
-                onPressed: withApple,
-                icon: getProviderIcon(
-                  'apple',
-                  size: 18,
-                  color: methodIconColor,
-                ),
-                tooltip: 'Apple Account',
-              ),
-            ],
           ],
+        ),
+        // Every identity provider now lives on the console, so this is the one
+        // option that reaches them: a native build gets a PKCE code back on
+        // loopback, the web build lands back here with the shared cookie.
+        OutlinedButton.icon(
+          onPressed: isBusy.value ? null : signInOverWebPressed,
+          icon: const Icon(Symbols.travel_explore, size: 18),
+          label: Text('signInOverWeb'.tr()),
         ),
         AuthFormActions(isBusy: isBusy.value, onNext: performNewTicket),
         Column(
