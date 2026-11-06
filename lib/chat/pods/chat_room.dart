@@ -936,13 +936,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   Future<void> _syncAllMessagesImpl() async {
     Logger.root.info('Starting global chat sync...');
-    ref.read(chatSyncHintProvider.notifier).set('chatSyncHistory'.tr());
-
-    Future.microtask(() {
-      if (ref.mounted) {
-        ref.read(chatSyncingProvider.notifier).begin();
-      }
-    });
+    // The flag and hint live on app-level providers that outlive this notifier,
+    // so hold their notifiers for the whole run. Cleanup must not depend on
+    // `ref.mounted`: a skipped `end()` leaves the counter raised for the rest
+    // of the session and the indicator spins forever.
+    final syncing = ref.read(chatSyncingProvider.notifier);
+    final hint = ref.read(chatSyncHintProvider.notifier);
+    hint.set('chatSyncHistory'.tr());
+    Future.microtask(syncing.begin);
 
     try {
       final client = ref.read(apiClientProvider);
@@ -1048,16 +1049,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           Logger.root.info(
             'Global sync round ${eagerRound + 1} received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
           );
-          ref
-              .read(chatSyncHintProvider.notifier)
-              .set(
-                'chatSyncHistoryProgress'.tr(
-                  args: [
-                    '${roundSynced + messages.length}',
-                    '${eagerRound + 1}',
-                  ],
-                ),
-              );
+          hint.set(
+            'chatSyncHistoryProgress'.tr(
+              args: ['${roundSynced + messages.length}', '${eagerRound + 1}'],
+            ),
+          );
 
           // Save normal messages in one write transaction to avoid UI jank.
           final normalMessages = <LocalChatMessage>[];
@@ -1232,9 +1228,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       Logger.root.info(
         'Global sync complete: $totalSynced messages saved (nextCursor=$nextCursor)',
       );
-      ref
-          .read(chatSyncHintProvider.notifier)
-          .set('chatSyncComplete'.tr(args: ['$totalSynced']));
+      hint.set('chatSyncComplete'.tr(args: ['$totalSynced']));
       if (syncedLatestByRoom.isNotEmpty) {
         await ref
             .read(chatSummaryProvider.notifier)
@@ -1249,11 +1243,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     } catch (e, stackTrace) {
       Logger.root.info('Error during global chat sync', e, stackTrace);
     } finally {
+      // Cleanup must not depend on `ref.mounted`: the flag and hint live on
+      // app-level providers that outlive this notifier, and skipping `end()`
+      // leaves the counter raised for the rest of the session.
       Future.microtask(() {
-        if (ref.mounted) {
-          ref.read(chatSyncingProvider.notifier).end();
-          ref.read(chatSyncHintProvider.notifier).clear();
-        }
+        syncing.end();
+        hint.clear();
       });
     }
   }
@@ -1272,7 +1267,12 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     }
 
     Future<void> syncRemoteRooms(List<SnChatRoom> localRooms) async {
-      ref.read(chatSyncingProvider.notifier).begin();
+      // Captured before the await: this notifier is auto-dispose and gets
+      // invalidated from the list, resume, and room-event flows. Reading `ref`
+      // in `finally` after disposal throws, and a skipped `end()` would leave
+      // the global sync flag raised for the rest of the session.
+      final syncing = ref.read(chatSyncingProvider.notifier);
+      syncing.begin();
       try {
         final client = ref.read(apiClientProvider);
         final savedCursor = prefs.getInt(_chatRoomSyncCursorStoreKey) ?? 0;
@@ -1366,9 +1366,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           currentTimestamp.millisecondsSinceEpoch,
         );
       } finally {
-        if (ref.mounted) {
-          ref.read(chatSyncingProvider.notifier).end();
-        }
+        syncing.end();
       }
     }
 
