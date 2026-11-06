@@ -71,17 +71,18 @@ bool get _supportsPhysicalPassportLogin {
 
 /// Drops factors that cannot / should not be completed via the factor picker.
 ///
+/// Stargate now starts a password login with the password factor alone and
+/// returns the remaining factors only after it is verified. This client reads
+/// the list again after every step, so a passkey may settle a later step and
+/// is no longer excluded here.
+///
 /// - In-app notification (2): replaced by the push + poll cross-device
 ///   approval flow, so it is no longer offered as a selectable factor.
 /// - Physical passport (6): NFC only on mobile.
-/// - Passkey (7): offered separately as discoverable passkey on the lookup step.
 List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
   return factors.where((factor) {
     if (factor.type == 2) {
       return false; // in-app notification — replaced by push + poll approval
-    }
-    if (factor.type == 7) {
-      return false; // passkey — use alt-methods entry instead
     }
     if (factor.type == 6) {
       return _supportsPhysicalPassportLogin;
@@ -89,6 +90,11 @@ List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
     return true;
   }).toList();
 }
+
+/// Factors whose code is issued by the server before the person can submit
+/// it. Stargate only emails a code when the caller picks the email factor;
+/// TOTP, NFC, passwords and passkeys need no request.
+bool _factorNeedsCodeRequest(SnAuthFactor factor) => factor.type == 1;
 
 class _QrLoginChallenge {
   final String qrChallengeId;
@@ -258,6 +264,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
   final SnAuthChallenge? challenge;
   final SnAuthFactor? factor;
   final Function(SnAuthChallenge?) onChallenge;
+  final Function(List<SnAuthFactor>) onFactors;
   final VoidCallback onNext;
   final Function(bool) onBusy;
 
@@ -266,6 +273,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
     required this.challenge,
     required this.factor,
     required this.onChallenge,
+    required this.onFactors,
     required this.onNext,
     required this.onBusy,
   });
@@ -284,6 +292,19 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
     Future<void> getToken({String? code}) async {
       await exchangeAuthCodeForToken(context, ref, code: code ?? challenge!.id);
+    }
+
+    /// Stargate only returns the remaining factors after the password step.
+    /// Re-read the picker every time a step settles so TOTP/NFC/passkey/email
+    /// appear (and the used factor disappears) without a reload.
+    Future<void> refreshFactors(String challengeId) async {
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        onFactors(await _fetchLoginFactors(client.dio, challengeId));
+      } catch (_) {
+        // Best-effort: a failed refresh must not abort a verified step; the
+        // picker keeps the previous list and the poll can retry.
+      }
     }
 
     useEffect(() {
@@ -325,6 +346,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
         final result = SnAuthChallenge.fromJson(resp.data);
         onChallenge(result);
         if (result.stepRemain > 0) {
+          await refreshFactors(result.id);
           onNext();
           return;
         }
@@ -438,6 +460,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
         );
         onChallenge(result);
         if (result.stepRemain > 0) {
+          await refreshFactors(result.id);
           onNext();
           return;
         }
@@ -681,6 +704,7 @@ class LoginContent extends HookConsumerWidget {
                   factor: factorPicked.value,
                   onChallenge: (SnAuthChallenge? p0) =>
                       currentTicket.value = p0,
+                  onFactors: (p0) => factors.value = p0,
                   onNext: () => period.value = 1,
                   onBusy: (value) => isBusy.value = value,
                 ),
@@ -741,16 +765,26 @@ class _LoginPickerScreen extends HookConsumerWidget {
     }, [challenge]);
 
     void performGetFactorCode() async {
-      if (factorPicked.value == null) return;
+      final picked = factorPicked.value;
+      if (picked == null) return;
+
+      // Stargate issues a code only for the email factor; TOTP, NFC, passkeys
+      // and the password need no request (and reject one). Go straight to
+      // the credential screen in those cases.
+      if (!_factorNeedsCodeRequest(picked)) {
+        onPickFactor(picked);
+        onNext();
+        return;
+      }
 
       isBusy.value = true;
       final client = ref.watch(solarNetworkClientProvider);
 
       try {
         await client.dio.post(
-          '/stargate/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
+          '/stargate/auth/challenge/${challenge!.id}/factors/${picked.id}',
         );
-        onPickFactor(factors!.where((x) => x == factorPicked.value).first);
+        onPickFactor(picked);
         onNext();
       } catch (err) {
         if (err is DioException && err.response?.statusCode == 400) {
