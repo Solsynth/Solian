@@ -13,6 +13,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 class AuthorizedAppsNotifier
     extends AsyncNotifier<PaginationState<AuthorizedApp>>
@@ -277,7 +278,7 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final stargateApi = ref.read(solarNetworkClientProvider).stargate;
-        await stargateApi.deauthorizeApp(id);
+        await withSudoRetry(context, ref, () => stargateApi.deauthorizeApp(id));
         ref.invalidate(authorizedAppsProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -335,10 +336,15 @@ class AccountAuthorizedAppsSheet extends HookConsumerWidget {
                     if (result == null || !context.mounted) return;
                     showLoadingModal(context);
                     try {
-                      await ref
-                          .read(solarNetworkClientProvider)
-                          .stargate
-                          .authorizeAppScopes(app.id, result);
+                      await withSudoRetry(
+                        context,
+                        ref,
+                        () => ref
+                            .read(solarNetworkClientProvider)
+                            .stargate
+                            .authorizeAppScopes(app.id, result),
+                        onBeforePrompt: () => hideLoadingModal(context),
+                      );
                       showSnackBar('scopesUpdated'.tr());
                       ref.invalidate(authorizedAppsProvider);
                     } catch (err) {

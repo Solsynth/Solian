@@ -89,7 +89,12 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post('/stargate/contacts/${contact.id}/public');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.post('/stargate/contacts/${contact.id}/public'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -102,7 +107,12 @@ class ContactMethodSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/stargate/contacts/${contact.id}/public');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.delete('/stargate/contacts/${contact.id}/public'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -247,7 +257,10 @@ class ContactMethodNewSheet extends HookConsumerWidget {
           ref,
           () => apiClient.post(
             '/stargate/contacts',
-            data: {'type': contactType.value, 'content': contentController.text},
+            data: {
+              'type': contactType.value,
+              'content': contentController.text,
+            },
           ),
           onBeforePrompt: () => hideLoadingModal(context),
         );

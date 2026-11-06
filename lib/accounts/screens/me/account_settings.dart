@@ -288,7 +288,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () async {
-          final currentMode = ref.read(securityPreferencesModeProvider).value ?? 'default';
+          final currentMode =
+              ref.read(securityPreferencesModeProvider).value ?? 'default';
           if (!context.mounted) return;
           final selected = await showModalBottomSheet<String>(
             context: context,
@@ -332,11 +333,18 @@ class AccountSettingsScreen extends HookConsumerWidget {
               ),
             ),
           );
-          if (selected == null || selected == currentMode || !context.mounted) return;
+          if (selected == null || selected == currentMode || !context.mounted) {
+            return;
+          }
           try {
             showLoadingModal(context);
             final client = ref.read(solarNetworkClientProvider);
-            await client.stargate.updateSecurityPreferences(mode: selected);
+            await withSudoRetry(
+              context,
+              ref,
+              () => client.stargate.updateSecurityPreferences(mode: selected),
+              onBeforePrompt: () => hideLoadingModal(context),
+            );
             ref.invalidate(securityPreferencesModeProvider);
           } catch (err) {
             showErrorAlert(err);

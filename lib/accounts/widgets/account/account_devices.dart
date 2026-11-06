@@ -18,6 +18,7 @@ import 'package:latlong2/latlong.dart' as latlong;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 part 'account_devices.g.dart';
@@ -356,7 +357,11 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final stargateApi = ref.read(solarNetworkClientProvider).stargate;
-        await stargateApi.revokeSession(sessionId);
+        await withSudoRetry(
+          context,
+          ref,
+          () => stargateApi.revokeSession(sessionId),
+        );
         // Invalidate providers to refresh data
         ref.invalidate(authDevicesProvider);
         ref.invalidate(authSessionsProvider);
@@ -377,7 +382,11 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final stargateApi = ref.read(solarNetworkClientProvider).stargate;
-        await stargateApi.revokeDevice(device.deviceId);
+        await withSudoRetry(
+          context,
+          ref,
+          () => stargateApi.revokeDevice(device.deviceId),
+        );
         ref.invalidate(authDevicesProvider);
         if (context.mounted) {
           Navigator.pop(context);
@@ -1408,7 +1417,11 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final stargateApi = ref.read(solarNetworkClientProvider).stargate;
-        await stargateApi.revokeDevice(deviceId);
+        await withSudoRetry(
+          context,
+          ref,
+          () => stargateApi.revokeDevice(deviceId),
+        );
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -1424,7 +1437,11 @@ class AccountSessionSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         final stargateApi = ref.read(solarNetworkClientProvider).stargate;
-        await stargateApi.revokeSession(sessionId);
+        await withSudoRetry(
+          context,
+          ref,
+          () => stargateApi.revokeSession(sessionId),
+        );
         // Invalidate all session-related providers
         ref.invalidate(authSessionsProvider);
         ref.invalidate(authDevicesProvider);
@@ -1643,7 +1660,12 @@ class _DevicesTabState extends State<_DevicesTab> {
                 final stargateApi = widget.ref
                     .read(solarNetworkClientProvider)
                     .stargate;
-                await stargateApi.revokeDevice(device.deviceId);
+                await withSudoRetry(
+                  context,
+                  widget.ref,
+                  () => stargateApi.revokeDevice(device.deviceId),
+                  onBeforePrompt: () => hideLoadingModal(context),
+                );
                 widget.ref.invalidate(authDevicesProvider);
               } catch (err) {
                 showErrorAlert(err);

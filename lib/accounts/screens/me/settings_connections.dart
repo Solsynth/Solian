@@ -17,6 +17,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 // Helper function to get provider icon and localized name
 Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
@@ -91,7 +92,12 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.delete('/stargate/connections/${connection.id}');
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.delete('/stargate/connections/${connection.id}'),
+          onBeforePrompt: () => hideLoadingModal(context),
+        );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -104,9 +110,14 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post(
-          '/stargate/connections/${connection.id}/visibility',
-          data: {'is_public': true},
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.post(
+            '/stargate/connections/${connection.id}/visibility',
+            data: {'is_public': true},
+          ),
+          onBeforePrompt: () => hideLoadingModal(context),
         );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
@@ -120,9 +131,14 @@ class AccountConnectionSheet extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post(
-          '/stargate/connections/${connection.id}/visibility',
-          data: {'is_public': false},
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.post(
+            '/stargate/connections/${connection.id}/visibility',
+            data: {'is_public': false},
+          ),
+          onBeforePrompt: () => hideLoadingModal(context),
         );
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
@@ -248,14 +264,20 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
               ),
             );
 
-            if (context.mounted) showLoadingModal(context);
+            if (!context.mounted) return;
+            showLoadingModal(context);
 
-            await client.post(
-              '/stargate/auth/connect/apple/mobile',
-              data: {
-                'identity_token': credential.identityToken!,
-                'authorization_code': credential.authorizationCode,
-              },
+            await withSudoRetry(
+              context,
+              ref,
+              () => client.post(
+                '/stargate/auth/connect/apple/mobile',
+                data: {
+                  'identity_token': credential.identityToken!,
+                  'authorization_code': credential.authorizationCode,
+                },
+              ),
+              onBeforePrompt: () => hideLoadingModal(context),
             );
             if (context.mounted) {
               showSnackBar('accountConnectionAddSuccess'.tr());
@@ -388,8 +410,12 @@ class AccountConnectionsSheet extends HookConsumerWidget {
                         if (confirm && context.mounted) {
                           try {
                             final client = ref.read(apiClientProvider);
-                            await client.delete(
-                              '/stargate/connections/${connection.id}',
+                            await withSudoRetry(
+                              context,
+                              ref,
+                              () => client.delete(
+                                '/stargate/connections/${connection.id}',
+                              ),
                             );
                             ref.invalidate(accountConnectionsProvider);
                             return true;
