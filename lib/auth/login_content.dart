@@ -71,18 +71,23 @@ bool get _supportsPhysicalPassportLogin {
 
 /// Drops factors that cannot / should not be completed via the factor picker.
 ///
-/// Stargate now starts a password login with the password factor alone and
+/// Stargate starts a password login with the password factor alone and
 /// returns the remaining factors only after it is verified. This client reads
-/// the list again after every step, so a passkey may settle a later step and
-/// is no longer excluded here.
+/// the list again after every step, so TOTP, NFC and email appear on later
+/// steps.
 ///
 /// - In-app notification (2): replaced by the push + poll cross-device
 ///   approval flow, so it is no longer offered as a selectable factor.
 /// - Physical passport (6): NFC only on mobile.
+/// - Passkey (7): a one-tap sign-in capability with its own dedicated
+///   endpoint, never a challenge step.
 List<SnAuthFactor> _filterLoginFactors(Iterable<SnAuthFactor> factors) {
   return factors.where((factor) {
     if (factor.type == 2) {
       return false; // in-app notification — replaced by push + poll approval
+    }
+    if (factor.type == 7) {
+      return false; // passkey — dedicated one-tap endpoint, not a step
     }
     if (factor.type == 6) {
       return _supportsPhysicalPassportLogin;
@@ -551,15 +556,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
                 color: scheme.primary,
               ),
               title: Text(kFactorTypes[factor!.type]?.$1 ?? 'unknown').tr(),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
-                  const Gap(6),
-                  AuthFactorTrustChip(trustworthy: factor!.trustworthy),
-                ],
-              ),
-              isThreeLine: true,
+              subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
             ),
           ],
         ),
