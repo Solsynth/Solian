@@ -164,13 +164,16 @@ class _SyncAdapter implements HttpClientAdapter {
   }
 }
 
+/// A message from another member of the room. The signed-in member is
+/// `member-1`, and the server excludes a member's own rows from unread, so the
+/// sender must be a peer for the unread assertions to mean anything.
 SnChatMessage _message(String id, DateTime at) => SnChatMessage(
   createdAt: at,
   updatedAt: at,
   id: id,
   content: 'hello from $id',
-  senderId: 'member-1',
-  sender: _member(at),
+  senderId: 'member-2',
+  sender: _member(at).copyWith(id: 'member-2'),
   chatRoomId: 'room-1',
 );
 

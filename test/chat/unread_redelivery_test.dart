@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -45,6 +46,31 @@ class _UnreadAdapter implements HttpClientAdapter {
     Future<void>? _,
   ) async => ResponseBody.fromString(
     body,
+    200,
+    headers: {
+      Headers.contentTypeHeader: ['application/json'],
+    },
+  );
+}
+
+/// Serves a room summary with nothing unread, for the per-room tile state.
+class _SummaryAdapter implements HttpClientAdapter {
+  _SummaryAdapter(this.roomId);
+
+  final String roomId;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions _,
+    Stream<Uint8List>? _,
+    Future<void>? _,
+  ) async => ResponseBody.fromString(
+    jsonEncode({
+      roomId: {'unread_count': 0, 'has_unread': false, 'last_message': null},
+    }),
     200,
     headers: {
       Headers.contentTypeHeader: ['application/json'],
@@ -361,6 +387,153 @@ void main() {
 
       await _settle(
         () => _unread(container.read(chatUnreadCountProvider)) == 1,
+      );
+    });
+  });
+
+  group('ChatSummary room notify level', () {
+    late ProviderContainer container;
+    late _FakeWebSocketService ws;
+    late AppDatabase database;
+    late ProviderSubscription<AsyncValue<Map<String, SnChatSummary>>> sub;
+
+    /// Starts the summary signed in with [member] stored, so the frame's room
+    /// resolves to a notify level.
+    Future<void> pump(SnChatMember member) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      ws = _FakeWebSocketService();
+      database = AppDatabase.web();
+      container = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          tokenProvider.overrideWithValue(null),
+          websocketProvider.overrideWithValue(ws),
+          userInfoProvider.overrideWith(
+            () => _SignedInUserInfo(_selfAccount),
+          ),
+          currentSubscribedChatIdProvider.overrideWith(
+            _NoSubscribedRoomNotifier.new,
+          ),
+          apiClientProvider.overrideWithValue(
+            Dio()..httpClientAdapter = _SummaryAdapter('room-1'),
+          ),
+        ],
+      );
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+      await database.saveMember(member);
+      sub = container.listen(
+        chatSummaryProvider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(sub.close);
+      await container.read(chatSummaryProvider.future);
+    }
+
+    SnChatSummary? summary() =>
+        container.read(chatSummaryProvider).value?['room-1'];
+
+    Future<void> pushFrame(Map<String, dynamic> frame) async {
+      ws.push(frame);
+      await pumpEventQueue();
+    }
+
+    test('a mentions-only room counts only its mentions', () async {
+      await pump(_selfMember('room-1', notify: 1));
+
+      await pushFrame(_newMessageFrame('m1', 'room-1'));
+      expect(summary()?.unreadCount, 0);
+      expect(
+        summary()?.hasUnread,
+        isTrue,
+        reason: 'plain chatter still leaves the room unread',
+      );
+
+      await pushFrame(
+        _newMessageFrame('m2', 'room-1', mentions: const ['account-1']),
+      );
+      expect(summary()?.unreadCount, 1, reason: 'only the mention counts');
+      expect(summary()?.hasUnread, isTrue);
+    });
+
+    test('a muted room counts nothing but is still marked unread', () async {
+      await pump(_selfMember('room-1', notify: 2));
+
+      await pushFrame(
+        _newMessageFrame('m1', 'room-1', mentions: const ['account-1']),
+      );
+
+      expect(summary()?.unreadCount, 0);
+      // The server computes `has_unread` before it applies the notify level, so
+      // a muted room still carries the dot. Mirroring that keeps the tile from
+      // flipping when the next rooms sync replaces this summary.
+      expect(summary()?.hasUnread, isTrue);
+    });
+
+    test('an all-messages room counts every message', () async {
+      await pump(_selfMember('room-1', notify: 0));
+
+      await pushFrame(_newMessageFrame('m1', 'room-1'));
+      await pushFrame(_newMessageFrame('m2', 'room-1'));
+
+      expect(summary()?.unreadCount, 2);
+      expect(summary()?.hasUnread, isTrue);
+    });
+
+    test('a mutation envelope neither counts nor replaces the preview',
+        () async {
+      await pump(_selfMember('room-1', notify: 0));
+
+      await pushFrame(_newMessageFrame('m1', 'room-1'));
+      expect(summary()?.lastMessage?.id, 'm1');
+
+      final edit = _newMessageFrame('e1', 'room-1');
+      final data = Map<String, dynamic>.from(edit['data'] as Map);
+      data['type'] = 'messages.update';
+      data['meta'] = {'message_id': 'm1'};
+      await pushFrame({'type': 'messages.new', 'data': data});
+
+      expect(
+        summary()?.unreadCount,
+        1,
+        reason: 'an edit event is not a new message',
+      );
+      expect(
+        summary()?.lastMessage?.id,
+        'm1',
+        reason: 'the edit only refreshes the preview of m1',
+      );
+    });
+
+    test('a re-delivered frame counts once', () async {
+      await pump(_selfMember('room-1', notify: 0));
+
+      await pushFrame(_newMessageFrame('m1', 'room-1'));
+      await pushFrame(_newMessageFrame('m1', 'room-1'));
+
+      expect(summary()?.unreadCount, 1);
+    });
+
+    test('the open room never raises its own unread state', () async {
+      await pump(_selfMember('room-1', notify: 0));
+      container
+          .read(currentSubscribedChatIdProvider.notifier)
+          .set('room-1');
+
+      await pushFrame(_newMessageFrame('m1', 'room-1'));
+
+      expect(summary()?.unreadCount, 0);
+      expect(summary()?.hasUnread, isFalse);
+      expect(
+        summary()?.lastMessage?.id,
+        'm1',
+        reason: 'the preview still follows the open room',
       );
     });
   });

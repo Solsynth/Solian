@@ -9,6 +9,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/chat/pods/chat_outbox.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/chat/pods/chat_room_state.dart";
+import "package:island/chat/pods/chat_summary.dart";
 import "package:island/chat/data/message_cache.dart";
 import "package:island/chat/data/message_member_directory.dart";
 import "package:island/chat/data/message_repository.dart";
@@ -1769,6 +1770,14 @@ class MessagesNotifier extends _$MessagesNotifier
         .read(referencedChatMessageCacheProvider(roomId).notifier)
         .put(messageWithSequence, messageId: messageWithSequence.id);
     _observeRoomSequence(roomSequence, message.createdAt);
+    // The room list renders preview and unread state from the summary, and
+    // only its notify-aware fold decides whether this message raises the
+    // counter or just marks the room unread. Reporting here also covers rows
+    // recovered by the REST sequence sync, which never reach the socket
+    // listener that otherwise drives the summary.
+    ref
+        .read(chatSummaryProvider.notifier)
+        .updateLastMessage(roomId, messageWithSequence.toRemoteMessage());
     _upsertReceivedMessageInState(messageWithSequence);
   }
 

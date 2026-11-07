@@ -16,17 +16,81 @@ part 'chat_summary.g.dart';
 /// per-room summary and the global badge go through this so they never
 /// disagree: a mentions-only room contributes only its mentions, and a muted
 /// room contributes nothing.
+///
+/// A missing member row means the setting is unknown (the room has not been
+/// synced yet). Counting then would raise the badge for plain chatter in a
+/// mentions-only room, so the count stays at zero until the row lands; the room
+/// is still marked unread, which the tile shows either way.
 bool _countsForNotification({
   required String? accountId,
   required SnChatMember? member,
   required SnChatMessage message,
 }) {
-  if (accountId == null || member == null) return true;
+  if (accountId == null) return true;
+  if (member == null) return false;
   return switch (member.notify) {
     0 => true,
     1 => message.membersMentioned.contains(accountId),
     _ => false,
   };
+}
+
+/// Whether [message] is a real arrival for unread purposes.
+///
+/// Mirrors the server's own unread query: it skips upload placeholders and
+/// `messages.*` mutation rows (edits, attachment and link previews). The one
+/// exception is `messages.sync.finalize`, which is how a placeholder turns into
+/// the real message the server then counts as unread. `messages.new` carries
+/// all of these on one envelope, so the envelope alone cannot decide this.
+bool _affectsUnreadState(SnChatMessage message) {
+  if (message.type == 'placeholder') return false;
+  if (message.type == 'messages.sync.finalize') return true;
+  return !message.type.startsWith('messages.');
+}
+
+/// Whether this is the signed-in member's own message.
+///
+/// Mirrors the server's unread query, which excludes rows with `sender_id`
+/// equal to the account's member row in that room.
+bool _isOwnMessage(SnChatMessage message, SnChatMember? member) =>
+    member != null && message.senderId == member.id;
+
+/// The id this arrival stands for, for dedupe and preview purposes.
+///
+/// A placeholder finalize is a shadow row: its own id is fresh, and
+/// `meta['message_id']` names the message it completes. Counting the shadow id
+/// would let the completed row count a second time.
+String _arrivalMessageId(SnChatMessage message) {
+  if (message.type == 'messages.sync.finalize') {
+    final target = message.meta['message_id']?.toString();
+    if (target != null && target.isNotEmpty) return target;
+  }
+  return message.id;
+}
+
+/// How [message] moves the signed-in account's room summary.
+///
+/// Any real message from someone else leaves the room unread, but only a
+/// message the room's notify level lets through raises the count: a
+/// mentions-only room counts just its mentions (plain chatter only sets
+/// `has_unread`), and a muted room never counts. This mirrors the server's own
+/// unread query, which computes `has_unread` independently of the notify level.
+({bool count, bool unread}) _unreadEffect(
+  SnChatMessage message, {
+  required String? accountId,
+  required SnChatMember? member,
+}) {
+  const quiet = (count: false, unread: false);
+  if (!_affectsUnreadState(message)) return quiet;
+  if (_isOwnMessage(message, member)) return quiet;
+  return (
+    count: _countsForNotification(
+      accountId: accountId,
+      member: member,
+      message: message,
+    ),
+    unread: true,
+  );
 }
 
 @riverpod
@@ -59,15 +123,17 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
   void _subscribeToWebSocket() {
     final webSocketService = ref.read(websocketProvider);
     _subscription = webSocketService.dataStream.listen((packet) {
-      if (packet.type == 'messages.new' && packet.data != null) {
+      final isArrivalPacket =
+          packet.type == 'messages.new' || packet.type == 'messages.update';
+      if (isArrivalPacket && packet.data != null) {
         final message = SnChatMessage.fromJson(packet.data!);
-        // Upload/streaming placeholders are not messages for unread purposes.
-        // The subsequent messages.sync.finalize delivery carries the single
-        // unread increment for the completed message.
-        if (message.type == 'placeholder') return;
+        // Placeholders and `messages.*` mutation rows share these envelopes but
+        // are not arrivals. A placeholder finalize is one, and it is how the
+        // completed message arrives when the placeholder streamed first.
+        if (!_affectsUnreadState(message)) return;
         // A re-delivered frame must not count twice; the total is reconciled
         // from the server on room open and by applySyncedSummaries.
-        if (!_countedMessageIds.add(message.id)) return;
+        if (!_countedMessageIds.add(_arrivalMessageId(message))) return;
         final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
         // Only increment if the message is not from the currently subscribed chat
         if (message.chatRoomId == currentSubscribed) return;
@@ -76,10 +142,10 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
     });
   }
 
-  /// Raises the badge for [message] only when the room's notify level lets it
-  /// through: a mentions-only room contributes just its mentions, and a muted
-  /// room contributes nothing. Without this the badge would disagree with the
-  /// per-room summary, which already applies the same setting.
+  /// Raises the badge for [message] only when the message is a real,
+  /// notifiable arrival: mutation envelopes and placeholders stream on the same
+  /// `messages.new` envelope but never appear in the server's unread queries,
+  /// and a mentions-only room contributes just its mentions.
   Future<void> _countIfNotifiable(SnChatMessage message) async {
     // The notify setting lives on the member row, which is keyed by account.
     // Resolve the signed-in account first: reading it mid-load would see no
@@ -92,11 +158,11 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
               .read(databaseProvider)
               .getMemberByRoomAndAccount(message.chatRoomId, accountId);
     if (!ref.mounted) return;
-    if (!_countsForNotification(
+    if (!_unreadEffect(
+      message,
       accountId: accountId,
       member: member,
-      message: message,
-    )) {
+    ).count) {
       return;
     }
     await _incrementCounter();
@@ -195,12 +261,15 @@ class ChatSummary extends _$ChatSummary {
       if (!pkt.type.startsWith('messages')) return;
       if (pkt.type == 'messages.new') {
         final message = _tryParseChatMessage(pkt.data);
-        if (message == null || message.type == 'placeholder') return;
+        if (message == null) return;
         updateLastMessage(message.chatRoomId, message);
       } else if (pkt.type == 'messages.update') {
         final message = _tryParseChatMessage(pkt.data);
+        // `messages.update` is also how a placeholder finalize (a real arrival)
+        // is delivered, so the packet type alone must not decide whether the
+        // summary folds this; updateLastMessage classifies the payload type.
         if (message == null) return;
-        updateMessageContent(message.chatRoomId, message);
+        updateLastMessage(message.chatRoomId, message);
       }
     });
 
@@ -283,40 +352,81 @@ class ChatSummary extends _$ChatSummary {
     });
   }
 
-  Future<bool> _shouldCountMessage(String chatId, SnChatMessage message) async {
-    final accountId = ref.read(userInfoProvider).value?.id;
+
+  /// Folds an incoming [message] into [chatId]'s summary.
+  ///
+  /// Both the room-scoped message notifier and the socket listener report
+  /// arrivals. The id claim in [_summarizedMessageIds] makes whichever arrives
+  /// first the only one that moves the summary, so the counter can never take
+  /// the same message twice.
+  void updateLastMessage(String chatId, SnChatMessage message) {
+    // Upload placeholders are not messages: they must never become the room
+    // preview, and they must not claim the id their finalize arrives under.
+    if (message.type == 'placeholder') return;
+    // At-least-once delivery replays a frame until it is acked, so the same
+    // message must only move the summary once. A finalize stands for the
+    // placeholder it completes, so it is claimed under that message's id.
+    if (!_summarizedMessageIds.add(_arrivalMessageId(message))) return;
+    // Mutation envelopes arrive on `messages.new` with `messages.*` payloads.
+    // Only an edit changes the preview, and only as the content of the message
+    // it edits; a finalize instead upgrades the placeholder preview below, and
+    // every other mutation row here is not an arrival at all.
+    if (message.type.startsWith('messages.') &&
+        message.type != 'messages.sync.finalize') {
+      if (message.type == 'messages.update') {
+        final targetId = message.meta['message_id']?.toString();
+        updateMessageContent(
+          chatId,
+          targetId == null ? message : message.copyWith(id: targetId),
+        );
+      }
+      return;
+    }
+    // The finalize shadow carries the completed content of the placeholder it
+    // replaced, which the timeline renders as a regular message row.
+    final arrival = message.type == 'messages.sync.finalize'
+        ? message.copyWith(id: _arrivalMessageId(message), type: 'text')
+        : message;
+    unawaited(_foldIncomingMessage(chatId, arrival));
+  }
+
+  Future<void> _foldIncomingMessage(
+    String chatId,
+    SnChatMessage message,
+  ) async {
+    final accountId = (await ref.read(userInfoProvider.future))?.id;
+    if (!ref.mounted) return;
     final member = accountId == null
         ? null
         : await ref
               .read(databaseProvider)
               .getMemberByRoomAndAccount(chatId, accountId);
-    return _countsForNotification(
+    if (!ref.mounted) return;
+
+    final effect = _unreadEffect(
+      message,
       accountId: accountId,
       member: member,
-      message: message,
     );
-  }
+    final isOpen = chatId == ref.read(currentSubscribedChatIdProvider);
+    final raisesUnread = !isOpen && effect.unread;
+    final counts = !isOpen && effect.count;
 
-  void updateLastMessage(String chatId, SnChatMessage message) {
-    // At-least-once delivery replays a frame until it is acked, so the same
-    // message must only move the summary once.
-    if (!_summarizedMessageIds.add(message.id)) return;
-    _shouldCountMessage(chatId, message).then((shouldCount) {
-      state.whenData((summaries) {
-        final summary = summaries[chatId];
-        if (summary != null) {
-          final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
-          final isUnread = chatId != currentSubscribed;
-          final increment = isUnread && shouldCount ? 1 : 0;
-          state = AsyncData({
-            ...summaries,
-            chatId: SnChatSummary(
-              unreadCount: summary.unreadCount + increment,
-              hasUnread: summary.hasUnread || isUnread,
-              lastMessage: message,
-            ),
-          });
-        }
+    state.whenData((summaries) {
+      final summary = summaries[chatId];
+      if (summary == null) return;
+      final existing = summary.lastMessage;
+      // A replayed older row still arrived, so it still counts; only the
+      // preview must never move backwards.
+      final movesPreview =
+          existing == null || !message.createdAt.isBefore(existing.createdAt);
+      state = AsyncData({
+        ...summaries,
+        chatId: SnChatSummary(
+          unreadCount: summary.unreadCount + (counts ? 1 : 0),
+          hasUnread: summary.hasUnread || raisesUnread,
+          lastMessage: movesPreview ? message : existing,
+        ),
       });
     });
   }
@@ -344,22 +454,6 @@ class ChatSummary extends _$ChatSummary {
           lastMessage: message,
         ),
       });
-    });
-  }
-
-  void incrementUnreadCount(String chatId) {
-    state.whenData((summaries) {
-      final summary = summaries[chatId];
-      if (summary != null) {
-        state = AsyncData({
-          ...summaries,
-          chatId: SnChatSummary(
-            unreadCount: summary.unreadCount + 1,
-            hasUnread: true,
-            lastMessage: summary.lastMessage,
-          ),
-        });
-      }
     });
   }
 
@@ -404,6 +498,7 @@ class ChatSummary extends _$ChatSummary {
       }
 
       var unread = 0;
+      var hasUnread = false;
       if (chatId != currentSubscribed) {
         // One member read per room: it carries both the notify setting and the
         // read marker.
@@ -426,19 +521,19 @@ class ChatSummary extends _$ChatSummary {
               !newMessage.createdAt.toUtc().isAfter(lastReadAt)) {
             continue;
           }
-          if (_countsForNotification(
+          final effect = _unreadEffect(
+            newMessage,
             accountId: accountId,
             member: member,
-            message: newMessage,
-          )) {
-            unread += 1;
-          }
+          );
+          if (effect.count) unread += 1;
+          if (effect.unread) hasUnread = true;
         }
       }
 
       next[chatId] = SnChatSummary(
         unreadCount: summary.unreadCount + unread,
-        hasUnread: summary.hasUnread || unread > 0,
+        hasUnread: summary.hasUnread || hasUnread,
         lastMessage: message,
       );
       changed = true;
