@@ -3820,6 +3820,7 @@
   "ticketTitleHint": "输入工单标题",
   "ticketType": "工单类型",
   "tickets": "工单",
+  "ticketsWebPortalDescription": "在 Solar Network 网页门户中查看和管理您的工单。",
   "ticketsDescription": "当您遇到平台问题时寻求帮助。",
   "timeDaysAgo": "{} 天前",
   "timeHoursAgo": "{} 小时前",

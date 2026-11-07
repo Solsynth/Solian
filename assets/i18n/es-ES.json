@@ -3754,6 +3754,7 @@
   "ticketTitleHint": "Enter ticket title",
   "ticketType": "Ticket Type",
   "tickets": "Tickets",
+  "ticketsWebPortalDescription": "Accede y gestiona tus tickets de soporte en el portal web de Solar Network.",
   "ticketsDescription": "Ask for help when you enconutered some issue with the platform.",
   "timeDaysAgo": "{} days ago",
   "timeHoursAgo": "{} hours ago",

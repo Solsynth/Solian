@@ -154,10 +154,6 @@ class AppRouter extends RootStackRouter {
               page: PhysicalPassportRoute.page,
               path: 'me/physical-passports',
             ),
-            // Ticket routes
-            AutoRoute(page: TicketListRoute.page, path: 'tickets'),
-            AutoRoute(page: TicketDetailRoute.page, path: 'tickets/:ticketId'),
-
             AutoRoute(page: PunishmentsRoute.page, path: 'me/punishments'),
             AutoRoute(page: AffiliationRoute.page, path: 'me/affiliations'),
             AutoRoute(

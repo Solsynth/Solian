@@ -3755,6 +3755,7 @@
   "ticketTitleHint": "Enter ticket title",
   "ticketType": "Ticket Type",
   "tickets": "Tickets",
+  "ticketsWebPortalDescription": "Solar Network の Web ポータルでサポートチケットを確認・管理できます。",
   "ticketsDescription": "Ask for help when you enconutered some issue with the platform.",
   "timeDaysAgo": "{} days ago",
   "timeHoursAgo": "{} hours ago",

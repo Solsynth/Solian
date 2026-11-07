@@ -3585,6 +3585,7 @@
   "ticketTitleHint": "輸入工單標題",
   "ticketType": "工單型別",
   "tickets": "工單",
+  "ticketsWebPortalDescription": "在 Solar Network 網頁入口查看與管理您的工單。",
   "timeDaysAgo": "{} 天前",
   "timeHoursAgo": "{} 小時前",
   "timeJustNow": "剛剛",

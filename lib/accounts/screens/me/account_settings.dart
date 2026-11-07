@@ -17,6 +17,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:island/accounts/widgets/account/account_devices.dart';
 import 'package:island/accounts/widgets/account/account_authorized_apps.dart';
 import 'package:island/accounts/widgets/name_change_card_sheet.dart';
@@ -920,6 +921,18 @@ class AccountSettingsScreen extends HookConsumerWidget {
             context.router.push(const AffiliationRoute());
           },
         ),
+      ListTile(
+        minLeadingWidth: 44,
+        leading: _buildLeadingIcon(context, Symbols.report),
+        title: Text('tickets').tr(),
+        subtitle: Text('ticketsWebPortalDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        trailing: const Icon(Symbols.open_in_new),
+        onTap: () => launchUrlString(
+          'https://id.solian.app',
+          mode: LaunchMode.externalApplication,
+        ),
+      ),
     ];
 
     final dangerZoneSettings = [
