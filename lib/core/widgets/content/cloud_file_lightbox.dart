@@ -233,9 +233,9 @@ class CloudFileLightbox extends HookConsumerWidget {
 
     return DismissiblePage(
       isFullScreen: true,
-      backgroundColor: Colors.black,
+      background: const DismissiblePageBackground.solid(Colors.black),
       direction: DismissiblePageDismissDirection.down,
-      disabled: isZoomed.value,
+      enabled: !isZoomed.value,
       onDismissed: () => Navigator.of(context).pop(),
       child: KeyedSubtree(
         key: contentKey,

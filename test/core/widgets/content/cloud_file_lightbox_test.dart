@@ -130,7 +130,7 @@ void main() {
         MaterialApp(
           home: _ToggleHost(
             enabledBuilder: (enabled) => DismissiblePage(
-              disabled: enabled,
+              enabled: !enabled,
               onDismissed: () {},
               child: child(),
             ),

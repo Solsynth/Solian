@@ -201,7 +201,7 @@ const _consoleScrollPadding = EdgeInsets.only(
 /// centres it: all four console tabs feel narrow and focused on a wide display
 /// while still filling the screen on a phone.
 class _ConsoleBody extends StatelessWidget {
-  const _ConsoleBody({required this.children, super.key});
+  const _ConsoleBody({required this.children});
 
   final List<Widget> children;
 
